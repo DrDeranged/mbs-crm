@@ -1,16 +1,267 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers, useImportLeads } from "@workspace/api-client-react";
+import {
+  useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers,
+  useImportLeads, usePreviewImport,
+  useGetMe,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, Filter, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+
+const LEAD_FIELDS = [
+  { value: "__skip__", label: "— skip —" },
+  { value: "first_name", label: "First Name" },
+  { value: "last_name", label: "Last Name" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+  { value: "company_name", label: "Company Name" },
+  { value: "ein", label: "EIN / Tax ID" },
+  { value: "application_type", label: "Financing Type" },
+  { value: "lead_source", label: "Lead Source" },
+  { value: "industry", label: "Industry" },
+  { value: "state", label: "State" },
+];
+
+const AUTO_MAP: Record<string, string> = {
+  first_name: "first_name", firstname: "first_name", "first name": "first_name",
+  last_name: "last_name", lastname: "last_name", "last name": "last_name",
+  email: "email",
+  phone: "phone", phone_number: "phone", "phone number": "phone",
+  company_name: "company_name", company: "company_name", "business name": "company_name",
+  ein: "ein", tax_id: "ein",
+  application_type: "application_type", "financing type": "application_type",
+  lead_source: "lead_source", source: "lead_source",
+  industry: "industry",
+  state: "state",
+};
+
+type ImportStep = "idle" | "upload" | "preview" | "mapping" | "confirm" | "results";
+
+interface ImportResults { imported: number; skipped: number; duplicates: { row: number; reason: string }[] }
+
+function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const { toast } = useToast();
+  const [step, setStep] = useState<ImportStep>("upload");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<{ headers: string[]; previewRows: Record<string, string>[]; totalRows: number } | null>(null);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [results, setResults] = useState<ImportResults | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const previewMutation = usePreviewImport();
+  const importMutation = useImportLeads();
+
+  const resetDialog = () => {
+    setStep("upload");
+    setSelectedFile(null);
+    setPreview(null);
+    setMapping({});
+    setResults(null);
+  };
+
+  const handleClose = () => { resetDialog(); onClose(); };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setStep("preview");
+    previewMutation.mutate(
+      { data: { file } },
+      {
+        onSuccess: (data) => {
+          setPreview(data);
+          const autoMapping: Record<string, string> = {};
+          data.headers.forEach((h) => {
+            const key = h.toLowerCase().replace(/\s+/g, "_");
+            autoMapping[h] = AUTO_MAP[key] || AUTO_MAP[h.toLowerCase()] || "__skip__";
+          });
+          setMapping(autoMapping);
+          setStep("mapping");
+        },
+        onError: () => {
+          toast({ title: "Parse Error", description: "Could not read file. Ensure it is a valid CSV or XLSX.", variant: "destructive" });
+          setStep("upload");
+          setSelectedFile(null);
+        },
+      },
+    );
+  };
+
+  const handleConfirm = () => setStep("confirm");
+
+  const handleImport = () => {
+    if (!selectedFile) return;
+    const columnMapping: Record<string, string> = {};
+    Object.entries(mapping).forEach(([fileCol, leadField]) => {
+      if (leadField && leadField !== "__skip__") columnMapping[fileCol] = leadField;
+    });
+    importMutation.mutate(
+      { data: { file: selectedFile, columnMapping: JSON.stringify(columnMapping) } },
+      {
+        onSuccess: (data) => {
+          setResults(data as unknown as ImportResults);
+          setStep("results");
+          onSuccess();
+        },
+        onError: () => toast({ title: "Import Failed", description: "Could not import leads.", variant: "destructive" }),
+      },
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Import Leads</DialogTitle>
+          <DialogDescription>
+            {step === "upload" && "Upload a CSV or Excel (.xlsx) file with your lead data."}
+            {step === "preview" && "Reading file…"}
+            {step === "mapping" && "Map your file columns to lead fields."}
+            {step === "confirm" && `Ready to import ${preview?.totalRows ?? 0} rows.`}
+            {step === "results" && "Import complete."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Step indicator */}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+          {(["upload", "mapping", "confirm", "results"] as ImportStep[]).map((s, i) => (
+            <span key={s} className="flex items-center gap-1">
+              {i > 0 && <ChevronRight className="h-3 w-3" />}
+              <span className={step === s ? "text-[#1F4E79] font-semibold" : ""}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+            </span>
+          ))}
+        </div>
+
+        {/* Upload step */}
+        {(step === "upload" || step === "preview") && (
+          <div className="space-y-4">
+            <div
+              className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:border-[#1F4E79] transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium text-sm">Click to select a CSV or Excel file</p>
+              <p className="text-xs text-muted-foreground mt-1">Supported: .csv, .xlsx, .xls — max 20 MB</p>
+              {selectedFile && <p className="mt-2 text-sm font-medium text-[#1F4E79]">{selectedFile.name}</p>}
+            </div>
+            <input ref={fileInputRef} type="file" className="hidden" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} />
+            {step === "preview" && previewMutation.isPending && (
+              <p className="text-center text-sm text-muted-foreground animate-pulse">Parsing file…</p>
+            )}
+          </div>
+        )}
+
+        {/* Mapping step */}
+        {step === "mapping" && preview && (
+          <div className="space-y-4 max-h-[50vh] overflow-auto">
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[45%]">File Column</TableHead>
+                    <TableHead>Maps To</TableHead>
+                    <TableHead className="text-right text-xs">Sample</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {preview.headers.map((h) => (
+                    <TableRow key={h}>
+                      <TableCell className="font-mono text-xs">{h}</TableCell>
+                      <TableCell>
+                        <Select value={mapping[h] ?? "__skip__"} onValueChange={(v) => setMapping((m) => ({ ...m, [h]: v }))}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {LEAD_FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground truncate max-w-[100px]">
+                        {preview.previewRows[0]?.[h] ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-xs text-muted-foreground">File contains {preview.totalRows} data rows. First 5 shown as samples.</p>
+            <div className="rounded-md border overflow-auto max-h-36">
+              <Table>
+                <TableHeader><TableRow>{preview.headers.map((h) => <TableHead key={h} className="text-xs py-1">{h}</TableHead>)}</TableRow></TableHeader>
+                <TableBody>
+                  {preview.previewRows.map((row, i) => (
+                    <TableRow key={i}>{preview.headers.map((h) => <TableCell key={h} className="text-xs py-1">{row[h] ?? ""}</TableCell>)}</TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => { setStep("upload"); setSelectedFile(null); setPreview(null); }}>Back</Button>
+              <Button onClick={handleConfirm} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">Continue</Button>
+            </div>
+          </div>
+        )}
+
+        {/* Confirm step */}
+        {step === "confirm" && preview && (
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4 bg-gray-50 space-y-2">
+              <p className="text-sm font-medium">Ready to import {preview.totalRows} leads</p>
+              <p className="text-xs text-muted-foreground">Column mapping configured for {Object.values(mapping).filter((v) => v !== "__skip__").length} fields</p>
+              <p className="text-xs text-muted-foreground">Duplicate leads (by email, phone, or EIN) will be skipped automatically</p>
+            </div>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep("mapping")}>Back</Button>
+              <Button onClick={handleImport} disabled={importMutation.isPending} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                {importMutation.isPending ? "Importing…" : "Import Leads"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Results step */}
+        {step === "results" && results && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border p-4 text-center bg-green-50">
+                <Check className="h-6 w-6 text-green-600 mx-auto mb-1" />
+                <div className="text-2xl font-bold text-green-700">{results.imported}</div>
+                <div className="text-xs text-green-600">Leads imported</div>
+              </div>
+              <div className="rounded-lg border p-4 text-center bg-amber-50">
+                <AlertCircle className="h-6 w-6 text-amber-500 mx-auto mb-1" />
+                <div className="text-2xl font-bold text-amber-600">{results.skipped}</div>
+                <div className="text-xs text-amber-500">Rows skipped</div>
+              </div>
+            </div>
+            {results.duplicates.length > 0 && (
+              <div className="rounded-md border max-h-32 overflow-auto">
+                <Table>
+                  <TableHeader><TableRow><TableHead className="text-xs">Row</TableHead><TableHead className="text-xs">Reason</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {results.duplicates.map((d, i) => (
+                      <TableRow key={i}><TableCell className="text-xs">{d.row}</TableCell><TableCell className="text-xs">{d.reason}</TableCell></TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+            <Button className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white" onClick={handleClose}>Done</Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Leads() {
   const [search, setSearch] = useState("");
@@ -20,10 +271,12 @@ export default function Leads() {
   const [repId, setRepId] = useState<string>("");
   const [page, setPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<ListLeadsSortOrder>(ListLeadsSortOrder.desc);
+  const [importOpen, setImportOpen] = useState(false);
 
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: currentUser } = useGetMe();
+  const isManagerOrAdmin = currentUser?.role === "manager" || currentUser?.role === "admin";
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -49,52 +302,13 @@ export default function Leads() {
   });
 
   const { data: usersData } = useListUsers({ role: "rep" });
-  const importMutation = useImportLeads();
 
-  const handleStatusChange = (val: string) => {
-    setStatus(val === "all" ? "" : val);
-    setPage(1);
-  };
-
-  const handleAppTypeChange = (val: string) => {
-    setApplicationType(val === "all" ? "" : val);
-    setPage(1);
-  };
-
-  const handleRepChange = (val: string) => {
-    setRepId(val === "all" ? "" : val);
-    setPage(1);
-  };
+  const handleStatusChange = (val: string) => { setStatus(val === "all" ? "" : val); setPage(1); };
+  const handleAppTypeChange = (val: string) => { setApplicationType(val === "all" ? "" : val); setPage(1); };
+  const handleRepChange = (val: string) => { setRepId(val === "all" ? "" : val); setPage(1); };
 
   const formatStatus = (status: string) =>
     status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    importMutation.mutate(
-      { data: { file } },
-      {
-        onSuccess: (result) => {
-          toast({
-            title: "Import Complete",
-            description: `Imported ${result.imported} lead${result.imported !== 1 ? "s" : ""}${result.skipped ? `, ${result.skipped} skipped` : ""}.`,
-          });
-          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-        },
-        onError: () => {
-          toast({
-            title: "Import Error",
-            description: "Failed to import leads. Check your CSV format and try again.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-
-    if (e.target) e.target.value = "";
-  };
 
   return (
     <div className="flex-1 overflow-auto p-8">
@@ -104,21 +318,12 @@ export default function Leads() {
           <p className="text-muted-foreground mt-1">Manage and track your financing pipeline</p>
         </div>
         <div className="flex items-center gap-3">
-          <Input
-            type="file"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={handleImport}
-            accept=".csv"
-          />
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importMutation.isPending}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {importMutation.isPending ? "Importing…" : "Import CSV"}
-          </Button>
+          {isManagerOrAdmin && (
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+          )}
           <Link
             href="/leads/new"
             className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#163a5f]"
@@ -128,6 +333,11 @@ export default function Leads() {
           </Link>
         </div>
       </div>
+      <ImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() })}
+      />
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">

@@ -151,10 +151,25 @@ export const CreateLeadBody = zod.object({
 
 
 /**
- * @summary Bulk import leads from a CSV file
+ * @summary Upload a CSV or XLSX file and get back headers plus first 5 rows for mapping review
+ */
+export const PreviewImportBody = zod.object({
+  "file": zod.instanceof(File)
+})
+
+export const PreviewImportResponse = zod.object({
+  "headers": zod.array(zod.string()),
+  "previewRows": zod.array(zod.record(zod.string(), zod.string())),
+  "totalRows": zod.number()
+})
+
+
+/**
+ * @summary Bulk import leads from a CSV or XLSX file with optional column mapping
  */
 export const ImportLeadsBody = zod.object({
-  "file": zod.instanceof(File)
+  "file": zod.instanceof(File),
+  "columnMapping": zod.string().optional().describe('JSON-encoded object mapping file column names to lead field names')
 })
 
 export const ImportLeadsResponse = zod.object({

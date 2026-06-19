@@ -11,7 +11,8 @@ import {
   useListTasks, getListTasksQueryKey, useCreateTask, useUpdateTask,
   useListDocuments, getListDocumentsQueryKey,
   useUploadDocument, downloadDocument,
-  useListLeadActivity, getListLeadActivityQueryKey
+  useListLeadActivity, getListLeadActivityQueryKey,
+  useGetMe, useAssignLead, useListUsers,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +32,111 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "recharts";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+// Info Tab
+function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
+  const { data: currentUser } = useGetMe();
+  const { data: reps } = useListUsers({ role: "rep" });
+  const assignLead = useAssignLead();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
+
+  const handleAssign = (repIdStr: string) => {
+    const repId = repIdStr === "unassigned" ? null : Number(repIdStr);
+    assignLead.mutate(
+      { id: leadId, data: { repId: repId as number } },
+      {
+        onSuccess: () => {
+          toast({ title: "Lead Reassigned" });
+          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+        },
+        onError: () => toast({ title: "Error", description: "Could not reassign lead.", variant: "destructive" }),
+      },
+    );
+  };
+
+  const fields = [
+    { label: "First Name", value: lead.firstName },
+    { label: "Last Name", value: lead.lastName },
+    { label: "Email", value: lead.email ? <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a> : "—" },
+    { label: "Phone", value: lead.phone ? <a href={`tel:${lead.phone}`} className="text-blue-600 hover:underline">{lead.phone}</a> : "—" },
+    { label: "Company", value: lead.companyName || "—" },
+    { label: "EIN", value: lead.ein || "—" },
+    { label: "Financing Type", value: lead.applicationType?.replace(/_/g, " ") || "—" },
+    { label: "Lead Source", value: lead.leadSource || "—" },
+    { label: "Created", value: format(new Date(lead.createdAt), "MMM d, yyyy") },
+    { label: "Last Updated", value: format(new Date(lead.updatedAt), "MMM d, yyyy") },
+  ];
+
+  return (
+    <div className="mt-4 space-y-6">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 border-b">
+          <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact & Deal Details</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-5">
+            {fields.map((f) => (
+              <div key={f.label}>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{f.label}</dt>
+                <dd className="text-sm font-medium capitalize">{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 border-b">
+          <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Assignment</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Assigned Rep</div>
+              <div className="text-sm font-medium">
+                {lead.assignedRep ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+                      {lead.assignedRep.name?.charAt(0) || "U"}
+                    </div>
+                    {lead.assignedRep.name || lead.assignedRep.email}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Unassigned</span>
+                )}
+              </div>
+            </div>
+            {canAssign && reps && (
+              <div className="w-52">
+                <Select
+                  value={lead.assignedRepId ? String(lead.assignedRepId) : "unassigned"}
+                  onValueChange={handleAssign}
+                  disabled={assignLead.isPending}
+                >
+                  <SelectTrigger className="h-9 text-sm bg-white">
+                    <SelectValue placeholder="Assign to rep…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {reps.map((rep) => (
+                      <SelectItem key={rep.id} value={String(rep.id)}>
+                        {rep.name || rep.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // Notes Tab
 function LeadNotes({ leadId }: { leadId: number }) {
@@ -534,13 +640,17 @@ export default function LeadDetail() {
 
         {/* Right Column: Tabs */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border p-1 h-12">
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="grid w-full grid-cols-5 bg-white shadow-sm border p-1 h-12">
+              <TabsTrigger value="info" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-4 w-4"/> Info</TabsTrigger>
               <TabsTrigger value="notes" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileText className="h-4 w-4"/> Notes</TabsTrigger>
               <TabsTrigger value="tasks" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><CheckSquare className="h-4 w-4"/> Tasks</TabsTrigger>
               <TabsTrigger value="documents" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileIcon className="h-4 w-4"/> Documents</TabsTrigger>
               <TabsTrigger value="activity" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Clock className="h-4 w-4"/> Activity</TabsTrigger>
             </TabsList>
+            <TabsContent value="info" className="outline-none">
+              <LeadInfo lead={lead} leadId={id} />
+            </TabsContent>
             <TabsContent value="notes" className="outline-none">
               <LeadNotes leadId={id} />
             </TabsContent>

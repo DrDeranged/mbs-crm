@@ -28,6 +28,7 @@ import type {
   DuplicateResponse,
   HealthStatus,
   ImportLeadsBody,
+  ImportPreviewResult,
   ImportResult,
   Lead,
   LeadCaptureInput,
@@ -41,6 +42,7 @@ import type {
   MyTasksSummary,
   Note,
   NoteInput,
+  PreviewImportBody,
   RepDashboard,
   StatusChange,
   Task,
@@ -530,6 +532,79 @@ export const useCreateLead = <TError = ErrorType<DuplicateResponse>,
       return useMutation(getCreateLeadMutationOptions(options));
     }
 
+export const getPreviewImportUrl = () => {
+
+
+
+
+  return `/api/leads/import/preview`
+}
+
+/**
+ * @summary Upload a CSV or XLSX file and get back headers plus first 5 rows for mapping review
+ */
+export const previewImport = async (previewImportBody: PreviewImportBody, options?: RequestInit): Promise<ImportPreviewResult> => {
+    const formData = new FormData();
+formData.append(`file`, previewImportBody.file);
+
+  return customFetch<ImportPreviewResult>(getPreviewImportUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body:
+      formData,
+  }
+);}
+
+
+
+
+export const getPreviewImportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewImport>>, TError,{data: BodyType<PreviewImportBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewImport>>, TError,{data: BodyType<PreviewImportBody>}, TContext> => {
+
+const mutationKey = ['previewImport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewImport>>, {data: BodyType<PreviewImportBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewImport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewImportMutationResult = NonNullable<Awaited<ReturnType<typeof previewImport>>>
+    export type PreviewImportMutationBody = BodyType<PreviewImportBody>
+    export type PreviewImportMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a CSV or XLSX file and get back headers plus first 5 rows for mapping review
+ */
+export const usePreviewImport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewImport>>, TError,{data: BodyType<PreviewImportBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewImport>>,
+        TError,
+        {data: BodyType<PreviewImportBody>},
+        TContext
+      > => {
+      return useMutation(getPreviewImportMutationOptions(options));
+    }
+
 export const getImportLeadsUrl = () => {
 
 
@@ -539,11 +614,14 @@ export const getImportLeadsUrl = () => {
 }
 
 /**
- * @summary Bulk import leads from a CSV file
+ * @summary Bulk import leads from a CSV or XLSX file with optional column mapping
  */
 export const importLeads = async (importLeadsBody: ImportLeadsBody, options?: RequestInit): Promise<ImportResult> => {
     const formData = new FormData();
 formData.append(`file`, importLeadsBody.file);
+if(importLeadsBody.columnMapping !== undefined) {
+ formData.append(`columnMapping`, importLeadsBody.columnMapping);
+ }
 
   return customFetch<ImportResult>(getImportLeadsUrl(),
   {
@@ -590,7 +668,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ImportLeadsMutationError = ErrorType<void>
 
     /**
- * @summary Bulk import leads from a CSV file
+ * @summary Bulk import leads from a CSV or XLSX file with optional column mapping
  */
 export const useImportLeads = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importLeads>>, TError,{data: BodyType<ImportLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}

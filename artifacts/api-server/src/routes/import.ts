@@ -3,6 +3,7 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable } from "@workspace/db";
+import { or, ilike } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 
@@ -190,12 +191,22 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       continue;
     }
 
-    if (email) {
+    const dupConditions = [];
+    if (email) dupConditions.push(ilike(leadsTable.email, email));
+    if (phone) dupConditions.push(ilike(leadsTable.phone, phone));
+    if (ein) dupConditions.push(ilike(leadsTable.ein, ein));
+
+    if (dupConditions.length > 0) {
       const existing = await db.query.leadsTable.findFirst({
-        where: (t, { eq }) => eq(t.email, email),
+        where: or(...dupConditions),
       });
       if (existing) {
-        duplicates.push({ row: rowNum, reason: `Duplicate email: ${email}` });
+        const reason = email && existing.email?.toLowerCase() === email
+          ? `Duplicate email: ${email}`
+          : phone && existing.phone === phone
+          ? `Duplicate phone: ${phone}`
+          : `Duplicate EIN: ${ein}`;
+        duplicates.push({ row: rowNum, reason });
         skipped++;
         continue;
       }

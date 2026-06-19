@@ -300,6 +300,14 @@ export interface AssignLead {
   repId: number;
 }
 
+export type ImportPreviewResultPreviewRowsItem = {[key: string]: string};
+
+export interface ImportPreviewResult {
+  headers: string[];
+  previewRows: ImportPreviewResultPreviewRowsItem[];
+  totalRows: number;
+}
+
 export type ImportResultDuplicatesItem = {
   row?: number;
   reason?: string;
@@ -414,8 +422,14 @@ export const ListLeadsSortOrder = {
   desc: 'desc',
 } as const;
 
+export type PreviewImportBody = {
+  file: Blob;
+};
+
 export type ImportLeadsBody = {
   file: Blob;
+  /** JSON-encoded object mapping file column names to lead field names */
+  columnMapping?: string;
 };
 
 export type UploadDocumentBody = {

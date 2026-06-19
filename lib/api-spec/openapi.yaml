@@ -183,11 +183,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/DuplicateResponse"
 
-  /leads/import:
+  /leads/import/preview:
     post:
-      operationId: importLeads
+      operationId: previewImport
       tags: [leads]
-      summary: Bulk import leads from a CSV file
+      summary: Upload a CSV or XLSX file and get back headers plus first 5 rows for mapping review
       requestBody:
         required: true
         content:
@@ -199,6 +199,35 @@ paths:
                 file:
                   type: string
                   format: binary
+      responses:
+        "200":
+          description: Preview result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPreviewResult"
+        "400":
+          description: Invalid file
+
+  /leads/import:
+    post:
+      operationId: importLeads
+      tags: [leads]
+      summary: Bulk import leads from a CSV or XLSX file with optional column mapping
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                columnMapping:
+                  type: string
+                  description: JSON-encoded object mapping file column names to lead field names
       responses:
         "200":
           description: Import result
@@ -820,6 +849,23 @@ components:
       required: [repId]
       properties:
         repId:
+          type: integer
+
+    ImportPreviewResult:
+      type: object
+      required: [headers, previewRows, totalRows]
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+        previewRows:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+        totalRows:
           type: integer
 
     ImportResult:
