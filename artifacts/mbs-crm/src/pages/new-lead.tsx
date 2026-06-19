@@ -59,8 +59,8 @@ export default function NewLead() {
         const body = error?.response?.data ?? error?.data ?? null;
         if ((error?.status === 409 || error?.response?.status === 409) && body?.duplicate) {
           setDuplicate({
-            leadId: body.existingLeadId,
-            leadName: body.existingLeadName || "Existing Lead",
+            leadId: body.existing_lead_id,
+            leadName: body.existing_lead_name || "Existing Lead",
           });
           return;
         }

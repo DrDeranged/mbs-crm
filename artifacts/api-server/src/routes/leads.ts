@@ -147,8 +147,8 @@ router.post("/leads", async (req: Request, res: Response) => {
   if (dup) {
     res.status(409).json({
       duplicate: true,
-      existingLeadId: dup.id,
-      existingLeadName: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
+      existing_lead_id: dup.id,
+      existing_lead_name: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
     });
     return;
   }
@@ -183,8 +183,8 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   if (dup) {
     res.status(409).json({
       duplicate: true,
-      existingLeadId: dup.id,
-      existingLeadName: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
+      existing_lead_id: dup.id,
+      existing_lead_name: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
     });
     return;
   }
