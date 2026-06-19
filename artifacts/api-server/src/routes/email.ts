@@ -270,7 +270,7 @@ router.post("/email/send", async (req: Request, res: Response) => {
     return void res.status(400).json({ error: "subject and bodyHtml are required" });
   }
 
-  const { send } = await doSendEmail({
+  const { send, error: sendError } = await doSendEmail({
     leadId: lead.id,
     userId: user.id,
     templateId: templateId ?? null,
@@ -279,6 +279,10 @@ router.post("/email/send", async (req: Request, res: Response) => {
     toEmail: lead.email,
     baseUrl: getBaseUrl(req),
   });
+
+  if (sendError) {
+    return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
+  }
 
   await logActivity({
     userId: user.id,

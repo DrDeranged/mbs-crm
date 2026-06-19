@@ -9,6 +9,7 @@ import {
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../routes/email";
+import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 
 export async function runDripJob(): Promise<void> {
@@ -78,7 +79,7 @@ export async function runDripJob(): Promise<void> {
         const baseUrl = process.env["API_BASE_URL"] ||
           (process.env["REPLIT_DEV_DOMAIN"] ? `https://${process.env["REPLIT_DEV_DOMAIN"]}` : "http://localhost:8080");
 
-        await doSendEmail({
+        const { send, error: sendError } = await doSendEmail({
           leadId: lead.id,
           userId: null,
           templateId: template.id,
@@ -86,6 +87,21 @@ export async function runDripJob(): Promise<void> {
           bodyHtml,
           toEmail: lead.email,
           baseUrl,
+        });
+
+        if (sendError) {
+          logger.error({ enrollmentId: enrollment.id, leadId: lead.id, error: sendError }, "Drip step send failed");
+          continue;
+        }
+
+        // Log activity for this drip send
+        await logActivity({
+          userId: null,
+          leadId: lead.id,
+          action: "email_sent",
+          entityType: "email_send",
+          entityId: send.id,
+          details: { subject, to: lead.email, drip: true, sequenceId: enrollment.sequenceId, step: nextStepIndex + 1 },
         });
 
         // Advance enrollment

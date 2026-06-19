@@ -9,8 +9,15 @@ const router = Router();
 
 const SENDGRID_WEBHOOK_VERIFICATION_KEY = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
 
+const IS_PROD = process.env["NODE_ENV"] === "production";
+
 function verifySendGridSignature(req: Request): boolean {
-  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) return true; // Skip verification in dev mode
+  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) {
+    // In production, fail closed — require the key to be set
+    if (IS_PROD) return false;
+    // In dev, skip verification so local testing works without real keys
+    return true;
+  }
 
   const signature = req.headers["x-twilio-email-event-webhook-signature"] as string;
   const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
