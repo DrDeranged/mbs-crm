@@ -183,6 +183,7 @@ router.get("/leads/:id/drip", async (req: Request, res: Response) => {
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
 
   const enrollment = await db.query.dripEnrollmentsTable.findFirst({
     where: and(
@@ -207,6 +208,7 @@ router.post("/leads/:id/drip/enroll", async (req: Request, res: Response) => {
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
 
   const { sequenceId } = req.body as { sequenceId: number };
   if (!sequenceId) return void res.status(400).json({ error: "sequenceId required" });
@@ -239,6 +241,10 @@ router.post("/leads/:id/drip/unenroll", async (req: Request, res: Response) => {
 
   const leadId = parseInt(req.params["id"] as string, 10);
   if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid ID" });
+
+  const unenrollLead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+  if (!unenrollLead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && unenrollLead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
 
   const enrollment = await db.query.dripEnrollmentsTable.findFirst({
     where: and(eq(dripEnrollmentsTable.leadId, leadId), eq(dripEnrollmentsTable.status, "active")),

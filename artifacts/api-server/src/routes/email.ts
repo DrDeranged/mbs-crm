@@ -180,7 +180,17 @@ router.get("/email/track/open/:sendId", async (req, res) => {
 // --- Click tracking redirect (no auth) ---
 router.get("/email/track/click/:sendId", async (req, res) => {
   const sendId = parseInt(req.params["sendId"] as string, 10);
-  const url = (req.query["url"] as string) || "/";
+  const rawUrl = (req.query["url"] as string) || "";
+  // Only allow absolute http/https URLs — reject open redirects to other schemes
+  let url = "/";
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      url = rawUrl;
+    }
+  } catch {
+    // Not a valid URL — fall back to root
+  }
   if (!isNaN(sendId)) {
     const existing = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
     if (existing) {
@@ -250,6 +260,7 @@ router.post("/email/send", async (req: Request, res: Response) => {
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
   if (!lead.email) return void res.status(400).json({ error: "Lead has no email address" });
   if (lead.isUnsubscribed) return void res.status(409).json({ error: "Lead is unsubscribed" });
 
