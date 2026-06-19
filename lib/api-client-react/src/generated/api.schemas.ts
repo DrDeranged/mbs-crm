@@ -414,3 +414,11 @@ export const ListLeadsSortOrder = {
   desc: 'desc',
 } as const;
 
+export type ImportLeadsBody = {
+  file: Blob;
+};
+
+export type UploadDocumentBody = {
+  file: Blob;
+};
+

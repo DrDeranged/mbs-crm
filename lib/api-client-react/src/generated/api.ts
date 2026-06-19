@@ -27,6 +27,8 @@ import type {
   DownloadUrlResponse,
   DuplicateResponse,
   HealthStatus,
+  ImportLeadsBody,
+  ImportResult,
   Lead,
   LeadCaptureInput,
   LeadCaptureResponse,
@@ -44,6 +46,7 @@ import type {
   Task,
   TaskInput,
   TaskUpdate,
+  UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
   User,
@@ -525,6 +528,79 @@ export const useCreateLead = <TError = ErrorType<DuplicateResponse>,
         TContext
       > => {
       return useMutation(getCreateLeadMutationOptions(options));
+    }
+
+export const getImportLeadsUrl = () => {
+
+
+
+
+  return `/api/leads/import`
+}
+
+/**
+ * @summary Bulk import leads from a CSV file
+ */
+export const importLeads = async (importLeadsBody: ImportLeadsBody, options?: RequestInit): Promise<ImportResult> => {
+    const formData = new FormData();
+formData.append(`file`, importLeadsBody.file);
+
+  return customFetch<ImportResult>(getImportLeadsUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body:
+      formData,
+  }
+);}
+
+
+
+
+export const getImportLeadsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importLeads>>, TError,{data: BodyType<ImportLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importLeads>>, TError,{data: BodyType<ImportLeadsBody>}, TContext> => {
+
+const mutationKey = ['importLeads'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importLeads>>, {data: BodyType<ImportLeadsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importLeads(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportLeadsMutationResult = NonNullable<Awaited<ReturnType<typeof importLeads>>>
+    export type ImportLeadsMutationBody = BodyType<ImportLeadsBody>
+    export type ImportLeadsMutationError = ErrorType<void>
+
+    /**
+ * @summary Bulk import leads from a CSV file
+ */
+export const useImportLeads = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importLeads>>, TError,{data: BodyType<ImportLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importLeads>>,
+        TError,
+        {data: BodyType<ImportLeadsBody>},
+        TContext
+      > => {
+      return useMutation(getImportLeadsMutationOptions(options));
     }
 
 export const getCaptureLeadFromWebsiteUrl = () => {
@@ -1337,6 +1413,80 @@ export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments
 
 
 
+
+export const getUploadDocumentUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/documents`
+}
+
+/**
+ * @summary Upload a document for a lead
+ */
+export const uploadDocument = async (id: number,
+    uploadDocumentBody: UploadDocumentBody, options?: RequestInit): Promise<Document> => {
+    const formData = new FormData();
+formData.append(`file`, uploadDocumentBody.file);
+
+  return customFetch<Document>(getUploadDocumentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body:
+      formData,
+  }
+);}
+
+
+
+
+export const getUploadDocumentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext> => {
+
+const mutationKey = ['uploadDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadDocument>>, {id: number;data: BodyType<UploadDocumentBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  uploadDocument(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadDocument>>>
+    export type UploadDocumentMutationBody = BodyType<UploadDocumentBody>
+    export type UploadDocumentMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a document for a lead
+ */
+export const useUploadDocument = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadDocument>>,
+        TError,
+        {id: number;data: BodyType<UploadDocumentBody>},
+        TContext
+      > => {
+      return useMutation(getUploadDocumentMutationOptions(options));
+    }
 
 export const getDownloadDocumentUrl = (docId: number,) => {
 

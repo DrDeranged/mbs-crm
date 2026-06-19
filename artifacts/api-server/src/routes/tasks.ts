@@ -144,16 +144,14 @@ router.put("/tasks/:taskId", async (req: Request, res: Response) => {
     .where(eq(tasksTable.id, params.data.taskId))
     .returning();
 
-  if (body.data.isCompleted && !existing.isCompleted) {
-    await logActivity({
-      userId: user.id,
-      leadId: existing.leadId,
-      action: "task_completed",
-      entityType: "task",
-      entityId: existing.id,
-      details: { title: existing.title },
-    });
-  }
+  await logActivity({
+    userId: user.id,
+    leadId: existing.leadId,
+    action: body.data.isCompleted && !existing.isCompleted ? "task_completed" : "task_updated",
+    entityType: "task",
+    entityId: existing.id,
+    details: { title: existing.title, fields: Object.keys(body.data) },
+  });
 
   res.json(taskToApi(updated, null));
 });

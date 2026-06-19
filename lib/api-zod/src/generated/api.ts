@@ -151,6 +151,23 @@ export const CreateLeadBody = zod.object({
 
 
 /**
+ * @summary Bulk import leads from a CSV file
+ */
+export const ImportLeadsBody = zod.object({
+  "file": zod.instanceof(File)
+})
+
+export const ImportLeadsResponse = zod.object({
+  "imported": zod.number(),
+  "skipped": zod.number(),
+  "duplicates": zod.array(zod.object({
+  "row": zod.number().optional(),
+  "reason": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary Public endpoint for website lead capture (no auth required)
  */
 export const CaptureLeadFromWebsiteBody = zod.object({
@@ -559,6 +576,18 @@ export const ListDocumentsResponseItem = zod.object({
   "createdAt": zod.coerce.date()
 })
 export const ListDocumentsResponse = zod.array(ListDocumentsResponseItem)
+
+
+/**
+ * @summary Upload a document for a lead
+ */
+export const UploadDocumentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UploadDocumentBody = zod.object({
+  "file": zod.instanceof(File)
+})
 
 
 /**

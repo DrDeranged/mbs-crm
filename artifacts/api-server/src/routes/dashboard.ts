@@ -57,6 +57,10 @@ function activityToApi(entry: typeof activityLogTable.$inferSelect, user?: typeo
 router.get("/dashboard/summary", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
 
   const [statusCounts, recentLeadsRaw, repCountsRaw] = await Promise.all([
     db
@@ -94,6 +98,10 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
 router.get("/dashboard/rep", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
+  if (user.role !== "rep") {
+    res.status(403).json({ error: "Forbidden: reps only" });
+    return;
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
