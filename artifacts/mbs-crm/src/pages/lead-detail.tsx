@@ -456,12 +456,20 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
         <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Drip Campaign</span>
       </div>
       {enrollment ? (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-slate-700 font-medium">{enrollment.sequence?.name ?? `Seq #${enrollment.sequenceId}`}</span>
-          <Badge variant="outline" className="text-[10px]">Step {enrollment.currentStep} / {enrollment.sequence?.steps ?? "?"}</Badge>
-          <Badge className={`text-[10px] capitalize ${enrollment.status === "active" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
-            {enrollment.status}
-          </Badge>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-slate-700 font-medium">{(enrollment as any).sequence?.name ?? `Seq #${enrollment.sequenceId}`}</span>
+            <Badge variant="outline" className="text-[10px]">Step {(enrollment as any).currentStep + 1} / {(enrollment as any).sequence?.steps ?? "?"}</Badge>
+            <Badge className={`text-[10px] capitalize ${enrollment.status === "active" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+              {enrollment.status}
+            </Badge>
+          </div>
+          {(enrollment as any).nextSendAt && enrollment.status === "active" && (
+            <p className="text-xs text-muted-foreground">
+              Next email: <span className="font-medium text-slate-700">{format(new Date((enrollment as any).nextSendAt), "MMM d, h:mm a")}</span>
+              {new Date((enrollment as any).nextSendAt) <= new Date() ? " (due now)" : ""}
+            </p>
+          )}
           {enrollment.status === "active" && (
             <Button
               size="sm"

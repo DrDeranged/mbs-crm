@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import sgMail from "@sendgrid/mail";
+import { createHmac } from "crypto";
 import { db } from "@workspace/db";
 import {
   emailTemplatesTable,
@@ -10,6 +11,20 @@ import {
 import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+
+const UNSUB_SECRET = process.env["UNSUB_SECRET"] || "mbs-unsub-dev-secret-change-in-prod";
+
+function makeUnsubToken(sendId: number, email: string): string {
+  return createHmac("sha256", UNSUB_SECRET).update(`${sendId}:${email}`).digest("hex");
+}
+
+function verifyUnsubToken(sendId: number, email: string, token: string): boolean {
+  const expected = makeUnsubToken(sendId, email);
+  // Constant-time compare via Buffer
+  if (expected.length !== token.length) return false;
+  return createHmac("sha256", UNSUB_SECRET).update(expected).digest("hex") ===
+         createHmac("sha256", UNSUB_SECRET).update(token).digest("hex");
+}
 
 const router = Router();
 
@@ -69,10 +84,11 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
       return `href="${baseUrl}/api/email/track/click/${sendId}?url=${encoded}"`;
     }
   );
-  // Append open tracking pixel + unsubscribe link
+  // Signed unsubscribe link — token is HMAC-SHA256(secret, sendId:email)
+  const token = makeUnsubToken(sendId, toEmail);
   const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}" width="1" height="1" alt="" style="display:none" />`;
   const unsubLink = `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">
-    <a href="${baseUrl}/api/email/unsubscribe?email=${encodeURIComponent(toEmail)}" style="color:#999">Unsubscribe</a>
+    <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
   </p>`;
   return `${withClicks}${unsubLink}${pixel}`;
 }
@@ -186,14 +202,32 @@ router.get("/email/track/click/:sendId", async (req, res) => {
   res.redirect(302, url);
 });
 
-// --- Unsubscribe (no auth) ---
+// --- Unsubscribe (no auth, but HMAC-signed token required) ---
 router.get("/email/unsubscribe", async (req, res) => {
+  const sendIdStr = req.query["id"] as string;
   const email = req.query["email"] as string;
-  if (email) {
-    await db.update(leadsTable)
-      .set({ isUnsubscribed: true, updatedAt: new Date() })
-      .where(and(isNotNull(leadsTable.email), eq(leadsTable.email, email)));
+  const token = req.query["token"] as string;
+
+  const sendId = parseInt(sendIdStr, 10);
+
+  if (!email || !token || isNaN(sendId)) {
+    return void res.status(400).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
+      <h2>Invalid unsubscribe link</h2>
+      <p>This link appears to be malformed or expired. Please contact support.</p>
+    </body></html>`);
   }
+
+  if (!verifyUnsubToken(sendId, email, token)) {
+    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
+      <h2>Invalid unsubscribe link</h2>
+      <p>This unsubscribe link is invalid or has been tampered with.</p>
+    </body></html>`);
+  }
+
+  await db.update(leadsTable)
+    .set({ isUnsubscribed: true, updatedAt: new Date() })
+    .where(and(isNotNull(leadsTable.email), eq(leadsTable.email, email)));
+
   res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
     <h2>You've been unsubscribed</h2>
     <p>You will no longer receive marketing emails from MBS.</p>

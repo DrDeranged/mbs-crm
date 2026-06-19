@@ -35,7 +35,7 @@ function TemplateFormDialog({
   const [name, setName] = useState(template?.name ?? "");
   const [subject, setSubject] = useState(template?.subject ?? "");
   const [bodyHtml, setBodyHtml] = useState(template?.bodyHtml ?? "");
-  const [programType, setProgramType] = useState<string>(template?.programType ?? "");
+  const [programType, setProgramType] = useState<string>(template?.programType ?? "none");
   const [isActive, setIsActive] = useState(template?.isActive ?? true);
   const createTemplate = useCreateEmailTemplate();
   const updateTemplate = useUpdateEmailTemplate();
@@ -50,7 +50,7 @@ function TemplateFormDialog({
       name: name.trim(),
       subject: subject.trim(),
       bodyHtml: bodyHtml.trim(),
-      programType: programType || null,
+      programType: programType === "none" ? null : (programType || null),
       isActive,
     };
     if (!payload.name || !payload.subject || !payload.bodyHtml) {
@@ -94,7 +94,7 @@ function TemplateFormDialog({
               <Select value={programType} onValueChange={setProgramType}>
                 <SelectTrigger><SelectValue placeholder="All programs" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All programs</SelectItem>
+                  <SelectItem value="none">All programs</SelectItem>
                   {PROGRAM_TYPES.map((p) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                   ))}

@@ -37,6 +37,18 @@ function stepToApi(s: any) {
 }
 
 function enrollmentToApi(e: any) {
+  // Compute next send date from the current step's delay + last send time
+  let nextSendAt: string | null = null;
+  if (e.status === "active" && e.sequence?.steps) {
+    const sortedSteps = [...e.sequence.steps].sort((a: any, b: any) => a.stepOrder - b.stepOrder);
+    const nextStep = sortedSteps[e.currentStep];
+    if (nextStep) {
+      const base: Date = e.lastStepSentAt ?? e.enrolledAt;
+      const ms = nextStep.delayHours * 60 * 60 * 1000;
+      nextSendAt = new Date(base.getTime() + ms).toISOString();
+    }
+  }
+
   return {
     id: e.id,
     leadId: e.leadId,
@@ -44,6 +56,7 @@ function enrollmentToApi(e: any) {
     sequence: e.sequence ? { id: e.sequence.id, name: e.sequence.name, steps: e.sequence.steps?.length ?? 0 } : null,
     currentStep: e.currentStep,
     status: e.status,
+    nextSendAt,
     enrolledAt: e.enrolledAt.toISOString(),
     lastStepSentAt: e.lastStepSentAt?.toISOString() ?? null,
     completedAt: e.completedAt?.toISOString() ?? null,

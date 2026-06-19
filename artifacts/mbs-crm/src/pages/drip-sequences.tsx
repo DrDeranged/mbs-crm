@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Zap, GitBranch, Trash2, GripVertical, ChevronDown, ChevronRight, Clock, Mail } from "lucide-react";
+import { Plus, Zap, GitBranch, Trash2, GripVertical, ChevronDown, ChevronRight, ChevronUp, Clock, Mail } from "lucide-react";
 
 const LEAD_STATUSES = [
   { value: "new_lead", label: "New Lead" },
@@ -121,6 +121,15 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
   const updateStep = (i: number, field: "templateId" | "delayHours", value: any) => {
     setSteps((prev) => prev.map((s, j) => j === i ? { ...s, [field]: value } : s));
   };
+  const moveStep = (i: number, dir: -1 | 1) => {
+    setSteps((prev) => {
+      const arr = [...prev];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return arr;
+      [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+      return arr;
+    });
+  };
 
   const handleSave = () => {
     const invalid = steps.some((s) => !s.templateId);
@@ -156,7 +165,24 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
         <div className="space-y-2">
           {steps.map((step, i) => (
             <div key={i} className="flex items-center gap-2 bg-white border rounded-lg p-2">
-              <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0" />
+              <div className="flex flex-col flex-shrink-0">
+                <button
+                  onClick={() => moveStep(i, -1)}
+                  disabled={i === 0}
+                  className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                  title="Move up"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => moveStep(i, 1)}
+                  disabled={i === steps.length - 1}
+                  className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                  title="Move down"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </div>
               <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1F4E79] text-white text-[10px] font-bold flex-shrink-0">
                 {i + 1}
               </div>
