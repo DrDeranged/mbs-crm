@@ -5,6 +5,52 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface AnalyticsSummary {
+  totalLeads: number;
+  totalApplications: number;
+  totalApprovals: number;
+  totalFundings: number;
+  conversionRate: number;
+  /** @nullable */
+  avgFundingTimeDays?: number | null;
+}
+
+export type AnalyticsPipelineStagesItem = {
+  status: string;
+  count: number;
+  /** @nullable */
+  conversionFromPrevious?: number | null;
+};
+
+export interface AnalyticsPipeline {
+  stages: AnalyticsPipelineStagesItem[];
+}
+
+export interface RepPerformance {
+  repId: number;
+  repName: string;
+  leadsCount: number;
+  callsMade: number;
+  smsSent: number;
+  emailsSent: number;
+  applications: number;
+  approvals: number;
+  fundings: number;
+}
+
+export interface SourceAnalytics {
+  source: string;
+  leadCount: number;
+  fundedCount: number;
+  conversionRate: number;
+}
+
+export interface CommActivity {
+  date: string;
+  calls: number;
+  sms: number;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -664,6 +710,44 @@ export type ImportLeadsBody = {
 export type UploadDocumentBody = {
   file: Blob;
 };
+
+export type GetAnalyticsSummaryParams = {
+start_date?: string;
+end_date?: string;
+rep_id?: number;
+};
+
+export type GetAnalyticsPipelineParams = {
+start_date?: string;
+end_date?: string;
+rep_id?: number;
+};
+
+export type GetAnalyticsRepsParams = {
+start_date?: string;
+end_date?: string;
+};
+
+export type GetAnalyticsSourcesParams = {
+start_date?: string;
+end_date?: string;
+rep_id?: number;
+};
+
+export type GetAnalyticsCommunicationsParams = {
+start_date?: string;
+end_date?: string;
+rep_id?: number;
+granularity?: GetAnalyticsCommunicationsGranularity;
+};
+
+export type GetAnalyticsCommunicationsGranularity = typeof GetAnalyticsCommunicationsGranularity[keyof typeof GetAnalyticsCommunicationsGranularity];
+
+
+export const GetAnalyticsCommunicationsGranularity = {
+  daily: 'daily',
+  weekly: 'weekly',
+} as const;
 
 export type TwilioVoiceStatus200 = {
   ok?: boolean;

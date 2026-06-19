@@ -872,6 +872,103 @@ export const GetMyTasksResponse = zod.object({
 
 
 /**
+ * @summary KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
+ */
+export const GetAnalyticsSummaryQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "rep_id": zod.coerce.number().optional()
+})
+
+export const GetAnalyticsSummaryResponse = zod.object({
+  "totalLeads": zod.number(),
+  "totalApplications": zod.number(),
+  "totalApprovals": zod.number(),
+  "totalFundings": zod.number(),
+  "conversionRate": zod.number(),
+  "avgFundingTimeDays": zod.number().nullish()
+})
+
+
+/**
+ * @summary Lead count per funnel stage with conversion rates
+ */
+export const GetAnalyticsPipelineQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "rep_id": zod.coerce.number().optional()
+})
+
+export const GetAnalyticsPipelineResponse = zod.object({
+  "stages": zod.array(zod.object({
+  "status": zod.string(),
+  "count": zod.number(),
+  "conversionFromPrevious": zod.number().nullish()
+}))
+})
+
+
+/**
+ * @summary Per-rep performance metrics (manager/admin only)
+ */
+export const GetAnalyticsRepsQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional()
+})
+
+export const GetAnalyticsRepsResponseItem = zod.object({
+  "repId": zod.number(),
+  "repName": zod.string(),
+  "leadsCount": zod.number(),
+  "callsMade": zod.number(),
+  "smsSent": zod.number(),
+  "emailsSent": zod.number(),
+  "applications": zod.number(),
+  "approvals": zod.number(),
+  "fundings": zod.number()
+})
+export const GetAnalyticsRepsResponse = zod.array(GetAnalyticsRepsResponseItem)
+
+
+/**
+ * @summary Lead volume and conversion by source
+ */
+export const GetAnalyticsSourcesQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "rep_id": zod.coerce.number().optional()
+})
+
+export const GetAnalyticsSourcesResponseItem = zod.object({
+  "source": zod.string(),
+  "leadCount": zod.number(),
+  "fundedCount": zod.number(),
+  "conversionRate": zod.number()
+})
+export const GetAnalyticsSourcesResponse = zod.array(GetAnalyticsSourcesResponseItem)
+
+
+/**
+ * @summary Daily or weekly call and SMS volume over the selected period
+ */
+export const getAnalyticsCommunicationsQueryGranularityDefault = `daily`;
+
+export const GetAnalyticsCommunicationsQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "rep_id": zod.coerce.number().optional(),
+  "granularity": zod.enum(['daily', 'weekly']).default(getAnalyticsCommunicationsQueryGranularityDefault)
+})
+
+export const GetAnalyticsCommunicationsResponseItem = zod.object({
+  "date": zod.string(),
+  "calls": zod.number(),
+  "sms": zod.number()
+})
+export const GetAnalyticsCommunicationsResponse = zod.array(GetAnalyticsCommunicationsResponseItem)
+
+
+/**
  * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
  */
 export const GetTwilioTokenResponse = zod.object({

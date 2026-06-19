@@ -21,9 +21,12 @@ import type {
 
 import type {
   ActivityEntry,
+  AnalyticsPipeline,
+  AnalyticsSummary,
   AssignLead,
   BulkEmailInput,
   BulkEmailResult,
+  CommActivity,
   Communication,
   CommunicationMetrics,
   DashboardSummary,
@@ -40,6 +43,11 @@ import type {
   EmailTemplate,
   EmailTemplateInput,
   EnrollLeadInDripBody,
+  GetAnalyticsCommunicationsParams,
+  GetAnalyticsPipelineParams,
+  GetAnalyticsRepsParams,
+  GetAnalyticsSourcesParams,
+  GetAnalyticsSummaryParams,
   GetCommunicationMetricsParams,
   HealthStatus,
   ImportLeadsBody,
@@ -62,7 +70,9 @@ import type {
   PreviewEmailTemplateBody,
   PreviewImportBody,
   RepDashboard,
+  RepPerformance,
   SmsInput,
+  SourceAnalytics,
   StatusChange,
   Task,
   TaskInput,
@@ -2036,6 +2046,426 @@ export function useGetMyTasks<TData = Awaited<ReturnType<typeof getMyTasks>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMyTasksQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsSummaryUrl = (params?: GetAnalyticsSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/summary?${stringifiedParams}` : `/api/analytics/summary`
+}
+
+/**
+ * @summary KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
+ */
+export const getAnalyticsSummary = async (params?: GetAnalyticsSummaryParams, options?: RequestInit): Promise<AnalyticsSummary> => {
+
+  return customFetch<AnalyticsSummary>(getGetAnalyticsSummaryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsSummaryQueryKey = (params?: GetAnalyticsSummaryParams,) => {
+    return [
+    `/api/analytics/summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsSummary>>, TError = ErrorType<void>>(params?: GetAnalyticsSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsSummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsSummary>>> = ({ signal }) => getAnalyticsSummary(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsSummary>>>
+export type GetAnalyticsSummaryQueryError = ErrorType<void>
+
+
+/**
+ * @summary KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
+ */
+
+export function useGetAnalyticsSummary<TData = Awaited<ReturnType<typeof getAnalyticsSummary>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsSummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsPipelineUrl = (params?: GetAnalyticsPipelineParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/pipeline?${stringifiedParams}` : `/api/analytics/pipeline`
+}
+
+/**
+ * @summary Lead count per funnel stage with conversion rates
+ */
+export const getAnalyticsPipeline = async (params?: GetAnalyticsPipelineParams, options?: RequestInit): Promise<AnalyticsPipeline> => {
+
+  return customFetch<AnalyticsPipeline>(getGetAnalyticsPipelineUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsPipelineQueryKey = (params?: GetAnalyticsPipelineParams,) => {
+    return [
+    `/api/analytics/pipeline`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsPipelineQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsPipeline>>, TError = ErrorType<void>>(params?: GetAnalyticsPipelineParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsPipeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsPipelineQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsPipeline>>> = ({ signal }) => getAnalyticsPipeline(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsPipeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsPipelineQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsPipeline>>>
+export type GetAnalyticsPipelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary Lead count per funnel stage with conversion rates
+ */
+
+export function useGetAnalyticsPipeline<TData = Awaited<ReturnType<typeof getAnalyticsPipeline>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsPipelineParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsPipeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsPipelineQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsRepsUrl = (params?: GetAnalyticsRepsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/reps?${stringifiedParams}` : `/api/analytics/reps`
+}
+
+/**
+ * @summary Per-rep performance metrics (manager/admin only)
+ */
+export const getAnalyticsReps = async (params?: GetAnalyticsRepsParams, options?: RequestInit): Promise<RepPerformance[]> => {
+
+  return customFetch<RepPerformance[]>(getGetAnalyticsRepsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsRepsQueryKey = (params?: GetAnalyticsRepsParams,) => {
+    return [
+    `/api/analytics/reps`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsRepsQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsReps>>, TError = ErrorType<void>>(params?: GetAnalyticsRepsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsReps>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsRepsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsReps>>> = ({ signal }) => getAnalyticsReps(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsReps>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsRepsQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsReps>>>
+export type GetAnalyticsRepsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Per-rep performance metrics (manager/admin only)
+ */
+
+export function useGetAnalyticsReps<TData = Awaited<ReturnType<typeof getAnalyticsReps>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsRepsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsReps>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsRepsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsSourcesUrl = (params?: GetAnalyticsSourcesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/sources?${stringifiedParams}` : `/api/analytics/sources`
+}
+
+/**
+ * @summary Lead volume and conversion by source
+ */
+export const getAnalyticsSources = async (params?: GetAnalyticsSourcesParams, options?: RequestInit): Promise<SourceAnalytics[]> => {
+
+  return customFetch<SourceAnalytics[]>(getGetAnalyticsSourcesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsSourcesQueryKey = (params?: GetAnalyticsSourcesParams,) => {
+    return [
+    `/api/analytics/sources`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsSourcesQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsSources>>, TError = ErrorType<void>>(params?: GetAnalyticsSourcesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsSourcesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsSources>>> = ({ signal }) => getAnalyticsSources(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSources>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsSourcesQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsSources>>>
+export type GetAnalyticsSourcesQueryError = ErrorType<void>
+
+
+/**
+ * @summary Lead volume and conversion by source
+ */
+
+export function useGetAnalyticsSources<TData = Awaited<ReturnType<typeof getAnalyticsSources>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsSourcesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsSources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsSourcesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsCommunicationsUrl = (params?: GetAnalyticsCommunicationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/communications?${stringifiedParams}` : `/api/analytics/communications`
+}
+
+/**
+ * @summary Daily or weekly call and SMS volume over the selected period
+ */
+export const getAnalyticsCommunications = async (params?: GetAnalyticsCommunicationsParams, options?: RequestInit): Promise<CommActivity[]> => {
+
+  return customFetch<CommActivity[]>(getGetAnalyticsCommunicationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsCommunicationsQueryKey = (params?: GetAnalyticsCommunicationsParams,) => {
+    return [
+    `/api/analytics/communications`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsCommunicationsQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsCommunications>>, TError = ErrorType<void>>(params?: GetAnalyticsCommunicationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCommunications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsCommunicationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsCommunications>>> = ({ signal }) => getAnalyticsCommunications(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCommunications>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsCommunicationsQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsCommunications>>>
+export type GetAnalyticsCommunicationsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Daily or weekly call and SMS volume over the selected period
+ */
+
+export function useGetAnalyticsCommunications<TData = Awaited<ReturnType<typeof getAnalyticsCommunications>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsCommunicationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsCommunications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsCommunicationsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -38,6 +38,8 @@ tags:
     description: Drip sequences and enrollment
   - name: sendgrid
     description: SendGrid event webhooks
+  - name: analytics
+    description: KPI analytics and reporting
 paths:
   /healthz:
     get:
@@ -633,6 +635,166 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MyTasksSummary"
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: rep_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+        "401":
+          description: Unauthorized
+
+  /analytics/pipeline:
+    get:
+      operationId: getAnalyticsPipeline
+      tags: [analytics]
+      summary: Lead count per funnel stage with conversion rates
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: rep_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Pipeline funnel data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsPipeline"
+        "401":
+          description: Unauthorized
+
+  /analytics/reps:
+    get:
+      operationId: getAnalyticsReps
+      tags: [analytics]
+      summary: Per-rep performance metrics (manager/admin only)
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Rep performance table
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RepPerformance"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /analytics/sources:
+    get:
+      operationId: getAnalyticsSources
+      tags: [analytics]
+      summary: Lead volume and conversion by source
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: rep_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Source analytics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SourceAnalytics"
+        "401":
+          description: Unauthorized
+
+  /analytics/communications:
+    get:
+      operationId: getAnalyticsCommunications
+      tags: [analytics]
+      summary: Daily or weekly call and SMS volume over the selected period
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: rep_id
+          in: query
+          schema:
+            type: integer
+        - name: granularity
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly]
+            default: daily
+      responses:
+        "200":
+          description: Communication activity time series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommActivity"
+        "401":
+          description: Unauthorized
 
   /twilio/token:
     post:
@@ -1246,6 +1408,87 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    AnalyticsSummary:
+      type: object
+      required: [totalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]
+      properties:
+        totalLeads:
+          type: integer
+        totalApplications:
+          type: integer
+        totalApprovals:
+          type: integer
+        totalFundings:
+          type: integer
+        conversionRate:
+          type: number
+        avgFundingTimeDays:
+          type: ["number", "null"]
+
+    AnalyticsPipeline:
+      type: object
+      required: [stages]
+      properties:
+        stages:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+              conversionFromPrevious:
+                type: ["number", "null"]
+
+    RepPerformance:
+      type: object
+      required: [repId, repName, leadsCount, callsMade, smsSent, emailsSent, applications, approvals, fundings]
+      properties:
+        repId:
+          type: integer
+        repName:
+          type: string
+        leadsCount:
+          type: integer
+        callsMade:
+          type: integer
+        smsSent:
+          type: integer
+        emailsSent:
+          type: integer
+        applications:
+          type: integer
+        approvals:
+          type: integer
+        fundings:
+          type: integer
+
+    SourceAnalytics:
+      type: object
+      required: [source, leadCount, fundedCount, conversionRate]
+      properties:
+        source:
+          type: string
+        leadCount:
+          type: integer
+        fundedCount:
+          type: integer
+        conversionRate:
+          type: number
+
+    CommActivity:
+      type: object
+      required: [date, calls, sms]
+      properties:
+        date:
+          type: string
+        calls:
+          type: integer
+        sms:
+          type: integer
+
     HealthStatus:
       type: object
       properties:

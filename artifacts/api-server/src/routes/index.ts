@@ -15,6 +15,7 @@ import communicationsRouter from "./communications";
 import emailRouter from "./email";
 import dripRouter from "./drip";
 import sendgridRouter from "./sendgrid";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -33,6 +34,7 @@ router.use(tasksRouter);
 router.use(documentsRouter);
 router.use(activityRouter);
 router.use(dashboardRouter);
+router.use(analyticsRouter);
 router.use(storageRouter);
 
 export default router;
