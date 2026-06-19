@@ -458,6 +458,8 @@ export default function Leads() {
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Assigned Rep</TableHead>
+              <TableHead>Last Activity</TableHead>
               <TableHead>Updated</TableHead>
             </TableRow>
           </TableHeader>
@@ -465,26 +467,18 @@ export default function Leads() {
             {isLoading ? (
               [...Array(5)].map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[150px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[120px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[100px] rounded-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[80px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[100px]" />
-                  </TableCell>
+                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                 </TableRow>
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No leads found.
                 </TableCell>
               </TableRow>
@@ -518,6 +512,16 @@ export default function Leads() {
                       className="block w-full capitalize text-sm text-muted-foreground"
                     >
                       {lead.applicationType.replace(/_/g, " ")}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    <Link href={`/leads/${lead.id}`} className="block w-full">
+                      {lead.assignedRep ? (lead.assignedRep.name || lead.assignedRep.email) : <span className="italic text-xs">Unassigned</span>}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    <Link href={`/leads/${lead.id}`} className="block w-full">
+                      {lead.lastActivityAt ? format(new Date(lead.lastActivityAt), "MMM d, yyyy") : "-"}
                     </Link>
                   </TableCell>
                   <TableCell>

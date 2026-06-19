@@ -121,9 +121,12 @@ router.put("/tasks/:taskId", async (req: Request, res: Response) => {
     res.status(404).json({ error: "Task not found" });
     return;
   }
-  if (user.role === "rep" && existing.userId !== user.id) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
+  if (user.role === "rep") {
+    const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, existing.leadId) });
+    if (!lead || lead.assignedRepId !== user.id) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
   }
 
   const now = new Date();

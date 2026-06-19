@@ -152,24 +152,34 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
   endOfWeek.setDate(now.getDate() + 7);
   const endOfWeekStr = endOfWeek.toISOString().split("T")[0];
 
+  // For reps: scope tasks to leads they are assigned to (lead ownership check).
+  // For managers/admins: tasks assigned to them regardless of lead.
+  const repLeadFilter = user.role === "rep"
+    ? eq(leadsTable.assignedRepId, user.id)
+    : undefined;
+
+  const taskBaseWhere = (extraWhere: any) =>
+    user.role === "rep"
+      ? and(eq(tasksTable.isCompleted, false), extraWhere)
+      : and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere);
+
+  const withRepJoin = async (extraWhere: any) => {
+    if (user.role === "rep") {
+      return db.query.tasksTable.findMany({
+        where: and(eq(tasksTable.isCompleted, false), extraWhere),
+        with: { assignedUser: true, lead: true },
+      }).then((rows) => rows.filter((t) => (t as any).lead?.assignedRepId === user.id));
+    }
+    return db.query.tasksTable.findMany({
+      where: and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
+      with: { assignedUser: true },
+    });
+  };
+
   const [dueTodayRaw, dueThisWeekRaw, overdueRaw] = await Promise.all([
-    db.query.tasksTable.findMany({
-      where: and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), eq(tasksTable.dueDate, todayStr)),
-      with: { assignedUser: true },
-    }),
-    db.query.tasksTable.findMany({
-      where: and(
-        eq(tasksTable.userId, user.id),
-        eq(tasksTable.isCompleted, false),
-        gte(tasksTable.dueDate, todayStr),
-        lte(tasksTable.dueDate, endOfWeekStr),
-      ),
-      with: { assignedUser: true },
-    }),
-    db.query.tasksTable.findMany({
-      where: and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), lte(tasksTable.dueDate, todayStr)),
-      with: { assignedUser: true },
-    }),
+    withRepJoin(eq(tasksTable.dueDate, todayStr)),
+    withRepJoin(and(gte(tasksTable.dueDate, todayStr), lte(tasksTable.dueDate, endOfWeekStr))),
+    withRepJoin(lte(tasksTable.dueDate, todayStr)),
   ]);
 
   res.json({
