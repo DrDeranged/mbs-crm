@@ -95,8 +95,8 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
     const raw = req.params.path;
     const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
 
-    // Per-resource ownership check: if the path maps to a lead document,
-    // verify the caller has access to that lead.
+    // Deny-by-default: only serve paths that match a known authorized pattern.
+    // Currently the only private objects are lead documents.
     const leadDocMatch = wildcardPath.match(/^leads\/(\d+)\/documents\/.+/);
     if (leadDocMatch) {
       const leadId = Number(leadDocMatch[1]);
@@ -109,9 +109,8 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
           res.status(403).json({ error: "Forbidden" });
           return;
         }
-      }
-      // Managers and admins: verify the lead document record exists (no cross-tenant leak).
-      else {
+      } else {
+        // Managers and admins: verify the document record exists in DB (prevents path guessing).
         const doc = await db.query.documentsTable.findFirst({
           where: eq(documentsTable.leadId, leadId),
         });
@@ -120,6 +119,10 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
           return;
         }
       }
+    } else {
+      // Unrecognized private object path — deny access by default.
+      res.status(403).json({ error: "Forbidden" });
+      return;
     }
 
     const objectPath = `/objects/${wildcardPath}`;

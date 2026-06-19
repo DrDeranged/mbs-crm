@@ -170,11 +170,28 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     return;
   }
 
+  // Frontend sends mapping as { fileColumn -> leadField }.
+  // Invert to { leadField -> fileColumn } so resolve() can look up by canonical field name.
+  const invertedMapping: Record<string, string> = {};
+  for (const [fileCol, leadField] of Object.entries(columnMapping)) {
+    if (leadField && leadField !== "__skip__") {
+      invertedMapping[leadField] = fileCol;
+    }
+  }
+
   const resolve = (row: ParsedRow, ...candidates: string[]): string => {
     for (const c of candidates) {
-      const mapped = columnMapping[c] || c;
-      if (row[mapped]) return row[mapped];
-      if (row[c]) return row[c];
+      // Check inverted mapping: canonical field -> file column header
+      const mappedCol = invertedMapping[c];
+      if (mappedCol && row[mappedCol] !== undefined && row[mappedCol] !== "") return row[mappedCol];
+      // Fall back to direct column name lookup (handles auto-detected matches)
+      if (row[c] !== undefined && row[c] !== "") return row[c];
+      // Case-insensitive / whitespace-normalized fallback
+      const normalized = c.toLowerCase().replace(/[\s_]/g, "");
+      const key = Object.keys(row).find(
+        (k) => k.toLowerCase().replace(/[\s_]/g, "") === normalized,
+      );
+      if (key && row[key] !== undefined && row[key] !== "") return row[key];
     }
     return "";
   };
