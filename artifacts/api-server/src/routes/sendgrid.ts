@@ -1,29 +1,38 @@
 import { Router, type Request, type Response } from "express";
+import { EventWebhook } from "@sendgrid/eventwebhook";
 import { db } from "@workspace/db";
-import { emailSendsTable } from "@workspace/db";
+import { emailSendsTable, leadsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 
 const router = Router();
 
-const SENDGRID_WEBHOOK_KEY = process.env["SENDGRID_WEBHOOK_KEY"];
+const SENDGRID_WEBHOOK_VERIFICATION_KEY = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
+
+function verifySendGridSignature(req: Request): boolean {
+  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) return true; // Skip verification in dev mode
+
+  const signature = req.headers["x-twilio-email-event-webhook-signature"] as string;
+  const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
+
+  if (!signature || !timestamp) return false;
+
+  const rawBody: Buffer | undefined = (req as any).rawBody;
+  if (!rawBody) return false;
+
+  try {
+    const ew = new EventWebhook();
+    const ecPublicKey = ew.convertPublicKeyToECDSA(SENDGRID_WEBHOOK_VERIFICATION_KEY);
+    return ew.verifySignature(ecPublicKey, rawBody, signature, timestamp);
+  } catch {
+    return false;
+  }
+}
 
 // POST /api/sendgrid/webhook — receives SendGrid event payloads
-// Events: delivered, opened, clicked, bounce, unsubscribe, spamreport
 router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
-  // Basic validation: only process if signature key is set and matches
-  if (SENDGRID_WEBHOOK_KEY) {
-    const sig = req.headers["x-twilio-email-event-webhook-signature"] as string;
-    const ts = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
-    if (!sig || !ts) {
-      return void res.status(403).json({ error: "Missing signature" });
-    }
-    // Full ECDSA verification would go here (requires @sendgrid/eventwebhook)
-    // For now, just verify timestamp freshness (within 5 minutes)
-    const age = Date.now() - parseInt(ts, 10) * 1000;
-    if (age > 5 * 60 * 1000) {
-      return void res.status(403).json({ error: "Stale webhook" });
-    }
+  if (!verifySendGridSignature(req)) {
+    return void res.status(403).json({ error: "Invalid webhook signature" });
   }
 
   const events: any[] = Array.isArray(req.body) ? req.body : [req.body];
@@ -35,9 +44,9 @@ router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
       timestamp?: number;
     };
 
-    if (!sg_message_id) continue;
+    if (!sg_message_id || !eventType) continue;
 
-    // SendGrid appends a filter ID to the message ID; strip it
+    // SendGrid appends a filter ID after a dot — strip it
     const messageId = sg_message_id.split(".")[0];
 
     const send = await db.query.emailSendsTable.findFirst({
@@ -48,36 +57,48 @@ router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
 
     const eventAt = timestamp ? new Date(timestamp * 1000) : new Date();
 
-    let status: string | undefined;
-    let updates: Partial<typeof emailSendsTable.$inferSelect> & Record<string, any> = { updatedAt: new Date() };
+    let updates: Record<string, any> = { updatedAt: new Date() };
+    let activityAction: string | null = null;
 
     switch (eventType) {
       case "delivered":
-        status = "delivered";
         updates.status = "delivered";
+        activityAction = "email_delivered";
         break;
       case "open":
-        status = "opened";
-        updates.status = "opened";
-        updates.openedAt = eventAt;
+        // Only upgrade if not already at a higher-engagement state
+        if (send.status !== "clicked") {
+          updates.status = "opened";
+          updates.openedAt = eventAt;
+        }
+        activityAction = "email_opened";
         break;
       case "click":
-        status = "clicked";
         updates.status = "clicked";
         updates.clickedAt = eventAt;
+        activityAction = "email_clicked";
         break;
       case "bounce":
       case "blocked":
-        status = "bounced";
         updates.status = "bounced";
+        activityAction = "email_bounced";
         break;
       case "unsubscribe":
       case "group_unsubscribe":
-        status = "unsubscribed";
         updates.status = "unsubscribed";
-        // Mark lead unsubscribed
+        activityAction = "email_unsubscribed";
+        // Mark lead as unsubscribed
         if (send.leadId) {
-          const { leadsTable } = await import("@workspace/db");
+          await db.update(leadsTable)
+            .set({ isUnsubscribed: true, updatedAt: new Date() })
+            .where(eq(leadsTable.id, send.leadId));
+        }
+        break;
+      case "spamreport":
+        updates.status = "bounced";
+        activityAction = "email_spam_reported";
+        // Also mark lead unsubscribed on spam report
+        if (send.leadId) {
           await db.update(leadsTable)
             .set({ isUnsubscribed: true, updatedAt: new Date() })
             .where(eq(leadsTable.id, send.leadId));
@@ -87,13 +108,13 @@ router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
         continue;
     }
 
-    await db.update(emailSendsTable).set(updates as any).where(eq(emailSendsTable.id, send.id));
+    await db.update(emailSendsTable).set(updates).where(eq(emailSendsTable.id, send.id));
 
-    if (send.leadId && (eventType === "open" || eventType === "click")) {
+    if (activityAction && send.leadId) {
       await logActivity({
         userId: send.userId,
         leadId: send.leadId,
-        action: eventType === "open" ? "email_opened" : "email_clicked",
+        action: activityAction,
         entityType: "email_send",
         entityId: send.id,
         details: { subject: send.subject, event: eventType },

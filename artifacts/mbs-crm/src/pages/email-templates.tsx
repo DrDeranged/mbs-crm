@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, usePreviewEmailTemplate } from "@workspace/api-client-react";
+import { useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, usePreviewEmailTemplate, useSendBulkEmail, useListLeads } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Mail, Edit2, Eye, CheckCircle } from "lucide-react";
+import { Plus, Mail, Edit2, Eye, CheckCircle, Send, Users } from "lucide-react";
 
 const PROGRAM_TYPES = [
   { value: "working_capital", label: "Working Capital" },
@@ -184,6 +184,99 @@ function PreviewDialog({ template }: { template: any }) {
   );
 }
 
+const LEAD_STATUSES = [
+  { value: "new_lead", label: "New Lead" },
+  { value: "contacted", label: "Contacted" },
+  { value: "application_received", label: "Application Received" },
+  { value: "submitted_to_underwriting", label: "Submitted to Underwriting" },
+  { value: "approved", label: "Approved" },
+  { value: "funded", label: "Funded" },
+  { value: "declined", label: "Declined" },
+  { value: "follow_up", label: "Follow Up" },
+];
+
+function BulkSendDialog({ template }: { template: any }) {
+  const [open, setOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const sendBulk = useSendBulkEmail();
+  const { toast } = useToast();
+
+  const { data: leadsData } = useListLeads(
+    statusFilter && statusFilter !== "all" ? { status: statusFilter as any } : undefined,
+    { query: { enabled: open, queryKey: ["bulk-send-leads", statusFilter] } }
+  );
+
+  const eligibleLeads = (leadsData?.leads ?? []).filter((l: any) => l.email && !l.isUnsubscribed);
+
+  const handleSend = () => {
+    const leadIds = eligibleLeads.map((l: any) => l.id);
+    if (leadIds.length === 0) {
+      toast({ title: "No eligible leads", description: "No leads with email addresses match this filter.", variant: "destructive" });
+      return;
+    }
+    sendBulk.mutate(
+      { data: { templateId: template.id, leadIds } },
+      {
+        onSuccess: (data: any) => {
+          toast({ title: `Bulk email sent`, description: `Sent: ${data.sent ?? 0} · Failed: ${data.failed ?? 0} · Skipped: ${data.skipped ?? 0}` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Bulk send failed", variant: "destructive" }),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs gap-1" title="Send to multiple leads">
+          <Users className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Bulk Send: {template.name}</DialogTitle>
+          <DialogDescription>Send this template to all leads matching the selected filter. Unsubscribed leads and leads without email addresses are automatically excluded.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Filter by lead status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {LEAD_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border text-sm">
+            <Users className="h-4 w-4 text-slate-500" />
+            <span className="text-slate-700">
+              <strong>{eligibleLeads.length}</strong> eligible lead{eligibleLeads.length !== 1 ? "s" : ""} with email addresses
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">Subject: <span className="font-medium">{template.subject}</span></p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleSend}
+            disabled={sendBulk.isPending || eligibleLeads.length === 0}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Send className="h-3.5 w-3.5 mr-1.5" />
+            {sendBulk.isPending ? "Sending…" : `Send to ${eligibleLeads.length} lead${eligibleLeads.length !== 1 ? "s" : ""}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function EmailTemplates() {
   const { data: templates, isLoading } = useListEmailTemplates(undefined, { query: { queryKey: ["email-templates"] } });
 
@@ -252,6 +345,7 @@ export default function EmailTemplates() {
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <PreviewDialog template={t} />
+                    {t.isActive && <BulkSendDialog template={t} />}
                     <TemplateFormDialog
                       template={t}
                       trigger={

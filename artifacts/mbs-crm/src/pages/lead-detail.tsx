@@ -15,7 +15,7 @@ import {
   useGetMe, useAssignLead, useListUsers,
   useListCommunications, getListCommunicationsQueryKey, useSendSms,
   useListLeadEmails, getListLeadEmailsQueryKey,
-  useSendEmail, useListEmailTemplates,
+  useSendEmail, useListEmailTemplates, usePreviewEmailTemplate,
   useGetLeadDripEnrollment, getGetLeadDripEnrollmentQueryKey,
   useEnrollLeadInDrip, useUnenrollLeadFromDrip, useListDripSequences,
 } from "@workspace/api-client-react";
@@ -516,9 +516,28 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
   const sendEmail = useSendEmail();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const previewEmailTemplate = usePreviewEmailTemplate();
   const [smsBody, setSmsBody] = useState("");
-  const [emailTemplateId, setEmailTemplateId] = useState<string>("");
   const [activeCompose, setActiveCompose] = useState<"sms" | "email">("sms");
+  const [emailMode, setEmailMode] = useState<"template" | "freeform">("template");
+  const [emailTemplateId, setEmailTemplateId] = useState<string>("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBodyHtml, setEmailBodyHtml] = useState("");
+  const [emailPreview, setEmailPreview] = useState<{ subject: string; bodyHtml: string } | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handlePreviewTemplate = () => {
+    if (!emailTemplateId) return;
+    previewEmailTemplate.mutate(
+      { id: parseInt(emailTemplateId), data: { leadId } },
+      {
+        onSuccess: (data: any) => { setEmailPreview(data); setShowPreview(true); },
+        onError: () => { setEmailPreview(null); setShowPreview(false); },
+      }
+    );
+  };
+
+  const insertVar = (v: string) => setEmailBodyHtml((p: string) => p + v);
 
   const handleSendSms = () => {
     if (!smsBody.trim()) return;
@@ -536,10 +555,21 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
   };
 
   const handleSendEmail = () => {
-    if (!emailTemplateId) return;
-    sendEmail.mutate({ data: { leadId, templateId: parseInt(emailTemplateId) } }, {
+    const isTemplate = emailMode === "template";
+    if (isTemplate && !emailTemplateId) return;
+    if (!isTemplate && (!emailSubject.trim() || !emailBodyHtml.trim())) return;
+
+    const payload = isTemplate
+      ? { leadId, templateId: parseInt(emailTemplateId) }
+      : { leadId, subject: emailSubject.trim(), bodyHtml: emailBodyHtml.trim() };
+
+    sendEmail.mutate({ data: payload }, {
       onSuccess: () => {
         setEmailTemplateId("");
+        setEmailSubject("");
+        setEmailBodyHtml("");
+        setEmailPreview(null);
+        setShowPreview(false);
         toast({ title: "Email Sent" });
         queryClient.invalidateQueries({ queryKey: getListLeadEmailsQueryKey(leadId) });
         queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
@@ -675,23 +705,100 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
           </>
         ) : (
           <div className="space-y-2">
-            <select
-              value={emailTemplateId}
-              onChange={(e) => setEmailTemplateId(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
-            >
-              <option value="">Select an email template…</option>
-              {(templates ?? []).filter((t: any) => t.isActive).map((t: any) => (
-                <option key={t.id} value={String(t.id)}>{t.name}</option>
-              ))}
-            </select>
-            <Button
-              onClick={handleSendEmail}
-              disabled={!emailTemplateId || sendEmail.isPending}
-              className="bg-purple-600 hover:bg-purple-700 text-white w-full"
-            >
-              <Mail className="h-4 w-4 mr-1.5" /> Send Email
-            </Button>
+            {/* Template / Custom toggle */}
+            <div className="flex gap-1">
+              <button
+                onClick={() => { setEmailMode("template"); setEmailPreview(null); setShowPreview(false); }}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "template" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+              >
+                From Template
+              </button>
+              <button
+                onClick={() => { setEmailMode("freeform"); setEmailPreview(null); setShowPreview(false); }}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "freeform" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+              >
+                Custom
+              </button>
+            </div>
+
+            {emailMode === "template" ? (
+              <>
+                <div className="flex gap-2">
+                  <select
+                    value={emailTemplateId}
+                    onChange={(e) => { setEmailTemplateId(e.target.value); setEmailPreview(null); setShowPreview(false); }}
+                    className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="">Select an email template…</option>
+                    {(templates ?? []).filter((t: any) => t.isActive).map((t: any) => (
+                      <option key={t.id} value={String(t.id)}>{t.name}</option>
+                    ))}
+                  </select>
+                  {emailTemplateId && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handlePreviewTemplate}
+                      disabled={previewEmailTemplate.isPending}
+                      className="text-xs shrink-0"
+                    >
+                      Preview
+                    </Button>
+                  )}
+                </div>
+                {showPreview && emailPreview && (
+                  <div className="border rounded-md p-3 bg-slate-50 text-xs space-y-1">
+                    <div className="font-semibold text-slate-700">Subject: {emailPreview.subject}</div>
+                    <div
+                      className="text-slate-600 prose prose-sm max-h-[120px] overflow-y-auto"
+                      dangerouslySetInnerHTML={{ __html: emailPreview.bodyHtml }}
+                    />
+                    <button onClick={() => setShowPreview(false)} className="text-purple-600 hover:underline text-[10px] mt-1">Hide preview</button>
+                  </div>
+                )}
+                <Button
+                  onClick={handleSendEmail}
+                  disabled={!emailTemplateId || sendEmail.isPending}
+                  className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                >
+                  <Mail className="h-4 w-4 mr-1.5" /> Send Email
+                </Button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Subject…"
+                  className="w-full text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
+                />
+                <Textarea
+                  value={emailBodyHtml}
+                  onChange={(e) => setEmailBodyHtml(e.target.value)}
+                  placeholder="Email body (HTML supported)…"
+                  className="min-h-[80px] text-sm resize-none font-mono"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {["{{lead_first_name}}", "{{lead_company}}", "{{rep_name}}", "{{rep_email}}"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => insertVar(v)}
+                      className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 rounded px-1.5 py-0.5 hover:bg-purple-100"
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  onClick={handleSendEmail}
+                  disabled={!emailSubject.trim() || !emailBodyHtml.trim() || sendEmail.isPending}
+                  className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                >
+                  <Mail className="h-4 w-4 mr-1.5" /> Send Email
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
