@@ -5,7 +5,7 @@ import {
   RequestUploadUrlResponse,
 } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
-import { ObjectPermission } from "../lib/objectAcl";
+import { requireUser } from "../lib/authHelpers";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -25,16 +25,13 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
   }
 
   try {
-    const { filename, size, contentType } = parsed.data;
-
     const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-    const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+    const fileKey = objectStorageService.normalizeObjectEntityPath(uploadURL);
 
     res.json(
       RequestUploadUrlResponse.parse({
-        uploadURL,
-        objectPath,
-        metadata: { filename, size, contentType },
+        uploadUrl: uploadURL,
+        fileKey,
       }),
     );
   } catch (error) {
@@ -85,26 +82,14 @@ router.get("/storage/public-objects/*filePath", async (req: Request, res: Respon
  * be protected with authentication or ACL checks based on the use case.
  */
 router.get("/storage/objects/*path", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
   try {
     const raw = req.params.path;
     const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
     const objectPath = `/objects/${wildcardPath}`;
     const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
-
-    // --- Protected route example (uncomment when using replit-auth) ---
-    // if (!req.isAuthenticated()) {
-    //   res.status(401).json({ error: "Unauthorized" });
-    //   return;
-    // }
-    // const canAccess = await objectStorageService.canAccessObjectEntity({
-    //   userId: req.user.id,
-    //   objectFile,
-    //   requestedPermission: ObjectPermission.READ,
-    // });
-    // if (!canAccess) {
-    //   res.status(403).json({ error: "Forbidden" });
-    //   return;
-    // }
 
     const response = await objectStorageService.downloadObject(objectFile);
 

@@ -5,5 +5,6 @@ export * from "./notes";
 export * from "./tasks";
 export * from "./documents";
 export * from "./leadStatusHistory";
+export * from "./leadAssignmentHistory";
 export * from "./activityLog";
 export * from "./relations";

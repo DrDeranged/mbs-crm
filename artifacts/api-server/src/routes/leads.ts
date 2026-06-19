@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { leadsTable, companiesTable, leadStatusHistoryTable, usersTable } from "@workspace/db";
-import { eq, or, ilike, and, sql, desc, asc } from "drizzle-orm";
+import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable } from "@workspace/db";
+import { eq, or, ilike, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import {
@@ -74,6 +74,12 @@ router.get("/leads", async (req: Request, res: Response) => {
   if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
   if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
   if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
+  if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
+  if (q.endDate) {
+    const end = new Date(q.endDate as string);
+    end.setHours(23, 59, 59, 999);
+    conditions.push(lte(leadsTable.createdAt, end));
+  }
 
   let searchCondition: any = undefined;
   if (q.search) {
@@ -397,16 +403,26 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
+  const existing = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.id, params.data.id),
+  });
+  if (!existing) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
   const [updated] = await db
     .update(leadsTable)
     .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
     .where(eq(leadsTable.id, params.data.id))
     .returning();
 
-  if (!updated) {
-    res.status(404).json({ error: "Lead not found" });
-    return;
-  }
+  await db.insert(leadAssignmentHistoryTable).values({
+    leadId: params.data.id,
+    changedByUserId: user.id,
+    fromRepId: existing.assignedRepId,
+    toRepId: body.data.repId,
+  });
 
   await logActivity({
     userId: user.id,
@@ -414,7 +430,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     action: "assigned",
     entityType: "lead",
     entityId: params.data.id,
-    details: { assignedRepId: body.data.repId },
+    details: { fromRepId: existing.assignedRepId, toRepId: body.data.repId },
   });
 
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, body.data.repId) });

@@ -9,7 +9,8 @@ import {
   useUpdateLead, LeadUpdateApplicationType,
   useListNotes, getListNotesQueryKey, useCreateNote,
   useListTasks, getListTasksQueryKey, useCreateTask, useUpdateTask,
-  useListDocuments, getListDocumentsQueryKey, getDownloadDocumentQueryKey,
+  useListDocuments, getListDocumentsQueryKey,
+  useUploadDocument, downloadDocument,
   useListLeadActivity, getListLeadActivityQueryKey
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -187,40 +188,32 @@ function LeadTasks({ leadId }: { leadId: number }) {
 // Documents Tab
 function LeadDocuments({ leadId }: { leadId: number }) {
   const { data: documents, isLoading } = useListDocuments(leadId, { query: { queryKey: getListDocumentsQueryKey(leadId) } });
+  const uploadDocument = useUploadDocument();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch(`/api/leads/${leadId}/documents`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      toast({ title: "Document Uploaded" });
-      queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) });
-      queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
-    } catch (err) {
-      toast({ title: "Error", description: "Failed to upload document", variant: "destructive" });
-    } finally {
-      setIsUploading(false);
-      if (e.target) e.target.value = '';
-    }
+    uploadDocument.mutate(
+      { id: leadId, data: { file } },
+      {
+        onSuccess: () => {
+          toast({ title: "Document Uploaded" });
+          queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+        },
+        onError: () => toast({ title: "Error", description: "Failed to upload document", variant: "destructive" }),
+        onSettled: () => { if (e.target) e.target.value = ""; },
+      },
+    );
   };
 
-  const handleDownload = async (docId: number, filename: string) => {
+  const handleDownload = async (docId: number, _filename: string) => {
     try {
-      const res = await fetch(`/api/documents/${docId}/download`);
-      if (!res.ok) throw new Error("Could not get download URL");
-      const { downloadUrl } = await res.json();
-      window.open(downloadUrl, '_blank');
-    } catch (err) {
+      const result = await downloadDocument(docId);
+      if (result.downloadUrl) window.open(result.downloadUrl, "_blank");
+    } catch {
       toast({ title: "Download Error", description: "Could not download document.", variant: "destructive" });
     }
   };
@@ -234,10 +227,10 @@ function LeadDocuments({ leadId }: { leadId: number }) {
             type="file" 
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
             onChange={handleUpload}
-            disabled={isUploading}
+            disabled={uploadDocument.isPending}
           />
-          <Button size="sm" variant="outline" disabled={isUploading}>
-            {isUploading ? "Uploading..." : <><UploadCloud className="w-4 h-4 mr-2" /> Upload</>}
+          <Button size="sm" variant="outline" disabled={uploadDocument.isPending}>
+            {uploadDocument.isPending ? "Uploading..." : <><UploadCloud className="w-4 h-4 mr-2" /> Upload</>}
           </Button>
         </div>
       </div>

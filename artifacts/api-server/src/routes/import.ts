@@ -1,5 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
+import * as XLSX from "xlsx";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
@@ -8,19 +9,65 @@ import { logActivity } from "../lib/activityHelper";
 const router: IRouter = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
+    const allowed = [
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
+    if (
+      allowed.includes(file.mimetype) ||
+      file.originalname.endsWith(".csv") ||
+      file.originalname.endsWith(".xlsx") ||
+      file.originalname.endsWith(".xls")
+    ) {
       cb(null, true);
     } else {
-      cb(new Error("Only CSV files are supported"));
+      cb(new Error("Only CSV and Excel (.xlsx/.xls) files are supported"));
     }
   },
 });
 
-function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {
+type ParsedRow = Record<string, string>;
+
+function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): { headers: string[]; rows: ParsedRow[] } {
+  const isExcel =
+    mimetype.includes("spreadsheetml") ||
+    mimetype.includes("ms-excel") ||
+    originalname.endsWith(".xlsx") ||
+    originalname.endsWith(".xls");
+
+  let rawRows: Record<string, unknown>[];
+
+  if (isExcel) {
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    rawRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+  } else {
+    const text = buffer.toString("utf-8");
+    rawRows = csvToRows(text);
+  }
+
+  if (rawRows.length === 0) return { headers: [], rows: [] };
+
+  const headers = Object.keys(rawRows[0]).map((h) =>
+    h.toLowerCase().replace(/\s+/g, "_"),
+  );
+  const rows: ParsedRow[] = rawRows.map((r) => {
+    const out: ParsedRow = {};
+    headers.forEach((h, i) => {
+      out[h] = String(Object.values(r)[i] ?? "");
+    });
+    return out;
+  });
+
+  return { headers, rows };
+}
+
+function csvToRows(text: string): Record<string, string>[] {
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n");
-  if (lines.length < 2) return { headers: [], rows: [] };
+  if (lines.length < 2) return [];
 
   const parseLine = (line: string): string[] => {
     const fields: string[] = [];
@@ -42,7 +89,7 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
     return fields;
   };
 
-  const headers = parseLine(lines[0]).map((h) => h.toLowerCase().replace(/\s+/g, "_"));
+  const headers = parseLine(lines[0]);
   const rows: Record<string, string>[] = [];
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
@@ -51,20 +98,43 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
     headers.forEach((h, idx) => { row[h] = values[idx] ?? ""; });
     rows.push(row);
   }
-  return { headers, rows };
+  return rows;
 }
 
-const FIELD_MAP: Record<string, string> = {
-  first_name: "firstName",
-  last_name: "lastName",
-  email: "email",
-  phone: "phone",
-  company_name: "companyName",
-  ein: "ein",
-  application_type: "applicationType",
-  lead_source: "leadSource",
-};
+/**
+ * POST /leads/import/preview
+ *
+ * Upload a CSV or XLSX file and get back the detected column headers plus
+ * the first 5 data rows so the user can verify the mapping before confirming.
+ */
+router.post("/leads/import/preview", upload.single("file"), async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
 
+  if (!req.file) {
+    res.status(400).json({ error: "No file provided" });
+    return;
+  }
+
+  const { headers, rows } = parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+  if (rows.length === 0) {
+    res.status(400).json({ error: "File is empty or has no data rows" });
+    return;
+  }
+
+  res.json({
+    headers,
+    previewRows: rows.slice(0, 5),
+    totalRows: rows.length,
+  });
+});
+
+/**
+ * POST /leads/import
+ *
+ * Upload a CSV or XLSX file and import all leads. Skips duplicates by email.
+ * Optionally accepts a columnMapping object to map file columns to lead fields.
+ */
 router.post("/leads/import", upload.single("file"), async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -74,13 +144,31 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     return;
   }
 
-  const text = req.file.buffer.toString("utf-8");
-  const { rows } = parseCSV(text);
+  let columnMapping: Record<string, string> = {};
+  if (req.body?.columnMapping) {
+    try {
+      columnMapping = typeof req.body.columnMapping === "string"
+        ? JSON.parse(req.body.columnMapping)
+        : req.body.columnMapping;
+    } catch {
+      columnMapping = {};
+    }
+  }
 
+  const { rows } = parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
   if (rows.length === 0) {
-    res.status(400).json({ error: "CSV file is empty or has no data rows" });
+    res.status(400).json({ error: "File is empty or has no data rows" });
     return;
   }
+
+  const resolve = (row: ParsedRow, ...candidates: string[]): string => {
+    for (const c of candidates) {
+      const mapped = columnMapping[c] || c;
+      if (row[mapped]) return row[mapped];
+      if (row[c]) return row[c];
+    }
+    return "";
+  };
 
   let imported = 0;
   let skipped = 0;
@@ -90,12 +178,12 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     const row = rows[i];
     const rowNum = i + 2;
 
-    const firstName = row.first_name || row.firstname || "";
-    const lastName = row.last_name || row.lastname || "";
-    const email = row.email?.toLowerCase() || null;
-    const phone = row.phone || null;
-    const companyName = row.company_name || row.company || null;
-    const ein = row.ein || null;
+    const firstName = resolve(row, "first_name", "firstname", "first");
+    const lastName = resolve(row, "last_name", "lastname", "last");
+    const email = resolve(row, "email")?.toLowerCase() || null;
+    const phone = resolve(row, "phone", "phone_number") || null;
+    const companyName = resolve(row, "company_name", "company", "business_name") || null;
+    const ein = resolve(row, "ein", "tax_id") || null;
 
     if (!firstName && !lastName && !email) {
       skipped++;
@@ -113,8 +201,8 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       }
     }
 
-    const appType = row.application_type || row.applicationtype || "working_capital";
-    const leadSource = row.lead_source || row.leadsource || "import";
+    const appType = resolve(row, "application_type", "applicationtype", "financing_type") || "working_capital";
+    const leadSource = resolve(row, "lead_source", "leadsource", "source") || "import";
 
     const [lead] = await db.insert(leadsTable).values({
       firstName,
@@ -128,12 +216,10 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       assignedRepId: user.role === "rep" ? user.id : null,
     }).returning();
 
-    if (companyName && !row.company_name_skip) {
-      const industry = row.industry || null;
-      const state = row.state || null;
-      if (industry || state) {
-        await db.insert(companiesTable).values({ leadId: lead.id, industry, state }).catch(() => {});
-      }
+    const industry = resolve(row, "industry") || null;
+    const state = resolve(row, "state") || null;
+    if (companyName && (industry || state)) {
+      await db.insert(companiesTable).values({ leadId: lead.id, industry, state }).catch(() => {});
     }
 
     await logActivity({
@@ -142,7 +228,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       action: "imported",
       entityType: "lead",
       entityId: lead.id,
-      details: { row: rowNum, source: "csv_import" },
+      details: { row: rowNum, source: req.file.originalname.endsWith(".xlsx") || req.file.originalname.endsWith(".xls") ? "xlsx_import" : "csv_import" },
     });
 
     imported++;
