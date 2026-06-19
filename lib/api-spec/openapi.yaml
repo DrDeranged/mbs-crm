@@ -3,20 +3,37 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MBS CRM API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: leads
+    description: Lead management
+  - name: notes
+    description: Lead notes
+  - name: tasks
+    description: Lead tasks
+  - name: documents
+    description: Lead documents
+  - name: activity
+    description: Activity log
+  - name: dashboard
+    description: Dashboard analytics
+  - name: storage
+    description: Object storage
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +41,499 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (for assignment dropdown)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, manager, rep]
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    put:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user role (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List leads with search/filter/pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: applicationType
+          in: query
+          schema:
+            type: string
+        - name: repId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        "200":
+          description: Paginated lead list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadListResponse"
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create a new lead (with duplicate check)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "409":
+          description: Duplicate detected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateResponse"
+
+  /leads/capture:
+    post:
+      operationId: captureLeadFromWebsite
+      tags: [leads]
+      summary: Public endpoint for website lead capture (no auth required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadCaptureInput"
+      responses:
+        "201":
+          description: Lead captured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadCaptureResponse"
+        "409":
+          description: Duplicate detected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateResponse"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get lead detail with related data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDetail"
+        "404":
+          description: Not found
+    put:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update lead fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/status:
+    put:
+      operationId: changeLeadStatus
+      tags: [leads]
+      summary: Change lead status (logs to history and activity)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusChange"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/assign:
+    put:
+      operationId: assignLead
+      tags: [leads]
+      summary: Reassign lead to a different rep (manager/admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignLead"
+      responses:
+        "200":
+          description: Lead reassigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/notes:
+    get:
+      operationId: listNotes
+      tags: [notes]
+      summary: List notes for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createNote
+      tags: [notes]
+      summary: Add a note to a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteInput"
+      responses:
+        "201":
+          description: Note created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /leads/{id}/tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tasks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Add a task to a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}:
+    put:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task (mark complete, edit)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /leads/{id}/documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List documents for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Documents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+  /documents/{docId}/download:
+    get:
+      operationId: downloadDocument
+      tags: [documents]
+      summary: Get a signed download URL for a document
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Download URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DownloadUrlResponse"
+
+  /leads/{id}/activity:
+    get:
+      operationId: listLeadActivity
+      tags: [activity]
+      summary: Get chronological activity log for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activity entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEntry"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Pipeline counts per stage, recent leads and rep breakdown
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/rep:
+    get:
+      operationId: getRepDashboard
+      tags: [dashboard]
+      summary: Rep-specific dashboard (my leads, tasks due, recent activity)
+      responses:
+        "200":
+          description: Rep dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepDashboard"
+
+  /dashboard/my-tasks:
+    get:
+      operationId: getMyTasks
+      tags: [dashboard]
+      summary: Current user's tasks due today, this week, and overdue
+      responses:
+        "200":
+          description: Tasks summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyTasksSummary"
+
+  /storage/uploads/request-url:
+    post:
+      tags: [storage]
+      operationId: requestUploadUrl
+      summary: Request a presigned URL for file upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +544,526 @@ components:
       required:
         - status
 
+    User:
+      type: object
+      required: [id, clerkId, email, role, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        name:
+          type: ["string", "null"]
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, rep]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    UserUpdate:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, manager, rep]
+        isActive:
+          type: boolean
+
+    Lead:
+      type: object
+      required: [id, status, applicationType, leadSource, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: ["string", "null"]
+        lastName:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        companyName:
+          type: ["string", "null"]
+        ein:
+          type: ["string", "null"]
+        applicationType:
+          type: string
+          enum: [equipment, working_capital]
+        status:
+          type: string
+          enum: [new_lead, contacted, application_received, submitted_to_underwriting, approved, funded, declined, follow_up]
+        assignedRepId:
+          type: ["integer", "null"]
+        assignedRep:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        leadSource:
+          type: string
+          enum: [website, referral, import, manual]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: ["string", "null"]
+          format: date-time
+
+    LeadDetail:
+      allOf:
+        - $ref: "#/components/schemas/Lead"
+        - type: object
+          properties:
+            company:
+              oneOf:
+                - $ref: "#/components/schemas/Company"
+                - type: "null"
+            notes:
+              type: array
+              items:
+                $ref: "#/components/schemas/Note"
+            tasks:
+              type: array
+              items:
+                $ref: "#/components/schemas/Task"
+            documents:
+              type: array
+              items:
+                $ref: "#/components/schemas/Document"
+            recentActivity:
+              type: array
+              items:
+                $ref: "#/components/schemas/ActivityEntry"
+
+    LeadListResponse:
+      type: object
+      required: [leads, total, page, limit, totalPages]
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+
+    LeadInput:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyName:
+          type: string
+        ein:
+          type: string
+        applicationType:
+          type: string
+          enum: [equipment, working_capital]
+        assignedRepId:
+          type: integer
+        leadSource:
+          type: string
+          enum: [website, referral, import, manual]
+        company:
+          $ref: "#/components/schemas/CompanyInput"
+
+    LeadUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyName:
+          type: string
+        ein:
+          type: string
+        applicationType:
+          type: string
+          enum: [equipment, working_capital]
+        company:
+          $ref: "#/components/schemas/CompanyInput"
+
+    LeadCaptureInput:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        companyName:
+          type: string
+        applicationType:
+          type: string
+          enum: [equipment, working_capital]
+
+    LeadCaptureResponse:
+      type: object
+      required: [success, leadId]
+      properties:
+        success:
+          type: boolean
+        leadId:
+          type: integer
+
+    DuplicateResponse:
+      type: object
+      required: [duplicate, existingLeadId, existingLeadName]
+      properties:
+        duplicate:
+          type: boolean
+        existingLeadId:
+          type: integer
+        existingLeadName:
+          type: string
+
+    StatusChange:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [new_lead, contacted, application_received, submitted_to_underwriting, approved, funded, declined, follow_up]
+
+    AssignLead:
+      type: object
+      required: [repId]
+      properties:
+        repId:
+          type: integer
+
+    ImportResult:
+      type: object
+      required: [imported, skipped, duplicates]
+      properties:
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        duplicates:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              reason:
+                type: string
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        name:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        zip:
+          type: ["string", "null"]
+        industry:
+          type: ["string", "null"]
+        timeInBusinessMonths:
+          type: ["integer", "null"]
+        annualRevenue:
+          type: ["number", "null"]
+
+    CompanyInput:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        industry:
+          type: string
+        timeInBusinessMonths:
+          type: integer
+        annualRevenue:
+          type: number
+
+    Note:
+      type: object
+      required: [id, leadId, userId, body, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        userId:
+          type: integer
+        author:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NoteInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+
+    Task:
+      type: object
+      required: [id, leadId, userId, title, isCompleted, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        userId:
+          type: integer
+        assignedUser:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+        isCompleted:
+          type: boolean
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        assignedUserId:
+          type: integer
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        isCompleted:
+          type: boolean
+
+    Document:
+      type: object
+      required: [id, leadId, userId, filename, fileType, fileSize, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        userId:
+          type: integer
+        uploader:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        filename:
+          type: string
+        fileKey:
+          type: string
+        fileType:
+          type: string
+        fileSize:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    DownloadUrlResponse:
+      type: object
+      required: [downloadUrl, filename]
+      properties:
+        downloadUrl:
+          type: string
+        filename:
+          type: string
+
+    ActivityEntry:
+      type: object
+      required: [id, action, entityType, entityId, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PipelineCount:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+
+    RepCount:
+      type: object
+      properties:
+        repId:
+          type: integer
+        repName:
+          type: string
+        count:
+          type: integer
+
+    DashboardSummary:
+      type: object
+      required: [pipelineCounts, recentLeads, repCounts]
+      properties:
+        pipelineCounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PipelineCount"
+        recentLeads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        repCounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepCount"
+
+    LeadsByStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+
+    RepDashboard:
+      type: object
+      required: [myLeads, tasksDueToday, recentActivity, leadsByStatus]
+      properties:
+        myLeads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        tasksDueToday:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityEntry"
+        leadsByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeadsByStatus"
+
+    MyTasksSummary:
+      type: object
+      required: [dueToday, dueThisWeek, overdue]
+      properties:
+        dueToday:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        dueThisWeek:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        overdue:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+
+    UploadUrlRequest:
+      type: object
+      required: [filename, contentType]
+      properties:
+        filename:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: integer
+
+    UploadUrlResponse:
+      type: object
+      required: [uploadUrl, fileKey]
+      properties:
+        uploadUrl:
+          type: string
+        fileKey:
+          type: string

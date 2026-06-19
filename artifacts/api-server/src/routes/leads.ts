@@ -1,0 +1,421 @@
+import { Router, type IRouter, type Request, type Response } from "express";
+import { db } from "@workspace/db";
+import { leadsTable, companiesTable, leadStatusHistoryTable, usersTable } from "@workspace/db";
+import { eq, or, ilike, and, sql, desc, asc } from "drizzle-orm";
+import { requireUser, userToApi } from "../lib/authHelpers";
+import { logActivity } from "../lib/activityHelper";
+import {
+  ListLeadsQueryParams,
+  CreateLeadBody,
+  GetLeadParams,
+  UpdateLeadParams,
+  UpdateLeadBody,
+  ChangeLeadStatusParams,
+  ChangeLeadStatusBody,
+  AssignLeadParams,
+  AssignLeadBody,
+  CaptureLeadFromWebsiteBody,
+} from "@workspace/api-zod";
+import rateLimit from "express-rate-limit";
+
+const router: IRouter = Router();
+
+const captureRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable.$inferSelect | null) {
+  return {
+    id: lead.id,
+    firstName: lead.firstName,
+    lastName: lead.lastName,
+    email: lead.email,
+    phone: lead.phone,
+    companyName: lead.companyName,
+    ein: lead.ein,
+    applicationType: lead.applicationType,
+    status: lead.status,
+    assignedRepId: lead.assignedRepId,
+    assignedRep: rep ? userToApi(rep) : null,
+    leadSource: lead.leadSource,
+    createdAt: lead.createdAt.toISOString(),
+    updatedAt: lead.updatedAt.toISOString(),
+    lastActivityAt: lead.lastActivityAt?.toISOString() ?? null,
+  };
+}
+
+async function findDuplicate(email?: string, phone?: string, ein?: string) {
+  if (!email && !phone && !ein) return null;
+  const conditions = [];
+  if (email) conditions.push(ilike(leadsTable.email, email));
+  if (phone) conditions.push(ilike(leadsTable.phone, phone));
+  if (ein) conditions.push(ilike(leadsTable.ein, ein));
+  const existing = await db.query.leadsTable.findFirst({
+    where: or(...conditions),
+  });
+  return existing ?? null;
+}
+
+router.get("/leads", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const params = ListLeadsQueryParams.safeParse(req.query);
+  const q = params.success ? params.data : {};
+  const page = Number(q.page ?? 1);
+  const limit = Math.min(Number(q.limit ?? 25), 100);
+  const offset = (page - 1) * limit;
+
+  const conditions: ReturnType<typeof eq>[] = [];
+  if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
+  if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
+  if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
+  if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
+
+  let searchCondition: any = undefined;
+  if (q.search) {
+    searchCondition = or(
+      ilike(leadsTable.firstName, `%${q.search}%`),
+      ilike(leadsTable.lastName, `%${q.search}%`),
+      ilike(leadsTable.companyName, `%${q.search}%`),
+      ilike(leadsTable.email, `%${q.search}%`),
+      ilike(leadsTable.phone, `%${q.search}%`),
+    );
+  }
+
+  const whereClause = conditions.length > 0 || searchCondition
+    ? and(...(conditions as any[]), ...(searchCondition ? [searchCondition] : []))
+    : undefined;
+
+  const sortField = (q.sortBy as string) || "createdAt";
+  const sortDir = q.sortOrder === "asc" ? asc : desc;
+
+  const validSortFields: Record<string, any> = {
+    createdAt: leadsTable.createdAt,
+    updatedAt: leadsTable.updatedAt,
+    lastName: leadsTable.lastName,
+    status: leadsTable.status,
+    lastActivityAt: leadsTable.lastActivityAt,
+  };
+  const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
+
+  const [leadsRaw, [{ total }]] = await Promise.all([
+    db.query.leadsTable.findMany({
+      where: whereClause as any,
+      orderBy: [sortDir(sortColumn)],
+      limit,
+      offset,
+      with: { assignedRep: true },
+    }),
+    db
+      .select({ total: sql<number>`cast(count(*) as int)` })
+      .from(leadsTable)
+      .where(whereClause as any),
+  ]);
+
+  res.json({
+    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep)),
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  });
+});
+
+router.post("/leads", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const body = CreateLeadBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body", details: body.error.issues });
+    return;
+  }
+
+  const { company, ...leadData } = body.data;
+
+  const dup = await findDuplicate(leadData.email, leadData.phone, leadData.ein);
+  if (dup) {
+    res.status(409).json({
+      duplicate: true,
+      existingLeadId: dup.id,
+      existingLeadName: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
+    });
+    return;
+  }
+
+  const [lead] = await db.insert(leadsTable).values({
+    ...leadData,
+    applicationType: (leadData.applicationType as any) ?? "working_capital",
+    leadSource: (leadData.leadSource as any) ?? "manual",
+  }).returning();
+
+  if (company) {
+    await db.insert(companiesTable).values({ leadId: lead.id, ...company });
+  }
+
+  await logActivity({ userId: user.id, leadId: lead.id, action: "created", entityType: "lead", entityId: lead.id });
+
+  res.status(201).json(leadToApi(lead, null));
+});
+
+router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Response) => {
+  const body = CaptureLeadFromWebsiteBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+
+  const dup = await findDuplicate(body.data.email, body.data.phone);
+  if (dup) {
+    res.status(409).json({
+      duplicate: true,
+      existingLeadId: dup.id,
+      existingLeadName: `${dup.firstName ?? ""} ${dup.lastName ?? ""}`.trim(),
+    });
+    return;
+  }
+
+  const [lead] = await db.insert(leadsTable).values({
+    ...body.data,
+    applicationType: (body.data.applicationType as any) ?? "working_capital",
+    leadSource: "website",
+  }).returning();
+
+  await logActivity({ userId: null, leadId: lead.id, action: "captured", entityType: "lead", entityId: lead.id });
+
+  res.status(201).json({ success: true, leadId: lead.id });
+});
+
+router.get("/leads/:id", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const params = GetLeadParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const lead = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.id, params.data.id),
+    with: {
+      assignedRep: true,
+      company: true,
+      notes: { with: { author: true }, orderBy: (t, { desc }) => [desc(t.createdAt)] },
+      tasks: { with: { assignedUser: true }, orderBy: (t, { asc }) => [asc(t.isCompleted), asc(t.dueDate)] },
+      documents: { with: { uploader: true }, orderBy: (t, { desc }) => [desc(t.createdAt)] },
+      activityLog: { with: { user: true }, orderBy: (t, { desc }) => [desc(t.createdAt)], limit: 30 },
+    },
+  });
+
+  if (!lead) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
+  if (user.role === "rep" && lead.assignedRepId !== user.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const { company, notes, tasks, documents, activityLog, assignedRep, ...leadFields } = lead as any;
+
+  res.json({
+    ...leadToApi(leadFields, assignedRep),
+    company: company ? {
+      id: company.id,
+      leadId: company.leadId,
+      name: company.name,
+      address: company.address,
+      city: company.city,
+      state: company.state,
+      zip: company.zip,
+      industry: company.industry,
+      timeInBusinessMonths: company.timeInBusinessMonths,
+      annualRevenue: company.annualRevenue ? Number(company.annualRevenue) : null,
+    } : null,
+    notes: notes.map((n: any) => ({
+      id: n.id, leadId: n.leadId, userId: n.userId,
+      author: n.author ? userToApi(n.author) : null,
+      body: n.body, createdAt: n.createdAt.toISOString(),
+    })),
+    tasks: tasks.map((t: any) => ({
+      id: t.id, leadId: t.leadId, userId: t.userId,
+      assignedUser: t.assignedUser ? userToApi(t.assignedUser) : null,
+      title: t.title, description: t.description ?? null, dueDate: t.dueDate ?? null,
+      isCompleted: t.isCompleted,
+      completedAt: t.completedAt?.toISOString() ?? null,
+      createdAt: t.createdAt.toISOString(),
+    })),
+    documents: documents.map((d: any) => ({
+      id: d.id, leadId: d.leadId, userId: d.userId,
+      uploader: d.uploader ? userToApi(d.uploader) : null,
+      filename: d.filename, fileKey: d.fileKey, fileType: d.fileType,
+      fileSize: d.fileSize, createdAt: d.createdAt.toISOString(),
+    })),
+    recentActivity: activityLog.map((a: any) => ({
+      id: a.id, userId: a.userId ?? null,
+      user: a.user ? userToApi(a.user) : null,
+      action: a.action, entityType: a.entityType, entityId: a.entityId,
+      details: (a.details as Record<string, unknown>) ?? {},
+      createdAt: a.createdAt.toISOString(),
+    })),
+  });
+});
+
+router.put("/leads/:id", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const params = UpdateLeadParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const body = UpdateLeadBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+
+  const existing = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, params.data.id) });
+  if (!existing) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+  if (user.role === "rep" && existing.assignedRepId !== user.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const { company, ...leadData } = body.data;
+
+  const [updated] = await db
+    .update(leadsTable)
+    .set({ ...leadData, updatedAt: new Date() })
+    .where(eq(leadsTable.id, params.data.id))
+    .returning();
+
+  if (company) {
+    const existingCompany = await db.query.companiesTable.findFirst({ where: eq(companiesTable.leadId, params.data.id) });
+    if (existingCompany) {
+      await db.update(companiesTable).set({ ...company, updatedAt: new Date() }).where(eq(companiesTable.leadId, params.data.id));
+    } else {
+      await db.insert(companiesTable).values({ leadId: params.data.id, ...company });
+    }
+  }
+
+  await logActivity({ userId: user.id, leadId: params.data.id, action: "updated", entityType: "lead", entityId: params.data.id, details: { fields: Object.keys(leadData) } });
+
+  const rep = updated.assignedRepId
+    ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })
+    : null;
+
+  res.json(leadToApi(updated, rep));
+});
+
+router.put("/leads/:id/status", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const params = ChangeLeadStatusParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const body = ChangeLeadStatusBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+
+  const existing = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, params.data.id) });
+  if (!existing) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+  if (user.role === "rep" && existing.assignedRepId !== user.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(leadsTable)
+    .set({ status: body.data.status as any, updatedAt: new Date() })
+    .where(eq(leadsTable.id, params.data.id))
+    .returning();
+
+  await db.insert(leadStatusHistoryTable).values({
+    leadId: params.data.id,
+    changedByUserId: user.id,
+    fromStatus: existing.status,
+    toStatus: body.data.status,
+  });
+
+  await logActivity({
+    userId: user.id,
+    leadId: params.data.id,
+    action: "status_changed",
+    entityType: "lead",
+    entityId: params.data.id,
+    details: { from: existing.status, to: body.data.status },
+  });
+
+  const rep = updated.assignedRepId
+    ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })
+    : null;
+  res.json(leadToApi(updated, rep));
+});
+
+router.put("/leads/:id/assign", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
+
+  const params = AssignLeadParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const body = AssignLeadBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(leadsTable)
+    .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
+    .where(eq(leadsTable.id, params.data.id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
+  await logActivity({
+    userId: user.id,
+    leadId: params.data.id,
+    action: "assigned",
+    entityType: "lead",
+    entityId: params.data.id,
+    details: { assignedRepId: body.data.repId },
+  });
+
+  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, body.data.repId) });
+  res.json(leadToApi(updated, rep));
+});
+
+export { leadToApi };
+export default router;

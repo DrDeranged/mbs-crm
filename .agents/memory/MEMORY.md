@@ -1,0 +1,1 @@
+- [Clerk React v6 patterns](clerk-react-version.md) — @clerk/react@5.54.0 was broken; use v6. API changed: Show instead of SignedIn/SignedOut, publishableKeyFromHost, new routing.
