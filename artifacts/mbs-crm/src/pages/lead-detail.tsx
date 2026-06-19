@@ -35,6 +35,20 @@ import { SoftphoneContext } from "@/components/softphone-context";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+function ClickToCallPhone({ phone }: { phone: string }) {
+  const { dial } = useContext(SoftphoneContext);
+  return (
+    <button
+      onClick={() => dial(phone, { autoCall: true })}
+      className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+      title={`Call ${phone}`}
+    >
+      <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+      <span>{phone}</span>
+    </button>
+  );
+}
+
 // Info Tab
 function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
   const { data: currentUser } = useGetMe();
@@ -64,7 +78,7 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
     { label: "First Name", value: lead.firstName },
     { label: "Last Name", value: lead.lastName },
     { label: "Email", value: lead.email ? <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a> : "—" },
-    { label: "Phone", value: lead.phone ? <a href={`tel:${lead.phone}`} className="text-blue-600 hover:underline">{lead.phone}</a> : "—" },
+    { label: "Phone", value: lead.phone ? <ClickToCallPhone phone={lead.phone} /> : "—" },
     { label: "Company", value: lead.companyName || "—" },
     { label: "EIN", value: lead.ein || "—" },
     { label: "Financing Type", value: lead.applicationType?.replace(/_/g, " ") || "—" },
@@ -445,7 +459,7 @@ function LeadCommunications({ leadId, leadPhone }: { leadId: number; leadPhone?:
           <Button
             size="sm"
             className="ml-auto bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
-            onClick={() => { dial(leadPhone); }}
+            onClick={() => dial(leadPhone, { autoCall: true })}
           >
             <PhoneCall className="h-3 w-3 mr-1" /> Call
           </Button>
@@ -695,10 +709,7 @@ export default function LeadDetail() {
                 </div>
               )}
               {lead.phone && (
-                <div className="flex items-center gap-1.5">
-                  <Phone className="h-4 w-4 text-gray-400" />
-                  <a href={`tel:${lead.phone}`} className="hover:underline">{lead.phone}</a>
-                </div>
+                <ClickToCallPhone phone={lead.phone} />
               )}
             </div>
           </div>

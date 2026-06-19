@@ -26,6 +26,8 @@ export interface User {
   email: string;
   role: UserRole;
   isActive?: boolean;
+  /** @nullable */
+  mobileNumber?: string | null;
   createdAt: string;
 }
 
@@ -451,6 +453,11 @@ export interface CommunicationMetrics {
   smsReceived: number;
   totalCallDurationMinutes: number;
 }
+
+export type UpdateMyMobileBody = {
+  /** @nullable */
+  mobileNumber?: string | null;
+};
 
 export type ListUsersParams = {
 role?: ListUsersRole;

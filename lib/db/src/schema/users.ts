@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   role: text("role", { enum: ["admin", "manager", "rep"] }).notNull().default("rep"),
   isActive: boolean("is_active").notNull().default(true),
+  mobileNumber: text("mobile_number"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -56,6 +56,7 @@ import type {
   TwilioTokenResponse,
   TwilioVoiceRecording200,
   TwilioVoiceStatus200,
+  UpdateMyMobileBody,
   UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
@@ -228,6 +229,77 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
 
 
 
+
+export const getUpdateMyMobileUrl = () => {
+
+
+
+
+  return `/api/me/mobile`
+}
+
+/**
+ * @summary Update current user's call-forwarding mobile number
+ */
+export const updateMyMobile = async (updateMyMobileBody: UpdateMyMobileBody, options?: RequestInit): Promise<User> => {
+
+  return customFetch<User>(getUpdateMyMobileUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateMyMobileBody,)
+  }
+);}
+
+
+
+
+export const getUpdateMyMobileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyMobile>>, TError,{data: BodyType<UpdateMyMobileBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyMobile>>, TError,{data: BodyType<UpdateMyMobileBody>}, TContext> => {
+
+const mutationKey = ['updateMyMobile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyMobile>>, {data: BodyType<UpdateMyMobileBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMyMobile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMyMobileMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyMobile>>>
+    export type UpdateMyMobileMutationBody = BodyType<UpdateMyMobileBody>
+    export type UpdateMyMobileMutationError = ErrorType<void>
+
+    /**
+ * @summary Update current user's call-forwarding mobile number
+ */
+export const useUpdateMyMobile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyMobile>>, TError,{data: BodyType<UpdateMyMobileBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMyMobile>>,
+        TError,
+        {data: BodyType<UpdateMyMobileBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateMyMobileMutationOptions(options));
+    }
 
 export const getListUsersUrl = (params?: ListUsersParams,) => {
   const normalizedParams = new URLSearchParams();

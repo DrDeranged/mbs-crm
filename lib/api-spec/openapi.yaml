@@ -61,6 +61,30 @@ paths:
         "401":
           description: Unauthorized
 
+  /me/mobile:
+    put:
+      operationId: updateMyMobile
+      tags: [auth]
+      summary: Update current user's call-forwarding mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobileNumber:
+                  type: ["string", "null"]
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
   /users:
     get:
       operationId: listUsers
@@ -837,6 +861,8 @@ components:
           enum: [admin, manager, rep]
         isActive:
           type: boolean
+        mobileNumber:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time

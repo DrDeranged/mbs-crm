@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Device, Call } from "@twilio/voice-sdk";
 import { useGetTwilioToken } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -11,20 +11,18 @@ import {
   Mic,
   MicOff,
   Minimize2,
-  Maximize2,
   Delete,
+  PhoneCall,
 } from "lucide-react";
-
-interface SoftphoneWidgetProps {
-  initialNumber?: string;
-  onDialRequest?: (clearCallback: () => void) => void;
-}
+import { SoftphoneContext } from "./softphone-context";
 
 type WidgetState = "idle" | "calling" | "active" | "incoming";
 
-export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidgetProps) {
+export function SoftphoneWidget() {
+  const { pendingNumber, autoCall, clearPending } = useContext(SoftphoneContext);
+
   const [minimized, setMinimized] = useState(true);
-  const [dialInput, setDialInput] = useState(initialNumber ?? "");
+  const [dialInput, setDialInput] = useState("");
   const [state, setState] = useState<WidgetState>("idle");
   const [muted, setMuted] = useState(false);
   const [callSeconds, setCallSeconds] = useState(0);
@@ -37,6 +35,7 @@ export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidge
   const dragStart = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceRef = useRef<Device | null>(null);
+  const autoCallPending = useRef(false);
 
   const { mutate: fetchToken } = useGetTwilioToken({
     mutation: {
@@ -80,13 +79,33 @@ export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidge
     };
   }, []);
 
+  // Handle dial requests from context (click-to-call)
   useEffect(() => {
-    if (initialNumber !== undefined && initialNumber !== "") {
-      setDialInput(initialNumber);
+    if (pendingNumber && pendingNumber !== "") {
+      setDialInput(pendingNumber);
       setMinimized(false);
-      onDialRequest?.(() => {});
+      if (autoCall) {
+        autoCallPending.current = true;
+      }
+      clearPending();
     }
-  }, [initialNumber]);
+  }, [pendingNumber, autoCall, clearPending]);
+
+  // Auto-initiate call once device is ready and a pending auto-call is flagged
+  useEffect(() => {
+    if (autoCallPending.current && deviceRef.current && state === "idle") {
+      autoCallPending.current = false;
+      // Small delay so dialInput is rendered
+      setTimeout(() => {
+        setDialInput((current) => {
+          if (current) {
+            handleCallWithNumber(current);
+          }
+          return current;
+        });
+      }, 200);
+    }
+  }, [state, device]);
 
   const startTimer = () => {
     setCallSeconds(0);
@@ -123,17 +142,19 @@ export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidge
     setActiveCall(call);
   };
 
-  const handleCall = async () => {
-    if (!deviceRef.current || !dialInput.trim()) return;
+  const handleCallWithNumber = async (number: string) => {
+    if (!deviceRef.current || !number.trim()) return;
     try {
       setState("calling");
-      const call = await deviceRef.current.connect({ params: { To: dialInput.trim() } });
+      const call = await deviceRef.current.connect({ params: { To: number.trim() } });
       attachCallHandlers(call);
     } catch (e: any) {
       setError(e?.message ?? "Call failed");
       setState("idle");
     }
   };
+
+  const handleCall = () => handleCallWithNumber(dialInput);
 
   const handleHangUp = () => {
     activeCall?.disconnect();
@@ -285,6 +306,7 @@ export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidge
                     type="tel"
                     value={dialInput}
                     onChange={(e) => setDialInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
                     placeholder="+1 (555) 000-0000"
                     className="flex-1 bg-transparent text-sm font-mono text-slate-900 outline-none placeholder:text-slate-400"
                     disabled={isBusy}
@@ -366,4 +388,3 @@ export function SoftphoneWidget({ initialNumber, onDialRequest }: SoftphoneWidge
     </div>
   );
 }
-

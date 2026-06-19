@@ -56,6 +56,7 @@ export function userToApi(user: typeof usersTable.$inferSelect) {
     email: user.email,
     role: user.role,
     isActive: user.isActive,
+    mobileNumber: user.mobileNumber ?? null,
     createdAt: user.createdAt.toISOString(),
   };
 }
