@@ -58,6 +58,10 @@ router.post("/leads/:id/sms", async (req, res) => {
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
 
+  if (user.role === "rep" && lead.assignedRepId !== user.id) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
+
   if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
 
   const { body } = req.body as { body?: string };
