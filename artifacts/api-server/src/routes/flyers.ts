@@ -18,6 +18,24 @@ if (SENDGRID_API_KEY) sgMail.setApiKey(SENDGRID_API_KEY);
 
 const router = Router();
 
+/** Returns false and sends 403 if the user cannot access this flyer. */
+async function assertFlyerAccess(
+  flyer: { id: number; leadId: number | null; createdBy: number | null },
+  user: { id: number; role: string },
+  res: Response,
+): Promise<boolean> {
+  // Admins and managers can access any flyer
+  if (user.role === "admin" || user.role === "manager") return true;
+  // Reps: must be the creator, or the assigned rep on the associated lead
+  if (flyer.createdBy === user.id) return true;
+  if (flyer.leadId) {
+    const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, flyer.leadId) });
+    if (lead?.assignedRepId === user.id) return true;
+  }
+  res.status(403).json({ error: "Forbidden" });
+  return false;
+}
+
 // POST /flyers/generate
 router.post("/flyers/generate", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -113,6 +131,8 @@ router.get("/flyers/:id/download", async (req: Request, res: Response) => {
   });
   if (!flyer || !flyer.pdfStorageKey) { res.status(404).json({ error: "Flyer not found" }); return; }
 
+  if (!(await assertFlyerAccess(flyer, user, res))) return;
+
   try {
     const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
     const bucket = objectStorageClient.bucket(bucketId);
@@ -151,6 +171,14 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
   ]);
 
   if (!flyer || !flyer.pdfStorageKey) { res.status(404).json({ error: "Flyer not found" }); return; }
+
+  // Verify the provided leadId is consistent with the flyer's stored leadId
+  if (flyer.leadId !== null && flyer.leadId !== Number(leadId)) {
+    res.status(403).json({ error: "leadId does not match flyer context" }); return;
+  }
+
+  if (!(await assertFlyerAccess(flyer, user, res))) return;
+
   if (!leadRow?.email) { res.status(400).json({ error: "Lead has no email address" }); return; }
 
   const tmpl = flyer.templateId
@@ -240,6 +268,9 @@ router.get("/flyers/:id", async (req: Request, res: Response) => {
     with: { template: true },
   });
   if (!flyer) { res.status(404).json({ error: "Not found" }); return; }
+
+  if (!(await assertFlyerAccess(flyer, user, res))) return;
+
   res.json(flyer);
 });
 

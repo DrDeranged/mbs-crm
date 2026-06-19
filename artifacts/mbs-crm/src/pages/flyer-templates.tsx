@@ -65,36 +65,62 @@ function VariableFieldEditor({
         <p className="text-xs text-muted-foreground italic">No variables yet. Add fields to make the template customizable.</p>
       )}
       {fields.map((f, i) => (
-        <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 bg-muted/50 rounded-md p-2">
-          <div className="space-y-1">
-            <Label className="text-[10px] text-muted-foreground">Key (used in template as {"{{key}}"})</Label>
-            <Input
-              className="h-7 text-xs"
-              placeholder="e.g. rep_name"
-              value={f.key}
-              onChange={(e) => updateField(i, { key: e.target.value.replace(/\s/g, "_") })}
-            />
+        <div key={i} className="bg-muted/50 rounded-md p-3 space-y-2">
+          <div className="grid grid-cols-[1fr_1fr_120px_auto] gap-2 items-end">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Key ({"{{key}}"} in template)</Label>
+              <Input
+                className="h-7 text-xs"
+                placeholder="e.g. rep_name"
+                value={f.key}
+                onChange={(e) => updateField(i, { key: e.target.value.replace(/\s/g, "_") })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Label</Label>
+              <Input
+                className="h-7 text-xs"
+                placeholder="e.g. Rep Name"
+                value={f.label}
+                onChange={(e) => updateField(i, { label: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Field Type</Label>
+              <Select value={f.type} onValueChange={(v) => updateField(i, { type: v as VariableField["type"], options: v === "select" ? (f.options ?? []) : undefined })}>
+                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                  <SelectItem value="select">Dropdown</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removeField(i)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
-          <div className="space-y-1">
-            <Label className="text-[10px] text-muted-foreground">Label (shown to user)</Label>
-            <Input
-              className="h-7 text-xs"
-              placeholder="e.g. Rep Name"
-              value={f.label}
-              onChange={(e) => updateField(i, { label: e.target.value })}
-            />
-          </div>
-          <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 mt-4 text-destructive" onClick={() => removeField(i)}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-          <div className="space-y-1">
-            <Label className="text-[10px] text-muted-foreground">Default Value</Label>
-            <Input
-              className="h-7 text-xs"
-              placeholder="Default..."
-              value={f.defaultValue}
-              onChange={(e) => updateField(i, { defaultValue: e.target.value })}
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Default Value</Label>
+              <Input
+                className="h-7 text-xs"
+                placeholder="Default..."
+                value={f.defaultValue}
+                onChange={(e) => updateField(i, { defaultValue: e.target.value })}
+              />
+            </div>
+            {f.type === "select" && (
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Options (comma-separated)</Label>
+                <Input
+                  className="h-7 text-xs"
+                  placeholder="Option A, Option B, Option C"
+                  value={(f.options ?? []).join(", ")}
+                  onChange={(e) => updateField(i, { options: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                />
+              </div>
+            )}
           </div>
         </div>
       ))}
