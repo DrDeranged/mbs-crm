@@ -141,7 +141,14 @@ function TemplateDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TemplateFormState>(initial ?? emptyForm());
+  const [showPreview, setShowPreview] = useState(false);
   const set = (patch: Partial<TemplateFormState>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Live preview: substitute each field's defaultValue into the HTML
+  const previewHtml = form.htmlTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const field = form.variableFields.find((f) => f.key === key);
+    return field?.defaultValue ?? `{{${key}}}`;
+  });
 
   const handleSave = () => {
     if (!form.name.trim() || !form.htmlTemplate.trim()) return;
@@ -150,9 +157,9 @@ function TemplateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) setForm(initial ?? emptyForm()); }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setForm(initial ?? emptyForm()); setShowPreview(false); } }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -180,14 +187,45 @@ function TemplateDialog({
           </div>
 
           <div className="space-y-1">
-            <Label>HTML Template *</Label>
-            <p className="text-xs text-muted-foreground">Use {"{{variable_key}}"} syntax to insert dynamic fields.</p>
-            <Textarea
-              className="font-mono text-xs min-h-[240px]"
-              placeholder="<!DOCTYPE html><html>..."
-              value={form.htmlTemplate}
-              onChange={(e) => set({ htmlTemplate: e.target.value })}
-            />
+            <div className="flex items-center justify-between mb-1">
+              <div>
+                <Label>HTML Template *</Label>
+                <p className="text-xs text-muted-foreground">Use {"{{variable_key}}"} syntax to insert dynamic fields.</p>
+              </div>
+              {form.htmlTemplate.trim() && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setShowPreview((v) => !v)}
+                >
+                  {showPreview ? "Hide Preview" : "Show Preview"}
+                </Button>
+              )}
+            </div>
+            {showPreview ? (
+              <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
+                <div className="flex items-center justify-between px-3 py-1.5 bg-muted/60 border-b text-xs text-muted-foreground">
+                  <span>Live Preview — defaults substituted</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setShowPreview(false)}>Edit HTML</Button>
+                </div>
+                <iframe
+                  srcDoc={previewHtml}
+                  sandbox="allow-same-origin"
+                  className="w-full"
+                  style={{ height: "480px", border: "none" }}
+                  title="Template Preview"
+                />
+              </div>
+            ) : (
+              <Textarea
+                className="font-mono text-xs min-h-[240px]"
+                placeholder="<!DOCTYPE html><html>..."
+                value={form.htmlTemplate}
+                onChange={(e) => set({ htmlTemplate: e.target.value })}
+              />
+            )}
           </div>
 
           <VariableFieldEditor fields={form.variableFields} onChange={(vf) => set({ variableFields: vf })} />

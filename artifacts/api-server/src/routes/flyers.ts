@@ -177,7 +177,17 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     res.status(403).json({ error: "leadId does not match flyer context" }); return;
   }
 
+  // Always verify flyer access (creator / lead-assigned-rep / admin-manager)
   if (!(await assertFlyerAccess(flyer, user, res))) return;
+
+  // For reps: also enforce they're assigned to the TARGET lead regardless of flyer.leadId.
+  // This closes the null-leadId escalation: a rep with an unscoped flyer cannot email
+  // it to a lead they're not assigned to.
+  if (user.role !== "admin" && user.role !== "manager") {
+    if (!leadRow || leadRow.assignedRepId !== user.id) {
+      res.status(403).json({ error: "Forbidden: not assigned to target lead" }); return;
+    }
+  }
 
   if (!leadRow?.email) { res.status(400).json({ error: "Lead has no email address" }); return; }
 
