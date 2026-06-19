@@ -42,6 +42,8 @@ tags:
     description: KPI analytics and reporting
   - name: lenders
     description: Lender management and matching engine
+  - name: flyers
+    description: Flyer template management and PDF generation
 paths:
   /healthz:
     get:
@@ -1585,6 +1587,180 @@ paths:
         "200":
           description: Events processed
 
+  /flyer-templates:
+    get:
+      operationId: listFlyerTemplates
+      tags: [flyers]
+      summary: List all flyer templates
+      parameters:
+        - name: programType
+          in: query
+          schema:
+            type: string
+            enum: [equipment, working_capital, general]
+        - name: activeOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of flyer templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlyerTemplate"
+    post:
+      operationId: createFlyerTemplate
+      tags: [flyers]
+      summary: Create a flyer template (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FlyerTemplateInput"
+      responses:
+        "201":
+          description: Created template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlyerTemplate"
+
+  /flyer-templates/{id}:
+    get:
+      operationId: getFlyerTemplate
+      tags: [flyers]
+      summary: Get a single flyer template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Flyer template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlyerTemplate"
+        "404":
+          description: Not found
+    put:
+      operationId: updateFlyerTemplate
+      tags: [flyers]
+      summary: Update a flyer template (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FlyerTemplateInput"
+      responses:
+        "200":
+          description: Updated template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlyerTemplate"
+
+  /flyers/generate:
+    post:
+      operationId: generateFlyer
+      tags: [flyers]
+      summary: Generate a PDF flyer from a template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateFlyerInput"
+      responses:
+        "200":
+          description: Generated flyer info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateFlyerResponse"
+
+  /flyers/{id}/download:
+    get:
+      operationId: downloadFlyer
+      tags: [flyers]
+      summary: Download a generated flyer PDF
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+
+  /flyers/{id}/email:
+    post:
+      operationId: emailFlyer
+      tags: [flyers]
+      summary: Email a generated flyer to a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailFlyerInput"
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /flyers/{id}:
+    get:
+      operationId: getGeneratedFlyer
+      tags: [flyers]
+      summary: Get a generated flyer record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Generated flyer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedFlyer"
+
   /storage/uploads/request-url:
     post:
       tags: [storage]
@@ -2726,3 +2902,122 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    VariableField:
+      type: object
+      required: [key, label, type, defaultValue]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [text, number, select]
+        defaultValue:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+
+    FlyerTemplate:
+      type: object
+      required: [id, name, programType, htmlTemplate, variableFields, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        programType:
+          type: string
+          enum: [equipment, working_capital, general]
+        htmlTemplate:
+          type: string
+        variableFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/VariableField"
+        isActive:
+          type: boolean
+        createdBy:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FlyerTemplateInput:
+      type: object
+      required: [name, programType, htmlTemplate, variableFields]
+      properties:
+        name:
+          type: string
+        programType:
+          type: string
+          enum: [equipment, working_capital, general]
+        htmlTemplate:
+          type: string
+        variableFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/VariableField"
+        isActive:
+          type: boolean
+
+    GeneratedFlyer:
+      type: object
+      required: [id, templateId, fieldValues, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: ["integer", "null"]
+        templateId:
+          type: ["integer", "null"]
+        template:
+          oneOf:
+            - $ref: "#/components/schemas/FlyerTemplate"
+            - type: "null"
+        fieldValues:
+          type: object
+          additionalProperties:
+            type: string
+        pdfStorageKey:
+          type: ["string", "null"]
+        createdBy:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    GenerateFlyerInput:
+      type: object
+      required: [templateId, fieldValues]
+      properties:
+        templateId:
+          type: integer
+        fieldValues:
+          type: object
+          additionalProperties:
+            type: string
+        leadId:
+          type: ["integer", "null"]
+
+    GenerateFlyerResponse:
+      type: object
+      required: [flyerId]
+      properties:
+        flyerId:
+          type: integer
+        downloadUrl:
+          type: string
+
+    EmailFlyerInput:
+      type: object
+      required: [leadId]
+      properties:
+        leadId:
+          type: integer

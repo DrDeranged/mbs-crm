@@ -762,6 +762,97 @@ export interface LenderSubmission {
   updatedAt: string;
 }
 
+export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];
+
+
+export const VariableFieldType = {
+  text: 'text',
+  number: 'number',
+  select: 'select',
+} as const;
+
+export interface VariableField {
+  key: string;
+  label: string;
+  type: VariableFieldType;
+  defaultValue: string;
+  options?: string[];
+}
+
+export type FlyerTemplateProgramType = typeof FlyerTemplateProgramType[keyof typeof FlyerTemplateProgramType];
+
+
+export const FlyerTemplateProgramType = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+  general: 'general',
+} as const;
+
+export interface FlyerTemplate {
+  id: number;
+  name: string;
+  programType: FlyerTemplateProgramType;
+  htmlTemplate: string;
+  variableFields: VariableField[];
+  isActive: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FlyerTemplateInputProgramType = typeof FlyerTemplateInputProgramType[keyof typeof FlyerTemplateInputProgramType];
+
+
+export const FlyerTemplateInputProgramType = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+  general: 'general',
+} as const;
+
+export interface FlyerTemplateInput {
+  name: string;
+  programType: FlyerTemplateInputProgramType;
+  htmlTemplate: string;
+  variableFields: VariableField[];
+  isActive?: boolean;
+}
+
+export type GeneratedFlyerFieldValues = {[key: string]: string};
+
+export interface GeneratedFlyer {
+  id: number;
+  /** @nullable */
+  leadId?: number | null;
+  /** @nullable */
+  templateId: number | null;
+  template?: FlyerTemplate | null;
+  fieldValues: GeneratedFlyerFieldValues;
+  /** @nullable */
+  pdfStorageKey?: string | null;
+  /** @nullable */
+  createdBy?: number | null;
+  createdAt: string;
+}
+
+export type GenerateFlyerInputFieldValues = {[key: string]: string};
+
+export interface GenerateFlyerInput {
+  templateId: number;
+  fieldValues: GenerateFlyerInputFieldValues;
+  /** @nullable */
+  leadId?: number | null;
+}
+
+export interface GenerateFlyerResponse {
+  flyerId: number;
+  downloadUrl?: string;
+}
+
+export interface EmailFlyerInput {
+  leadId: number;
+}
+
 export type UpdateMyMobileBody = {
   /** @nullable */
   mobileNumber?: string | null;
@@ -921,5 +1012,23 @@ export type EnrollLeadInDripBody = {
 
 export type UpsertDripSequenceStepsBody = {
   steps: DripStepInput[];
+};
+
+export type ListFlyerTemplatesParams = {
+programType?: ListFlyerTemplatesProgramType;
+activeOnly?: boolean;
+};
+
+export type ListFlyerTemplatesProgramType = typeof ListFlyerTemplatesProgramType[keyof typeof ListFlyerTemplatesProgramType];
+
+
+export const ListFlyerTemplatesProgramType = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+  general: 'general',
+} as const;
+
+export type EmailFlyer200 = {
+  success?: boolean;
 };
 

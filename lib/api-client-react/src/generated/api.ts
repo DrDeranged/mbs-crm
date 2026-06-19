@@ -39,11 +39,18 @@ import type {
   DripSequenceInput,
   DripSequenceStep,
   DuplicateResponse,
+  EmailFlyer200,
+  EmailFlyerInput,
   EmailSend,
   EmailSendInput,
   EmailTemplate,
   EmailTemplateInput,
   EnrollLeadInDripBody,
+  FlyerTemplate,
+  FlyerTemplateInput,
+  GenerateFlyerInput,
+  GenerateFlyerResponse,
+  GeneratedFlyer,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
   GetAnalyticsRepsParams,
@@ -66,6 +73,7 @@ import type {
   LenderMatch,
   LenderSubmission,
   ListEmailTemplatesParams,
+  ListFlyerTemplatesParams,
   ListLeadsParams,
   ListUsersParams,
   MyTasksSummary,
@@ -5284,6 +5292,607 @@ export const useSendgridWebhook = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getSendgridWebhookMutationOptions(options));
     }
+
+export const getListFlyerTemplatesUrl = (params?: ListFlyerTemplatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/flyer-templates?${stringifiedParams}` : `/api/flyer-templates`
+}
+
+/**
+ * @summary List all flyer templates
+ */
+export const listFlyerTemplates = async (params?: ListFlyerTemplatesParams, options?: RequestInit): Promise<FlyerTemplate[]> => {
+
+  return customFetch<FlyerTemplate[]>(getListFlyerTemplatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFlyerTemplatesQueryKey = (params?: ListFlyerTemplatesParams,) => {
+    return [
+    `/api/flyer-templates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFlyerTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listFlyerTemplates>>, TError = ErrorType<unknown>>(params?: ListFlyerTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFlyerTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFlyerTemplatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFlyerTemplates>>> = ({ signal }) => listFlyerTemplates(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFlyerTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFlyerTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listFlyerTemplates>>>
+export type ListFlyerTemplatesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all flyer templates
+ */
+
+export function useListFlyerTemplates<TData = Awaited<ReturnType<typeof listFlyerTemplates>>, TError = ErrorType<unknown>>(
+ params?: ListFlyerTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFlyerTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFlyerTemplatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateFlyerTemplateUrl = () => {
+
+
+
+
+  return `/api/flyer-templates`
+}
+
+/**
+ * @summary Create a flyer template (admin only)
+ */
+export const createFlyerTemplate = async (flyerTemplateInput: FlyerTemplateInput, options?: RequestInit): Promise<FlyerTemplate> => {
+
+  return customFetch<FlyerTemplate>(getCreateFlyerTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      flyerTemplateInput,)
+  }
+);}
+
+
+
+
+export const getCreateFlyerTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFlyerTemplate>>, TError,{data: BodyType<FlyerTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFlyerTemplate>>, TError,{data: BodyType<FlyerTemplateInput>}, TContext> => {
+
+const mutationKey = ['createFlyerTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFlyerTemplate>>, {data: BodyType<FlyerTemplateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFlyerTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFlyerTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createFlyerTemplate>>>
+    export type CreateFlyerTemplateMutationBody = BodyType<FlyerTemplateInput>
+    export type CreateFlyerTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a flyer template (admin only)
+ */
+export const useCreateFlyerTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFlyerTemplate>>, TError,{data: BodyType<FlyerTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFlyerTemplate>>,
+        TError,
+        {data: BodyType<FlyerTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateFlyerTemplateMutationOptions(options));
+    }
+
+export const getGetFlyerTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/flyer-templates/${id}`
+}
+
+/**
+ * @summary Get a single flyer template
+ */
+export const getFlyerTemplate = async (id: number, options?: RequestInit): Promise<FlyerTemplate> => {
+
+  return customFetch<FlyerTemplate>(getGetFlyerTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFlyerTemplateQueryKey = (id: number,) => {
+    return [
+    `/api/flyer-templates/${id}`
+    ] as const;
+    }
+
+
+export const getGetFlyerTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getFlyerTemplate>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFlyerTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFlyerTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFlyerTemplate>>> = ({ signal }) => getFlyerTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFlyerTemplate>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFlyerTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getFlyerTemplate>>>
+export type GetFlyerTemplateQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a single flyer template
+ */
+
+export function useGetFlyerTemplate<TData = Awaited<ReturnType<typeof getFlyerTemplate>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFlyerTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFlyerTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateFlyerTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/flyer-templates/${id}`
+}
+
+/**
+ * @summary Update a flyer template (admin only)
+ */
+export const updateFlyerTemplate = async (id: number,
+    flyerTemplateInput: FlyerTemplateInput, options?: RequestInit): Promise<FlyerTemplate> => {
+
+  return customFetch<FlyerTemplate>(getUpdateFlyerTemplateUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      flyerTemplateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFlyerTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFlyerTemplate>>, TError,{id: number;data: BodyType<FlyerTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFlyerTemplate>>, TError,{id: number;data: BodyType<FlyerTemplateInput>}, TContext> => {
+
+const mutationKey = ['updateFlyerTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFlyerTemplate>>, {id: number;data: BodyType<FlyerTemplateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateFlyerTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFlyerTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateFlyerTemplate>>>
+    export type UpdateFlyerTemplateMutationBody = BodyType<FlyerTemplateInput>
+    export type UpdateFlyerTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a flyer template (admin only)
+ */
+export const useUpdateFlyerTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFlyerTemplate>>, TError,{id: number;data: BodyType<FlyerTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFlyerTemplate>>,
+        TError,
+        {id: number;data: BodyType<FlyerTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFlyerTemplateMutationOptions(options));
+    }
+
+export const getGenerateFlyerUrl = () => {
+
+
+
+
+  return `/api/flyers/generate`
+}
+
+/**
+ * @summary Generate a PDF flyer from a template
+ */
+export const generateFlyer = async (generateFlyerInput: GenerateFlyerInput, options?: RequestInit): Promise<GenerateFlyerResponse> => {
+
+  return customFetch<GenerateFlyerResponse>(getGenerateFlyerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateFlyerInput,)
+  }
+);}
+
+
+
+
+export const getGenerateFlyerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFlyer>>, TError,{data: BodyType<GenerateFlyerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateFlyer>>, TError,{data: BodyType<GenerateFlyerInput>}, TContext> => {
+
+const mutationKey = ['generateFlyer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateFlyer>>, {data: BodyType<GenerateFlyerInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateFlyer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateFlyerMutationResult = NonNullable<Awaited<ReturnType<typeof generateFlyer>>>
+    export type GenerateFlyerMutationBody = BodyType<GenerateFlyerInput>
+    export type GenerateFlyerMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a PDF flyer from a template
+ */
+export const useGenerateFlyer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateFlyer>>, TError,{data: BodyType<GenerateFlyerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateFlyer>>,
+        TError,
+        {data: BodyType<GenerateFlyerInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateFlyerMutationOptions(options));
+    }
+
+export const getDownloadFlyerUrl = (id: number,) => {
+
+
+
+
+  return `/api/flyers/${id}/download`
+}
+
+/**
+ * @summary Download a generated flyer PDF
+ */
+export const downloadFlyer = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadFlyerUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadFlyerQueryKey = (id: number,) => {
+    return [
+    `/api/flyers/${id}/download`
+    ] as const;
+    }
+
+
+export const getDownloadFlyerQueryOptions = <TData = Awaited<ReturnType<typeof downloadFlyer>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadFlyerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadFlyer>>> = ({ signal }) => downloadFlyer(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadFlyer>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadFlyerQueryResult = NonNullable<Awaited<ReturnType<typeof downloadFlyer>>>
+export type DownloadFlyerQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download a generated flyer PDF
+ */
+
+export function useDownloadFlyer<TData = Awaited<ReturnType<typeof downloadFlyer>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadFlyerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEmailFlyerUrl = (id: number,) => {
+
+
+
+
+  return `/api/flyers/${id}/email`
+}
+
+/**
+ * @summary Email a generated flyer to a lead
+ */
+export const emailFlyer = async (id: number,
+    emailFlyerInput: EmailFlyerInput, options?: RequestInit): Promise<EmailFlyer200> => {
+
+  return customFetch<EmailFlyer200>(getEmailFlyerUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailFlyerInput,)
+  }
+);}
+
+
+
+
+export const getEmailFlyerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailFlyer>>, TError,{id: number;data: BodyType<EmailFlyerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof emailFlyer>>, TError,{id: number;data: BodyType<EmailFlyerInput>}, TContext> => {
+
+const mutationKey = ['emailFlyer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof emailFlyer>>, {id: number;data: BodyType<EmailFlyerInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  emailFlyer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EmailFlyerMutationResult = NonNullable<Awaited<ReturnType<typeof emailFlyer>>>
+    export type EmailFlyerMutationBody = BodyType<EmailFlyerInput>
+    export type EmailFlyerMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Email a generated flyer to a lead
+ */
+export const useEmailFlyer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailFlyer>>, TError,{id: number;data: BodyType<EmailFlyerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof emailFlyer>>,
+        TError,
+        {id: number;data: BodyType<EmailFlyerInput>},
+        TContext
+      > => {
+      return useMutation(getEmailFlyerMutationOptions(options));
+    }
+
+export const getGetGeneratedFlyerUrl = (id: number,) => {
+
+
+
+
+  return `/api/flyers/${id}`
+}
+
+/**
+ * @summary Get a generated flyer record
+ */
+export const getGeneratedFlyer = async (id: number, options?: RequestInit): Promise<GeneratedFlyer> => {
+
+  return customFetch<GeneratedFlyer>(getGetGeneratedFlyerUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGeneratedFlyerQueryKey = (id: number,) => {
+    return [
+    `/api/flyers/${id}`
+    ] as const;
+    }
+
+
+export const getGetGeneratedFlyerQueryOptions = <TData = Awaited<ReturnType<typeof getGeneratedFlyer>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGeneratedFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGeneratedFlyerQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGeneratedFlyer>>> = ({ signal }) => getGeneratedFlyer(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGeneratedFlyer>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGeneratedFlyerQueryResult = NonNullable<Awaited<ReturnType<typeof getGeneratedFlyer>>>
+export type GetGeneratedFlyerQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a generated flyer record
+ */
+
+export function useGetGeneratedFlyer<TData = Awaited<ReturnType<typeof getGeneratedFlyer>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGeneratedFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGeneratedFlyerQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getRequestUploadUrlUrl = () => {
 

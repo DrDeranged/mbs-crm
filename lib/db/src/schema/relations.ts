@@ -14,6 +14,7 @@ import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
 import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
+import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -167,6 +168,17 @@ export const emailSendsRelations = relations(emailSendsTable, ({ one }) => ({
     fields: [emailSendsTable.templateId],
     references: [emailTemplatesTable.id],
   }),
+}));
+
+export const flyerTemplatesRelations = relations(flyerTemplatesTable, ({ one, many }) => ({
+  creator: one(usersTable, { fields: [flyerTemplatesTable.createdBy], references: [usersTable.id] }),
+  generatedFlyers: many(generatedFlyersTable),
+}));
+
+export const generatedFlyersRelations = relations(generatedFlyersTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [generatedFlyersTable.leadId], references: [leadsTable.id] }),
+  template: one(flyerTemplatesTable, { fields: [generatedFlyersTable.templateId], references: [flyerTemplatesTable.id] }),
+  createdByUser: one(usersTable, { fields: [generatedFlyersTable.createdBy], references: [usersTable.id] }),
 }));
 
 export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) => ({

@@ -12,6 +12,7 @@ import {
   Mail,
   Zap,
   Building2,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -79,6 +80,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {navLink("/email/templates", "Email Templates", Mail)}
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
               {isAdmin && navLink("/lenders", "Lenders", Building2)}
+              {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
               <Separator className="my-4 bg-sidebar-border" />
               <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
                 Management

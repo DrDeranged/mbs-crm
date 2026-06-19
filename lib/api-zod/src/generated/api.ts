@@ -1748,6 +1748,192 @@ export const UpsertDripSequenceStepsResponse = zod.array(UpsertDripSequenceSteps
 
 
 /**
+ * @summary List all flyer templates
+ */
+export const ListFlyerTemplatesQueryParams = zod.object({
+  "programType": zod.enum(['equipment', 'working_capital', 'general']).optional(),
+  "activeOnly": zod.coerce.boolean().optional()
+})
+
+export const ListFlyerTemplatesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListFlyerTemplatesResponse = zod.array(ListFlyerTemplatesResponseItem)
+
+
+/**
+ * @summary Create a flyer template (admin only)
+ */
+export const CreateFlyerTemplateBody = zod.object({
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a single flyer template
+ */
+export const GetFlyerTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetFlyerTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a flyer template (admin only)
+ */
+export const UpdateFlyerTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateFlyerTemplateBody = zod.object({
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateFlyerTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Generate a PDF flyer from a template
+ */
+export const GenerateFlyerBody = zod.object({
+  "templateId": zod.number(),
+  "fieldValues": zod.record(zod.string(), zod.string()),
+  "leadId": zod.number().nullish()
+})
+
+export const GenerateFlyerResponse = zod.object({
+  "flyerId": zod.number(),
+  "downloadUrl": zod.string().optional()
+})
+
+
+/**
+ * @summary Download a generated flyer PDF
+ */
+export const DownloadFlyerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Email a generated flyer to a lead
+ */
+export const EmailFlyerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const EmailFlyerBody = zod.object({
+  "leadId": zod.number()
+})
+
+export const EmailFlyerResponse = zod.object({
+  "success": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a generated flyer record
+ */
+export const GetGeneratedFlyerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetGeneratedFlyerResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "templateId": zod.number().nullable(),
+  "template": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programType": zod.enum(['equipment', 'working_capital', 'general']),
+  "htmlTemplate": zod.string(),
+  "variableFields": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['text', 'number', 'select']),
+  "defaultValue": zod.string(),
+  "options": zod.array(zod.string()).optional()
+})),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "fieldValues": zod.record(zod.string(), zod.string()),
+  "pdfStorageKey": zod.string().nullish(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Request a presigned URL for file upload
  */
 export const RequestUploadUrlBody = zod.object({

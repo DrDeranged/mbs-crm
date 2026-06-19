@@ -19,6 +19,7 @@ import Settings from "@/pages/settings";
 import EmailTemplates from "@/pages/email-templates";
 import DripSequences from "@/pages/drip-sequences";
 import LenderManagement from "@/pages/lender-management";
+import FlyerTemplates from "@/pages/flyer-templates";
 
 const queryClient = new QueryClient();
 
@@ -193,6 +194,9 @@ function AppRoutes() {
             </Route>
             <Route path="/lenders">
               <ProtectedRoute component={LenderManagement} />
+            </Route>
+            <Route path="/flyer-templates">
+              <ProtectedRoute component={FlyerTemplates} />
             </Route>
             <Route component={NotFound} />
           </Switch>

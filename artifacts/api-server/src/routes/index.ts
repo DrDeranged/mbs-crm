@@ -17,6 +17,8 @@ import dripRouter from "./drip";
 import sendgridRouter from "./sendgrid";
 import analyticsRouter from "./analytics";
 import lendersRouter from "./lenders";
+import flyerTemplatesRouter from "./flyer-templates";
+import flyersRouter from "./flyers";
 
 const router: IRouter = Router();
 
@@ -37,6 +39,8 @@ router.use(activityRouter);
 router.use(dashboardRouter);
 router.use(analyticsRouter);
 router.use(lendersRouter);
+router.use(flyerTemplatesRouter);
+router.use(flyersRouter);
 router.use(storageRouter);
 
 export default router;
