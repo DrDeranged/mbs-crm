@@ -1,2 +1,4 @@
 - [Clerk React v6 patterns](clerk-react-version.md) — @clerk/react@5.54.0 was broken; use v6. API changed: Show instead of SignedIn/SignedOut, publishableKeyFromHost, new routing.
 - [Drizzle column type quirks](drizzle-column-types.md) — date cols need string (YYYY-MM-DD), numeric cols need string, timestamp accepts Date directly.
+- [Email/Drip architecture](email-drip-architecture.md) — drip job uses setInterval in index.ts (not a worker); auto-enroll hook is in leads.ts status change handler; SendGrid no-ops without API key.
+- [Express 5 route param types](express-route-params.md) — req.params["id"] returns string | string[]; always cast with `as string` to avoid TS errors.

@@ -975,6 +975,365 @@ export const GetCommunicationMetricsResponse = zod.array(GetCommunicationMetrics
 
 
 /**
+ * @summary List all email templates
+ */
+export const ListEmailTemplatesQueryParams = zod.object({
+  "programType": zod.coerce.string().optional(),
+  "isActive": zod.coerce.boolean().optional()
+})
+
+export const ListEmailTemplatesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "bodyHtml": zod.string(),
+  "programType": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListEmailTemplatesResponse = zod.array(ListEmailTemplatesResponseItem)
+
+
+/**
+ * @summary Create a new email template (manager/admin)
+ */
+export const CreateEmailTemplateBody = zod.object({
+  "name": zod.string(),
+  "subject": zod.string(),
+  "bodyHtml": zod.string(),
+  "programType": zod.string().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a single email template
+ */
+export const GetEmailTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetEmailTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "bodyHtml": zod.string(),
+  "programType": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an email template (manager/admin)
+ */
+export const UpdateEmailTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateEmailTemplateBody = zod.object({
+  "name": zod.string(),
+  "subject": zod.string(),
+  "bodyHtml": zod.string(),
+  "programType": zod.string().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateEmailTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "bodyHtml": zod.string(),
+  "programType": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Preview a template rendered with sample or lead data
+ */
+export const PreviewEmailTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PreviewEmailTemplateBody = zod.object({
+  "leadId": zod.number().optional()
+})
+
+export const PreviewEmailTemplateResponse = zod.object({
+  "subject": zod.string().optional(),
+  "bodyHtml": zod.string().optional()
+})
+
+
+/**
+ * @summary Send an email to a lead (one-off or from template)
+ */
+export const SendEmailBody = zod.object({
+  "leadId": zod.number(),
+  "templateId": zod.number().optional(),
+  "subject": zod.string().optional(),
+  "bodyHtml": zod.string().optional()
+})
+
+
+/**
+ * @summary Send personalized emails to multiple leads
+ */
+export const SendBulkEmailBody = zod.object({
+  "leadIds": zod.array(zod.number()),
+  "templateId": zod.number()
+})
+
+export const SendBulkEmailResponse = zod.object({
+  "sent": zod.number(),
+  "failed": zod.number(),
+  "skipped": zod.array(zod.number()).optional()
+})
+
+
+/**
+ * @summary Open tracking pixel (no auth required)
+ */
+export const TrackEmailOpenParams = zod.object({
+  "sendId": zod.coerce.number()
+})
+
+
+/**
+ * @summary Click tracking redirect (no auth required)
+ */
+export const TrackEmailClickParams = zod.object({
+  "sendId": zod.coerce.number()
+})
+
+export const TrackEmailClickQueryParams = zod.object({
+  "url": zod.coerce.string()
+})
+
+
+/**
+ * @summary List all emails sent to a lead
+ */
+export const ListLeadEmailsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListLeadEmailsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "userId": zod.number().nullish(),
+  "templateId": zod.number().nullish(),
+  "subject": zod.string(),
+  "toEmail": zod.string(),
+  "fromEmail": zod.string(),
+  "status": zod.enum(['queued', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'unsubscribed']),
+  "sendgridMessageId": zod.string().nullish(),
+  "sentAt": zod.coerce.date().nullish(),
+  "openedAt": zod.coerce.date().nullish(),
+  "clickedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListLeadEmailsResponse = zod.array(ListLeadEmailsResponseItem)
+
+
+/**
+ * @summary Get current drip enrollment for a lead
+ */
+export const GetLeadDripEnrollmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadDripEnrollmentResponse = zod.union([zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "sequenceId": zod.number(),
+  "sequence": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "steps": zod.number().optional()
+}),zod.null()]).optional(),
+  "currentStep": zod.number(),
+  "status": zod.enum(['active', 'completed', 'unenrolled']),
+  "enrolledAt": zod.coerce.date(),
+  "lastStepSentAt": zod.coerce.date().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "unenrolledAt": zod.coerce.date().nullish()
+}),zod.null()])
+
+
+/**
+ * @summary Manually enroll a lead in a drip sequence
+ */
+export const EnrollLeadInDripParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const EnrollLeadInDripBody = zod.object({
+  "sequenceId": zod.number()
+})
+
+
+/**
+ * @summary Unenroll a lead from their active drip sequence
+ */
+export const UnenrollLeadFromDripParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UnenrollLeadFromDripResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "sequenceId": zod.number(),
+  "sequence": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "steps": zod.number().optional()
+}),zod.null()]).optional(),
+  "currentStep": zod.number(),
+  "status": zod.enum(['active', 'completed', 'unenrolled']),
+  "enrolledAt": zod.coerce.date(),
+  "lastStepSentAt": zod.coerce.date().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "unenrolledAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary List all drip sequences
+ */
+export const ListDripSequencesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "isActive": zod.boolean(),
+  "stepCount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListDripSequencesResponse = zod.array(ListDripSequencesResponseItem)
+
+
+/**
+ * @summary Create a drip sequence (manager/admin)
+ */
+export const CreateDripSequenceBody = zod.object({
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "isActive": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a drip sequence with its steps
+ */
+export const GetDripSequenceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDripSequenceResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "isActive": zod.boolean(),
+  "stepCount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "steps": zod.array(zod.object({
+  "id": zod.number(),
+  "sequenceId": zod.number(),
+  "stepOrder": zod.number(),
+  "templateId": zod.number(),
+  "template": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "subject": zod.string().optional()
+}),zod.null()]).optional(),
+  "delayHours": zod.number(),
+  "createdAt": zod.coerce.date()
+})).optional()
+}))
+
+
+/**
+ * @summary Update a drip sequence (manager/admin)
+ */
+export const UpdateDripSequenceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDripSequenceBody = zod.object({
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateDripSequenceResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "isActive": zod.boolean(),
+  "stepCount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Replace all steps of a drip sequence
+ */
+export const UpsertDripSequenceStepsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpsertDripSequenceStepsBody = zod.object({
+  "steps": zod.array(zod.object({
+  "templateId": zod.number(),
+  "delayHours": zod.number()
+}))
+})
+
+export const UpsertDripSequenceStepsResponseItem = zod.object({
+  "id": zod.number(),
+  "sequenceId": zod.number(),
+  "stepOrder": zod.number(),
+  "templateId": zod.number(),
+  "template": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "subject": zod.string().optional()
+}),zod.null()]).optional(),
+  "delayHours": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const UpsertDripSequenceStepsResponse = zod.array(UpsertDripSequenceStepsResponseItem)
+
+
+/**
  * @summary Request a presigned URL for file upload
  */
 export const RequestUploadUrlBody = zod.object({

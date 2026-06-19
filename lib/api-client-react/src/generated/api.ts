@@ -22,12 +22,24 @@ import type {
 import type {
   ActivityEntry,
   AssignLead,
+  BulkEmailInput,
+  BulkEmailResult,
   Communication,
   CommunicationMetrics,
   DashboardSummary,
   Document,
   DownloadUrlResponse,
+  DripEnrollment,
+  DripSequence,
+  DripSequenceDetail,
+  DripSequenceInput,
+  DripSequenceStep,
   DuplicateResponse,
+  EmailSend,
+  EmailSendInput,
+  EmailTemplate,
+  EmailTemplateInput,
+  EnrollLeadInDripBody,
   GetCommunicationMetricsParams,
   HealthStatus,
   ImportLeadsBody,
@@ -40,11 +52,14 @@ import type {
   LeadInput,
   LeadListResponse,
   LeadUpdate,
+  ListEmailTemplatesParams,
   ListLeadsParams,
   ListUsersParams,
   MyTasksSummary,
   Note,
   NoteInput,
+  PreviewEmailTemplate200,
+  PreviewEmailTemplateBody,
   PreviewImportBody,
   RepDashboard,
   SmsInput,
@@ -52,6 +67,7 @@ import type {
   Task,
   TaskInput,
   TaskUpdate,
+  TrackEmailClickParams,
   TwilioSmsStatus200,
   TwilioTokenResponse,
   TwilioVoiceRecording200,
@@ -60,6 +76,7 @@ import type {
   UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
+  UpsertDripSequenceStepsBody,
   User,
   UserUpdate
 } from './api.schemas';
@@ -2753,6 +2770,1425 @@ export function useGetCommunicationMetrics<TData = Awaited<ReturnType<typeof get
 
 
 
+
+export const getListEmailTemplatesUrl = (params?: ListEmailTemplatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/email/templates?${stringifiedParams}` : `/api/email/templates`
+}
+
+/**
+ * @summary List all email templates
+ */
+export const listEmailTemplates = async (params?: ListEmailTemplatesParams, options?: RequestInit): Promise<EmailTemplate[]> => {
+
+  return customFetch<EmailTemplate[]>(getListEmailTemplatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmailTemplatesQueryKey = (params?: ListEmailTemplatesParams,) => {
+    return [
+    `/api/email/templates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListEmailTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listEmailTemplates>>, TError = ErrorType<unknown>>(params?: ListEmailTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEmailTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmailTemplatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmailTemplates>>> = ({ signal }) => listEmailTemplates(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmailTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEmailTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listEmailTemplates>>>
+export type ListEmailTemplatesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all email templates
+ */
+
+export function useListEmailTemplates<TData = Awaited<ReturnType<typeof listEmailTemplates>>, TError = ErrorType<unknown>>(
+ params?: ListEmailTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEmailTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEmailTemplatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateEmailTemplateUrl = () => {
+
+
+
+
+  return `/api/email/templates`
+}
+
+/**
+ * @summary Create a new email template (manager/admin)
+ */
+export const createEmailTemplate = async (emailTemplateInput: EmailTemplateInput, options?: RequestInit): Promise<EmailTemplate> => {
+
+  return customFetch<EmailTemplate>(getCreateEmailTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailTemplateInput,)
+  }
+);}
+
+
+
+
+export const getCreateEmailTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmailTemplate>>, TError,{data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmailTemplate>>, TError,{data: BodyType<EmailTemplateInput>}, TContext> => {
+
+const mutationKey = ['createEmailTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmailTemplate>>, {data: BodyType<EmailTemplateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createEmailTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmailTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createEmailTemplate>>>
+    export type CreateEmailTemplateMutationBody = BodyType<EmailTemplateInput>
+    export type CreateEmailTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new email template (manager/admin)
+ */
+export const useCreateEmailTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmailTemplate>>, TError,{data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createEmailTemplate>>,
+        TError,
+        {data: BodyType<EmailTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateEmailTemplateMutationOptions(options));
+    }
+
+export const getGetEmailTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/email/templates/${id}`
+}
+
+/**
+ * @summary Get a single email template
+ */
+export const getEmailTemplate = async (id: number, options?: RequestInit): Promise<EmailTemplate> => {
+
+  return customFetch<EmailTemplate>(getGetEmailTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailTemplateQueryKey = (id: number,) => {
+    return [
+    `/api/email/templates/${id}`
+    ] as const;
+    }
+
+
+export const getGetEmailTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getEmailTemplate>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailTemplate>>> = ({ signal }) => getEmailTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplate>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailTemplate>>>
+export type GetEmailTemplateQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a single email template
+ */
+
+export function useGetEmailTemplate<TData = Awaited<ReturnType<typeof getEmailTemplate>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateEmailTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/email/templates/${id}`
+}
+
+/**
+ * @summary Update an email template (manager/admin)
+ */
+export const updateEmailTemplate = async (id: number,
+    emailTemplateInput: EmailTemplateInput, options?: RequestInit): Promise<EmailTemplate> => {
+
+  return customFetch<EmailTemplate>(getUpdateEmailTemplateUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailTemplateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateEmailTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailTemplate>>, TError,{id: number;data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmailTemplate>>, TError,{id: number;data: BodyType<EmailTemplateInput>}, TContext> => {
+
+const mutationKey = ['updateEmailTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmailTemplate>>, {id: number;data: BodyType<EmailTemplateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateEmailTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmailTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmailTemplate>>>
+    export type UpdateEmailTemplateMutationBody = BodyType<EmailTemplateInput>
+    export type UpdateEmailTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an email template (manager/admin)
+ */
+export const useUpdateEmailTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailTemplate>>, TError,{id: number;data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmailTemplate>>,
+        TError,
+        {id: number;data: BodyType<EmailTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateEmailTemplateMutationOptions(options));
+    }
+
+export const getPreviewEmailTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/email/templates/${id}/preview`
+}
+
+/**
+ * @summary Preview a template rendered with sample or lead data
+ */
+export const previewEmailTemplate = async (id: number,
+    previewEmailTemplateBody?: PreviewEmailTemplateBody, options?: RequestInit): Promise<PreviewEmailTemplate200> => {
+
+  return customFetch<PreviewEmailTemplate200>(getPreviewEmailTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      previewEmailTemplateBody,)
+  }
+);}
+
+
+
+
+export const getPreviewEmailTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewEmailTemplate>>, TError,{id: number;data?: BodyType<PreviewEmailTemplateBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewEmailTemplate>>, TError,{id: number;data?: BodyType<PreviewEmailTemplateBody>}, TContext> => {
+
+const mutationKey = ['previewEmailTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewEmailTemplate>>, {id: number;data?: BodyType<PreviewEmailTemplateBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  previewEmailTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewEmailTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof previewEmailTemplate>>>
+    export type PreviewEmailTemplateMutationBody = BodyType<PreviewEmailTemplateBody> | undefined
+    export type PreviewEmailTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Preview a template rendered with sample or lead data
+ */
+export const usePreviewEmailTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewEmailTemplate>>, TError,{id: number;data?: BodyType<PreviewEmailTemplateBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewEmailTemplate>>,
+        TError,
+        {id: number;data?: BodyType<PreviewEmailTemplateBody>},
+        TContext
+      > => {
+      return useMutation(getPreviewEmailTemplateMutationOptions(options));
+    }
+
+export const getSendEmailUrl = () => {
+
+
+
+
+  return `/api/email/send`
+}
+
+/**
+ * @summary Send an email to a lead (one-off or from template)
+ */
+export const sendEmail = async (emailSendInput: EmailSendInput, options?: RequestInit): Promise<EmailSend> => {
+
+  return customFetch<EmailSend>(getSendEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailSendInput,)
+  }
+);}
+
+
+
+
+export const getSendEmailMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailSendInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailSendInput>}, TContext> => {
+
+const mutationKey = ['sendEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendEmail>>, {data: BodyType<EmailSendInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendEmail>>>
+    export type SendEmailMutationBody = BodyType<EmailSendInput>
+    export type SendEmailMutationError = ErrorType<void>
+
+    /**
+ * @summary Send an email to a lead (one-off or from template)
+ */
+export const useSendEmail = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailSendInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendEmail>>,
+        TError,
+        {data: BodyType<EmailSendInput>},
+        TContext
+      > => {
+      return useMutation(getSendEmailMutationOptions(options));
+    }
+
+export const getSendBulkEmailUrl = () => {
+
+
+
+
+  return `/api/email/bulk`
+}
+
+/**
+ * @summary Send personalized emails to multiple leads
+ */
+export const sendBulkEmail = async (bulkEmailInput: BulkEmailInput, options?: RequestInit): Promise<BulkEmailResult> => {
+
+  return customFetch<BulkEmailResult>(getSendBulkEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      bulkEmailInput,)
+  }
+);}
+
+
+
+
+export const getSendBulkEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendBulkEmail>>, TError,{data: BodyType<BulkEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendBulkEmail>>, TError,{data: BodyType<BulkEmailInput>}, TContext> => {
+
+const mutationKey = ['sendBulkEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendBulkEmail>>, {data: BodyType<BulkEmailInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendBulkEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendBulkEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendBulkEmail>>>
+    export type SendBulkEmailMutationBody = BodyType<BulkEmailInput>
+    export type SendBulkEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send personalized emails to multiple leads
+ */
+export const useSendBulkEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendBulkEmail>>, TError,{data: BodyType<BulkEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendBulkEmail>>,
+        TError,
+        {data: BodyType<BulkEmailInput>},
+        TContext
+      > => {
+      return useMutation(getSendBulkEmailMutationOptions(options));
+    }
+
+export const getTrackEmailOpenUrl = (sendId: number,) => {
+
+
+
+
+  return `/api/email/track/open/${sendId}`
+}
+
+/**
+ * @summary Open tracking pixel (no auth required)
+ */
+export const trackEmailOpen = async (sendId: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getTrackEmailOpenUrl(sendId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTrackEmailOpenQueryKey = (sendId: number,) => {
+    return [
+    `/api/email/track/open/${sendId}`
+    ] as const;
+    }
+
+
+export const getTrackEmailOpenQueryOptions = <TData = Awaited<ReturnType<typeof trackEmailOpen>>, TError = ErrorType<unknown>>(sendId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTrackEmailOpenQueryKey(sendId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof trackEmailOpen>>> = ({ signal }) => trackEmailOpen(sendId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(sendId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type TrackEmailOpenQueryResult = NonNullable<Awaited<ReturnType<typeof trackEmailOpen>>>
+export type TrackEmailOpenQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Open tracking pixel (no auth required)
+ */
+
+export function useTrackEmailOpen<TData = Awaited<ReturnType<typeof trackEmailOpen>>, TError = ErrorType<unknown>>(
+ sendId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getTrackEmailOpenQueryOptions(sendId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getTrackEmailClickUrl = (sendId: number,
+    params: TrackEmailClickParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/email/track/click/${sendId}?${stringifiedParams}` : `/api/email/track/click/${sendId}`
+}
+
+/**
+ * @summary Click tracking redirect (no auth required)
+ */
+export const trackEmailClick = async (sendId: number,
+    params: TrackEmailClickParams, options?: RequestInit): Promise<unknown> => {
+
+  return customFetch<unknown>(getTrackEmailClickUrl(sendId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTrackEmailClickQueryKey = (sendId: number,
+    params?: TrackEmailClickParams,) => {
+    return [
+    `/api/email/track/click/${sendId}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTrackEmailClickQueryOptions = <TData = Awaited<ReturnType<typeof trackEmailClick>>, TError = ErrorType<void>>(sendId: number,
+    params: TrackEmailClickParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailClick>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTrackEmailClickQueryKey(sendId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof trackEmailClick>>> = ({ signal }) => trackEmailClick(sendId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(sendId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof trackEmailClick>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type TrackEmailClickQueryResult = NonNullable<Awaited<ReturnType<typeof trackEmailClick>>>
+export type TrackEmailClickQueryError = ErrorType<void>
+
+
+/**
+ * @summary Click tracking redirect (no auth required)
+ */
+
+export function useTrackEmailClick<TData = Awaited<ReturnType<typeof trackEmailClick>>, TError = ErrorType<void>>(
+ sendId: number,
+    params: TrackEmailClickParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailClick>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getTrackEmailClickQueryOptions(sendId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListLeadEmailsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/emails`
+}
+
+/**
+ * @summary List all emails sent to a lead
+ */
+export const listLeadEmails = async (id: number, options?: RequestInit): Promise<EmailSend[]> => {
+
+  return customFetch<EmailSend[]>(getListLeadEmailsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLeadEmailsQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/emails`
+    ] as const;
+    }
+
+
+export const getListLeadEmailsQueryOptions = <TData = Awaited<ReturnType<typeof listLeadEmails>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLeadEmails>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLeadEmailsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeadEmails>>> = ({ signal }) => listLeadEmails(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeadEmails>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListLeadEmailsQueryResult = NonNullable<Awaited<ReturnType<typeof listLeadEmails>>>
+export type ListLeadEmailsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all emails sent to a lead
+ */
+
+export function useListLeadEmails<TData = Awaited<ReturnType<typeof listLeadEmails>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLeadEmails>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListLeadEmailsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadDripEnrollmentUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/drip`
+}
+
+/**
+ * @summary Get current drip enrollment for a lead
+ */
+export const getLeadDripEnrollment = async (id: number, options?: RequestInit): Promise<DripEnrollment | null> => {
+
+  return customFetch<DripEnrollment | null>(getGetLeadDripEnrollmentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadDripEnrollmentQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/drip`
+    ] as const;
+    }
+
+
+export const getGetLeadDripEnrollmentQueryOptions = <TData = Awaited<ReturnType<typeof getLeadDripEnrollment>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadDripEnrollment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadDripEnrollmentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadDripEnrollment>>> = ({ signal }) => getLeadDripEnrollment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadDripEnrollment>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadDripEnrollmentQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadDripEnrollment>>>
+export type GetLeadDripEnrollmentQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current drip enrollment for a lead
+ */
+
+export function useGetLeadDripEnrollment<TData = Awaited<ReturnType<typeof getLeadDripEnrollment>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadDripEnrollment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadDripEnrollmentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEnrollLeadInDripUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/drip/enroll`
+}
+
+/**
+ * @summary Manually enroll a lead in a drip sequence
+ */
+export const enrollLeadInDrip = async (id: number,
+    enrollLeadInDripBody: EnrollLeadInDripBody, options?: RequestInit): Promise<DripEnrollment> => {
+
+  return customFetch<DripEnrollment>(getEnrollLeadInDripUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      enrollLeadInDripBody,)
+  }
+);}
+
+
+
+
+export const getEnrollLeadInDripMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollLeadInDrip>>, TError,{id: number;data: BodyType<EnrollLeadInDripBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enrollLeadInDrip>>, TError,{id: number;data: BodyType<EnrollLeadInDripBody>}, TContext> => {
+
+const mutationKey = ['enrollLeadInDrip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enrollLeadInDrip>>, {id: number;data: BodyType<EnrollLeadInDripBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  enrollLeadInDrip(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnrollLeadInDripMutationResult = NonNullable<Awaited<ReturnType<typeof enrollLeadInDrip>>>
+    export type EnrollLeadInDripMutationBody = BodyType<EnrollLeadInDripBody>
+    export type EnrollLeadInDripMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually enroll a lead in a drip sequence
+ */
+export const useEnrollLeadInDrip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollLeadInDrip>>, TError,{id: number;data: BodyType<EnrollLeadInDripBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enrollLeadInDrip>>,
+        TError,
+        {id: number;data: BodyType<EnrollLeadInDripBody>},
+        TContext
+      > => {
+      return useMutation(getEnrollLeadInDripMutationOptions(options));
+    }
+
+export const getUnenrollLeadFromDripUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/drip/unenroll`
+}
+
+/**
+ * @summary Unenroll a lead from their active drip sequence
+ */
+export const unenrollLeadFromDrip = async (id: number, options?: RequestInit): Promise<DripEnrollment> => {
+
+  return customFetch<DripEnrollment>(getUnenrollLeadFromDripUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getUnenrollLeadFromDripMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unenrollLeadFromDrip>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unenrollLeadFromDrip>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['unenrollLeadFromDrip'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unenrollLeadFromDrip>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unenrollLeadFromDrip(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnenrollLeadFromDripMutationResult = NonNullable<Awaited<ReturnType<typeof unenrollLeadFromDrip>>>
+
+    export type UnenrollLeadFromDripMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Unenroll a lead from their active drip sequence
+ */
+export const useUnenrollLeadFromDrip = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unenrollLeadFromDrip>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unenrollLeadFromDrip>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getUnenrollLeadFromDripMutationOptions(options));
+    }
+
+export const getListDripSequencesUrl = () => {
+
+
+
+
+  return `/api/drip/sequences`
+}
+
+/**
+ * @summary List all drip sequences
+ */
+export const listDripSequences = async ( options?: RequestInit): Promise<DripSequence[]> => {
+
+  return customFetch<DripSequence[]>(getListDripSequencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDripSequencesQueryKey = () => {
+    return [
+    `/api/drip/sequences`
+    ] as const;
+    }
+
+
+export const getListDripSequencesQueryOptions = <TData = Awaited<ReturnType<typeof listDripSequences>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDripSequences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDripSequencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDripSequences>>> = ({ signal }) => listDripSequences({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDripSequences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDripSequencesQueryResult = NonNullable<Awaited<ReturnType<typeof listDripSequences>>>
+export type ListDripSequencesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all drip sequences
+ */
+
+export function useListDripSequences<TData = Awaited<ReturnType<typeof listDripSequences>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDripSequences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDripSequencesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateDripSequenceUrl = () => {
+
+
+
+
+  return `/api/drip/sequences`
+}
+
+/**
+ * @summary Create a drip sequence (manager/admin)
+ */
+export const createDripSequence = async (dripSequenceInput: DripSequenceInput, options?: RequestInit): Promise<DripSequence> => {
+
+  return customFetch<DripSequence>(getCreateDripSequenceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dripSequenceInput,)
+  }
+);}
+
+
+
+
+export const getCreateDripSequenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDripSequence>>, TError,{data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDripSequence>>, TError,{data: BodyType<DripSequenceInput>}, TContext> => {
+
+const mutationKey = ['createDripSequence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDripSequence>>, {data: BodyType<DripSequenceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDripSequence(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDripSequenceMutationResult = NonNullable<Awaited<ReturnType<typeof createDripSequence>>>
+    export type CreateDripSequenceMutationBody = BodyType<DripSequenceInput>
+    export type CreateDripSequenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a drip sequence (manager/admin)
+ */
+export const useCreateDripSequence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDripSequence>>, TError,{data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDripSequence>>,
+        TError,
+        {data: BodyType<DripSequenceInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDripSequenceMutationOptions(options));
+    }
+
+export const getGetDripSequenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/drip/sequences/${id}`
+}
+
+/**
+ * @summary Get a drip sequence with its steps
+ */
+export const getDripSequence = async (id: number, options?: RequestInit): Promise<DripSequenceDetail> => {
+
+  return customFetch<DripSequenceDetail>(getGetDripSequenceUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDripSequenceQueryKey = (id: number,) => {
+    return [
+    `/api/drip/sequences/${id}`
+    ] as const;
+    }
+
+
+export const getGetDripSequenceQueryOptions = <TData = Awaited<ReturnType<typeof getDripSequence>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDripSequence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDripSequenceQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDripSequence>>> = ({ signal }) => getDripSequence(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDripSequence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDripSequenceQueryResult = NonNullable<Awaited<ReturnType<typeof getDripSequence>>>
+export type GetDripSequenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a drip sequence with its steps
+ */
+
+export function useGetDripSequence<TData = Awaited<ReturnType<typeof getDripSequence>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDripSequence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDripSequenceQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateDripSequenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/drip/sequences/${id}`
+}
+
+/**
+ * @summary Update a drip sequence (manager/admin)
+ */
+export const updateDripSequence = async (id: number,
+    dripSequenceInput: DripSequenceInput, options?: RequestInit): Promise<DripSequence> => {
+
+  return customFetch<DripSequence>(getUpdateDripSequenceUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dripSequenceInput,)
+  }
+);}
+
+
+
+
+export const getUpdateDripSequenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDripSequence>>, TError,{id: number;data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDripSequence>>, TError,{id: number;data: BodyType<DripSequenceInput>}, TContext> => {
+
+const mutationKey = ['updateDripSequence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDripSequence>>, {id: number;data: BodyType<DripSequenceInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDripSequence(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDripSequenceMutationResult = NonNullable<Awaited<ReturnType<typeof updateDripSequence>>>
+    export type UpdateDripSequenceMutationBody = BodyType<DripSequenceInput>
+    export type UpdateDripSequenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a drip sequence (manager/admin)
+ */
+export const useUpdateDripSequence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDripSequence>>, TError,{id: number;data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDripSequence>>,
+        TError,
+        {id: number;data: BodyType<DripSequenceInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateDripSequenceMutationOptions(options));
+    }
+
+export const getUpsertDripSequenceStepsUrl = (id: number,) => {
+
+
+
+
+  return `/api/drip/sequences/${id}/steps`
+}
+
+/**
+ * @summary Replace all steps of a drip sequence
+ */
+export const upsertDripSequenceSteps = async (id: number,
+    upsertDripSequenceStepsBody: UpsertDripSequenceStepsBody, options?: RequestInit): Promise<DripSequenceStep[]> => {
+
+  return customFetch<DripSequenceStep[]>(getUpsertDripSequenceStepsUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      upsertDripSequenceStepsBody,)
+  }
+);}
+
+
+
+
+export const getUpsertDripSequenceStepsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertDripSequenceSteps>>, TError,{id: number;data: BodyType<UpsertDripSequenceStepsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertDripSequenceSteps>>, TError,{id: number;data: BodyType<UpsertDripSequenceStepsBody>}, TContext> => {
+
+const mutationKey = ['upsertDripSequenceSteps'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertDripSequenceSteps>>, {id: number;data: BodyType<UpsertDripSequenceStepsBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  upsertDripSequenceSteps(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertDripSequenceStepsMutationResult = NonNullable<Awaited<ReturnType<typeof upsertDripSequenceSteps>>>
+    export type UpsertDripSequenceStepsMutationBody = BodyType<UpsertDripSequenceStepsBody>
+    export type UpsertDripSequenceStepsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Replace all steps of a drip sequence
+ */
+export const useUpsertDripSequenceSteps = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertDripSequenceSteps>>, TError,{id: number;data: BodyType<UpsertDripSequenceStepsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof upsertDripSequenceSteps>>,
+        TError,
+        {id: number;data: BodyType<UpsertDripSequenceStepsBody>},
+        TContext
+      > => {
+      return useMutation(getUpsertDripSequenceStepsMutationOptions(options));
+    }
+
+export const getSendgridWebhookUrl = () => {
+
+
+
+
+  return `/api/sendgrid/webhook`
+}
+
+/**
+ * @summary SendGrid Event Webhook — receives email lifecycle events
+ */
+export const sendgridWebhook = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSendgridWebhookUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSendgridWebhookMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendgridWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendgridWebhook>>, TError,void, TContext> => {
+
+const mutationKey = ['sendgridWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendgridWebhook>>, void> = () => {
+
+
+          return  sendgridWebhook(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendgridWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof sendgridWebhook>>>
+
+    export type SendgridWebhookMutationError = ErrorType<unknown>
+
+    /**
+ * @summary SendGrid Event Webhook — receives email lifecycle events
+ */
+export const useSendgridWebhook = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendgridWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendgridWebhook>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSendgridWebhookMutationOptions(options));
+    }
 
 export const getRequestUploadUrlUrl = () => {
 

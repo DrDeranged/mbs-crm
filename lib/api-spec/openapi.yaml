@@ -32,6 +32,12 @@ tags:
     description: Twilio voice and SMS communication
   - name: communications
     description: Lead communication history
+  - name: email
+    description: Email templates, sending, and tracking
+  - name: drip
+    description: Drip sequences and enrollment
+  - name: sendgrid
+    description: SendGrid event webhooks
 paths:
   /healthz:
     get:
@@ -810,6 +816,410 @@ paths:
                 items:
                   $ref: "#/components/schemas/CommunicationMetrics"
 
+  /email/templates:
+    get:
+      operationId: listEmailTemplates
+      tags: [email]
+      summary: List all email templates
+      parameters:
+        - name: programType
+          in: query
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Templates list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmailTemplate"
+    post:
+      operationId: createEmailTemplate
+      tags: [email]
+      summary: Create a new email template (manager/admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailTemplateInput"
+      responses:
+        "201":
+          description: Template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+
+  /email/templates/{id}:
+    get:
+      operationId: getEmailTemplate
+      tags: [email]
+      summary: Get a single email template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+    put:
+      operationId: updateEmailTemplate
+      tags: [email]
+      summary: Update an email template (manager/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailTemplateInput"
+      responses:
+        "200":
+          description: Updated template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailTemplate"
+
+  /email/templates/{id}/preview:
+    post:
+      operationId: previewEmailTemplate
+      tags: [email]
+      summary: Preview a template rendered with sample or lead data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                leadId:
+                  type: integer
+      responses:
+        "200":
+          description: Rendered HTML preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subject:
+                    type: string
+                  bodyHtml:
+                    type: string
+
+  /email/send:
+    post:
+      operationId: sendEmail
+      tags: [email]
+      summary: Send an email to a lead (one-off or from template)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailSendInput"
+      responses:
+        "201":
+          description: Email sent and logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSend"
+        "400":
+          description: Missing email address or body
+        "409":
+          description: Lead is unsubscribed
+
+  /email/bulk:
+    post:
+      operationId: sendBulkEmail
+      tags: [email]
+      summary: Send personalized emails to multiple leads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkEmailInput"
+      responses:
+        "200":
+          description: Bulk send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkEmailResult"
+
+  /email/track/open/{sendId}:
+    get:
+      operationId: trackEmailOpen
+      tags: [email]
+      summary: Open tracking pixel (no auth required)
+      parameters:
+        - name: sendId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 1x1 transparent GIF
+          content:
+            image/gif:
+              schema:
+                type: string
+                format: binary
+
+  /email/track/click/{sendId}:
+    get:
+      operationId: trackEmailClick
+      tags: [email]
+      summary: Click tracking redirect (no auth required)
+      parameters:
+        - name: sendId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to original URL
+
+  /leads/{id}/emails:
+    get:
+      operationId: listLeadEmails
+      tags: [email]
+      summary: List all emails sent to a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Email sends list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmailSend"
+
+  /leads/{id}/drip:
+    get:
+      operationId: getLeadDripEnrollment
+      tags: [drip]
+      summary: Get current drip enrollment for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Current enrollment or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/DripEnrollment"
+                  - type: "null"
+
+  /leads/{id}/drip/enroll:
+    post:
+      operationId: enrollLeadInDrip
+      tags: [drip]
+      summary: Manually enroll a lead in a drip sequence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sequenceId]
+              properties:
+                sequenceId:
+                  type: integer
+      responses:
+        "201":
+          description: Enrolled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DripEnrollment"
+
+  /leads/{id}/drip/unenroll:
+    post:
+      operationId: unenrollLeadFromDrip
+      tags: [drip]
+      summary: Unenroll a lead from their active drip sequence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unenrolled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DripEnrollment"
+
+  /drip/sequences:
+    get:
+      operationId: listDripSequences
+      tags: [drip]
+      summary: List all drip sequences
+      responses:
+        "200":
+          description: Sequences list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DripSequence"
+    post:
+      operationId: createDripSequence
+      tags: [drip]
+      summary: Create a drip sequence (manager/admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DripSequenceInput"
+      responses:
+        "201":
+          description: Created sequence
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DripSequence"
+
+  /drip/sequences/{id}:
+    get:
+      operationId: getDripSequence
+      tags: [drip]
+      summary: Get a drip sequence with its steps
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sequence with steps
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DripSequenceDetail"
+    put:
+      operationId: updateDripSequence
+      tags: [drip]
+      summary: Update a drip sequence (manager/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DripSequenceInput"
+      responses:
+        "200":
+          description: Updated sequence
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DripSequence"
+
+  /drip/sequences/{id}/steps:
+    put:
+      operationId: upsertDripSequenceSteps
+      tags: [drip]
+      summary: Replace all steps of a drip sequence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [steps]
+              properties:
+                steps:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/DripStepInput"
+      responses:
+        "200":
+          description: Updated steps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DripSequenceStep"
+
+  /sendgrid/webhook:
+    post:
+      operationId: sendgridWebhook
+      tags: [sendgrid]
+      summary: SendGrid Event Webhook — receives email lifecycle events
+      responses:
+        "200":
+          description: Events processed
+
   /storage/uploads/request-url:
     post:
       tags: [storage]
@@ -1464,3 +1874,249 @@ components:
           type: integer
         totalCallDurationMinutes:
           type: number
+
+    EmailTemplate:
+      type: object
+      required: [id, name, subject, bodyHtml, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subject:
+          type: string
+        bodyHtml:
+          type: string
+        programType:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdBy:
+          type: ["integer", "null"]
+        creator:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: ["string", "null"]
+                email:
+                  type: string
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmailTemplateInput:
+      type: object
+      required: [name, subject, bodyHtml]
+      properties:
+        name:
+          type: string
+        subject:
+          type: string
+        bodyHtml:
+          type: string
+        programType:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    EmailSend:
+      type: object
+      required: [id, subject, toEmail, fromEmail, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: ["integer", "null"]
+        userId:
+          type: ["integer", "null"]
+        templateId:
+          type: ["integer", "null"]
+        subject:
+          type: string
+        toEmail:
+          type: string
+        fromEmail:
+          type: string
+        status:
+          type: string
+          enum: [queued, sent, delivered, opened, clicked, bounced, unsubscribed]
+        sendgridMessageId:
+          type: ["string", "null"]
+        sentAt:
+          type: ["string", "null"]
+          format: date-time
+        openedAt:
+          type: ["string", "null"]
+          format: date-time
+        clickedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmailSendInput:
+      type: object
+      required: [leadId]
+      properties:
+        leadId:
+          type: integer
+        templateId:
+          type: integer
+        subject:
+          type: string
+        bodyHtml:
+          type: string
+
+    BulkEmailInput:
+      type: object
+      required: [leadIds, templateId]
+      properties:
+        leadIds:
+          type: array
+          items:
+            type: integer
+        templateId:
+          type: integer
+
+    BulkEmailResult:
+      type: object
+      required: [sent, failed]
+      properties:
+        sent:
+          type: integer
+        failed:
+          type: integer
+        skipped:
+          type: array
+          items:
+            type: integer
+
+    DripSequence:
+      type: object
+      required: [id, name, triggerStatus, isActive, stepCount, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        triggerStatus:
+          type: string
+        isActive:
+          type: boolean
+        stepCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DripSequenceDetail:
+      allOf:
+        - $ref: "#/components/schemas/DripSequence"
+        - type: object
+          properties:
+            steps:
+              type: array
+              items:
+                $ref: "#/components/schemas/DripSequenceStep"
+
+    DripSequenceInput:
+      type: object
+      required: [name, triggerStatus]
+      properties:
+        name:
+          type: string
+        triggerStatus:
+          type: string
+        isActive:
+          type: boolean
+
+    DripSequenceStep:
+      type: object
+      required: [id, sequenceId, stepOrder, templateId, delayHours, createdAt]
+      properties:
+        id:
+          type: integer
+        sequenceId:
+          type: integer
+        stepOrder:
+          type: integer
+        templateId:
+          type: integer
+        template:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                subject:
+                  type: string
+            - type: "null"
+        delayHours:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    DripStepInput:
+      type: object
+      required: [templateId, delayHours]
+      properties:
+        templateId:
+          type: integer
+        delayHours:
+          type: integer
+
+    DripEnrollment:
+      type: object
+      required: [id, leadId, sequenceId, currentStep, status, enrolledAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        sequenceId:
+          type: integer
+        sequence:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                steps:
+                  type: integer
+            - type: "null"
+        currentStep:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed, unenrolled]
+        enrolledAt:
+          type: string
+          format: date-time
+        lastStepSentAt:
+          type: ["string", "null"]
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        unenrolledAt:
+          type: ["string", "null"]
+          format: date-time

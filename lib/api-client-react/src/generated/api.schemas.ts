@@ -454,6 +454,164 @@ export interface CommunicationMetrics {
   totalCallDurationMinutes: number;
 }
 
+export type EmailTemplateCreator = {
+  id?: number;
+  /** @nullable */
+  name?: string | null;
+  email?: string;
+} | null;
+
+export interface EmailTemplate {
+  id: number;
+  name: string;
+  subject: string;
+  bodyHtml: string;
+  /** @nullable */
+  programType?: string | null;
+  isActive: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  creator?: EmailTemplateCreator;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailTemplateInput {
+  name: string;
+  subject: string;
+  bodyHtml: string;
+  /** @nullable */
+  programType?: string | null;
+  isActive?: boolean;
+}
+
+export type EmailSendStatus = typeof EmailSendStatus[keyof typeof EmailSendStatus];
+
+
+export const EmailSendStatus = {
+  queued: 'queued',
+  sent: 'sent',
+  delivered: 'delivered',
+  opened: 'opened',
+  clicked: 'clicked',
+  bounced: 'bounced',
+  unsubscribed: 'unsubscribed',
+} as const;
+
+export interface EmailSend {
+  id: number;
+  /** @nullable */
+  leadId?: number | null;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  templateId?: number | null;
+  subject: string;
+  toEmail: string;
+  fromEmail: string;
+  status: EmailSendStatus;
+  /** @nullable */
+  sendgridMessageId?: string | null;
+  /** @nullable */
+  sentAt?: string | null;
+  /** @nullable */
+  openedAt?: string | null;
+  /** @nullable */
+  clickedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailSendInput {
+  leadId: number;
+  templateId?: number;
+  subject?: string;
+  bodyHtml?: string;
+}
+
+export interface BulkEmailInput {
+  leadIds: number[];
+  templateId: number;
+}
+
+export interface BulkEmailResult {
+  sent: number;
+  failed: number;
+  skipped?: number[];
+}
+
+export interface DripSequence {
+  id: number;
+  name: string;
+  triggerStatus: string;
+  isActive: boolean;
+  stepCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type DripSequenceStepTemplate = {
+  id?: number;
+  name?: string;
+  subject?: string;
+} | null;
+
+export interface DripSequenceStep {
+  id: number;
+  sequenceId: number;
+  stepOrder: number;
+  templateId: number;
+  template?: DripSequenceStepTemplate;
+  delayHours: number;
+  createdAt: string;
+}
+
+export type DripSequenceDetail = DripSequence & {
+  steps?: DripSequenceStep[];
+};
+
+export interface DripSequenceInput {
+  name: string;
+  triggerStatus: string;
+  isActive?: boolean;
+}
+
+export interface DripStepInput {
+  templateId: number;
+  delayHours: number;
+}
+
+export type DripEnrollmentSequence = {
+  id?: number;
+  name?: string;
+  steps?: number;
+} | null;
+
+export type DripEnrollmentStatus = typeof DripEnrollmentStatus[keyof typeof DripEnrollmentStatus];
+
+
+export const DripEnrollmentStatus = {
+  active: 'active',
+  completed: 'completed',
+  unenrolled: 'unenrolled',
+} as const;
+
+export interface DripEnrollment {
+  id: number;
+  leadId: number;
+  sequenceId: number;
+  sequence?: DripEnrollmentSequence;
+  currentStep: number;
+  status: DripEnrollmentStatus;
+  enrolledAt: string;
+  /** @nullable */
+  lastStepSentAt?: string | null;
+  /** @nullable */
+  completedAt?: string | null;
+  /** @nullable */
+  unenrolledAt?: string | null;
+}
+
 export type UpdateMyMobileBody = {
   /** @nullable */
   mobileNumber?: string | null;
@@ -523,5 +681,31 @@ export type GetCommunicationMetricsParams = {
 repId?: number;
 startDate?: string;
 endDate?: string;
+};
+
+export type ListEmailTemplatesParams = {
+programType?: string;
+isActive?: boolean;
+};
+
+export type PreviewEmailTemplateBody = {
+  leadId?: number;
+};
+
+export type PreviewEmailTemplate200 = {
+  subject?: string;
+  bodyHtml?: string;
+};
+
+export type TrackEmailClickParams = {
+url: string;
+};
+
+export type EnrollLeadInDripBody = {
+  sequenceId: number;
+};
+
+export type UpsertDripSequenceStepsBody = {
+  steps: DripStepInput[];
 };
 

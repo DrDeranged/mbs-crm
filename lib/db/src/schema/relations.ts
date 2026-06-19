@@ -8,6 +8,11 @@ import { documentsTable } from "./documents";
 import { leadStatusHistoryTable } from "./leadStatusHistory";
 import { activityLogTable } from "./activityLog";
 import { communicationsTable } from "./communications";
+import { emailTemplatesTable } from "./emailTemplates";
+import { dripSequencesTable } from "./dripSequences";
+import { dripSequenceStepsTable } from "./dripSequenceSteps";
+import { dripEnrollmentsTable } from "./dripEnrollments";
+import { emailSendsTable } from "./emailSends";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -24,6 +29,8 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   statusHistory: many(leadStatusHistoryTable),
   activityLog: many(activityLogTable),
   communications: many(communicationsTable),
+  emailSends: many(emailSendsTable),
+  dripEnrollments: many(dripEnrollmentsTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -33,6 +40,8 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   documents: many(documentsTable),
   activityLog: many(activityLogTable),
   communications: many(communicationsTable),
+  emailSends: many(emailSendsTable),
+  emailTemplates: many(emailTemplatesTable),
 }));
 
 export const companiesRelations = relations(companiesTable, ({ one }) => ({
@@ -105,5 +114,56 @@ export const communicationsRelations = relations(communicationsTable, ({ one }) 
   user: one(usersTable, {
     fields: [communicationsTable.userId],
     references: [usersTable.id],
+  }),
+}));
+
+export const emailTemplatesRelations = relations(emailTemplatesTable, ({ one, many }) => ({
+  creator: one(usersTable, {
+    fields: [emailTemplatesTable.createdBy],
+    references: [usersTable.id],
+  }),
+  emailSends: many(emailSendsTable),
+  sequenceSteps: many(dripSequenceStepsTable),
+}));
+
+export const dripSequencesRelations = relations(dripSequencesTable, ({ many }) => ({
+  steps: many(dripSequenceStepsTable),
+  enrollments: many(dripEnrollmentsTable),
+}));
+
+export const dripSequenceStepsRelations = relations(dripSequenceStepsTable, ({ one }) => ({
+  sequence: one(dripSequencesTable, {
+    fields: [dripSequenceStepsTable.sequenceId],
+    references: [dripSequencesTable.id],
+  }),
+  template: one(emailTemplatesTable, {
+    fields: [dripSequenceStepsTable.templateId],
+    references: [emailTemplatesTable.id],
+  }),
+}));
+
+export const dripEnrollmentsRelations = relations(dripEnrollmentsTable, ({ one }) => ({
+  lead: one(leadsTable, {
+    fields: [dripEnrollmentsTable.leadId],
+    references: [leadsTable.id],
+  }),
+  sequence: one(dripSequencesTable, {
+    fields: [dripEnrollmentsTable.sequenceId],
+    references: [dripSequencesTable.id],
+  }),
+}));
+
+export const emailSendsRelations = relations(emailSendsTable, ({ one }) => ({
+  lead: one(leadsTable, {
+    fields: [emailSendsTable.leadId],
+    references: [leadsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [emailSendsTable.userId],
+    references: [usersTable.id],
+  }),
+  template: one(emailTemplatesTable, {
+    fields: [emailSendsTable.templateId],
+    references: [emailTemplatesTable.id],
   }),
 }));

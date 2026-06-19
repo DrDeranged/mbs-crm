@@ -12,6 +12,9 @@ import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
 import twilioRouter from "./twilio";
 import communicationsRouter from "./communications";
+import emailRouter from "./email";
+import dripRouter from "./drip";
+import sendgridRouter from "./sendgrid";
 
 const router: IRouter = Router();
 
@@ -21,6 +24,9 @@ router.use(usersRouter);
 router.use(importRouter);
 router.use(twilioRouter);
 router.use(communicationsRouter);
+router.use(emailRouter);
+router.use(dripRouter);
+router.use(sendgridRouter);
 router.use(leadsRouter);
 router.use(notesRouter);
 router.use(tasksRouter);

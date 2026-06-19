@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable } from "@workspace/db";
+import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -376,6 +376,34 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     entityId: params.data.id,
     details: { from: existing.status, to: body.data.status },
   });
+
+  // Auto-enroll in any active drip sequences triggered by the new status
+  try {
+    const triggeredSequences = await db.query.dripSequencesTable.findMany({
+      where: and(
+        eq(dripSequencesTable.triggerStatus, body.data.status as any),
+        eq(dripSequencesTable.isActive, true)
+      ),
+      with: { steps: true },
+    });
+    for (const seq of triggeredSequences) {
+      if (!seq.steps || seq.steps.length === 0) continue;
+      const existingEnrollment = await db.query.dripEnrollmentsTable.findFirst({
+        where: and(
+          eq(dripEnrollmentsTable.leadId, params.data.id),
+          eq(dripEnrollmentsTable.status, "active")
+        ),
+      });
+      if (!existingEnrollment) {
+        await db.insert(dripEnrollmentsTable).values({
+          leadId: params.data.id,
+          sequenceId: seq.id,
+          currentStep: 0,
+          status: "active",
+        });
+      }
+    }
+  } catch (_) {}
 
   const rep = updated.assignedRepId
     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })

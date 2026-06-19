@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -31,6 +31,7 @@ export const leadsTable = pgTable(
     status: text("status", { enum: LEAD_STATUSES }).notNull().default("new_lead"),
     assignedRepId: integer("assigned_rep_id").references(() => usersTable.id, { onDelete: "set null" }),
     leadSource: text("lead_source", { enum: LEAD_SOURCES }).notNull().default("manual"),
+    isUnsubscribed: boolean("is_unsubscribed").notNull().default(false),
     lastActivityAt: timestamp("last_activity_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

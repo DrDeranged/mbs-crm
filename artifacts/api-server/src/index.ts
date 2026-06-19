@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { runDripJob } from "./lib/dripJob";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,11 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Drip email background job — runs every 10 minutes
+  const DRIP_INTERVAL_MS = 10 * 60 * 1000;
+  runDripJob().catch((err) => logger.error({ err }, "Drip job startup error"));
+  setInterval(() => {
+    runDripJob().catch((err) => logger.error({ err }, "Drip job error"));
+  }, DRIP_INTERVAL_MS);
 });
