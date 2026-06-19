@@ -1,10 +1,16 @@
-import { Router } from "express";
+import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
 import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+
+function absUrl(req: Request, path: string): string {
+  const proto = (req.headers["x-forwarded-proto"] as string) || "https";
+  const host = (req.headers["x-forwarded-host"] as string) || req.headers["host"] || "";
+  return `${proto}://${host}${path}`;
+}
 
 const router = Router();
 
@@ -72,7 +78,7 @@ router.post("/leads/:id/sms", async (req, res) => {
     from: TWILIO_PHONE,
     to: lead.phone,
     body: body.trim(),
-    statusCallback: `${process.env["API_BASE_URL"] || ""}/api/twilio/sms/status`,
+    statusCallback: absUrl(req, "/api/twilio/sms/status"),
   });
 
   const [comm] = await db.insert(communicationsTable).values({

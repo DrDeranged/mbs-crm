@@ -31,23 +31,10 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { PhoneLink } from "@/components/phone-link";
 import { SoftphoneContext } from "@/components/softphone-context";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-function ClickToCallPhone({ phone }: { phone: string }) {
-  const { dial } = useContext(SoftphoneContext);
-  return (
-    <button
-      onClick={() => dial(phone, { autoCall: true })}
-      className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-      title={`Call ${phone}`}
-    >
-      <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
-      <span>{phone}</span>
-    </button>
-  );
-}
 
 // Info Tab
 function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
@@ -78,7 +65,7 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
     { label: "First Name", value: lead.firstName },
     { label: "Last Name", value: lead.lastName },
     { label: "Email", value: lead.email ? <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a> : "—" },
-    { label: "Phone", value: lead.phone ? <ClickToCallPhone phone={lead.phone} /> : "—" },
+    { label: "Phone", value: lead.phone ? <PhoneLink phone={lead.phone} /> : "—" },
     { label: "Company", value: lead.companyName || "—" },
     { label: "EIN", value: lead.ein || "—" },
     { label: "Financing Type", value: lead.applicationType?.replace(/_/g, " ") || "—" },
@@ -709,7 +696,7 @@ export default function LeadDetail() {
                 </div>
               )}
               {lead.phone && (
-                <ClickToCallPhone phone={lead.phone} />
+                <PhoneLink phone={lead.phone} />
               )}
             </div>
           </div>

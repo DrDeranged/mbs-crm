@@ -50,11 +50,14 @@ router.post("/twilio/token", async (req, res) => {
 
   const identity = `user_${user.id}`;
 
-  // Prefer API Key/Secret over Account SID/Auth Token for token signing
-  const signingKey = API_KEY || ACCOUNT_SID;
-  const signingSecret = API_SECRET || AUTH_TOKEN;
+  if (!API_KEY || !API_SECRET) {
+    return void res.status(503).json({
+      error:
+        "Twilio API Key not configured. Create an API Key in the Twilio console and set TWILIO_API_KEY + TWILIO_API_SECRET.",
+    });
+  }
 
-  const token = new AccessToken(ACCOUNT_SID, signingKey, signingSecret, { identity });
+  const token = new AccessToken(ACCOUNT_SID, API_KEY, API_SECRET, { identity });
   const voiceGrant = new VoiceGrant({
     outgoingApplicationSid: TWIML_APP_SID,
     incomingAllow: true,
