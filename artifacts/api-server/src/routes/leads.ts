@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
+import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -405,6 +406,23 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.warn("[auto-enroll] Failed to auto-enroll lead in drip sequence:", err instanceof Error ? err.message : err);
+  }
+
+  // Auto-run lender matching when a lead reaches "application_received"
+  if (body.data.status === "application_received") {
+    try {
+      const matchResults = await matchLeadToLenders(params.data.id);
+      await logActivity({
+        userId: user.id,
+        leadId: params.data.id,
+        action: "lender_match_run",
+        entityType: "lead",
+        entityId: params.data.id,
+        details: { trigger: "status_change", matchCount: matchResults.length },
+      });
+    } catch (err) {
+      console.warn("[lender-match] Auto-match failed:", err instanceof Error ? err.message : err);
+    }
   }
 
   const rep = updated.assignedRepId

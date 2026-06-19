@@ -78,7 +78,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </div>
               {navLink("/email/templates", "Email Templates", Mail)}
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
-              {navLink("/lenders", "Lenders", Building2)}
+              {isAdmin && navLink("/lenders", "Lenders", Building2)}
               <Separator className="my-4 bg-sidebar-border" />
               <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
                 Management

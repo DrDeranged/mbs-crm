@@ -1,6 +1,8 @@
 import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { leadsTable } from "./leads";
+import { usersTable } from "./users";
 
 export const SUBMISSION_STATUSES = ["submitted", "pending", "approved", "declined", "withdrawn"] as const;
 
@@ -32,8 +34,8 @@ export const lenderMatchesTable = pgTable(
   "lender_matches",
   {
     id: serial("id").primaryKey(),
-    leadId: integer("lead_id").notNull(),
-    lenderId: integer("lender_id").notNull(),
+    leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
+    lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
     matchScore: integer("match_score").notNull(),
     criteriaBreakdown: jsonb("criteria_breakdown").notNull().default([]),
     matchedAt: timestamp("matched_at").notNull().defaultNow(),
@@ -48,9 +50,9 @@ export const lenderSubmissionsTable = pgTable(
   "lender_submissions",
   {
     id: serial("id").primaryKey(),
-    leadId: integer("lead_id").notNull(),
-    lenderId: integer("lender_id").notNull(),
-    submittedBy: integer("submitted_by"),
+    leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
+    lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
+    submittedBy: integer("submitted_by").references(() => usersTable.id, { onDelete: "set null" }),
     status: text("status", { enum: SUBMISSION_STATUSES }).notNull().default("submitted"),
     responseNotes: text("response_notes"),
     submittedAt: timestamp("submitted_at").notNull().defaultNow(),
