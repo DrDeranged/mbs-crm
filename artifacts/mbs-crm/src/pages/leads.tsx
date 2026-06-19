@@ -388,11 +388,7 @@ export default function Leads() {
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="working_capital">Working Capital</SelectItem>
-            <SelectItem value="equipment_financing">Equipment</SelectItem>
-            <SelectItem value="real_estate">Real Estate</SelectItem>
-            <SelectItem value="sba_loan">SBA Loan</SelectItem>
-            <SelectItem value="line_of_credit">Line of Credit</SelectItem>
-            <SelectItem value="merchant_cash_advance">Merchant Cash Advance</SelectItem>
+            <SelectItem value="equipment">Equipment</SelectItem>
           </SelectContent>
         </Select>
 

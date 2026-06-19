@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { Link } from "wouter";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -24,10 +24,13 @@ const formSchema = z.object({
   leadSource: z.nativeEnum(LeadInputLeadSource).optional(),
 });
 
+interface DuplicateInfo { leadId: number; leadName: string }
+
 export default function NewLead() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const createLead = useCreateLead();
+  const [duplicate, setDuplicate] = useState<DuplicateInfo | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,6 +46,7 @@ export default function NewLead() {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    setDuplicate(null);
     createLead.mutate({ data: values }, {
       onSuccess: (data) => {
         toast({
@@ -51,7 +55,15 @@ export default function NewLead() {
         });
         setLocation(`/leads/${data.id}`);
       },
-      onError: (error) => {
+      onError: (error: any) => {
+        const body = error?.response?.data ?? error?.data ?? null;
+        if ((error?.status === 409 || error?.response?.status === 409) && body?.duplicate) {
+          setDuplicate({
+            leadId: body.existingLeadId,
+            leadName: body.existingLeadName || "Existing Lead",
+          });
+          return;
+        }
         toast({
           title: "Error",
           description: "Failed to create lead. " + (error?.message || ""),
@@ -73,6 +85,23 @@ export default function NewLead() {
             <p className="text-muted-foreground text-sm mt-1">Enter the details to create a new lead in your pipeline</p>
           </div>
         </div>
+
+        {duplicate && (
+          <Alert variant="destructive" className="mb-6 border-amber-400 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-900">Duplicate Lead Detected</AlertTitle>
+            <AlertDescription className="text-amber-800">
+              A lead with this contact information already exists:{" "}
+              <strong>{duplicate.leadName}</strong>.{" "}
+              <Link
+                href={`/leads/${duplicate.leadId}`}
+                className="underline font-semibold text-amber-900 hover:text-amber-700"
+              >
+                View existing lead →
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>
