@@ -403,7 +403,9 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
         });
       }
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn("[auto-enroll] Failed to auto-enroll lead in drip sequence:", err instanceof Error ? err.message : err);
+  }
 
   const rep = updated.assignedRepId
     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })

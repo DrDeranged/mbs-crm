@@ -12,18 +12,30 @@ import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 
-const UNSUB_SECRET = process.env["UNSUB_SECRET"] || "mbs-unsub-dev-secret-change-in-prod";
+const UNSUB_SECRET = process.env["UNSUB_SECRET"];
+const IS_PROD_EMAIL = process.env["NODE_ENV"] === "production";
 
 function makeUnsubToken(sendId: number, email: string): string {
+  if (!UNSUB_SECRET) {
+    if (IS_PROD_EMAIL) throw new Error("UNSUB_SECRET must be set in production");
+    // Dev-only fallback — clearly labelled, not usable in production
+    return createHmac("sha256", "dev-only-not-for-prod").update(`${sendId}:${email}`).digest("hex");
+  }
   return createHmac("sha256", UNSUB_SECRET).update(`${sendId}:${email}`).digest("hex");
 }
 
 function verifyUnsubToken(sendId: number, email: string, token: string): boolean {
-  const expected = makeUnsubToken(sendId, email);
-  // Constant-time compare via Buffer
-  if (expected.length !== token.length) return false;
-  return createHmac("sha256", UNSUB_SECRET).update(expected).digest("hex") ===
-         createHmac("sha256", UNSUB_SECRET).update(token).digest("hex");
+  if (!UNSUB_SECRET && IS_PROD_EMAIL) return false; // Fail closed in production when unconfigured
+  try {
+    const expected = makeUnsubToken(sendId, email);
+    // Constant-time compare using timingSafeEqual
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(token, "hex");
+    if (a.length !== b.length) return false;
+    return require("crypto").timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
 const router = Router();
@@ -234,9 +246,21 @@ router.get("/email/unsubscribe", async (req, res) => {
     </body></html>`);
   }
 
-  await db.update(leadsTable)
-    .set({ isUnsubscribed: true, updatedAt: new Date() })
-    .where(and(isNotNull(leadsTable.email), eq(leadsTable.email, email)));
+  // Bind to the persisted send record — verify sendId and email match
+  const sendRecord = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
+  if (!sendRecord || sendRecord.toEmail !== email) {
+    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
+      <h2>Invalid unsubscribe link</h2>
+      <p>This unsubscribe link is invalid.</p>
+    </body></html>`);
+  }
+
+  // Unsubscribe by leadId (bound to the specific send record, not email string alone)
+  if (sendRecord.leadId) {
+    await db.update(leadsTable)
+      .set({ isUnsubscribed: true, updatedAt: new Date() })
+      .where(eq(leadsTable.id, sendRecord.leadId));
+  }
 
   res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
     <h2>You've been unsubscribed</h2>
