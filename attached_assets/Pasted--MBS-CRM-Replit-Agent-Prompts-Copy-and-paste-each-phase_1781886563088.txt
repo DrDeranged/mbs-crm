@@ -1,0 +1,562 @@
+# MBS CRM — Replit Agent Prompts
+# Copy and paste each phase's prompt into Replit Agent one at a time.
+# Complete and test each phase before moving to the next.
+
+================================================================================
+PHASE 1 — CRM FOUNDATION & WEB APP
+================================================================================
+
+Build a full-stack CRM application for a business financing brokerage called My Business Solutions (MBS). Use PostgreSQL with Drizzle ORM, React with TypeScript for the frontend, and Express for the API server. Set up Replit Auth or Clerk for authentication.
+
+DATABASE SCHEMA — Create these tables:
+
+users: id, name, email, role (enum: admin/manager/rep), created_at
+leads: id, first_name, last_name, email, phone, company_name, ein, application_type (enum: equipment/working_capital), status (enum: new_lead/contacted/application_received/submitted_to_underwriting/approved/funded/declined/follow_up), assigned_rep_id (FK users), lead_source (enum: website/referral/import/manual), created_at, updated_at
+companies: id, lead_id (FK), name, address, city, state, zip, industry, time_in_business_months, annual_revenue
+notes: id, lead_id (FK), user_id (FK), body (text), created_at
+tasks: id, lead_id (FK), user_id (FK), title, description, due_date, is_completed (boolean), completed_at, created_at
+documents: id, lead_id (FK), user_id (FK), filename, file_key, file_type, file_size, created_at
+lead_status_history: id, lead_id (FK), from_status, to_status, changed_by (FK users), changed_at
+activity_log: id, user_id (FK), action (string), entity_type (string), entity_id (string), details (jsonb), created_at
+
+Add indexes on leads.email, leads.phone, leads.ein, leads.status, leads.assigned_rep_id.
+
+ROLE-BASED ACCESS — Enforce at the API level:
+- Admin: full access to everything
+- Manager: read/write all leads, can reassign, can view team metrics
+- Sales Rep: read/write ONLY leads where assigned_rep_id = their user id
+
+Every query for leads must filter by the user's role. Reps must never see other reps' leads.
+
+API ENDPOINTS — Build these REST endpoints:
+
+GET /api/leads — list leads with search (by name/email/phone/company), filter (status, type, rep, date range), sort, and pagination. Filtered by role.
+GET /api/leads/:id — lead detail with company, notes, tasks, documents, and recent activity
+POST /api/leads — create a lead. Before creating, check for existing leads with matching email OR phone OR EIN. If a match is found, return { duplicate: true, existing_lead_id, existing_lead_name } and don't create. Otherwise create the lead, set status to "new_lead", log to activity_log.
+PUT /api/leads/:id — update lead fields
+PUT /api/leads/:id/status — change status. Log the old and new status to lead_status_history AND activity_log.
+PUT /api/leads/:id/assign — reassign to a different rep. Manager/admin only. Log to activity_log.
+POST /api/leads/capture — PUBLIC endpoint (no auth required, rate-limited). Accepts { first_name, last_name, email, phone, company_name, application_type }. Creates a lead with source "website" and status "new_lead". Runs duplicate check. This is for the website contact form.
+POST /api/leads/import — accepts an uploaded .xlsx file. Parse each row into a lead. For each, check duplicates by email/phone/EIN. Skip duplicates. Bulk insert valid leads. Return { imported: N, skipped: N, duplicates: [{row, reason}] }. Log the import to activity_log.
+GET/POST /api/leads/:id/notes — list and create notes for a lead
+GET/POST /api/leads/:id/tasks — list and create tasks
+PUT /api/tasks/:id — update a task (mark complete, edit)
+POST /api/leads/:id/documents — upload a file to Replit Object Storage, save metadata to documents table. Max 25MB. Accept PDF, images, Word docs.
+GET /api/leads/:id/documents — list documents
+GET /api/documents/:id/download — download a document from Object Storage
+GET /api/leads/:id/activity — chronological activity log for this lead
+
+Write the full OpenAPI spec (openapi.yaml) for all these endpoints BEFORE building the frontend. Run codegen to generate typed React Query hooks. Use these hooks in the UI — no manual fetch calls.
+
+REACT FRONTEND — Build a responsive web app with these pages:
+
+1. Login page
+2. Lead list page: searchable table with filters (status dropdown, type dropdown, rep dropdown, date range picker), sortable columns, pagination. Each row shows name, company, status badge, assigned rep, last activity date. Click a row to open the lead detail. "New Lead" button and "Import Excel" button at the top.
+3. Lead detail page with tabs:
+   - Info tab: contact details, company info, application type, status badge with a dropdown to change status, assignment picker (manager/admin only)
+   - Notes tab: chronological list of notes with timestamps and author. "Add Note" form at the bottom.
+   - Tasks tab: list of tasks with due dates, completion checkboxes, "Add Task" form. Overdue tasks highlighted.
+   - Documents tab: list with filename, type, size, uploaded by, date. Upload button. Click to download.
+   - Activity tab: full chronological feed of all actions (status changes, notes added, tasks completed, documents uploaded, assignments changed)
+4. Excel import flow: upload button → file preview (show first 5 rows) → column mapping → confirm → results (imported/skipped/duplicates)
+5. Manager dashboard: pipeline cards showing count per status stage, recent leads list, per-rep lead counts
+6. Rep dashboard: my leads, my tasks due today/this week, my recent activity
+7. Navigation sidebar with links to: Dashboard, Leads, Import (admin/manager), Settings (admin)
+
+The UI must be fully responsive — works on desktop and mobile browsers. Use a clean, professional design. MBS branding: use navy blue (#1F4E79) as the primary accent color.
+
+IMPORTANT: Every create, update, delete, and status change MUST write to the activity_log table. No exceptions.
+
+
+================================================================================
+PHASE 2 — APPLICATION INTAKE & BANK STATEMENTS
+================================================================================
+
+Add a full public-facing application form and bank-statement OCR to the existing CRM.
+
+NEW TABLES:
+
+applications: id, lead_id (FK), type (enum: working_capital/equipment), business_name, ein, owner_first_name, owner_last_name, owner_ssn_encrypted (text — AES-256 encrypted), owner_dob, time_in_business_months, monthly_revenue_stated, requested_amount, use_of_funds, equipment_description (nullable), vendor_quote_amount (nullable), equipment_condition (nullable — new/used), consent_credit_pull (boolean), consent_terms (boolean), signature_data (text — base64 image), signature_ip, submitted_at
+
+bank_statement_extractions: id, lead_id (FK), document_id (FK), statement_month, statement_year, total_deposits, average_daily_balance, nsf_count, negative_balance_days, existing_positions_json (array of detected recurring debits), raw_extraction_json, extracted_at
+
+For owner_ssn_encrypted: encrypt using AES-256-GCM with a key stored in Replit Secrets (ENCRYPTION_KEY). Create encrypt/decrypt utility functions used server-side only. The SSN must NEVER be sent to the browser in decrypted form. The API should return a masked version (***-**-1234) for display.
+
+NEW API ENDPOINTS:
+
+POST /api/applications/submit — PUBLIC endpoint, rate-limited. Accepts multipart form data with all application fields + bank statement PDF uploads. Processing steps:
+  1. Validate all required fields
+  2. Run duplicate check (email, phone, EIN)
+  3. Create the lead with status "application_received" and source "website"
+  4. Store the application record with encrypted SSN
+  5. Upload bank statement PDFs to Object Storage, save to documents table
+  6. For each bank statement PDF, trigger OCR extraction (see below)
+  7. Auto-assign to a rep (round-robin among active reps)
+  8. Log everything to activity_log
+  9. Return { success: true, lead_id }
+
+GET /api/leads/:id/application — return the application data (with SSN masked)
+GET /api/leads/:id/financials — return aggregated OCR data: avg monthly deposits, avg daily balance, total NSFs across all months, detected positions
+
+BANK STATEMENT OCR — When a bank statement PDF is uploaded, process it server-side:
+
+1. Read the PDF content (use pdf-parse or similar to extract text, or send as image to Claude)
+2. Send to the Claude API (ANTHROPIC_API_KEY from Replit Secrets) with this system prompt:
+
+"You are a bank statement parser. Extract the following from this bank statement and return ONLY valid JSON, no other text:
+{
+  "statement_month": number (1-12),
+  "statement_year": number,
+  "total_deposits": number,
+  "average_daily_balance": number,
+  "nsf_count": number (count of NSF/returned items),
+  "negative_balance_days": number,
+  "existing_positions": [
+    { "amount": number, "frequency": "daily" or "weekly", "description": "string" }
+  ]
+}
+For existing_positions, look for recurring debits that appear daily or weekly with consistent amounts — these indicate existing merchant cash advance or loan payments. If none found, return an empty array."
+
+3. Parse the JSON response and store in bank_statement_extractions
+4. After all statements are processed, calculate aggregates and store on the lead record
+
+PUBLIC APPLICATION FORM — Build a standalone page at /apply (no auth required):
+
+A multi-step, branded form with a progress bar:
+
+Step 1 — Product Selection: Two large clickable cards: "Working Capital" and "Equipment Financing". Selection determines which fields appear in step 2.
+
+Step 2 — Business Information:
+  Both types: Business legal name, DBA (optional), EIN, business address, industry (dropdown), time in business (dropdown: <6mo, 6-12mo, 1-2yr, 2-5yr, 5+yr), monthly revenue (dropdown ranges), requested funding amount, use of funds (text)
+  Equipment only: equipment description, vendor name, vendor quote amount, condition (new/used)
+
+Step 3 — Owner Information: first name, last name, SSN (masked input showing dots, with last 4 visible), date of birth, home address, ownership percentage
+
+Step 4 — Bank Statements: drag-and-drop upload zone accepting multiple PDFs. Label: "Upload your most recent 3-6 months of business bank statements." Show uploaded file names with remove buttons. Minimum 3 files required.
+
+Step 5 — Review & Sign: summary of all entered data (SSN masked). Consent checkboxes: "I authorize MBS to pull my credit report" and "I agree to the terms and conditions". Signature pad (canvas-based drawn signature OR typed name option). Submit button.
+
+Step 6 — Confirmation: "Thank you! Your application has been submitted. A representative will contact you shortly. Your reference number is [lead_id]."
+
+Style the form with MBS branding: logo at the top, navy blue (#1F4E79) accents, clean and professional. Mobile-responsive.
+
+ADD TO CRM LEAD DETAIL — Two new tabs:
+
+"Application" tab: display all submitted application data in a clean, read-only format. SSN shown as ***-**-1234. Link to download the signed application.
+
+"Financials" tab: display the OCR-extracted data:
+  - Summary cards: avg monthly deposits, avg daily balance, avg NSFs/month, positions detected (count)
+  - Monthly breakdown table: month/year, deposits, avg balance, NSFs, negative days
+  - If positions detected, show a table: amount, frequency, description
+  - Visual indicator: green/yellow/red based on financial health (e.g., NSFs > 4/month = red)
+
+
+================================================================================
+PHASE 3 — COMMUNICATION PLATFORM (TWILIO)
+================================================================================
+
+Integrate Twilio Voice and SMS into the CRM. This phase requires these Replit Secrets already configured: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, TWILIO_TWIML_APP_SID.
+
+NEW TABLE:
+
+communications: id, lead_id (FK), user_id (FK), type (enum: call/sms), direction (enum: inbound/outbound), from_number, to_number, body (text, nullable — for SMS), duration_seconds (nullable — for calls), recording_url (nullable), recording_sid (nullable), status (string), twilio_sid (string), created_at
+
+NEW API ENDPOINTS:
+
+POST /api/twilio/token — generate a Twilio Client capability token for the logged-in user's browser softphone. Return { token }.
+
+POST /api/twilio/voice — TwiML endpoint. When an outbound call is initiated, return TwiML that dials the lead's phone number from the Twilio number. Include call recording enabled.
+
+POST /api/twilio/voice/status — Twilio webhook for call status events (initiated, ringing, answered, completed). Update the communications record with duration and final status. Log to activity_log.
+
+POST /api/twilio/voice/recording — Twilio webhook when a recording is ready. Save the recording URL and SID to the communications record.
+
+POST /api/twilio/voice/inbound — handle inbound calls. Look up the caller's phone number in the leads table. If found, route to the assigned rep's browser client (using the Twilio Client identity). If not found, route to a default queue or admin.
+
+POST /api/leads/:id/sms — send an outbound SMS to the lead's phone number. Body in request. Send via Twilio REST API. Store in communications table. Log to activity_log.
+
+POST /api/twilio/sms/inbound — Twilio webhook for inbound SMS. Look up the sender's phone number in leads. Store the message in communications. Respond with empty TwiML (or auto-reply if desired).
+
+POST /api/twilio/sms/status — delivery status webhook. Update the communications record status.
+
+GET /api/leads/:id/communications — return all calls and SMS for a lead, chronologically. Include recording URLs for calls.
+
+GET /api/metrics/communications — aggregated call/SMS counts per rep per period. Params: rep_id, start_date, end_date. Returns { calls_made, calls_received, sms_sent, sms_received, total_call_duration_minutes }.
+
+IMPORTANT: All Twilio webhook endpoints must validate the X-Twilio-Signature header to prevent spoofing. Use the twilio.validateRequest function.
+
+SOFTPHONE WIDGET — Build a floating phone widget component that appears on every page of the CRM:
+
+- Positioned in the bottom-right corner, draggable
+- Minimize/expand toggle (minimized shows just a phone icon with badge for active call)
+- Expanded view:
+  - Number input with dial pad (0-9, *, #)
+  - Green "Call" button to initiate outbound call
+  - During active call: red "Hang Up" button, "Mute" toggle, call timer showing MM:SS
+  - Inbound call alert: caller's name (if matched to a lead) or number, "Accept" and "Decline" buttons
+- Uses the Twilio Client JS SDK (@twilio/voice-sdk)
+- On page load, request a token from /api/twilio/token and register the device
+- When making a call: connect via the Twilio Client, pass the lead's phone number as a parameter
+
+LEAD DETAIL — COMMUNICATIONS TAB:
+
+Add a "Communications" tab on the lead detail page:
+- Chronological thread showing all calls and SMS interleaved
+- Each call entry shows: direction icon (↗ outbound / ↙ inbound), duration, timestamp, status. If recording exists, show an inline audio player.
+- Each SMS shows: direction icon, message body, timestamp, delivery status
+- At the bottom: SMS compose form (text input + send button)
+- At the top: "Call" button that initiates a call to this lead via the softphone widget
+- All entries also appear in the Activity tab
+
+
+================================================================================
+PHASE 4 — LENDER MATCHING ENGINE
+================================================================================
+
+Build an automated lender-matching engine that evaluates leads against configurable lender criteria.
+
+NEW TABLES:
+
+lenders: id, name, program_types (text[] — array of 'equipment' and/or 'working_capital'), min_amount (integer), max_amount (integer), min_credit_score (integer, nullable), accepted_industries (text[] — array), min_time_in_business_months (integer), accepted_states (text[] — array, empty = all states), max_existing_positions (integer, default 10), priority_weight (integer, 1-10, default 5), contact_name, contact_email, notes, is_active (boolean, default true), created_at, updated_at
+
+lender_matches: id, lead_id (FK), lender_id (FK), match_score (integer, 0-100), criteria_breakdown (jsonb — array of { criterion, passed, detail }), matched_at
+
+lender_submissions: id, lead_id (FK), lender_id (FK), submitted_by (FK users), status (enum: submitted/pending/approved/declined/withdrawn), response_notes, submitted_at, updated_at
+
+MATCHING ALGORITHM — Create a function matchLeadToLenders(leadId) that:
+
+1. Load the lead with its application data and financial data (from Phase 2 OCR if available)
+2. Load all active lenders
+3. For each lender, evaluate these criteria:
+   - Application type matches lender's program_types → pass/fail
+   - Requested amount between lender's min_amount and max_amount → pass/fail with detail
+   - Credit score >= lender's min_credit_score (skip if no score yet) → pass/fail
+   - Lead's industry in lender's accepted_industries (skip if empty array = all) → pass/fail
+   - Lead's time_in_business >= lender's min_time_in_business_months → pass/fail
+   - Lead's state in lender's accepted_states (skip if empty = all) → pass/fail
+   - Detected existing positions <= lender's max_existing_positions (use OCR data if available) → pass/fail
+4. Calculate score: (passed_criteria / total_applicable_criteria) * 100, weighted by priority_weight
+5. Return ranked list sorted by score descending, each with the full criteria breakdown
+6. Store results in lender_matches
+
+AUTO-TRIGGER: When a lead's status changes to "application_received", automatically run the matching algorithm. Store results. Log to activity_log.
+
+API ENDPOINTS:
+
+GET /api/lenders — list all lenders (admin/manager only)
+POST /api/lenders — create a lender (admin only)
+PUT /api/lenders/:id — update a lender (admin only)
+DELETE /api/lenders/:id — soft delete (set is_active = false)
+
+POST /api/leads/:id/match — manually trigger matching for a lead. Returns the ranked results.
+GET /api/leads/:id/matches — get stored match results for a lead
+
+POST /api/leads/:id/submissions — mark a lead as submitted to a lender. Body: { lender_id }. Creates a lender_submissions record. Logs to activity_log.
+GET /api/leads/:id/submissions — list all submissions for a lead
+PUT /api/submissions/:id — update submission status (approved/declined/etc.)
+
+FRONTEND:
+
+Lead detail — "Lender Match" tab:
+- If matches exist: ranked list of lenders with score bars (0-100). Each lender row expands to show criteria breakdown (green checkmark for passed, red X for failed, with detail text).
+- "Submit to Lender" button per lender → confirmation modal → creates submission record
+- "Re-run Match" button at the top → calls POST /api/leads/:id/match → refreshes results
+- Submission history section: table of submitted lenders with status badges and dates
+
+Admin — Lender Management page (linked from sidebar, admin only):
+- Table of all lenders with status (active/inactive)
+- "Add Lender" button opens a form with all criteria fields
+- Edit and deactivate buttons per lender
+- Form fields: name, program types (multi-select), min/max amount (number), min credit score, accepted industries (multi-select or tags), min time in business (dropdown), accepted states (multi-select), max positions, priority weight (1-10 slider), contact name, contact email, notes
+
+
+================================================================================
+PHASE 5 — KPI DASHBOARD & REPORTING
+================================================================================
+
+Build a management analytics dashboard with real-time metrics from the CRM data.
+
+NEW API ENDPOINTS (all read-only, all accept ?start_date=X&end_date=Y&rep_id=Z):
+
+GET /api/analytics/pipeline — returns count of leads at each status stage, plus conversion rates between adjacent stages. Example: { stages: [{ status: "new_lead", count: 45 }, { status: "contacted", count: 38, conversion_from_previous: 84.4 }, ...] }
+
+GET /api/analytics/summary — returns: total_leads, total_applications, total_approvals, total_fundings, overall_conversion_rate (fundings/leads %), avg_funding_time_days (average days from lead created_at to status changed to "funded")
+
+GET /api/analytics/reps — returns per-rep stats: [{ rep_id, rep_name, leads_count, calls_made, sms_sent, emails_sent, applications, approvals, fundings }]
+
+GET /api/analytics/sources — returns per-source stats: [{ source, lead_count, funded_count, conversion_rate }]
+
+GET /api/analytics/communications — returns daily or weekly call/SMS volume: [{ date, calls, sms }]. Query param: granularity=daily|weekly
+
+FRONTEND — New "Dashboard" page (replace or enhance the existing manager dashboard):
+
+Top section — KPI summary cards (2 rows of 3):
+  Leads Generated | Applications Received | Approvals
+  Fundings | Conversion Rate | Avg Funding Time (days)
+Each card shows the number prominently with a label. Use the metric card pattern: muted label on top, large number below.
+
+Date range selector — Fixed buttons: This Month, Last Month, This Quarter, YTD, plus a custom date range picker. Changing the range refreshes ALL charts on the page.
+
+Pipeline funnel — A horizontal or vertical funnel chart showing lead counts at each stage with drop-off arrows between them. Use Recharts or Chart.js. Stages: New Lead → Contacted → Application Received → Submitted → Approved → Funded. Show the count and the conversion % at each transition.
+
+Rep performance table — Sortable table with columns: Rep Name, Leads, Calls, Texts, Emails, Applications, Approvals, Fundings. Clicking a rep name filters the entire dashboard to that rep's data. A "Clear filter" button resets to team view.
+
+Lead source chart — Bar chart showing lead count by source (website, referral, import, manual). Overlay or adjacent bars showing funded count per source. Show conversion rate labels.
+
+Communication activity chart — Line or bar chart showing daily call and SMS volume over the selected period. Two series: calls (blue) and SMS (teal).
+
+CSV export — Each section (summary, reps, sources, communications) has a small download icon. Clicking it fetches the underlying data and triggers a CSV download named with the section and date range.
+
+Reps should see a simplified version of this dashboard showing only their own metrics.
+
+
+================================================================================
+PHASE 6 — EMAIL MARKETING & AUTOMATION
+================================================================================
+
+Add email sending, templates, drip sequences, and tracking. Requires SENDGRID_API_KEY in Replit Secrets and a verified sending domain.
+
+NEW TABLES:
+
+email_templates: id, name, subject, body_html (text — supports variables like {{lead_first_name}}, {{rep_name}}, {{company_name}}), program_type (nullable — equipment/working_capital/null for general), created_by (FK users), is_active, created_at, updated_at
+
+drip_sequences: id, name, trigger_status (string — the lead status that triggers enrollment), is_active, created_at
+
+drip_sequence_steps: id, sequence_id (FK), step_order (integer), template_id (FK email_templates), delay_hours (integer — hours after enrollment or previous step)
+
+drip_enrollments: id, lead_id (FK), sequence_id (FK), current_step (integer), status (enum: active/completed/unenrolled), enrolled_at, last_step_sent_at, completed_at, unenrolled_at
+
+email_sends: id, lead_id (FK), user_id (FK, nullable), template_id (FK, nullable), subject, to_email, from_email, status (enum: queued/sent/delivered/opened/clicked/bounced/unsubscribed), sendgrid_message_id, sent_at, opened_at, clicked_at
+
+API ENDPOINTS:
+
+POST /api/email/send — send an email to a lead. Body: { lead_id, template_id (optional), subject (if no template), body_html (if no template) }. Render the template with lead/rep variables. Send via SendGrid. Add tracking pixel for opens and redirect-wrapped links for clicks. Store in email_sends. Log to activity_log.
+
+POST /api/email/bulk — send to multiple leads. Body: { lead_ids: [], template_id }. Send individually per lead (personalized). Return { sent: N, failed: N }.
+
+POST /api/sendgrid/webhook — receive SendGrid event webhooks (delivered, opened, clicked, bounced, unsubscribed). Update the matching email_sends record. Log opens and clicks to activity_log.
+
+CRUD for templates: GET/POST/PUT /api/email/templates (manager/admin only)
+POST /api/email/templates/:id/preview — render template with sample lead data, return the HTML
+
+CRUD for sequences: GET/POST/PUT /api/drip/sequences (manager/admin only)
+POST /api/drip/sequences/:id/steps — add/edit steps
+POST /api/leads/:id/drip/enroll — manually enroll a lead in a sequence
+POST /api/leads/:id/drip/unenroll — unenroll a lead from a sequence
+GET /api/leads/:id/drip — get enrollment status for a lead
+
+DRIP ENGINE — Create a background job that runs every 10 minutes (use setInterval or a cron library):
+1. Query drip_enrollments where status = 'active'
+2. For each enrollment, get the next step (current_step + 1)
+3. Check if enough time has elapsed since last_step_sent_at (or enrolled_at for step 1) based on the step's delay_hours
+4. If due: send the email using the step's template, increment current_step, update last_step_sent_at
+5. If current_step > total steps: set status to 'completed', set completed_at
+
+AUTO-ENROLLMENT: When a lead's status changes, check if any active sequence has trigger_status matching the new status. If yes and the lead is not already enrolled in that sequence, auto-enroll them.
+
+FRONTEND:
+
+Lead detail — add email to the Communications tab:
+- Email compose panel: template dropdown + subject + rich text body (or just the rendered template preview). "Send" button. Variable substitution preview.
+- Email history in the communications thread: each email shows subject, snippet, status badges (sent/delivered/opened/clicked), timestamps.
+- Drip enrollment status: show current sequence name, step N of M, next email due date. "Unenroll" button.
+
+Template manager page (manager/admin sidebar link):
+- List templates with name, program type, last modified
+- Create/edit form: name, subject, body (HTML editor or textarea), program type selector, variable helper (list of available variables like {{lead_first_name}})
+- Preview button: renders with sample data
+
+Sequence builder page (manager/admin):
+- List sequences with name, trigger status, active/inactive, step count
+- Create/edit: name, trigger status dropdown (from the status enum), active toggle
+- Step builder: ordered list of steps. Each step: template selector + delay hours input. Add/remove/reorder steps.
+
+
+================================================================================
+PHASE 7 — MARKETING MATERIAL GENERATOR
+================================================================================
+
+Build a flyer builder that lets reps create branded marketing materials from templates, export to PDF, and email to prospects.
+
+NEW TABLES:
+
+flyer_templates: id, name, program_type (equipment/working_capital/general), html_template (text — HTML with {{variable}} placeholders), variable_fields (jsonb — array of { key, label, type, default_value }), is_active, created_by (FK users), created_at, updated_at
+
+generated_flyers: id, lead_id (FK, nullable), template_id (FK), field_values (jsonb), pdf_storage_key, created_by (FK users), created_at
+
+API ENDPOINTS:
+
+CRUD: GET/POST/PUT /api/flyer-templates (admin only)
+
+POST /api/flyers/generate — Body: { template_id, field_values: { rate: "12%", term: "6 months", ... }, lead_id (optional) }. Server-side: render the HTML template with the field values, use Puppeteer to convert HTML to PDF, store the PDF in Object Storage, create a generated_flyers record. Return { flyer_id, download_url }.
+
+GET /api/flyers/:id/download — download the PDF
+
+POST /api/flyers/:id/email — Body: { lead_id }. Send the PDF as an email attachment to the lead's email. Log to activity_log.
+
+Install Puppeteer for server-side HTML-to-PDF rendering: npm install puppeteer. Use puppeteer.launch({ headless: true, args: ['--no-sandbox'] }).
+
+FRONTEND:
+
+Lead detail — "Marketing" tab or a "Create Flyer" button:
+- Template selector (filtered by the lead's application type)
+- Dynamic form generated from the template's variable_fields array: each field rendered as a text input, number input, or dropdown based on its type
+- Live HTML preview panel that updates as the rep fills in fields (render the template with current values in an iframe or div)
+- "Export PDF" button → calls /api/flyers/generate → triggers browser download
+- "Email to Lead" button → calls /api/flyers/:id/email → confirmation toast
+
+Admin — Template manager page:
+- List templates with name, program type, status
+- Create/edit: name, program type, HTML template editor (textarea or code editor), variable field definitions (add/remove fields with key, label, type, default). Live preview showing the template rendered with default values.
+- Activate/deactivate toggle
+
+Include 2-3 starter templates with MBS branding (navy blue #1F4E79, logo placeholder, professional layout) — one for Working Capital, one for Equipment Financing.
+
+
+================================================================================
+PHASE 8 — NATIVE MOBILE APP (iOS & ANDROID)
+================================================================================
+
+Build a mobile CRM app using Expo (React Native) that gives sales reps full CRM access on their phones.
+
+SETUP:
+- Initialize with: npx create-expo-app mbs-crm-mobile --template blank-typescript
+- Install dependencies: expo-secure-store, @react-navigation/native, @react-navigation/bottom-tabs, @react-navigation/native-stack, expo-notifications, expo-linking, @tanstack/react-query
+- Configure the API base URL pointing to the Replit deployment
+- Share TypeScript types from the OpenAPI spec with the web app
+
+AUTHENTICATION:
+- Login screen with email/password
+- Store the auth token in expo-secure-store (encrypted device storage)
+- Auto-logout on token expiry
+- Persistent login (check stored token on app launch)
+
+NAVIGATION — Bottom tab navigator with:
+1. Dashboard (home) — my lead count, tasks due today, recent activity
+2. Leads — searchable lead list
+3. + (New Lead) — quick lead creation form
+4. Tasks — my tasks due today and this week
+5. Settings — profile, logout
+
+LEAD LIST SCREEN:
+- FlatList with pull-to-refresh and infinite scroll pagination
+- Search bar at the top (searches name, email, phone, company)
+- Filter chips: All, My Leads, New, Contacted, Application Received, etc.
+- Each row: lead name, company, status badge (colored), last activity relative time
+- Tap to open lead detail
+
+LEAD DETAIL SCREEN — ScrollView with collapsible sections:
+- Header: name, company, status badge, assigned rep
+- Quick actions row: Call button (opens native dialer), SMS button (opens compose), Email button
+- Status selector: dropdown to change status
+- Contact info: phone (tappable → native dialer), email (tappable → native mail)
+- Notes section: list + add note text input with submit button
+- Tasks section: list with checkboxes + add task
+- Documents section: list with tap to download/preview
+- Activity feed: recent activity items
+- If financial data exists: summary cards (monthly revenue, avg balance, NSFs)
+- If match data exists: top 3 matched lenders with scores
+
+CLICK-TO-CALL AND SMS:
+- Phone numbers use Linking.openURL('tel:+1XXXXXXXXXX') to open the native dialer
+- SMS uses Linking.openURL('sms:+1XXXXXXXXXX') to open native messages
+- Log the outbound attempt via the API (POST to activity_log)
+
+PUSH NOTIFICATIONS:
+- On login, register for push notifications using expo-notifications
+- Send the Expo push token to the server: PUT /api/users/:id/push-token
+- Server sends push notifications for:
+  - New lead assigned to the rep
+  - Task due today reminder (send at 9 AM)
+  - Inbound SMS received on a lead
+  - Lead status changed by someone else
+- Notification tap deep-links to the relevant lead detail screen
+
+OFFLINE MODE (implement carefully — this is the hardest part):
+- Cache the user's lead list and recent lead details in AsyncStorage
+- Allow creating notes and changing lead status while offline
+- Queue offline changes in a local "pending sync" store
+- When connectivity returns, replay the queue against the API in order
+- Show an offline indicator banner at the top when disconnected
+- Conflict resolution: if the server has a newer version of a record, keep the server version and notify the user
+- Mark synced vs unsynced items visually (e.g., a subtle sync icon)
+
+BUILD AND DEPLOY:
+- Configure app.json with name "MBS CRM", slug, icon, splash screen
+- Build with EAS: eas build --platform ios and eas build --platform android
+- iOS requires an Apple Developer account ($99/year)
+- Android requires a Google Play Developer account ($25 one-time)
+
+
+================================================================================
+PHASE 9 — CREDIT INTEGRATION (EXPERIAN)
+================================================================================
+
+Integrate Experian credit pulls into the CRM with secure storage and compliance logging. Requires EXPERIAN_API_KEY, EXPERIAN_API_SECRET, and EXPERIAN_API_URL in Replit Secrets. The specific API endpoints and authentication flow will depend on the Experian product contracted — adjust accordingly.
+
+NEW TABLES:
+
+credit_pulls: id, lead_id (FK), pulled_by (FK users), pull_type (enum: soft/hard), consent_captured_at (timestamp), consent_ip (string), credit_score (integer, nullable), report_summary (jsonb — parsed key data), request_payload_encrypted (text — AES-256), response_payload_encrypted (text — AES-256), status (enum: pending/completed/error), error_message (nullable), created_at
+
+credit_compliance_log: id, credit_pull_id (FK), lead_id (FK), user_id (FK), action (string), permissible_purpose (string), details (jsonb), created_at
+— THIS TABLE IS APPEND-ONLY. Do NOT create any UPDATE or DELETE routes for it. At the database level, revoke UPDATE and DELETE permissions on this table if possible.
+
+ENCRYPTION: Use the same AES-256-GCM encryption utilities from Phase 2 (ENCRYPTION_KEY secret). Encrypt the full Experian request and response payloads before storing. The parsed report_summary in credit_pulls contains only the data needed for the UI — never raw SSNs or full account numbers.
+
+API ENDPOINTS:
+
+POST /api/leads/:id/credit/consent — capture consent before any pull. Body: { consent_type: "credit_pull", agreed: true }. Store consent_captured_at and consent_ip on the lead record. Return { consent_id }.
+
+POST /api/leads/:id/credit/pull — initiate a credit pull. Steps:
+  1. Verify consent exists and is recent (within last 30 days). Reject if not.
+  2. Get the lead's application data (owner name, SSN [decrypted server-side], DOB, address)
+  3. Call the Experian API with the required parameters
+  4. Encrypt the full request and response payloads
+  5. Parse the response to extract: credit_score, tradeline_summary (array of { creditor, balance, status, payment_history }), inquiry_count, derogatory_count, public_records_count
+  6. Store everything in credit_pulls
+  7. Write to credit_compliance_log: { action: "credit_pull", permissible_purpose: "credit application evaluation", details: { score, pull_type } }
+  8. Log to activity_log (WITHOUT any PII — just "Credit report pulled, score: XXX")
+  9. Return the parsed summary (never the raw response)
+
+GET /api/leads/:id/credit — get all credit pull results for a lead (most recent first). Returns the parsed summaries, not raw data.
+
+GET /api/credit/compliance-log — admin only. Paginated list of all credit pulls across all leads. Filterable by date range, rep, lead. For audit and compliance review.
+GET /api/credit/compliance-log/export — CSV export of the compliance log.
+
+FRONTEND:
+
+Lead detail — "Credit" tab:
+- If no credit data: show a "Pull Credit" section with:
+  - Consent checkbox: "The applicant has authorized a credit inquiry" (must be checked to proceed)
+  - Pull type selector: Soft Pull / Hard Pull
+  - "Pull Credit Report" button (disabled until consent checked)
+  - After clicking: loading spinner → results appear
+- If credit data exists:
+  - Credit score display: large number with a colored gauge (red <580, yellow 580-669, green 670-739, dark green 740+)
+  - Tradeline summary table: creditor name, balance, status, payment history indicator
+  - Inquiry count, derogatory marks, public records — summary row
+  - Pull history: table of all pulls with date, type (soft/hard), pulled by, score
+  - "Pull Again" button (with consent re-confirmation)
+- All credit data displayed is from the parsed summary — raw Experian response is never sent to the browser
+
+Admin — Credit compliance page (sidebar link, admin only):
+- Paginated table: Lead Name, Pulled By, Date, Type, Score, Permissible Purpose
+- Date range filter, rep filter
+- CSV export button
+- Read-only — no edit or delete actions available
+
+
+================================================================================
+CROSS-PHASE CHECKLIST — Verify after each phase:
+================================================================================
+
+□ All create/update/delete operations log to activity_log
+□ All API endpoints enforce role-based access (admin/manager/rep)
+□ No sensitive data (SSNs, credit reports, API keys) reaches the browser
+□ All Twilio/SendGrid webhooks validate signatures
+□ The OpenAPI spec is updated with new endpoints
+□ Codegen is re-run after spec changes
+□ The UI is responsive (test on mobile browser)
+□ Error handling: API returns proper error codes, UI shows user-friendly messages
+□ Loading states: spinners/skeletons on data fetch
+□ Empty states: helpful messages when no data exists yet
