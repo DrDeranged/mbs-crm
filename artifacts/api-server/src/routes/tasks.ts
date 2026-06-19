@@ -84,7 +84,7 @@ router.post("/leads/:id/tasks", async (req: Request, res: Response) => {
     userId: assignedUserId,
     title: body.data.title,
     description: body.data.description ?? null,
-    dueDate: body.data.dueDate ?? null,
+    dueDate: body.data.dueDate?.toISOString().split("T")[0] ?? null,
     isCompleted: false,
   }).returning();
 
@@ -121,15 +121,26 @@ router.put("/tasks/:taskId", async (req: Request, res: Response) => {
     res.status(404).json({ error: "Task not found" });
     return;
   }
+  if (user.role === "rep" && existing.userId !== user.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
 
-  const completedAt =
-    body.data.isCompleted && !existing.isCompleted ? new Date() :
+  const now = new Date();
+  const completedAtDate: Date | null =
+    body.data.isCompleted && !existing.isCompleted ? now :
     body.data.isCompleted === false ? null :
     existing.completedAt;
 
+  const { dueDate: dueDateRaw, ...restBodyData } = body.data;
   const [updated] = await db
     .update(tasksTable)
-    .set({ ...body.data, completedAt, updatedAt: new Date() })
+    .set({
+      ...restBodyData,
+      dueDate: dueDateRaw !== undefined ? (dueDateRaw?.toISOString().split("T")[0] ?? null) : undefined,
+      completedAt: completedAtDate,
+      updatedAt: now,
+    })
     .where(eq(tasksTable.id, params.data.taskId))
     .returning();
 

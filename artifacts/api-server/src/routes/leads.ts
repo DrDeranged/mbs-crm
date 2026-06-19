@@ -64,7 +64,7 @@ router.get("/leads", async (req: Request, res: Response) => {
   if (!user) return;
 
   const params = ListLeadsQueryParams.safeParse(req.query);
-  const q = params.success ? params.data : {};
+  const q = (params.success ? params.data : {}) as any;
   const page = Number(q.page ?? 1);
   const limit = Math.min(Number(q.limit ?? 25), 100);
   const offset = (page - 1) * limit;
@@ -154,7 +154,11 @@ router.post("/leads", async (req: Request, res: Response) => {
   }).returning();
 
   if (company) {
-    await db.insert(companiesTable).values({ leadId: lead.id, ...company });
+    await db.insert(companiesTable).values({
+      leadId: lead.id,
+      ...company,
+      annualRevenue: company.annualRevenue?.toString(),
+    });
   }
 
   await logActivity({ userId: user.id, leadId: lead.id, action: "created", entityType: "lead", entityId: lead.id });
@@ -304,9 +308,9 @@ router.put("/leads/:id", async (req: Request, res: Response) => {
   if (company) {
     const existingCompany = await db.query.companiesTable.findFirst({ where: eq(companiesTable.leadId, params.data.id) });
     if (existingCompany) {
-      await db.update(companiesTable).set({ ...company, updatedAt: new Date() }).where(eq(companiesTable.leadId, params.data.id));
+      await db.update(companiesTable).set({ ...company, annualRevenue: company.annualRevenue?.toString(), updatedAt: new Date() }).where(eq(companiesTable.leadId, params.data.id));
     } else {
-      await db.insert(companiesTable).values({ leadId: params.data.id, ...company });
+      await db.insert(companiesTable).values({ leadId: params.data.id, ...company, annualRevenue: company.annualRevenue?.toString() });
     }
   }
 

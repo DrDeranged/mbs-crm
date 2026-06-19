@@ -7,11 +7,31 @@ import { eq } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListDocumentsParams, DownloadDocumentParams } from "@workspace/api-zod";
-import { ObjectStorageService } from "../lib/objectStorage";
+import { ObjectStorageService, objectStorageClient } from "../lib/objectStorage";
 import { Readable } from "stream";
 
 const router: IRouter = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg", "image/png", "image/gif", "image/webp",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain", "text/csv",
+]);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("File type not allowed. Accepted: PDF, images, Word, Excel, text/CSV."));
+    }
+  },
+});
 const objectStorage = new ObjectStorageService();
 
 function docToApi(doc: typeof documentsTable.$inferSelect, uploader?: any) {
@@ -86,7 +106,7 @@ router.post("/leads/:id/documents", upload.single("file"), async (req: Request, 
     const ext = path.extname(req.file.originalname);
     const fileKey = `leads/${leadId}/documents/${Date.now()}${ext}`;
     const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID ?? "";
-    const bucket = objectStorage["client"].bucket(bucketId);
+    const bucket = objectStorageClient.bucket(bucketId);
     const file = bucket.file(fileKey);
     await file.save(req.file.buffer, { contentType: req.file.mimetype });
 
@@ -139,7 +159,7 @@ router.get("/documents/:docId/download", async (req: Request, res: Response) => 
 
   try {
     const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID ?? "";
-    const bucket = objectStorage["client"].bucket(bucketId);
+    const bucket = objectStorageClient.bucket(bucketId);
     const file = bucket.file(doc.fileKey);
     const [signedUrl] = await file.getSignedUrl({
       action: "read",
