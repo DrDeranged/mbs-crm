@@ -111,6 +111,10 @@ function csvToRows(text: string): Record<string, string>[] {
 router.post("/leads/import/preview", upload.single("file"), async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
 
   if (!req.file) {
     res.status(400).json({ error: "No file provided" });
@@ -139,6 +143,10 @@ router.post("/leads/import/preview", upload.single("file"), async (req: Request,
 router.post("/leads/import", upload.single("file"), async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
 
   if (!req.file) {
     res.status(400).json({ error: "No file provided" });
@@ -224,7 +232,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       ein,
       applicationType: appType as any,
       leadSource: leadSource as any,
-      assignedRepId: user.role === "rep" ? user.id : null,
+      assignedRepId: null,
     }).returning();
 
     const industry = resolve(row, "industry") || null;

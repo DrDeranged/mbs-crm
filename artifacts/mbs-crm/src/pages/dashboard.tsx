@@ -8,8 +8,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
-import { Users, CheckCircle2, Clock, Calendar, ArrowRight } from "lucide-react";
+import { Users, CheckCircle2, Clock, Calendar, ArrowRight, Activity } from "lucide-react";
 import { format } from "date-fns";
+
+const STAGE_COLORS: Record<string, string> = {
+  new_lead: "bg-blue-100 text-blue-800",
+  contacted: "bg-indigo-100 text-indigo-800",
+  follow_up: "bg-yellow-100 text-yellow-800",
+  application_received: "bg-orange-100 text-orange-800",
+  submitted_to_underwriting: "bg-purple-100 text-purple-800",
+  approved: "bg-green-100 text-green-800",
+  funded: "bg-emerald-100 text-emerald-800",
+  declined: "bg-red-100 text-red-800",
+};
+
+function formatStageLabel(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
 
 export default function Dashboard() {
   const { data: currentUser, isLoading: loadingUser } = useGetMe({
@@ -218,6 +233,33 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Manager/Admin: Pipeline stage counts */}
+      {!isRep && adminSummary?.pipelineCounts && adminSummary.pipelineCounts.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Pipeline by Stage</CardTitle>
+            <CardDescription>Lead count at each stage of the financing pipeline</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {adminSummary.pipelineCounts.map((item) => {
+                const statusKey = item.status ?? "";
+                return (
+                  <div
+                    key={statusKey}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 ${STAGE_COLORS[statusKey] ?? "bg-gray-100 text-gray-800"}`}
+                  >
+                    <span className="text-sm font-medium">{formatStageLabel(statusKey)}</span>
+                    <span className="text-lg font-bold">{item.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Manager/Admin: Leads by Rep */}
       {!isRep && adminSummary?.repCounts && adminSummary.repCounts.length > 0 && (
         <Card className="mt-4">
           <CardHeader>
@@ -230,6 +272,37 @@ export default function Dashboard() {
                 <div key={rep.repId} className="flex items-center gap-2 rounded-lg border px-4 py-2 bg-white">
                   <div className="text-sm font-medium">{rep.repName}</div>
                   <Badge variant="secondary">{rep.count}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rep: Recent Activity Feed */}
+      {isRep && repDashboard?.recentActivity && repDashboard.recentActivity.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>Your latest actions across all leads</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {repDashboard.recentActivity.slice(0, 10).map((entry) => (
+                <div key={entry.id} className="flex items-start gap-3 text-sm border-b pb-3 last:border-0 last:pb-0">
+                  <div className="flex-shrink-0 mt-0.5 h-6 w-6 rounded-full bg-[#1F4E79]/10 flex items-center justify-center">
+                    <Activity className="h-3 w-3 text-[#1F4E79]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium capitalize">{entry.action}</p>
+                    <p className="text-muted-foreground text-xs truncate">{entry.entityType} #{entry.entityId}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {format(new Date(entry.createdAt), "MMM d, h:mm a")}
+                  </span>
                 </div>
               ))}
             </div>

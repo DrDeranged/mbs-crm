@@ -1,11 +1,14 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { Readable } from "stream";
+import { eq } from "drizzle-orm";
 import {
   RequestUploadUrlBody,
   RequestUploadUrlResponse,
 } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
+import { db } from "@workspace/db";
+import { documentsTable, leadsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -88,6 +91,34 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
   try {
     const raw = req.params.path;
     const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
+
+    // Per-resource ownership check: if the path maps to a lead document,
+    // verify the caller has access to that lead.
+    const leadDocMatch = wildcardPath.match(/^leads\/(\d+)\/documents\/.+/);
+    if (leadDocMatch) {
+      const leadId = Number(leadDocMatch[1]);
+      // Reps may only access documents on leads assigned to them.
+      if (user.role === "rep") {
+        const lead = await db.query.leadsTable.findFirst({
+          where: eq(leadsTable.id, leadId),
+        });
+        if (!lead || lead.assignedRepId !== user.id) {
+          res.status(403).json({ error: "Forbidden" });
+          return;
+        }
+      }
+      // Managers and admins: verify the lead document record exists (no cross-tenant leak).
+      else {
+        const doc = await db.query.documentsTable.findFirst({
+          where: eq(documentsTable.leadId, leadId),
+        });
+        if (!doc) {
+          res.status(404).json({ error: "Object not found" });
+          return;
+        }
+      }
+    }
+
     const objectPath = `/objects/${wildcardPath}`;
     const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
 

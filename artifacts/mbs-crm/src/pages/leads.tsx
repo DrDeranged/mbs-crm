@@ -269,9 +269,17 @@ export default function Leads() {
   const [status, setStatus] = useState<string>("");
   const [applicationType, setApplicationType] = useState<string>("");
   const [repId, setRepId] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<ListLeadsSortOrder>(ListLeadsSortOrder.desc);
   const [importOpen, setImportOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => { if ((e as CustomEvent).type === "open-import-dialog") setImportOpen(true); };
+    window.addEventListener("open-import-dialog", handler);
+    return () => window.removeEventListener("open-import-dialog", handler);
+  }, []);
 
   const queryClient = useQueryClient();
 
@@ -291,6 +299,8 @@ export default function Leads() {
     status: status || undefined,
     applicationType: applicationType || undefined,
     repId: repId ? Number(repId) : undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
     page,
     limit: 20,
     sortBy: "updatedAt",
@@ -411,6 +421,37 @@ export default function Leads() {
             <SelectItem value={ListLeadsSortOrder.asc}>Oldest First</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4 flex-wrap items-center">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">Date range:</span>
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+            className="w-[160px] bg-white text-sm"
+            placeholder="From"
+          />
+          <span className="text-sm text-muted-foreground">–</span>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+            className="w-[160px] bg-white text-sm"
+            placeholder="To"
+          />
+          {(startDate || endDate) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground px-2"
+              onClick={() => { setStartDate(""); setEndDate(""); setPage(1); }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="rounded-md border bg-white shadow-sm">

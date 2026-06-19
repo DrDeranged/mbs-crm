@@ -5,10 +5,12 @@ import {
   Users,
   Settings as SettingsIcon,
   LogOut,
-  Briefcase
+  Briefcase,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useGetMe } from "@workspace/api-client-react";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -18,14 +20,14 @@ export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const { data: currentUser } = useGetMe();
+
+  const isAdmin = currentUser?.role === "admin";
+  const isManagerOrAdmin = currentUser?.role === "manager" || isAdmin;
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
-  ];
-
-  const adminNavItems = [
-    { href: "/settings", label: "Settings", icon: SettingsIcon },
   ];
 
   return (
@@ -61,30 +63,43 @@ export function AppShell({ children }: AppShellProps) {
                 </Link>
               );
             })}
-            
-            <Separator className="my-4 bg-sidebar-border" />
-            <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
-              Administration
-            </div>
-            
-            {adminNavItems.map((item) => {
-              const isActive = location === item.href;
-              const Icon = item.icon;
-              return (
+
+            {isManagerOrAdmin && (
+              <>
+                <Separator className="my-4 bg-sidebar-border" />
+                <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+                  Management
+                </div>
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  href="/leads?import=1"
+                  onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent("open-import-dialog")); }}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground cursor-pointer"
+                >
+                  <Upload size={18} />
+                  Import Leads
+                </Link>
+              </>
+            )}
+
+            {isAdmin && (
+              <>
+                <Separator className="my-4 bg-sidebar-border" />
+                <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+                  Administration
+                </div>
+                <Link
+                  href="/settings"
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive 
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                    location === "/settings"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                   }`}
                 >
-                  <Icon size={18} />
-                  {item.label}
+                  <SettingsIcon size={18} />
+                  Settings
                 </Link>
-              );
-            })}
+              </>
+            )}
           </nav>
         </div>
         

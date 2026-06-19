@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
+import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -54,6 +55,14 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     res.status(404).json({ error: "User not found" });
     return;
   }
+
+  await logActivity({
+    userId: user.id,
+    action: "updated",
+    entityType: "user",
+    entityId: params.data.id,
+    details: { fields: Object.keys(body.data) },
+  });
 
   res.json(userToApi(updated));
 });
