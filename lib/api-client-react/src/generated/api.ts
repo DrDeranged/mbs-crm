@@ -29,6 +29,7 @@ import type {
   CommActivity,
   Communication,
   CommunicationMetrics,
+  CreateLeadSubmissionBody,
   DashboardSummary,
   Document,
   DownloadUrlResponse,
@@ -60,6 +61,10 @@ import type {
   LeadInput,
   LeadListResponse,
   LeadUpdate,
+  Lender,
+  LenderInput,
+  LenderMatch,
+  LenderSubmission,
   ListEmailTemplatesParams,
   ListLeadsParams,
   ListUsersParams,
@@ -71,6 +76,7 @@ import type {
   PreviewImportBody,
   RepDashboard,
   RepPerformance,
+  RunLenderMatch200,
   SmsInput,
   SourceAnalytics,
   StatusChange,
@@ -83,6 +89,7 @@ import type {
   TwilioVoiceRecording200,
   TwilioVoiceStatus200,
   UpdateMyMobileBody,
+  UpdateSubmissionBody,
   UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
@@ -3200,6 +3207,664 @@ export function useGetCommunicationMetrics<TData = Awaited<ReturnType<typeof get
 
 
 
+
+export const getListLendersUrl = () => {
+
+
+
+
+  return `/api/lenders`
+}
+
+/**
+ * @summary List all lenders (managers/admins only)
+ */
+export const listLenders = async ( options?: RequestInit): Promise<Lender[]> => {
+
+  return customFetch<Lender[]>(getListLendersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLendersQueryKey = () => {
+    return [
+    `/api/lenders`
+    ] as const;
+    }
+
+
+export const getListLendersQueryOptions = <TData = Awaited<ReturnType<typeof listLenders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLenders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLendersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLenders>>> = ({ signal }) => listLenders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLenders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListLendersQueryResult = NonNullable<Awaited<ReturnType<typeof listLenders>>>
+export type ListLendersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all lenders (managers/admins only)
+ */
+
+export function useListLenders<TData = Awaited<ReturnType<typeof listLenders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listLenders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListLendersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateLenderUrl = () => {
+
+
+
+
+  return `/api/lenders`
+}
+
+/**
+ * @summary Create a new lender (admin only)
+ */
+export const createLender = async (lenderInput: LenderInput, options?: RequestInit): Promise<Lender> => {
+
+  return customFetch<Lender>(getCreateLenderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderInput,)
+  }
+);}
+
+
+
+
+export const getCreateLenderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLender>>, TError,{data: BodyType<LenderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLender>>, TError,{data: BodyType<LenderInput>}, TContext> => {
+
+const mutationKey = ['createLender'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLender>>, {data: BodyType<LenderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createLender(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLenderMutationResult = NonNullable<Awaited<ReturnType<typeof createLender>>>
+    export type CreateLenderMutationBody = BodyType<LenderInput>
+    export type CreateLenderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new lender (admin only)
+ */
+export const useCreateLender = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLender>>, TError,{data: BodyType<LenderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createLender>>,
+        TError,
+        {data: BodyType<LenderInput>},
+        TContext
+      > => {
+      return useMutation(getCreateLenderMutationOptions(options));
+    }
+
+export const getUpdateLenderUrl = (id: number,) => {
+
+
+
+
+  return `/api/lenders/${id}`
+}
+
+/**
+ * @summary Update a lender (admin only)
+ */
+export const updateLender = async (id: number,
+    lenderInput: LenderInput, options?: RequestInit): Promise<Lender> => {
+
+  return customFetch<Lender>(getUpdateLenderUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderInput,)
+  }
+);}
+
+
+
+
+export const getUpdateLenderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLender>>, TError,{id: number;data: BodyType<LenderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLender>>, TError,{id: number;data: BodyType<LenderInput>}, TContext> => {
+
+const mutationKey = ['updateLender'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLender>>, {id: number;data: BodyType<LenderInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateLender(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLenderMutationResult = NonNullable<Awaited<ReturnType<typeof updateLender>>>
+    export type UpdateLenderMutationBody = BodyType<LenderInput>
+    export type UpdateLenderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a lender (admin only)
+ */
+export const useUpdateLender = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLender>>, TError,{id: number;data: BodyType<LenderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLender>>,
+        TError,
+        {id: number;data: BodyType<LenderInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateLenderMutationOptions(options));
+    }
+
+export const getDeactivateLenderUrl = (id: number,) => {
+
+
+
+
+  return `/api/lenders/${id}`
+}
+
+/**
+ * @summary Deactivate a lender (admin only)
+ */
+export const deactivateLender = async (id: number, options?: RequestInit): Promise<Lender> => {
+
+  return customFetch<Lender>(getDeactivateLenderUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeactivateLenderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateLender>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deactivateLender>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deactivateLender'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivateLender>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deactivateLender(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivateLenderMutationResult = NonNullable<Awaited<ReturnType<typeof deactivateLender>>>
+
+    export type DeactivateLenderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Deactivate a lender (admin only)
+ */
+export const useDeactivateLender = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivateLender>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deactivateLender>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeactivateLenderMutationOptions(options));
+    }
+
+export const getRunLenderMatchUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/match`
+}
+
+/**
+ * @summary Run the matching engine for a lead and return ranked lenders
+ */
+export const runLenderMatch = async (id: number, options?: RequestInit): Promise<RunLenderMatch200> => {
+
+  return customFetch<RunLenderMatch200>(getRunLenderMatchUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRunLenderMatchMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLenderMatch>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runLenderMatch>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['runLenderMatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runLenderMatch>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  runLenderMatch(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunLenderMatchMutationResult = NonNullable<Awaited<ReturnType<typeof runLenderMatch>>>
+
+    export type RunLenderMatchMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run the matching engine for a lead and return ranked lenders
+ */
+export const useRunLenderMatch = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLenderMatch>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runLenderMatch>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRunLenderMatchMutationOptions(options));
+    }
+
+export const getGetLenderMatchesUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/matches`
+}
+
+/**
+ * @summary Get stored lender matches for a lead
+ */
+export const getLenderMatches = async (id: number, options?: RequestInit): Promise<LenderMatch[]> => {
+
+  return customFetch<LenderMatch[]>(getGetLenderMatchesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLenderMatchesQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/matches`
+    ] as const;
+    }
+
+
+export const getGetLenderMatchesQueryOptions = <TData = Awaited<ReturnType<typeof getLenderMatches>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLenderMatches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLenderMatchesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLenderMatches>>> = ({ signal }) => getLenderMatches(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLenderMatches>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLenderMatchesQueryResult = NonNullable<Awaited<ReturnType<typeof getLenderMatches>>>
+export type GetLenderMatchesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get stored lender matches for a lead
+ */
+
+export function useGetLenderMatches<TData = Awaited<ReturnType<typeof getLenderMatches>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLenderMatches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLenderMatchesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadSubmissionsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/submissions`
+}
+
+/**
+ * @summary List lender submissions for a lead
+ */
+export const getLeadSubmissions = async (id: number, options?: RequestInit): Promise<LenderSubmission[]> => {
+
+  return customFetch<LenderSubmission[]>(getGetLeadSubmissionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadSubmissionsQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/submissions`
+    ] as const;
+    }
+
+
+export const getGetLeadSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof getLeadSubmissions>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadSubmissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadSubmissionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadSubmissions>>> = ({ signal }) => getLeadSubmissions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadSubmissions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadSubmissions>>>
+export type GetLeadSubmissionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List lender submissions for a lead
+ */
+
+export function useGetLeadSubmissions<TData = Awaited<ReturnType<typeof getLeadSubmissions>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadSubmissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadSubmissionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateLeadSubmissionUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/submissions`
+}
+
+/**
+ * @summary Submit a lead to a lender
+ */
+export const createLeadSubmission = async (id: number,
+    createLeadSubmissionBody: CreateLeadSubmissionBody, options?: RequestInit): Promise<LenderSubmission> => {
+
+  return customFetch<LenderSubmission>(getCreateLeadSubmissionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createLeadSubmissionBody,)
+  }
+);}
+
+
+
+
+export const getCreateLeadSubmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeadSubmission>>, TError,{id: number;data: BodyType<CreateLeadSubmissionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLeadSubmission>>, TError,{id: number;data: BodyType<CreateLeadSubmissionBody>}, TContext> => {
+
+const mutationKey = ['createLeadSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLeadSubmission>>, {id: number;data: BodyType<CreateLeadSubmissionBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createLeadSubmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLeadSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof createLeadSubmission>>>
+    export type CreateLeadSubmissionMutationBody = BodyType<CreateLeadSubmissionBody>
+    export type CreateLeadSubmissionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Submit a lead to a lender
+ */
+export const useCreateLeadSubmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeadSubmission>>, TError,{id: number;data: BodyType<CreateLeadSubmissionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createLeadSubmission>>,
+        TError,
+        {id: number;data: BodyType<CreateLeadSubmissionBody>},
+        TContext
+      > => {
+      return useMutation(getCreateLeadSubmissionMutationOptions(options));
+    }
+
+export const getUpdateSubmissionUrl = (id: number,) => {
+
+
+
+
+  return `/api/submissions/${id}`
+}
+
+/**
+ * @summary Update submission status / notes (managers/admins only)
+ */
+export const updateSubmission = async (id: number,
+    updateSubmissionBody: UpdateSubmissionBody, options?: RequestInit): Promise<LenderSubmission> => {
+
+  return customFetch<LenderSubmission>(getUpdateSubmissionUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateSubmissionBody,)
+  }
+);}
+
+
+
+
+export const getUpdateSubmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSubmission>>, TError,{id: number;data: BodyType<UpdateSubmissionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSubmission>>, TError,{id: number;data: BodyType<UpdateSubmissionBody>}, TContext> => {
+
+const mutationKey = ['updateSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSubmission>>, {id: number;data: BodyType<UpdateSubmissionBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSubmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof updateSubmission>>>
+    export type UpdateSubmissionMutationBody = BodyType<UpdateSubmissionBody>
+    export type UpdateSubmissionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update submission status / notes (managers/admins only)
+ */
+export const useUpdateSubmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSubmission>>, TError,{id: number;data: BodyType<UpdateSubmissionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSubmission>>,
+        TError,
+        {id: number;data: BodyType<UpdateSubmissionBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateSubmissionMutationOptions(options));
+    }
 
 export const getListEmailTemplatesUrl = (params?: ListEmailTemplatesParams,) => {
   const normalizedParams = new URLSearchParams();

@@ -40,6 +40,8 @@ tags:
     description: SendGrid event webhooks
   - name: analytics
     description: KPI analytics and reporting
+  - name: lenders
+    description: Lender management and matching engine
 paths:
   /healthz:
     get:
@@ -977,6 +979,207 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CommunicationMetrics"
+
+  /lenders:
+    get:
+      operationId: listLenders
+      tags: [lenders]
+      summary: List all lenders (managers/admins only)
+      responses:
+        "200":
+          description: Lender list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lender"
+    post:
+      operationId: createLender
+      tags: [lenders]
+      summary: Create a new lender (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderInput"
+      responses:
+        "201":
+          description: Lender created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lender"
+
+  /lenders/{id}:
+    put:
+      operationId: updateLender
+      tags: [lenders]
+      summary: Update a lender (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderInput"
+      responses:
+        "200":
+          description: Lender updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lender"
+    delete:
+      operationId: deactivateLender
+      tags: [lenders]
+      summary: Deactivate a lender (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lender deactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lender"
+
+  /leads/{id}/match:
+    post:
+      operationId: runLenderMatch
+      tags: [lenders]
+      summary: Run the matching engine for a lead and return ranked lenders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Match results
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [matchCount, matches]
+                properties:
+                  matchCount:
+                    type: integer
+                  matches:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LenderMatch"
+
+  /leads/{id}/matches:
+    get:
+      operationId: getLenderMatches
+      tags: [lenders]
+      summary: Get stored lender matches for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stored lender matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LenderMatch"
+
+  /leads/{id}/submissions:
+    get:
+      operationId: getLeadSubmissions
+      tags: [lenders]
+      summary: List lender submissions for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submissions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LenderSubmission"
+    post:
+      operationId: createLeadSubmission
+      tags: [lenders]
+      summary: Submit a lead to a lender
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lender_id]
+              properties:
+                lender_id:
+                  type: integer
+      responses:
+        "201":
+          description: Submission created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LenderSubmission"
+
+  /submissions/{id}:
+    put:
+      operationId: updateSubmission
+      tags: [lenders]
+      summary: Update submission status / notes (managers/admins only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [submitted, pending, approved, declined, withdrawn]
+                response_notes:
+                  type: ["string", "null"]
+      responses:
+        "200":
+          description: Submission updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LenderSubmission"
 
   /email/templates:
     get:
@@ -2362,4 +2565,164 @@ components:
           format: date-time
         unenrolledAt:
           type: ["string", "null"]
+          format: date-time
+
+    Lender:
+      type: object
+      required: [id, name, programTypes, acceptedIndustries, acceptedStates, minTimeInBusinessMonths, maxExistingPositions, priorityWeight, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        programTypes:
+          type: array
+          items:
+            type: string
+        minAmount:
+          type: ["integer", "null"]
+        maxAmount:
+          type: ["integer", "null"]
+        minCreditScore:
+          type: ["integer", "null"]
+        acceptedIndustries:
+          type: array
+          items:
+            type: string
+        minTimeInBusinessMonths:
+          type: integer
+        acceptedStates:
+          type: array
+          items:
+            type: string
+        maxExistingPositions:
+          type: integer
+        priorityWeight:
+          type: integer
+        contactName:
+          type: ["string", "null"]
+        contactEmail:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LenderInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        programTypes:
+          type: array
+          items:
+            type: string
+        minAmount:
+          type: ["integer", "null"]
+        maxAmount:
+          type: ["integer", "null"]
+        minCreditScore:
+          type: ["integer", "null"]
+        acceptedIndustries:
+          type: array
+          items:
+            type: string
+        minTimeInBusinessMonths:
+          type: integer
+        acceptedStates:
+          type: array
+          items:
+            type: string
+        maxExistingPositions:
+          type: integer
+        priorityWeight:
+          type: integer
+          minimum: 1
+          maximum: 10
+        contactName:
+          type: ["string", "null"]
+        contactEmail:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    LenderMatch:
+      type: object
+      required: [id, leadId, lenderId, matchScore, criteriaBreakdown, matchedAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        lenderId:
+          type: integer
+        lender:
+          oneOf:
+            - $ref: "#/components/schemas/Lender"
+            - type: "null"
+        matchScore:
+          type: integer
+        criteriaBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              criterion:
+                type: string
+              passed:
+                type: boolean
+              skipped:
+                type: boolean
+              detail:
+                type: string
+        matchedAt:
+          type: string
+          format: date-time
+
+    LenderSubmission:
+      type: object
+      required: [id, leadId, lenderId, status, submittedAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        lenderId:
+          type: integer
+        lender:
+          oneOf:
+            - $ref: "#/components/schemas/Lender"
+            - type: "null"
+        submittedBy:
+          type: ["integer", "null"]
+        submittedByUser:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: ["string", "null"]
+                email:
+                  type: ["string", "null"]
+            - type: "null"
+        status:
+          type: string
+          enum: [submitted, pending, approved, declined, withdrawn]
+        responseNotes:
+          type: ["string", "null"]
+        submittedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
           format: date-time

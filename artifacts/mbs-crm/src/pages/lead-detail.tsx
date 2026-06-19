@@ -18,6 +18,7 @@ import {
   useSendEmail, useListEmailTemplates, usePreviewEmailTemplate,
   useGetLeadDripEnrollment, getGetLeadDripEnrollmentQueryKey,
   useEnrollLeadInDrip, useUnenrollLeadFromDrip, useListDripSequences,
+  useRunLenderMatch, useGetLenderMatches, useGetLeadSubmissions, useCreateLeadSubmission, useUpdateSubmission,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,7 +30,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen } from "lucide-react";
+import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -911,6 +912,182 @@ function EditLeadDialog({ lead }: { lead: any }) {
   );
 }
 
+// Lender Match Tab
+function LeadLenderMatch({ leadId }: { leadId: number }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const runMatch = useRunLenderMatch();
+  const { data: matches, isLoading: matchesLoading } = useGetLenderMatches(leadId);
+  const { data: submissions, isLoading: subsLoading } = useGetLeadSubmissions(leadId);
+  const createSub = useCreateLeadSubmission();
+  const updateSub = useUpdateSubmission();
+
+  const handleRunMatch = () => {
+    runMatch.mutate({ id: leadId }, {
+      onSuccess: (data: any) => {
+        toast({ title: `Matched ${data.matchCount} lenders` });
+        queryClient.invalidateQueries({ queryKey: ["getLenderMatches", leadId] });
+      },
+      onError: () => toast({ title: "Match failed", variant: "destructive" }),
+    });
+  };
+
+  const handleSubmit = (lenderId: number) => {
+    createSub.mutate({ id: leadId, data: { lender_id: lenderId } as any }, {
+      onSuccess: () => {
+        toast({ title: "Submitted to lender" });
+        queryClient.invalidateQueries({ queryKey: ["getLeadSubmissions", leadId] });
+      },
+      onError: () => toast({ title: "Submission failed", variant: "destructive" }),
+    });
+  };
+
+  const handleStatusUpdate = (subId: number, status: string) => {
+    updateSub.mutate({ id: subId, data: { status } as any }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["getLeadSubmissions", leadId] });
+      },
+    });
+  };
+
+  const submittedLenderIds = new Set((submissions ?? []).map((s: any) => s.lenderId));
+
+  const statusColor: Record<string, string> = {
+    submitted: "bg-blue-50 text-blue-700 border-blue-200",
+    pending: "bg-amber-50 text-amber-700 border-amber-200",
+    approved: "bg-green-50 text-green-700 border-green-200",
+    declined: "bg-red-50 text-red-700 border-red-200",
+    withdrawn: "bg-slate-50 text-slate-500 border-slate-200",
+  };
+
+  return (
+    <div className="space-y-5 mt-4">
+      {/* Run Match Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-700">Lender Matching</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Run the engine to find the best lenders for this deal</p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleRunMatch}
+          disabled={runMatch.isPending}
+          className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${runMatch.isPending ? "animate-spin" : ""}`} />
+          {runMatch.isPending ? "Matching…" : "Run Match"}
+        </Button>
+      </div>
+
+      {/* Match Results */}
+      {matchesLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
+        </div>
+      ) : !matches || matches.length === 0 ? (
+        <div className="text-center py-8 border border-dashed rounded-xl text-muted-foreground text-sm">
+          No matches yet. Click "Run Match" to find lenders.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {matches.map((m: any, idx: number) => {
+            const isSubmitted = submittedLenderIds.has(m.lenderId);
+            const passedCount = (m.criteriaBreakdown ?? []).filter((c: any) => c.passed && !c.skipped).length;
+            const totalCount = (m.criteriaBreakdown ?? []).filter((c: any) => !c.skipped).length;
+            return (
+              <div key={m.id} className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${idx === 0 ? "bg-[#1F4E79] text-white" : "bg-slate-100 text-slate-600"}`}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm text-slate-800">{m.lender?.name ?? `Lender #${m.lenderId}`}</div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round((m.lender?.priorityWeight ?? 5) / 2) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                        ))}
+                        <span className="text-[10px] text-muted-foreground ml-1">{m.matchScore}% match · {passedCount}/{totalCount} criteria</span>
+                      </div>
+                    </div>
+                  </div>
+                  {!isSubmitted ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-[#1F4E79] text-[#1F4E79] hover:bg-[#1F4E79] hover:text-white"
+                      onClick={() => handleSubmit(m.lenderId)}
+                      disabled={createSub.isPending}
+                    >
+                      <Send className="h-3 w-3 mr-1" /> Submit
+                    </Button>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
+                      <CheckCircle2 className="h-3 w-3 mr-0.5" /> Submitted
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Criteria breakdown */}
+                {m.criteriaBreakdown?.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {m.criteriaBreakdown.map((c: any, ci: number) => (
+                      <span
+                        key={ci}
+                        className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] border ${
+                          c.skipped ? "bg-slate-50 text-slate-400 border-slate-100" :
+                          c.passed ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-600 border-red-100"
+                        }`}
+                        title={c.detail}
+                      >
+                        {c.passed ? <CheckCircle2 className="h-2.5 w-2.5" /> : <XCircle className="h-2.5 w-2.5" />}
+                        {c.criterion}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Submissions */}
+      {submissions && submissions.length > 0 && (
+        <div className="space-y-2 border-t pt-4">
+          <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Submissions</h4>
+          {submissions.map((s: any) => (
+            <div key={s.id} className="flex items-center justify-between rounded-lg border p-2.5 text-sm bg-white">
+              <div>
+                <span className="font-medium">{s.lender?.name ?? `Lender #${s.lenderId}`}</span>
+                <p className="text-xs text-muted-foreground">{format(new Date(s.submittedAt), "MMM d, h:mm a")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusColor[s.status] ?? "bg-slate-50 text-slate-500"}`}>
+                  {s.status}
+                </span>
+                {s.status === "submitted" && (
+                  <select
+                    className="text-xs border rounded px-1.5 py-0.5 bg-white"
+                    defaultValue=""
+                    onChange={(e) => { if (e.target.value) handleStatusUpdate(s.id, e.target.value); }}
+                  >
+                    <option value="">Update…</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="declined">Declined</option>
+                    <option value="withdrawn">Withdrawn</option>
+                  </select>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LeadDetail() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
@@ -1048,13 +1225,14 @@ export default function LeadDetail() {
         {/* Right Column: Tabs */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm border p-1 h-12">
+            <TabsList className="grid w-full grid-cols-7 bg-white shadow-sm border p-1 h-12">
               <TabsTrigger value="info" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><User className="h-3.5 w-3.5"/> Info</TabsTrigger>
               <TabsTrigger value="notes" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileText className="h-3.5 w-3.5"/> Notes</TabsTrigger>
               <TabsTrigger value="tasks" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><CheckSquare className="h-3.5 w-3.5"/> Tasks</TabsTrigger>
               <TabsTrigger value="documents" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileIcon className="h-3.5 w-3.5"/> Docs</TabsTrigger>
               <TabsTrigger value="communications" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><MessageSquare className="h-3.5 w-3.5"/> Comms</TabsTrigger>
               <TabsTrigger value="activity" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Clock className="h-3.5 w-3.5"/> Activity</TabsTrigger>
+              <TabsTrigger value="lenders" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Building2 className="h-3.5 w-3.5"/> Lenders</TabsTrigger>
             </TabsList>
             <TabsContent value="info" className="outline-none">
               <LeadInfo lead={lead} leadId={id} />
@@ -1073,6 +1251,9 @@ export default function LeadDetail() {
             </TabsContent>
             <TabsContent value="activity" className="outline-none">
               <LeadActivity leadId={id} />
+            </TabsContent>
+            <TabsContent value="lenders" className="outline-none">
+              <LeadLenderMatch leadId={id} />
             </TabsContent>
           </Tabs>
         </div>

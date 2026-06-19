@@ -13,4 +13,5 @@ export * from "./dripSequences";
 export * from "./dripSequenceSteps";
 export * from "./dripEnrollments";
 export * from "./emailSends";
+export * from "./lenders";
 export * from "./relations";

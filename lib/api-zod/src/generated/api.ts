@@ -1072,6 +1072,323 @@ export const GetCommunicationMetricsResponse = zod.array(GetCommunicationMetrics
 
 
 /**
+ * @summary List all lenders (managers/admins only)
+ */
+export const ListLendersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListLendersResponse = zod.array(ListLendersResponseItem)
+
+
+/**
+ * @summary Create a new lender (admin only)
+ */
+export const createLenderBodyPriorityWeightMax = 10;
+
+
+
+export const CreateLenderBody = zod.object({
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()).optional(),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()).optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "acceptedStates": zod.array(zod.string()).optional(),
+  "maxExistingPositions": zod.number().optional(),
+  "priorityWeight": zod.number().min(1).max(createLenderBodyPriorityWeightMax).optional(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update a lender (admin only)
+ */
+export const UpdateLenderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateLenderBodyPriorityWeightMax = 10;
+
+
+
+export const UpdateLenderBody = zod.object({
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()).optional(),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()).optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "acceptedStates": zod.array(zod.string()).optional(),
+  "maxExistingPositions": zod.number().optional(),
+  "priorityWeight": zod.number().min(1).max(updateLenderBodyPriorityWeightMax).optional(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateLenderResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Deactivate a lender (admin only)
+ */
+export const DeactivateLenderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeactivateLenderResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Run the matching engine for a lead and return ranked lenders
+ */
+export const RunLenderMatchParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RunLenderMatchResponse = zod.object({
+  "matchCount": zod.number(),
+  "matches": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "matchScore": zod.number(),
+  "criteriaBreakdown": zod.array(zod.object({
+  "criterion": zod.string().optional(),
+  "passed": zod.boolean().optional(),
+  "skipped": zod.boolean().optional(),
+  "detail": zod.string().optional()
+})),
+  "matchedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Get stored lender matches for a lead
+ */
+export const GetLenderMatchesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLenderMatchesResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "matchScore": zod.number(),
+  "criteriaBreakdown": zod.array(zod.object({
+  "criterion": zod.string().optional(),
+  "passed": zod.boolean().optional(),
+  "skipped": zod.boolean().optional(),
+  "detail": zod.string().optional()
+})),
+  "matchedAt": zod.coerce.date()
+})
+export const GetLenderMatchesResponse = zod.array(GetLenderMatchesResponseItem)
+
+
+/**
+ * @summary List lender submissions for a lead
+ */
+export const GetLeadSubmissionsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadSubmissionsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "submittedBy": zod.number().nullish(),
+  "submittedByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
+  "responseNotes": zod.string().nullish(),
+  "submittedAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const GetLeadSubmissionsResponse = zod.array(GetLeadSubmissionsResponseItem)
+
+
+/**
+ * @summary Submit a lead to a lender
+ */
+export const CreateLeadSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateLeadSubmissionBody = zod.object({
+  "lender_id": zod.number()
+})
+
+
+/**
+ * @summary Update submission status / notes (managers/admins only)
+ */
+export const UpdateSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateSubmissionBody = zod.object({
+  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']).optional(),
+  "response_notes": zod.string().nullish()
+})
+
+export const UpdateSubmissionResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "submittedBy": zod.number().nullish(),
+  "submittedByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
+  "responseNotes": zod.string().nullish(),
+  "submittedAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List all email templates
  */
 export const ListEmailTemplatesQueryParams = zod.object({

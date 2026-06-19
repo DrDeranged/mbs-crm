@@ -16,6 +16,7 @@ import emailRouter from "./email";
 import dripRouter from "./drip";
 import sendgridRouter from "./sendgrid";
 import analyticsRouter from "./analytics";
+import lendersRouter from "./lenders";
 
 const router: IRouter = Router();
 
@@ -35,6 +36,7 @@ router.use(documentsRouter);
 router.use(activityRouter);
 router.use(dashboardRouter);
 router.use(analyticsRouter);
+router.use(lendersRouter);
 router.use(storageRouter);
 
 export default router;

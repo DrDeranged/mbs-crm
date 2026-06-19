@@ -13,6 +13,7 @@ import { dripSequencesTable } from "./dripSequences";
 import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
+import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -166,4 +167,15 @@ export const emailSendsRelations = relations(emailSendsTable, ({ one }) => ({
     fields: [emailSendsTable.templateId],
     references: [emailTemplatesTable.id],
   }),
+}));
+
+export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [lenderMatchesTable.leadId], references: [leadsTable.id] }),
+  lender: one(lendersTable, { fields: [lenderMatchesTable.lenderId], references: [lendersTable.id] }),
+}));
+
+export const lenderSubmissionsRelations = relations(lenderSubmissionsTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [lenderSubmissionsTable.leadId], references: [leadsTable.id] }),
+  lender: one(lendersTable, { fields: [lenderSubmissionsTable.lenderId], references: [lendersTable.id] }),
+  submitter: one(usersTable, { fields: [lenderSubmissionsTable.submittedBy], references: [usersTable.id] }),
 }));

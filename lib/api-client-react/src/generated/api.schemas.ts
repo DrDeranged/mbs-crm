@@ -658,6 +658,110 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
+export interface Lender {
+  id: number;
+  name: string;
+  programTypes: string[];
+  /** @nullable */
+  minAmount?: number | null;
+  /** @nullable */
+  maxAmount?: number | null;
+  /** @nullable */
+  minCreditScore?: number | null;
+  acceptedIndustries: string[];
+  minTimeInBusinessMonths: number;
+  acceptedStates: string[];
+  maxExistingPositions: number;
+  priorityWeight: number;
+  /** @nullable */
+  contactName?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LenderInput {
+  name: string;
+  programTypes?: string[];
+  /** @nullable */
+  minAmount?: number | null;
+  /** @nullable */
+  maxAmount?: number | null;
+  /** @nullable */
+  minCreditScore?: number | null;
+  acceptedIndustries?: string[];
+  minTimeInBusinessMonths?: number;
+  acceptedStates?: string[];
+  maxExistingPositions?: number;
+  /**
+     * @minimum 1
+     * @maximum 10
+     */
+  priorityWeight?: number;
+  /** @nullable */
+  contactName?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  isActive?: boolean;
+}
+
+export type LenderMatchCriteriaBreakdownItem = {
+  criterion?: string;
+  passed?: boolean;
+  skipped?: boolean;
+  detail?: string;
+};
+
+export interface LenderMatch {
+  id: number;
+  leadId: number;
+  lenderId: number;
+  lender?: Lender | null;
+  matchScore: number;
+  criteriaBreakdown: LenderMatchCriteriaBreakdownItem[];
+  matchedAt: string;
+}
+
+export type LenderSubmissionSubmittedByUser = {
+  id?: number;
+  /** @nullable */
+  name?: string | null;
+  /** @nullable */
+  email?: string | null;
+} | null;
+
+export type LenderSubmissionStatus = typeof LenderSubmissionStatus[keyof typeof LenderSubmissionStatus];
+
+
+export const LenderSubmissionStatus = {
+  submitted: 'submitted',
+  pending: 'pending',
+  approved: 'approved',
+  declined: 'declined',
+  withdrawn: 'withdrawn',
+} as const;
+
+export interface LenderSubmission {
+  id: number;
+  leadId: number;
+  lenderId: number;
+  lender?: Lender | null;
+  /** @nullable */
+  submittedBy?: number | null;
+  submittedByUser?: LenderSubmissionSubmittedByUser;
+  status: LenderSubmissionStatus;
+  /** @nullable */
+  responseNotes?: string | null;
+  submittedAt: string;
+  updatedAt: string;
+}
+
 export type UpdateMyMobileBody = {
   /** @nullable */
   mobileNumber?: string | null;
@@ -765,6 +869,32 @@ export type GetCommunicationMetricsParams = {
 repId?: number;
 startDate?: string;
 endDate?: string;
+};
+
+export type RunLenderMatch200 = {
+  matchCount: number;
+  matches: LenderMatch[];
+};
+
+export type CreateLeadSubmissionBody = {
+  lender_id: number;
+};
+
+export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof typeof UpdateSubmissionBodyStatus];
+
+
+export const UpdateSubmissionBodyStatus = {
+  submitted: 'submitted',
+  pending: 'pending',
+  approved: 'approved',
+  declined: 'declined',
+  withdrawn: 'withdrawn',
+} as const;
+
+export type UpdateSubmissionBody = {
+  status?: UpdateSubmissionBodyStatus;
+  /** @nullable */
+  response_notes?: string | null;
 };
 
 export type ListEmailTemplatesParams = {

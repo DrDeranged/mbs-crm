@@ -1,4 +1,4 @@
-- [Clerk React v6 patterns](clerk-react-version.md) — @clerk/react@5.54.0 was broken; use v6. API changed: Show instead of SignedIn/SignedOut, publishableKeyFromHost, new routing.
-- [Drizzle column type quirks](drizzle-column-types.md) — date cols need string (YYYY-MM-DD), numeric cols need string, timestamp accepts Date directly.
-- [Email/Drip architecture](email-drip-architecture.md) — drip job uses setInterval in index.ts (not a worker); auto-enroll hook is in leads.ts status change handler; SendGrid no-ops without API key.
-- [Express 5 route param types](express-route-params.md) — req.params["id"] returns string | string[]; always cast with `as string` to avoid TS errors.
+- [DB project-references rebuild](db-rebuild.md) — after adding new schema tables, must run `cd lib/db && pnpm exec tsc --build tsconfig.json` or TS compiler sees stale dist/.
+- [Express route params casting](express-route-params.md) — `req.params["id"]` returns `string | string[]` in Express 5; always cast `as string` before parseInt.
+- [API-server zod dependency](api-server-zod.md) — api-server doesn't declare zod; use insertSchemas from @workspace/db (drizzle-zod) for route validation, or add "zod": "catalog:" and pnpm install.
+- [Email drip architecture](email-drip-architecture.md) — drip engine auto-enrolls on status change in leads.ts; matching engine should also be hooked to status changes.

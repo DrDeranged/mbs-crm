@@ -18,6 +18,7 @@ import NewLead from "@/pages/new-lead";
 import Settings from "@/pages/settings";
 import EmailTemplates from "@/pages/email-templates";
 import DripSequences from "@/pages/drip-sequences";
+import LenderManagement from "@/pages/lender-management";
 
 const queryClient = new QueryClient();
 
@@ -189,6 +190,9 @@ function AppRoutes() {
             </Route>
             <Route path="/drip/sequences">
               <ProtectedRoute component={DripSequences} />
+            </Route>
+            <Route path="/lenders">
+              <ProtectedRoute component={LenderManagement} />
             </Route>
             <Route component={NotFound} />
           </Switch>
