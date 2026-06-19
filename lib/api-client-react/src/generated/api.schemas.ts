@@ -853,6 +853,127 @@ export interface EmailFlyerInput {
   leadId: number;
 }
 
+export interface ApplicationSubmitResponse {
+  success: boolean;
+  leadId: number;
+}
+
+export type ApplicationRecordType = typeof ApplicationRecordType[keyof typeof ApplicationRecordType];
+
+
+export const ApplicationRecordType = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ApplicationRecordEquipmentCondition = typeof ApplicationRecordEquipmentCondition[keyof typeof ApplicationRecordEquipmentCondition] | null;
+
+
+export const ApplicationRecordEquipmentCondition = {
+  new: 'new',
+  used: 'used',
+} as const;
+
+export interface ApplicationRecord {
+  id: number;
+  leadId: number;
+  type: ApplicationRecordType;
+  businessName: string;
+  /** @nullable */
+  dba?: string | null;
+  /** @nullable */
+  ein?: string | null;
+  /** @nullable */
+  businessAddress?: string | null;
+  /** @nullable */
+  businessCity?: string | null;
+  /** @nullable */
+  businessState?: string | null;
+  /** @nullable */
+  businessZip?: string | null;
+  /** @nullable */
+  industry?: string | null;
+  /** @nullable */
+  timeInBusinessMonths?: number | null;
+  /** @nullable */
+  monthlyRevenueStated?: number | null;
+  /** @nullable */
+  requestedAmount?: number | null;
+  /** @nullable */
+  useOfFunds?: string | null;
+  /** @nullable */
+  equipmentDescription?: string | null;
+  /** @nullable */
+  vendorName?: string | null;
+  /** @nullable */
+  vendorQuoteAmount?: string | null;
+  /** @nullable */
+  equipmentCondition?: ApplicationRecordEquipmentCondition;
+  ownerFirstName: string;
+  ownerLastName: string;
+  /** @nullable */
+  ownerSsnMasked?: string | null;
+  /** @nullable */
+  ownerDob?: string | null;
+  /** @nullable */
+  ownerHomeAddress?: string | null;
+  /** @nullable */
+  ownerHomeCity?: string | null;
+  /** @nullable */
+  ownerHomeState?: string | null;
+  /** @nullable */
+  ownerHomeZip?: string | null;
+  /** @nullable */
+  ownershipPct?: number | null;
+  consentCreditPull?: boolean;
+  consentTerms?: boolean;
+  /** @nullable */
+  signatureData?: string | null;
+  submittedAt: string;
+}
+
+export interface ExistingPosition {
+  amount: number;
+  frequency: string;
+  description: string;
+}
+
+export interface BankStatementMonth {
+  id: number;
+  /** @nullable */
+  statementMonth?: number | null;
+  /** @nullable */
+  statementYear?: number | null;
+  /** @nullable */
+  totalDeposits?: number | null;
+  /** @nullable */
+  averageDailyBalance?: number | null;
+  nsfCount: number;
+  negativeBalanceDays: number;
+  existingPositions: ExistingPosition[];
+  extractedAt: string;
+}
+
+export interface FinancialsSummary {
+  /** @nullable */
+  avgMonthlyDeposits?: number | null;
+  /** @nullable */
+  avgDailyBalance?: number | null;
+  avgNsfsPerMonth: number;
+  totalNsfs: number;
+  positionsDetected: number;
+  monthsAnalyzed: number;
+  positions: ExistingPosition[];
+}
+
+export interface FinancialsResponse {
+  months: BankStatementMonth[];
+  summary?: FinancialsSummary | null;
+}
+
 export type UpdateMyMobileBody = {
   /** @nullable */
   mobileNumber?: string | null;
@@ -927,6 +1048,28 @@ export type GetAnalyticsSourcesParams = {
 start_date?: string;
 end_date?: string;
 rep_id?: number;
+};
+
+export type SubmitApplicationBodyType = typeof SubmitApplicationBodyType[keyof typeof SubmitApplicationBodyType];
+
+
+export const SubmitApplicationBodyType = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+} as const;
+
+export type SubmitApplicationBody = {
+  type: SubmitApplicationBodyType;
+  ownerFirstName: string;
+  ownerLastName: string;
+  businessName: string;
+  email?: string;
+  phone?: string;
+  ein?: string;
+  ownerSsn?: string;
+  ownerDob?: string;
+  signatureData?: string;
+  bankStatements?: Blob[];
 };
 
 export type GetAnalyticsCommunicationsParams = {

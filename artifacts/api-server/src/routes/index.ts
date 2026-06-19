@@ -19,6 +19,7 @@ import analyticsRouter from "./analytics";
 import lendersRouter from "./lenders";
 import flyerTemplatesRouter from "./flyer-templates";
 import flyersRouter from "./flyers";
+import applicationsRouter from "./applications";
 
 const router: IRouter = Router();
 
@@ -41,6 +42,7 @@ router.use(analyticsRouter);
 router.use(lendersRouter);
 router.use(flyerTemplatesRouter);
 router.use(flyersRouter);
+router.use(applicationsRouter);
 router.use(storageRouter);
 
 export default router;

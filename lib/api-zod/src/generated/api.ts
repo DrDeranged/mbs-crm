@@ -949,6 +949,106 @@ export const GetAnalyticsSourcesResponse = zod.array(GetAnalyticsSourcesResponse
 
 
 /**
+ * @summary Public application submit (no auth, multipart, rate-limited)
+ */
+export const SubmitApplicationBody = zod.object({
+  "type": zod.enum(['equipment', 'working_capital']),
+  "ownerFirstName": zod.string(),
+  "ownerLastName": zod.string(),
+  "businessName": zod.string(),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "ein": zod.string().optional(),
+  "ownerSsn": zod.string().optional(),
+  "ownerDob": zod.string().optional(),
+  "signatureData": zod.string().optional(),
+  "bankStatements": zod.array(zod.instanceof(File)).optional()
+})
+
+
+/**
+ * @summary Get the submitted application for a lead (SSN masked)
+ */
+export const GetLeadApplicationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadApplicationResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "type": zod.enum(['equipment', 'working_capital']),
+  "businessName": zod.string(),
+  "dba": zod.string().nullish(),
+  "ein": zod.string().nullish(),
+  "businessAddress": zod.string().nullish(),
+  "businessCity": zod.string().nullish(),
+  "businessState": zod.string().nullish(),
+  "businessZip": zod.string().nullish(),
+  "industry": zod.string().nullish(),
+  "timeInBusinessMonths": zod.number().nullish(),
+  "monthlyRevenueStated": zod.number().nullish(),
+  "requestedAmount": zod.number().nullish(),
+  "useOfFunds": zod.string().nullish(),
+  "equipmentDescription": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "vendorQuoteAmount": zod.string().nullish(),
+  "equipmentCondition": zod.union([zod.literal('new'),zod.literal('used'),zod.literal(null)]).nullish(),
+  "ownerFirstName": zod.string(),
+  "ownerLastName": zod.string(),
+  "ownerSsnMasked": zod.string().nullish(),
+  "ownerDob": zod.string().nullish(),
+  "ownerHomeAddress": zod.string().nullish(),
+  "ownerHomeCity": zod.string().nullish(),
+  "ownerHomeState": zod.string().nullish(),
+  "ownerHomeZip": zod.string().nullish(),
+  "ownershipPct": zod.number().nullish(),
+  "consentCreditPull": zod.boolean().optional(),
+  "consentTerms": zod.boolean().optional(),
+  "signatureData": zod.string().nullish(),
+  "submittedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get bank statement OCR financials for a lead
+ */
+export const GetLeadFinancialsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadFinancialsResponse = zod.object({
+  "months": zod.array(zod.object({
+  "id": zod.number(),
+  "statementMonth": zod.number().nullish(),
+  "statementYear": zod.number().nullish(),
+  "totalDeposits": zod.number().nullish(),
+  "averageDailyBalance": zod.number().nullish(),
+  "nsfCount": zod.number(),
+  "negativeBalanceDays": zod.number(),
+  "existingPositions": zod.array(zod.object({
+  "amount": zod.number(),
+  "frequency": zod.string(),
+  "description": zod.string()
+})),
+  "extractedAt": zod.coerce.date()
+})),
+  "summary": zod.union([zod.object({
+  "avgMonthlyDeposits": zod.number().nullish(),
+  "avgDailyBalance": zod.number().nullish(),
+  "avgNsfsPerMonth": zod.number(),
+  "totalNsfs": zod.number(),
+  "positionsDetected": zod.number(),
+  "monthsAnalyzed": zod.number(),
+  "positions": zod.array(zod.object({
+  "amount": zod.number(),
+  "frequency": zod.string(),
+  "description": zod.string()
+}))
+}),zod.null()]).optional()
+})
+
+
+/**
  * @summary Daily or weekly call and SMS volume over the selected period
  */
 export const getAnalyticsCommunicationsQueryGranularityDefault = `daily`;

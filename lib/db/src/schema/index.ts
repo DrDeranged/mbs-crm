@@ -15,4 +15,5 @@ export * from "./dripEnrollments";
 export * from "./emailSends";
 export * from "./lenders";
 export * from "./flyers";
+export * from "./applications";
 export * from "./relations";

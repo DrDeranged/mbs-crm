@@ -23,6 +23,8 @@ import type {
   ActivityEntry,
   AnalyticsPipeline,
   AnalyticsSummary,
+  ApplicationRecord,
+  ApplicationSubmitResponse,
   AssignLead,
   BulkEmailInput,
   BulkEmailResult,
@@ -46,6 +48,7 @@ import type {
   EmailTemplate,
   EmailTemplateInput,
   EnrollLeadInDripBody,
+  FinancialsResponse,
   FlyerTemplate,
   FlyerTemplateInput,
   GenerateFlyerInput,
@@ -88,6 +91,7 @@ import type {
   SmsInput,
   SourceAnalytics,
   StatusChange,
+  SubmitApplicationBody,
   Task,
   TaskInput,
   TaskUpdate,
@@ -2397,6 +2401,257 @@ export function useGetAnalyticsSources<TData = Awaited<ReturnType<typeof getAnal
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAnalyticsSourcesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSubmitApplicationUrl = () => {
+
+
+
+
+  return `/api/applications/submit`
+}
+
+/**
+ * @summary Public application submit (no auth, multipart, rate-limited)
+ */
+export const submitApplication = async (submitApplicationBody: SubmitApplicationBody, options?: RequestInit): Promise<ApplicationSubmitResponse> => {
+    const formData = new FormData();
+formData.append(`type`, submitApplicationBody.type);
+formData.append(`ownerFirstName`, submitApplicationBody.ownerFirstName);
+formData.append(`ownerLastName`, submitApplicationBody.ownerLastName);
+formData.append(`businessName`, submitApplicationBody.businessName);
+if(submitApplicationBody.email !== undefined) {
+ formData.append(`email`, submitApplicationBody.email);
+ }
+if(submitApplicationBody.phone !== undefined) {
+ formData.append(`phone`, submitApplicationBody.phone);
+ }
+if(submitApplicationBody.ein !== undefined) {
+ formData.append(`ein`, submitApplicationBody.ein);
+ }
+if(submitApplicationBody.ownerSsn !== undefined) {
+ formData.append(`ownerSsn`, submitApplicationBody.ownerSsn);
+ }
+if(submitApplicationBody.ownerDob !== undefined) {
+ formData.append(`ownerDob`, submitApplicationBody.ownerDob);
+ }
+if(submitApplicationBody.signatureData !== undefined) {
+ formData.append(`signatureData`, submitApplicationBody.signatureData);
+ }
+if(submitApplicationBody.bankStatements !== undefined) {
+ submitApplicationBody.bankStatements.forEach(value => formData.append(`bankStatements`, value));
+ }
+
+  return customFetch<ApplicationSubmitResponse>(getSubmitApplicationUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body:
+      formData,
+  }
+);}
+
+
+
+
+export const getSubmitApplicationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,{data: BodyType<SubmitApplicationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,{data: BodyType<SubmitApplicationBody>}, TContext> => {
+
+const mutationKey = ['submitApplication'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitApplication>>, {data: BodyType<SubmitApplicationBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitApplication(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof submitApplication>>>
+    export type SubmitApplicationMutationBody = BodyType<SubmitApplicationBody>
+    export type SubmitApplicationMutationError = ErrorType<void>
+
+    /**
+ * @summary Public application submit (no auth, multipart, rate-limited)
+ */
+export const useSubmitApplication = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,{data: BodyType<SubmitApplicationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitApplication>>,
+        TError,
+        {data: BodyType<SubmitApplicationBody>},
+        TContext
+      > => {
+      return useMutation(getSubmitApplicationMutationOptions(options));
+    }
+
+export const getGetLeadApplicationUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/application`
+}
+
+/**
+ * @summary Get the submitted application for a lead (SSN masked)
+ */
+export const getLeadApplication = async (id: number, options?: RequestInit): Promise<ApplicationRecord> => {
+
+  return customFetch<ApplicationRecord>(getGetLeadApplicationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadApplicationQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/application`
+    ] as const;
+    }
+
+
+export const getGetLeadApplicationQueryOptions = <TData = Awaited<ReturnType<typeof getLeadApplication>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadApplication>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadApplicationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadApplication>>> = ({ signal }) => getLeadApplication(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadApplication>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadApplicationQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadApplication>>>
+export type GetLeadApplicationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the submitted application for a lead (SSN masked)
+ */
+
+export function useGetLeadApplication<TData = Awaited<ReturnType<typeof getLeadApplication>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadApplication>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadApplicationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadFinancialsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/financials`
+}
+
+/**
+ * @summary Get bank statement OCR financials for a lead
+ */
+export const getLeadFinancials = async (id: number, options?: RequestInit): Promise<FinancialsResponse> => {
+
+  return customFetch<FinancialsResponse>(getGetLeadFinancialsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadFinancialsQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/financials`
+    ] as const;
+    }
+
+
+export const getGetLeadFinancialsQueryOptions = <TData = Awaited<ReturnType<typeof getLeadFinancials>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadFinancials>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadFinancialsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadFinancials>>> = ({ signal }) => getLeadFinancials(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadFinancials>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadFinancialsQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadFinancials>>>
+export type GetLeadFinancialsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get bank statement OCR financials for a lead
+ */
+
+export function useGetLeadFinancials<TData = Awaited<ReturnType<typeof getLeadFinancials>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadFinancials>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadFinancialsQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

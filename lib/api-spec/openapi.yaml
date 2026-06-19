@@ -44,6 +44,8 @@ tags:
     description: Lender management and matching engine
   - name: flyers
     description: Flyer template management and PDF generation
+  - name: applications
+    description: Public application intake and bank statement financials
 paths:
   /healthz:
     get:
@@ -761,6 +763,97 @@ paths:
                   $ref: "#/components/schemas/SourceAnalytics"
         "401":
           description: Unauthorized
+
+  /applications/submit:
+    post:
+      operationId: submitApplication
+      tags: [applications]
+      summary: Public application submit (no auth, multipart, rate-limited)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [type, ownerFirstName, ownerLastName, businessName]
+              properties:
+                type:
+                  type: string
+                  enum: [equipment, working_capital]
+                ownerFirstName:
+                  type: string
+                ownerLastName:
+                  type: string
+                businessName:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                ein:
+                  type: string
+                ownerSsn:
+                  type: string
+                ownerDob:
+                  type: string
+                signatureData:
+                  type: string
+                bankStatements:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationSubmitResponse"
+        "409":
+          description: Duplicate lead detected
+
+  /leads/{id}/application:
+    get:
+      operationId: getLeadApplication
+      tags: [applications]
+      summary: Get the submitted application for a lead (SSN masked)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Application record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationRecord"
+        "404":
+          description: Not found
+
+  /leads/{id}/financials:
+    get:
+      operationId: getLeadFinancials
+      tags: [applications]
+      summary: Get bank statement OCR financials for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Financials summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialsResponse"
+        "404":
+          description: Not found
 
   /analytics/communications:
     get:
@@ -3021,3 +3114,155 @@ components:
       properties:
         leadId:
           type: integer
+
+    ApplicationSubmitResponse:
+      type: object
+      required: [success, leadId]
+      properties:
+        success:
+          type: boolean
+        leadId:
+          type: integer
+
+    ApplicationRecord:
+      type: object
+      required: [id, leadId, type, businessName, ownerFirstName, ownerLastName, submittedAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        type:
+          type: string
+          enum: [equipment, working_capital]
+        businessName:
+          type: string
+        dba:
+          type: ["string", "null"]
+        ein:
+          type: ["string", "null"]
+        businessAddress:
+          type: ["string", "null"]
+        businessCity:
+          type: ["string", "null"]
+        businessState:
+          type: ["string", "null"]
+        businessZip:
+          type: ["string", "null"]
+        industry:
+          type: ["string", "null"]
+        timeInBusinessMonths:
+          type: ["integer", "null"]
+        monthlyRevenueStated:
+          type: ["integer", "null"]
+        requestedAmount:
+          type: ["integer", "null"]
+        useOfFunds:
+          type: ["string", "null"]
+        equipmentDescription:
+          type: ["string", "null"]
+        vendorName:
+          type: ["string", "null"]
+        vendorQuoteAmount:
+          type: ["string", "null"]
+        equipmentCondition:
+          type: ["string", "null"]
+          enum: [new, used, null]
+        ownerFirstName:
+          type: string
+        ownerLastName:
+          type: string
+        ownerSsnMasked:
+          type: ["string", "null"]
+        ownerDob:
+          type: ["string", "null"]
+        ownerHomeAddress:
+          type: ["string", "null"]
+        ownerHomeCity:
+          type: ["string", "null"]
+        ownerHomeState:
+          type: ["string", "null"]
+        ownerHomeZip:
+          type: ["string", "null"]
+        ownershipPct:
+          type: ["integer", "null"]
+        consentCreditPull:
+          type: boolean
+        consentTerms:
+          type: boolean
+        signatureData:
+          type: ["string", "null"]
+        submittedAt:
+          type: string
+          format: date-time
+
+    ExistingPosition:
+      type: object
+      required: [amount, frequency, description]
+      properties:
+        amount:
+          type: number
+        frequency:
+          type: string
+        description:
+          type: string
+
+    BankStatementMonth:
+      type: object
+      required: [id, nsfCount, negativeBalanceDays, existingPositions, extractedAt]
+      properties:
+        id:
+          type: integer
+        statementMonth:
+          type: ["integer", "null"]
+        statementYear:
+          type: ["integer", "null"]
+        totalDeposits:
+          type: ["number", "null"]
+        averageDailyBalance:
+          type: ["number", "null"]
+        nsfCount:
+          type: integer
+        negativeBalanceDays:
+          type: integer
+        existingPositions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExistingPosition"
+        extractedAt:
+          type: string
+          format: date-time
+
+    FinancialsSummary:
+      type: object
+      required: [avgNsfsPerMonth, totalNsfs, positionsDetected, monthsAnalyzed, positions]
+      properties:
+        avgMonthlyDeposits:
+          type: ["number", "null"]
+        avgDailyBalance:
+          type: ["number", "null"]
+        avgNsfsPerMonth:
+          type: number
+        totalNsfs:
+          type: integer
+        positionsDetected:
+          type: integer
+        monthsAnalyzed:
+          type: integer
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExistingPosition"
+
+    FinancialsResponse:
+      type: object
+      required: [months]
+      properties:
+        months:
+          type: array
+          items:
+            $ref: "#/components/schemas/BankStatementMonth"
+        summary:
+          oneOf:
+            - $ref: "#/components/schemas/FinancialsSummary"
+            - type: "null"

@@ -22,6 +22,7 @@ import {
   useGetLeadSubmissions, getGetLeadSubmissionsQueryKey,
   useCreateLeadSubmission, useUpdateSubmission,
   useListFlyerTemplates, useGenerateFlyer, useEmailFlyer, getDownloadFlyerUrl,
+  useGetLeadApplication, useGetLeadFinancials,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,7 +34,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2 } from "lucide-react";
+import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1397,6 +1398,306 @@ function LeadMarketing({ leadId, lead }: { leadId: number; lead: any }) {
   );
 }
 
+function LeadApplication({ leadId }: { leadId: number }) {
+  const { data, isLoading, error } = useGetLeadApplication(leadId);
+  const { toast } = useToast();
+
+  const applyUrl = `${window.location.origin}${import.meta.env.BASE_URL}apply`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(applyUrl).then(() => {
+      toast({ title: "Link copied!", description: "Application link copied to clipboard." });
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#1F4E79]" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-6 space-y-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-6 space-y-3">
+              <ClipboardList className="h-10 w-10 text-gray-300 mx-auto" />
+              <p className="text-gray-500 font-medium">No application on file</p>
+              <p className="text-sm text-gray-400">Share the application link so the lead can submit their information.</p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <code className="text-xs bg-slate-100 px-3 py-2 rounded-lg text-[#1F4E79] font-mono break-all">{applyUrl}</code>
+                <Button variant="outline" size="sm" onClick={copyLink} className="flex items-center gap-1.5 flex-shrink-0">
+                  <Copy className="h-3.5 w-3.5" /> Copy
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const app = data;
+  const fmt = (v: number | null | undefined, prefix = "$") =>
+    v != null ? `${prefix}${v.toLocaleString()}` : "—";
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-[#1F4E79]/10 flex items-center justify-center">
+            <ClipboardList className="h-4 w-4 text-[#1F4E79]" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900">Application on File</p>
+            <p className="text-xs text-gray-400">Submitted {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "—"}</p>
+          </div>
+        </div>
+        <Badge variant="outline" className="capitalize bg-blue-50 border-blue-200 text-blue-700">
+          {app.type.replace("_", " ")}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Business Info */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-gray-700">Business Information</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <dl className="space-y-2 text-xs">
+              <div className="flex justify-between"><dt className="text-gray-500">Business Name</dt><dd className="font-medium">{app.businessName}</dd></div>
+              {app.dba && <div className="flex justify-between"><dt className="text-gray-500">DBA</dt><dd className="font-medium">{app.dba}</dd></div>}
+              {app.ein && <div className="flex justify-between"><dt className="text-gray-500">EIN</dt><dd className="font-medium">{app.ein}</dd></div>}
+              {app.industry && <div className="flex justify-between"><dt className="text-gray-500">Industry</dt><dd className="font-medium">{app.industry}</dd></div>}
+              {app.timeInBusinessMonths != null && <div className="flex justify-between"><dt className="text-gray-500">Time in Business</dt><dd className="font-medium">{Math.round(app.timeInBusinessMonths / 12)} yr(s)</dd></div>}
+              {(app.businessCity || app.businessState) && (
+                <div className="flex justify-between"><dt className="text-gray-500">Location</dt><dd className="font-medium">{[app.businessCity, app.businessState, app.businessZip].filter(Boolean).join(", ")}</dd></div>
+              )}
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Owner Info */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-gray-700">Owner Information</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <dl className="space-y-2 text-xs">
+              <div className="flex justify-between"><dt className="text-gray-500">Name</dt><dd className="font-medium">{app.ownerFirstName} {app.ownerLastName}</dd></div>
+              {app.ownerSsnMasked && (
+                <div className="flex justify-between items-center">
+                  <dt className="text-gray-500 flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-green-500" /> SSN</dt>
+                  <dd className="font-mono font-medium">{app.ownerSsnMasked}</dd>
+                </div>
+              )}
+              {app.ownerDob && <div className="flex justify-between"><dt className="text-gray-500">Date of Birth</dt><dd className="font-medium">{new Date(app.ownerDob).toLocaleDateString()}</dd></div>}
+              {app.ownershipPct != null && <div className="flex justify-between"><dt className="text-gray-500">Ownership</dt><dd className="font-medium">{app.ownershipPct}%</dd></div>}
+              {(app.ownerHomeCity || app.ownerHomeState) && (
+                <div className="flex justify-between"><dt className="text-gray-500">Home Location</dt><dd className="font-medium">{[app.ownerHomeCity, app.ownerHomeState].filter(Boolean).join(", ")}</dd></div>
+              )}
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Financing Details */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-gray-700">Financing Request</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <dl className="space-y-2 text-xs">
+              <div className="flex justify-between"><dt className="text-gray-500">Type</dt><dd className="font-medium capitalize">{app.type.replace("_", " ")}</dd></div>
+              {app.monthlyRevenueStated != null && <div className="flex justify-between"><dt className="text-gray-500">Monthly Revenue</dt><dd className="font-medium">{fmt(app.monthlyRevenueStated)}</dd></div>}
+              {app.requestedAmount != null && <div className="flex justify-between"><dt className="text-gray-500">Requested Amount</dt><dd className="font-medium text-[#1F4E79]">{fmt(app.requestedAmount)}</dd></div>}
+              {app.useOfFunds && <div className="flex justify-between gap-4"><dt className="text-gray-500 flex-shrink-0">Use of Funds</dt><dd className="font-medium text-right">{app.useOfFunds}</dd></div>}
+              {app.type === "equipment" && (
+                <>
+                  {app.equipmentDescription && <div className="flex justify-between gap-4"><dt className="text-gray-500 flex-shrink-0">Equipment</dt><dd className="font-medium text-right">{app.equipmentDescription}</dd></div>}
+                  {app.vendorName && <div className="flex justify-between"><dt className="text-gray-500">Vendor</dt><dd className="font-medium">{app.vendorName}</dd></div>}
+                  {app.vendorQuoteAmount && <div className="flex justify-between"><dt className="text-gray-500">Quote</dt><dd className="font-medium">{fmt(parseFloat(app.vendorQuoteAmount))}</dd></div>}
+                  {app.equipmentCondition && <div className="flex justify-between"><dt className="text-gray-500">Condition</dt><dd className="font-medium capitalize">{app.equipmentCondition}</dd></div>}
+                </>
+              )}
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Consent + Signature */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-gray-700">Consents & Signature</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 space-y-2">
+            <div className="flex items-center gap-2 text-xs">
+              {app.consentCreditPull
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                : <XCircle className="h-3.5 w-3.5 text-red-400 flex-shrink-0" />}
+              <span className={app.consentCreditPull ? "text-gray-700" : "text-gray-400"}>Credit pull authorized</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              {app.consentTerms
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                : <XCircle className="h-3.5 w-3.5 text-red-400 flex-shrink-0" />}
+              <span className={app.consentTerms ? "text-gray-700" : "text-gray-400"}>Terms & Privacy agreed</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs mt-2">
+              {app.signatureData === "[signature on file]"
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                : <XCircle className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />}
+              <span className={app.signatureData ? "text-gray-700" : "text-gray-400"}>
+                {app.signatureData ? "Electronic signature on file" : "No signature"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Share link */}
+      <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-3">
+        <TrendingUp className="h-4 w-4 text-[#1F4E79] flex-shrink-0" />
+        <span className="text-xs text-gray-500 flex-1">Share application link:</span>
+        <code className="text-xs font-mono text-[#1F4E79] truncate max-w-[200px]">{applyUrl}</code>
+        <Button variant="outline" size="sm" onClick={copyLink} className="flex items-center gap-1 flex-shrink-0 h-7 text-xs">
+          <Copy className="h-3 w-3" /> Copy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function LeadFinancials({ leadId }: { leadId: number }) {
+  const { data, isLoading } = useGetLeadFinancials(leadId);
+
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#1F4E79]" />
+      </div>
+    );
+  }
+
+  if (!data || data.months.length === 0) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-6 space-y-2">
+              <BarChart3 className="h-10 w-10 text-gray-300 mx-auto" />
+              <p className="text-gray-500 font-medium">No bank statement data</p>
+              <p className="text-sm text-gray-400">Bank statement extractions will appear here once the applicant submits their application with PDF statements.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { months, summary } = data;
+  const fmt = (v: number | null | undefined) => v != null ? `$${Math.round(v).toLocaleString()}` : "—";
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Summary cards */}
+      {summary && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <p className="text-xs text-gray-400">Avg Monthly Deposits</p>
+              <p className="text-lg font-bold text-[#1F4E79]">{fmt(summary.avgMonthlyDeposits)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <p className="text-xs text-gray-400">Avg Daily Balance</p>
+              <p className="text-lg font-bold text-gray-900">{fmt(summary.avgDailyBalance)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <p className="text-xs text-gray-400">Months Analyzed</p>
+              <p className="text-lg font-bold text-gray-900">{summary.monthsAnalyzed}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <p className="text-xs text-gray-400">Total NSFs</p>
+              <p className={`text-lg font-bold ${summary.totalNsfs > 3 ? "text-red-600" : "text-gray-900"}`}>{summary.totalNsfs}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Monthly breakdown table */}
+      <Card>
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm text-gray-700">Monthly Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b bg-slate-50">
+                  <th className="text-left px-4 py-2 text-gray-500 font-medium">Period</th>
+                  <th className="text-right px-4 py-2 text-gray-500 font-medium">Total Deposits</th>
+                  <th className="text-right px-4 py-2 text-gray-500 font-medium">Avg Daily Bal</th>
+                  <th className="text-right px-4 py-2 text-gray-500 font-medium">NSFs</th>
+                  <th className="text-right px-4 py-2 text-gray-500 font-medium">Neg. Days</th>
+                </tr>
+              </thead>
+              <tbody>
+                {months.map((m) => (
+                  <tr key={m.id} className="border-b last:border-0 hover:bg-slate-50">
+                    <td className="px-4 py-2 font-medium text-gray-700">
+                      {m.statementYear && m.statementMonth
+                        ? `${MONTH_NAMES[(m.statementMonth - 1) % 12]} ${m.statementYear}`
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-2 text-right text-[#1F4E79] font-medium">{fmt(m.totalDeposits)}</td>
+                    <td className="px-4 py-2 text-right">{fmt(m.averageDailyBalance)}</td>
+                    <td className={`px-4 py-2 text-right font-medium ${m.nsfCount > 1 ? "text-red-600" : "text-gray-700"}`}>{m.nsfCount}</td>
+                    <td className={`px-4 py-2 text-right ${m.negativeBalanceDays > 3 ? "text-amber-600" : "text-gray-700"}`}>{m.negativeBalanceDays}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Existing positions */}
+      {months.some((m) => m.existingPositions.length > 0) && (
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm text-gray-700">Existing Positions Detected</CardTitle>
+            <CardDescription className="text-xs">MCA or loan payments found in bank statements</CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="space-y-2">
+              {months.flatMap((m) => m.existingPositions).map((p, i) => (
+                <div key={i} className="flex justify-between items-center text-xs bg-amber-50 rounded-lg px-3 py-2">
+                  <span className="text-gray-700">{p.description}</span>
+                  <div className="text-right">
+                    <span className="font-medium text-amber-700">{fmt(p.amount)}</span>
+                    <span className="text-gray-400 ml-1">/ {p.frequency}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 export default function LeadDetail() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
@@ -1534,7 +1835,7 @@ export default function LeadDetail() {
         {/* Right Column: Tabs */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-8 bg-white shadow-sm border p-1 h-12">
+            <TabsList className="grid w-full grid-cols-10 bg-white shadow-sm border p-1 h-12">
               <TabsTrigger value="info" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><User className="h-3.5 w-3.5"/> Info</TabsTrigger>
               <TabsTrigger value="notes" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileText className="h-3.5 w-3.5"/> Notes</TabsTrigger>
               <TabsTrigger value="tasks" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><CheckSquare className="h-3.5 w-3.5"/> Tasks</TabsTrigger>
@@ -1543,6 +1844,8 @@ export default function LeadDetail() {
               <TabsTrigger value="activity" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Clock className="h-3.5 w-3.5"/> Activity</TabsTrigger>
               <TabsTrigger value="lenders" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Building2 className="h-3.5 w-3.5"/> Lenders</TabsTrigger>
               <TabsTrigger value="marketing" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Megaphone className="h-3.5 w-3.5"/> Marketing</TabsTrigger>
+              <TabsTrigger value="application" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><ClipboardList className="h-3.5 w-3.5"/> App</TabsTrigger>
+              <TabsTrigger value="financials" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><BarChart3 className="h-3.5 w-3.5"/> Financials</TabsTrigger>
             </TabsList>
             <TabsContent value="info" className="outline-none">
               <LeadInfo lead={lead} leadId={id} />
@@ -1567,6 +1870,12 @@ export default function LeadDetail() {
             </TabsContent>
             <TabsContent value="marketing" className="outline-none">
               <LeadMarketing leadId={id} lead={lead} />
+            </TabsContent>
+            <TabsContent value="application" className="outline-none">
+              <LeadApplication leadId={id} />
+            </TabsContent>
+            <TabsContent value="financials" className="outline-none">
+              <LeadFinancials leadId={id} />
             </TabsContent>
           </Tabs>
         </div>

@@ -15,6 +15,7 @@ import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
 import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
+import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -179,6 +180,15 @@ export const generatedFlyersRelations = relations(generatedFlyersTable, ({ one }
   lead: one(leadsTable, { fields: [generatedFlyersTable.leadId], references: [leadsTable.id] }),
   template: one(flyerTemplatesTable, { fields: [generatedFlyersTable.templateId], references: [flyerTemplatesTable.id] }),
   createdByUser: one(usersTable, { fields: [generatedFlyersTable.createdBy], references: [usersTable.id] }),
+}));
+
+export const applicationsRelations = relations(applicationsTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [applicationsTable.leadId], references: [leadsTable.id] }),
+}));
+
+export const bankStatementExtractionsRelations = relations(bankStatementExtractionsTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [bankStatementExtractionsTable.leadId], references: [leadsTable.id] }),
+  document: one(documentsTable, { fields: [bankStatementExtractionsTable.documentId], references: [documentsTable.id] }),
 }));
 
 export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) => ({
