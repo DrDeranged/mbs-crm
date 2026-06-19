@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import { ClerkProvider, SignIn, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { AppShell } from "@/components/app-shell";
+import { SoftphoneWidget } from "@/components/softphone-widget";
+import { SoftphoneProvider, SoftphoneContext } from "@/components/softphone-context";
 
 // Pages
 import Dashboard from "@/pages/dashboard";
@@ -97,13 +99,21 @@ function SignInPage() {
   );
 }
 
+function SoftphoneOverlay() {
+  const { pendingNumber, clearPending } = useContext(SoftphoneContext);
+  return <SoftphoneWidget initialNumber={pendingNumber} onDialRequest={clearPending} />;
+}
+
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
       <Show when="signed-in">
-        <AppShell>
-          <Component />
-        </AppShell>
+        <SoftphoneProvider>
+          <AppShell>
+            <Component />
+          </AppShell>
+          <SoftphoneOverlay />
+        </SoftphoneProvider>
       </Show>
       <Show when="signed-out">
         <Redirect to="/sign-in" />

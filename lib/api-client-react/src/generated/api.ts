@@ -22,10 +22,13 @@ import type {
 import type {
   ActivityEntry,
   AssignLead,
+  Communication,
+  CommunicationMetrics,
   DashboardSummary,
   Document,
   DownloadUrlResponse,
   DuplicateResponse,
+  GetCommunicationMetricsParams,
   HealthStatus,
   ImportLeadsBody,
   ImportPreviewResult,
@@ -44,10 +47,15 @@ import type {
   NoteInput,
   PreviewImportBody,
   RepDashboard,
+  SmsInput,
   StatusChange,
   Task,
   TaskInput,
   TaskUpdate,
+  TwilioSmsStatus200,
+  TwilioTokenResponse,
+  TwilioVoiceRecording200,
+  TwilioVoiceStatus200,
   UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
@@ -1939,6 +1947,729 @@ export function useGetMyTasks<TData = Awaited<ReturnType<typeof getMyTasks>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMyTasksQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTwilioTokenUrl = () => {
+
+
+
+
+  return `/api/twilio/token`
+}
+
+/**
+ * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
+ */
+export const getTwilioToken = async ( options?: RequestInit): Promise<TwilioTokenResponse> => {
+
+  return customFetch<TwilioTokenResponse>(getGetTwilioTokenUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGetTwilioTokenMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext> => {
+
+const mutationKey = ['getTwilioToken'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getTwilioToken>>, void> = () => {
+
+
+          return  getTwilioToken(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetTwilioTokenMutationResult = NonNullable<Awaited<ReturnType<typeof getTwilioToken>>>
+
+    export type GetTwilioTokenMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
+ */
+export const useGetTwilioToken = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof getTwilioToken>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGetTwilioTokenMutationOptions(options));
+    }
+
+export const getTwilioVoiceTwimlUrl = () => {
+
+
+
+
+  return `/api/twilio/voice`
+}
+
+/**
+ * @summary TwiML endpoint — Twilio calls this when browser initiates an outbound call
+ */
+export const twilioVoiceTwiml = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getTwilioVoiceTwimlUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioVoiceTwimlMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceTwiml>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceTwiml>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioVoiceTwiml'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioVoiceTwiml>>, void> = () => {
+
+
+          return  twilioVoiceTwiml(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioVoiceTwimlMutationResult = NonNullable<Awaited<ReturnType<typeof twilioVoiceTwiml>>>
+
+    export type TwilioVoiceTwimlMutationError = ErrorType<unknown>
+
+    /**
+ * @summary TwiML endpoint — Twilio calls this when browser initiates an outbound call
+ */
+export const useTwilioVoiceTwiml = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceTwiml>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioVoiceTwiml>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioVoiceTwimlMutationOptions(options));
+    }
+
+export const getTwilioVoiceInboundUrl = () => {
+
+
+
+
+  return `/api/twilio/voice/inbound`
+}
+
+/**
+ * @summary Inbound call TwiML — routes caller to assigned rep or default admin
+ */
+export const twilioVoiceInbound = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getTwilioVoiceInboundUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioVoiceInboundMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceInbound>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioVoiceInbound'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioVoiceInbound>>, void> = () => {
+
+
+          return  twilioVoiceInbound(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioVoiceInboundMutationResult = NonNullable<Awaited<ReturnType<typeof twilioVoiceInbound>>>
+
+    export type TwilioVoiceInboundMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Inbound call TwiML — routes caller to assigned rep or default admin
+ */
+export const useTwilioVoiceInbound = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioVoiceInbound>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioVoiceInboundMutationOptions(options));
+    }
+
+export const getTwilioVoiceStatusUrl = () => {
+
+
+
+
+  return `/api/twilio/voice/status`
+}
+
+/**
+ * @summary Call status callback from Twilio — updates communication record
+ */
+export const twilioVoiceStatus = async ( options?: RequestInit): Promise<TwilioVoiceStatus200> => {
+
+  return customFetch<TwilioVoiceStatus200>(getTwilioVoiceStatusUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioVoiceStatusMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceStatus>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioVoiceStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioVoiceStatus>>, void> = () => {
+
+
+          return  twilioVoiceStatus(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioVoiceStatusMutationResult = NonNullable<Awaited<ReturnType<typeof twilioVoiceStatus>>>
+
+    export type TwilioVoiceStatusMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Call status callback from Twilio — updates communication record
+ */
+export const useTwilioVoiceStatus = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioVoiceStatus>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioVoiceStatusMutationOptions(options));
+    }
+
+export const getTwilioVoiceRecordingUrl = () => {
+
+
+
+
+  return `/api/twilio/voice/recording`
+}
+
+/**
+ * @summary Recording ready webhook — saves recording URL to communication record
+ */
+export const twilioVoiceRecording = async ( options?: RequestInit): Promise<TwilioVoiceRecording200> => {
+
+  return customFetch<TwilioVoiceRecording200>(getTwilioVoiceRecordingUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioVoiceRecordingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceRecording>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceRecording>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioVoiceRecording'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioVoiceRecording>>, void> = () => {
+
+
+          return  twilioVoiceRecording(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioVoiceRecordingMutationResult = NonNullable<Awaited<ReturnType<typeof twilioVoiceRecording>>>
+
+    export type TwilioVoiceRecordingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Recording ready webhook — saves recording URL to communication record
+ */
+export const useTwilioVoiceRecording = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioVoiceRecording>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioVoiceRecording>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioVoiceRecordingMutationOptions(options));
+    }
+
+export const getTwilioSmsInboundUrl = () => {
+
+
+
+
+  return `/api/twilio/sms/inbound`
+}
+
+/**
+ * @summary Inbound SMS webhook from Twilio
+ */
+export const twilioSmsInbound = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getTwilioSmsInboundUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioSmsInboundMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioSmsInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioSmsInbound>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioSmsInbound'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioSmsInbound>>, void> = () => {
+
+
+          return  twilioSmsInbound(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioSmsInboundMutationResult = NonNullable<Awaited<ReturnType<typeof twilioSmsInbound>>>
+
+    export type TwilioSmsInboundMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Inbound SMS webhook from Twilio
+ */
+export const useTwilioSmsInbound = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioSmsInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioSmsInbound>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioSmsInboundMutationOptions(options));
+    }
+
+export const getTwilioSmsStatusUrl = () => {
+
+
+
+
+  return `/api/twilio/sms/status`
+}
+
+/**
+ * @summary SMS delivery status callback from Twilio
+ */
+export const twilioSmsStatus = async ( options?: RequestInit): Promise<TwilioSmsStatus200> => {
+
+  return customFetch<TwilioSmsStatus200>(getTwilioSmsStatusUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTwilioSmsStatusMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioSmsStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof twilioSmsStatus>>, TError,void, TContext> => {
+
+const mutationKey = ['twilioSmsStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof twilioSmsStatus>>, void> = () => {
+
+
+          return  twilioSmsStatus(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TwilioSmsStatusMutationResult = NonNullable<Awaited<ReturnType<typeof twilioSmsStatus>>>
+
+    export type TwilioSmsStatusMutationError = ErrorType<unknown>
+
+    /**
+ * @summary SMS delivery status callback from Twilio
+ */
+export const useTwilioSmsStatus = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof twilioSmsStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof twilioSmsStatus>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTwilioSmsStatusMutationOptions(options));
+    }
+
+export const getSendSmsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/sms`
+}
+
+/**
+ * @summary Send an outbound SMS to the lead's phone number
+ */
+export const sendSms = async (id: number,
+    smsInput: SmsInput, options?: RequestInit): Promise<Communication> => {
+
+  return customFetch<Communication>(getSendSmsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smsInput,)
+  }
+);}
+
+
+
+
+export const getSendSmsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSms>>, TError,{id: number;data: BodyType<SmsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendSms>>, TError,{id: number;data: BodyType<SmsInput>}, TContext> => {
+
+const mutationKey = ['sendSms'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendSms>>, {id: number;data: BodyType<SmsInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  sendSms(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendSmsMutationResult = NonNullable<Awaited<ReturnType<typeof sendSms>>>
+    export type SendSmsMutationBody = BodyType<SmsInput>
+    export type SendSmsMutationError = ErrorType<void>
+
+    /**
+ * @summary Send an outbound SMS to the lead's phone number
+ */
+export const useSendSms = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSms>>, TError,{id: number;data: BodyType<SmsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendSms>>,
+        TError,
+        {id: number;data: BodyType<SmsInput>},
+        TContext
+      > => {
+      return useMutation(getSendSmsMutationOptions(options));
+    }
+
+export const getListCommunicationsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/communications`
+}
+
+/**
+ * @summary List all calls and SMS for a lead, chronologically
+ */
+export const listCommunications = async (id: number, options?: RequestInit): Promise<Communication[]> => {
+
+  return customFetch<Communication[]>(getListCommunicationsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCommunicationsQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/communications`
+    ] as const;
+    }
+
+
+export const getListCommunicationsQueryOptions = <TData = Awaited<ReturnType<typeof listCommunications>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCommunications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCommunicationsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCommunications>>> = ({ signal }) => listCommunications(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCommunications>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCommunicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listCommunications>>>
+export type ListCommunicationsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all calls and SMS for a lead, chronologically
+ */
+
+export function useListCommunications<TData = Awaited<ReturnType<typeof listCommunications>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCommunications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCommunicationsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCommunicationMetricsUrl = (params?: GetCommunicationMetricsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/metrics/communications?${stringifiedParams}` : `/api/metrics/communications`
+}
+
+/**
+ * @summary Per-rep communication stats (calls made/received, SMS sent/received, total call duration)
+ */
+export const getCommunicationMetrics = async (params?: GetCommunicationMetricsParams, options?: RequestInit): Promise<CommunicationMetrics[]> => {
+
+  return customFetch<CommunicationMetrics[]>(getGetCommunicationMetricsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommunicationMetricsQueryKey = (params?: GetCommunicationMetricsParams,) => {
+    return [
+    `/api/metrics/communications`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCommunicationMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getCommunicationMetrics>>, TError = ErrorType<unknown>>(params?: GetCommunicationMetricsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunicationMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommunicationMetricsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunicationMetrics>>> = ({ signal }) => getCommunicationMetrics(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommunicationMetrics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCommunicationMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getCommunicationMetrics>>>
+export type GetCommunicationMetricsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Per-rep communication stats (calls made/received, SMS sent/received, total call duration)
+ */
+
+export function useGetCommunicationMetrics<TData = Awaited<ReturnType<typeof getCommunicationMetrics>>, TError = ErrorType<unknown>>(
+ params?: GetCommunicationMetricsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunicationMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCommunicationMetricsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

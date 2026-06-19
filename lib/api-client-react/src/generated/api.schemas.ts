@@ -388,6 +388,70 @@ export interface UploadUrlResponse {
   fileKey: string;
 }
 
+export interface TwilioTokenResponse {
+  token: string;
+  identity: string;
+}
+
+export interface SmsInput {
+  body: string;
+}
+
+export type CommunicationType = typeof CommunicationType[keyof typeof CommunicationType];
+
+
+export const CommunicationType = {
+  call: 'call',
+  sms: 'sms',
+} as const;
+
+export type CommunicationDirection = typeof CommunicationDirection[keyof typeof CommunicationDirection];
+
+
+export const CommunicationDirection = {
+  inbound: 'inbound',
+  outbound: 'outbound',
+} as const;
+
+export interface Communication {
+  id: number;
+  /** @nullable */
+  leadId?: number | null;
+  /** @nullable */
+  userId?: number | null;
+  user?: User | null;
+  type: CommunicationType;
+  direction: CommunicationDirection;
+  /** @nullable */
+  fromNumber?: string | null;
+  /** @nullable */
+  toNumber?: string | null;
+  /** @nullable */
+  body?: string | null;
+  /** @nullable */
+  durationSeconds?: number | null;
+  /** @nullable */
+  recordingUrl?: string | null;
+  /** @nullable */
+  recordingSid?: string | null;
+  status: string;
+  /** @nullable */
+  twilioSid?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CommunicationMetrics {
+  userId: number;
+  /** @nullable */
+  userName?: string | null;
+  callsMade: number;
+  callsReceived: number;
+  smsSent: number;
+  smsReceived: number;
+  totalCallDurationMinutes: number;
+}
+
 export type ListUsersParams = {
 role?: ListUsersRole;
 };
@@ -434,5 +498,23 @@ export type ImportLeadsBody = {
 
 export type UploadDocumentBody = {
   file: Blob;
+};
+
+export type TwilioVoiceStatus200 = {
+  ok?: boolean;
+};
+
+export type TwilioVoiceRecording200 = {
+  ok?: boolean;
+};
+
+export type TwilioSmsStatus200 = {
+  ok?: boolean;
+};
+
+export type GetCommunicationMetricsParams = {
+repId?: number;
+startDate?: string;
+endDate?: string;
 };
 

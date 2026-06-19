@@ -829,6 +829,108 @@ export const GetMyTasksResponse = zod.object({
 
 
 /**
+ * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
+ */
+export const GetTwilioTokenResponse = zod.object({
+  "token": zod.string(),
+  "identity": zod.string()
+})
+
+
+/**
+ * @summary Call status callback from Twilio — updates communication record
+ */
+export const TwilioVoiceStatusResponse = zod.object({
+  "ok": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Recording ready webhook — saves recording URL to communication record
+ */
+export const TwilioVoiceRecordingResponse = zod.object({
+  "ok": zod.boolean().optional()
+})
+
+
+/**
+ * @summary SMS delivery status callback from Twilio
+ */
+export const TwilioSmsStatusResponse = zod.object({
+  "ok": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Send an outbound SMS to the lead's phone number
+ */
+export const SendSmsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendSmsBody = zod.object({
+  "body": zod.string()
+})
+
+
+/**
+ * @summary List all calls and SMS for a lead, chronologically
+ */
+export const ListCommunicationsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListCommunicationsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "userId": zod.number().nullish(),
+  "user": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "role": zod.enum(['admin', 'manager', 'rep']),
+  "isActive": zod.boolean().optional(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "type": zod.enum(['call', 'sms']),
+  "direction": zod.enum(['inbound', 'outbound']),
+  "fromNumber": zod.string().nullish(),
+  "toNumber": zod.string().nullish(),
+  "body": zod.string().nullish(),
+  "durationSeconds": zod.number().nullish(),
+  "recordingUrl": zod.string().nullish(),
+  "recordingSid": zod.string().nullish(),
+  "status": zod.string(),
+  "twilioSid": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+export const ListCommunicationsResponse = zod.array(ListCommunicationsResponseItem)
+
+
+/**
+ * @summary Per-rep communication stats (calls made/received, SMS sent/received, total call duration)
+ */
+export const GetCommunicationMetricsQueryParams = zod.object({
+  "repId": zod.coerce.number().optional(),
+  "startDate": zod.coerce.string().optional(),
+  "endDate": zod.coerce.string().optional()
+})
+
+export const GetCommunicationMetricsResponseItem = zod.object({
+  "userId": zod.number(),
+  "userName": zod.string().nullish(),
+  "callsMade": zod.number(),
+  "callsReceived": zod.number(),
+  "smsSent": zod.number(),
+  "smsReceived": zod.number(),
+  "totalCallDurationMinutes": zod.number()
+})
+export const GetCommunicationMetricsResponse = zod.array(GetCommunicationMetricsResponseItem)
+
+
+/**
  * @summary Request a presigned URL for file upload
  */
 export const RequestUploadUrlBody = zod.object({

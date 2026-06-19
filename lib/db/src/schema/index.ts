@@ -7,4 +7,5 @@ export * from "./documents";
 export * from "./leadStatusHistory";
 export * from "./leadAssignmentHistory";
 export * from "./activityLog";
+export * from "./communications";
 export * from "./relations";

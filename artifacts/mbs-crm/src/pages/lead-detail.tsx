@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useParams, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,7 @@ import {
   useUploadDocument, downloadDocument,
   useListLeadActivity, getListLeadActivityQueryKey,
   useGetMe, useAssignLead, useListUsers,
+  useListCommunications, getListCommunicationsQueryKey, useSendSms,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,12 +25,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon } from "lucide-react";
+import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "recharts";
+import { Label } from "@/components/ui/label";
+import { SoftphoneContext } from "@/components/softphone-context";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -407,6 +409,135 @@ function LeadActivity({ leadId }: { leadId: number }) {
   );
 }
 
+// Communications Tab
+function LeadCommunications({ leadId, leadPhone }: { leadId: number; leadPhone?: string | null }) {
+  const { dial } = useContext(SoftphoneContext);
+  const { data: comms, isLoading } = useListCommunications(leadId, { query: { queryKey: getListCommunicationsQueryKey(leadId) } });
+  const sendSms = useSendSms();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [smsBody, setSmsBody] = useState("");
+
+  const handleSendSms = () => {
+    if (!smsBody.trim()) return;
+    sendSms.mutate({ id: leadId, data: { body: smsBody.trim() } }, {
+      onSuccess: () => {
+        setSmsBody("");
+        toast({ title: "SMS Sent" });
+        queryClient.invalidateQueries({ queryKey: getListCommunicationsQueryKey(leadId) });
+        queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to send SMS", description: err?.message ?? "Twilio may not be configured.", variant: "destructive" });
+      },
+    });
+  };
+
+  if (isLoading) return <div className="mt-4 space-y-3"><Skeleton className="h-16 w-full"/><Skeleton className="h-16 w-full"/></div>;
+
+  return (
+    <div className="space-y-4 mt-4">
+      {/* Call button */}
+      {leadPhone && (
+        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <Phone className="h-4 w-4 text-blue-700" />
+          <span className="text-sm font-medium text-blue-900 font-mono">{leadPhone}</span>
+          <Button
+            size="sm"
+            className="ml-auto bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
+            onClick={() => { dial(leadPhone); }}
+          >
+            <PhoneCall className="h-3 w-3 mr-1" /> Call
+          </Button>
+        </div>
+      )}
+
+      {/* Thread */}
+      <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+        {!comms || comms.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg text-sm">
+            No communications yet.
+          </div>
+        ) : (
+          comms.map((c) => {
+            const isOutbound = c.direction === "outbound";
+            const isCall = c.type === "call";
+            return (
+              <div
+                key={c.id}
+                className={`flex gap-3 rounded-xl p-3 border text-sm ${isOutbound ? "bg-blue-50 border-blue-100" : "bg-slate-50 border-slate-200"}`}
+              >
+                <div className="flex-shrink-0 mt-0.5">
+                  {isCall ? (
+                    isOutbound
+                      ? <ArrowUpRight className="h-4 w-4 text-blue-600" />
+                      : <ArrowDownLeft className="h-4 w-4 text-slate-600" />
+                  ) : (
+                    isOutbound
+                      ? <ArrowUpRight className="h-4 w-4 text-blue-600" />
+                      : <ArrowDownLeft className="h-4 w-4 text-slate-600" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium capitalize">{c.type}</span>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                      {c.direction}
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 capitalize">
+                      {c.status}
+                    </Badge>
+                    {isCall && c.durationSeconds != null && (
+                      <span className="text-xs text-muted-foreground">
+                        {Math.floor(c.durationSeconds / 60)}m {c.durationSeconds % 60}s
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {format(new Date(c.createdAt), "MMM d, h:mm a")}
+                    </span>
+                  </div>
+                  {c.body && (
+                    <p className="mt-1 text-sm text-slate-700 break-words">{c.body}</p>
+                  )}
+                  {c.recordingUrl && (
+                    <audio controls className="mt-2 w-full h-8" src={c.recordingUrl} />
+                  )}
+                  {c.user && (
+                    <p className="mt-1 text-xs text-muted-foreground">via {c.user.name ?? c.user.email}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* SMS compose */}
+      <div className="border-t pt-3">
+        <div className="flex gap-2">
+          <Textarea
+            value={smsBody}
+            onChange={(e) => setSmsBody(e.target.value)}
+            placeholder="Type an SMS message…"
+            className="min-h-[64px] text-sm resize-none flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSendSms();
+            }}
+          />
+          <Button
+            onClick={handleSendSms}
+            disabled={!smsBody.trim() || sendSms.isPending}
+            className="self-end bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+          >
+            <MessageSquare className="h-4 w-4 mr-1" /> Send
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">Ctrl+Enter to send</p>
+      </div>
+    </div>
+  );
+}
+
 // Edit Form Component
 const editFormSchema = z.object({
   firstName: z.string().min(1, "Required"),
@@ -641,12 +772,13 @@ export default function LeadDetail() {
         {/* Right Column: Tabs */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 bg-white shadow-sm border p-1 h-12">
-              <TabsTrigger value="info" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-4 w-4"/> Info</TabsTrigger>
-              <TabsTrigger value="notes" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileText className="h-4 w-4"/> Notes</TabsTrigger>
-              <TabsTrigger value="tasks" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><CheckSquare className="h-4 w-4"/> Tasks</TabsTrigger>
-              <TabsTrigger value="documents" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileIcon className="h-4 w-4"/> Documents</TabsTrigger>
-              <TabsTrigger value="activity" className="flex gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Clock className="h-4 w-4"/> Activity</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm border p-1 h-12">
+              <TabsTrigger value="info" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><User className="h-3.5 w-3.5"/> Info</TabsTrigger>
+              <TabsTrigger value="notes" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileText className="h-3.5 w-3.5"/> Notes</TabsTrigger>
+              <TabsTrigger value="tasks" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><CheckSquare className="h-3.5 w-3.5"/> Tasks</TabsTrigger>
+              <TabsTrigger value="documents" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileIcon className="h-3.5 w-3.5"/> Docs</TabsTrigger>
+              <TabsTrigger value="communications" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><MessageSquare className="h-3.5 w-3.5"/> Comms</TabsTrigger>
+              <TabsTrigger value="activity" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Clock className="h-3.5 w-3.5"/> Activity</TabsTrigger>
             </TabsList>
             <TabsContent value="info" className="outline-none">
               <LeadInfo lead={lead} leadId={id} />
@@ -659,6 +791,9 @@ export default function LeadDetail() {
             </TabsContent>
             <TabsContent value="documents" className="outline-none">
               <LeadDocuments leadId={id} />
+            </TabsContent>
+            <TabsContent value="communications" className="outline-none">
+              <LeadCommunications leadId={id} leadPhone={lead.phone} />
             </TabsContent>
             <TabsContent value="activity" className="outline-none">
               <LeadActivity leadId={id} />

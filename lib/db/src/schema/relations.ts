@@ -7,6 +7,7 @@ import { tasksTable } from "./tasks";
 import { documentsTable } from "./documents";
 import { leadStatusHistoryTable } from "./leadStatusHistory";
 import { activityLogTable } from "./activityLog";
+import { communicationsTable } from "./communications";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -22,6 +23,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   documents: many(documentsTable),
   statusHistory: many(leadStatusHistoryTable),
   activityLog: many(activityLogTable),
+  communications: many(communicationsTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -30,6 +32,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   tasks: many(tasksTable),
   documents: many(documentsTable),
   activityLog: many(activityLogTable),
+  communications: many(communicationsTable),
 }));
 
 export const companiesRelations = relations(companiesTable, ({ one }) => ({
@@ -90,6 +93,17 @@ export const activityLogRelations = relations(activityLogTable, ({ one }) => ({
   }),
   user: one(usersTable, {
     fields: [activityLogTable.userId],
+    references: [usersTable.id],
+  }),
+}));
+
+export const communicationsRelations = relations(communicationsTable, ({ one }) => ({
+  lead: one(leadsTable, {
+    fields: [communicationsTable.leadId],
+    references: [leadsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [communicationsTable.userId],
     references: [usersTable.id],
   }),
 }));

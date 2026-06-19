@@ -10,6 +10,8 @@ import documentsRouter from "./documents";
 import activityRouter from "./activity";
 import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
+import twilioRouter from "./twilio";
+import communicationsRouter from "./communications";
 
 const router: IRouter = Router();
 
@@ -17,6 +19,8 @@ router.use(healthRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);
+router.use(twilioRouter);
+router.use(communicationsRouter);
 router.use(leadsRouter);
 router.use(notesRouter);
 router.use(tasksRouter);

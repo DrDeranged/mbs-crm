@@ -28,6 +28,10 @@ tags:
     description: Dashboard analytics
   - name: storage
     description: Object storage
+  - name: twilio
+    description: Twilio voice and SMS communication
+  - name: communications
+    description: Lead communication history
 paths:
   /healthz:
     get:
@@ -599,6 +603,188 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MyTasksSummary"
+
+  /twilio/token:
+    post:
+      operationId: getTwilioToken
+      tags: [twilio]
+      summary: Generate a Twilio Access Token for the Voice SDK (browser softphone)
+      responses:
+        "200":
+          description: Twilio access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwilioTokenResponse"
+        "401":
+          description: Unauthorized
+        "503":
+          description: Twilio not configured
+
+  /twilio/voice:
+    post:
+      operationId: twilioVoiceTwiml
+      tags: [twilio]
+      summary: TwiML endpoint — Twilio calls this when browser initiates an outbound call
+      responses:
+        "200":
+          description: TwiML XML response
+          content:
+            application/xml:
+              schema:
+                type: string
+
+  /twilio/voice/inbound:
+    post:
+      operationId: twilioVoiceInbound
+      tags: [twilio]
+      summary: Inbound call TwiML — routes caller to assigned rep or default admin
+      responses:
+        "200":
+          description: TwiML XML response
+          content:
+            application/xml:
+              schema:
+                type: string
+
+  /twilio/voice/status:
+    post:
+      operationId: twilioVoiceStatus
+      tags: [twilio]
+      summary: Call status callback from Twilio — updates communication record
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /twilio/voice/recording:
+    post:
+      operationId: twilioVoiceRecording
+      tags: [twilio]
+      summary: Recording ready webhook — saves recording URL to communication record
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /twilio/sms/inbound:
+    post:
+      operationId: twilioSmsInbound
+      tags: [twilio]
+      summary: Inbound SMS webhook from Twilio
+      responses:
+        "200":
+          description: TwiML XML response
+          content:
+            application/xml:
+              schema:
+                type: string
+
+  /twilio/sms/status:
+    post:
+      operationId: twilioSmsStatus
+      tags: [twilio]
+      summary: SMS delivery status callback from Twilio
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /leads/{id}/sms:
+    post:
+      operationId: sendSms
+      tags: [communications]
+      summary: Send an outbound SMS to the lead's phone number
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmsInput"
+      responses:
+        "201":
+          description: SMS sent and logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Communication"
+        "400":
+          description: No phone number on lead
+        "503":
+          description: Twilio not configured
+
+  /leads/{id}/communications:
+    get:
+      operationId: listCommunications
+      tags: [communications]
+      summary: List all calls and SMS for a lead, chronologically
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Communications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Communication"
+
+  /metrics/communications:
+    get:
+      operationId: getCommunicationMetrics
+      tags: [communications]
+      summary: Per-rep communication stats (calls made/received, SMS sent/received, total call duration)
+      parameters:
+        - name: repId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Communication metrics per rep
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunicationMetrics"
 
   /storage/uploads/request-url:
     post:
@@ -1174,3 +1360,81 @@ components:
           type: string
         fileKey:
           type: string
+
+    TwilioTokenResponse:
+      type: object
+      required: [token, identity]
+      properties:
+        token:
+          type: string
+        identity:
+          type: string
+
+    SmsInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+
+    Communication:
+      type: object
+      required: [id, type, direction, status, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: ["integer", "null"]
+        userId:
+          type: ["integer", "null"]
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        type:
+          type: string
+          enum: [call, sms]
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        fromNumber:
+          type: ["string", "null"]
+        toNumber:
+          type: ["string", "null"]
+        body:
+          type: ["string", "null"]
+        durationSeconds:
+          type: ["integer", "null"]
+        recordingUrl:
+          type: ["string", "null"]
+        recordingSid:
+          type: ["string", "null"]
+        status:
+          type: string
+        twilioSid:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CommunicationMetrics:
+      type: object
+      required: [userId, callsMade, callsReceived, smsSent, smsReceived, totalCallDurationMinutes]
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        callsMade:
+          type: integer
+        callsReceived:
+          type: integer
+        smsSent:
+          type: integer
+        smsReceived:
+          type: integer
+        totalCallDurationMinutes:
+          type: number
