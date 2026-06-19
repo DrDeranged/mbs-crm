@@ -18,7 +18,9 @@ import {
   useSendEmail, useListEmailTemplates, usePreviewEmailTemplate,
   useGetLeadDripEnrollment, getGetLeadDripEnrollmentQueryKey,
   useEnrollLeadInDrip, useUnenrollLeadFromDrip, useListDripSequences,
-  useRunLenderMatch, useGetLenderMatches, useGetLeadSubmissions, useCreateLeadSubmission, useUpdateSubmission,
+  useRunLenderMatch, useGetLenderMatches, getGetLenderMatchesQueryKey,
+  useGetLeadSubmissions, getGetLeadSubmissionsQueryKey,
+  useCreateLeadSubmission, useUpdateSubmission,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -939,7 +941,7 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
     runMatch.mutate({ id: leadId }, {
       onSuccess: (data: any) => {
         toast({ title: `Matched ${data.matchCount ?? 0} lenders` });
-        queryClient.invalidateQueries({ queryKey: ["getLenderMatches", leadId] });
+        queryClient.invalidateQueries({ queryKey: getGetLenderMatchesQueryKey(leadId) });
       },
       onError: () => toast({ title: "Match failed", variant: "destructive" }),
     });
@@ -950,7 +952,7 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
     createSub.mutate({ id: leadId, data: { lender_id: pendingLender.id } as any }, {
       onSuccess: () => {
         toast({ title: `Submitted to ${pendingLender.name}` });
-        queryClient.invalidateQueries({ queryKey: ["getLeadSubmissions", leadId] });
+        queryClient.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) });
         setPendingLender(null);
       },
       onError: () => {
@@ -963,7 +965,7 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
   const handleStatusUpdate = (subId: number, status: string) => {
     updateSub.mutate({ id: subId, data: { status } as any }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["getLeadSubmissions", leadId] });
+        queryClient.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) });
       },
     });
   };
@@ -1128,9 +1130,14 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
           <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Submissions</h4>
           {submissions.map((s: any) => (
             <div key={s.id} className="flex items-center justify-between rounded-lg border p-2.5 text-sm bg-white">
-              <div>
+              <div className="min-w-0">
                 <span className="font-medium">{s.lender?.name ?? `Lender #${s.lenderId}`}</span>
                 <p className="text-xs text-muted-foreground">{format(new Date(s.submittedAt), "MMM d, h:mm a")}</p>
+                {s.responseNotes && (
+                  <p className="text-xs text-slate-600 mt-0.5 italic truncate" title={s.responseNotes}>
+                    {s.responseNotes}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusColor[s.status] ?? "bg-slate-50 text-slate-500"}`}>

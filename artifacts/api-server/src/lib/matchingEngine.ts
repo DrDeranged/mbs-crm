@@ -162,9 +162,9 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
   // Sort by weighted score descending
   results.sort((a, b) => b.weightedScore - a.weightedScore);
 
-  // Upsert: delete existing matches and store new results
+  // Always clear prior matches first, then insert new results (even if empty)
+  await db.delete(lenderMatchesTable).where(eq(lenderMatchesTable.leadId, leadId));
   if (results.length > 0) {
-    await db.delete(lenderMatchesTable).where(eq(lenderMatchesTable.leadId, leadId));
     await db.insert(lenderMatchesTable).values(
       results.map((r) => ({
         leadId,
@@ -173,16 +173,16 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
         criteriaBreakdown: r.criteriaBreakdown,
       }))
     );
-
-    // Log activity
-    await db.insert(activityLogTable).values({
-      leadId,
-      action: "lender_match_run",
-      entityType: "lead",
-      entityId: String(leadId),
-      details: { matchCount: results.length, topLender: results[0]?.lenderName },
-    });
   }
+
+  // Log activity
+  await db.insert(activityLogTable).values({
+    leadId,
+    action: "lender_match_run",
+    entityType: "lead",
+    entityId: String(leadId),
+    details: { matchCount: results.length, topLender: results[0]?.lenderName },
+  });
 
   return results;
 }
