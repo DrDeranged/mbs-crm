@@ -1,5 +1,5 @@
-import { useAuth } from "@clerk/clerk-expo";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth, ClerkProvider } from "@clerk/clerk-expo";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -7,14 +7,25 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import { Feather } from "@expo/vector-icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setAuthTokenGetter, setBaseUrl, useUpdateMyPushToken } from "@workspace/api-client-react";
+import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
-import React, { useEffect, useRef } from "react";
-import { Alert, Platform } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  AppState,
+  type AppStateStatus,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -37,6 +48,9 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const BIOMETRIC_KEY = "@mbs_biometric_enabled";
+const LOCK_TIMEOUT_MS = 30_000;
 
 function ApiTokenSync() {
   const { getToken, isSignedIn } = useAuth();
@@ -70,7 +84,7 @@ function PushTokenSync() {
         await updatePushToken({ data: { pushToken: tokenData.data } });
         registered.current = true;
       } catch {
-        // non-critical — user can enable in Settings
+        // non-critical
       }
     }
 
@@ -114,7 +128,7 @@ function SyncWorker() {
             if (res.status === 409) {
               Alert.alert(
                 "Sync Conflict",
-                "A queued change conflicted with a server update and was discarded. The server version is kept.",
+                "A queued change conflicted with a server update and was discarded.",
               );
             }
             await removeFromQueue(mutation.id);
@@ -151,6 +165,98 @@ function NotificationResponseHandler() {
 
   return null;
 }
+
+function BiometricGate({ children }: { children: React.ReactNode }) {
+  const [locked, setLocked] = useState(false);
+  const appStateRef = useRef<AppStateStatus>("active");
+  const backgroundedAt = useRef<number | null>(null);
+
+  const attemptUnlock = useCallback(async () => {
+    if (Platform.OS === "web") {
+      setLocked(false);
+      return;
+    }
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Unlock MBS CRM",
+        fallbackLabel: "Use Passcode",
+        disableDeviceFallback: false,
+      });
+      if (result.success) setLocked(false);
+    } catch {
+      // prompt stays visible — user must tap Unlock
+    }
+  }, []);
+
+  useEffect(() => {
+    async function init() {
+      if (Platform.OS === "web") return;
+      const enabled = await AsyncStorage.getItem(BIOMETRIC_KEY);
+      if (enabled === "1") {
+        setLocked(true);
+        attemptUnlock();
+      }
+    }
+    init();
+
+    const sub = AppState.addEventListener("change", async (nextState: AppStateStatus) => {
+      if (
+        appStateRef.current === "active" &&
+        (nextState === "background" || nextState === "inactive")
+      ) {
+        backgroundedAt.current = Date.now();
+      } else if (nextState === "active" && backgroundedAt.current !== null) {
+        const elapsed = Date.now() - backgroundedAt.current;
+        backgroundedAt.current = null;
+        if (elapsed > LOCK_TIMEOUT_MS && Platform.OS !== "web") {
+          const enabled = await AsyncStorage.getItem(BIOMETRIC_KEY);
+          if (enabled === "1") {
+            setLocked(true);
+            attemptUnlock();
+          }
+        }
+      }
+      appStateRef.current = nextState;
+    });
+
+    return () => sub.remove();
+  }, [attemptUnlock]);
+
+  if (locked) {
+    return (
+      <View style={lockStyles.container}>
+        <Feather name="lock" size={48} color="#fff" />
+        <Text style={lockStyles.appName}>MBS CRM</Text>
+        <Text style={lockStyles.subtitle}>Authentication required</Text>
+        <TouchableOpacity onPress={attemptUnlock} style={lockStyles.unlockBtn} activeOpacity={0.8}>
+          <Text style={lockStyles.unlockText}>Unlock</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+const lockStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1F4E79",
+    gap: 8,
+  },
+  appName: { color: "#fff", fontSize: 24, fontWeight: "700", marginTop: 12 },
+  subtitle: { color: "rgba(255,255,255,0.7)", fontSize: 14 },
+  unlockBtn: {
+    marginTop: 28,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 32,
+  },
+  unlockText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+});
 
 function RootLayoutNav() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -205,12 +311,14 @@ export default function RootLayout() {
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <OfflineProvider>
-                  <ApiTokenSync />
-                  <PushTokenSync />
-                  <SyncWorker />
-                  <NotificationResponseHandler />
-                  <RootLayoutNav />
-                  <OfflineBanner />
+                  <BiometricGate>
+                    <ApiTokenSync />
+                    <PushTokenSync />
+                    <SyncWorker />
+                    <NotificationResponseHandler />
+                    <RootLayoutNav />
+                    <OfflineBanner />
+                  </BiometricGate>
                 </OfflineProvider>
               </KeyboardProvider>
             </GestureHandlerRootView>

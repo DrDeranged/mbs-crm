@@ -5,6 +5,7 @@ import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+import { sendPushNotification } from "../lib/pushNotifications";
 
 const router = Router();
 
@@ -311,6 +312,22 @@ router.post("/twilio/sms/inbound", async (req, res) => {
       entityId: comm.id,
       details: { from, body: body.slice(0, 100) },
     });
+
+    // Notify assigned rep of inbound SMS
+    if (lead.assignedRepId) {
+      db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+        .then((rep): void => {
+          if (rep?.pushToken) {
+            sendPushNotification(
+              rep.pushToken,
+              "Inbound SMS",
+              `${from}: ${body.slice(0, 120)}`,
+              { leadId: lead.id },
+            ).catch(() => {});
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   const MessagingResponse = twilio.twiml.MessagingResponse;

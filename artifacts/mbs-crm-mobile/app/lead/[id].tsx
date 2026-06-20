@@ -10,10 +10,11 @@ import {
   useListDocuments,
   useGetLeadFinancials,
 } from "@workspace/api-client-react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -32,6 +33,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { TaskCard } from "@/components/TaskCard";
+import { useOffline } from "@/context/OfflineContext";
 import { useColors } from "@/hooks/useColors";
 
 type Tab = "overview" | "notes" | "tasks" | "activity" | "documents";
@@ -97,8 +99,31 @@ export default function LeadDetailScreen() {
   const { mutateAsync: changeStatus } = useChangeLeadStatus();
   const { data: documents } = useListDocuments(leadId);
   const { data: financialsData } = useGetLeadFinancials(leadId);
+  const { isOnline, queueMutation } = useOffline();
 
-  const leadData = lead as {
+  const [pendingNotes, setPendingNotes] = useState<Array<{ id: string; body: string }>>([]);
+  const [cachedLead, setCachedLead] = useState<unknown>(undefined);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+
+  const CACHE_KEY = `@mbs_lead_${leadId}`;
+
+  useEffect(() => {
+    if (lead && isOnline) {
+      AsyncStorage.setItem(CACHE_KEY, JSON.stringify(lead)).catch(() => {});
+    }
+  }, [lead, isOnline, CACHE_KEY]);
+
+  useEffect(() => {
+    if (!isOnline && !lead) {
+      AsyncStorage.getItem(CACHE_KEY)
+        .then((raw) => { if (raw) setCachedLead(JSON.parse(raw)); })
+        .catch(() => {});
+    }
+  }, [isOnline, lead, CACHE_KEY]);
+
+  const effectiveLead = lead ?? cachedLead;
+
+  const leadData = effectiveLead as {
     id: number;
     firstName?: string | null;
     lastName?: string | null;
@@ -147,6 +172,16 @@ export default function LeadDetailScreen() {
       ...STATUS_OPTIONS.map((s) => ({
         text: formatStatus(s),
         onPress: async () => {
+          if (!isOnline) {
+            await queueMutation({
+              endpoint: `/api/leads/${leadId}/status`,
+              method: "PUT",
+              body: { status: s },
+            });
+            setPendingStatus(s);
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            return;
+          }
           try {
             await changeStatus({ id: leadId, data: { status: s } });
             refetch();
@@ -161,9 +196,24 @@ export default function LeadDetailScreen() {
 
   const handleAddNote = async () => {
     if (!newNoteText.trim()) return;
+    const noteBody = newNoteText.trim();
     setAddingNote(true);
     try {
-      await createNote({ id: leadId, data: { body: newNoteText.trim() } });
+      if (!isOnline) {
+        await queueMutation({
+          endpoint: `/api/leads/${leadId}/notes`,
+          method: "POST",
+          body: { body: noteBody },
+        });
+        setPendingNotes((prev) => [
+          { id: `pending-${Date.now()}`, body: noteBody },
+          ...prev,
+        ]);
+        setNewNoteText("");
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        return;
+      }
+      await createNote({ id: leadId, data: { body: noteBody } });
       setNewNoteText("");
       refetchNotes();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -245,9 +295,19 @@ export default function LeadDetailScreen() {
               {ownerName}
             </Text>
           )}
-          <TouchableOpacity onPress={handleStatusChange} activeOpacity={0.7} style={{ alignSelf: "flex-start", marginTop: 6 }}>
-            <StatusBadge status={leadData.status} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+            <TouchableOpacity onPress={handleStatusChange} activeOpacity={0.7}>
+              <StatusBadge status={pendingStatus ?? leadData.status} />
+            </TouchableOpacity>
+            {pendingStatus && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                <Feather name="upload" size={11} color={colors.warning} />
+                <Text style={{ fontSize: 10, color: colors.warning, fontFamily: "Inter_500Medium" }}>
+                  Pending sync
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
@@ -366,7 +426,17 @@ export default function LeadDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {(notes as NoteItem[] | undefined)?.length === 0 && (
+          {pendingNotes.map((pn) => (
+            <View key={pn.id} style={[styles.noteCard, { backgroundColor: colors.card, borderColor: colors.warning, borderWidth: 1.5 }]}>
+              <Text style={[styles.noteContent, { color: colors.foreground }]}>{pn.body}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
+                <Feather name="upload" size={11} color={colors.warning} />
+                <Text style={[styles.noteMeta, { color: colors.warning }]}>Pending sync — will save when online</Text>
+              </View>
+            </View>
+          ))}
+
+          {(notes as NoteItem[] | undefined)?.length === 0 && pendingNotes.length === 0 && (
             <View style={styles.emptyState}>
               <Feather name="file-text" size={32} color={colors.mutedForeground} />
               <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No notes yet</Text>

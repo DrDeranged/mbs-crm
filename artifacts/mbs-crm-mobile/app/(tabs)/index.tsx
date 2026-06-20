@@ -110,11 +110,11 @@ export default function DashboardScreen() {
   } | undefined;
 
   const tasksData = myTasks as {
-    today?: Array<{ id: number; title: string; dueDate?: string | null; completedAt?: string | null; leadBusinessName?: string | null }>;
+    dueToday?: Array<{ id: number; title: string; dueDate?: string | null; completedAt?: string | null; leadBusinessName?: string | null }>;
     overdue?: Array<{ id: number; title: string; dueDate?: string | null; completedAt?: string | null; leadBusinessName?: string | null }>;
   } | undefined;
 
-  const todayTasks = [...(tasksData?.overdue ?? []), ...(tasksData?.today ?? [])].filter(
+  const todayTasks = [...(tasksData?.overdue ?? []), ...(tasksData?.dueToday ?? [])].filter(
     (t) => !t.completedAt,
   );
 

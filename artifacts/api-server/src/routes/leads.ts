@@ -18,6 +18,7 @@ import {
   CaptureLeadFromWebsiteBody,
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
+import { sendPushNotification } from "../lib/pushNotifications";
 
 const router: IRouter = Router();
 
@@ -327,6 +328,24 @@ router.put("/leads/:id", async (req: Request, res: Response) => {
     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })
     : null;
 
+  // Notify newly assigned rep
+  const newAssignedRepId = (body.data as Record<string, unknown>).assignedRepId as number | undefined;
+  if (
+    newAssignedRepId !== undefined &&
+    newAssignedRepId !== existing.assignedRepId &&
+    rep?.pushToken
+  ) {
+    const leadName = updated.companyName ||
+      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
+      "A lead";
+    sendPushNotification(
+      rep.pushToken,
+      "Lead Assigned to You",
+      `${leadName} has been assigned to you`,
+      { leadId: updated.id },
+    ).catch(() => {});
+  }
+
   res.json(leadToApi(updated, rep));
 });
 
@@ -428,6 +447,20 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   const rep = updated.assignedRepId
     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.assignedRepId) })
     : null;
+
+  // Notify assignee of status change (unless they made it themselves)
+  if (rep?.pushToken && rep.id !== user.id) {
+    const leadName = updated.companyName ||
+      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
+      "A lead";
+    sendPushNotification(
+      rep.pushToken,
+      "Lead Status Updated",
+      `${leadName} → ${body.data.status.replace(/_/g, " ")}`,
+      { leadId: updated.id },
+    ).catch(() => {});
+  }
+
   res.json(leadToApi(updated, rep));
 });
 

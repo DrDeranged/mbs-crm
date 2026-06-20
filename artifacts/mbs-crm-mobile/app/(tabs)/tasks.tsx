@@ -70,12 +70,12 @@ export default function TasksScreen() {
     {
       title: "Today",
       accent: colors.warning,
-      data: ((data as { today?: Task[] } | undefined)?.today ?? []).filter((t) => !t.completedAt),
+      data: ((data as { dueToday?: Task[] } | undefined)?.dueToday ?? []).filter((t) => !t.completedAt),
     },
     {
       title: "This Week",
       accent: colors.primary,
-      data: ((data as { thisWeek?: Task[] } | undefined)?.thisWeek ?? []).filter((t) => !t.completedAt),
+      data: ((data as { dueThisWeek?: Task[] } | undefined)?.dueThisWeek ?? []).filter((t) => !t.completedAt),
     },
   ].filter((s) => s.data.length > 0);
 

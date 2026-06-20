@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { runDripJob } from "./lib/dripJob";
+import { runTaskReminderJob } from "./lib/taskReminderJob";
 
 const rawPort = process.env["PORT"];
 
@@ -30,4 +31,11 @@ app.listen(port, (err) => {
   setInterval(() => {
     runDripJob().catch((err) => logger.error({ err }, "Drip job error"));
   }, DRIP_INTERVAL_MS);
+
+  // Task reminder push notifications — checks every hour, fires at 9 AM
+  const REMINDER_INTERVAL_MS = 60 * 60 * 1000;
+  runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder startup error"));
+  setInterval(() => {
+    runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder job error"));
+  }, REMINDER_INTERVAL_MS);
 });
