@@ -75,6 +75,26 @@ paths:
         "401":
           description: Unauthorized
 
+  /me/push-token:
+    put:
+      operationId: updateMyPushToken
+      tags: [auth]
+      summary: Store or clear Expo push notification token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pushToken:
+                  type: ["string", "null"]
+      responses:
+        "204":
+          description: Token stored
+        "401":
+          description: Unauthorized
+
   /me/mobile:
     put:
       operationId: updateMyMobile

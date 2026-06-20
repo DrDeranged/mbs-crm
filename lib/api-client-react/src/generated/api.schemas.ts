@@ -976,6 +976,11 @@ export interface FinancialsResponse {
   summary?: FinancialsSummary | null;
 }
 
+export type UpdateMyPushTokenBody = {
+  /** @nullable */
+  pushToken?: string | null;
+};
+
 export type UpdateMyMobileBody = {
   /** @nullable */
   mobileNumber?: string | null;

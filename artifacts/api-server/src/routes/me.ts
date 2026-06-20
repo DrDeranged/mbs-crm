@@ -28,4 +28,19 @@ router.put("/me/mobile", async (req: Request, res: Response) => {
   res.json(userToApi(updated!));
 });
 
+// PUT /api/me/push-token — store or clear Expo push notification token
+router.put("/me/push-token", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const { pushToken } = req.body as { pushToken?: string | null };
+
+  await db
+    .update(usersTable)
+    .set({ pushToken: pushToken?.trim() || null, updatedAt: new Date() })
+    .where(eq(usersTable.id, user.id));
+
+  res.status(204).end();
+});
+
 export default router;

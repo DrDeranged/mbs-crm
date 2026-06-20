@@ -32,6 +32,14 @@ export const GetMeResponse = zod.object({
 
 
 /**
+ * @summary Store or clear Expo push notification token
+ */
+export const UpdateMyPushTokenBody = zod.object({
+  "pushToken": zod.string().nullish()
+})
+
+
+/**
  * @summary Update current user's call-forwarding mobile number
  */
 export const UpdateMyMobileBody = zod.object({

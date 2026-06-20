@@ -10,6 +10,7 @@ export const usersTable = pgTable("users", {
   role: text("role", { enum: ["admin", "manager", "rep"] }).notNull().default("rep"),
   isActive: boolean("is_active").notNull().default(true),
   mobileNumber: text("mobile_number"),
+  pushToken: text("push_token"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

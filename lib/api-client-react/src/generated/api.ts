@@ -101,6 +101,7 @@ import type {
   TwilioVoiceRecording200,
   TwilioVoiceStatus200,
   UpdateMyMobileBody,
+  UpdateMyPushTokenBody,
   UpdateSubmissionBody,
   UploadDocumentBody,
   UploadUrlRequest,
@@ -275,6 +276,77 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
 
 
 
+
+export const getUpdateMyPushTokenUrl = () => {
+
+
+
+
+  return `/api/me/push-token`
+}
+
+/**
+ * @summary Store or clear Expo push notification token
+ */
+export const updateMyPushToken = async (updateMyPushTokenBody: UpdateMyPushTokenBody, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateMyPushTokenUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateMyPushTokenBody,)
+  }
+);}
+
+
+
+
+export const getUpdateMyPushTokenMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyPushToken>>, TError,{data: BodyType<UpdateMyPushTokenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyPushToken>>, TError,{data: BodyType<UpdateMyPushTokenBody>}, TContext> => {
+
+const mutationKey = ['updateMyPushToken'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyPushToken>>, {data: BodyType<UpdateMyPushTokenBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMyPushToken(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMyPushTokenMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyPushToken>>>
+    export type UpdateMyPushTokenMutationBody = BodyType<UpdateMyPushTokenBody>
+    export type UpdateMyPushTokenMutationError = ErrorType<void>
+
+    /**
+ * @summary Store or clear Expo push notification token
+ */
+export const useUpdateMyPushToken = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyPushToken>>, TError,{data: BodyType<UpdateMyPushTokenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMyPushToken>>,
+        TError,
+        {data: BodyType<UpdateMyPushTokenBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateMyPushTokenMutationOptions(options));
+    }
 
 export const getUpdateMyMobileUrl = () => {
 

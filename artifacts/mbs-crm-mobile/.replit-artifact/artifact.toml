@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/mbs-crm-mobile/"
+title = "MBS CRM Mobile"
+version = "1.0.0"
+id = "artifacts/mbs-crm-mobile"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/mbs-crm-mobile/" ]
+localPort = 21300
+
+[services.development]
+run = "pnpm --filter @workspace/mbs-crm-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mbs-crm-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/mbs-crm-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "21300"
+BASE_PATH = "/mbs-crm-mobile/"
