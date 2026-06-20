@@ -13,6 +13,7 @@ import {
   Zap,
   Building2,
   Megaphone,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -104,6 +105,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
                 Administration
               </div>
+              {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
             </>
           )}

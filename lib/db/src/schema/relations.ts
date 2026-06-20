@@ -16,6 +16,7 @@ import { emailSendsTable } from "./emailSends";
 import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
+import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -189,6 +190,18 @@ export const applicationsRelations = relations(applicationsTable, ({ one }) => (
 export const bankStatementExtractionsRelations = relations(bankStatementExtractionsTable, ({ one }) => ({
   lead: one(leadsTable, { fields: [bankStatementExtractionsTable.leadId], references: [leadsTable.id] }),
   document: one(documentsTable, { fields: [bankStatementExtractionsTable.documentId], references: [documentsTable.id] }),
+}));
+
+export const creditPullsRelations = relations(creditPullsTable, ({ one, many }) => ({
+  lead: one(leadsTable, { fields: [creditPullsTable.leadId], references: [leadsTable.id] }),
+  pulledByUser: one(usersTable, { fields: [creditPullsTable.pulledBy], references: [usersTable.id] }),
+  complianceLogs: many(creditComplianceLogTable),
+}));
+
+export const creditComplianceLogRelations = relations(creditComplianceLogTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [creditComplianceLogTable.leadId], references: [leadsTable.id] }),
+  user: one(usersTable, { fields: [creditComplianceLogTable.userId], references: [usersTable.id] }),
+  creditPull: one(creditPullsTable, { fields: [creditComplianceLogTable.creditPullId], references: [creditPullsTable.id] }),
 }));
 
 export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) => ({

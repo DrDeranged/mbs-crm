@@ -1208,6 +1208,111 @@ export const GetCommunicationMetricsResponse = zod.array(GetCommunicationMetrics
 
 
 /**
+ * @summary Capture applicant consent for a credit inquiry
+ */
+export const CaptureCreditConsentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CaptureCreditConsentBody = zod.object({
+  "consentType": zod.enum(['credit_pull']),
+  "agreed": zod.literal(true)
+})
+
+
+/**
+ * @summary Initiate a soft or hard credit pull via Experian (requires valid consent within 30 days)
+ */
+export const PullCreditReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PullCreditReportBody = zod.object({
+  "pullType": zod.enum(['soft', 'hard'])
+})
+
+
+/**
+ * @summary List all credit pull results for a lead (parsed summaries only — no raw Experian data)
+ */
+export const GetLeadCreditParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadCreditResponseItem = zod.object({
+  "id": zod.number().optional(),
+  "pullType": zod.enum(['soft', 'hard']).optional(),
+  "status": zod.enum(['pending', 'completed', 'error']).optional(),
+  "creditScore": zod.number().nullish(),
+  "reportSummary": zod.union([zod.object({
+  "tradelineSummary": zod.array(zod.object({
+  "creditor": zod.string().optional(),
+  "balance": zod.number().nullish(),
+  "status": zod.string().optional(),
+  "paymentHistory": zod.string().optional()
+})).optional(),
+  "inquiryCount": zod.number().optional(),
+  "derogatoryCount": zod.number().optional(),
+  "publicRecordsCount": zod.number().optional(),
+  "tradelineCount": zod.number().optional()
+}),zod.null()]).optional(),
+  "errorMessage": zod.string().nullish(),
+  "pulledBy": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional()
+}),zod.null()]).optional(),
+  "consentCapturedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date().optional()
+})
+export const GetLeadCreditResponse = zod.array(GetLeadCreditResponseItem)
+
+
+/**
+ * @summary Admin-only paginated credit compliance log — read-only, no edit or delete
+ */
+export const getCreditComplianceLogQueryPageDefault = 1;
+export const getCreditComplianceLogQueryLimitDefault = 25;
+
+export const GetCreditComplianceLogQueryParams = zod.object({
+  "page": zod.coerce.number().default(getCreditComplianceLogQueryPageDefault),
+  "limit": zod.coerce.number().default(getCreditComplianceLogQueryLimitDefault),
+  "startDate": zod.coerce.string().optional(),
+  "endDate": zod.coerce.string().optional(),
+  "repId": zod.coerce.number().optional()
+})
+
+export const GetCreditComplianceLogResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number().optional(),
+  "leadId": zod.number().optional(),
+  "leadName": zod.string().optional(),
+  "pulledBy": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional()
+}),zod.null()]).optional(),
+  "date": zod.coerce.date().optional(),
+  "pullType": zod.enum(['soft', 'hard', 'null']).nullish(),
+  "score": zod.number().nullish(),
+  "permissiblePurpose": zod.string().optional()
+})).optional(),
+  "total": zod.number().optional(),
+  "page": zod.number().optional(),
+  "limit": zod.number().optional(),
+  "pages": zod.number().optional()
+})
+
+
+/**
+ * @summary Admin-only CSV export of credit compliance log
+ */
+export const ExportCreditComplianceLogQueryParams = zod.object({
+  "startDate": zod.coerce.string().optional(),
+  "endDate": zod.coerce.string().optional(),
+  "repId": zod.coerce.number().optional()
+})
+
+
+/**
  * @summary List all lenders (managers/admins only)
  */
 export const ListLendersResponseItem = zod.object({

@@ -976,6 +976,97 @@ export interface FinancialsResponse {
   summary?: FinancialsSummary | null;
 }
 
+export interface CreditTradeline {
+  creditor?: string;
+  /** @nullable */
+  balance?: number | null;
+  status?: string;
+  paymentHistory?: string;
+}
+
+export interface CreditReportSummary {
+  tradelineSummary?: CreditTradeline[];
+  inquiryCount?: number;
+  derogatoryCount?: number;
+  publicRecordsCount?: number;
+  tradelineCount?: number;
+}
+
+export type CreditPullResultPullType = typeof CreditPullResultPullType[keyof typeof CreditPullResultPullType];
+
+
+export const CreditPullResultPullType = {
+  soft: 'soft',
+  hard: 'hard',
+} as const;
+
+export type CreditPullResultStatus = typeof CreditPullResultStatus[keyof typeof CreditPullResultStatus];
+
+
+export const CreditPullResultStatus = {
+  pending: 'pending',
+  completed: 'completed',
+  error: 'error',
+} as const;
+
+export type CreditPullResultPulledBy = {
+  id?: number;
+  name?: string;
+} | null;
+
+export interface CreditPullResult {
+  id?: number;
+  pullType?: CreditPullResultPullType;
+  status?: CreditPullResultStatus;
+  /** @nullable */
+  creditScore?: number | null;
+  reportSummary?: CreditReportSummary | null;
+  /** @nullable */
+  errorMessage?: string | null;
+  pulledBy?: CreditPullResultPulledBy;
+  /** @nullable */
+  consentCapturedAt?: string | null;
+  createdAt?: string;
+}
+
+export type CreditComplianceEntryPulledBy = {
+  id?: number;
+  name?: string;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CreditComplianceEntryPullType = typeof CreditComplianceEntryPullType[keyof typeof CreditComplianceEntryPullType] | null;
+
+
+export const CreditComplianceEntryPullType = {
+  soft: 'soft',
+  hard: 'hard',
+  null: 'null',
+} as const;
+
+export interface CreditComplianceEntry {
+  id?: number;
+  leadId?: number;
+  leadName?: string;
+  pulledBy?: CreditComplianceEntryPulledBy;
+  date?: string;
+  /** @nullable */
+  pullType?: CreditComplianceEntryPullType;
+  /** @nullable */
+  score?: number | null;
+  permissiblePurpose?: string;
+}
+
+export interface CreditComplianceLogResponse {
+  data?: CreditComplianceEntry[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
+}
+
 export type UpdateMyPushTokenBody = {
   /** @nullable */
   pushToken?: string | null;
@@ -1128,6 +1219,48 @@ export type GetCommunicationMetricsParams = {
 repId?: number;
 startDate?: string;
 endDate?: string;
+};
+
+export type CaptureCreditConsentBodyConsentType = typeof CaptureCreditConsentBodyConsentType[keyof typeof CaptureCreditConsentBodyConsentType];
+
+
+export const CaptureCreditConsentBodyConsentType = {
+  credit_pull: 'credit_pull',
+} as const;
+
+export type CaptureCreditConsentBody = {
+  consentType: CaptureCreditConsentBodyConsentType;
+  agreed: true;
+};
+
+export type CaptureCreditConsent201 = {
+  consentId?: number;
+};
+
+export type PullCreditReportBodyPullType = typeof PullCreditReportBodyPullType[keyof typeof PullCreditReportBodyPullType];
+
+
+export const PullCreditReportBodyPullType = {
+  soft: 'soft',
+  hard: 'hard',
+} as const;
+
+export type PullCreditReportBody = {
+  pullType: PullCreditReportBodyPullType;
+};
+
+export type GetCreditComplianceLogParams = {
+page?: number;
+limit?: number;
+startDate?: string;
+endDate?: string;
+repId?: number;
+};
+
+export type ExportCreditComplianceLogParams = {
+startDate?: string;
+endDate?: string;
+repId?: number;
 };
 
 export type RunLenderMatch200 = {

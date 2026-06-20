@@ -21,6 +21,7 @@ import DripSequences from "@/pages/drip-sequences";
 import LenderManagement from "@/pages/lender-management";
 import FlyerTemplates from "@/pages/flyer-templates";
 import ApplyPage from "@/pages/apply";
+import CreditCompliance from "@/pages/credit-compliance";
 
 const queryClient = new QueryClient();
 
@@ -200,6 +201,9 @@ function AppRoutes() {
               <ProtectedRoute component={FlyerTemplates} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
+            <Route path="/credit/compliance">
+              <ProtectedRoute component={CreditCompliance} />
+            </Route>
             <Route component={NotFound} />
           </Switch>
           <Toaster />

@@ -28,10 +28,14 @@ import type {
   AssignLead,
   BulkEmailInput,
   BulkEmailResult,
+  CaptureCreditConsent201,
+  CaptureCreditConsentBody,
   CommActivity,
   Communication,
   CommunicationMetrics,
   CreateLeadSubmissionBody,
+  CreditComplianceLogResponse,
+  CreditPullResult,
   DashboardSummary,
   Document,
   DownloadUrlResponse,
@@ -48,6 +52,7 @@ import type {
   EmailTemplate,
   EmailTemplateInput,
   EnrollLeadInDripBody,
+  ExportCreditComplianceLogParams,
   FinancialsResponse,
   FlyerTemplate,
   FlyerTemplateInput,
@@ -60,6 +65,7 @@ import type {
   GetAnalyticsSourcesParams,
   GetAnalyticsSummaryParams,
   GetCommunicationMetricsParams,
+  GetCreditComplianceLogParams,
   HealthStatus,
   ImportLeadsBody,
   ImportPreviewResult,
@@ -86,6 +92,7 @@ import type {
   PreviewEmailTemplate200,
   PreviewEmailTemplateBody,
   PreviewImportBody,
+  PullCreditReportBody,
   RepDashboard,
   RepPerformance,
   RunLenderMatch200,
@@ -3677,6 +3684,395 @@ export function useGetCommunicationMetrics<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetCommunicationMetricsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCaptureCreditConsentUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/credit/consent`
+}
+
+/**
+ * @summary Capture applicant consent for a credit inquiry
+ */
+export const captureCreditConsent = async (id: number,
+    captureCreditConsentBody: CaptureCreditConsentBody, options?: RequestInit): Promise<CaptureCreditConsent201> => {
+
+  return customFetch<CaptureCreditConsent201>(getCaptureCreditConsentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      captureCreditConsentBody,)
+  }
+);}
+
+
+
+
+export const getCaptureCreditConsentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureCreditConsent>>, TError,{id: number;data: BodyType<CaptureCreditConsentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof captureCreditConsent>>, TError,{id: number;data: BodyType<CaptureCreditConsentBody>}, TContext> => {
+
+const mutationKey = ['captureCreditConsent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof captureCreditConsent>>, {id: number;data: BodyType<CaptureCreditConsentBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  captureCreditConsent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CaptureCreditConsentMutationResult = NonNullable<Awaited<ReturnType<typeof captureCreditConsent>>>
+    export type CaptureCreditConsentMutationBody = BodyType<CaptureCreditConsentBody>
+    export type CaptureCreditConsentMutationError = ErrorType<void>
+
+    /**
+ * @summary Capture applicant consent for a credit inquiry
+ */
+export const useCaptureCreditConsent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureCreditConsent>>, TError,{id: number;data: BodyType<CaptureCreditConsentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof captureCreditConsent>>,
+        TError,
+        {id: number;data: BodyType<CaptureCreditConsentBody>},
+        TContext
+      > => {
+      return useMutation(getCaptureCreditConsentMutationOptions(options));
+    }
+
+export const getPullCreditReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/credit/pull`
+}
+
+/**
+ * @summary Initiate a soft or hard credit pull via Experian (requires valid consent within 30 days)
+ */
+export const pullCreditReport = async (id: number,
+    pullCreditReportBody: PullCreditReportBody, options?: RequestInit): Promise<CreditPullResult> => {
+
+  return customFetch<CreditPullResult>(getPullCreditReportUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      pullCreditReportBody,)
+  }
+);}
+
+
+
+
+export const getPullCreditReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pullCreditReport>>, TError,{id: number;data: BodyType<PullCreditReportBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pullCreditReport>>, TError,{id: number;data: BodyType<PullCreditReportBody>}, TContext> => {
+
+const mutationKey = ['pullCreditReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pullCreditReport>>, {id: number;data: BodyType<PullCreditReportBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  pullCreditReport(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PullCreditReportMutationResult = NonNullable<Awaited<ReturnType<typeof pullCreditReport>>>
+    export type PullCreditReportMutationBody = BodyType<PullCreditReportBody>
+    export type PullCreditReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Initiate a soft or hard credit pull via Experian (requires valid consent within 30 days)
+ */
+export const usePullCreditReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pullCreditReport>>, TError,{id: number;data: BodyType<PullCreditReportBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pullCreditReport>>,
+        TError,
+        {id: number;data: BodyType<PullCreditReportBody>},
+        TContext
+      > => {
+      return useMutation(getPullCreditReportMutationOptions(options));
+    }
+
+export const getGetLeadCreditUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/credit`
+}
+
+/**
+ * @summary List all credit pull results for a lead (parsed summaries only — no raw Experian data)
+ */
+export const getLeadCredit = async (id: number, options?: RequestInit): Promise<CreditPullResult[]> => {
+
+  return customFetch<CreditPullResult[]>(getGetLeadCreditUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadCreditQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/credit`
+    ] as const;
+    }
+
+
+export const getGetLeadCreditQueryOptions = <TData = Awaited<ReturnType<typeof getLeadCredit>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCredit>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadCreditQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadCredit>>> = ({ signal }) => getLeadCredit(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadCredit>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadCreditQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadCredit>>>
+export type GetLeadCreditQueryError = ErrorType<void>
+
+
+/**
+ * @summary List all credit pull results for a lead (parsed summaries only — no raw Experian data)
+ */
+
+export function useGetLeadCredit<TData = Awaited<ReturnType<typeof getLeadCredit>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCredit>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadCreditQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCreditComplianceLogUrl = (params?: GetCreditComplianceLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/credit/compliance-log?${stringifiedParams}` : `/api/credit/compliance-log`
+}
+
+/**
+ * @summary Admin-only paginated credit compliance log — read-only, no edit or delete
+ */
+export const getCreditComplianceLog = async (params?: GetCreditComplianceLogParams, options?: RequestInit): Promise<CreditComplianceLogResponse> => {
+
+  return customFetch<CreditComplianceLogResponse>(getGetCreditComplianceLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCreditComplianceLogQueryKey = (params?: GetCreditComplianceLogParams,) => {
+    return [
+    `/api/credit/compliance-log`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCreditComplianceLogQueryOptions = <TData = Awaited<ReturnType<typeof getCreditComplianceLog>>, TError = ErrorType<void>>(params?: GetCreditComplianceLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreditComplianceLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCreditComplianceLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreditComplianceLog>>> = ({ signal }) => getCreditComplianceLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreditComplianceLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCreditComplianceLogQueryResult = NonNullable<Awaited<ReturnType<typeof getCreditComplianceLog>>>
+export type GetCreditComplianceLogQueryError = ErrorType<void>
+
+
+/**
+ * @summary Admin-only paginated credit compliance log — read-only, no edit or delete
+ */
+
+export function useGetCreditComplianceLog<TData = Awaited<ReturnType<typeof getCreditComplianceLog>>, TError = ErrorType<void>>(
+ params?: GetCreditComplianceLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCreditComplianceLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCreditComplianceLogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExportCreditComplianceLogUrl = (params?: ExportCreditComplianceLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/credit/compliance-log/export?${stringifiedParams}` : `/api/credit/compliance-log/export`
+}
+
+/**
+ * @summary Admin-only CSV export of credit compliance log
+ */
+export const exportCreditComplianceLog = async (params?: ExportCreditComplianceLogParams, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getExportCreditComplianceLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportCreditComplianceLogQueryKey = (params?: ExportCreditComplianceLogParams,) => {
+    return [
+    `/api/credit/compliance-log/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportCreditComplianceLogQueryOptions = <TData = Awaited<ReturnType<typeof exportCreditComplianceLog>>, TError = ErrorType<void>>(params?: ExportCreditComplianceLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportCreditComplianceLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportCreditComplianceLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportCreditComplianceLog>>> = ({ signal }) => exportCreditComplianceLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportCreditComplianceLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportCreditComplianceLogQueryResult = NonNullable<Awaited<ReturnType<typeof exportCreditComplianceLog>>>
+export type ExportCreditComplianceLogQueryError = ErrorType<void>
+
+
+/**
+ * @summary Admin-only CSV export of credit compliance log
+ */
+
+export function useExportCreditComplianceLog<TData = Awaited<ReturnType<typeof exportCreditComplianceLog>>, TError = ErrorType<void>>(
+ params?: ExportCreditComplianceLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportCreditComplianceLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportCreditComplianceLogQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

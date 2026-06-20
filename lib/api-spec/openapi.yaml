@@ -46,6 +46,8 @@ tags:
     description: Flyer template management and PDF generation
   - name: applications
     description: Public application intake and bank statement financials
+  - name: credit
+    description: Credit bureau (Experian) pulls, consent capture, and compliance log
 paths:
   /healthz:
     get:
@@ -1157,6 +1159,183 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CommunicationMetrics"
+
+  /leads/{id}/credit/consent:
+    post:
+      operationId: captureCreditConsent
+      tags: [credit]
+      summary: Capture applicant consent for a credit inquiry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consentType, agreed]
+              properties:
+                consentType:
+                  type: string
+                  enum: [credit_pull]
+                agreed:
+                  type: boolean
+                  enum: [true]
+      responses:
+        "201":
+          description: Consent captured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consentId:
+                    type: integer
+        "400":
+          description: Explicit consent required
+        "401":
+          description: Unauthorized
+        "404":
+          description: Lead not found
+
+  /leads/{id}/credit/pull:
+    post:
+      operationId: pullCreditReport
+      tags: [credit]
+      summary: Initiate a soft or hard credit pull via Experian (requires valid consent within 30 days)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pullType]
+              properties:
+                pullType:
+                  type: string
+                  enum: [soft, hard]
+      responses:
+        "201":
+          description: Credit pull completed — returns parsed summary only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditPullResult"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Lead not found
+        "422":
+          description: No valid consent or no application SSN found
+        "503":
+          description: Experian API credentials not configured
+
+  /leads/{id}/credit:
+    get:
+      operationId: getLeadCredit
+      tags: [credit]
+      summary: List all credit pull results for a lead (parsed summaries only — no raw Experian data)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Credit pull history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditPullResult"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Lead not found
+
+  /credit/compliance-log:
+    get:
+      operationId: getCreditComplianceLog
+      tags: [credit]
+      summary: Admin-only paginated credit compliance log — read-only, no edit or delete
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: repId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated compliance log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditComplianceLogResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin only
+
+  /credit/compliance-log/export:
+    get:
+      operationId: exportCreditComplianceLog
+      tags: [credit]
+      summary: Admin-only CSV export of credit compliance log
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: repId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: CSV file download
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin only
 
   /lenders:
     get:
@@ -3351,3 +3530,111 @@ components:
           oneOf:
             - $ref: "#/components/schemas/FinancialsSummary"
             - type: "null"
+
+    CreditTradeline:
+      type: object
+      properties:
+        creditor:
+          type: string
+        balance:
+          type: ["number", "null"]
+        status:
+          type: string
+        paymentHistory:
+          type: string
+
+    CreditReportSummary:
+      type: object
+      properties:
+        tradelineSummary:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditTradeline"
+        inquiryCount:
+          type: integer
+        derogatoryCount:
+          type: integer
+        publicRecordsCount:
+          type: integer
+        tradelineCount:
+          type: integer
+
+    CreditPullResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        pullType:
+          type: string
+          enum: [soft, hard]
+        status:
+          type: string
+          enum: [pending, completed, error]
+        creditScore:
+          type: ["integer", "null"]
+        reportSummary:
+          oneOf:
+            - $ref: "#/components/schemas/CreditReportSummary"
+            - type: "null"
+        errorMessage:
+          type: ["string", "null"]
+        pulledBy:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+            - type: "null"
+        consentCapturedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CreditComplianceEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        leadName:
+          type: string
+        pulledBy:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+            - type: "null"
+        date:
+          type: string
+          format: date-time
+        pullType:
+          type: ["string", "null"]
+          enum: [soft, hard, "null"]
+        score:
+          type: ["integer", "null"]
+        permissiblePurpose:
+          type: string
+
+    CreditComplianceLogResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditComplianceEntry"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        pages:
+          type: integer

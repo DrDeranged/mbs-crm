@@ -20,6 +20,7 @@ import lendersRouter from "./lenders";
 import flyerTemplatesRouter from "./flyer-templates";
 import flyersRouter from "./flyers";
 import applicationsRouter from "./applications";
+import creditRouter from "./credit";
 
 const router: IRouter = Router();
 
@@ -43,6 +44,7 @@ router.use(lendersRouter);
 router.use(flyerTemplatesRouter);
 router.use(flyersRouter);
 router.use(applicationsRouter);
+router.use(creditRouter);
 router.use(storageRouter);
 
 export default router;
