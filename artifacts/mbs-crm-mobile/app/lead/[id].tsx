@@ -9,6 +9,10 @@ import {
   useChangeLeadStatus,
   useListDocuments,
   useGetLeadFinancials,
+  useGetLenderMatches,
+  useSendSms,
+  useLogOutboundCall,
+  downloadDocument,
 } from "@workspace/api-client-react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
@@ -36,7 +40,7 @@ import { TaskCard } from "@/components/TaskCard";
 import { useOffline } from "@/context/OfflineContext";
 import { useColors } from "@/hooks/useColors";
 
-type Tab = "overview" | "notes" | "tasks" | "activity" | "documents";
+type Tab = "overview" | "notes" | "tasks" | "activity" | "documents" | "lenders";
 
 const STATUS_OPTIONS = [
   "new_lead", "contacted", "application_received",
@@ -99,7 +103,14 @@ export default function LeadDetailScreen() {
   const { mutateAsync: changeStatus } = useChangeLeadStatus();
   const { data: documents } = useListDocuments(leadId);
   const { data: financialsData } = useGetLeadFinancials(leadId);
+  const { data: lenderMatches } = useGetLenderMatches(leadId);
+  const { mutateAsync: sendSms, isPending: sendingSms } = useSendSms();
+  const { mutateAsync: logCall } = useLogOutboundCall();
   const { isOnline, queueMutation } = useOffline();
+
+  const [smsComposing, setSmsComposing] = useState<boolean>(false);
+  const [smsBody, setSmsBody] = useState<string>("");
+  const [openingDocId, setOpeningDocId] = useState<number | null>(null);
 
   const [pendingNotes, setPendingNotes] = useState<Array<{ id: string; body: string }>>([]);
   const [cachedLead, setCachedLead] = useState<unknown>(undefined);
@@ -146,19 +157,43 @@ export default function LeadDetailScreen() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Linking.openURL(`tel:${leadData.phone}`);
     try {
-      await createNote({ id: leadId, data: { body: `📞 Outbound call initiated to ${leadData.phone}` } });
-      refetchNotes();
+      await logCall({ id: leadId, data: { toNumber: leadData.phone } });
     } catch { /* non-critical */ }
   };
 
   const handleSMS = async () => {
     if (!leadData?.phone) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL(`sms:${leadData.phone}`);
+    setSmsComposing(true);
+    setSmsBody("");
+  };
+
+  const handleSendSms = async () => {
+    if (!smsBody.trim()) return;
     try {
-      await createNote({ id: leadId, data: { body: `💬 SMS initiated to ${leadData.phone}` } });
-      refetchNotes();
-    } catch { /* non-critical */ }
+      await sendSms({ id: leadId, data: { body: smsBody.trim() } });
+      setSmsComposing(false);
+      setSmsBody("");
+    } catch {
+      Alert.alert("Error", "Failed to send SMS. Please try again.");
+    }
+  };
+
+  const handleOpenDocument = async (docId: number) => {
+    setOpeningDocId(docId);
+    try {
+      const result = await downloadDocument(docId);
+      const url = (result as { url?: string }).url;
+      if (url) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", "No download URL available.");
+      }
+    } catch {
+      Alert.alert("Error", "Could not open document.");
+    } finally {
+      setOpeningDocId(null);
+    }
   };
 
   const handleEmail = async () => {
@@ -272,12 +307,21 @@ export default function LeadDetailScreen() {
   const ownerName = [leadData.firstName, leadData.lastName].filter(Boolean).join(" ");
   const displayName = leadData.companyName || ownerName || "Unknown Lead";
 
+  const lenderMatchList = lenderMatches as Array<{
+    id: number;
+    matchScore: number;
+    lender?: { id: number; name: string } | null;
+    criteriaBreakdown?: Array<{ criterion: string; passed: boolean; skipped?: boolean; detail?: string }> | null;
+    matchedAt?: string | null;
+  }> | undefined;
+
   const TABS: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "notes", label: `Notes${notes ? ` (${(notes as NoteItem[]).length})` : ""}` },
     { key: "tasks", label: `Tasks${tasks ? ` (${(tasks as unknown[]).length})` : ""}` },
     { key: "activity", label: "Activity" },
     { key: "documents", label: `Docs${documents ? ` (${(documents as unknown[]).length})` : ""}` },
+    { key: "lenders", label: `Lenders${lenderMatchList?.length ? ` (${lenderMatchList.length})` : ""}` },
   ];
 
   return (
@@ -311,7 +355,7 @@ export default function LeadDetailScreen() {
         </View>
       </View>
 
-      <View style={[styles.actionsRow, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View style={[styles.actionsRow, { backgroundColor: colors.card, borderBottomColor: smsComposing ? "transparent" : colors.border }]}>
         {[
           { icon: "phone", label: "Call", onPress: handleCall, enabled: !!leadData.phone },
           { icon: "message-circle", label: "SMS", onPress: handleSMS, enabled: !!leadData.phone },
@@ -331,6 +375,42 @@ export default function LeadDetailScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {smsComposing && (
+        <View style={[styles.smsCompose, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <TextInput
+            style={[styles.smsInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+            placeholder={`Message to ${leadData.phone ?? "lead"}…`}
+            placeholderTextColor={colors.mutedForeground}
+            value={smsBody}
+            onChangeText={setSmsBody}
+            multiline
+            autoFocus
+          />
+          <View style={styles.smsActions}>
+            <TouchableOpacity
+              onPress={() => { setSmsComposing(false); setSmsBody(""); }}
+              style={[styles.smsCancelBtn, { borderColor: colors.border }]}
+            >
+              <Text style={[styles.smsBtnText, { color: colors.mutedForeground }]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSendSms}
+              disabled={!smsBody.trim() || sendingSms}
+              style={[styles.smsSendBtn, { backgroundColor: colors.primary, opacity: smsBody.trim() && !sendingSms ? 1 : 0.4 }]}
+            >
+              {sendingSms ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Feather name="send" size={14} color="#fff" />
+                  <Text style={[styles.smsBtnText, { color: "#fff" }]}>Send SMS</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <View style={[styles.tabBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         {TABS.map((tab) => (
@@ -538,6 +618,67 @@ export default function LeadDetailScreen() {
         </ScrollView>
       )}
 
+      {activeTab === "lenders" && (
+        <ScrollView
+          style={styles.tabContent}
+          contentContainerStyle={{ padding: 16, paddingBottom: bottomPad, gap: 12 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {!lenderMatchList?.length && (
+            <View style={styles.emptyState}>
+              <Feather name="award" size={32} color={colors.mutedForeground} />
+              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No lender matches yet</Text>
+              <Text style={[styles.emptySubText, { color: colors.mutedForeground }]}>
+                Run the matching engine from the web CRM to see ranked lenders
+              </Text>
+            </View>
+          )}
+          {lenderMatchList?.map((match) => (
+            <View key={match.id} style={[styles.lenderCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.lenderCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.lenderName, { color: colors.foreground }]} numberOfLines={1}>
+                    {match.lender?.name ?? "Unknown Lender"}
+                  </Text>
+                  {match.matchedAt && (
+                    <Text style={[styles.lenderMeta, { color: colors.mutedForeground }]}>
+                      Matched {formatDate(match.matchedAt)}
+                    </Text>
+                  )}
+                </View>
+                <View style={[
+                  styles.scoreBadge,
+                  { backgroundColor: match.matchScore >= 80 ? colors.success + "20" : match.matchScore >= 50 ? colors.warning + "20" : colors.destructive + "20" },
+                ]}>
+                  <Text style={[
+                    styles.scoreText,
+                    { color: match.matchScore >= 80 ? colors.success : match.matchScore >= 50 ? colors.warning : colors.destructive },
+                  ]}>
+                    {match.matchScore}%
+                  </Text>
+                </View>
+              </View>
+              {match.criteriaBreakdown && match.criteriaBreakdown.length > 0 && (
+                <View style={styles.criteriaList}>
+                  {match.criteriaBreakdown.slice(0, 4).map((c, i) => (
+                    <View key={i} style={styles.criteriaRow}>
+                      <Feather
+                        name={c.skipped ? "minus" : c.passed ? "check-circle" : "x-circle"}
+                        size={13}
+                        color={c.skipped ? colors.mutedForeground : c.passed ? colors.success : colors.destructive}
+                      />
+                      <Text style={[styles.criteriaText, { color: c.skipped ? colors.mutedForeground : colors.foreground }]} numberOfLines={1}>
+                        {c.criterion}{c.detail ? ` — ${c.detail}` : ""}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
       {activeTab === "documents" && (
         <ScrollView
           style={styles.tabContent}
@@ -558,9 +699,18 @@ export default function LeadDetailScreen() {
             createdAt: string;
             uploader?: { name?: string | null } | null;
           }> | undefined)?.map((doc) => (
-            <View key={doc.id} style={[styles.docCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <TouchableOpacity
+              key={doc.id}
+              onPress={() => handleOpenDocument(doc.id)}
+              activeOpacity={0.7}
+              style={[styles.docCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            >
               <View style={[styles.docIconWrap, { backgroundColor: colors.primary + "15" }]}>
-                <Feather name="file-text" size={20} color={colors.primary} />
+                {openingDocId === doc.id ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Feather name="file-text" size={20} color={colors.primary} />
+                )}
               </View>
               <View style={styles.docInfo}>
                 <Text style={[styles.docName, { color: colors.foreground }]} numberOfLines={1}>
@@ -574,7 +724,8 @@ export default function LeadDetailScreen() {
                   {formatDate(doc.createdAt)}
                 </Text>
               </View>
-            </View>
+              <Feather name="download" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
@@ -659,4 +810,54 @@ const styles = StyleSheet.create({
   activityContent: { flex: 1, paddingTop: 2, gap: 3 },
   activityAction: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
   activityTime: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  emptySubText: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center", maxWidth: 260 },
+  smsCompose: {
+    padding: 14,
+    borderBottomWidth: 1,
+    gap: 10,
+  },
+  smsInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    minHeight: 72,
+    textAlignVertical: "top",
+  },
+  smsActions: {
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "flex-end",
+  },
+  smsCancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  smsSendBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  smsBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  lenderCard: { borderRadius: 12, borderWidth: 1, padding: 14, gap: 10 },
+  lenderCardHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  lenderName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  lenderMeta: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  scoreBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    minWidth: 50,
+    alignItems: "center",
+  },
+  scoreText: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  criteriaList: { gap: 5, paddingTop: 4 },
+  criteriaRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  criteriaText: { fontSize: 12, fontFamily: "Inter_400Regular", flex: 1 },
 });

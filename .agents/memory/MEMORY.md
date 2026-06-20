@@ -4,3 +4,5 @@
 - [Email drip architecture](email-drip-architecture.md) — drip engine auto-enrolls on status change in leads.ts; matching engine should also be hooked to status changes.
 - [pdf-parse ESM interop](pdf-parse-esm.md) — dynamic import workaround needed for pdf-parse v2 in api-server; use `const mod: any = await import("pdf-parse"); const fn = mod.default ?? mod;`.
 - [Pending secrets — add at end](pending-secrets.md) — ENCRYPTION_KEY, TWILIO_API_KEY, TWILIO_API_SECRET, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, TWILIO_TWIML_APP_SID all unset; user will add them manually when ready.
+- [logActivity signature](log-activity.md) — takes one params object (no db arg); leadId is a separate field; entityId is string|number.
+- [OpenAPI inline error responses](openapi-response-refs.md) — spec has no named components/responses; always use inline descriptions for 401/404, never $ref to components/responses.

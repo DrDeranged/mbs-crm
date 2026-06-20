@@ -1123,6 +1123,18 @@ export const SendSmsBody = zod.object({
 
 
 /**
+ * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ */
+export const LogOutboundCallParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const LogOutboundCallBody = zod.object({
+  "toNumber": zod.string().optional()
+})
+
+
+/**
  * @summary List all calls and SMS for a lead, chronologically
  */
 export const ListCommunicationsParams = zod.object({

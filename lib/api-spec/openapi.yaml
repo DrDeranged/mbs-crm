@@ -1046,6 +1046,37 @@ paths:
         "503":
           description: Twilio not configured
 
+  /leads/{id}/calls/log:
+    post:
+      operationId: logOutboundCall
+      tags: [communications]
+      summary: Log an outbound call attempt initiated from mobile (tel-link)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                toNumber:
+                  type: string
+      responses:
+        "201":
+          description: Call logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Communication"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Lead not found
+
   /leads/{id}/communications:
     get:
       operationId: listCommunications

@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useListLeads } from "@workspace/api-client-react";
+import { useListLeads, useGetMe } from "@workspace/api-client-react";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -23,12 +23,14 @@ const CACHE_KEY = "@mbs_leads_cache";
 
 const STATUS_FILTERS = [
   { label: "All", value: "" },
-  { label: "New", value: "new" },
+  { label: "New Lead", value: "new_lead" },
   { label: "Contacted", value: "contacted" },
-  { label: "Application", value: "application" },
+  { label: "App Received", value: "application_received" },
+  { label: "Submitted", value: "submitted_to_underwriting" },
   { label: "Approved", value: "approved" },
   { label: "Funded", value: "funded" },
-  { label: "Lost", value: "lost" },
+  { label: "Follow Up", value: "follow_up" },
+  { label: "Declined", value: "declined" },
 ] as const;
 
 type LeadRecord = {
@@ -48,6 +50,7 @@ export default function LeadsScreen() {
   const router = useRouter();
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [myLeadsOnly, setMyLeadsOnly] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [allLeads, setAllLeads] = useState<LeadRecord[]>([]);
   const [cachedLeads, setCachedLeads] = useState<LeadRecord[]>([]);
@@ -55,6 +58,8 @@ export default function LeadsScreen() {
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const { data: me } = useGetMe();
 
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -69,7 +74,7 @@ export default function LeadsScreen() {
   useEffect(() => {
     setPage(1);
     setAllLeads([]);
-  }, [statusFilter]);
+  }, [statusFilter, myLeadsOnly]);
 
   useEffect(() => {
     AsyncStorage.getItem(CACHE_KEY).then((raw) => {
@@ -80,6 +85,7 @@ export default function LeadsScreen() {
   const { data, isLoading, isFetching, refetch, isError } = useListLeads({
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
+    repId: myLeadsOnly && me ? (me as { id: number }).id : undefined,
     page,
     limit: 25,
   });
@@ -152,6 +158,29 @@ export default function LeadsScreen() {
           keyExtractor={(item) => item.value}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersList}
+          ListHeaderComponent={
+            <TouchableOpacity
+              onPress={() => setMyLeadsOnly((v) => !v)}
+              style={[
+                styles.filterChip,
+                styles.myLeadsChip,
+                {
+                  backgroundColor: myLeadsOnly ? colors.primary : colors.card,
+                  borderColor: myLeadsOnly ? colors.primary : colors.border,
+                },
+              ]}
+            >
+              <Feather name="user" size={11} color={myLeadsOnly ? "#fff" : colors.mutedForeground} />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  { color: myLeadsOnly ? "#fff" : colors.mutedForeground },
+                ]}
+              >
+                My Leads
+              </Text>
+            </TouchableOpacity>
+          }
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => setStatusFilter(item.value)}
@@ -189,10 +218,10 @@ export default function LeadsScreen() {
         <View style={styles.emptyState}>
           <Feather name="users" size={40} color={colors.mutedForeground} />
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-            {search || statusFilter ? "No matching leads" : "No leads yet"}
+            {search || statusFilter || myLeadsOnly ? "No matching leads" : "No leads yet"}
           </Text>
           <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-            {search || statusFilter
+            {search || statusFilter || myLeadsOnly
               ? "Try adjusting your search or filters"
               : "Add your first lead to get started"}
           </Text>
@@ -280,6 +309,11 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 99,
     borderWidth: 1,
+  },
+  myLeadsChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
   filterChipText: {
     fontSize: 13,

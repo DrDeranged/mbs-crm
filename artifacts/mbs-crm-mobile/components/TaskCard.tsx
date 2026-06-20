@@ -27,6 +27,7 @@ interface TaskCardProps {
   onComplete?: (taskId: number) => void;
   isCompleting?: boolean;
   showLead?: boolean;
+  onLeadPress?: (leadId: number) => void;
 }
 
 function formatDueDate(date?: string | null): { label: string; overdue: boolean } {
@@ -53,7 +54,7 @@ function formatDueDate(date?: string | null): { label: string; overdue: boolean 
   };
 }
 
-export function TaskCard({ task, onComplete, isCompleting, showLead }: TaskCardProps) {
+export function TaskCard({ task, onComplete, isCompleting, showLead, onLeadPress }: TaskCardProps) {
   const colors = useColors();
   const isCompleted = !!task.completedAt;
   const { label: dueDateLabel, overdue } = formatDueDate(task.dueDate);
@@ -64,8 +65,18 @@ export function TaskCard({ task, onComplete, isCompleting, showLead }: TaskCardP
     onComplete(task.id);
   };
 
+  const handleLeadPress = async () => {
+    if (!task.leadId || !onLeadPress) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onLeadPress(task.leadId);
+  };
+
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+      onPress={task.leadId && onLeadPress ? handleLeadPress : undefined}
+      activeOpacity={task.leadId && onLeadPress ? 0.7 : 1}
+    >
       <TouchableOpacity
         onPress={handleComplete}
         activeOpacity={0.7}
@@ -96,9 +107,12 @@ export function TaskCard({ task, onComplete, isCompleting, showLead }: TaskCardP
         </Text>
         <View style={styles.metaRow}>
           {showLead && task.leadBusinessName && (
-            <Text style={[styles.meta, { color: colors.mutedForeground }]} numberOfLines={1}>
-              {task.leadBusinessName}
-            </Text>
+            <View style={styles.leadBadgeRow}>
+              <Feather name="briefcase" size={11} color={colors.primary} />
+              <Text style={[styles.meta, { color: colors.primary }]} numberOfLines={1}>
+                {task.leadBusinessName}
+              </Text>
+            </View>
           )}
           {dueDateLabel ? (
             <Text
@@ -112,7 +126,11 @@ export function TaskCard({ task, onComplete, isCompleting, showLead }: TaskCardP
           ) : null}
         </View>
       </View>
-    </View>
+
+      {task.leadId && onLeadPress && (
+        <Feather name="chevron-right" size={16} color={colors.mutedForeground} style={styles.chevron} />
+      )}
+    </TouchableOpacity>
   );
 }
 
@@ -165,8 +183,17 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
   },
+  leadBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
   meta: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
+  },
+  chevron: {
+    marginTop: 2,
+    alignSelf: "center",
   },
 });

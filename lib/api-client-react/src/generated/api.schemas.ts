@@ -1106,6 +1106,10 @@ export type TwilioSmsStatus200 = {
   ok?: boolean;
 };
 
+export type LogOutboundCallBody = {
+  toNumber?: string;
+};
+
 export type GetCommunicationMetricsParams = {
 repId?: number;
 startDate?: string;

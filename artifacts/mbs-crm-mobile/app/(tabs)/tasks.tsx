@@ -1,5 +1,6 @@
 import { useGetMyTasks, useUpdateTask } from "@workspace/api-client-react";
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,6 +36,7 @@ interface Section {
 export default function TasksScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const [completingIds, setCompletingIds] = useState<Set<number>>(new Set());
 
@@ -116,6 +118,7 @@ export default function TasksScreen() {
               onComplete={handleComplete}
               isCompleting={completingIds.has(item.id)}
               showLead
+              onLeadPress={(leadId) => router.push(`/lead/${leadId}`)}
             />
           )}
           renderSectionHeader={({ section }) => (

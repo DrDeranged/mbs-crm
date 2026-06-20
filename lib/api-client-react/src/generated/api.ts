@@ -79,6 +79,7 @@ import type {
   ListFlyerTemplatesParams,
   ListLeadsParams,
   ListUsersParams,
+  LogOutboundCallBody,
   MyTasksSummary,
   Note,
   NoteInput,
@@ -3380,6 +3381,78 @@ export const useSendSms = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getSendSmsMutationOptions(options));
+    }
+
+export const getLogOutboundCallUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/calls/log`
+}
+
+/**
+ * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ */
+export const logOutboundCall = async (id: number,
+    logOutboundCallBody?: LogOutboundCallBody, options?: RequestInit): Promise<Communication> => {
+
+  return customFetch<Communication>(getLogOutboundCallUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      logOutboundCallBody,)
+  }
+);}
+
+
+
+
+export const getLogOutboundCallMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logOutboundCall>>, TError,{id: number;data?: BodyType<LogOutboundCallBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logOutboundCall>>, TError,{id: number;data?: BodyType<LogOutboundCallBody>}, TContext> => {
+
+const mutationKey = ['logOutboundCall'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logOutboundCall>>, {id: number;data?: BodyType<LogOutboundCallBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  logOutboundCall(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogOutboundCallMutationResult = NonNullable<Awaited<ReturnType<typeof logOutboundCall>>>
+    export type LogOutboundCallMutationBody = BodyType<LogOutboundCallBody> | undefined
+    export type LogOutboundCallMutationError = ErrorType<void>
+
+    /**
+ * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ */
+export const useLogOutboundCall = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logOutboundCall>>, TError,{id: number;data?: BodyType<LogOutboundCallBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logOutboundCall>>,
+        TError,
+        {id: number;data?: BodyType<LogOutboundCallBody>},
+        TContext
+      > => {
+      return useMutation(getLogOutboundCallMutationOptions(options));
     }
 
 export const getListCommunicationsUrl = (id: number,) => {

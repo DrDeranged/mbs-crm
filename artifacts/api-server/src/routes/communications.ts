@@ -49,6 +49,46 @@ function commToApi(comm: any) {
   };
 }
 
+// POST /api/leads/:id/calls/log — log an outbound call attempt from mobile
+router.post("/leads/:id/calls/log", async (req, res) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const leadId = parseInt(req.params["id"]!, 10);
+  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+
+  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+  if (!lead) return void res.status(404).json({ error: "Lead not found" });
+
+  if (user.role === "rep" && lead.assignedRepId !== user.id) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
+
+  const { toNumber } = req.body as { toNumber?: string };
+  const phone = toNumber ?? lead.phone ?? undefined;
+
+  const [comm] = await db.insert(communicationsTable).values({
+    leadId,
+    userId: user.id,
+    type: "call",
+    direction: "outbound",
+    fromNumber: undefined,
+    toNumber: phone,
+    status: "attempted",
+  }).returning();
+
+  await logActivity({
+    userId: user.id,
+    leadId,
+    action: "outbound_call_attempted",
+    entityType: "lead",
+    entityId: leadId,
+    details: { toNumber: phone },
+  });
+
+  return void res.status(201).json(commToApi(comm));
+});
+
 // POST /api/leads/:id/sms — send outbound SMS
 router.post("/leads/:id/sms", async (req, res) => {
   const user = await requireUser(req, res);
