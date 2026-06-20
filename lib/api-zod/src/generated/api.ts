@@ -1292,7 +1292,7 @@ export const GetCreditComplianceLogResponse = zod.object({
   "name": zod.string().optional()
 }),zod.null()]).optional(),
   "date": zod.coerce.date().optional(),
-  "pullType": zod.enum(['soft', 'hard', 'null']).nullish(),
+  "pullType": zod.union([zod.enum(['soft', 'hard']),zod.null()]).optional(),
   "score": zod.number().nullish(),
   "permissiblePurpose": zod.string().optional()
 })).optional(),

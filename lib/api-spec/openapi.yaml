@@ -3624,8 +3624,10 @@ components:
           type: string
           format: date-time
         pullType:
-          type: ["string", "null"]
-          enum: [soft, hard, "null"]
+          oneOf:
+            - type: string
+              enum: [soft, hard]
+            - type: "null"
         score:
           type: ["integer", "null"]
         permissiblePurpose:

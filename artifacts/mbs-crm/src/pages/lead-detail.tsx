@@ -1624,7 +1624,10 @@ function LeadCredit({ leadId }: { leadId: number }) {
   const [showConsentFlow, setShowConsentFlow] = useState(false);
 
   const latestPull = pulls?.[0];
-  const hasPulls = pulls && pulls.length > 0 && latestPull?.status === "completed";
+  const lastCompletedPull = pulls?.find((p) => p.status === "completed");
+  const hasPulls = !!lastCompletedPull;
+  const latestIsError = pulls && pulls.length > 0 && latestPull?.status === "error";
+  const displayPull = lastCompletedPull ?? undefined;
 
   const handlePull = async () => {
     if (!consentChecked) return;
@@ -1649,7 +1652,7 @@ function LeadCredit({ leadId }: { leadId: number }) {
     return <div className="mt-4 space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>;
   }
 
-  const summary = latestPull?.reportSummary as {
+  const summary = displayPull?.reportSummary as {
     tradelineSummary?: Array<{ creditor: string; balance: number | null; status: string; paymentHistory: string }>;
     inquiryCount?: number;
     derogatoryCount?: number;
@@ -1716,8 +1719,17 @@ function LeadCredit({ leadId }: { leadId: number }) {
       )}
 
       {/* Latest credit result */}
-      {hasPulls && latestPull && !showConsent && (
+      {hasPulls && displayPull && !showConsent && (
         <>
+          {latestIsError && (
+            <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <XCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <span className="font-semibold text-red-700">Latest pull failed</span>
+                <span className="text-red-600"> — {latestPull?.errorMessage ?? "Unknown error"}. Showing most recent completed report below.</span>
+              </div>
+            </div>
+          )}
           <Card className="shadow-sm">
             <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Latest Credit Score</CardTitle>
@@ -1727,7 +1739,7 @@ function LeadCredit({ leadId }: { leadId: number }) {
             </CardHeader>
             <CardContent className="pt-2">
               <div className="flex flex-col md:flex-row items-center gap-6">
-                {latestPull.creditScore != null && <CreditScoreGauge score={latestPull.creditScore} />}
+                {displayPull.creditScore != null && <CreditScoreGauge score={displayPull.creditScore} />}
                 <div className="grid grid-cols-3 gap-4 flex-1">
                   <div className="text-center p-3 rounded-lg bg-muted/50">
                     <div className="text-2xl font-bold text-foreground">{summary?.inquiryCount ?? 0}</div>
@@ -1744,12 +1756,12 @@ function LeadCredit({ leadId }: { leadId: number }) {
                 </div>
               </div>
               <div className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-                <Badge variant="outline" className={latestPull.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
-                  {latestPull.pullType === "hard" ? "Hard Pull" : "Soft Pull"}
+                <Badge variant="outline" className={displayPull.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
+                  {displayPull.pullType === "hard" ? "Hard Pull" : "Soft Pull"}
                 </Badge>
-                <span>pulled by {(latestPull.pulledBy as { name?: string } | null)?.name ?? "Unknown"}</span>
+                <span>pulled by {(displayPull.pulledBy as { name?: string } | null)?.name ?? "Unknown"}</span>
                 <span>·</span>
-                <span>{format(new Date(latestPull.createdAt!), "MMM d, yyyy 'at' h:mm a")}</span>
+                <span>{format(new Date(displayPull.createdAt!), "MMM d, yyyy 'at' h:mm a")}</span>
               </div>
             </CardContent>
           </Card>
@@ -1795,14 +1807,14 @@ function LeadCredit({ leadId }: { leadId: number }) {
         </>
       )}
 
-      {/* Error state */}
-      {pulls && pulls.length > 0 && latestPull?.status === "error" && (
+      {/* Error state — only when there are no completed pulls to fall back on */}
+      {!hasPulls && latestIsError && (
         <Card className="shadow-sm border-red-100">
           <CardContent className="pt-4 flex items-start gap-3">
             <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold text-sm text-red-700">Last pull failed</div>
-              <div className="text-sm text-muted-foreground mt-0.5">{latestPull.errorMessage ?? "Unknown error"}</div>
+              <div className="text-sm text-muted-foreground mt-0.5">{latestPull?.errorMessage ?? "Unknown error"}</div>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => { setShowConsentFlow(true); setConsentChecked(false); }}>
                 Try Again
               </Button>

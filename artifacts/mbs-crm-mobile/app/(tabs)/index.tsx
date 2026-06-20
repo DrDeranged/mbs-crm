@@ -89,8 +89,7 @@ export default function DashboardScreen() {
   } = useGetDashboardSummary();
   const { data: myTasks, refetch: refetchTasks } = useGetMyTasks();
 
-  const meData = me as { name?: string | null } | undefined;
-  const firstName = meData?.name?.split(" ")[0] ?? "there";
+  const firstName = me?.name?.split(" ")[0] ?? "there";
 
   const summaryData = summary as {
     totalLeads?: number;

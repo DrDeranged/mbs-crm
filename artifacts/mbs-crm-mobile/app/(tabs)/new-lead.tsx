@@ -139,7 +139,8 @@ export default function NewLeadScreen() {
     try {
       const lead = await createLead({ data: payload });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push(`/lead/${(lead as { id: number }).id}`);
+      const created = lead as { id: number };
+      router.push(`/lead/${created.id}`);
     } catch (err: unknown) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const apiErr = err as { response?: { status?: number; data?: { existingLeadId?: number } } };

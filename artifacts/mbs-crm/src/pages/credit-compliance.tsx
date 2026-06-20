@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetMe, useGetCreditComplianceLog, useListUsers } from "@workspace/api-client-react";
+import { useGetMe, useGetCreditComplianceLog, getGetCreditComplianceLogQueryKey, useListUsers } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export default function CreditCompliance() {
     endDate: endDate || undefined,
     repId: repId !== "all" ? Number(repId) : undefined,
     leadId: leadIdFilter ? Number(leadIdFilter) : undefined,
-  });
+  }, { query: { enabled: me?.role === "admin", queryKey: getGetCreditComplianceLogQueryKey({ page, limit: 25, startDate: startDate || undefined, endDate: endDate || undefined, repId: repId !== "all" ? Number(repId) : undefined, leadId: leadIdFilter ? Number(leadIdFilter) : undefined }) } });
 
   if (me && me.role !== "admin") {
     return (

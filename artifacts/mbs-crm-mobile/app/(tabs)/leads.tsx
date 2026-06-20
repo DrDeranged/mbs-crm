@@ -85,7 +85,7 @@ export default function LeadsScreen() {
   const { data, isLoading, isFetching, refetch, isError } = useListLeads({
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
-    repId: myLeadsOnly && me ? (me as { id: number }).id : undefined,
+    repId: myLeadsOnly && me ? me.id : undefined,
     page,
     limit: 25,
   });

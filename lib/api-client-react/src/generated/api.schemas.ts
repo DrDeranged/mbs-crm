@@ -1034,26 +1034,13 @@ export type CreditComplianceEntryPulledBy = {
   name?: string;
 } | null;
 
-/**
- * @nullable
- */
-export type CreditComplianceEntryPullType = typeof CreditComplianceEntryPullType[keyof typeof CreditComplianceEntryPullType] | null;
-
-
-export const CreditComplianceEntryPullType = {
-  soft: 'soft',
-  hard: 'hard',
-  null: 'null',
-} as const;
-
 export interface CreditComplianceEntry {
   id?: number;
   leadId?: number;
   leadName?: string;
   pulledBy?: CreditComplianceEntryPulledBy;
   date?: string;
-  /** @nullable */
-  pullType?: CreditComplianceEntryPullType;
+  pullType?: 'soft' | 'hard' | null;
   /** @nullable */
   score?: number | null;
   permissiblePurpose?: string;
