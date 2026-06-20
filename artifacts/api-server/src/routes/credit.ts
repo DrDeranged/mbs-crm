@@ -137,7 +137,7 @@ async function callExperianApi(params: {
 // ─── POST /api/leads/:id/credit/consent ─────────────────────────────────────
 
 const ConsentBody = z.object({
-  consentType: z.literal("credit_pull"),
+  consent_type: z.literal("credit_pull"),
   agreed: z.literal(true),
 });
 
@@ -173,7 +173,7 @@ router.post("/leads/:id/credit/consent", async (req: Request, res: Response) => 
     userId: user.id,
     action: "consent_given",
     permissiblePurpose: "credit application evaluation",
-    details: { consentType: body.data.consentType, ip: consentIp },
+    details: { consentType: body.data.consent_type, ip: consentIp },
   }).returning();
 
   res.status(201).json({ consentId: entry!.id });
@@ -182,7 +182,7 @@ router.post("/leads/:id/credit/consent", async (req: Request, res: Response) => 
 // ─── POST /api/leads/:id/credit/pull ────────────────────────────────────────
 
 const PullBody = z.object({
-  pullType: z.enum(["soft", "hard"]),
+  pull_type: z.enum(["soft", "hard"]),
 });
 
 router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
@@ -226,7 +226,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   const [pull] = await db.insert(creditPullsTable).values({
     leadId,
     pulledBy: user.id,
-    pullType: body.data.pullType,
+    pullType: body.data.pull_type,
     consentCapturedAt: lead.consentCreditPullAt!,
     consentIp: lead.consentIp,
     status: "pending",
@@ -234,7 +234,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
 
   const requestPayload = {
     leadId,
-    pullType: body.data.pullType,
+    pullType: body.data.pull_type,
     firstName: application.ownerFirstName,
     lastName: application.ownerLastName,
     dob: application.ownerDob,
@@ -267,7 +267,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
       city: application.ownerHomeCity,
       state: application.ownerHomeState,
       zip: application.ownerHomeZip,
-      pullType: body.data.pullType,
+      pullType: body.data.pull_type,
     });
   } catch (err: unknown) {
     const e = err as Error & { statusCode?: number };
@@ -298,7 +298,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
     userId: user.id,
     action: "credit_pull",
     permissiblePurpose: "credit application evaluation",
-    details: { score: creditScore, pullType: body.data.pullType },
+    details: { score: creditScore, pullType: body.data.pull_type },
   });
 
   await logActivity({
@@ -313,7 +313,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   res.status(201).json({
     id: pull!.id,
     creditScore,
-    pullType: body.data.pullType,
+    pullType: body.data.pull_type,
     status: "completed",
     createdAt: pull!.createdAt,
     reportSummary,
@@ -374,6 +374,7 @@ router.get("/credit/compliance-log", async (req: Request, res: Response) => {
   const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
   const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
   const repId = req.query["repId"] ? parseInt(String(req.query["repId"]), 10) : null;
+  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
 
   const conditions = [eq(creditComplianceLogTable.action, "credit_pull")];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(creditComplianceLogTable.createdAt, startDate));
@@ -383,6 +384,7 @@ router.get("/credit/compliance-log", async (req: Request, res: Response) => {
     conditions.push(sql`${creditComplianceLogTable.createdAt} < ${end}`);
   }
   if (repId && !isNaN(repId)) conditions.push(eq(creditComplianceLogTable.userId, repId));
+  if (filterLeadId && !isNaN(filterLeadId)) conditions.push(eq(creditComplianceLogTable.leadId, filterLeadId));
 
   const where = and(...conditions);
 
@@ -428,6 +430,7 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
   const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
   const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
   const repId = req.query["repId"] ? parseInt(String(req.query["repId"]), 10) : null;
+  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
 
   const conditions = [eq(creditComplianceLogTable.action, "credit_pull")];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(creditComplianceLogTable.createdAt, startDate));
@@ -437,6 +440,7 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
     conditions.push(sql`${creditComplianceLogTable.createdAt} < ${end}`);
   }
   if (repId && !isNaN(repId)) conditions.push(eq(creditComplianceLogTable.userId, repId));
+  if (filterLeadId && !isNaN(filterLeadId)) conditions.push(eq(creditComplianceLogTable.leadId, filterLeadId));
 
   const entries = await db.query.creditComplianceLogTable.findMany({
     where: and(...conditions),

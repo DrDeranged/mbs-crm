@@ -29,6 +29,7 @@ export default function CreditCompliance() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [repId, setRepId] = useState<string>("all");
+  const [leadIdFilter, setLeadIdFilter] = useState("");
 
   const { data: users } = useListUsers({ role: "rep" });
 
@@ -38,6 +39,7 @@ export default function CreditCompliance() {
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     repId: repId !== "all" ? Number(repId) : undefined,
+    leadId: leadIdFilter ? Number(leadIdFilter) : undefined,
   });
 
   if (me && me.role !== "admin") {
@@ -57,10 +59,12 @@ export default function CreditCompliance() {
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
     if (repId !== "all") params.set("repId", repId);
+    if (leadIdFilter) params.set("leadId", leadIdFilter);
     window.open(`${apiBase}/credit/compliance-log/export?${params}`, "_blank");
   };
 
   const handleFilter = () => setPage(1);
+  const handleClear = () => { setStartDate(""); setEndDate(""); setRepId("all"); setLeadIdFilter(""); setPage(1); };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -106,10 +110,12 @@ export default function CreditCompliance() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lead ID</label>
+              <Input type="number" placeholder="Any lead" value={leadIdFilter} onChange={(e) => setLeadIdFilter(e.target.value)} className="w-28" />
+            </div>
             <Button onClick={handleFilter} className="bg-[#1F4E79] hover:bg-[#163a5f]">Apply</Button>
-            <Button variant="ghost" onClick={() => { setStartDate(""); setEndDate(""); setRepId("all"); setPage(1); }}>
-              Clear
-            </Button>
+            <Button variant="ghost" onClick={handleClear}>Clear</Button>
           </div>
         </CardContent>
       </Card>

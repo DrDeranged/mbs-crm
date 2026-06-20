@@ -1177,9 +1177,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [consentType, agreed]
+              required: [consent_type, agreed]
               properties:
-                consentType:
+                consent_type:
                   type: string
                   enum: [credit_pull]
                 agreed:
@@ -1219,9 +1219,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [pullType]
+              required: [pull_type]
               properties:
-                pullType:
+                pull_type:
                   type: string
                   enum: [soft, hard]
       responses:
@@ -1295,6 +1295,10 @@ paths:
           in: query
           schema:
             type: integer
+        - name: leadId
+          in: query
+          schema:
+            type: integer
       responses:
         "200":
           description: Paginated compliance log
@@ -1322,6 +1326,10 @@ paths:
           schema:
             type: string
         - name: repId
+          in: query
+          schema:
+            type: integer
+        - name: leadId
           in: query
           schema:
             type: integer

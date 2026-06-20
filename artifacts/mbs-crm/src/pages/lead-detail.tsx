@@ -1630,8 +1630,8 @@ function LeadCredit({ leadId }: { leadId: number }) {
     if (!consentChecked) return;
     setPulling(true);
     try {
-      await captureCreditConsent.mutateAsync({ id: leadId, data: { consentType: "credit_pull", agreed: true } });
-      await pullCreditReport.mutateAsync({ id: leadId, data: { pullType } });
+      await captureCreditConsent.mutateAsync({ id: leadId, data: { consent_type: "credit_pull", agreed: true } });
+      await pullCreditReport.mutateAsync({ id: leadId, data: { pull_type: pullType } });
       await refetch();
       setConsentChecked(false);
       setShowConsentFlow(false);

@@ -1215,7 +1215,7 @@ export const CaptureCreditConsentParams = zod.object({
 })
 
 export const CaptureCreditConsentBody = zod.object({
-  "consentType": zod.enum(['credit_pull']),
+  "consent_type": zod.enum(['credit_pull']),
   "agreed": zod.literal(true)
 })
 
@@ -1228,7 +1228,7 @@ export const PullCreditReportParams = zod.object({
 })
 
 export const PullCreditReportBody = zod.object({
-  "pullType": zod.enum(['soft', 'hard'])
+  "pull_type": zod.enum(['soft', 'hard'])
 })
 
 
@@ -1278,7 +1278,8 @@ export const GetCreditComplianceLogQueryParams = zod.object({
   "limit": zod.coerce.number().default(getCreditComplianceLogQueryLimitDefault),
   "startDate": zod.coerce.string().optional(),
   "endDate": zod.coerce.string().optional(),
-  "repId": zod.coerce.number().optional()
+  "repId": zod.coerce.number().optional(),
+  "leadId": zod.coerce.number().optional()
 })
 
 export const GetCreditComplianceLogResponse = zod.object({
@@ -1308,7 +1309,8 @@ export const GetCreditComplianceLogResponse = zod.object({
 export const ExportCreditComplianceLogQueryParams = zod.object({
   "startDate": zod.coerce.string().optional(),
   "endDate": zod.coerce.string().optional(),
-  "repId": zod.coerce.number().optional()
+  "repId": zod.coerce.number().optional(),
+  "leadId": zod.coerce.number().optional()
 })
 
 

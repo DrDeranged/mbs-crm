@@ -1229,7 +1229,7 @@ export const CaptureCreditConsentBodyConsentType = {
 } as const;
 
 export type CaptureCreditConsentBody = {
-  consentType: CaptureCreditConsentBodyConsentType;
+  consent_type: CaptureCreditConsentBodyConsentType;
   agreed: true;
 };
 
@@ -1246,7 +1246,7 @@ export const PullCreditReportBodyPullType = {
 } as const;
 
 export type PullCreditReportBody = {
-  pullType: PullCreditReportBodyPullType;
+  pull_type: PullCreditReportBodyPullType;
 };
 
 export type GetCreditComplianceLogParams = {
@@ -1255,12 +1255,14 @@ limit?: number;
 startDate?: string;
 endDate?: string;
 repId?: number;
+leadId?: number;
 };
 
 export type ExportCreditComplianceLogParams = {
 startDate?: string;
 endDate?: string;
 repId?: number;
+leadId?: number;
 };
 
 export type RunLenderMatch200 = {
