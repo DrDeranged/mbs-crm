@@ -1603,8 +1603,33 @@ function LeadFinancials({ leadId }: { leadId: number }) {
   const { months, summary } = data;
   const fmt = (v: number | null | undefined) => v != null ? `$${Math.round(v).toLocaleString()}` : "—";
 
+  // Health indicator: green = 0 NSF/month, yellow = 1–4, red = >4
+  const healthScore = summary
+    ? summary.avgNsfsPerMonth === 0 ? "green"
+      : summary.avgNsfsPerMonth <= 4 ? "yellow"
+      : "red"
+    : null;
+
+  const healthLabel = { green: "Strong", yellow: "Fair", red: "High Risk" } as const;
+  const healthColors = {
+    green: "bg-green-100 text-green-700 border-green-200",
+    yellow: "bg-amber-100 text-amber-700 border-amber-200",
+    red: "bg-red-100 text-red-700 border-red-200",
+  } as const;
+
   return (
     <div className="p-4 space-y-4">
+      {/* Health indicator */}
+      {healthScore && (
+        <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${healthColors[healthScore]}`}>
+          <div className={`h-3 w-3 rounded-full flex-shrink-0 ${healthScore === "green" ? "bg-green-500" : healthScore === "yellow" ? "bg-amber-500" : "bg-red-500"}`} />
+          <div>
+            <p className="font-semibold text-sm">{healthLabel[healthScore]} — {healthScore === "green" ? "No NSF activity detected" : healthScore === "yellow" ? `Avg ${summary!.avgNsfsPerMonth.toFixed(1)} NSF/month` : `High NSF rate: ${summary!.avgNsfsPerMonth.toFixed(1)}/month`}</p>
+            <p className="text-xs opacity-75">Based on {summary!.monthsAnalyzed} month(s) of statements · {summary!.positionsDetected} existing position(s) detected</p>
+          </div>
+        </div>
+      )}
+
       {/* Summary cards */}
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

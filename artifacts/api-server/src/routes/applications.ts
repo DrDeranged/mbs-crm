@@ -97,19 +97,26 @@ router.post(
         }
       }
 
-      // ── Encrypt SSN ───────────────────────────────────────────────────────
-      const rawSsn: string = body.ownerSsn ?? "";
+      // ── Validate bank statement count (server-side) ──────────────────────
+      const files = (req.files as Express.Multer.File[]) ?? [];
+      if (files.length < 3) {
+        res.status(400).json({ error: "At least 3 bank statement PDFs are required." });
+        return;
+      }
+
+      // ── Encrypt SSN — hard fail if key is absent ──────────────────────────
+      const rawSsn: string = (body.ownerSsn ?? "").replace(/\D/g, "");
       let ownerSsnEncrypted: string | null = null;
       if (rawSsn) {
-        try {
-          ownerSsnEncrypted = encrypt(rawSsn);
-        } catch {
-          // ENCRYPTION_KEY not set — store null (don't block submission)
-        }
+        // Throws if ENCRYPTION_KEY is missing/malformed — do not swallow
+        ownerSsnEncrypted = encrypt(rawSsn);
       }
 
       // ── Round-robin rep assignment ────────────────────────────────────────
       const assignedRepId = await pickNextRep();
+
+      const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
+      const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
 
       // ── Create lead ───────────────────────────────────────────────────────
       const [lead] = await db.insert(leadsTable).values({
@@ -124,6 +131,8 @@ router.post(
         leadSource: "website",
         requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
         assignedRepId,
+        consentCreditPullAt: consentGiven ? new Date() : null,
+        consentIp: clientIp,
         lastActivityAt: new Date(),
       }).returning();
 
@@ -163,7 +172,6 @@ router.post(
       });
 
       // ── Upload bank statements + OCR ──────────────────────────────────────
-      const files = (req.files as Express.Multer.File[]) ?? [];
       const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
       const bucket = objectStorageClient.bucket(bucketId);
 
@@ -193,6 +201,20 @@ router.post(
             rawExtractionJson: ocrResult.rawExtractionJson as any,
           });
         }
+      }
+
+      // ── Persist OCR aggregates back to lead ───────────────────────────────
+      const allExtractions = await db.query.bankStatementExtractionsTable.findMany({
+        where: eq(bankStatementExtractionsTable.leadId, lead.id),
+      });
+      if (allExtractions.length > 0) {
+        const totalPositions = allExtractions.reduce(
+          (sum, e) => sum + ((e.existingPositionsJson as any[])?.length ?? 0),
+          0
+        );
+        await db.update(leadsTable)
+          .set({ existingPositions: totalPositions, lastActivityAt: new Date() })
+          .where(eq(leadsTable.id, lead.id));
       }
 
       await logActivity({

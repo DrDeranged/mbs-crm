@@ -62,8 +62,8 @@ const REQUESTED_AMOUNTS = [
 ];
 
 // Mask SSN input so it shows dots for first 5 digits
-function formatSsnDisplay(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 9);
+/** Format partial SSN digits as user types (plain digits until complete). */
+function formatSsnTyping(digits: string): string {
   if (digits.length <= 3) return digits;
   if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
@@ -481,15 +481,35 @@ export default function ApplyPage() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Social Security Number *</Label>
-                    <Input
-                      value={formatSsnDisplay(ssnRaw)}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
-                        setSsnRaw(digits);
-                      }}
-                      placeholder="XXX-XX-XXXX"
-                      inputMode="numeric"
-                    />
+                    {ssnRaw.length < 9 ? (
+                      <Input
+                        value={formatSsnTyping(ssnRaw)}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+                          setSsnRaw(digits);
+                        }}
+                        placeholder="XXX-XX-XXXX"
+                        inputMode="numeric"
+                        autoComplete="off"
+                      />
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          value={`•••-••-${ssnRaw.slice(5)}`}
+                          readOnly
+                          className="font-mono tracking-widest bg-slate-50"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSsnRaw("")}
+                          className="flex-shrink-0 text-xs"
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                    )}
                     <p className="text-[10px] text-gray-400">Encrypted at rest — never stored as plain text</p>
                   </div>
                   <div className="space-y-1">

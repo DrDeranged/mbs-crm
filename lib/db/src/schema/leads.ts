@@ -35,6 +35,8 @@ export const leadsTable = pgTable(
     requestedAmount: integer("requested_amount"),
     creditScore: integer("credit_score"),
     existingPositions: integer("existing_positions"),
+    consentCreditPullAt: timestamp("consent_credit_pull_at"),
+    consentIp: text("consent_ip"),
     lastActivityAt: timestamp("last_activity_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
