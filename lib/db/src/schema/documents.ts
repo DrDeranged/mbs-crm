@@ -9,7 +9,7 @@ export const documentsTable = pgTable(
   {
     id: serial("id").primaryKey(),
     leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
-    userId: integer("user_id").notNull().references(() => usersTable.id),
+    userId: integer("user_id").references(() => usersTable.id),
     filename: text("filename").notNull(),
     fileKey: text("file_key").notNull(),
     fileType: text("file_type").notNull(),

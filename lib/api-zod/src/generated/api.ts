@@ -1005,6 +1005,7 @@ export const GetLeadApplicationResponse = zod.object({
   "consentCreditPull": zod.boolean().optional(),
   "consentTerms": zod.boolean().optional(),
   "signatureData": zod.string().nullish(),
+  "signedDocumentUrl": zod.string().nullish(),
   "submittedAt": zod.coerce.date()
 })
 

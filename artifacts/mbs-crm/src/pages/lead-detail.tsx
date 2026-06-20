@@ -1457,9 +1457,21 @@ function LeadApplication({ leadId }: { leadId: number }) {
             <p className="text-xs text-gray-400">Submitted {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "—"}</p>
           </div>
         </div>
-        <Badge variant="outline" className="capitalize bg-blue-50 border-blue-200 text-blue-700">
-          {app.type.replace("_", " ")}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="capitalize bg-blue-50 border-blue-200 text-blue-700">
+            {app.type.replace("_", " ")}
+          </Badge>
+          {app.signedDocumentUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5 text-xs h-7"
+              onClick={() => window.open(app.signedDocumentUrl!, "_blank")}
+            >
+              <FileDown className="h-3.5 w-3.5" /> Download
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

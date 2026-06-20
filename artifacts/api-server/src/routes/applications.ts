@@ -7,6 +7,7 @@ import {
   leadsTable,
   applicationsTable,
   bankStatementExtractionsTable,
+  documentsTable,
   activityLogTable,
   usersTable,
 } from "@workspace/db";
@@ -18,6 +19,78 @@ import { requireUser } from "../lib/authHelpers";
 const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+
+/** Generates a signed application HTML document suitable for archiving. */
+function buildSignedApplicationHtml(params: {
+  lead: { id: number; firstName: string | null; lastName: string | null; email: string | null; phone: string | null };
+  body: Record<string, unknown>;
+  submittedAt: Date;
+  clientIp: string | null;
+}): string {
+  const { lead, body, submittedAt, clientIp } = params;
+  const field = (v: unknown) => v != null && v !== "" ? String(v) : "—";
+  const bool = (v: unknown) => (v === "true" || v === true) ? "✓ Yes" : "No";
+
+  const sigDataUrl = typeof body["signatureData"] === "string" && body["signatureData"].startsWith("data:image")
+    ? `<img src="${body["signatureData"]}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
+    : "<em>Signature on file</em>";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>MBS Application — ${lead.firstName} ${lead.lastName}</title>
+<style>
+  body{font-family:Arial,sans-serif;color:#222;max-width:860px;margin:40px auto;padding:0 24px;}
+  h1{color:#1F4E79;border-bottom:3px solid #1F4E79;padding-bottom:8px;}
+  h2{color:#1F4E79;font-size:15px;margin-top:28px;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  td{padding:6px 12px;border:1px solid #e5e7eb;vertical-align:top;}
+  td:first-child{font-weight:600;width:38%;background:#f8fafc;color:#374151;}
+  .footer{margin-top:40px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;}
+</style>
+</head>
+<body>
+<h1>My Business Solutions — Financing Application</h1>
+<p style="color:#6b7280;font-size:13px;">Application ID: <strong>LEAD-${lead.id}</strong> &nbsp;|&nbsp; Submitted: <strong>${submittedAt.toUTCString()}</strong> &nbsp;|&nbsp; IP: <strong>${clientIp ?? "unknown"}</strong></p>
+
+<h2>Business Information</h2>
+<table>
+  <tr><td>Business Name</td><td>${field(body["businessName"])}</td></tr>
+  <tr><td>DBA</td><td>${field(body["dba"])}</td></tr>
+  <tr><td>EIN</td><td>${field(body["ein"])}</td></tr>
+  <tr><td>Industry</td><td>${field(body["industry"])}</td></tr>
+  <tr><td>Address</td><td>${field(body["businessAddress"])}, ${field(body["businessCity"])}, ${field(body["businessState"])} ${field(body["businessZip"])}</td></tr>
+  <tr><td>Time in Business</td><td>${body["timeInBusinessMonths"] ? `${body["timeInBusinessMonths"]} months` : "—"}</td></tr>
+  <tr><td>Monthly Revenue (Stated)</td><td>${body["monthlyRevenueStated"] ? `$${Number(body["monthlyRevenueStated"]).toLocaleString()}` : "—"}</td></tr>
+  <tr><td>Requested Amount</td><td>${body["requestedAmount"] ? `$${Number(body["requestedAmount"]).toLocaleString()}` : "—"}</td></tr>
+  <tr><td>Use of Funds</td><td>${field(body["useOfFunds"])}</td></tr>
+  <tr><td>Application Type</td><td>${field(body["type"])}</td></tr>
+</table>
+
+<h2>Owner Information</h2>
+<table>
+  <tr><td>Name</td><td>${field(body["ownerFirstName"])} ${field(body["ownerLastName"])}</td></tr>
+  <tr><td>Date of Birth</td><td>${field(body["ownerDob"])}</td></tr>
+  <tr><td>SSN</td><td>***-**-**** (encrypted)</td></tr>
+  <tr><td>Home Address</td><td>${field(body["ownerHomeAddress"])}, ${field(body["ownerHomeCity"])}, ${field(body["ownerHomeState"])} ${field(body["ownerHomeZip"])}</td></tr>
+  <tr><td>Ownership %</td><td>${field(body["ownershipPct"])}</td></tr>
+</table>
+
+<h2>Consent &amp; Signature</h2>
+<table>
+  <tr><td>Credit Pull Consent</td><td>${bool(body["consentCreditPull"])}</td></tr>
+  <tr><td>Terms Consent</td><td>${bool(body["consentTerms"])}</td></tr>
+  <tr><td>Signature IP</td><td>${clientIp ?? "unknown"}</td></tr>
+</table>
+<div style="margin-top:16px;">${sigDataUrl}</div>
+
+<div class="footer">
+  This document was generated automatically by My Business Solutions CRM on ${submittedAt.toUTCString()}.
+  It contains a verbatim record of the applicant's submission and electronic signature.
+  SSN is stored separately in encrypted form and is not included here.
+</div>
+</body>
+</html>`;
+}
 
 const submitRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -171,13 +244,24 @@ router.post(
         signatureIp: req.ip || null,
       });
 
-      // ── Upload bank statements + OCR ──────────────────────────────────────
+      // ── Upload bank statements + OCR (with Documents records) ───────────
       const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
       const bucket = objectStorageClient.bucket(bucketId);
 
       for (const file of files) {
-        const fileKey = `applications/${lead.id}/bank-statements/${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const safeFilename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const fileKey = `leads/${lead.id}/documents/bankstatement-${Date.now()}-${safeFilename}`;
         await bucket.file(fileKey).save(file.buffer, { contentType: file.mimetype });
+
+        // Create document record for traceability
+        const [docRecord] = await db.insert(documentsTable).values({
+          leadId: lead.id,
+          userId: null,
+          filename: file.originalname,
+          fileKey,
+          fileType: file.mimetype,
+          fileSize: file.size,
+        }).returning();
 
         // Run OCR (non-blocking: continue if it fails)
         let ocrResult = null;
@@ -190,7 +274,7 @@ router.post(
         if (ocrResult) {
           await db.insert(bankStatementExtractionsTable).values({
             leadId: lead.id,
-            documentId: null,
+            documentId: docRecord.id,
             statementMonth: ocrResult.statementMonth,
             statementYear: ocrResult.statementYear,
             totalDeposits: ocrResult.totalDeposits !== null ? String(ocrResult.totalDeposits) : null,
@@ -216,6 +300,28 @@ router.post(
           .set({ existingPositions: totalPositions, lastActivityAt: new Date() })
           .where(eq(leadsTable.id, lead.id));
       }
+
+      // ── Generate and store signed application document ────────────────────
+      const signedHtml = buildSignedApplicationHtml({
+        lead,
+        body,
+        submittedAt: new Date(),
+        clientIp,
+      });
+      const htmlBuffer = Buffer.from(signedHtml, "utf-8");
+      const signedDocKey = `leads/${lead.id}/documents/signed-application-${Date.now()}.html`;
+      await bucket.file(signedDocKey).save(htmlBuffer, { contentType: "text/html; charset=utf-8" });
+      await db.insert(documentsTable).values({
+        leadId: lead.id,
+        userId: null,
+        filename: `signed-application-${lead.id}.html`,
+        fileKey: signedDocKey,
+        fileType: "text/html",
+        fileSize: htmlBuffer.byteLength,
+      });
+      await db.update(applicationsTable)
+        .set({ signedDocumentKey: signedDocKey })
+        .where(eq(applicationsTable.leadId, lead.id));
 
       await logActivity({
         userId: null,
@@ -266,7 +372,16 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
     }
   }
 
-  res.json({ ...rest, ownerSsnMasked, signatureData: app.signatureData ? "[signature on file]" : null });
+  const signedDocumentUrl = app.signedDocumentKey
+    ? `/storage/objects/${app.signedDocumentKey}`
+    : null;
+
+  res.json({
+    ...rest,
+    ownerSsnMasked,
+    signatureData: app.signatureData ? "[signature on file]" : null,
+    signedDocumentUrl,
+  });
 });
 
 // GET /leads/:id/financials — CRM: bank statement OCR summary

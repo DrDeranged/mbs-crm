@@ -932,6 +932,8 @@ export interface ApplicationRecord {
   consentTerms?: boolean;
   /** @nullable */
   signatureData?: string | null;
+  /** @nullable */
+  signedDocumentUrl?: string | null;
   submittedAt: string;
 }
 

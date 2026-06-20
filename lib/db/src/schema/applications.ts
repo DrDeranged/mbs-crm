@@ -47,6 +47,7 @@ export const applicationsTable = pgTable(
     consentTerms: boolean("consent_terms").notNull().default(false),
     signatureData: text("signature_data"),
     signatureIp: text("signature_ip"),
+    signedDocumentKey: text("signed_document_key"),
     submittedAt: timestamp("submitted_at").notNull().defaultNow(),
   },
   (t) => [index("applications_lead_idx").on(t.leadId)],
