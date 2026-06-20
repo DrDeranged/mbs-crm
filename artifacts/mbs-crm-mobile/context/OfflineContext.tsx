@@ -22,6 +22,9 @@ interface OfflineContextValue {
   queuedMutations: QueuedMutation[];
   queueMutation: (mutation: Omit<QueuedMutation, "id" | "timestamp">) => Promise<void>;
   clearQueue: () => Promise<void>;
+  removeFromQueue: (id: string) => Promise<void>;
+  isSyncing: boolean;
+  setSyncing: (val: boolean) => void;
 }
 
 const OfflineContext = createContext<OfflineContextValue>({
@@ -29,6 +32,9 @@ const OfflineContext = createContext<OfflineContextValue>({
   queuedMutations: [],
   queueMutation: async () => {},
   clearQueue: async () => {},
+  removeFromQueue: async () => {},
+  isSyncing: false,
+  setSyncing: () => {},
 });
 
 const QUEUE_KEY = "@mbs_sync_queue";
@@ -51,6 +57,7 @@ async function pingServer(): Promise<boolean> {
 export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [queuedMutations, setQueuedMutations] = useState<QueuedMutation[]>([]);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadQueue = useCallback(async () => {
@@ -89,6 +96,19 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
     await saveQueue([]);
   }, [saveQueue]);
 
+  const removeFromQueue = useCallback(
+    async (id: string) => {
+      const current = await AsyncStorage.getItem(QUEUE_KEY);
+      const list: QueuedMutation[] = current ? JSON.parse(current) : [];
+      await saveQueue(list.filter((m) => m.id !== id));
+    },
+    [saveQueue],
+  );
+
+  const setSyncing = useCallback((val: boolean) => {
+    setIsSyncing(val);
+  }, []);
+
   const checkConnectivity = useCallback(async () => {
     const online = await pingServer();
     setIsOnline(online);
@@ -97,15 +117,10 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadQueue();
     checkConnectivity();
-
     checkIntervalRef.current = setInterval(checkConnectivity, 15000);
-
     const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
-      if (state === "active") {
-        checkConnectivity();
-      }
+      if (state === "active") checkConnectivity();
     });
-
     return () => {
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       sub.remove();
@@ -114,7 +129,15 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <OfflineContext.Provider
-      value={{ isOnline, queuedMutations, queueMutation, clearQueue }}
+      value={{
+        isOnline,
+        queuedMutations,
+        queueMutation,
+        clearQueue,
+        removeFromQueue,
+        isSyncing,
+        setSyncing,
+      }}
     >
       {children}
     </OfflineContext.Provider>

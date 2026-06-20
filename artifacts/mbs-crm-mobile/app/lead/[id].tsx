@@ -7,6 +7,8 @@ import {
   useUpdateTask,
   useListLeadActivity,
   useChangeLeadStatus,
+  useListDocuments,
+  useGetLeadFinancials,
 } from "@workspace/api-client-react";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -32,7 +34,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TaskCard } from "@/components/TaskCard";
 import { useColors } from "@/hooks/useColors";
 
-type Tab = "overview" | "notes" | "tasks" | "activity";
+type Tab = "overview" | "notes" | "tasks" | "activity" | "documents";
 
 const STATUS_OPTIONS = [
   "new_lead", "contacted", "application_received",
@@ -93,20 +95,20 @@ export default function LeadDetailScreen() {
   const { mutateAsync: createTask } = useCreateTask();
   const { mutateAsync: updateTask } = useUpdateTask();
   const { mutateAsync: changeStatus } = useChangeLeadStatus();
+  const { data: documents } = useListDocuments(leadId);
+  const { data: financialsData } = useGetLeadFinancials(leadId);
 
   const leadData = lead as {
     id: number;
-    businessName?: string | null;
-    ownerFirstName?: string | null;
-    ownerLastName?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    companyName?: string | null;
     email?: string | null;
     phone?: string | null;
     status: string;
     applicationType?: string | null;
-    loanAmountRequested?: number | null;
-    loanAmountApproved?: number | null;
-    assignedTo?: { id: number; name?: string | null } | null;
-    source?: string | null;
+    assignedRep?: { id: number; name?: string | null } | null;
+    leadSource?: string | null;
     createdAt?: string | null;
     updatedAt?: string | null;
   } | undefined;
@@ -118,12 +120,20 @@ export default function LeadDetailScreen() {
     if (!leadData?.phone) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Linking.openURL(`tel:${leadData.phone}`);
+    try {
+      await createNote({ id: leadId, data: { body: `📞 Outbound call initiated to ${leadData.phone}` } });
+      refetchNotes();
+    } catch { /* non-critical */ }
   };
 
   const handleSMS = async () => {
     if (!leadData?.phone) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Linking.openURL(`sms:${leadData.phone}`);
+    try {
+      await createNote({ id: leadId, data: { body: `💬 SMS initiated to ${leadData.phone}` } });
+      refetchNotes();
+    } catch { /* non-critical */ }
   };
 
   const handleEmail = async () => {
@@ -209,14 +219,15 @@ export default function LeadDetailScreen() {
     );
   }
 
-  const ownerName = [leadData.ownerFirstName, leadData.ownerLastName].filter(Boolean).join(" ");
-  const businessName = leadData.businessName || ownerName || "Unknown Lead";
+  const ownerName = [leadData.firstName, leadData.lastName].filter(Boolean).join(" ");
+  const displayName = leadData.companyName || ownerName || "Unknown Lead";
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "notes", label: `Notes${notes ? ` (${(notes as NoteItem[]).length})` : ""}` },
     { key: "tasks", label: `Tasks${tasks ? ` (${(tasks as unknown[]).length})` : ""}` },
     { key: "activity", label: "Activity" },
+    { key: "documents", label: `Docs${documents ? ` (${(documents as unknown[]).length})` : ""}` },
   ];
 
   return (
@@ -227,9 +238,9 @@ export default function LeadDetailScreen() {
         </TouchableOpacity>
         <View style={styles.leadTitleArea}>
           <Text style={[styles.leadBusinessName, { color: colors.foreground }]} numberOfLines={1}>
-            {businessName}
+            {displayName}
           </Text>
-          {ownerName && businessName !== ownerName && (
+          {ownerName && displayName !== ownerName && (
             <Text style={[styles.leadOwnerName, { color: colors.mutedForeground }]} numberOfLines={1}>
               {ownerName}
             </Text>
@@ -295,19 +306,32 @@ export default function LeadDetailScreen() {
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.infoCardTitle, { color: colors.mutedForeground }]}>CONTACT</Text>
             <InfoRow label="Owner" value={ownerName} colors={colors} />
-            <InfoRow label="Business" value={leadData.businessName} colors={colors} />
+            <InfoRow label="Business" value={leadData.companyName} colors={colors} />
             <InfoRow label="Phone" value={leadData.phone} colors={colors} />
             <InfoRow label="Email" value={leadData.email} colors={colors} />
           </View>
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 12 }]}>
-            <Text style={[styles.infoCardTitle, { color: colors.mutedForeground }]}>FINANCING</Text>
+            <Text style={[styles.infoCardTitle, { color: colors.mutedForeground }]}>DETAILS</Text>
             <InfoRow label="Type" value={leadData.applicationType?.replace(/_/g, " ")} colors={colors} />
-            <InfoRow label="Requested" value={formatCurrency(leadData.loanAmountRequested)} colors={colors} />
-            <InfoRow label="Approved" value={formatCurrency(leadData.loanAmountApproved)} colors={colors} />
-            <InfoRow label="Source" value={leadData.source} colors={colors} />
-            <InfoRow label="Rep" value={leadData.assignedTo?.name} colors={colors} />
+            <InfoRow label="Source" value={leadData.leadSource?.replace(/_/g, " ")} colors={colors} />
+            <InfoRow label="Rep" value={leadData.assignedRep?.name} colors={colors} />
             <InfoRow label="Created" value={formatDate(leadData.createdAt)} colors={colors} />
           </View>
+          {financialsData && (
+            <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 12 }]}>
+              <Text style={[styles.infoCardTitle, { color: colors.mutedForeground }]}>FINANCIALS</Text>
+              {(financialsData as { summary?: { avgMonthlyDeposits?: number | null; avgDailyBalance?: number | null; avgNsfsPerMonth?: number; totalNsfs?: number; monthsAnalyzed?: number } | null }).summary ? (
+                <>
+                  <InfoRow label="Avg Monthly Deposits" value={formatCurrency((financialsData as { summary: { avgMonthlyDeposits?: number | null } }).summary.avgMonthlyDeposits)} colors={colors} />
+                  <InfoRow label="Avg Daily Balance" value={formatCurrency((financialsData as { summary: { avgDailyBalance?: number | null } }).summary.avgDailyBalance)} colors={colors} />
+                  <InfoRow label="Months Analyzed" value={String((financialsData as { summary: { monthsAnalyzed?: number } }).summary.monthsAnalyzed ?? "")} colors={colors} />
+                  <InfoRow label="Total NSFs" value={String((financialsData as { summary: { totalNsfs?: number } }).summary.totalNsfs ?? "")} colors={colors} />
+                </>
+              ) : (
+                <InfoRow label="Bank Statements" value={`${(financialsData as { months?: unknown[] }).months?.length ?? 0} month(s) uploaded`} colors={colors} />
+              )}
+            </View>
+          )}
         </ScrollView>
       )}
 
@@ -443,6 +467,47 @@ export default function LeadDetailScreen() {
           ))}
         </ScrollView>
       )}
+
+      {activeTab === "documents" && (
+        <ScrollView
+          style={styles.tabContent}
+          contentContainerStyle={{ padding: 16, paddingBottom: bottomPad, gap: 12 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {!(documents as unknown[] | undefined)?.length && (
+            <View style={styles.emptyState}>
+              <Feather name="folder" size={32} color={colors.mutedForeground} />
+              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No documents uploaded</Text>
+            </View>
+          )}
+          {(documents as Array<{
+            id: number;
+            filename: string;
+            fileType: string;
+            fileSize: number;
+            createdAt: string;
+            uploader?: { name?: string | null } | null;
+          }> | undefined)?.map((doc) => (
+            <View key={doc.id} style={[styles.docCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.docIconWrap, { backgroundColor: colors.primary + "15" }]}>
+                <Feather name="file-text" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.docInfo}>
+                <Text style={[styles.docName, { color: colors.foreground }]} numberOfLines={1}>
+                  {doc.filename}
+                </Text>
+                <Text style={[styles.docMeta, { color: colors.mutedForeground }]}>
+                  {doc.fileType.toUpperCase()} · {(doc.fileSize / 1024).toFixed(0)} KB
+                  {doc.uploader?.name ? ` · ${doc.uploader.name}` : ""}
+                </Text>
+                <Text style={[styles.docMeta, { color: colors.mutedForeground }]}>
+                  {formatDate(doc.createdAt)}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -516,6 +581,11 @@ const styles = StyleSheet.create({
   activityLine: { width: 16, alignItems: "center", paddingTop: 4 },
   activityDot: { width: 10, height: 10, borderRadius: 5 },
   activityConnector: { flex: 1, width: 2, marginTop: 4 },
+  docCard: { flexDirection: "row", borderRadius: 12, borderWidth: 1, padding: 14, gap: 12, alignItems: "center" },
+  docIconWrap: { width: 44, height: 44, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  docInfo: { flex: 1, gap: 3 },
+  docName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  docMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
   activityContent: { flex: 1, paddingTop: 2, gap: 3 },
   activityAction: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
   activityTime: { fontSize: 11, fontFamily: "Inter_400Regular" },

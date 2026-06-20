@@ -7,30 +7,32 @@ import { useOffline } from "@/context/OfflineContext";
 import { useColors } from "@/hooks/useColors";
 
 export function OfflineBanner() {
-  const { isOnline, queuedMutations } = useOffline();
+  const { isOnline, queuedMutations, isSyncing } = useOffline();
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
-  if (isOnline) return null;
-
   const topInset = Platform.OS === "web" ? 67 : insets.top;
+
+  if (isOnline && !isSyncing) return null;
+
+  const count = queuedMutations.length;
+  const plural = count !== 1 ? "s" : "";
 
   return (
     <View
       style={[
         styles.banner,
         {
-          backgroundColor: colors.warning,
+          backgroundColor: isSyncing ? colors.primary : colors.warning,
           top: topInset,
         },
       ]}
     >
-      <Feather name="wifi-off" size={13} color="#fff" />
+      <Feather name={isSyncing ? "refresh-cw" : "wifi-off"} size={13} color="#fff" />
       <Text style={styles.text}>
-        Offline
-        {queuedMutations.length > 0
-          ? ` · ${queuedMutations.length} change${queuedMutations.length !== 1 ? "s" : ""} pending`
-          : ""}
+        {isSyncing
+          ? `Syncing ${count} change${plural}…`
+          : `Offline${count > 0 ? ` · ${count} change${plural} pending` : ""}`}
       </Text>
     </View>
   );
