@@ -151,17 +151,29 @@ router.post("/leads/:id/credit/consent", async (req: Request, res: Response) => 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
 
+  if (user.role === "rep" && lead.assignedRepId !== user.id) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
+
   const body = ConsentBody.safeParse(req.body);
   if (!body.success || !body.data.agreed) {
     return void res.status(400).json({ error: "Explicit consent (agreed: true) required" });
   }
+
+  const consentAt = new Date();
+  const consentIp = req.ip ?? null;
+
+  await db.update(leadsTable).set({
+    consentCreditPullAt: consentAt,
+    consentIp,
+  }).where(eq(leadsTable.id, leadId));
 
   const [entry] = await db.insert(creditComplianceLogTable).values({
     leadId,
     userId: user.id,
     action: "consent_given",
     permissiblePurpose: "credit application evaluation",
-    details: { consentType: body.data.consentType, ip: req.ip ?? null },
+    details: { consentType: body.data.consentType, ip: consentIp },
   }).returning();
 
   res.status(201).json({ consentId: entry!.id });
@@ -191,16 +203,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   if (!body.success) return void res.status(400).json({ error: "pull_type must be 'soft' or 'hard'" });
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const recentConsent = await db.query.creditComplianceLogTable.findFirst({
-    where: and(
-      eq(creditComplianceLogTable.leadId, leadId),
-      eq(creditComplianceLogTable.action, "consent_given"),
-      gte(creditComplianceLogTable.createdAt, thirtyDaysAgo),
-    ),
-    orderBy: [desc(creditComplianceLogTable.createdAt)],
-  });
-
-  if (!recentConsent) {
+  if (!lead.consentCreditPullAt || lead.consentCreditPullAt < thirtyDaysAgo) {
     return void res.status(422).json({ error: "No valid consent found. Consent must be captured within the last 30 days." });
   }
 
@@ -224,8 +227,8 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
     leadId,
     pulledBy: user.id,
     pullType: body.data.pullType,
-    consentCapturedAt: recentConsent.createdAt,
-    consentIp: (recentConsent.details as Record<string, unknown> | null)?.["ip"] as string ?? null,
+    consentCapturedAt: lead.consentCreditPullAt!,
+    consentIp: lead.consentIp,
     status: "pending",
   }).returning();
 
