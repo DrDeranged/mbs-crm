@@ -110,8 +110,12 @@ async function callExperianApi(params: {
   });
 
   if (!tokenRes.ok) {
-    const errText = await tokenRes.text().catch(() => "");
-    throw Object.assign(new Error(`Experian token request failed: ${tokenRes.status} ${errText}`), { statusCode: 502 });
+    const rawBody = await tokenRes.text().catch(() => "");
+    const err = Object.assign(
+      new Error("Credit bureau authentication failed"),
+      { statusCode: 502, rawBody, stage: "token" as const },
+    );
+    throw err;
   }
 
   const tokenData = await tokenRes.json() as { access_token: string };
@@ -127,8 +131,12 @@ async function callExperianApi(params: {
   });
 
   if (!creditRes.ok) {
-    const errText = await creditRes.text().catch(() => "");
-    throw Object.assign(new Error(`Experian API error: ${creditRes.status} ${errText}`), { statusCode: 502 });
+    const rawBody = await creditRes.text().catch(() => "");
+    const err = Object.assign(
+      new Error("Credit bureau request failed"),
+      { statusCode: 502, rawBody, stage: "credit-report" as const },
+    );
+    throw err;
   }
 
   return creditRes.json() as Promise<Record<string, unknown>>;
@@ -270,9 +278,18 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
       pullType: body.data.pull_type,
     });
   } catch (err: unknown) {
-    const e = err as Error & { statusCode?: number };
-    await db.update(creditPullsTable).set({ status: "error", errorMessage: e.message }).where(eq(creditPullsTable.id, pull!.id));
-    return void res.status(e.statusCode ?? 502).json({ error: e.message });
+    const e = err as Error & { statusCode?: number; rawBody?: string; stage?: string };
+    const sanitizedReason = e.stage ? `bureau_${e.stage}_failure` : "bureau_call_failure";
+    let encryptedErrorPayload: string | null = null;
+    if (e.rawBody) {
+      try { encryptedErrorPayload = encrypt(JSON.stringify({ stage: e.stage, body: e.rawBody })); } catch { /* noop */ }
+    }
+    await db.update(creditPullsTable).set({
+      status: "error",
+      errorMessage: sanitizedReason,
+      ...(encryptedErrorPayload ? { responsePayloadEncrypted: encryptedErrorPayload } : {}),
+    }).where(eq(creditPullsTable.id, pull!.id));
+    return void res.status(e.statusCode ?? 502).json({ error: "Credit bureau request failed. Please try again later." });
   }
 
   let responsePayloadEncrypted: string;
