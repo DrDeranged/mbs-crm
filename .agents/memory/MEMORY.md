@@ -2,3 +2,5 @@
 - [Express route params casting](express-route-params.md) — `req.params["id"]` returns `string | string[]` in Express 5; always cast `as string` before parseInt.
 - [API-server zod dependency](api-server-zod.md) — api-server doesn't declare zod; use insertSchemas from @workspace/db (drizzle-zod) for route validation, or add "zod": "catalog:" and pnpm install.
 - [Email drip architecture](email-drip-architecture.md) — drip engine auto-enrolls on status change in leads.ts; matching engine should also be hooked to status changes.
+- [pdf-parse ESM interop](pdf-parse-esm.md) — dynamic import workaround needed for pdf-parse v2 in api-server; use `const mod: any = await import("pdf-parse"); const fn = mod.default ?? mod;`.
+- [Pending secrets — add at end](pending-secrets.md) — ENCRYPTION_KEY, TWILIO_API_KEY, TWILIO_API_SECRET, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, TWILIO_TWIML_APP_SID all unset; user will add them manually when ready.
