@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
+import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
@@ -20,6 +21,21 @@ const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
+/** Escapes a value for safe HTML insertion (prevents XSS). */
+function esc(v: unknown): string {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+/** Validates that a data URL is a safe base64-encoded image (no embedded scripts). */
+function isSafeImageDataUrl(v: string): boolean {
+  return /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+=*$/.test(v);
+}
+
 /** Generates a signed application HTML document suitable for archiving. */
 function buildSignedApplicationHtml(params: {
   lead: { id: number; firstName: string | null; lastName: string | null; email: string | null; phone: string | null };
@@ -28,11 +44,12 @@ function buildSignedApplicationHtml(params: {
   clientIp: string | null;
 }): string {
   const { lead, body, submittedAt, clientIp } = params;
-  const field = (v: unknown) => v != null && v !== "" ? String(v) : "—";
+  const field = (v: unknown) => esc(v != null && v !== "" ? v : "—");
   const bool = (v: unknown) => (v === "true" || v === true) ? "✓ Yes" : "No";
 
-  const sigDataUrl = typeof body["signatureData"] === "string" && body["signatureData"].startsWith("data:image")
-    ? `<img src="${body["signatureData"]}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
+  const rawSig = typeof body["signatureData"] === "string" ? body["signatureData"] : "";
+  const sigDataUrl = isSafeImageDataUrl(rawSig)
+    ? `<img src="${esc(rawSig)}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
     : "<em>Signature on file</em>";
 
   return `<!DOCTYPE html>
@@ -143,15 +160,51 @@ router.post(
     try {
       const body = req.body;
 
-      // ── Validate required fields ──────────────────────────────────────────
-      if (!body.type || !body.ownerFirstName || !body.ownerLastName || !body.businessName) {
-        res.status(400).json({ error: "Missing required fields" });
+      // ── Comprehensive server-side validation ─────────────────────────────
+      const submitSchema = z.object({
+        type: z.enum(["equipment", "working_capital"], { message: "Invalid application type" }),
+        businessName: z.string().min(1, "Business name is required"),
+        ownerFirstName: z.string().min(1, "Owner first name is required"),
+        ownerLastName: z.string().min(1, "Owner last name is required"),
+        email: z.string().email("Invalid email address").optional().or(z.literal("")),
+        phone: z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number").optional().or(z.literal("")),
+        ownerSsn: z.string().regex(/^\d{9}$/, "SSN must be exactly 9 digits").optional().or(z.literal("")),
+        consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
+        consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
+        signatureData: z.string().min(1, "Signature is required"),
+        equipmentDescription: z.string().optional(),
+        vendorName: z.string().optional(),
+      }).superRefine((data, ctx) => {
+        if (data.type === "equipment") {
+          if (!data.equipmentDescription?.trim()) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Equipment description is required", path: ["equipmentDescription"] });
+          }
+          if (!data.vendorName?.trim()) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vendor name is required", path: ["vendorName"] });
+          }
+        }
+      });
+
+      const validation = submitSchema.safeParse(body);
+      if (!validation.success) {
+        const firstIssue = validation.error.issues[0];
+        res.status(400).json({ error: firstIssue?.message ?? "Validation failed", field: firstIssue?.path.join(".") });
         return;
       }
 
-      const email = body.email?.trim() || null;
-      const phone = body.phone?.trim() || null;
-      const ein = body.ein?.trim() || null;
+      // ── Validate uploaded files are PDFs ─────────────────────────────────
+      const files = (req.files as Express.Multer.File[]) ?? [];
+      const invalidFiles = files.filter(f =>
+        f.mimetype !== "application/pdf" && !f.originalname.toLowerCase().endsWith(".pdf")
+      );
+      if (invalidFiles.length > 0) {
+        res.status(400).json({ error: "Bank statements must be PDF files." });
+        return;
+      }
+
+      const email = (body.email as string)?.trim() || null;
+      const phone = (body.phone as string)?.trim() || null;
+      const ein = (body.ein as string)?.trim() || null;
 
       // ── Duplicate check ───────────────────────────────────────────────────
       if (email || phone || ein) {
@@ -171,7 +224,6 @@ router.post(
       }
 
       // ── Validate bank statement count (server-side) ──────────────────────
-      const files = (req.files as Express.Multer.File[]) ?? [];
       if (files.length < 3) {
         res.status(400).json({ error: "At least 3 bank statement PDFs are required." });
         return;
@@ -332,7 +384,7 @@ router.post(
         details: { type: body.type, filesCount: files.length },
       });
 
-      res.status(201).json({ success: true, leadId: lead.id });
+      res.status(201).json({ success: true, lead_id: lead.id });
     } catch (err) {
       console.error("Application submit error:", err);
       res.status(500).json({ error: "Submission failed. Please try again." });

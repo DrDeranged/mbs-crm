@@ -258,7 +258,7 @@ export default function ApplyPage() {
         setSubmitError(data.error || "Submission failed. Please try again.");
         return;
       }
-      setConfirmedLeadId(data.leadId);
+      setConfirmedLeadId(data.lead_id);
       setStep(6);
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");

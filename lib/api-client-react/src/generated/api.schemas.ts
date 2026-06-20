@@ -855,7 +855,7 @@ export interface EmailFlyerInput {
 
 export interface ApplicationSubmitResponse {
   success: boolean;
-  leadId: number;
+  lead_id: number;
 }
 
 export type ApplicationRecordType = typeof ApplicationRecordType[keyof typeof ApplicationRecordType];

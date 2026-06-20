@@ -3117,11 +3117,11 @@ components:
 
     ApplicationSubmitResponse:
       type: object
-      required: [success, leadId]
+      required: [success, lead_id]
       properties:
         success:
           type: boolean
-        leadId:
+        lead_id:
           type: integer
 
     ApplicationRecord:
