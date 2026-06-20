@@ -67,4 +67,30 @@ router.put("/users/:id", async (req: Request, res: Response) => {
   res.json(userToApi(updated));
 });
 
+// PUT /api/users/:id/push-token — own-user push token update
+router.put("/users/:id/push-token", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const targetId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(targetId)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  if (user.id !== targetId) {
+    res.status(403).json({ error: "Forbidden: can only update own push token" });
+    return;
+  }
+
+  const { pushToken } = req.body as { pushToken?: string | null };
+
+  await db
+    .update(usersTable)
+    .set({ pushToken: pushToken?.trim() || null, updatedAt: new Date() })
+    .where(eq(usersTable.id, user.id));
+
+  res.status(204).end();
+});
+
 export default router;

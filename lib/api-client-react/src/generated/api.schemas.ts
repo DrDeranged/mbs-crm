@@ -999,6 +999,11 @@ export const ListUsersRole = {
   rep: 'rep',
 } as const;
 
+export type UpdateUserPushTokenBody = {
+  /** @nullable */
+  pushToken?: string | null;
+};
+
 export type ListLeadsParams = {
 search?: string;
 status?: string;
@@ -1106,8 +1111,17 @@ export type TwilioSmsStatus200 = {
   ok?: boolean;
 };
 
+export type LogOutboundCallBodyType = typeof LogOutboundCallBodyType[keyof typeof LogOutboundCallBodyType];
+
+
+export const LogOutboundCallBodyType = {
+  call: 'call',
+  sms: 'sms',
+} as const;
+
 export type LogOutboundCallBody = {
   toNumber?: string;
+  type?: LogOutboundCallBodyType;
 };
 
 export type GetCommunicationMetricsParams = {

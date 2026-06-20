@@ -103,6 +103,18 @@ export const UpdateUserResponse = zod.object({
 
 
 /**
+ * @summary Store or clear push token for own account (own user only)
+ */
+export const UpdateUserPushTokenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateUserPushTokenBody = zod.object({
+  "pushToken": zod.string().nullish()
+})
+
+
+/**
  * @summary List leads with search/filter/pagination
  */
 export const listLeadsQueryPageDefault = 1;
@@ -1123,14 +1135,17 @@ export const SendSmsBody = zod.object({
 
 
 /**
- * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ * @summary Log an outbound call or SMS attempt initiated from mobile (native tel/sms link)
  */
 export const LogOutboundCallParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const logOutboundCallBodyTypeDefault = `call`;
+
 export const LogOutboundCallBody = zod.object({
-  "toNumber": zod.string().optional()
+  "toNumber": zod.string().optional(),
+  "type": zod.enum(['call', 'sms']).default(logOutboundCallBodyTypeDefault)
 })
 
 

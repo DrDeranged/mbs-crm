@@ -104,6 +104,7 @@ import type {
   UpdateMyMobileBody,
   UpdateMyPushTokenBody,
   UpdateSubmissionBody,
+  UpdateUserPushTokenBody,
   UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
@@ -574,6 +575,78 @@ export const useUpdateUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserMutationOptions(options));
+    }
+
+export const getUpdateUserPushTokenUrl = (id: number,) => {
+
+
+
+
+  return `/api/users/${id}/push-token`
+}
+
+/**
+ * @summary Store or clear push token for own account (own user only)
+ */
+export const updateUserPushToken = async (id: number,
+    updateUserPushTokenBody: UpdateUserPushTokenBody, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateUserPushTokenUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateUserPushTokenBody,)
+  }
+);}
+
+
+
+
+export const getUpdateUserPushTokenMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserPushToken>>, TError,{id: number;data: BodyType<UpdateUserPushTokenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUserPushToken>>, TError,{id: number;data: BodyType<UpdateUserPushTokenBody>}, TContext> => {
+
+const mutationKey = ['updateUserPushToken'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUserPushToken>>, {id: number;data: BodyType<UpdateUserPushTokenBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUserPushToken(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUserPushTokenMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserPushToken>>>
+    export type UpdateUserPushTokenMutationBody = BodyType<UpdateUserPushTokenBody>
+    export type UpdateUserPushTokenMutationError = ErrorType<void>
+
+    /**
+ * @summary Store or clear push token for own account (own user only)
+ */
+export const useUpdateUserPushToken = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserPushToken>>, TError,{id: number;data: BodyType<UpdateUserPushTokenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateUserPushToken>>,
+        TError,
+        {id: number;data: BodyType<UpdateUserPushTokenBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateUserPushTokenMutationOptions(options));
     }
 
 export const getListLeadsUrl = (params?: ListLeadsParams,) => {
@@ -3392,7 +3465,7 @@ export const getLogOutboundCallUrl = (id: number,) => {
 }
 
 /**
- * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ * @summary Log an outbound call or SMS attempt initiated from mobile (native tel/sms link)
  */
 export const logOutboundCall = async (id: number,
     logOutboundCallBody?: LogOutboundCallBody, options?: RequestInit): Promise<Communication> => {
@@ -3442,7 +3515,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type LogOutboundCallMutationError = ErrorType<void>
 
     /**
- * @summary Log an outbound call attempt initiated from mobile (tel-link)
+ * @summary Log an outbound call or SMS attempt initiated from mobile (native tel/sms link)
  */
 export const useLogOutboundCall = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logOutboundCall>>, TError,{id: number;data?: BodyType<LogOutboundCallBody>}, TContext>, request?: SecondParameter<typeof customFetch>}

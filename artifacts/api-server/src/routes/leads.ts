@@ -515,6 +515,20 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   });
 
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, body.data.repId) });
+
+  // Notify newly assigned rep
+  if (body.data.repId && body.data.repId !== existing.assignedRepId && rep?.pushToken) {
+    const leadName = updated.companyName ||
+      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
+      "A lead";
+    sendPushNotification(
+      rep.pushToken,
+      "Lead Assigned to You",
+      `${leadName} has been assigned to you`,
+      { leadId: updated.id },
+    ).catch(() => {});
+  }
+
   res.json(leadToApi(updated, rep));
 });
 

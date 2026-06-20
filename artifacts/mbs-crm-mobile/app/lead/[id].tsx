@@ -10,7 +10,6 @@ import {
   useListDocuments,
   useGetLeadFinancials,
   useGetLenderMatches,
-  useSendSms,
   useLogOutboundCall,
   downloadDocument,
 } from "@workspace/api-client-react";
@@ -104,12 +103,9 @@ export default function LeadDetailScreen() {
   const { data: documents } = useListDocuments(leadId);
   const { data: financialsData } = useGetLeadFinancials(leadId);
   const { data: lenderMatches } = useGetLenderMatches(leadId);
-  const { mutateAsync: sendSms, isPending: sendingSms } = useSendSms();
   const { mutateAsync: logCall } = useLogOutboundCall();
   const { isOnline, queueMutation } = useOffline();
 
-  const [smsComposing, setSmsComposing] = useState<boolean>(false);
-  const [smsBody, setSmsBody] = useState<string>("");
   const [openingDocId, setOpeningDocId] = useState<number | null>(null);
 
   const [pendingNotes, setPendingNotes] = useState<Array<{ id: string; body: string }>>([]);
@@ -164,19 +160,10 @@ export default function LeadDetailScreen() {
   const handleSMS = async () => {
     if (!leadData?.phone) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSmsComposing(true);
-    setSmsBody("");
-  };
-
-  const handleSendSms = async () => {
-    if (!smsBody.trim()) return;
+    Linking.openURL(`sms:${leadData.phone}`);
     try {
-      await sendSms({ id: leadId, data: { body: smsBody.trim() } });
-      setSmsComposing(false);
-      setSmsBody("");
-    } catch {
-      Alert.alert("Error", "Failed to send SMS. Please try again.");
-    }
+      await logCall({ id: leadId, data: { toNumber: leadData.phone, type: "sms" } });
+    } catch { /* non-critical */ }
   };
 
   const handleOpenDocument = async (docId: number) => {
@@ -355,7 +342,7 @@ export default function LeadDetailScreen() {
         </View>
       </View>
 
-      <View style={[styles.actionsRow, { backgroundColor: colors.card, borderBottomColor: smsComposing ? "transparent" : colors.border }]}>
+      <View style={[styles.actionsRow, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         {[
           { icon: "phone", label: "Call", onPress: handleCall, enabled: !!leadData.phone },
           { icon: "message-circle", label: "SMS", onPress: handleSMS, enabled: !!leadData.phone },
@@ -375,42 +362,6 @@ export default function LeadDetailScreen() {
           </TouchableOpacity>
         ))}
       </View>
-
-      {smsComposing && (
-        <View style={[styles.smsCompose, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          <TextInput
-            style={[styles.smsInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
-            placeholder={`Message to ${leadData.phone ?? "lead"}…`}
-            placeholderTextColor={colors.mutedForeground}
-            value={smsBody}
-            onChangeText={setSmsBody}
-            multiline
-            autoFocus
-          />
-          <View style={styles.smsActions}>
-            <TouchableOpacity
-              onPress={() => { setSmsComposing(false); setSmsBody(""); }}
-              style={[styles.smsCancelBtn, { borderColor: colors.border }]}
-            >
-              <Text style={[styles.smsBtnText, { color: colors.mutedForeground }]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSendSms}
-              disabled={!smsBody.trim() || sendingSms}
-              style={[styles.smsSendBtn, { backgroundColor: colors.primary, opacity: smsBody.trim() && !sendingSms ? 1 : 0.4 }]}
-            >
-              {sendingSms ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <Feather name="send" size={14} color="#fff" />
-                  <Text style={[styles.smsBtnText, { color: "#fff" }]}>Send SMS</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
 
       <View style={[styles.tabBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         {TABS.map((tab) => (
@@ -811,40 +762,6 @@ const styles = StyleSheet.create({
   activityAction: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
   activityTime: { fontSize: 11, fontFamily: "Inter_400Regular" },
   emptySubText: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center", maxWidth: 260 },
-  smsCompose: {
-    padding: 14,
-    borderBottomWidth: 1,
-    gap: 10,
-  },
-  smsInput: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    minHeight: 72,
-    textAlignVertical: "top",
-  },
-  smsActions: {
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "flex-end",
-  },
-  smsCancelBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  smsSendBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  smsBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   lenderCard: { borderRadius: 12, borderWidth: 1, padding: 14, gap: 10 },
   lenderCardHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
   lenderName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

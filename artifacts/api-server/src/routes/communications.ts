@@ -64,13 +64,14 @@ router.post("/leads/:id/calls/log", async (req, res) => {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
-  const { toNumber } = req.body as { toNumber?: string };
+  const { toNumber, type: commType } = req.body as { toNumber?: string; type?: "call" | "sms" };
   const phone = toNumber ?? lead.phone ?? undefined;
+  const resolvedType = commType === "sms" ? "sms" : "call";
 
   const [comm] = await db.insert(communicationsTable).values({
     leadId,
     userId: user.id,
-    type: "call",
+    type: resolvedType,
     direction: "outbound",
     fromNumber: undefined,
     toNumber: phone,
