@@ -1425,6 +1425,69 @@ export const ExportCreditComplianceLogQueryParams = zod.object({
 
 
 /**
+ * @summary List all workflow rules (admin only)
+ */
+export const ListWorkflowRulesResponseItem = zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "triggerStatus": zod.string().optional(),
+  "actionType": zod.enum(['create_task', 'send_notification']).optional(),
+  "actionConfig": zod.record(zod.string(), zod.unknown()).optional(),
+  "isActive": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date().optional()
+})
+export const ListWorkflowRulesResponse = zod.array(ListWorkflowRulesResponseItem)
+
+
+/**
+ * @summary Create a workflow rule (admin only)
+ */
+export const CreateWorkflowRuleBody = zod.object({
+  "name": zod.string(),
+  "triggerStatus": zod.string(),
+  "actionType": zod.enum(['create_task', 'send_notification']),
+  "actionConfig": zod.record(zod.string(), zod.unknown()),
+  "isActive": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update a workflow rule (admin only)
+ */
+export const UpdateWorkflowRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateWorkflowRuleBody = zod.object({
+  "name": zod.string().optional(),
+  "triggerStatus": zod.string().optional(),
+  "actionType": zod.enum(['create_task', 'send_notification']).optional(),
+  "actionConfig": zod.record(zod.string(), zod.unknown()).optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateWorkflowRuleResponse = zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().optional(),
+  "triggerStatus": zod.string().optional(),
+  "actionType": zod.enum(['create_task', 'send_notification']).optional(),
+  "actionConfig": zod.record(zod.string(), zod.unknown()).optional(),
+  "isActive": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Delete a workflow rule (admin only)
+ */
+export const DeleteWorkflowRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List all lenders (managers/admins only)
  */
 export const ListLendersResponseItem = zod.object({

@@ -1070,6 +1070,28 @@ export interface CreditComplianceLogResponse {
   pages?: number;
 }
 
+export type WorkflowRuleActionType = typeof WorkflowRuleActionType[keyof typeof WorkflowRuleActionType];
+
+
+export const WorkflowRuleActionType = {
+  create_task: 'create_task',
+  send_notification: 'send_notification',
+} as const;
+
+export type WorkflowRuleActionConfig = { [key: string]: unknown };
+
+export interface WorkflowRule {
+  id?: number;
+  name?: string;
+  triggerStatus?: string;
+  actionType?: WorkflowRuleActionType;
+  actionConfig?: WorkflowRuleActionConfig;
+  isActive?: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  createdAt?: string;
+}
+
 export type UpdateMyPushTokenBody = {
   /** @nullable */
   pushToken?: string | null;
@@ -1324,6 +1346,42 @@ startDate?: string;
 endDate?: string;
 repId?: number;
 leadId?: number;
+};
+
+export type CreateWorkflowRuleBodyActionType = typeof CreateWorkflowRuleBodyActionType[keyof typeof CreateWorkflowRuleBodyActionType];
+
+
+export const CreateWorkflowRuleBodyActionType = {
+  create_task: 'create_task',
+  send_notification: 'send_notification',
+} as const;
+
+export type CreateWorkflowRuleBodyActionConfig = { [key: string]: unknown };
+
+export type CreateWorkflowRuleBody = {
+  name: string;
+  triggerStatus: string;
+  actionType: CreateWorkflowRuleBodyActionType;
+  actionConfig: CreateWorkflowRuleBodyActionConfig;
+  isActive?: boolean;
+};
+
+export type UpdateWorkflowRuleBodyActionType = typeof UpdateWorkflowRuleBodyActionType[keyof typeof UpdateWorkflowRuleBodyActionType];
+
+
+export const UpdateWorkflowRuleBodyActionType = {
+  create_task: 'create_task',
+  send_notification: 'send_notification',
+} as const;
+
+export type UpdateWorkflowRuleBodyActionConfig = { [key: string]: unknown };
+
+export type UpdateWorkflowRuleBody = {
+  name?: string;
+  triggerStatus?: string;
+  actionType?: UpdateWorkflowRuleBodyActionType;
+  actionConfig?: UpdateWorkflowRuleBodyActionConfig;
+  isActive?: boolean;
 };
 
 export type RunLenderMatch200 = {

@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
+import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 
 const rawPort = process.env["PORT"];
 
@@ -24,6 +25,9 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Seed default workflow rules (no-op if already seeded)
+  seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));
 
   // Drip email background job — runs every 10 minutes
   const DRIP_INTERVAL_MS = 10 * 60 * 1000;

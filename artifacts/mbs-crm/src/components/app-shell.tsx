@@ -14,6 +14,7 @@ import {
   Building2,
   Megaphone,
   ShieldCheck,
+  GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -106,6 +107,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 Administration
               </div>
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
+              {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
             </>
           )}

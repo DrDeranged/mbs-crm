@@ -21,6 +21,7 @@ import flyerTemplatesRouter from "./flyer-templates";
 import flyersRouter from "./flyers";
 import applicationsRouter from "./applications";
 import creditRouter from "./credit";
+import workflowRulesRouter from "./workflowRules";
 
 const router: IRouter = Router();
 
@@ -45,6 +46,7 @@ router.use(flyerTemplatesRouter);
 router.use(flyersRouter);
 router.use(applicationsRouter);
 router.use(creditRouter);
+router.use(workflowRulesRouter);
 router.use(storageRouter);
 
 export default router;

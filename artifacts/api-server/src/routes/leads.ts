@@ -22,6 +22,7 @@ import {
 import rateLimit from "express-rate-limit";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { calculateLeadScore } from "../lib/leadScoring";
+import { executeWorkflowRules } from "../lib/workflowEngine";
 
 const router: IRouter = Router();
 
@@ -600,6 +601,9 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   } catch (err) {
     console.warn("[auto-enroll] Failed to auto-enroll lead in drip sequence:", err instanceof Error ? err.message : err);
   }
+
+  // Execute workflow rules for new status (non-blocking)
+  executeWorkflowRules(params.data.id, body.data.status, updated.assignedRepId, user.id).catch(() => {});
 
   // Auto-run lender matching when a lead reaches "application_received"
   if (body.data.status === "application_received") {

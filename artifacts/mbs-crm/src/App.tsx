@@ -22,6 +22,7 @@ import LenderManagement from "@/pages/lender-management";
 import FlyerTemplates from "@/pages/flyer-templates";
 import ApplyPage from "@/pages/apply";
 import CreditCompliance from "@/pages/credit-compliance";
+import WorkflowRules from "@/pages/workflow-rules";
 
 const queryClient = new QueryClient();
 
@@ -203,6 +204,9 @@ function AppRoutes() {
             <Route path="/apply" component={ApplyPage} />
             <Route path="/credit/compliance">
               <ProtectedRoute component={CreditCompliance} />
+            </Route>
+            <Route path="/workflow-rules">
+              <ProtectedRoute component={WorkflowRules} />
             </Route>
             <Route component={NotFound} />
           </Switch>

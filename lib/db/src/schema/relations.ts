@@ -17,6 +17,7 @@ import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lend
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
+import { workflowRulesTable } from "./workflowRules";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -202,6 +203,10 @@ export const creditComplianceLogRelations = relations(creditComplianceLogTable, 
   lead: one(leadsTable, { fields: [creditComplianceLogTable.leadId], references: [leadsTable.id] }),
   user: one(usersTable, { fields: [creditComplianceLogTable.userId], references: [usersTable.id] }),
   creditPull: one(creditPullsTable, { fields: [creditComplianceLogTable.creditPullId], references: [creditPullsTable.id] }),
+}));
+
+export const workflowRulesRelations = relations(workflowRulesTable, ({ one }) => ({
+  creator: one(usersTable, { fields: [workflowRulesTable.createdBy], references: [usersTable.id] }),
 }));
 
 export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) => ({
