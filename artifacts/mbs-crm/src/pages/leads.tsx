@@ -7,7 +7,6 @@ import {
   useBulkUpdateLeadStatus,
   useBulkAssignLeads,
   useBulkDeleteLeads,
-  exportLeads,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -351,15 +350,20 @@ export default function Leads() {
   const handleExport = async (ids?: number[]) => {
     setIsExporting(true);
     try {
-      const params: Record<string, any> = {};
-      if (debouncedSearch) params.search = debouncedSearch;
-      if (status) params.status = status;
-      if (applicationType) params.applicationType = applicationType;
-      if (repId) params.repId = Number(repId);
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (ids && ids.length > 0) params.ids = ids.join(",");
-      const blob = await exportLeads(params);
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (status) params.set("status", status);
+      if (applicationType) params.set("applicationType", applicationType);
+      if (repId) params.set("repId", repId);
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
+      if (ids && ids.length > 0) params.set("ids", ids.join(","));
+      const qs = params.toString();
+      const response = await fetch(`/api/leads/export${qs ? `?${qs}` : ""}`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Export failed");
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = `leads-${Date.now()}.csv`; a.click();
