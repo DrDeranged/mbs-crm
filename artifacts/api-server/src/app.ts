@@ -1,5 +1,6 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
@@ -33,14 +34,37 @@ app.use(
   }),
 );
 
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }),
+);
+
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
-app.use(express.json({
-  verify: (req: any, _res, buf) => {
-    req.rawBody = buf;
-  },
-}));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : [];
+
+app.use(
+  cors({
+    credentials: true,
+    origin:
+      process.env.NODE_ENV === "production" && allowedOrigins.length > 0
+        ? allowedOrigins
+        : true,
+  }),
+);
+
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
@@ -53,5 +77,11 @@ app.use(
 );
 
 app.use("/api", router);
+
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const message = err instanceof Error ? err.message : "Internal server error";
+  logger.error({ err, method: req.method, url: req.url }, "Unhandled error");
+  res.status(500).json({ error: message });
+});
 
 export default app;

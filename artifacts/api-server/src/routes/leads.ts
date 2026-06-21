@@ -4,6 +4,7 @@ import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHisto
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
+import { sanitizeLikeInput } from "../lib/sanitize";
 import { logActivity } from "../lib/activityHelper";
 import {
   ListLeadsQueryParams,
@@ -85,12 +86,13 @@ router.get("/leads", async (req: Request, res: Response) => {
 
   let searchCondition: any = undefined;
   if (q.search) {
+    const safe = sanitizeLikeInput(q.search);
     searchCondition = or(
-      ilike(leadsTable.firstName, `%${q.search}%`),
-      ilike(leadsTable.lastName, `%${q.search}%`),
-      ilike(leadsTable.companyName, `%${q.search}%`),
-      ilike(leadsTable.email, `%${q.search}%`),
-      ilike(leadsTable.phone, `%${q.search}%`),
+      ilike(leadsTable.firstName, `%${safe}%`),
+      ilike(leadsTable.lastName, `%${safe}%`),
+      ilike(leadsTable.companyName, `%${safe}%`),
+      ilike(leadsTable.email, `%${safe}%`),
+      ilike(leadsTable.phone, `%${safe}%`),
     );
   }
 
