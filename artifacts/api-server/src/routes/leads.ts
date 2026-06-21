@@ -360,15 +360,19 @@ router.post("/leads/:id/score", async (req: Request, res: Response) => {
   if (!user) return;
   const leadId = parseInt(req.params["id"] as string, 10);
   if (isNaN(leadId)) { res.status(400).json({ error: "Invalid ID" }); return; }
+
+  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+  if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (user.role === "rep" && lead.assignedRepId !== user.id) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
   try {
     const { score, breakdown } = await calculateLeadScore(leadId);
     res.json({ leadId, leadScore: score, leadScoreBreakdown: breakdown });
   } catch (err: any) {
-    if (err?.message?.includes("not found")) {
-      res.status(404).json({ error: "Lead not found" });
-    } else {
-      res.status(500).json({ error: "Score calculation failed" });
-    }
+    res.status(500).json({ error: "Score calculation failed" });
   }
 });
 
