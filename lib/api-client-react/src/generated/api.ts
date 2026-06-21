@@ -26,8 +26,14 @@ import type {
   ApplicationRecord,
   ApplicationSubmitResponse,
   AssignLead,
+  BulkAssignLeads200,
+  BulkAssignLeadsBody,
+  BulkDeleteLeads200,
+  BulkDeleteLeadsBody,
   BulkEmailInput,
   BulkEmailResult,
+  BulkUpdateLeadStatus200,
+  BulkUpdateLeadStatusBody,
   CaptureCreditConsent201,
   CaptureCreditConsentBody,
   CommActivity,
@@ -53,6 +59,7 @@ import type {
   EmailTemplateInput,
   EnrollLeadInDripBody,
   ExportCreditComplianceLogParams,
+  ExportLeadsParams,
   FinancialsResponse,
   FlyerTemplate,
   FlyerTemplateInput,
@@ -1029,6 +1036,303 @@ export const useCaptureLeadFromWebsite = <TError = ErrorType<DuplicateResponse>,
         TContext
       > => {
       return useMutation(getCaptureLeadFromWebsiteMutationOptions(options));
+    }
+
+export const getExportLeadsUrl = (params?: ExportLeadsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/leads/export?${stringifiedParams}` : `/api/leads/export`
+}
+
+/**
+ * @summary Export leads as CSV (respects current filter params, or specific IDs)
+ */
+export const exportLeads = async (params?: ExportLeadsParams, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getExportLeadsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportLeadsQueryKey = (params?: ExportLeadsParams,) => {
+    return [
+    `/api/leads/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportLeadsQueryOptions = <TData = Awaited<ReturnType<typeof exportLeads>>, TError = ErrorType<void>>(params?: ExportLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportLeadsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportLeads>>> = ({ signal }) => exportLeads(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportLeads>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportLeadsQueryResult = NonNullable<Awaited<ReturnType<typeof exportLeads>>>
+export type ExportLeadsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Export leads as CSV (respects current filter params, or specific IDs)
+ */
+
+export function useExportLeads<TData = Awaited<ReturnType<typeof exportLeads>>, TError = ErrorType<void>>(
+ params?: ExportLeadsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportLeads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportLeadsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getBulkUpdateLeadStatusUrl = () => {
+
+
+
+
+  return `/api/leads/bulk/status`
+}
+
+/**
+ * @summary Change status on up to 500 leads (manager/admin only)
+ */
+export const bulkUpdateLeadStatus = async (bulkUpdateLeadStatusBody: BulkUpdateLeadStatusBody, options?: RequestInit): Promise<BulkUpdateLeadStatus200> => {
+
+  return customFetch<BulkUpdateLeadStatus200>(getBulkUpdateLeadStatusUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      bulkUpdateLeadStatusBody,)
+  }
+);}
+
+
+
+
+export const getBulkUpdateLeadStatusMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkUpdateLeadStatus>>, TError,{data: BodyType<BulkUpdateLeadStatusBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkUpdateLeadStatus>>, TError,{data: BodyType<BulkUpdateLeadStatusBody>}, TContext> => {
+
+const mutationKey = ['bulkUpdateLeadStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkUpdateLeadStatus>>, {data: BodyType<BulkUpdateLeadStatusBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkUpdateLeadStatus(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkUpdateLeadStatusMutationResult = NonNullable<Awaited<ReturnType<typeof bulkUpdateLeadStatus>>>
+    export type BulkUpdateLeadStatusMutationBody = BodyType<BulkUpdateLeadStatusBody>
+    export type BulkUpdateLeadStatusMutationError = ErrorType<void>
+
+    /**
+ * @summary Change status on up to 500 leads (manager/admin only)
+ */
+export const useBulkUpdateLeadStatus = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkUpdateLeadStatus>>, TError,{data: BodyType<BulkUpdateLeadStatusBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkUpdateLeadStatus>>,
+        TError,
+        {data: BodyType<BulkUpdateLeadStatusBody>},
+        TContext
+      > => {
+      return useMutation(getBulkUpdateLeadStatusMutationOptions(options));
+    }
+
+export const getBulkAssignLeadsUrl = () => {
+
+
+
+
+  return `/api/leads/bulk/assign`
+}
+
+/**
+ * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ */
+export const bulkAssignLeads = async (bulkAssignLeadsBody: BulkAssignLeadsBody, options?: RequestInit): Promise<BulkAssignLeads200> => {
+
+  return customFetch<BulkAssignLeads200>(getBulkAssignLeadsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      bulkAssignLeadsBody,)
+  }
+);}
+
+
+
+
+export const getBulkAssignLeadsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext> => {
+
+const mutationKey = ['bulkAssignLeads'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkAssignLeads>>, {data: BodyType<BulkAssignLeadsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkAssignLeads(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkAssignLeadsMutationResult = NonNullable<Awaited<ReturnType<typeof bulkAssignLeads>>>
+    export type BulkAssignLeadsMutationBody = BodyType<BulkAssignLeadsBody>
+    export type BulkAssignLeadsMutationError = ErrorType<void>
+
+    /**
+ * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ */
+export const useBulkAssignLeads = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkAssignLeads>>,
+        TError,
+        {data: BodyType<BulkAssignLeadsBody>},
+        TContext
+      > => {
+      return useMutation(getBulkAssignLeadsMutationOptions(options));
+    }
+
+export const getBulkDeleteLeadsUrl = () => {
+
+
+
+
+  return `/api/leads/bulk/delete`
+}
+
+/**
+ * @summary Delete up to 500 leads (admin only)
+ */
+export const bulkDeleteLeads = async (bulkDeleteLeadsBody: BulkDeleteLeadsBody, options?: RequestInit): Promise<BulkDeleteLeads200> => {
+
+  return customFetch<BulkDeleteLeads200>(getBulkDeleteLeadsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      bulkDeleteLeadsBody,)
+  }
+);}
+
+
+
+
+export const getBulkDeleteLeadsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkDeleteLeads>>, TError,{data: BodyType<BulkDeleteLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkDeleteLeads>>, TError,{data: BodyType<BulkDeleteLeadsBody>}, TContext> => {
+
+const mutationKey = ['bulkDeleteLeads'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkDeleteLeads>>, {data: BodyType<BulkDeleteLeadsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkDeleteLeads(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkDeleteLeadsMutationResult = NonNullable<Awaited<ReturnType<typeof bulkDeleteLeads>>>
+    export type BulkDeleteLeadsMutationBody = BodyType<BulkDeleteLeadsBody>
+    export type BulkDeleteLeadsMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete up to 500 leads (admin only)
+ */
+export const useBulkDeleteLeads = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkDeleteLeads>>, TError,{data: BodyType<BulkDeleteLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkDeleteLeads>>,
+        TError,
+        {data: BodyType<BulkDeleteLeadsBody>},
+        TContext
+      > => {
+      return useMutation(getBulkDeleteLeadsMutationOptions(options));
     }
 
 export const getGetLeadUrl = (id: number,) => {

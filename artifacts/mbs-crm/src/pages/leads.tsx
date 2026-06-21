@@ -4,6 +4,10 @@ import {
   useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers,
   useImportLeads, usePreviewImport,
   useGetMe,
+  useBulkUpdateLeadStatus,
+  useBulkAssignLeads,
+  useBulkDeleteLeads,
+  exportLeads,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +16,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -274,6 +280,11 @@ export default function Leads() {
   const [page, setPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<ListLeadsSortOrder>(ListLeadsSortOrder.desc);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState("");
+  const [bulkRepId, setBulkRepId] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => { if ((e as CustomEvent).type === "open-import-dialog") setImportOpen(true); };
@@ -282,9 +293,98 @@ export default function Leads() {
   }, []);
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: currentUser } = useGetMe();
   const isManagerOrAdmin = currentUser?.role === "manager" || currentUser?.role === "admin";
+  const isAdmin = currentUser?.role === "admin";
+
+  const bulkUpdateStatus = useBulkUpdateLeadStatus();
+  const bulkAssign = useBulkAssignLeads();
+  const bulkDelete = useBulkDeleteLeads();
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!data?.leads) return;
+    const allIds = data.leads.map((l) => l.id);
+    const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+    setSelectedIds(allSelected ? new Set() : new Set(allIds));
+  };
+
+  const handleBulkStatus = () => {
+    if (!bulkStatus || selectedIds.size === 0) return;
+    bulkUpdateStatus.mutate(
+      { data: { ids: [...selectedIds], status: bulkStatus } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          setSelectedIds(new Set()); setBulkStatus("");
+          toast({ title: `Updated ${selectedIds.size} lead${selectedIds.size > 1 ? "s" : ""}` });
+        },
+        onError: () => toast({ title: "Failed to update status", variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleBulkAssign = () => {
+    if (!bulkRepId || selectedIds.size === 0) return;
+    bulkAssign.mutate(
+      { data: { ids: [...selectedIds], repId: Number(bulkRepId) } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          setSelectedIds(new Set()); setBulkRepId("");
+          toast({ title: `Reassigned ${selectedIds.size} lead${selectedIds.size > 1 ? "s" : ""}` });
+        },
+        onError: () => toast({ title: "Failed to reassign leads", variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleExport = async (ids?: number[]) => {
+    setIsExporting(true);
+    try {
+      const params: Record<string, any> = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (status) params.status = status;
+      if (applicationType) params.applicationType = applicationType;
+      if (repId) params.repId = Number(repId);
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      if (ids && ids.length > 0) params.ids = ids.join(",");
+      const blob = await exportLeads(params);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `leads-${Date.now()}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({ title: "Export failed", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    const count = selectedIds.size;
+    bulkDelete.mutate(
+      { data: { ids: [...selectedIds] } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          setSelectedIds(new Set()); setDeleteDialogOpen(false);
+          toast({ title: `Deleted ${count} lead${count > 1 ? "s" : ""}` });
+        },
+        onError: () => toast({ title: "Failed to delete leads", variant: "destructive" }),
+      },
+    );
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -329,10 +429,16 @@ export default function Leads() {
         </div>
         <div className="flex items-center gap-3">
           {isManagerOrAdmin && (
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => handleExport()} disabled={isExporting}>
+                <Download className="mr-2 h-4 w-4" />
+                {isExporting ? "Exporting…" : "Export All"}
+              </Button>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-2 h-4 w-4" />
+                Import
+              </Button>
+            </>
           )}
           <Link
             href="/leads/new"
@@ -454,6 +560,18 @@ export default function Leads() {
         <Table>
           <TableHeader>
             <TableRow>
+              {isManagerOrAdmin && (
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={
+                      !!data?.leads?.length &&
+                      data.leads.every((l) => selectedIds.has(l.id))
+                    }
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
+              )}
               <TableHead>Lead</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
@@ -467,6 +585,7 @@ export default function Leads() {
             {isLoading ? (
               [...Array(5)].map((_, i) => (
                 <TableRow key={i}>
+                  {isManagerOrAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
                   <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
@@ -478,7 +597,7 @@ export default function Leads() {
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={isManagerOrAdmin ? 8 : 7} className="h-24 text-center text-muted-foreground">
                   No leads found.
                 </TableCell>
               </TableRow>
@@ -486,8 +605,17 @@ export default function Leads() {
               data?.leads.map((lead) => (
                 <TableRow
                   key={lead.id}
-                  className="cursor-pointer hover:bg-gray-50/50 transition-colors"
+                  className={`cursor-pointer hover:bg-gray-50/50 transition-colors ${selectedIds.has(lead.id) ? "bg-blue-50/40" : ""}`}
                 >
+                  {isManagerOrAdmin && (
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(lead.id)}
+                        onCheckedChange={() => toggleSelect(lead.id)}
+                        aria-label={`Select lead ${lead.id}`}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="font-medium">
                     <Link href={`/leads/${lead.id}`} className="block w-full">
                       {lead.firstName} {lead.lastName}
@@ -564,6 +692,124 @@ export default function Leads() {
           </div>
         </div>
       )}
+
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-gray-200 shadow-xl rounded-xl px-5 py-3">
+          <span className="text-sm font-semibold text-[#1F4E79] whitespace-nowrap">
+            {selectedIds.size} selected
+          </span>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          <Select value={bulkStatus} onValueChange={(v) => { setBulkStatus(v); }}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue placeholder="Change Status…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new_lead">New Lead</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="follow_up">Follow Up</SelectItem>
+              <SelectItem value="application_received">App Received</SelectItem>
+              <SelectItem value="submitted_to_underwriting">In Underwriting</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="funded">Funded</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+            disabled={!bulkStatus || bulkUpdateStatus.isPending}
+            onClick={handleBulkStatus}
+          >
+            Apply
+          </Button>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          {usersData && usersData.length > 0 && (
+            <>
+              <Select value={bulkRepId} onValueChange={setBulkRepId}>
+                <SelectTrigger className="h-8 w-[150px] text-xs">
+                  <SelectValue placeholder="Assign To…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usersData.map((rep) => (
+                    <SelectItem key={rep.id} value={String(rep.id)}>
+                      {rep.name || rep.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+                disabled={!bulkRepId || bulkAssign.isPending}
+                onClick={handleBulkAssign}
+              >
+                Assign
+              </Button>
+              <div className="h-4 w-px bg-gray-200" />
+            </>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            disabled={isExporting}
+            onClick={() => handleExport([...selectedIds])}
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export Selected
+          </Button>
+
+          {isAdmin && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs text-muted-foreground"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            <X className="mr-1 h-3.5 w-3.5" />
+            Clear
+          </Button>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} lead{selectedIds.size > 1 ? "s" : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. All data associated with the selected lead{selectedIds.size > 1 ? "s" : ""} — including notes, tasks, documents, and activity — will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleBulkDelete}
+              disabled={bulkDelete.isPending}
+            >
+              {bulkDelete.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

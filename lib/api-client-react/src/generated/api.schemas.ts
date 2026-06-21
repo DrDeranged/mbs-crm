@@ -1113,6 +1113,48 @@ export type ImportLeadsBody = {
   columnMapping?: string;
 };
 
+export type ExportLeadsParams = {
+/**
+ * Comma-separated lead IDs to export (if omitted, exports all matching filter)
+ */
+ids?: string;
+search?: string;
+status?: string;
+applicationType?: string;
+repId?: number;
+startDate?: string;
+endDate?: string;
+};
+
+export type BulkUpdateLeadStatusBody = {
+  /** @maxItems 500 */
+  ids: number[];
+  status: string;
+};
+
+export type BulkUpdateLeadStatus200 = {
+  updated?: number;
+};
+
+export type BulkAssignLeadsBody = {
+  /** @maxItems 500 */
+  ids: number[];
+  repId: number;
+};
+
+export type BulkAssignLeads200 = {
+  updated?: number;
+};
+
+export type BulkDeleteLeadsBody = {
+  /** @maxItems 500 */
+  ids: number[];
+};
+
+export type BulkDeleteLeads200 = {
+  deleted?: number;
+};
+
 export type UploadDocumentBody = {
   file: Blob;
 };

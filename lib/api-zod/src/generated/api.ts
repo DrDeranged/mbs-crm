@@ -239,6 +239,70 @@ export const CaptureLeadFromWebsiteBody = zod.object({
 
 
 /**
+ * @summary Export leads as CSV (respects current filter params, or specific IDs)
+ */
+export const ExportLeadsQueryParams = zod.object({
+  "ids": zod.coerce.string().optional().describe('Comma-separated lead IDs to export (if omitted, exports all matching filter)'),
+  "search": zod.coerce.string().optional(),
+  "status": zod.coerce.string().optional(),
+  "applicationType": zod.coerce.string().optional(),
+  "repId": zod.coerce.number().optional(),
+  "startDate": zod.coerce.string().optional(),
+  "endDate": zod.coerce.string().optional()
+})
+
+
+/**
+ * @summary Change status on up to 500 leads (manager/admin only)
+ */
+export const bulkUpdateLeadStatusBodyIdsMax = 500;
+
+
+
+export const BulkUpdateLeadStatusBody = zod.object({
+  "ids": zod.array(zod.number()).max(bulkUpdateLeadStatusBodyIdsMax),
+  "status": zod.string()
+})
+
+export const BulkUpdateLeadStatusResponse = zod.object({
+  "updated": zod.number().optional()
+})
+
+
+/**
+ * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ */
+export const bulkAssignLeadsBodyIdsMax = 500;
+
+
+
+export const BulkAssignLeadsBody = zod.object({
+  "ids": zod.array(zod.number()).max(bulkAssignLeadsBodyIdsMax),
+  "repId": zod.number()
+})
+
+export const BulkAssignLeadsResponse = zod.object({
+  "updated": zod.number().optional()
+})
+
+
+/**
+ * @summary Delete up to 500 leads (admin only)
+ */
+export const bulkDeleteLeadsBodyIdsMax = 500;
+
+
+
+export const BulkDeleteLeadsBody = zod.object({
+  "ids": zod.array(zod.number()).max(bulkDeleteLeadsBodyIdsMax)
+})
+
+export const BulkDeleteLeadsResponse = zod.object({
+  "deleted": zod.number().optional()
+})
+
+
+/**
  * @summary Get lead detail with related data
  */
 export const GetLeadParams = zod.object({

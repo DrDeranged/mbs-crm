@@ -2,7 +2,8 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
 import { matchLeadToLenders } from "../lib/matchingEngine";
-import { eq, or, ilike, and, sql, desc, asc, gte, lte } from "drizzle-orm";
+import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
+import { z } from "zod/v4";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
 import { logActivity } from "../lib/activityHelper";
@@ -202,6 +203,150 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   await logActivity({ userId: null, leadId: lead.id, action: "captured", entityType: "lead", entityId: lead.id });
 
   res.status(201).json({ success: true, leadId: lead.id });
+});
+
+function buildLeadsWhere(q: any, userRole: string, userId: number) {
+  const conditions: ReturnType<typeof eq>[] = [];
+  if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
+  if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
+  if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
+  if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
+  if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
+  if (q.endDate) {
+    const end = new Date(q.endDate as string);
+    end.setHours(23, 59, 59, 999);
+    conditions.push(lte(leadsTable.createdAt, end));
+  }
+  let searchCondition: any = undefined;
+  if (q.search) {
+    const safe = sanitizeLikeInput(q.search);
+    searchCondition = or(
+      ilike(leadsTable.firstName, `%${safe}%`),
+      ilike(leadsTable.lastName, `%${safe}%`),
+      ilike(leadsTable.companyName, `%${safe}%`),
+      ilike(leadsTable.email, `%${safe}%`),
+      ilike(leadsTable.phone, `%${safe}%`),
+    );
+  }
+  return conditions.length > 0 || searchCondition
+    ? and(...(conditions as any[]), ...(searchCondition ? [searchCondition] : []))
+    : undefined;
+}
+
+router.get("/leads/export", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const q = req.query as any;
+  const whereClause = buildLeadsWhere(q, user.role, user.id);
+
+  const ids = q.ids
+    ? String(q.ids).split(",").map(Number).filter((n: number) => !isNaN(n) && n > 0)
+    : null;
+
+  const leads = await db.query.leadsTable.findMany({
+    where: ids && ids.length > 0
+      ? and(whereClause as any, inArray(leadsTable.id, ids))
+      : (whereClause as any),
+    with: { assignedRep: true },
+    orderBy: [desc(leadsTable.createdAt)],
+    limit: 5000,
+  });
+
+  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Company", "EIN", "Status", "Type", "Lead Source", "Assigned Rep", "Created At", "Updated At"];
+  const rows = leads.map((l: any) => [
+    l.id,
+    l.firstName ?? "",
+    l.lastName ?? "",
+    l.email ?? "",
+    l.phone ?? "",
+    l.companyName ?? "",
+    l.ein ?? "",
+    l.status,
+    l.applicationType,
+    l.leadSource,
+    l.assignedRep ? (l.assignedRep.name || l.assignedRep.email) : "",
+    l.createdAt.toISOString(),
+    l.updatedAt.toISOString(),
+  ]);
+
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", `attachment; filename="leads-${Date.now()}.csv"`);
+  res.send(csv);
+  await logActivity({ userId: user.id, leadId: null, action: "exported", entityType: "lead", entityId: 0, details: { count: leads.length } });
+});
+
+const BulkStatusBody = z.object({
+  ids: z.array(z.number().int().positive()).min(1).max(500),
+  status: z.string().min(1),
+});
+
+router.post("/leads/bulk/status", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
+  const body = BulkStatusBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body", details: body.error.issues });
+    return;
+  }
+  await db.update(leadsTable)
+    .set({ status: body.data.status as any, updatedAt: new Date() })
+    .where(inArray(leadsTable.id, body.data.ids));
+  await logActivity({ userId: user.id, leadId: null, action: "bulk_status_changed", entityType: "lead", entityId: 0, details: { ids: body.data.ids, status: body.data.status } });
+  res.json({ updated: body.data.ids.length });
+});
+
+const BulkAssignBody = z.object({
+  ids: z.array(z.number().int().positive()).min(1).max(500),
+  repId: z.number().int().positive(),
+});
+
+router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role === "rep") {
+    res.status(403).json({ error: "Forbidden: managers and admins only" });
+    return;
+  }
+  const body = BulkAssignBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body", details: body.error.issues });
+    return;
+  }
+  await db.update(leadsTable)
+    .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
+    .where(inArray(leadsTable.id, body.data.ids));
+  await logActivity({ userId: user.id, leadId: null, action: "bulk_assigned", entityType: "lead", entityId: 0, details: { ids: body.data.ids, repId: body.data.repId } });
+  res.json({ updated: body.data.ids.length });
+});
+
+const BulkDeleteBody = z.object({
+  ids: z.array(z.number().int().positive()).min(1).max(500),
+});
+
+router.post("/leads/bulk/delete", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") {
+    res.status(403).json({ error: "Forbidden: admins only" });
+    return;
+  }
+  const body = BulkDeleteBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body", details: body.error.issues });
+    return;
+  }
+  await db.delete(leadsTable).where(inArray(leadsTable.id, body.data.ids));
+  await logActivity({ userId: user.id, leadId: null, action: "bulk_deleted", entityType: "lead", entityId: 0, details: { ids: body.data.ids } });
+  res.json({ deleted: body.data.ids.length });
 });
 
 router.get("/leads/:id", async (req: Request, res: Response) => {
