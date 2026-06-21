@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useListWorkflowRules, useCreateWorkflowRule, useUpdateWorkflowRule, useDeleteWorkflowRule } from "@workspace/api-client-react";
+import { useListWorkflowRules, useCreateWorkflowRule, useUpdateWorkflowRule, useDeleteWorkflowRule, getListWorkflowRulesQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -133,10 +134,15 @@ function formToPayload(f: FormState) {
 
 export default function WorkflowRules() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: rules = [], isLoading } = useListWorkflowRules();
   const createMutation = useCreateWorkflowRule();
   const updateMutation = useUpdateWorkflowRule();
   const deleteMutation = useDeleteWorkflowRule();
+
+  async function invalidateRules() {
+    await queryClient.invalidateQueries({ queryKey: getListWorkflowRulesQueryKey() });
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
@@ -162,6 +168,7 @@ export default function WorkflowRules() {
   async function handleToggle(rule: WorkflowRule) {
     try {
       await updateMutation.mutateAsync({ id: rule.id, data: { isActive: !rule.isActive } });
+      await invalidateRules();
     } catch {
       toast({ title: "Failed to update rule", variant: "destructive" });
     }
@@ -184,9 +191,11 @@ export default function WorkflowRules() {
       const payload = formToPayload(form);
       if (editingRule) {
         await updateMutation.mutateAsync({ id: editingRule.id, data: payload });
+        await invalidateRules();
         toast({ title: "Rule updated" });
       } else {
         await createMutation.mutateAsync({ data: payload });
+        await invalidateRules();
         toast({ title: "Rule created" });
       }
       setDialogOpen(false);
@@ -199,6 +208,7 @@ export default function WorkflowRules() {
     if (!deleteTarget) return;
     try {
       await deleteMutation.mutateAsync({ id: deleteTarget.id });
+      await invalidateRules();
       toast({ title: "Rule deleted" });
       setDeleteTarget(null);
     } catch {
