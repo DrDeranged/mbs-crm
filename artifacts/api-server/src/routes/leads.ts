@@ -21,6 +21,7 @@ import {
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
 import { sendPushNotification } from "../lib/pushNotifications";
+import { calculateLeadScore } from "../lib/leadScoring";
 
 const router: IRouter = Router();
 
@@ -48,6 +49,8 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
     lastActivityAt: lead.lastActivityAt?.toISOString() ?? null,
+    leadScore: lead.leadScore ?? null,
+    leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
   };
 }
 
@@ -84,6 +87,8 @@ router.get("/leads", async (req: Request, res: Response) => {
     end.setHours(23, 59, 59, 999);
     conditions.push(lte(leadsTable.createdAt, end));
   }
+  if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
+  if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
 
   let searchCondition: any = undefined;
   if (q.search) {
@@ -110,6 +115,7 @@ router.get("/leads", async (req: Request, res: Response) => {
     lastName: leadsTable.lastName,
     status: leadsTable.status,
     lastActivityAt: leadsTable.lastActivityAt,
+    leadScore: leadsTable.leadScore,
   };
   const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
 
@@ -347,6 +353,23 @@ router.post("/leads/bulk/delete", async (req: Request, res: Response) => {
   await db.delete(leadsTable).where(inArray(leadsTable.id, body.data.ids));
   await logActivity({ userId: user.id, leadId: null, action: "bulk_deleted", entityType: "lead", entityId: 0, details: { ids: body.data.ids } });
   res.json({ deleted: body.data.ids.length });
+});
+
+router.post("/leads/:id/score", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const leadId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(leadId)) { res.status(400).json({ error: "Invalid ID" }); return; }
+  try {
+    const { score, breakdown } = await calculateLeadScore(leadId);
+    res.json({ leadId, leadScore: score, leadScoreBreakdown: breakdown });
+  } catch (err: any) {
+    if (err?.message?.includes("not found")) {
+      res.status(404).json({ error: "Lead not found" });
+    } else {
+      res.status(500).json({ error: "Score calculation failed" });
+    }
+  }
 });
 
 router.get("/leads/:id", async (req: Request, res: Response) => {

@@ -244,6 +244,16 @@ paths:
           schema:
             type: string
             enum: [asc, desc]
+        - name: minScore
+          in: query
+          description: Filter leads with score >= minScore
+          schema:
+            type: integer
+        - name: maxScore
+          in: query
+          description: Filter leads with score <= maxScore
+          schema:
+            type: integer
       responses:
         "200":
           description: Paginated lead list
@@ -503,6 +513,37 @@ paths:
           description: Invalid request
         "403":
           description: Forbidden
+
+  /leads/{id}/score:
+    post:
+      operationId: recalculateLeadScore
+      tags: [leads]
+      summary: Recalculate and save the automated lead score (0-100)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Score result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [leadId, leadScore, leadScoreBreakdown]
+                properties:
+                  leadId:
+                    type: integer
+                  leadScore:
+                    type: integer
+                  leadScoreBreakdown:
+                    type: object
+        "401":
+          description: Unauthorized
+        "404":
+          description: Lead not found
 
   /leads/{id}:
     get:
@@ -2462,6 +2503,12 @@ components:
         lastActivityAt:
           type: ["string", "null"]
           format: date-time
+        leadScore:
+          type: ["integer", "null"]
+          description: Automated 0-100 lead quality score
+        leadScoreBreakdown:
+          type: ["object", "null"]
+          description: Per-criterion score breakdown
 
     LeadDetail:
       allOf:

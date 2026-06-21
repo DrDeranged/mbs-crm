@@ -8,6 +8,7 @@ import {
   useBulkAssignLeads,
   useBulkDeleteLeads,
 } from "@workspace/api-client-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -284,6 +285,7 @@ export default function Leads() {
   const [bulkRepId, setBulkRepId] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [scoreFilter, setScoreFilter] = useState<"high" | "medium" | "low" | "">("");
 
   useEffect(() => {
     const handler = (e: Event) => { if ((e as CustomEvent).type === "open-import-dialog") setImportOpen(true); };
@@ -398,6 +400,8 @@ export default function Leads() {
     return () => clearTimeout(handler);
   }, [search]);
 
+  const scoreMinMax = scoreFilter === "high" ? { minScore: 70 } : scoreFilter === "medium" ? { minScore: 40, maxScore: 69 } : scoreFilter === "low" ? { maxScore: 39 } : {};
+
   const queryParams = {
     search: debouncedSearch || undefined,
     status: status || undefined,
@@ -409,6 +413,7 @@ export default function Leads() {
     limit: 20,
     sortBy: "updatedAt",
     sortOrder,
+    ...scoreMinMax,
   };
 
   const { data, isLoading } = useListLeads(queryParams, {
@@ -560,6 +565,28 @@ export default function Leads() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">Score:</span>
+        {(["", "high", "medium", "low"] as const).map((f) => {
+          const label = f === "" ? "All" : f === "high" ? "High 70+" : f === "medium" ? "Medium 40–69" : "Low <40";
+          const active = scoreFilter === f;
+          const color = f === "high" ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-50" : f === "medium" ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-50" : f === "low" ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-50" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
+          return (
+            <button
+              key={f}
+              onClick={() => { setScoreFilter(f); setPage(1); }}
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-medium border transition-all",
+                color,
+                active && "ring-2 ring-offset-1 ring-[#1F4E79] font-semibold",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader>
@@ -579,6 +606,7 @@ export default function Leads() {
               <TableHead>Lead</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Score</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Assigned Rep</TableHead>
               <TableHead>Last Activity</TableHead>
@@ -593,6 +621,7 @@ export default function Leads() {
                   <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-[48px] rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
@@ -601,7 +630,7 @@ export default function Leads() {
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 8 : 7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="h-24 text-center text-muted-foreground">
                   No leads found.
                 </TableCell>
               </TableRow>
@@ -636,6 +665,22 @@ export default function Leads() {
                       <Badge variant="secondary" className="font-normal capitalize">
                         {formatStatus(lead.status)}
                       </Badge>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/leads/${lead.id}`} className="block w-full">
+                      {(lead as any).leadScore !== null && (lead as any).leadScore !== undefined ? (
+                        <span className={cn(
+                          "inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-full text-xs font-semibold",
+                          (lead as any).leadScore >= 70 ? "bg-green-100 text-green-700" :
+                          (lead as any).leadScore >= 40 ? "bg-amber-100 text-amber-700" :
+                          "bg-red-100 text-red-700",
+                        )}>
+                          {(lead as any).leadScore}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </Link>
                   </TableCell>
                   <TableCell>

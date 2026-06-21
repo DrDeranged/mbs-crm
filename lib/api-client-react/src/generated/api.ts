@@ -100,6 +100,7 @@ import type {
   PreviewEmailTemplateBody,
   PreviewImportBody,
   PullCreditReportBody,
+  RecalculateLeadScore200,
   RepDashboard,
   RepPerformance,
   RunLenderMatch200,
@@ -1333,6 +1334,76 @@ export const useBulkDeleteLeads = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getBulkDeleteLeadsMutationOptions(options));
+    }
+
+export const getRecalculateLeadScoreUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/score`
+}
+
+/**
+ * @summary Recalculate and save the automated lead score (0-100)
+ */
+export const recalculateLeadScore = async (id: number, options?: RequestInit): Promise<RecalculateLeadScore200> => {
+
+  return customFetch<RecalculateLeadScore200>(getRecalculateLeadScoreUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRecalculateLeadScoreMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateLeadScore>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recalculateLeadScore>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['recalculateLeadScore'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recalculateLeadScore>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  recalculateLeadScore(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecalculateLeadScoreMutationResult = NonNullable<Awaited<ReturnType<typeof recalculateLeadScore>>>
+
+    export type RecalculateLeadScoreMutationError = ErrorType<void>
+
+    /**
+ * @summary Recalculate and save the automated lead score (0-100)
+ */
+export const useRecalculateLeadScore = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recalculateLeadScore>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recalculateLeadScore>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRecalculateLeadScoreMutationOptions(options));
     }
 
 export const getGetLeadUrl = (id: number,) => {

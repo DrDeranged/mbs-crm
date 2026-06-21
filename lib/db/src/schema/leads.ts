@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -38,6 +38,8 @@ export const leadsTable = pgTable(
     consentCreditPullAt: timestamp("consent_credit_pull_at"),
     consentIp: text("consent_ip"),
     lastActivityAt: timestamp("last_activity_at"),
+    leadScore: integer("lead_score"),
+    leadScoreBreakdown: jsonb("lead_score_breakdown"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

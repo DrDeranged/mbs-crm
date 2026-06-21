@@ -12,6 +12,7 @@ import {
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { encrypt, decrypt } from "../lib/encryption";
+import { calculateLeadScore } from "../lib/leadScoring";
 
 const router = Router();
 
@@ -326,6 +327,8 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
     entityId: pull!.id,
     details: { message: `Credit report pulled, score: ${creditScore ?? "N/A"}` },
   });
+
+  calculateLeadScore(leadId).catch((e) => console.error("Lead scoring error:", e));
 
   res.status(201).json({
     id: pull!.id,

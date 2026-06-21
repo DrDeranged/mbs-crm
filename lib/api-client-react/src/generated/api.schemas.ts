@@ -123,6 +123,12 @@ export const LeadLeadSource = {
   manual: 'manual',
 } as const;
 
+/**
+ * Per-criterion score breakdown
+ * @nullable
+ */
+export type LeadLeadScoreBreakdown = { [key: string]: unknown } | null;
+
 export interface Lead {
   id: number;
   /** @nullable */
@@ -147,6 +153,16 @@ export interface Lead {
   updatedAt: string;
   /** @nullable */
   lastActivityAt?: string | null;
+  /**
+     * Automated 0-100 lead quality score
+     * @nullable
+     */
+  leadScore?: number | null;
+  /**
+     * Per-criterion score breakdown
+     * @nullable
+     */
+  leadScoreBreakdown?: LeadLeadScoreBreakdown;
 }
 
 export interface Company {
@@ -1093,6 +1109,14 @@ page?: number;
 limit?: number;
 sortBy?: string;
 sortOrder?: ListLeadsSortOrder;
+/**
+ * Filter leads with score >= minScore
+ */
+minScore?: number;
+/**
+ * Filter leads with score <= maxScore
+ */
+maxScore?: number;
 };
 
 export type ListLeadsSortOrder = typeof ListLeadsSortOrder[keyof typeof ListLeadsSortOrder];
@@ -1153,6 +1177,14 @@ export type BulkDeleteLeadsBody = {
 
 export type BulkDeleteLeads200 = {
   deleted?: number;
+};
+
+export type RecalculateLeadScore200LeadScoreBreakdown = { [key: string]: unknown };
+
+export type RecalculateLeadScore200 = {
+  leadId: number;
+  leadScore: number;
+  leadScoreBreakdown: RecalculateLeadScore200LeadScoreBreakdown;
 };
 
 export type UploadDocumentBody = {

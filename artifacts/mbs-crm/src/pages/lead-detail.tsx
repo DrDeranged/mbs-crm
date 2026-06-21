@@ -24,6 +24,7 @@ import {
   useListFlyerTemplates, useGenerateFlyer, useEmailFlyer, getDownloadFlyerUrl,
   useGetLeadApplication, useGetLeadFinancials,
   useGetLeadCredit, useCaptureCreditConsent, usePullCreditReport,
+  useRecalculateLeadScore,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,15 +47,43 @@ import { SoftphoneContext } from "@/components/softphone-context";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+function ScoreBar({ score }: { score: number }) {
+  const color = score >= 70 ? "bg-green-500" : score >= 40 ? "bg-amber-500" : "bg-red-500";
+  const label = score >= 70 ? "High" : score >= 40 ? "Medium" : "Low";
+  const labelColor = score >= 70 ? "text-green-700" : score >= 40 ? "text-amber-700" : "text-red-700";
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-2xl font-bold text-gray-900">{score}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${score >= 70 ? "bg-green-100" : score >= 40 ? "bg-amber-100" : "bg-red-100"} ${labelColor}`}>{label}</span>
+      </div>
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
+      </div>
+    </div>
+  );
+}
+
 // Info Tab
 function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
   const { data: currentUser } = useGetMe();
   const { data: reps } = useListUsers({ role: "rep" });
   const assignLead = useAssignLead();
+  const recalcScore = useRecalculateLeadScore();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
+
+  const handleRecalcScore = () => {
+    recalcScore.mutate({ id: leadId }, {
+      onSuccess: () => {
+        toast({ title: "Score updated" });
+        queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+      },
+      onError: () => toast({ title: "Score calculation failed", variant: "destructive" }),
+    });
+  };
 
   const handleAssign = (repIdStr: string) => {
     const repId = repIdStr === "unassigned" ? null : Number(repIdStr);
@@ -84,8 +113,65 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
     { label: "Last Updated", value: format(new Date(lead.updatedAt), "MMM d, yyyy") },
   ];
 
+  const scoreBreakdown = lead.leadScoreBreakdown as any;
+
   return (
     <div className="mt-4 space-y-6">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Lead Score</CardTitle>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
+              disabled={recalcScore.isPending}
+              onClick={handleRecalcScore}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${recalcScore.isPending ? "animate-spin" : ""}`} />
+              {recalcScore.isPending ? "Scoring…" : "Recalculate"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-4">
+          {lead.leadScore !== null && lead.leadScore !== undefined ? (
+            <>
+              <ScoreBar score={lead.leadScore} />
+              {scoreBreakdown?.criteria && (
+                <div className="space-y-2">
+                  {scoreBreakdown.criteria.map((c: any) => (
+                    <div key={c.name} className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-xs font-medium text-gray-700 truncate">{c.name}</span>
+                          <span className="text-xs font-semibold text-gray-900 ml-2 shrink-0">{c.points}<span className="text-muted-foreground font-normal">/{c.maxPoints}</span></span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${c.points >= c.maxPoints * 0.75 ? "bg-green-400" : c.points >= c.maxPoints * 0.4 ? "bg-amber-400" : "bg-red-400"}`}
+                            style={{ width: `${(c.points / c.maxPoints) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{c.reason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {scoreBreakdown?.scoredAt && (
+                <p className="text-[11px] text-muted-foreground">Last scored {format(new Date(scoreBreakdown.scoredAt), "MMM d, yyyy h:mm a")}</p>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No score yet</p>
+              <p className="text-xs mt-1">Click Recalculate to generate a score</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="shadow-sm">
         <CardHeader className="pb-3 border-b">
           <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact & Deal Details</CardTitle>

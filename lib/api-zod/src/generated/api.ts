@@ -130,7 +130,9 @@ export const ListLeadsQueryParams = zod.object({
   "page": zod.coerce.number().default(listLeadsQueryPageDefault),
   "limit": zod.coerce.number().default(listLeadsQueryLimitDefault),
   "sortBy": zod.coerce.string().optional(),
-  "sortOrder": zod.enum(['asc', 'desc']).optional()
+  "sortOrder": zod.enum(['asc', 'desc']).optional(),
+  "minScore": zod.coerce.number().optional().describe('Filter leads with score >= minScore'),
+  "maxScore": zod.coerce.number().optional().describe('Filter leads with score <= maxScore')
 })
 
 export const ListLeadsResponse = zod.object({
@@ -158,7 +160,11 @@ export const ListLeadsResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -303,6 +309,22 @@ export const BulkDeleteLeadsResponse = zod.object({
 
 
 /**
+ * @summary Recalculate and save the automated lead score (0-100)
+ */
+export const RecalculateLeadScoreParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RecalculateLeadScoreResponse = zod.object({
+  "leadId": zod.number(),
+  "leadScore": zod.number(),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough()
+})
+
+
+/**
  * @summary Get lead detail with related data
  */
 export const GetLeadParams = zod.object({
@@ -333,7 +355,11 @@ export const GetLeadResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 }).and(zod.object({
   "company": zod.union([zod.object({
   "id": zod.number().optional(),
@@ -478,7 +504,11 @@ export const UpdateLeadResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })
 
 
@@ -517,7 +547,11 @@ export const ChangeLeadStatusResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })
 
 
@@ -556,7 +590,11 @@ export const AssignLeadResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })
 
 
@@ -798,7 +836,11 @@ export const GetDashboardSummaryResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })),
   "repCounts": zod.array(zod.object({
   "repId": zod.number().optional(),
@@ -836,7 +878,11 @@ export const GetRepDashboardResponse = zod.object({
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "lastActivityAt": zod.coerce.date().nullish()
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
+  "leadScoreBreakdown": zod.object({
+
+}).passthrough().nullish().describe('Per-criterion score breakdown')
 })),
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),

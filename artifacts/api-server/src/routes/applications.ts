@@ -16,6 +16,7 @@ import { encrypt, maskSsn } from "../lib/encryption";
 import { extractBankStatement } from "../lib/ocrBankStatement";
 import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
+import { calculateLeadScore } from "../lib/leadScoring";
 
 const router = Router();
 
@@ -383,6 +384,8 @@ router.post(
         entityId: lead.id,
         details: { type: body.type, filesCount: files.length },
       });
+
+      calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
 
       res.status(201).json({ success: true, lead_id: lead.id });
     } catch (err) {
