@@ -53,9 +53,9 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
 async function findDuplicate(email?: string, phone?: string, ein?: string) {
   if (!email && !phone && !ein) return null;
   const conditions = [];
-  if (email) conditions.push(ilike(leadsTable.email, email));
-  if (phone) conditions.push(ilike(leadsTable.phone, phone));
-  if (ein) conditions.push(ilike(leadsTable.ein, ein));
+  if (email) conditions.push(eq(leadsTable.email, email));
+  if (phone) conditions.push(eq(leadsTable.phone, phone));
+  if (ein) conditions.push(eq(leadsTable.ein, ein));
   const existing = await db.query.leadsTable.findFirst({
     where: or(...conditions),
   });

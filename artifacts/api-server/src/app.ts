@@ -43,17 +43,21 @@ app.use(
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
+const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
   : [];
+
+if (isProduction && allowedOrigins.length === 0) {
+  logger.warn("ALLOWED_ORIGINS is not set in production — all CORS origins will be rejected");
+}
 
 app.use(
   cors({
     credentials: true,
-    origin:
-      process.env.NODE_ENV === "production" && allowedOrigins.length > 0
-        ? allowedOrigins
-        : true,
+    origin: isProduction
+      ? (allowedOrigins.length > 0 ? allowedOrigins : false)
+      : true,
   }),
 );
 
