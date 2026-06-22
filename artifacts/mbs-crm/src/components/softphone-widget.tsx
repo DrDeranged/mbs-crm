@@ -27,6 +27,8 @@ import {
   ClipboardList,
   ChevronDown,
   ChevronUp,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,14 +67,19 @@ export function SoftphoneWidget() {
   const activeLeadIdRef = useRef<number | undefined>(undefined);
   const callSecondsRef = useRef(0);
 
-  // In-call notes (collapsible)
+  // In-call notes (collapsible) — mirrored in a ref so disconnect handlers always read the latest value
   const [showInCallNotes, setShowInCallNotes] = useState(false);
   const [inCallNotes, setInCallNotes] = useState("");
+  const inCallNotesRef = useRef("");
+  // Keep ref in sync so disconnect handlers always read the latest typed value
+  useEffect(() => { inCallNotesRef.current = inCallNotes; }, [inCallNotes]);
 
   // Post-call modal state
   const [showPostCall, setShowPostCall] = useState(false);
   const [postCallLeadId, setPostCallLeadId] = useState<number | undefined>(undefined);
   const [postCallCommId, setPostCallCommId] = useState<number | undefined>(undefined);
+  // "loading" while async comm lookup is in progress; "found" | "not-found" once settled
+  const [commLookupStatus, setCommLookupStatus] = useState<"loading" | "found" | "not-found">("loading");
   const [postCallDuration, setPostCallDuration] = useState(0);
   const [callNotes, setCallNotes] = useState("");
   const [callOutcome, setCallOutcome] = useState<CallOutcome | "">("");
@@ -170,16 +177,18 @@ export function SoftphoneWidget() {
   const openPostCallModal = (leadId: number | undefined, twilioSid: string | undefined, durationSec: number, notes: string) => {
     setPostCallLeadId(leadId);
     setPostCallDuration(durationSec);
-    setCallNotes(notes); // pre-populate with any in-call notes
+    setCallNotes(notes); // pre-populated from in-call notes (always fresh via ref)
     setCallOutcome("");
     setFollowUpDate("");
     setFollowUpTitle("");
     setPostCallCommId(undefined);
     setShowInCallNotes(false);
     setInCallNotes("");
+    inCallNotesRef.current = "";
     setShowPostCall(true);
 
     if (leadId) {
+      setCommLookupStatus("loading");
       // Fetch comms and match by Twilio SID (deterministic), with retries for webhook latency
       const findComm = async (attempt: number): Promise<void> => {
         try {
@@ -191,6 +200,7 @@ export function SoftphoneWidget() {
             const found = bySid ?? byLatest;
             if (found) {
               setPostCallCommId(found.id);
+              setCommLookupStatus("found");
               return;
             }
           }
@@ -199,9 +209,15 @@ export function SoftphoneWidget() {
         }
         if (attempt < 3) {
           setTimeout(() => findComm(attempt + 1), 2000 * attempt);
+        } else {
+          // All retries exhausted — still allow the user to see/copy their notes
+          setCommLookupStatus("not-found");
         }
       };
       setTimeout(() => findComm(1), 1500);
+    } else {
+      // No leadId — comm lookup cannot happen
+      setCommLookupStatus("not-found");
     }
   };
 
@@ -214,7 +230,8 @@ export function SoftphoneWidget() {
     });
     call.on("disconnect", () => {
       const duration = callSecondsRef.current;
-      const capturedNotes = inCallNotes; // capture before reset
+      // Read from ref — always fresh regardless of render-time closure
+      const capturedNotes = inCallNotesRef.current;
       setState("idle");
       stopTimer();
       setActiveCall(null);
@@ -292,7 +309,20 @@ export function SoftphoneWidget() {
     const commId = postCallCommId;
     const leadId = postCallLeadId;
 
+    // If comm lookup is still in progress or failed, skip the PATCH but still create
+    // any follow-up task so data isn't lost
     if (!commId) {
+      if (followUpDate && leadId) {
+        createTask.mutate(
+          { id: leadId, data: { title: followUpTitle || "Follow-up call", dueDate: followUpDate } },
+          {
+            onSettled: () => {
+              queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(leadId) });
+              queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+            },
+          }
+        );
+      }
       setShowPostCall(false);
       return;
     }
@@ -433,6 +463,18 @@ export function SoftphoneWidget() {
               </div>
             </div>
 
+            {commLookupStatus === "loading" && (
+              <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+                <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+                Locating call record… Save will be enabled shortly.
+              </div>
+            )}
+            {commLookupStatus === "not-found" && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+                <AlertCircle className="h-3 w-3 shrink-0" />
+                Call record not found — notes won't be saved, but any follow-up task will still be created.
+              </div>
+            )}
             <div className="flex gap-2 pt-1">
               <Button variant="outline" className="flex-1" onClick={() => setShowPostCall(false)}>
                 Skip
@@ -440,9 +482,13 @@ export function SoftphoneWidget() {
               <Button
                 className="flex-1 bg-[#1F4E79] hover:bg-[#163a5f] text-white"
                 onClick={handleSavePostCall}
-                disabled={updateComm.isPending || createTask.isPending}
+                disabled={commLookupStatus === "loading" || updateComm.isPending || createTask.isPending}
               >
-                {updateComm.isPending || createTask.isPending ? "Saving…" : "Save Notes"}
+                {updateComm.isPending || createTask.isPending
+                  ? "Saving…"
+                  : commLookupStatus === "loading"
+                  ? "Please wait…"
+                  : "Save Notes"}
               </Button>
             </div>
           </div>
