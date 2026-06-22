@@ -30,7 +30,7 @@ A full-stack CRM for My Business Solutions — a merchant business financing/len
 | Database | PostgreSQL + Drizzle ORM |
 | Validation | Zod v4 (`zod/v4`), `drizzle-zod` |
 | API contract | OpenAPI 3.1 (Orval codegen → react-query hooks + Zod schemas) |
-| API build | esbuild (CJS bundle) |
+| API build | esbuild (ESM bundle, `.mjs` output) |
 | Web frontend | React + Vite, Wouter router, TanStack Query v5, shadcn/ui, Tailwind CSS |
 | Auth | Clerk (Replit-managed tenant) |
 | Mobile | Expo (React Native) |
@@ -91,8 +91,11 @@ lib/
 | `dripSequenceSteps` | Individual steps in a drip sequence (delay + template) |
 | `dripEnrollments` | Per-lead drip enrollment tracking |
 | `emailSends` | Record of every email sent, SendGrid message ID, open/click events |
-| `lenders` | Lender profiles with criteria for matching engine |
-| `flyers` | Generated marketing flyer PDFs per lead |
+| `lenders` | Lender profiles with criteria for the matching engine |
+| `lenderMatches` | Match scores between a lead and each lender (produced by the matching engine) |
+| `lenderSubmissions` | Formal submissions sent to a lender for a specific lead, with status tracking |
+| `flyerTemplates` | Reusable marketing flyer templates (HTML/design config per program type) |
+| `generatedFlyers` | Generated flyer PDFs per lead, linked to the template used |
 | `applications` | Public intake application data from the `/apply` form |
 | `bankStatementExtractions` | AI-extracted financials from uploaded bank statement documents (revenue, expenses, NSFs, etc.) |
 | `creditPulls` | Experian credit pull requests — one row per pull with consent timestamp and raw result |
@@ -186,7 +189,7 @@ On startup, two recurring jobs are registered: the drip email processor (every 1
 `seedDefaultWorkflowRules()` runs on every server boot but is a no-op if rules already exist. The workflow engine fires on lead status changes and supports two action types: `create_task` (creates a checklist task on the lead) and `send_notification` (sends a push notification to the assigned rep). Email and SMS automation are not currently supported action types.
 
 **Lead scoring is demand-computed.**  
-`recalculateLeadScore` is called explicitly (button in UI or via workflow rule). The score (0–100) and breakdown are stored as JSONB on the lead. It is not auto-recalculated on every field change.
+`calculateLeadScore(leadId)` is the internal scoring function. It is triggered explicitly via `POST /leads/:id/score` (from the "Recalculate" button in the UI) and also fires automatically after credit pulls. The score (0–100) and breakdown are stored as JSONB on the lead — it is not recomputed on every field change.
 
 **Object storage is Replit-native.**  
 Documents and generated flyers are stored in Replit Object Storage (not S3). The `objectStorage` lib wrapper handles bucket access. File downloads return short-lived signed URLs.
@@ -225,8 +228,8 @@ Use raw SQL instead: `ALTER TABLE t ADD COLUMN IF NOT EXISTS col text` + `CREATE
 **The `logActivity` helper requires a named params object — there are no positional overloads.**  
 Signature: `logActivity({ userId, leadId?, action, entityType, entityId, details? })`. Every call must pass this shape. Note that `logActivity` also updates the lead's `lastActivityAt` timestamp as a side effect — don't call it for low-signal events that would inflate that field.
 
-**`ENCRYPTION_KEY` is required for any credit pull route.**  
-If the variable is missing, SSN encryption fails and the entire `/credit` route group throws. Set this before testing the credit compliance or Experian integration.
+**`ENCRYPTION_KEY` is required for SSN encryption in credit pull routes.**  
+Routes that encrypt or decrypt SSNs return `503` if `ENCRYPTION_KEY` is missing — other `/credit` routes (consent capture, compliance log) continue to operate. Set this variable before testing any Experian integration path.
 
 **Twilio TwiML App must have the correct Voice Request URL.**  
 Set it to `https://<your-domain>/api/twilio/voice` (POST) in the Twilio console. The status callbacks are computed dynamically from the request headers — do not hardcode them.
