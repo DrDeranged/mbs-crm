@@ -294,6 +294,18 @@ router.put("/communications/:id", async (req, res) => {
     .where(eq(communicationsTable.id, commId))
     .returning();
 
+  await logActivity({
+    leadId: existing.leadId,
+    userId: user.id,
+    action: "updated",
+    entityType: "communication",
+    entityId: commId,
+    details: {
+      callOutcome: callOutcome ?? existing.callOutcome,
+      noteSnippet: callNotes ? callNotes.slice(0, 120) : undefined,
+    },
+  });
+
   if (followUpDate && existing.leadId) {
     const title = followUpTitle || "Follow-up call";
     await db.insert(tasksTable).values({
@@ -303,7 +315,13 @@ router.put("/communications/:id", async (req, res) => {
       dueDate: followUpDate,
       isCompleted: false,
     });
-    await logActivity(existing.leadId, user.id, "created", "task", title);
+    await logActivity({
+      leadId: existing.leadId,
+      userId: user.id,
+      action: "created",
+      entityType: "task",
+      entityId: title,
+    });
   }
 
   const [withUser] = await db

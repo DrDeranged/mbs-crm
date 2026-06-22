@@ -18,6 +18,8 @@ import {
   Minimize2,
   Delete,
   ClipboardList,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,11 +54,17 @@ export function SoftphoneWidget() {
   const deviceRef = useRef<Device | null>(null);
   const autoCallPending = useRef(false);
   const activeLeadIdRef = useRef<number | undefined>(undefined);
+  const callSecondsRef = useRef(0);
+
+  // In-call notes (collapsible)
+  const [showInCallNotes, setShowInCallNotes] = useState(false);
+  const [inCallNotes, setInCallNotes] = useState("");
 
   // Post-call modal state
   const [showPostCall, setShowPostCall] = useState(false);
   const [postCallLeadId, setPostCallLeadId] = useState<number | undefined>(undefined);
   const [postCallCommId, setPostCallCommId] = useState<number | undefined>(undefined);
+  const [postCallDuration, setPostCallDuration] = useState(0);
   const [callNotes, setCallNotes] = useState("");
   const [callOutcome, setCallOutcome] = useState("");
   const [followUpDate, setFollowUpDate] = useState("");
@@ -134,8 +142,12 @@ export function SoftphoneWidget() {
   }, [state, device]);
 
   const startTimer = () => {
+    callSecondsRef.current = 0;
     setCallSeconds(0);
-    timerRef.current = setInterval(() => setCallSeconds((s) => s + 1), 1000);
+    timerRef.current = setInterval(() => {
+      callSecondsRef.current += 1;
+      setCallSeconds(callSecondsRef.current);
+    }, 1000);
   };
 
   const stopTimer = () => {
@@ -145,48 +157,67 @@ export function SoftphoneWidget() {
     }
   };
 
-  const openPostCallModal = (leadId: number | undefined) => {
+  const openPostCallModal = async (leadId: number | undefined, twilioSid: string | undefined, durationSec: number) => {
     setPostCallLeadId(leadId);
-    setCallNotes("");
+    setPostCallDuration(durationSec);
+    setCallNotes(inCallNotes); // pre-populate with any in-call notes
     setCallOutcome("");
     setFollowUpDate("");
     setFollowUpTitle("");
     setPostCallCommId(undefined);
+    setShowInCallNotes(false);
+    setInCallNotes("");
     setShowPostCall(true);
 
     if (leadId) {
-      // Allow 1.5s for Twilio webhook to record the call, then fetch the latest comm ID
-      setTimeout(async () => {
+      // Fetch comms and find the record by Twilio SID (deterministic), with retries for webhook latency
+      const findComm = async (attempt: number): Promise<void> => {
         try {
           const res = await fetch(`/api/leads/${leadId}/communications`);
           if (res.ok) {
             const comms: any[] = await res.json();
-            const latest = comms.find((c) => c.type === "call");
-            if (latest) setPostCallCommId(latest.id);
+            // Match by SID first (most reliable), then fall back to latest call
+            const bySid = twilioSid ? comms.find((c) => c.type === "call" && c.twilioSid === twilioSid) : null;
+            const byLatest = comms.find((c) => c.type === "call");
+            const found = bySid ?? byLatest;
+            if (found) {
+              setPostCallCommId(found.id);
+              return;
+            }
           }
         } catch {
-          // silently fail — user can still skip
+          // ignore
         }
-      }, 1500);
+        // Retry up to 3 times with increasing delay for webhook lag
+        if (attempt < 3) {
+          setTimeout(() => findComm(attempt + 1), 2000 * attempt);
+        }
+      };
+      setTimeout(() => findComm(1), 1500);
     }
   };
 
   const attachCallHandlers = (call: Call) => {
+    let sid: string | undefined;
     call.on("accept", () => {
+      sid = call.parameters["CallSid"] as string | undefined;
       setState("active");
       startTimer();
     });
     call.on("disconnect", () => {
+      const duration = callSecondsRef.current;
       setState("idle");
       stopTimer();
       setActiveCall(null);
       setMuted(false);
-      openPostCallModal(activeLeadIdRef.current);
+      openPostCallModal(activeLeadIdRef.current, sid, duration);
     });
     call.on("cancel", () => {
       setState("idle");
       stopTimer();
       setActiveCall(null);
+      setShowInCallNotes(false);
+      setInCallNotes("");
     });
     call.on("reject", () => {
       setState("idle");
@@ -318,7 +349,9 @@ export function SoftphoneWidget() {
               Post-Call Notes
             </DialogTitle>
             <DialogDescription>
-              Log the outcome and any notes for this call. Optionally schedule a follow-up task.
+              {postCallDuration > 0
+                ? `Call duration: ${formatTime(postCallDuration)} — log the outcome and any notes below.`
+                : "Log the outcome and any notes for this call."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -500,24 +533,52 @@ export function SoftphoneWidget() {
 
                   {/* Active call controls */}
                   {isActive && (
-                    <div className="flex items-center justify-center gap-3">
-                      <button
-                        onClick={handleMute}
-                        className={cn(
-                          "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
-                          muted
-                            ? "bg-red-100 border-red-300 text-red-600"
-                            : "bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200"
-                        )}
-                        title={muted ? "Unmute" : "Mute"}
-                      >
-                        {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      </button>
-                      <div className="text-center">
-                        <div className="text-lg font-mono font-bold text-slate-800">{formatTime(callSeconds)}</div>
-                        <div className="text-xs text-slate-500">Connected</div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          onClick={handleMute}
+                          className={cn(
+                            "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
+                            muted
+                              ? "bg-red-100 border-red-300 text-red-600"
+                              : "bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200"
+                          )}
+                          title={muted ? "Unmute" : "Mute"}
+                        >
+                          {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                        </button>
+                        <div className="text-center">
+                          <div className="text-lg font-mono font-bold text-slate-800">{formatTime(callSeconds)}</div>
+                          <div className="text-xs text-slate-500">Connected</div>
+                        </div>
+                        <div className="w-10" />
                       </div>
-                      <div className="w-10" />
+
+                      {/* Collapsible in-call notes */}
+                      <div className="rounded-lg border border-slate-200 overflow-hidden">
+                        <button
+                          onClick={() => setShowInCallNotes((v) => !v)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-slate-100 transition-colors text-xs font-medium text-slate-600"
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <ClipboardList className="h-3 w-3" />
+                            In-call notes
+                            {inCallNotes && <span className="text-[#1F4E79]">•</span>}
+                          </span>
+                          {showInCallNotes
+                            ? <ChevronUp className="h-3 w-3" />
+                            : <ChevronDown className="h-3 w-3" />
+                          }
+                        </button>
+                        {showInCallNotes && (
+                          <Textarea
+                            value={inCallNotes}
+                            onChange={(e) => setInCallNotes(e.target.value)}
+                            placeholder="Jot notes while on the call…"
+                            className="border-0 border-t rounded-none text-xs min-h-[60px] resize-none focus-visible:ring-0"
+                          />
+                        )}
+                      </div>
                     </div>
                   )}
 

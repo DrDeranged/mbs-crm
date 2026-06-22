@@ -606,6 +606,26 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
   );
 }
 
+const NOTES_TRUNCATE = 140;
+function CallNoteBlock({ notes }: { notes: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = notes.length > NOTES_TRUNCATE;
+  const shown = !isLong || expanded ? notes : notes.slice(0, NOTES_TRUNCATE) + "…";
+  return (
+    <div className="mt-1 text-xs text-slate-600 bg-white/60 rounded px-2 py-1 border border-slate-100 italic space-y-0.5">
+      <p className="whitespace-pre-wrap break-words">{shown}</p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[#1F4E79] font-medium not-italic hover:underline text-[11px]"
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // Communications Tab
 function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; leadPhone?: string | null; leadEmail?: string | null }) {
   const { dial } = useContext(SoftphoneContext);
@@ -751,9 +771,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                   </div>
                   {c.body && <p className="mt-1 text-sm text-slate-700 break-words">{c.body}</p>}
                   {isCall && (c as any).callNotes && (
-                    <p className="mt-1 text-xs text-slate-600 bg-white/60 rounded px-2 py-1 border border-slate-100 italic">
-                      {(c as any).callNotes}
-                    </p>
+                    <CallNoteBlock notes={(c as any).callNotes} />
                   )}
                   {c.recordingUrl && <audio controls className="mt-2 w-full h-8" src={c.recordingUrl} />}
                   {c.user && <p className="mt-1 text-xs text-muted-foreground">via {c.user.name ?? c.user.email}</p>}
