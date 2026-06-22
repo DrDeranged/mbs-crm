@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Device, Call } from "@twilio/voice-sdk";
-import { useGetTwilioToken, useUpdateCommunication, getListCommunicationsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetTwilioToken,
+  useUpdateCommunication,
+  useCreateTask,
+  getListCommunicationsQueryKey,
+  getListTasksQueryKey,
+  getListLeadActivityQueryKey,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -25,8 +32,9 @@ import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
 
 type WidgetState = "idle" | "calling" | "active" | "incoming";
+type CallOutcome = "connected" | "voicemail" | "no_answer" | "wrong_number" | "busy";
 
-const OUTCOME_LABELS: Record<string, string> = {
+const OUTCOME_LABELS: Record<CallOutcome, string> = {
   connected: "Connected",
   voicemail: "Voicemail",
   no_answer: "No Answer",
@@ -53,6 +61,7 @@ export function SoftphoneWidget() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceRef = useRef<Device | null>(null);
   const autoCallPending = useRef(false);
+  // Tracks the lead ID for the current/last call — set from context on dial, cleared on manual/incoming call
   const activeLeadIdRef = useRef<number | undefined>(undefined);
   const callSecondsRef = useRef(0);
 
@@ -66,10 +75,11 @@ export function SoftphoneWidget() {
   const [postCallCommId, setPostCallCommId] = useState<number | undefined>(undefined);
   const [postCallDuration, setPostCallDuration] = useState(0);
   const [callNotes, setCallNotes] = useState("");
-  const [callOutcome, setCallOutcome] = useState("");
+  const [callOutcome, setCallOutcome] = useState<CallOutcome | "">("");
   const [followUpDate, setFollowUpDate] = useState("");
   const [followUpTitle, setFollowUpTitle] = useState("");
   const updateComm = useUpdateCommunication();
+  const createTask = useCreateTask();
 
   const { mutate: fetchToken } = useGetTwilioToken({
     mutation: {
@@ -118,7 +128,7 @@ export function SoftphoneWidget() {
     if (pendingNumber && pendingNumber !== "") {
       setDialInput(pendingNumber);
       setMinimized(false);
-      activeLeadIdRef.current = pendingLeadId;
+      activeLeadIdRef.current = pendingLeadId; // bind lead context to this call
       if (autoCall) {
         autoCallPending.current = true;
       }
@@ -157,10 +167,10 @@ export function SoftphoneWidget() {
     }
   };
 
-  const openPostCallModal = async (leadId: number | undefined, twilioSid: string | undefined, durationSec: number) => {
+  const openPostCallModal = (leadId: number | undefined, twilioSid: string | undefined, durationSec: number, notes: string) => {
     setPostCallLeadId(leadId);
     setPostCallDuration(durationSec);
-    setCallNotes(inCallNotes); // pre-populate with any in-call notes
+    setCallNotes(notes); // pre-populate with any in-call notes
     setCallOutcome("");
     setFollowUpDate("");
     setFollowUpTitle("");
@@ -170,13 +180,12 @@ export function SoftphoneWidget() {
     setShowPostCall(true);
 
     if (leadId) {
-      // Fetch comms and find the record by Twilio SID (deterministic), with retries for webhook latency
+      // Fetch comms and match by Twilio SID (deterministic), with retries for webhook latency
       const findComm = async (attempt: number): Promise<void> => {
         try {
           const res = await fetch(`/api/leads/${leadId}/communications`);
           if (res.ok) {
             const comms: any[] = await res.json();
-            // Match by SID first (most reliable), then fall back to latest call
             const bySid = twilioSid ? comms.find((c) => c.type === "call" && c.twilioSid === twilioSid) : null;
             const byLatest = comms.find((c) => c.type === "call");
             const found = bySid ?? byLatest;
@@ -188,7 +197,6 @@ export function SoftphoneWidget() {
         } catch {
           // ignore
         }
-        // Retry up to 3 times with increasing delay for webhook lag
         if (attempt < 3) {
           setTimeout(() => findComm(attempt + 1), 2000 * attempt);
         }
@@ -206,11 +214,12 @@ export function SoftphoneWidget() {
     });
     call.on("disconnect", () => {
       const duration = callSecondsRef.current;
+      const capturedNotes = inCallNotes; // capture before reset
       setState("idle");
       stopTimer();
       setActiveCall(null);
       setMuted(false);
-      openPostCallModal(activeLeadIdRef.current, sid, duration);
+      openPostCallModal(activeLeadIdRef.current, sid, duration, capturedNotes);
     });
     call.on("cancel", () => {
       setState("idle");
@@ -238,7 +247,11 @@ export function SoftphoneWidget() {
     }
   };
 
-  const handleCall = () => handleCallWithNumber(dialInput);
+  // Manual dial: no lead context — reset ref so stale leadId isn't carried over
+  const handleCall = () => {
+    activeLeadIdRef.current = undefined;
+    handleCallWithNumber(dialInput);
+  };
 
   const handleHangUp = () => {
     activeCall?.disconnect();
@@ -250,8 +263,10 @@ export function SoftphoneWidget() {
     setMuted(false);
   };
 
+  // Incoming call: no known lead context
   const handleAccept = () => {
     if (!incomingInfo) return;
+    activeLeadIdRef.current = undefined;
     setDialInput(incomingInfo.from);
     attachCallHandlers(incomingInfo.callObj);
     incomingInfo.callObj.accept();
@@ -274,25 +289,39 @@ export function SoftphoneWidget() {
   };
 
   const handleSavePostCall = () => {
-    if (!postCallCommId) {
+    const commId = postCallCommId;
+    const leadId = postCallLeadId;
+
+    if (!commId) {
       setShowPostCall(false);
       return;
     }
+
     updateComm.mutate(
       {
-        id: postCallCommId,
+        id: commId,
         data: {
           callNotes: callNotes || undefined,
-          callOutcome: (callOutcome as any) || undefined,
-          followUpDate: followUpDate || undefined,
-          followUpTitle: followUpTitle || undefined,
+          callOutcome: callOutcome || undefined,
         },
       },
       {
         onSuccess: () => {
+          // Create follow-up task client-side via the guarded tasks endpoint
+          if (followUpDate && leadId) {
+            createTask.mutate(
+              { id: leadId, data: { title: followUpTitle || "Follow-up call", dueDate: followUpDate } },
+              {
+                onSettled: () => {
+                  queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(leadId) });
+                  queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+                },
+              }
+            );
+          }
           setShowPostCall(false);
-          if (postCallLeadId) {
-            queryClient.invalidateQueries({ queryKey: getListCommunicationsQueryKey(postCallLeadId) });
+          if (leadId) {
+            queryClient.invalidateQueries({ queryKey: getListCommunicationsQueryKey(leadId) });
           }
         },
         onError: () => {
@@ -357,12 +386,12 @@ export function SoftphoneWidget() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Call Outcome</Label>
-              <Select value={callOutcome} onValueChange={setCallOutcome}>
+              <Select value={callOutcome} onValueChange={(v) => setCallOutcome(v as CallOutcome)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select outcome…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(OUTCOME_LABELS).map(([val, label]) => (
+                  {(Object.entries(OUTCOME_LABELS) as [CallOutcome, string][]).map(([val, label]) => (
                     <SelectItem key={val} value={val}>{label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -411,9 +440,9 @@ export function SoftphoneWidget() {
               <Button
                 className="flex-1 bg-[#1F4E79] hover:bg-[#163a5f] text-white"
                 onClick={handleSavePostCall}
-                disabled={updateComm.isPending}
+                disabled={updateComm.isPending || createTask.isPending}
               >
-                {updateComm.isPending ? "Saving…" : "Save Notes"}
+                {updateComm.isPending || createTask.isPending ? "Saving…" : "Save Notes"}
               </Button>
             </div>
           </div>

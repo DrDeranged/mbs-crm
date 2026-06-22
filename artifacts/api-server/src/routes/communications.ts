@@ -1,7 +1,7 @@
 import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable, tasksTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -254,8 +254,6 @@ router.put("/communications/:id", async (req, res) => {
   const bodySchema = z.object({
     callNotes: z.string().optional(),
     callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
-    followUpDate: z.string().optional(),
-    followUpTitle: z.string().optional(),
   });
 
   const parsed = bodySchema.safeParse(req.body);
@@ -282,17 +280,19 @@ router.put("/communications/:id", async (req, res) => {
     return;
   }
 
-  const { callNotes, callOutcome, followUpDate, followUpTitle } = parsed.data;
+  const { callNotes, callOutcome } = parsed.data;
 
-  const [updated] = await db
+  type CallOutcome = "connected" | "voicemail" | "no_answer" | "wrong_number" | "busy";
+  const newOutcome: CallOutcome | null | undefined = callOutcome ?? (existing.callOutcome as CallOutcome | null);
+
+  await db
     .update(communicationsTable)
     .set({
       callNotes: callNotes ?? existing.callNotes,
-      callOutcome: (callOutcome ?? existing.callOutcome) as any,
+      callOutcome: newOutcome,
       updatedAt: new Date(),
     })
-    .where(eq(communicationsTable.id, commId))
-    .returning();
+    .where(eq(communicationsTable.id, commId));
 
   await logActivity({
     leadId: existing.leadId,
@@ -301,28 +301,10 @@ router.put("/communications/:id", async (req, res) => {
     entityType: "communication",
     entityId: commId,
     details: {
-      callOutcome: callOutcome ?? existing.callOutcome,
+      callOutcome: newOutcome,
       noteSnippet: callNotes ? callNotes.slice(0, 120) : undefined,
     },
   });
-
-  if (followUpDate && existing.leadId) {
-    const title = followUpTitle || "Follow-up call";
-    await db.insert(tasksTable).values({
-      leadId: existing.leadId,
-      userId: user.id,
-      title,
-      dueDate: followUpDate,
-      isCompleted: false,
-    });
-    await logActivity({
-      leadId: existing.leadId,
-      userId: user.id,
-      action: "created",
-      entityType: "task",
-      entityId: title,
-    });
-  }
 
   const [withUser] = await db
     .select({ comm: communicationsTable, user: usersTable })

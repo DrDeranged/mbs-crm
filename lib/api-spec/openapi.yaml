@@ -1326,12 +1326,6 @@ paths:
                 callOutcome:
                   type: string
                   enum: [connected, voicemail, no_answer, wrong_number, busy]
-                followUpDate:
-                  type: string
-                  description: Optional ISO date for a follow-up task (YYYY-MM-DD)
-                followUpTitle:
-                  type: string
-                  description: Title for the optional follow-up task
       responses:
         "200":
           description: Updated communication
@@ -3194,7 +3188,7 @@ components:
           type: ["string", "null"]
         callOutcome:
           type: ["string", "null"]
-          enum: [connected, voicemail, no_answer, wrong_number, busy, "null"]
+          enum: [connected, voicemail, no_answer, wrong_number, busy]
         createdAt:
           type: string
           format: date-time

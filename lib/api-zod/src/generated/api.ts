@@ -1268,9 +1268,7 @@ export const UpdateCommunicationParams = zod.object({
 
 export const UpdateCommunicationBody = zod.object({
   "callNotes": zod.string().optional(),
-  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy']).optional(),
-  "followUpDate": zod.string().optional().describe('Optional ISO date for a follow-up task (YYYY-MM-DD)'),
-  "followUpTitle": zod.string().optional().describe('Title for the optional follow-up task')
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy']).optional()
 })
 
 export const UpdateCommunicationResponse = zod.object({
@@ -1298,7 +1296,7 @@ export const UpdateCommunicationResponse = zod.object({
   "status": zod.string(),
   "twilioSid": zod.string().nullish(),
   "callNotes": zod.string().nullish(),
-  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy', 'null']).nullish(),
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy']).nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date().optional()
 })
@@ -1336,7 +1334,7 @@ export const ListCommunicationsResponseItem = zod.object({
   "status": zod.string(),
   "twilioSid": zod.string().nullish(),
   "callNotes": zod.string().nullish(),
-  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy', 'null']).nullish(),
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy']).nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date().optional()
 })

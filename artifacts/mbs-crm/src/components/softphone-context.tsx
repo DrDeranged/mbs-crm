@@ -35,6 +35,7 @@ export function SoftphoneProvider({ children }: { children: ReactNode }) {
   const clearPending = useCallback(() => {
     setPendingNumber(undefined);
     setAutoCall(false);
+    setPendingLeadId(undefined);
   }, []);
 
   return (

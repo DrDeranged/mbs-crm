@@ -489,7 +489,6 @@ export const CommunicationCallOutcome = {
   no_answer: 'no_answer',
   wrong_number: 'wrong_number',
   busy: 'busy',
-  null: 'null',
 } as const;
 
 export interface Communication {
@@ -1331,10 +1330,6 @@ export const UpdateCommunicationBodyCallOutcome = {
 export type UpdateCommunicationBody = {
   callNotes?: string;
   callOutcome?: UpdateCommunicationBodyCallOutcome;
-  /** Optional ISO date for a follow-up task (YYYY-MM-DD) */
-  followUpDate?: string;
-  /** Title for the optional follow-up task */
-  followUpTitle?: string;
 };
 
 export type GetCommunicationMetricsParams = {
