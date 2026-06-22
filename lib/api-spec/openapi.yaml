@@ -1303,6 +1303,49 @@ paths:
         "404":
           description: Lead not found
 
+  /communications/{id}:
+    put:
+      operationId: updateCommunication
+      tags: [communications]
+      summary: Save call notes and outcome after a call (caller or manager/admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callNotes:
+                  type: string
+                callOutcome:
+                  type: string
+                  enum: [connected, voicemail, no_answer, wrong_number, busy]
+                followUpDate:
+                  type: string
+                  description: Optional ISO date for a follow-up task (YYYY-MM-DD)
+                followUpTitle:
+                  type: string
+                  description: Title for the optional follow-up task
+      responses:
+        "200":
+          description: Updated communication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Communication"
+        "400":
+          description: Invalid body
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
   /leads/{id}/communications:
     get:
       operationId: listCommunications
@@ -3147,6 +3190,11 @@ components:
           type: string
         twilioSid:
           type: ["string", "null"]
+        callNotes:
+          type: ["string", "null"]
+        callOutcome:
+          type: ["string", "null"]
+          enum: [connected, voicemail, no_answer, wrong_number, busy, "null"]
         createdAt:
           type: string
           format: date-time

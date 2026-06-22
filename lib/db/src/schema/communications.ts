@@ -4,6 +4,7 @@ import { leadsTable } from "./leads";
 
 export const COMMUNICATION_TYPES = ["call", "sms"] as const;
 export const COMMUNICATION_DIRECTIONS = ["inbound", "outbound"] as const;
+export const CALL_OUTCOMES = ["connected", "voicemail", "no_answer", "wrong_number", "busy"] as const;
 
 export const communicationsTable = pgTable(
   "communications",
@@ -21,6 +22,8 @@ export const communicationsTable = pgTable(
     recordingSid: text("recording_sid"),
     status: text("status").notNull().default("initiated"),
     twilioSid: text("twilio_sid"),
+    callNotes: text("call_notes"),
+    callOutcome: text("call_outcome", { enum: CALL_OUTCOMES }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

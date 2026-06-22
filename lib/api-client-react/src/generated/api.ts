@@ -117,6 +117,7 @@ import type {
   TwilioTokenResponse,
   TwilioVoiceRecording200,
   TwilioVoiceStatus200,
+  UpdateCommunicationBody,
   UpdateMyMobileBody,
   UpdateMyPushTokenBody,
   UpdateSubmissionBody,
@@ -3911,6 +3912,78 @@ export const useLogOutboundCall = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getLogOutboundCallMutationOptions(options));
+    }
+
+export const getUpdateCommunicationUrl = (id: number,) => {
+
+
+
+
+  return `/api/communications/${id}`
+}
+
+/**
+ * @summary Save call notes and outcome after a call (caller or manager/admin only)
+ */
+export const updateCommunication = async (id: number,
+    updateCommunicationBody: UpdateCommunicationBody, options?: RequestInit): Promise<Communication> => {
+
+  return customFetch<Communication>(getUpdateCommunicationUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateCommunicationBody,)
+  }
+);}
+
+
+
+
+export const getUpdateCommunicationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommunication>>, TError,{id: number;data: BodyType<UpdateCommunicationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCommunication>>, TError,{id: number;data: BodyType<UpdateCommunicationBody>}, TContext> => {
+
+const mutationKey = ['updateCommunication'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCommunication>>, {id: number;data: BodyType<UpdateCommunicationBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCommunication(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCommunicationMutationResult = NonNullable<Awaited<ReturnType<typeof updateCommunication>>>
+    export type UpdateCommunicationMutationBody = BodyType<UpdateCommunicationBody>
+    export type UpdateCommunicationMutationError = ErrorType<void>
+
+    /**
+ * @summary Save call notes and outcome after a call (caller or manager/admin only)
+ */
+export const useUpdateCommunication = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommunication>>, TError,{id: number;data: BodyType<UpdateCommunicationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCommunication>>,
+        TError,
+        {id: number;data: BodyType<UpdateCommunicationBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateCommunicationMutationOptions(options));
     }
 
 export const getListCommunicationsUrl = (id: number,) => {

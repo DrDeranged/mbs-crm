@@ -1260,6 +1260,51 @@ export const LogOutboundCallBody = zod.object({
 
 
 /**
+ * @summary Save call notes and outcome after a call (caller or manager/admin only)
+ */
+export const UpdateCommunicationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCommunicationBody = zod.object({
+  "callNotes": zod.string().optional(),
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy']).optional(),
+  "followUpDate": zod.string().optional().describe('Optional ISO date for a follow-up task (YYYY-MM-DD)'),
+  "followUpTitle": zod.string().optional().describe('Title for the optional follow-up task')
+})
+
+export const UpdateCommunicationResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "userId": zod.number().nullish(),
+  "user": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "role": zod.enum(['admin', 'manager', 'rep']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "type": zod.enum(['call', 'sms']),
+  "direction": zod.enum(['inbound', 'outbound']),
+  "fromNumber": zod.string().nullish(),
+  "toNumber": zod.string().nullish(),
+  "body": zod.string().nullish(),
+  "durationSeconds": zod.number().nullish(),
+  "recordingUrl": zod.string().nullish(),
+  "recordingSid": zod.string().nullish(),
+  "status": zod.string(),
+  "twilioSid": zod.string().nullish(),
+  "callNotes": zod.string().nullish(),
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy', 'null']).nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+/**
  * @summary List all calls and SMS for a lead, chronologically
  */
 export const ListCommunicationsParams = zod.object({
@@ -1290,6 +1335,8 @@ export const ListCommunicationsResponseItem = zod.object({
   "recordingSid": zod.string().nullish(),
   "status": zod.string(),
   "twilioSid": zod.string().nullish(),
+  "callNotes": zod.string().nullish(),
+  "callOutcome": zod.enum(['connected', 'voicemail', 'no_answer', 'wrong_number', 'busy', 'null']).nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date().optional()
 })

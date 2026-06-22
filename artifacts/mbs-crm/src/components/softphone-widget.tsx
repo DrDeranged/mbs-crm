@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Device, Call } from "@twilio/voice-sdk";
-import { useGetTwilioToken } from "@workspace/api-client-react";
+import { useGetTwilioToken, useUpdateCommunication, getListCommunicationsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
   Phone,
@@ -12,14 +17,24 @@ import {
   MicOff,
   Minimize2,
   Delete,
-  PhoneCall,
+  ClipboardList,
 } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
+import { useQueryClient } from "@tanstack/react-query";
 
 type WidgetState = "idle" | "calling" | "active" | "incoming";
 
+const OUTCOME_LABELS: Record<string, string> = {
+  connected: "Connected",
+  voicemail: "Voicemail",
+  no_answer: "No Answer",
+  wrong_number: "Wrong Number",
+  busy: "Busy",
+};
+
 export function SoftphoneWidget() {
-  const { pendingNumber, autoCall, clearPending } = useContext(SoftphoneContext);
+  const { pendingNumber, autoCall, pendingLeadId, clearPending } = useContext(SoftphoneContext);
+  const queryClient = useQueryClient();
 
   const [minimized, setMinimized] = useState(true);
   const [dialInput, setDialInput] = useState("");
@@ -36,6 +51,17 @@ export function SoftphoneWidget() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceRef = useRef<Device | null>(null);
   const autoCallPending = useRef(false);
+  const activeLeadIdRef = useRef<number | undefined>(undefined);
+
+  // Post-call modal state
+  const [showPostCall, setShowPostCall] = useState(false);
+  const [postCallLeadId, setPostCallLeadId] = useState<number | undefined>(undefined);
+  const [postCallCommId, setPostCallCommId] = useState<number | undefined>(undefined);
+  const [callNotes, setCallNotes] = useState("");
+  const [callOutcome, setCallOutcome] = useState("");
+  const [followUpDate, setFollowUpDate] = useState("");
+  const [followUpTitle, setFollowUpTitle] = useState("");
+  const updateComm = useUpdateCommunication();
 
   const { mutate: fetchToken } = useGetTwilioToken({
     mutation: {
@@ -84,18 +110,18 @@ export function SoftphoneWidget() {
     if (pendingNumber && pendingNumber !== "") {
       setDialInput(pendingNumber);
       setMinimized(false);
+      activeLeadIdRef.current = pendingLeadId;
       if (autoCall) {
         autoCallPending.current = true;
       }
       clearPending();
     }
-  }, [pendingNumber, autoCall, clearPending]);
+  }, [pendingNumber, autoCall, pendingLeadId, clearPending]);
 
   // Auto-initiate call once device is ready and a pending auto-call is flagged
   useEffect(() => {
     if (autoCallPending.current && deviceRef.current && state === "idle") {
       autoCallPending.current = false;
-      // Small delay so dialInput is rendered
       setTimeout(() => {
         setDialInput((current) => {
           if (current) {
@@ -119,6 +145,32 @@ export function SoftphoneWidget() {
     }
   };
 
+  const openPostCallModal = (leadId: number | undefined) => {
+    setPostCallLeadId(leadId);
+    setCallNotes("");
+    setCallOutcome("");
+    setFollowUpDate("");
+    setFollowUpTitle("");
+    setPostCallCommId(undefined);
+    setShowPostCall(true);
+
+    if (leadId) {
+      // Allow 1.5s for Twilio webhook to record the call, then fetch the latest comm ID
+      setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/leads/${leadId}/communications`);
+          if (res.ok) {
+            const comms: any[] = await res.json();
+            const latest = comms.find((c) => c.type === "call");
+            if (latest) setPostCallCommId(latest.id);
+          }
+        } catch {
+          // silently fail — user can still skip
+        }
+      }, 1500);
+    }
+  };
+
   const attachCallHandlers = (call: Call) => {
     call.on("accept", () => {
       setState("active");
@@ -129,6 +181,7 @@ export function SoftphoneWidget() {
       stopTimer();
       setActiveCall(null);
       setMuted(false);
+      openPostCallModal(activeLeadIdRef.current);
     });
     call.on("cancel", () => {
       setState("idle");
@@ -189,6 +242,35 @@ export function SoftphoneWidget() {
     setMuted(next);
   };
 
+  const handleSavePostCall = () => {
+    if (!postCallCommId) {
+      setShowPostCall(false);
+      return;
+    }
+    updateComm.mutate(
+      {
+        id: postCallCommId,
+        data: {
+          callNotes: callNotes || undefined,
+          callOutcome: (callOutcome as any) || undefined,
+          followUpDate: followUpDate || undefined,
+          followUpTitle: followUpTitle || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowPostCall(false);
+          if (postCallLeadId) {
+            queryClient.invalidateQueries({ queryKey: getListCommunicationsQueryKey(postCallLeadId) });
+          }
+        },
+        onError: () => {
+          setShowPostCall(false);
+        },
+      }
+    );
+  };
+
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const sec = (s % 60).toString().padStart(2, "0");
@@ -226,165 +308,246 @@ export function SoftphoneWidget() {
   const isBusy = isActive || isCalling || isIncoming;
 
   return (
-    <div
-      className="fixed z-50"
-      style={{
-        bottom: `${24 - position.y}px`,
-        right: `${24 - position.x}px`,
-        cursor: dragging ? "grabbing" : "auto",
-      }}
-    >
-      {minimized ? (
-        <button
-          onClick={() => setMinimized(false)}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"
-          title="Open softphone"
-        >
-          <Phone className="h-6 w-6" />
-          {isBusy && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold">
-              •
-            </span>
-          )}
-        </button>
-      ) : (
-        <div className="w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-          {/* Header — drag handle */}
-          <div
-            className="flex items-center justify-between bg-[#1F4E79] px-4 py-3 cursor-grab select-none"
-            onMouseDown={handleDragStart}
+    <>
+      {/* Post-call notes modal */}
+      <Dialog open={showPostCall} onOpenChange={setShowPostCall}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-[#1F4E79]" />
+              Post-Call Notes
+            </DialogTitle>
+            <DialogDescription>
+              Log the outcome and any notes for this call. Optionally schedule a follow-up task.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Call Outcome</Label>
+              <Select value={callOutcome} onValueChange={setCallOutcome}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select outcome…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(OUTCOME_LABELS).map(([val, label]) => (
+                    <SelectItem key={val} value={val}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Call Notes</Label>
+              <Textarea
+                placeholder="Spoke with John, interested in $50k MCA…"
+                value={callNotes}
+                onChange={(e) => setCallNotes(e.target.value)}
+                className="min-h-[80px] resize-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="border-t pt-3 space-y-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Schedule Follow-Up (optional)</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Date</Label>
+                  <Input
+                    type="date"
+                    value={followUpDate}
+                    onChange={(e) => setFollowUpDate(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Task Title</Label>
+                  <Input
+                    placeholder="Follow-up call"
+                    value={followUpTitle}
+                    onChange={(e) => setFollowUpTitle(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setShowPostCall(false)}>
+                Skip
+              </Button>
+              <Button
+                className="flex-1 bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+                onClick={handleSavePostCall}
+                disabled={updateComm.isPending}
+              >
+                {updateComm.isPending ? "Saving…" : "Save Notes"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Softphone widget */}
+      <div
+        className="fixed z-50"
+        style={{
+          bottom: `${24 - position.y}px`,
+          right: `${24 - position.x}px`,
+          cursor: dragging ? "grabbing" : "auto",
+        }}
+      >
+        {minimized ? (
+          <button
+            onClick={() => setMinimized(false)}
+            className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"
+            title="Open softphone"
           >
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-white" />
-              <span className="text-sm font-semibold text-white">Softphone</span>
-              {isBusy && (
-                <Badge className="bg-green-500 text-white text-xs px-1.5 py-0 h-5">
-                  {isIncoming ? "Incoming" : isCalling ? "Calling…" : formatTime(callSeconds)}
-                </Badge>
+            <Phone className="h-6 w-6" />
+            {isBusy && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold">
+                •
+              </span>
+            )}
+          </button>
+        ) : (
+          <div className="w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+            {/* Header — drag handle */}
+            <div
+              className="flex items-center justify-between bg-[#1F4E79] px-4 py-3 cursor-grab select-none"
+              onMouseDown={handleDragStart}
+            >
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-white" />
+                <span className="text-sm font-semibold text-white">Softphone</span>
+                {isBusy && (
+                  <Badge className="bg-green-500 text-white text-xs px-1.5 py-0 h-5">
+                    {isIncoming ? "Incoming" : isCalling ? "Calling…" : formatTime(callSeconds)}
+                  </Badge>
+                )}
+              </div>
+              <button
+                onClick={() => setMinimized(true)}
+                className="text-white/70 hover:text-white transition-colors"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <Minimize2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {error && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                  {error}
+                </div>
+              )}
+
+              {/* Incoming call alert */}
+              {isIncoming && incomingInfo && (
+                <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <PhoneIncoming className="h-4 w-4 animate-pulse" />
+                    <span className="text-sm font-medium">Incoming call</span>
+                  </div>
+                  <p className="text-xs text-blue-700 font-mono">{incomingInfo.from}</p>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-700 text-white h-8 text-xs">
+                      Accept
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={handleDecline} className="flex-1 h-8 text-xs">
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!isIncoming && (
+                <>
+                  {/* Number input */}
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    <input
+                      type="tel"
+                      value={dialInput}
+                      onChange={(e) => setDialInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
+                      placeholder="+1 (555) 000-0000"
+                      className="flex-1 bg-transparent text-sm font-mono text-slate-900 outline-none placeholder:text-slate-400"
+                      disabled={isBusy}
+                    />
+                    {dialInput && !isBusy && (
+                      <button
+                        onClick={() => setDialInput((v) => v.slice(0, -1))}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <Delete className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Dial pad */}
+                  {!isBusy && (
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {dialPad.map((k) => (
+                        <button
+                          key={k}
+                          onClick={() => setDialInput((v) => v + k)}
+                          className="flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          {k}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Active call controls */}
+                  {isActive && (
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={handleMute}
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
+                          muted
+                            ? "bg-red-100 border-red-300 text-red-600"
+                            : "bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200"
+                        )}
+                        title={muted ? "Unmute" : "Mute"}
+                      >
+                        {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </button>
+                      <div className="text-center">
+                        <div className="text-lg font-mono font-bold text-slate-800">{formatTime(callSeconds)}</div>
+                        <div className="text-xs text-slate-500">Connected</div>
+                      </div>
+                      <div className="w-10" />
+                    </div>
+                  )}
+
+                  {/* Call / Hang up button */}
+                  <div className="flex justify-center">
+                    {isBusy ? (
+                      <Button
+                        onClick={handleHangUp}
+                        size="lg"
+                        className="h-12 w-12 rounded-full bg-red-600 hover:bg-red-700 text-white p-0"
+                      >
+                        <PhoneOff className="h-5 w-5" />
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleCall}
+                        size="lg"
+                        disabled={!dialInput.trim() || !device}
+                        className="h-12 w-12 rounded-full bg-green-600 hover:bg-green-700 text-white p-0 disabled:opacity-50"
+                      >
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
-            <button
-              onClick={() => setMinimized(true)}
-              className="text-white/70 hover:text-white transition-colors"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <Minimize2 className="h-4 w-4" />
-            </button>
           </div>
-
-          <div className="p-4 space-y-3">
-            {error && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                {error}
-              </div>
-            )}
-
-            {/* Incoming call alert */}
-            {isIncoming && incomingInfo && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-blue-800">
-                  <PhoneIncoming className="h-4 w-4 animate-pulse" />
-                  <span className="text-sm font-medium">Incoming call</span>
-                </div>
-                <p className="text-xs text-blue-700 font-mono">{incomingInfo.from}</p>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-700 text-white h-8 text-xs">
-                    Accept
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={handleDecline} className="flex-1 h-8 text-xs">
-                    Decline
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {!isIncoming && (
-              <>
-                {/* Number input */}
-                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <input
-                    type="tel"
-                    value={dialInput}
-                    onChange={(e) => setDialInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
-                    placeholder="+1 (555) 000-0000"
-                    className="flex-1 bg-transparent text-sm font-mono text-slate-900 outline-none placeholder:text-slate-400"
-                    disabled={isBusy}
-                  />
-                  {dialInput && !isBusy && (
-                    <button
-                      onClick={() => setDialInput((v) => v.slice(0, -1))}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <Delete className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Dial pad */}
-                {!isBusy && (
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {dialPad.map((k) => (
-                      <button
-                        key={k}
-                        onClick={() => setDialInput((v) => v + k)}
-                        className="flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
-                      >
-                        {k}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Active call controls */}
-                {isActive && (
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      onClick={handleMute}
-                      className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
-                        muted
-                          ? "bg-red-100 border-red-300 text-red-600"
-                          : "bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200"
-                      )}
-                      title={muted ? "Unmute" : "Mute"}
-                    >
-                      {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    </button>
-                    <div className="text-center">
-                      <div className="text-lg font-mono font-bold text-slate-800">{formatTime(callSeconds)}</div>
-                      <div className="text-xs text-slate-500">Connected</div>
-                    </div>
-                    <div className="w-10" />
-                  </div>
-                )}
-
-                {/* Call / Hang up button */}
-                <div className="flex justify-center">
-                  {isBusy ? (
-                    <Button
-                      onClick={handleHangUp}
-                      size="lg"
-                      className="h-12 w-12 rounded-full bg-red-600 hover:bg-red-700 text-white p-0"
-                    >
-                      <PhoneOff className="h-5 w-5" />
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={handleCall}
-                      size="lg"
-                      disabled={!dialInput.trim() || !device}
-                      className="h-12 w-12 rounded-full bg-green-600 hover:bg-green-700 text-white p-0 disabled:opacity-50"
-                    >
-                      <Phone className="h-5 w-5" />
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 }

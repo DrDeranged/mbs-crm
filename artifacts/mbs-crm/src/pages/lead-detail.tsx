@@ -695,7 +695,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
           <Button
             size="sm"
             className="ml-auto bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
-            onClick={() => dial(leadPhone, { autoCall: true })}
+            onClick={() => dial(leadPhone, { autoCall: true, leadId })}
           >
             <PhoneCall className="h-3 w-3 mr-1" /> Call
           </Button>
@@ -731,9 +731,30 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                     {isCall && c.durationSeconds != null && (
                       <span className="text-xs text-muted-foreground">{Math.floor(c.durationSeconds / 60)}m {c.durationSeconds % 60}s</span>
                     )}
+                    {isCall && (c as any).callOutcome && (
+                      <Badge
+                        className={`text-[10px] h-4 px-1.5 capitalize ${
+                          (c as any).callOutcome === "connected"
+                            ? "bg-green-100 text-green-800 border-green-200"
+                            : (c as any).callOutcome === "voicemail"
+                            ? "bg-blue-100 text-blue-800 border-blue-200"
+                            : (c as any).callOutcome === "no_answer" || (c as any).callOutcome === "busy"
+                            ? "bg-amber-100 text-amber-800 border-amber-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                        variant="outline"
+                      >
+                        {((c as any).callOutcome as string).replace(/_/g, " ")}
+                      </Badge>
+                    )}
                     <span className="text-xs text-muted-foreground ml-auto">{format(new Date(c.createdAt), "MMM d, h:mm a")}</span>
                   </div>
                   {c.body && <p className="mt-1 text-sm text-slate-700 break-words">{c.body}</p>}
+                  {isCall && (c as any).callNotes && (
+                    <p className="mt-1 text-xs text-slate-600 bg-white/60 rounded px-2 py-1 border border-slate-100 italic">
+                      {(c as any).callNotes}
+                    </p>
+                  )}
                   {c.recordingUrl && <audio controls className="mt-2 w-full h-8" src={c.recordingUrl} />}
                   {c.user && <p className="mt-1 text-xs text-muted-foreground">via {c.user.name ?? c.user.email}</p>}
                 </div>

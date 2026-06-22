@@ -1,10 +1,11 @@
 import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
-import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
+import { communicationsTable, leadsTable, usersTable, tasksTable } from "@workspace/db";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+import { z } from "zod/v4";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -44,6 +45,8 @@ function commToApi(comm: any) {
     recordingSid: comm.recordingSid,
     status: comm.status,
     twilioSid: comm.twilioSid,
+    callNotes: comm.callNotes ?? null,
+    callOutcome: comm.callOutcome ?? null,
     createdAt: comm.createdAt.toISOString(),
     updatedAt: comm.updatedAt.toISOString(),
   };
@@ -235,6 +238,82 @@ router.get("/metrics/communications", async (req, res) => {
   }));
 
   res.json(result);
+});
+
+// PUT /api/communications/:id — save call notes + outcome after a call
+router.put("/communications/:id", async (req, res) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const commId = parseInt(req.params["id"] ?? "");
+  if (isNaN(commId)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+
+  const bodySchema = z.object({
+    callNotes: z.string().optional(),
+    callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
+    followUpDate: z.string().optional(),
+    followUpTitle: z.string().optional(),
+  });
+
+  const parsed = bodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+
+  const [existing] = await db
+    .select()
+    .from(communicationsTable)
+    .where(eq(communicationsTable.id, commId))
+    .limit(1);
+
+  if (!existing) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  const isOwner = existing.userId === user.id;
+  const isManagerOrAdmin = user.role === "manager" || user.role === "admin";
+  if (!isOwner && !isManagerOrAdmin) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const { callNotes, callOutcome, followUpDate, followUpTitle } = parsed.data;
+
+  const [updated] = await db
+    .update(communicationsTable)
+    .set({
+      callNotes: callNotes ?? existing.callNotes,
+      callOutcome: (callOutcome ?? existing.callOutcome) as any,
+      updatedAt: new Date(),
+    })
+    .where(eq(communicationsTable.id, commId))
+    .returning();
+
+  if (followUpDate && existing.leadId) {
+    const title = followUpTitle || "Follow-up call";
+    await db.insert(tasksTable).values({
+      leadId: existing.leadId,
+      userId: user.id,
+      title,
+      dueDate: followUpDate,
+      isCompleted: false,
+    });
+    await logActivity(existing.leadId, user.id, "created", "task", title);
+  }
+
+  const [withUser] = await db
+    .select({ comm: communicationsTable, user: usersTable })
+    .from(communicationsTable)
+    .leftJoin(usersTable, eq(communicationsTable.userId, usersTable.id))
+    .where(eq(communicationsTable.id, commId))
+    .limit(1);
+
+  res.json(commToApi({ ...withUser.comm, user: withUser.user }));
 });
 
 export default router;

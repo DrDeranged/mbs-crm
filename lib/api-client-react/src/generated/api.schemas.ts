@@ -477,6 +477,21 @@ export const CommunicationDirection = {
   outbound: 'outbound',
 } as const;
 
+/**
+ * @nullable
+ */
+export type CommunicationCallOutcome = typeof CommunicationCallOutcome[keyof typeof CommunicationCallOutcome] | null;
+
+
+export const CommunicationCallOutcome = {
+  connected: 'connected',
+  voicemail: 'voicemail',
+  no_answer: 'no_answer',
+  wrong_number: 'wrong_number',
+  busy: 'busy',
+  null: 'null',
+} as const;
+
 export interface Communication {
   id: number;
   /** @nullable */
@@ -501,6 +516,10 @@ export interface Communication {
   status: string;
   /** @nullable */
   twilioSid?: string | null;
+  /** @nullable */
+  callNotes?: string | null;
+  /** @nullable */
+  callOutcome?: CommunicationCallOutcome;
   createdAt: string;
   updatedAt?: string;
 }
@@ -1296,6 +1315,26 @@ export const LogOutboundCallBodyType = {
 export type LogOutboundCallBody = {
   toNumber?: string;
   type?: LogOutboundCallBodyType;
+};
+
+export type UpdateCommunicationBodyCallOutcome = typeof UpdateCommunicationBodyCallOutcome[keyof typeof UpdateCommunicationBodyCallOutcome];
+
+
+export const UpdateCommunicationBodyCallOutcome = {
+  connected: 'connected',
+  voicemail: 'voicemail',
+  no_answer: 'no_answer',
+  wrong_number: 'wrong_number',
+  busy: 'busy',
+} as const;
+
+export type UpdateCommunicationBody = {
+  callNotes?: string;
+  callOutcome?: UpdateCommunicationBodyCallOutcome;
+  /** Optional ISO date for a follow-up task (YYYY-MM-DD) */
+  followUpDate?: string;
+  /** Title for the optional follow-up task */
+  followUpTitle?: string;
 };
 
 export type GetCommunicationMetricsParams = {
