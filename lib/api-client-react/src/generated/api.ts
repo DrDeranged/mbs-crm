@@ -24,6 +24,7 @@ import type {
   AnalyticsPipeline,
   AnalyticsSummary,
   ApplicationRecord,
+  ApplicationStatusResponse,
   ApplicationSubmitResponse,
   AssignLead,
   BulkAssignLeads200,
@@ -3041,6 +3042,83 @@ export const useSubmitApplication = <TError = ErrorType<void>,
       > => {
       return useMutation(getSubmitApplicationMutationOptions(options));
     }
+
+export const getGetApplicationStatusUrl = (token: string,) => {
+
+
+
+
+  return `/api/applications/status/${token}`
+}
+
+/**
+ * @summary Public application status lookup by tracking token (no auth required)
+ */
+export const getApplicationStatus = async (token: string, options?: RequestInit): Promise<ApplicationStatusResponse> => {
+
+  return customFetch<ApplicationStatusResponse>(getGetApplicationStatusUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetApplicationStatusQueryKey = (token: string,) => {
+    return [
+    `/api/applications/status/${token}`
+    ] as const;
+    }
+
+
+export const getGetApplicationStatusQueryOptions = <TData = Awaited<ReturnType<typeof getApplicationStatus>>, TError = ErrorType<void>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApplicationStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApplicationStatusQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApplicationStatus>>> = ({ signal }) => getApplicationStatus(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApplicationStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetApplicationStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getApplicationStatus>>>
+export type GetApplicationStatusQueryError = ErrorType<void>
+
+
+/**
+ * @summary Public application status lookup by tracking token (no auth required)
+ */
+
+export function useGetApplicationStatus<TData = Awaited<ReturnType<typeof getApplicationStatus>>, TError = ErrorType<void>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApplicationStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetApplicationStatusQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetLeadApplicationUrl = (id: number,) => {
 

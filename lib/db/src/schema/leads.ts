@@ -40,6 +40,7 @@ export const leadsTable = pgTable(
     lastActivityAt: timestamp("last_activity_at"),
     leadScore: integer("lead_score"),
     leadScoreBreakdown: jsonb("lead_score_breakdown"),
+    trackingToken: text("tracking_token").unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

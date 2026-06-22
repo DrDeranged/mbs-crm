@@ -1097,6 +1097,26 @@ export const SubmitApplicationBody = zod.object({
 
 
 /**
+ * @summary Public application status lookup by tracking token (no auth required)
+ */
+export const GetApplicationStatusParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetApplicationStatusResponse = zod.object({
+  "status": zod.string(),
+  "applicationType": zod.string(),
+  "companyName": zod.string().nullish(),
+  "repName": zod.string().nullish(),
+  "submittedAt": zod.coerce.date(),
+  "statusHistory": zod.array(zod.object({
+  "toStatus": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Get the submitted application for a lead (SSN masked)
  */
 export const GetLeadApplicationParams = zod.object({

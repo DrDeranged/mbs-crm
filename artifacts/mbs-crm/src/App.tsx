@@ -21,6 +21,7 @@ import DripSequences from "@/pages/drip-sequences";
 import LenderManagement from "@/pages/lender-management";
 import FlyerTemplates from "@/pages/flyer-templates";
 import ApplyPage from "@/pages/apply";
+import ApplicationStatus from "@/pages/application-status";
 import CreditCompliance from "@/pages/credit-compliance";
 import WorkflowRules from "@/pages/workflow-rules";
 
@@ -202,6 +203,7 @@ function AppRoutes() {
               <ProtectedRoute component={FlyerTemplates} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
+            <Route path="/apply/status" component={ApplicationStatus} />
             <Route path="/credit/compliance">
               <ProtectedRoute component={CreditCompliance} />
             </Route>

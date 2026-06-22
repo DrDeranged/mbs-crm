@@ -1055,6 +1055,27 @@ paths:
         "409":
           description: Duplicate lead detected
 
+  /applications/status/{token}:
+    get:
+      operationId: getApplicationStatus
+      tags: [applications]
+      summary: Public application status lookup by tracking token (no auth required)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Application status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationStatusResponse"
+        "404":
+          description: Application not found
+
   /leads/{id}/application:
     get:
       operationId: getLeadApplication
@@ -3748,6 +3769,35 @@ components:
           type: boolean
         lead_id:
           type: integer
+        tracking_token:
+          type: ["string", "null"]
+
+    ApplicationStatusResponse:
+      type: object
+      required: [status, applicationType, submittedAt, statusHistory]
+      properties:
+        status:
+          type: string
+        applicationType:
+          type: string
+        companyName:
+          type: ["string", "null"]
+        repName:
+          type: ["string", "null"]
+        submittedAt:
+          type: string
+          format: date-time
+        statusHistory:
+          type: array
+          items:
+            type: object
+            required: [toStatus, createdAt]
+            properties:
+              toStatus:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
 
     ApplicationRecord:
       type: object

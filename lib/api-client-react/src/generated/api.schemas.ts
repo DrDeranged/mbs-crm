@@ -890,6 +890,24 @@ export interface EmailFlyerInput {
 export interface ApplicationSubmitResponse {
   success: boolean;
   lead_id: number;
+  /** @nullable */
+  tracking_token?: string | null;
+}
+
+export type ApplicationStatusResponseStatusHistoryItem = {
+  toStatus: string;
+  createdAt: string;
+};
+
+export interface ApplicationStatusResponse {
+  status: string;
+  applicationType: string;
+  /** @nullable */
+  companyName?: string | null;
+  /** @nullable */
+  repName?: string | null;
+  submittedAt: string;
+  statusHistory: ApplicationStatusResponseStatusHistoryItem[];
 }
 
 export type ApplicationRecordType = typeof ApplicationRecordType[keyof typeof ApplicationRecordType];

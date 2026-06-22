@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
+import { randomBytes } from "crypto";
 import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
 import { db } from "@workspace/db";
@@ -11,6 +12,7 @@ import {
   documentsTable,
   activityLogTable,
   usersTable,
+  leadStatusHistoryTable,
 } from "@workspace/db";
 import { encrypt, maskSsn } from "../lib/encryption";
 import { extractBankStatement } from "../lib/ocrBankStatement";
@@ -245,6 +247,7 @@ router.post(
       const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
 
       // ── Create lead ───────────────────────────────────────────────────────
+      const trackingToken = randomBytes(6).toString("hex");
       const [lead] = await db.insert(leadsTable).values({
         firstName: body.ownerFirstName,
         lastName: body.ownerLastName,
@@ -260,6 +263,7 @@ router.post(
         consentCreditPullAt: consentGiven ? new Date() : null,
         consentIp: clientIp,
         lastActivityAt: new Date(),
+        trackingToken,
       }).returning();
 
       // ── Create application record ─────────────────────────────────────────
@@ -387,7 +391,7 @@ router.post(
 
       calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
 
-      res.status(201).json({ success: true, lead_id: lead.id });
+      res.status(201).json({ success: true, lead_id: lead.id, tracking_token: lead.trackingToken });
     } catch (err) {
       console.error("Application submit error:", err);
       res.status(500).json({ error: "Submission failed. Please try again." });
@@ -518,6 +522,51 @@ router.get("/leads/:id/financials", async (req: Request, res: Response) => {
       positions: uniquePositions,
       monthsAnalyzed: months.length,
     },
+  });
+});
+
+// GET /applications/status/:token — public, no auth required
+router.get("/applications/status/:token", async (req: Request, res: Response) => {
+  const token = (req.params["token"] as string).trim();
+  if (!token || token.length > 64) {
+    res.status(400).json({ error: "Invalid tracking token" });
+    return;
+  }
+
+  const lead = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.trackingToken, token),
+  });
+
+  if (!lead) {
+    res.status(404).json({ error: "Application not found" });
+    return;
+  }
+
+  // Fetch assigned rep name (first + last only — no PII)
+  let repName: string | null = null;
+  if (lead.assignedRepId) {
+    const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) });
+    if (rep) {
+      repName = rep.name || rep.email || null;
+    }
+  }
+
+  // Fetch status history (status changes only — no notes or financial data)
+  const history = await db.query.leadStatusHistoryTable.findMany({
+    where: eq(leadStatusHistoryTable.leadId, lead.id),
+    orderBy: [leadStatusHistoryTable.createdAt],
+  });
+
+  res.json({
+    status: lead.status,
+    applicationType: lead.applicationType,
+    companyName: lead.companyName,
+    repName,
+    submittedAt: lead.createdAt,
+    statusHistory: history.map((h) => ({
+      toStatus: h.toStatus,
+      createdAt: h.createdAt,
+    })),
   });
 });
 
