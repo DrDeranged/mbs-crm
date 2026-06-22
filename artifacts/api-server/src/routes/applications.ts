@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { randomBytes } from "crypto";
+import sgMail from "@sendgrid/mail";
 import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
 import { db } from "@workspace/db";
@@ -19,6 +20,14 @@ import { extractBankStatement } from "../lib/ocrBankStatement";
 import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
+
+const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
+const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
+const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "My Business Solutions";
+
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
 
 const router = Router();
 
@@ -391,6 +400,52 @@ router.post(
 
       calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
 
+      // ── Send confirmation email with tracking token (non-blocking) ─────────
+      if (SENDGRID_API_KEY && email && lead.trackingToken) {
+        const proto = (req.headers["x-forwarded-proto"] as string) || "https";
+        const host = (req.headers["x-forwarded-host"] as string) || req.headers["host"] || "";
+        const baseUrl = `${proto}://${host}`.replace(/\/api$/, "");
+        const statusUrl = `${baseUrl}/apply/status`;
+        const token = lead.trackingToken;
+
+        sgMail.send({
+          to: email,
+          from: { email: FROM_EMAIL, name: FROM_NAME },
+          subject: "Your MBS Application Has Been Received",
+          html: `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#1e293b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <tr><td style="background:#1F4E79;padding:28px 32px;">
+          <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;">My Business Solutions</p>
+          <p style="margin:4px 0 0;font-size:13px;color:#93c5fd;">Financing made simple</p>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h2 style="margin:0 0 8px;font-size:22px;color:#1e293b;">We received your application!</h2>
+          <p style="margin:0 0 24px;font-size:15px;color:#475569;">Thank you for applying with My Business Solutions. Our team will review your application and be in touch shortly.</p>
+
+          <div style="background:#f1f5f9;border-radius:8px;padding:20px;margin-bottom:24px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Your Tracking Number</p>
+            <p style="margin:0;font-size:22px;font-weight:700;font-family:monospace;color:#1F4E79;letter-spacing:.08em;">${token}</p>
+          </div>
+
+          <p style="margin:0 0 16px;font-size:14px;color:#475569;">Use your tracking number to check your application status at any time:</p>
+          <a href="${statusUrl}" style="display:inline-block;background:#1F4E79;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">Check Application Status</a>
+
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Questions? Contact us at <a href="tel:+18005550000" style="color:#1F4E79;">800-555-0000</a> or reply to this email.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+        }).catch((e: unknown) => console.error("Confirmation email failed:", e));
+      }
+
       res.status(201).json({ success: true, lead_id: lead.id, tracking_token: lead.trackingToken });
     } catch (err) {
       console.error("Application submit error:", err);
@@ -547,7 +602,7 @@ router.get("/applications/status/:token", async (req: Request, res: Response) =>
   if (lead.assignedRepId) {
     const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) });
     if (rep) {
-      repName = rep.name || rep.email || null;
+      repName = rep.name || null;
     }
   }
 
