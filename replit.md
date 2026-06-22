@@ -94,7 +94,8 @@ lib/
 | `lenders` | Lender profiles with criteria for matching engine |
 | `flyers` | Generated marketing flyer PDFs per lead |
 | `applications` | Public intake application data from the `/apply` form |
-| `creditPulls` | Experian credit pull requests, consent, and compliance log |
+| `creditPulls` | Experian credit pull requests — one row per pull with consent timestamp and raw result |
+| `creditComplianceLog` | FCRA compliance audit trail — every consent event and pull action logged separately |
 | `workflowRules` | Trigger-based automation rules (e.g., send email on status change) |
 
 ---
@@ -175,7 +176,7 @@ The web app uses a Replit-managed Clerk tenant. Every page is wrapped in `<Prote
 On startup, two recurring jobs are registered: the drip email processor (every 10 minutes) and the task reminder push notification sender (every hour, fires reminders for tasks due today at 9 AM). These are simple `setInterval` loops — no separate worker process.
 
 **Workflow rules are seeded once on startup.**  
-`seedDefaultWorkflowRules()` runs on every server boot but is a no-op if rules already exist. The workflow engine fires on lead status changes and can trigger tasks, emails, or SMS.
+`seedDefaultWorkflowRules()` runs on every server boot but is a no-op if rules already exist. The workflow engine fires on lead status changes and supports two action types: `create_task` (creates a checklist task on the lead) and `send_notification` (sends a push notification to the assigned rep). Email and SMS automation are not currently supported action types.
 
 **Lead scoring is demand-computed.**  
 `recalculateLeadScore` is called explicitly (button in UI or via workflow rule). The score (0–100) and breakdown are stored as JSONB on the lead. It is not auto-recalculated on every field change.
@@ -214,8 +215,8 @@ Use raw SQL instead: `ALTER TABLE t ADD COLUMN IF NOT EXISTS col text` + `CREATE
 **Bulk action routes must be registered before `/:id` routes in Express.**  
 `/leads/bulk/status`, `/leads/bulk/assign`, and `/leads/bulk/delete` are all registered before `/leads/:id` in `artifacts/api-server/src/routes/leads.ts`. Adding new bulk routes must follow the same ordering — placing them after `/:id` causes Express to match the path segment as a numeric ID and return a 404.
 
-**The `logActivity` helper takes named object params, not positional.**  
-Call it as: `logActivity({ leadId, userId, action, entityType, entityId, details? })`. Passing positional args silently compiles but logs nothing.
+**The `logActivity` helper requires a named params object — there are no positional overloads.**  
+Signature: `logActivity({ userId, leadId?, action, entityType, entityId, details? })`. Every call must pass this shape. Note that `logActivity` also updates the lead's `lastActivityAt` timestamp as a side effect — don't call it for low-signal events that would inflate that field.
 
 **`ENCRYPTION_KEY` is required for any credit pull route.**  
 If the variable is missing, SSN encryption fails and the entire `/credit` route group throws. Set this before testing the credit compliance or Experian integration.
