@@ -4,15 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+// All pipeline stages in order — must include every status from LEAD_STATUSES
 const PIPELINE_STAGES = [
-  { key: "new_lead", label: "Received", description: "Application received by MBS" },
-  { key: "application_received", label: "Under Review", description: "Document review in progress" },
-  { key: "submitted_to_underwriting", label: "Underwriting", description: "Submitted to underwriting team" },
-  { key: "approved", label: "Approved", description: "Application approved" },
-  { key: "funded", label: "Funded", description: "Funds disbursed to your account" },
+  { key: "new_lead", label: "Application Received", description: "Your application was received by MBS" },
+  { key: "contacted", label: "In Contact", description: "Our team has reached out to you" },
+  { key: "application_received", label: "Documents Under Review", description: "All documents received and being reviewed" },
+  { key: "follow_up", label: "Follow-up Required", description: "Additional information may be needed" },
+  { key: "submitted_to_underwriting", label: "Underwriting", description: "Submitted to the underwriting team" },
+  { key: "approved", label: "Approved", description: "Your application has been approved" },
+  { key: "funded", label: "Funded", description: "Funds have been disbursed to your account" },
 ] as const;
 
-const DECLINED_STAGE = { key: "declined", label: "Declined", description: "Application was declined" } as const;
+const DECLINED_STAGE = { key: "declined", label: "Declined", description: "Application was not approved at this time" } as const;
 
 type StatusEntry = {
   toStatus: string;
@@ -48,7 +51,9 @@ function StatusTimeline({ result }: { result: StatusResult }) {
   }
 
   const currentIdx = stages.findIndex((s) => s.key === result.status);
-  const effectiveCurrentIdx = currentIdx === -1 ? stages.length - 1 : currentIdx;
+  // If status is unknown (not in stages list), treat as "in progress" at stage 0
+  // rather than implying the final stage (Funded/Declined)
+  const effectiveCurrentIdx = currentIdx === -1 ? 0 : currentIdx;
 
   return (
     <div className="space-y-0">
