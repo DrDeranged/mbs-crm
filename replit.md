@@ -94,6 +94,7 @@ lib/
 | `lenders` | Lender profiles with criteria for matching engine |
 | `flyers` | Generated marketing flyer PDFs per lead |
 | `applications` | Public intake application data from the `/apply` form |
+| `bankStatementExtractions` | AI-extracted financials from uploaded bank statement documents (revenue, expenses, NSFs, etc.) |
 | `creditPulls` | Experian credit pull requests — one row per pull with consent timestamp and raw result |
 | `creditComplianceLog` | FCRA compliance audit trail — every consent event and pull action logged separately |
 | `workflowRules` | Trigger-based automation rules (e.g., send email on status change) |
@@ -108,6 +109,12 @@ lib/
 | `DATABASE_URL` | PostgreSQL connection string |
 | `PORT` | API server port (auto-set by Replit per artifact) |
 | `BASE_PATH` | URL base path prefix for the web app (e.g. `/mbs-crm`) — Vite hard-fails on startup if missing |
+
+### Clerk Auth (web app)
+| Variable | Description |
+|----------|-------------|
+| `VITE_CLERK_PUBLISHABLE_KEY` | Clerk publishable key — web app shows an error screen if missing |
+| `VITE_CLERK_PROXY_URL` | Optional Clerk proxy URL (used in Replit-managed Clerk tenants) |
 
 ### Replit Object Storage (auto-set by Replit)
 | Variable | Description |
