@@ -106,6 +106,7 @@ lib/
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `PORT` | API server port (auto-set by Replit per artifact) |
+| `BASE_PATH` | URL base path prefix for the web app (e.g. `/mbs-crm`) — Vite hard-fails on startup if missing |
 
 ### Replit Object Storage (auto-set by Replit)
 | Variable | Description |
@@ -195,10 +196,10 @@ Documents and generated flyers are stored in Replit Object Storage (not S3). The
 | `/leads/:id` | ✅ | Lead detail — 11 tabs: Info, Notes, Tasks, Docs, Comms, Activity, Lenders, Marketing, App, Financials, Credit |
 | `/settings` | ✅ | User profile and notification settings |
 | `/email/templates` | ✅ | Email template management |
-| `/email/drip` | ✅ | Drip sequence management |
+| `/drip/sequences` | ✅ | Drip sequence management |
 | `/lenders` | ✅ | Lender CRUD and matching configuration |
 | `/flyer-templates` | ✅ | Flyer template management |
-| `/credit-compliance` | ✅ | Credit pull compliance audit log |
+| `/credit/compliance` | ✅ | Credit pull compliance audit log |
 | `/workflow-rules` | ✅ | Automated workflow rule editor |
 | `/apply` | 🌐 Public | Merchant-facing application intake form |
 | `/apply/status` | 🌐 Public | Application status tracker (token-based, shown on `/apply` confirmation) |
@@ -211,7 +212,7 @@ Documents and generated flyers are stored in Replit Object Storage (not S3). The
 Use raw SQL instead: `ALTER TABLE t ADD COLUMN IF NOT EXISTS col text` + `CREATE UNIQUE INDEX IF NOT EXISTS idx ON t(col) WHERE col IS NOT NULL`. Never run `drizzle-kit push` in a script expecting silent success when unique indexes are involved.
 
 **Bulk action routes must be registered before `/:id` routes in Express.**  
-`/leads/bulk-update-status` must come before `/leads/:id` or Express will match `bulk-update-status` as a lead ID. This pattern applies to any domain with nested bulk routes.
+`/leads/bulk/status`, `/leads/bulk/assign`, and `/leads/bulk/delete` are all registered before `/leads/:id` in `artifacts/api-server/src/routes/leads.ts`. Adding new bulk routes must follow the same ordering — placing them after `/:id` causes Express to match the path segment as a numeric ID and return a 404.
 
 **The `logActivity` helper takes named object params, not positional.**  
 Call it as: `logActivity({ leadId, userId, action, entityType, entityId, details? })`. Passing positional args silently compiles but logs nothing.
