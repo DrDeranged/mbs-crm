@@ -17,7 +17,6 @@ import {
   GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 
@@ -46,55 +45,68 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         key={href}
         href={href}
         onClick={onNavigate}
-        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
           isActive
-            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            ? "bg-accent text-accent-foreground"
+            : "text-sidebar-foreground/60 hover:bg-accent/50 hover:text-sidebar-foreground"
         }`}
+        style={isActive ? { borderLeft: "3px solid hsl(var(--primary))", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
       >
-        <Icon size={18} />
+        <Icon size={16} className={isActive ? "text-primary" : ""} />
         {label}
       </Link>
     );
   };
 
+  const sectionLabel = (text: string) => (
+    <div className="px-3 mb-1 mt-2 text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+      {text}
+    </div>
+  );
+
   return (
-    <>
-      <div className="flex h-14 items-center border-b border-sidebar-border px-4 py-2 flex-shrink-0">
-        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2 font-bold tracking-tight">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-sidebar-primary text-sidebar-primary-foreground">
-            <Briefcase size={18} />
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0">
+        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 font-bold tracking-tight">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Briefcase size={16} />
           </div>
-          <span>MBS CRM</span>
+          <div className="flex flex-col leading-none">
+            <span className="text-sm font-bold text-sidebar-foreground">MBS CRM</span>
+            <span className="text-xs text-sidebar-foreground/40 font-normal">Business Solutions</span>
+          </div>
         </Link>
       </div>
 
-      <div className="flex-1 overflow-auto py-4">
-        <nav className="grid gap-1 px-2">
+      {/* Nav */}
+      <div className="flex-1 overflow-auto py-4 px-3">
+        <nav className="space-y-0.5">
           {navItems.map((item) => navLink(item.href, item.label, item.icon))}
 
           {isManagerOrAdmin && (
             <>
-              <Separator className="my-4 bg-sidebar-border" />
-              <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
-                Marketing
+              <div className="pt-4 pb-1">
+                <div className="border-t border-sidebar-border" />
               </div>
+              {sectionLabel("Marketing")}
               {navLink("/email/templates", "Email Templates", Mail)}
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
               {isAdmin && navLink("/lenders", "Lenders", Building2)}
               {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
-              <Separator className="my-4 bg-sidebar-border" />
-              <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
-                Management
+              <div className="pt-4 pb-1">
+                <div className="border-t border-sidebar-border" />
               </div>
+              {sectionLabel("Management")}
               <button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent("open-import-dialog"));
                   onNavigate?.();
                 }}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground cursor-pointer w-full text-left"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/60 hover:bg-accent/50 hover:text-sidebar-foreground cursor-pointer w-full text-left"
+                style={{ borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
               >
-                <Upload size={18} />
+                <Upload size={16} />
                 Import Leads
               </button>
             </>
@@ -102,10 +114,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
           {isAdmin && (
             <>
-              <Separator className="my-4 bg-sidebar-border" />
-              <div className="px-3 mb-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
-                Administration
+              <div className="pt-4 pb-1">
+                <div className="border-t border-sidebar-border" />
               </div>
+              {sectionLabel("Administration")}
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
               {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
@@ -114,30 +126,32 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
 
+      {/* User footer */}
       <div className="border-t border-sidebar-border p-4 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground overflow-hidden flex-shrink-0">
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold shadow-sm">
             {user?.imageUrl ? (
               <img src={user.imageUrl} alt="Avatar" className="h-full w-full object-cover" />
             ) : (
-              <span className="text-sm font-medium">{user?.firstName?.charAt(0) || "U"}</span>
+              <span>{user?.firstName?.charAt(0) || "U"}</span>
             )}
           </div>
           <div className="flex flex-col truncate min-w-0">
-            <span className="text-sm font-medium truncate">{user?.fullName || "User"}</span>
-            <span className="text-xs text-sidebar-foreground/60 truncate">{user?.primaryEmailAddress?.emailAddress}</span>
+            <span className="text-sm font-semibold truncate text-sidebar-foreground">{user?.fullName || "User"}</span>
+            <span className="text-xs text-sidebar-foreground/50 truncate">{user?.primaryEmailAddress?.emailAddress}</span>
           </div>
         </div>
         <Button
           variant="outline"
-          className="w-full justify-start gap-2 bg-transparent border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          size="sm"
+          className="w-full justify-start gap-2 bg-transparent border-sidebar-border text-sidebar-foreground/60 hover:bg-accent hover:text-accent-foreground hover:border-accent-border"
           onClick={() => signOut()}
         >
-          <LogOut size={16} />
+          <LogOut size={14} />
           Sign Out
         </Button>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -145,19 +159,19 @@ export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
-      {/* Desktop Sidebar — hidden on mobile */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r bg-sidebar text-sidebar-foreground">
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm">
         <SidebarContent />
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden">
         {/* Mobile top bar */}
-        <div className="flex md:hidden h-14 items-center border-b bg-sidebar text-sidebar-foreground px-4 gap-3 flex-shrink-0">
+        <div className="flex md:hidden h-14 items-center border-b border-sidebar-border bg-sidebar text-sidebar-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent">
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-accent">
                 <Menu size={20} />
                 <span className="sr-only">Open navigation</span>
               </Button>
@@ -167,10 +181,10 @@ export function AppShell({ children }: AppShellProps) {
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2 font-bold tracking-tight">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-sidebar-primary text-sidebar-primary-foreground">
-              <Briefcase size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Briefcase size={14} />
             </div>
-            <span>MBS CRM</span>
+            <span className="text-sm font-bold">MBS CRM</span>
           </div>
         </div>
 
