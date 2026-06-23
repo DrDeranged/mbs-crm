@@ -45,4 +45,3 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-GITHUB_PAT = "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"
