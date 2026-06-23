@@ -2429,3 +2429,59 @@ export const RequestUploadUrlResponse = zod.object({
 })
 
 
+/**
+ * @summary List notifications for the current user
+ */
+export const listNotificationsQueryPageDefault = 1;
+export const listNotificationsQueryLimitDefault = 20;
+
+export const ListNotificationsQueryParams = zod.object({
+  "page": zod.coerce.number().default(listNotificationsQueryPageDefault),
+  "limit": zod.coerce.number().default(listNotificationsQueryLimitDefault)
+})
+
+export const ListNotificationsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number().optional(),
+  "type": zod.enum(['lead_assigned', 'task_due', 'sms_received', 'status_changed', 'credit_pulled', 'application_received', 'call_received']).optional(),
+  "title": zod.string().optional(),
+  "body": zod.string().optional(),
+  "leadId": zod.number().nullish(),
+  "leadName": zod.string().nullish(),
+  "isRead": zod.boolean().optional(),
+  "createdAt": zod.coerce.date().optional()
+})).optional(),
+  "total": zod.number().optional(),
+  "page": zod.number().optional(),
+  "limit": zod.number().optional()
+})
+
+
+/**
+ * @summary Get count of unread notifications
+ */
+export const GetUnreadNotificationCountResponse = zod.object({
+  "count": zod.number().optional()
+})
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  "success": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "success": zod.boolean().optional()
+})
+
+

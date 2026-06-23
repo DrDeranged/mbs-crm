@@ -16,6 +16,7 @@ import {
   leadStatusHistoryTable,
 } from "@workspace/db";
 import { encrypt, maskSsn } from "../lib/encryption";
+import { createNotification, notifyAllManagers } from "../lib/notify";
 import { extractBankStatement } from "../lib/ocrBankStatement";
 import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
@@ -399,6 +400,23 @@ router.post(
       });
 
       calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
+
+      // ── Notify managers + assigned rep of new application ─────────────────
+      notifyAllManagers(
+        "application_received",
+        "New application received",
+        `${body.businessName} submitted a ${body.type} application`,
+        lead.id,
+      ).catch(() => {});
+      if (assignedRepId) {
+        createNotification({
+          userId: assignedRepId,
+          type: "application_received",
+          title: "New application assigned to you",
+          body: `${body.businessName} — ${body.type}`,
+          leadId: lead.id,
+        }).catch(() => {});
+      }
 
       // ── Send confirmation email with tracking token (non-blocking) ─────────
       if (SENDGRID_API_KEY && email && lead.trackingToken) {

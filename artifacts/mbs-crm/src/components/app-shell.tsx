@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
+import { NotificationBell } from "@/components/notification-bell";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -67,16 +68,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0">
-        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 font-bold tracking-tight">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+      <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0 gap-2">
+        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 font-bold tracking-tight flex-1 min-w-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm flex-shrink-0">
             <Briefcase size={16} />
           </div>
-          <div className="flex flex-col leading-none">
+          <div className="flex flex-col leading-none min-w-0">
             <span className="text-sm font-bold text-sidebar-foreground">MBS CRM</span>
             <span className="text-xs text-sidebar-foreground/40 font-normal">Business Solutions</span>
           </div>
         </Link>
+        <NotificationBell />
       </div>
 
       {/* Nav */}
@@ -180,12 +182,13 @@ export function AppShell({ children }: AppShellProps) {
               <SidebarContent onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
-          <div className="flex items-center gap-2 font-bold tracking-tight">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex items-center gap-2 font-bold tracking-tight flex-1 min-w-0">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
               <Briefcase size={14} />
             </div>
             <span className="text-sm font-bold">MBS CRM</span>
           </div>
+          <NotificationBell />
         </div>
 
         <div className="flex-1 overflow-auto">

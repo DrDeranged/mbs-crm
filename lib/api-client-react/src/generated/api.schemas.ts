@@ -1128,6 +1128,32 @@ export interface WorkflowRule {
   createdAt?: string;
 }
 
+export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
+
+
+export const NotificationType = {
+  lead_assigned: 'lead_assigned',
+  task_due: 'task_due',
+  sms_received: 'sms_received',
+  status_changed: 'status_changed',
+  credit_pulled: 'credit_pulled',
+  application_received: 'application_received',
+  call_received: 'call_received',
+} as const;
+
+export interface Notification {
+  id?: number;
+  type?: NotificationType;
+  title?: string;
+  body?: string;
+  /** @nullable */
+  leadId?: number | null;
+  /** @nullable */
+  leadName?: string | null;
+  isRead?: boolean;
+  createdAt?: string;
+}
+
 export type UpdateMyPushTokenBody = {
   /** @nullable */
   pushToken?: string | null;
@@ -1503,6 +1529,30 @@ export const ListFlyerTemplatesProgramType = {
 } as const;
 
 export type EmailFlyer200 = {
+  success?: boolean;
+};
+
+export type ListNotificationsParams = {
+page?: number;
+limit?: number;
+};
+
+export type ListNotifications200 = {
+  data?: Notification[];
+  total?: number;
+  page?: number;
+  limit?: number;
+};
+
+export type GetUnreadNotificationCount200 = {
+  count?: number;
+};
+
+export type MarkAllNotificationsRead200 = {
+  success?: boolean;
+};
+
+export type MarkNotificationRead200 = {
   success?: boolean;
 };
 

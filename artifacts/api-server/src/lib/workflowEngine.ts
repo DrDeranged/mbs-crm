@@ -102,12 +102,9 @@ export async function executeWorkflowRules(
         });
       } else if (rule.actionType === "send_notification") {
         if (!assignedRepId) continue;
-        const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, assignedRepId) });
-        if (!rep?.pushToken) continue;
-
         const title = (cfg["title"] as string | undefined) ?? rule.name;
         const body = (cfg["body"] as string | undefined) ?? `A lead has moved to ${newStatus.replace(/_/g, " ")}`;
-        await createNotification({ pushToken: rep.pushToken, title, body, data: { leadId } });
+        await createNotification({ userId: assignedRepId, type: "status_changed", title, body, leadId });
       }
     }
   } catch (err) {

@@ -11,6 +11,7 @@ import {
 } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+import { createNotification } from "../lib/notify";
 import { encrypt, decrypt } from "../lib/encryption";
 import { calculateLeadScore } from "../lib/leadScoring";
 
@@ -329,6 +330,18 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   });
 
   calculateLeadScore(leadId).catch((e) => console.error("Lead scoring error:", e));
+
+  // Notify assigned rep of credit pull (if someone else pulled it)
+  if (lead.assignedRepId && lead.assignedRepId !== user.id) {
+    const leadName = [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.companyName || "Lead";
+    createNotification({
+      userId: lead.assignedRepId,
+      type: "credit_pulled",
+      title: "Credit report pulled",
+      body: `Credit pulled for ${leadName}${creditScore ? ` — score ${creditScore}` : ""}`,
+      leadId: lead.id,
+    }).catch(() => {});
+  }
 
   res.status(201).json({
     id: pull!.id,

@@ -18,4 +18,5 @@ export * from "./flyers";
 export * from "./applications";
 export * from "./creditPulls";
 export * from "./workflowRules";
+export * from "./notifications";
 export * from "./relations";

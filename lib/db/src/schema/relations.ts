@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
+import { notificationsTable } from "./notifications";
 import { companiesTable } from "./companies";
 import { notesTable } from "./notes";
 import { tasksTable } from "./tasks";
@@ -47,6 +48,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   communications: many(communicationsTable),
   emailSends: many(emailSendsTable),
   emailTemplates: many(emailTemplatesTable),
+  notifications: many(notificationsTable),
 }));
 
 export const companiesRelations = relations(companiesTable, ({ one }) => ({
@@ -218,4 +220,9 @@ export const lenderSubmissionsRelations = relations(lenderSubmissionsTable, ({ o
   lead: one(leadsTable, { fields: [lenderSubmissionsTable.leadId], references: [leadsTable.id] }),
   lender: one(lendersTable, { fields: [lenderSubmissionsTable.lenderId], references: [lendersTable.id] }),
   submitter: one(usersTable, { fields: [lenderSubmissionsTable.submittedBy], references: [usersTable.id] }),
+}));
+
+export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
+  user: one(usersTable, { fields: [notificationsTable.userId], references: [usersTable.id] }),
+  lead: one(leadsTable, { fields: [notificationsTable.leadId], references: [leadsTable.id] }),
 }));

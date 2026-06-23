@@ -21,6 +21,7 @@ import {
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
 import { sendPushNotification } from "../lib/pushNotifications";
+import { createNotification } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
 
@@ -627,16 +628,15 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     : null;
 
   // Notify assignee of status change (unless they made it themselves)
-  if (rep?.pushToken && rep.id !== user.id) {
-    const leadName = updated.companyName ||
-      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
-      "A lead";
-    sendPushNotification(
-      rep.pushToken,
-      "Lead Status Updated",
-      `${leadName} → ${body.data.status.replace(/_/g, " ")}`,
-      { leadId: updated.id },
-    ).catch(() => {});
+  if (updated.assignedRepId && updated.assignedRepId !== user.id) {
+    const leadName = [updated.firstName, updated.lastName].filter(Boolean).join(" ") || updated.companyName || "A lead";
+    createNotification({
+      userId: updated.assignedRepId,
+      type: "status_changed",
+      title: "Lead status changed",
+      body: `${leadName} → ${body.data.status.replace(/_/g, " ")}`,
+      leadId: updated.id,
+    }).catch(() => {});
   }
 
   res.json(leadToApi(updated, rep));
@@ -695,16 +695,15 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, body.data.repId) });
 
   // Notify newly assigned rep
-  if (body.data.repId && body.data.repId !== existing.assignedRepId && rep?.pushToken) {
-    const leadName = updated.companyName ||
-      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
-      "A lead";
-    sendPushNotification(
-      rep.pushToken,
-      "Lead Assigned to You",
-      `${leadName} has been assigned to you`,
-      { leadId: updated.id },
-    ).catch(() => {});
+  if (body.data.repId && body.data.repId !== existing.assignedRepId && body.data.repId !== user.id) {
+    const leadName = [updated.firstName, updated.lastName].filter(Boolean).join(" ") || updated.companyName || "A lead";
+    createNotification({
+      userId: body.data.repId,
+      type: "lead_assigned",
+      title: "Lead assigned to you",
+      body: `${leadName} was assigned to you`,
+      leadId: updated.id,
+    }).catch(() => {});
   }
 
   res.json(leadToApi(updated, rep));

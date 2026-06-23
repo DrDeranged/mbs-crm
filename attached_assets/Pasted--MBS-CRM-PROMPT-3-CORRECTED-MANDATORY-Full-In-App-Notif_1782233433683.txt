@@ -1,0 +1,441 @@
+# MBS CRM — PROMPT 3 (CORRECTED & MANDATORY): Full In-App Notification Center
+
+## READ THIS FIRST — what went wrong last time
+
+A previous attempt at this task created ONLY a thin push-notification wrapper at
+`artifacts/api-server/src/lib/notify.ts` (11 lines) that forwards to `sendPushNotification`.
+That is NOT what this task requires and it is incomplete.
+
+The current `notify.ts` looks like this and is INSUFFICIENT:
+```
+export async function createNotification(opts: { pushToken, title, body, data }) {
+  if (!opts.pushToken) return;
+  await sendPushNotification(...);
+}
+```
+
+This task requires a COMPLETE, PERSISTENT, IN-APP notification system with a database table,
+a REST API, a bell icon with an unread badge in the web UI, and a dropdown panel. Push
+notifications are a SECONDARY side-effect, not the deliverable.
+
+DO NOT shortcut this to push notifications. DO NOT skip the database table. DO NOT skip the
+bell UI. Every numbered item below is mandatory. At the end you must confirm each one.
+
+---
+
+## STEP 1 — Database table (REQUIRED)
+
+Create a new file `lib/db/src/schema/notifications.ts` with EXACTLY this content:
+
+```ts
+import { pgTable, serial, integer, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import { usersTable } from "./users";
+import { leadsTable } from "./leads";
+
+export const notificationsTable = pgTable(
+  "notifications",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    type: text("type", {
+      enum: [
+        "lead_assigned",
+        "task_due",
+        "sms_received",
+        "status_changed",
+        "credit_pulled",
+        "application_received",
+        "call_received",
+      ],
+    }).notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "cascade" }),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("notifications_user_idx").on(t.userId),
+    index("notifications_user_read_idx").on(t.userId, t.isRead),
+  ],
+);
+
+export type Notification = typeof notificationsTable.$inferSelect;
+```
+
+Then:
+1. Add to `lib/db/src/schema/index.ts`: `export * from "./notifications";`
+2. Add to `lib/db/src/schema/relations.ts`:
+   - Import: `import { notificationsTable } from "./notifications";`
+   - Add a relations block:
+     ```ts
+     export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
+       user: one(usersTable, { fields: [notificationsTable.userId], references: [usersTable.id] }),
+       lead: one(leadsTable, { fields: [notificationsTable.leadId], references: [leadsTable.id] }),
+     }));
+     ```
+   - In the EXISTING `usersRelations` block, add: `notifications: many(notificationsTable),`
+     (if usersRelations uses `many`, ensure `many` is in its callback params)
+3. Run: `pnpm --filter @workspace/db run push`
+
+---
+
+## STEP 2 — REPLACE notify.ts entirely (REQUIRED)
+
+REPLACE the entire contents of `artifacts/api-server/src/lib/notify.ts` (delete the existing
+11-line push-only version) with this. It writes a row to the notifications table FIRST, then
+ALSO fires a push as a side-effect:
+
+```ts
+import { db } from "@workspace/db";
+import { notificationsTable, usersTable } from "@workspace/db";
+import { eq, or } from "drizzle-orm";
+import { sendPushNotification } from "./pushNotifications";
+
+type NotificationType =
+  | "lead_assigned"
+  | "task_due"
+  | "sms_received"
+  | "status_changed"
+  | "credit_pulled"
+  | "application_received"
+  | "call_received";
+
+interface NotifyParams {
+  userId: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  leadId?: number | null;
+}
+
+/**
+ * Creates a PERSISTENT in-app notification row, then fires a push as a side-effect.
+ * The in-app row is the primary deliverable; push is best-effort.
+ */
+export async function createNotification(params: NotifyParams): Promise<void> {
+  // 1. Persist the in-app notification (PRIMARY)
+  await db.insert(notificationsTable).values({
+    userId: params.userId,
+    type: params.type,
+    title: params.title,
+    body: params.body,
+    leadId: params.leadId ?? null,
+  });
+
+  // 2. Best-effort push (SECONDARY)
+  const user = await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, params.userId),
+  });
+  if (user?.pushToken) {
+    sendPushNotification(user.pushToken, params.title, params.body, {
+      leadId: params.leadId ?? undefined,
+    }).catch(() => {});
+  }
+}
+
+/** Notify every admin and manager (e.g. a new application arrived). */
+export async function notifyAllManagers(
+  type: NotificationType,
+  title: string,
+  body: string,
+  leadId?: number | null,
+): Promise<void> {
+  const managers = await db.query.usersTable.findMany({
+    where: or(eq(usersTable.role, "admin"), eq(usersTable.role, "manager")),
+  });
+  for (const m of managers) {
+    await createNotification({ userId: m.id, type, title, body, leadId });
+  }
+}
+```
+
+IMPORTANT: Any existing callers of the OLD `createNotification({ pushToken, title, body, data })`
+signature must be updated to the new `{ userId, type, title, body, leadId }` signature. Search the
+codebase for `createNotification(` and fix every call site. If any code was calling the old
+push-only version, it should now pass a `userId` and a `type` instead of a `pushToken`.
+
+---
+
+## STEP 3 — Notifications REST API (REQUIRED)
+
+Create `artifacts/api-server/src/routes/notifications.ts` with EXACTLY this. It follows the
+existing route conventions (IRouter, requireUser, Request/Response from express):
+
+```ts
+import { Router, type IRouter, type Request, type Response } from "express";
+import { db } from "@workspace/db";
+import { notificationsTable } from "@workspace/db";
+import { eq, and, desc, count } from "drizzle-orm";
+import { requireUser } from "../lib/authHelpers";
+
+const router: IRouter = Router();
+
+// GET /notifications — paginated list for the current user
+router.get("/notifications", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const page = Math.max(1, parseInt(String(req.query.page ?? "1"), 10));
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit ?? "20"), 10)));
+  const offset = (page - 1) * limit;
+
+  const rows = await db.query.notificationsTable.findMany({
+    where: eq(notificationsTable.userId, user.id),
+    orderBy: [desc(notificationsTable.createdAt)],
+    limit,
+    offset,
+    with: { lead: true },
+  });
+
+  const [totalRow] = await db
+    .select({ total: count() })
+    .from(notificationsTable)
+    .where(eq(notificationsTable.userId, user.id));
+
+  res.json({
+    data: rows.map((n: any) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      body: n.body,
+      leadId: n.leadId,
+      leadName: n.lead
+        ? [n.lead.firstName, n.lead.lastName].filter(Boolean).join(" ") || n.lead.companyName
+        : null,
+      isRead: n.isRead,
+      createdAt: n.createdAt.toISOString(),
+    })),
+    total: Number(totalRow?.total ?? 0),
+    page,
+    limit,
+  });
+});
+
+// GET /notifications/unread-count
+router.get("/notifications/unread-count", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const [row] = await db
+    .select({ count: count() })
+    .from(notificationsTable)
+    .where(and(eq(notificationsTable.userId, user.id), eq(notificationsTable.isRead, false)));
+
+  res.json({ count: Number(row?.count ?? 0) });
+});
+
+// PUT /notifications/:id/read
+router.put("/notifications/:id/read", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const id = parseInt(String(req.params.id), 10);
+  await db
+    .update(notificationsTable)
+    .set({ isRead: true })
+    .where(and(eq(notificationsTable.id, id), eq(notificationsTable.userId, user.id)));
+
+  res.json({ success: true });
+});
+
+// PUT /notifications/read-all
+router.put("/notifications/read-all", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  await db
+    .update(notificationsTable)
+    .set({ isRead: true })
+    .where(and(eq(notificationsTable.userId, user.id), eq(notificationsTable.isRead, false)));
+
+  res.json({ success: true });
+});
+
+export default router;
+```
+
+Register it in `artifacts/api-server/src/routes/index.ts`:
+- Add import: `import notificationsRouter from "./notifications";`
+- Add registration with the others: `router.use(notificationsRouter);`
+
+---
+
+## STEP 4 — Add these endpoints to the OpenAPI spec (REQUIRED)
+
+Edit `lib/api-spec/openapi.yaml` and add path definitions for:
+- `GET /notifications` (query params: page, limit; response: { data: Notification[], total, page, limit })
+- `GET /notifications/unread-count` (response: { count: number })
+- `PUT /notifications/{id}/read` (response: { success: boolean })
+- `PUT /notifications/read-all` (response: { success: boolean })
+
+Define a `Notification` schema component with: id (integer), type (string enum), title (string),
+body (string), leadId (integer, nullable), leadName (string, nullable), isRead (boolean),
+createdAt (string).
+
+Then run: `pnpm --filter @workspace/api-spec run codegen`
+
+This generates the React Query hooks (useGetNotifications, useGetNotificationsUnreadCount,
+usePutNotificationsByIdRead or similar — use whatever names Orval generates).
+
+---
+
+## STEP 5 — Wire notification triggers into existing flows (REQUIRED)
+
+Add `import { createNotification, notifyAllManagers } from "../lib/notify";` to each file below
+and insert the calls at the indicated points. These must create IN-APP notifications (the new
+createNotification handles both in-app + push).
+
+### 5a. `artifacts/api-server/src/routes/leads.ts`
+
+In the STATUS CHANGE handler (PUT /leads/:id/status), after the existing `logActivity` call, add:
+```ts
+if (lead.assignedRepId && lead.assignedRepId !== user.id) {
+  await createNotification({
+    userId: lead.assignedRepId,
+    type: "status_changed",
+    title: "Lead status changed",
+    body: `${[lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.companyName} → ${body.data.status}`,
+    leadId: lead.id,
+  });
+}
+```
+
+In the ASSIGN handler (PUT /leads/:id/assign), after the existing assignment logic, add:
+```ts
+if (body.data.repId !== user.id) {
+  await createNotification({
+    userId: body.data.repId,
+    type: "lead_assigned",
+    title: "Lead assigned to you",
+    body: `${[lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.companyName} was assigned to you`,
+    leadId: lead.id,
+  });
+}
+```
+
+### 5b. `artifacts/api-server/src/routes/twilio.ts`
+
+In the INBOUND SMS handler (the webhook that stores an inbound SMS), after storing the message,
+locate the matched lead and add:
+```ts
+if (lead?.assignedRepId) {
+  await createNotification({
+    userId: lead.assignedRepId,
+    type: "sms_received",
+    title: "New SMS received",
+    body: `Message from ${lead.firstName || lead.companyName || fromNumber}`,
+    leadId: lead.id,
+  });
+}
+```
+
+### 5c. `artifacts/api-server/src/routes/applications.ts`
+
+After a new application is submitted and the lead is created (where you have leadId, businessName,
+type, and the assigned rep), add:
+```ts
+await notifyAllManagers(
+  "application_received",
+  "New application received",
+  `${businessName} submitted a ${type} application`,
+  leadId,
+);
+if (assignedRepId) {
+  await createNotification({
+    userId: assignedRepId,
+    type: "application_received",
+    title: "New application assigned to you",
+    body: `${businessName} — ${type}`,
+    leadId,
+  });
+}
+```
+(Use the actual variable names present in that file for businessName/type/leadId/assignedRepId.)
+
+### 5d. `artifacts/api-server/src/routes/credit.ts`
+
+After a successful credit pull (where you have the lead and assignedRepId), add:
+```ts
+if (lead.assignedRepId && lead.assignedRepId !== user.id) {
+  await createNotification({
+    userId: lead.assignedRepId,
+    type: "credit_pulled",
+    title: "Credit report pulled",
+    body: `Credit pulled for ${[lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.companyName}${creditScore ? ` — score ${creditScore}` : ""}`,
+    leadId: lead.id,
+  });
+}
+```
+
+---
+
+## STEP 6 — Bell icon + notification panel in the web UI (REQUIRED)
+
+Create `artifacts/mbs-crm/src/components/notification-bell.tsx`:
+
+Requirements:
+- Import the generated hooks from `@workspace/api-client-react` (use the actual generated names
+  for GET /notifications, GET /notifications/unread-count, PUT /notifications/{id}/read,
+  PUT /notifications/read-all).
+- Use the existing shadcn/ui `Popover`, `PopoverTrigger`, `PopoverContent` from `@/components/ui/popover`.
+- Use the `Bell` icon from `lucide-react`.
+- Use `useLocation` from `wouter` for navigation.
+
+Behavior:
+- Render a ghost icon button containing `<Bell />`.
+- Fetch the unread count with the unread-count hook, configured with `{ refetchInterval: 30000 }`
+  (poll every 30 seconds). If count > 0, render a small red badge (absolute-positioned, top-right
+  of the bell) showing the count (show "9+" if > 9).
+- On click, open a Popover (width ~360px, align end). Inside:
+  - Header row: "Notifications" title on the left, a "Mark all read" text button on the right
+    that calls the read-all mutation and refetches the list + count.
+  - The list: fetch with the notifications hook `{ limit: 10 }`. For each notification render a row:
+    - A small type icon (map type → lucide icon: lead_assigned → UserPlus, sms_received →
+      MessageSquare, status_changed → ArrowRightCircle, application_received → FileText,
+      credit_pulled → CreditCard, call_received → Phone, task_due → Clock).
+    - Title (font-medium, truncate), body (text-sm text-muted-foreground, truncate to 2 lines).
+    - Relative time on the right (use the existing `relativeTime` util in `src/lib/utils.ts` if it
+      exists; otherwise format createdAt simply).
+    - Unread rows get a subtle background (e.g. `bg-accent/40`) and a small dot indicator.
+    - On click: if leadId is present, call the mark-read mutation for that id, then
+      `setLocation(`/leads/${leadId}`)`, then close the popover.
+  - Empty state: if no notifications, show centered muted text "No notifications yet."
+- After any mutation (mark read / mark all read), invalidate/refetch both the list and the
+  unread-count queries so the badge updates immediately.
+
+Then mount `<NotificationBell />` in `artifacts/mbs-crm/src/components/app-shell.tsx`:
+- Add `import { NotificationBell } from "./notification-bell";`
+- Place it in the MOBILE top bar (the `md:hidden` header div) AND in the desktop header/sidebar
+  header area, next to the existing user/menu controls. It must be visible to every logged-in user
+  on every page.
+
+---
+
+## STEP 7 — Verify (REQUIRED — report each result)
+
+Run and report the outcome of each:
+
+1. `npx tsc --build` from the repo root → must exit 0
+2. Confirm the table exists: the schema file is exported from index.ts and `pnpm --filter
+   @workspace/db run push` applied it.
+3. `grep -c "notificationsTable" lib/db/src/schema/index.ts` → must be ≥ 1 (via export)
+4. `grep -c "notificationsRouter" artifacts/api-server/src/routes/index.ts` → must be 2 (import + use)
+5. `grep -rc "createNotification" artifacts/api-server/src/routes/` → must show calls in leads.ts,
+   twilio.ts, applications.ts, credit.ts
+6. `grep -c "NotificationBell" artifacts/mbs-crm/src/components/app-shell.tsx` → must be ≥ 2
+   (import + at least one render)
+7. Confirm the four endpoints exist in `lib/api-spec/openapi.yaml`.
+
+## ABSOLUTE REQUIREMENTS — do not mark this task complete unless ALL are true:
+- [ ] `notifications` table created, exported, relations added, pushed to DB
+- [ ] `notify.ts` REPLACED — writes a DB row first, push is secondary
+- [ ] All old `createNotification` call sites updated to the new signature
+- [ ] `notifications.ts` route created with all 4 endpoints, registered in index.ts
+- [ ] 4 endpoints added to openapi.yaml, codegen re-run
+- [ ] Triggers wired in leads (status + assign), twilio (inbound SMS), applications, credit
+- [ ] `notification-bell.tsx` created with badge + polling + panel + navigation
+- [ ] Bell mounted in app-shell (mobile + desktop), visible on every page
+- [ ] `npx tsc --build` exits 0
