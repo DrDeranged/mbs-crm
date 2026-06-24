@@ -1,31 +1,40 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
 import { AppShell } from "@/components/app-shell";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
 
-// Pages
-import Dashboard from "@/pages/dashboard";
-import Leads from "@/pages/leads";
-import LeadDetail from "@/pages/lead-detail";
-import NewLead from "@/pages/new-lead";
-import Settings from "@/pages/settings";
-import EmailTemplates from "@/pages/email-templates";
-import DripSequences from "@/pages/drip-sequences";
-import LenderManagement from "@/pages/lender-management";
-import FlyerTemplates from "@/pages/flyer-templates";
-import ApplyPage from "@/pages/apply";
-import ApplicationStatus from "@/pages/application-status";
-import CreditCompliance from "@/pages/credit-compliance";
-import WorkflowRules from "@/pages/workflow-rules";
+// Lazy-loaded pages — each becomes a separate chunk, downloaded only when first visited
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Leads = lazy(() => import("@/pages/leads"));
+const LeadDetail = lazy(() => import("@/pages/lead-detail"));
+const NewLead = lazy(() => import("@/pages/new-lead"));
+const Settings = lazy(() => import("@/pages/settings"));
+const EmailTemplates = lazy(() => import("@/pages/email-templates"));
+const DripSequences = lazy(() => import("@/pages/drip-sequences"));
+const LenderManagement = lazy(() => import("@/pages/lender-management"));
+const FlyerTemplates = lazy(() => import("@/pages/flyer-templates"));
+const ApplyPage = lazy(() => import("@/pages/apply"));
+const ApplicationStatus = lazy(() => import("@/pages/application-status"));
+const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
+const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -85,6 +94,14 @@ const clerkAppearance = {
   },
 };
 
+function PageLoader() {
+  return (
+    <div className="flex flex-1 items-center justify-center min-h-[60vh]">
+      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
@@ -113,7 +130,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
       <Show when="signed-in">
         <SoftphoneProvider>
           <AppShell>
-            <Component />
+            <Suspense fallback={<PageLoader />}>
+              <Component />
+            </Suspense>
           </AppShell>
           <SoftphoneWidget />
         </SoftphoneProvider>
@@ -210,7 +229,11 @@ function AppRoutes() {
             <Route path="/workflow-rules">
               <ProtectedRoute component={WorkflowRules} />
             </Route>
-            <Route component={NotFound} />
+            <Route>
+              <Suspense fallback={<PageLoader />}>
+                <NotFound />
+              </Suspense>
+            </Route>
           </Switch>
           <Toaster />
         </TooltipProvider>

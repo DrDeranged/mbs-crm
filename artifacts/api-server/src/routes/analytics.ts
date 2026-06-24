@@ -62,7 +62,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
     // Avg time from lead created to funded status in history
     db
       .select({
-        avgDays: sql<number>`avg(extract(epoch from (lsh."created_at" - l."created_at")) / 86400)`,
+        avgDays: sql<number>`avg(extract(epoch from (${leadStatusHistoryTable.createdAt} - ${leadsTable.createdAt})) / 86400)`,
       })
       .from(leadStatusHistoryTable)
       .innerJoin(leadsTable, eq(leadStatusHistoryTable.leadId, leadsTable.id))
@@ -306,19 +306,18 @@ router.get("/analytics/communications", async (req: Request, res: Response) => {
   if (effectiveRepId) clauses.push(eq(communicationsTable.userId, effectiveRepId));
   const where = clauses.length ? and(...clauses) : undefined;
 
+  const truncExpr = sql<string>`date_trunc(${granularity}, "communications"."created_at")::date::text`;
+
   const rows = await db
     .select({
-      date: sql<string>`date_trunc(${granularity}, ${communicationsTable.createdAt})::date::text`,
+      date: truncExpr,
       type: communicationsTable.type,
       count: sql<number>`cast(count(*) as int)`,
     })
     .from(communicationsTable)
     .where(where)
-    .groupBy(
-      sql`date_trunc(${granularity}, ${communicationsTable.createdAt})::date::text`,
-      communicationsTable.type,
-    )
-    .orderBy(sql`date_trunc(${granularity}, ${communicationsTable.createdAt})::date::text`);
+    .groupBy(truncExpr, communicationsTable.type)
+    .orderBy(truncExpr);
 
   // Merge call + sms into same date entry
   const dateMap: Record<string, { date: string; calls: number; sms: number }> = {};
