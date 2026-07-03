@@ -552,6 +552,40 @@ paths:
           description: Lead not found
 
   /leads/{id}/ai/briefing:
+    get:
+      operationId: getLeadBriefing
+      tags: [ai]
+      summary: Get the cached AI sales briefing for a lead, if one has been generated
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cached briefing (null fields if none generated yet)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [leadId, briefing, generatedAt]
+                properties:
+                  leadId:
+                    type: integer
+                  briefing:
+                    nullable: true
+                    $ref: "#/components/schemas/AiBriefing"
+                  generatedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Lead not found
     post:
       operationId: generateLeadBriefing
       tags: [ai]

@@ -78,6 +78,7 @@ import type {
   GetAnalyticsSummaryParams,
   GetCommunicationMetricsParams,
   GetCreditComplianceLogParams,
+  GetLeadBriefing200,
   GetUnreadNotificationCount200,
   HealthStatus,
   ImportLeadsBody,
@@ -1418,6 +1419,83 @@ export const useRecalculateLeadScore = <TError = ErrorType<void>,
       > => {
       return useMutation(getRecalculateLeadScoreMutationOptions(options));
     }
+
+export const getGetLeadBriefingUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/ai/briefing`
+}
+
+/**
+ * @summary Get the cached AI sales briefing for a lead, if one has been generated
+ */
+export const getLeadBriefing = async (id: number, options?: RequestInit): Promise<GetLeadBriefing200> => {
+
+  return customFetch<GetLeadBriefing200>(getGetLeadBriefingUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadBriefingQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/ai/briefing`
+    ] as const;
+    }
+
+
+export const getGetLeadBriefingQueryOptions = <TData = Awaited<ReturnType<typeof getLeadBriefing>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadBriefing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadBriefingQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadBriefing>>> = ({ signal }) => getLeadBriefing(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadBriefing>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadBriefingQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadBriefing>>>
+export type GetLeadBriefingQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the cached AI sales briefing for a lead, if one has been generated
+ */
+
+export function useGetLeadBriefing<TData = Awaited<ReturnType<typeof getLeadBriefing>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadBriefing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadBriefingQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGenerateLeadBriefingUrl = (id: number,) => {
 

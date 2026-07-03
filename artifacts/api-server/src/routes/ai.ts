@@ -36,6 +36,26 @@ async function loadAccessibleLead(leadId: number, user: { id: number; role: stri
   return lead;
 }
 
+router.get("/leads/:id/ai/briefing", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const leadId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(leadId)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const lead = await loadAccessibleLead(leadId, user, res);
+  if (!lead) return;
+
+  res.json({
+    leadId,
+    briefing: lead.aiSummary ?? null,
+    generatedAt: lead.aiSummaryGeneratedAt ? lead.aiSummaryGeneratedAt.toISOString() : null,
+  });
+});
+
 router.post("/leads/:id/ai/briefing", aiRateLimiter, async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;

@@ -1306,6 +1306,12 @@ export type RecalculateLeadScore200 = {
   leadScoreBreakdown: RecalculateLeadScore200LeadScoreBreakdown;
 };
 
+export type GetLeadBriefing200 = {
+  leadId: number;
+  briefing: AiBriefing | null;
+  generatedAt: string | null;
+};
+
 export type GenerateLeadBriefing200 = {
   leadId: number;
   briefing: AiBriefing;

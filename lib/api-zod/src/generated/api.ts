@@ -333,6 +333,26 @@ export const RecalculateLeadScoreResponse = zod.object({
 
 
 /**
+ * @summary Get the cached AI sales briefing for a lead, if one has been generated
+ */
+export const GetLeadBriefingParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadBriefingResponse = zod.object({
+  "leadId": zod.number(),
+  "briefing": zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}).nullable(),
+  "generatedAt": zod.coerce.date().nullable()
+})
+
+
+/**
  * @summary Generate (or regenerate) an AI sales briefing for a lead, cached on the lead record
  */
 export const GenerateLeadBriefingParams = zod.object({
