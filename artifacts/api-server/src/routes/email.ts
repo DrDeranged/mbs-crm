@@ -83,8 +83,20 @@ function buildVariables(lead: any, rep: any): Record<string, string> {
   };
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderTemplate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const raw = vars[key];
+    return raw == null ? "" : escapeHtml(String(raw));
+  });
 }
 
 function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEmail: string): string {

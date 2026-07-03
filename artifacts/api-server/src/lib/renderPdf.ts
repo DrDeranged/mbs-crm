@@ -25,8 +25,18 @@ export async function renderPdf(html: string): Promise<Buffer> {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function renderTemplate(htmlTemplate: string, fieldValues: Record<string, string>): string {
   return htmlTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-    return fieldValues[key] ?? "";
+    const raw = fieldValues[key];
+    return raw == null ? "" : escapeHtml(String(raw));
   });
 }

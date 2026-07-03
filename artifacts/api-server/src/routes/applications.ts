@@ -129,6 +129,14 @@ const submitRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const statusRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+
 async function logActivity(params: {
   userId: number | null;
   leadId: number | null;
@@ -599,7 +607,7 @@ router.get("/leads/:id/financials", async (req: Request, res: Response) => {
 });
 
 // GET /applications/status/:token — public, no auth required
-router.get("/applications/status/:token", async (req: Request, res: Response) => {
+router.get("/applications/status/:token", statusRateLimiter, async (req: Request, res: Response) => {
   const token = (req.params["token"] as string).trim();
   if (!token || token.length > 64) {
     res.status(400).json({ error: "Invalid tracking token" });
@@ -611,6 +619,7 @@ router.get("/applications/status/:token", async (req: Request, res: Response) =>
   });
 
   if (!lead) {
+    await new Promise((r) => setTimeout(r, 300));
     res.status(404).json({ error: "Application not found" });
     return;
   }
