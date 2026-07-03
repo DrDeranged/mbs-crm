@@ -143,7 +143,7 @@ export async function buildLeadContext(leadId: number): Promise<string> {
   if (lead.emailSends.length > 0) {
     lines.push(``, `# Recent Emails`);
     for (const e of lead.emailSends) {
-      lines.push(`- ${e.createdAt.toISOString().slice(0, 10)}: "${e.subject}" — status: ${e.status}`);
+      lines.push(`- ${e.createdAt.toISOString().slice(0, 10)}: "${redactSensitiveText(e.subject || "")}" — status: ${e.status}`);
     }
   }
 
@@ -233,7 +233,7 @@ export async function generateDraft(
   const context = await buildLeadContext(leadId);
 
   const instructionLine = instruction?.trim()
-    ? `\nAdditional instruction from the rep: ${instruction.trim()}\n`
+    ? `\nAdditional instruction from the rep: ${redactSensitiveText(instruction.trim())}\n`
     : "";
 
   const formatInstructions =

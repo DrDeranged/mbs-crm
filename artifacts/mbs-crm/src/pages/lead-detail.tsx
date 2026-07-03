@@ -39,7 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy, Sparkles, AlertTriangle, ListChecks } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -182,7 +182,7 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
                 </div>
               )}
               {lead.aiSummaryGeneratedAt && (
-                <p className="text-[11px] text-muted-foreground">Last generated {format(new Date(lead.aiSummaryGeneratedAt), "MMM d, yyyy h:mm a")}</p>
+                <p className="text-[11px] text-muted-foreground">Generated {formatDistanceToNow(new Date(lead.aiSummaryGeneratedAt), { addSuffix: true })}</p>
               )}
             </>
           ) : (
