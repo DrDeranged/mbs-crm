@@ -1,0 +1,222 @@
+# MBS CRM — Optimization Round 3: Security Completion + AI Intelligence Layer + Renewal Radar
+
+Execute the three tasks below IN ORDER. Task 1 is mandatory security completion (small).
+Tasks 2 and 3 add the AI deal-intelligence layer and the renewal engine. Follow existing
+codebase conventions exactly: IRouter routes, requireUser() auth, logActivity() audit
+logging, createNotification() from lib/notify.ts, OpenAPI spec + codegen for every new
+endpoint. Every numbered step is mandatory; the verification gate at the end must pass.
+
+================================================================================
+TASK 1 — SECURITY COMPLETION (MANDATORY, DO FIRST)
+================================================================================
+
+## 1A. Rate-limit the public tracking-token endpoint
+
+In artifacts/api-server/src/routes/applications.ts, the public endpoint
+GET /applications/status/:token (~line 583) has NO rate limiter, unlike the other
+public endpoints in this file. Add one using the same express-rate-limit pattern
+already used by submitRateLimiter in this same file:
+
+const statusRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+
+Apply as middleware:
+router.get("/applications/status/:token", statusRateLimiter, async (...) => ...
+
+Inside the handler, when the token is NOT found, add a constant 300ms delay before
+the 404 to slow enumeration:
+await new Promise((r) => setTimeout(r, 300));
+Do not change any response shapes.
+
+## 1B. HTML-escape template variable values
+
+In artifacts/api-server/src/lib/renderPdf.ts, renderTemplate inserts user-supplied
+fieldValues into HTML with NO escaping. Replace the function so VALUES are escaped
+while template HTML itself stays raw:
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function renderTemplate(htmlTemplate: string, fieldValues: Record<string, string>): string {
+  return htmlTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const raw = fieldValues[key];
+    return raw == null ? "" : escapeHtml(String(raw));
+  });
+}
+
+renderTemplate is also imported by routes/email.ts and lib/dripJob.ts — this shared
+fix is correct for both (lead names/companies in email variables must be escaped too).
+Do not change any function signatures. Run npx tsc --build → must exit 0.
+
+================================================================================
+TASK 2 — AI DEAL INTELLIGENCE LAYER
+================================================================================
+
+Add two AI features using the Anthropic client pattern already in
+artifacts/api-server/src/lib/ocrBankStatement.ts (same env vars:
+AI_INTEGRATIONS_ANTHROPIC_API_KEY, AI_INTEGRATIONS_ANTHROPIC_BASE_URL).
+Use model "claude-sonnet-4-6" for both features.
+
+ABSOLUTE DATA RULE: The AI context must NEVER include SSNs (raw or decrypted),
+signature data, encrypted payloads, or full account numbers. Only masked or
+aggregate data. This is non-negotiable.
+
+## 2A. Schema additions
+
+In lib/db/src/schema/leads.ts, add to leadsTable:
+aiSummary: text("ai_summary"),
+aiSummaryAt: timestamp("ai_summary_at"),
+
+Run: pnpm --filter @workspace/db run push
+
+## 2B. Create artifacts/api-server/src/lib/aiAssistant.ts
+
+Two exported functions. Both build a "lead context bundle" first — create a shared
+helper buildLeadContext(leadId) that gathers and returns a plain-text block containing:
+- Lead: name, company, application type, status, lead source, requested amount, lead score
+- Company: industry, state, time in business
+- Financials (aggregates from bank_statement_extractions): avg monthly deposits,
+  avg daily balance, avg NSFs/month, detected positions count
+- Credit: score only (from the most recent completed credit pull), if present
+- Last 10 notes (author + date + body)
+- Last 10 communications (type, direction, duration/outcome for calls, body for SMS,
+  callNotes if present)
+- Top 3 lender matches (lender name + score) if present
+- Open tasks (title + due date)
+NO SSN, NO DOB, NO addresses, NO raw payloads.
+
+export async function generateLeadBriefing(leadId: number): Promise<string>
+- Builds the context bundle
+- Calls Claude with system prompt:
+  "You are a sales intelligence assistant for an MCA/equipment-financing brokerage.
+   Given the lead data below, write a briefing for the sales rep with exactly these
+   sections: SNAPSHOT (2-3 sentences on who this is and deal viability),
+   FINANCIAL PICTURE (2-3 sentences), ENGAGEMENT (what's happened so far, 1-2 sentences),
+   RISKS (bullet-style, max 3), NEXT BEST ACTIONS (numbered, max 3, specific and
+   immediately actionable). Be concrete, use the numbers provided, no filler,
+   under 250 words total."
+- max_tokens: 600
+- Saves the result to leads.aiSummary + aiSummaryAt, returns it
+
+export async function generateDraft(leadId: number, channel: "email" | "sms", instruction?: string): Promise<{ subject?: string; body: string }>
+- Builds the same context bundle
+- System prompt: "You draft outbound {channel} messages for a business-financing sales
+  rep. Write in a professional, warm, concise tone. Never invent facts, numbers, rates,
+  or approval promises not present in the context. Never mention AI. For email return
+  JSON {\"subject\": string, \"body\": string}; for SMS return JSON {\"body\": string}
+  with body under 300 characters. Return ONLY valid JSON."
+- Include the rep's optional instruction (e.g. "nudge about missing bank statements")
+  in the user message
+- max_tokens: 500; parse JSON defensively (strip ```json fences if present)
+- Returns the draft. NEVER sends anything — drafts only.
+
+## 2C. Endpoints (add to a new file artifacts/api-server/src/routes/ai.ts, register in routes/index.ts)
+
+- POST /leads/:id/ai-briefing — requireUser; rep can only run on own leads (same RBAC
+  pattern as other lead endpoints); calls generateLeadBriefing; logActivity action
+  "ai_briefing_generated"; returns { summary, generatedAt }
+- GET /leads/:id/ai-briefing — returns cached { summary: aiSummary, generatedAt: aiSummaryAt }
+  or 404 if never generated
+- POST /leads/:id/ai-draft — body { channel: "email"|"sms", instruction?: string };
+  requireUser + same RBAC; calls generateDraft; logActivity action "ai_draft_generated"
+  (do NOT log the draft body into activity details, just the channel); returns the draft
+- Add all three to lib/api-spec/openapi.yaml, then run:
+  pnpm --filter @workspace/api-spec run codegen
+
+## 2D. Frontend (artifacts/mbs-crm/src/pages/lead-detail.tsx)
+
+- In the Info tab, add an "AI Briefing" card near the score indicator:
+  - If a cached briefing exists: render it (whitespace-pre-wrap), with "Generated {relative
+    time}" caption and a "Refresh" ghost button that re-runs POST /ai-briefing
+  - If none: a single "Generate AI Briefing" button with a Sparkles icon (lucide-react)
+  - Loading state: skeleton lines + disabled button while generating
+- In the Communications tab email compose panel: add a "Draft with AI" ghost button
+  (Sparkles icon). Clicking opens a small popover with an optional instruction input and
+  a "Generate" button; on success it fills the subject and body fields with the draft
+  (rep edits/sends manually — nothing auto-sends).
+- Same for the SMS compose: "Draft with AI" fills the SMS textarea.
+
+================================================================================
+TASK 3 — RENEWAL RADAR (RE-FUNDING ENGINE)
+================================================================================
+
+MCA brokers make their largest margins on renewals. Flag funded merchants who are far
+enough through their estimated term to re-fund, and surface them automatically.
+
+## 3A. Schema
+
+In lib/db/src/schema/leads.ts, add to leadsTable:
+fundedAt: timestamp("funded_at"),
+estimatedTermDays: integer("estimated_term_days"),
+renewalFlaggedAt: timestamp("renewal_flagged_at"),
+
+In lib/db/src/schema/notifications.ts, add "renewal_due" to the type enum array.
+(This enum is TypeScript-level typing on a text column — no DB migration risk.)
+Also add "renewal_due" to the NotificationType union in artifacts/api-server/src/lib/notify.ts.
+
+Run: pnpm --filter @workspace/db run push
+
+## 3B. Capture fundedAt
+
+In artifacts/api-server/src/routes/leads.ts, in the status-change handler (both the
+single PUT /leads/:id/status and the bulk status endpoint): when the new status is
+"funded" and fundedAt is null, set fundedAt = new Date() in the same update.
+
+## 3C. Renewal job — create artifacts/api-server/src/lib/renewalJob.ts
+
+export async function runRenewalJob(): Promise<void>
+- Query leads where: status = "funded", fundedAt IS NOT NULL, renewalFlaggedAt IS NULL
+- For each: termDays = estimatedTermDays ?? 180 (default 6 months when unknown);
+  elapsed = days since fundedAt; if elapsed >= 0.6 * termDays:
+  - Set renewalFlaggedAt = now
+  - createNotification to the assigned rep: type "renewal_due", title "Renewal opportunity",
+    body "{Lead/Company name} is ~{pct}% through their estimated term — time to discuss re-funding"
+  - notifyAllManagers with the same
+  - logActivity action "renewal_flagged" with details { elapsedDays, termDays }
+- Wrap the whole run in try/catch with logger.error — the job must never crash the server
+
+Schedule it in artifacts/api-server/src/index.ts next to the existing drip/task-reminder
+setInterval calls: run once on startup (after a 30s delay) and then every 24 hours.
+
+## 3D. Surface renewals
+
+- GET /analytics/renewals (new endpoint in analytics.ts): returns leads where
+  renewalFlaggedAt IS NOT NULL and status = "funded", with name, company, fundedAt,
+  renewalFlaggedAt, assigned rep, requested amount — RBAC-filtered (reps see own only).
+  Add to openapi.yaml + codegen.
+- Dashboard (artifacts/mbs-crm/src/pages/dashboard.tsx): add a "Renewal Opportunities"
+  card/section listing flagged leads (name, funded date, rep) with each row linking to
+  the lead. Show a count badge. Empty state: "No renewal opportunities yet."
+- Leads list: add a filter chip "Renewals" that filters to renewal-flagged leads
+  (pass a query param the GET /leads endpoint supports — add renewalFlagged=true support
+  to the endpoint and spec).
+
+================================================================================
+VERIFICATION GATE — run all, report every result, ALL must pass
+================================================================================
+
+1. npx tsc --build → exit 0
+2. grep -c "statusRateLimiter" artifacts/api-server/src/routes/applications.ts → >= 2
+3. grep -c "escapeHtml" artifacts/api-server/src/lib/renderPdf.ts → >= 2
+4. grep -c "aiRouter" artifacts/api-server/src/routes/index.ts → >= 2 (import + use registered)
+5. grep -c "generateLeadBriefing\|generateDraft" artifacts/api-server/src/lib/aiAssistant.ts → >= 2
+6. grep -rn "owner_ssn\|ownerSsn\|decryptSsn\|decrypt(" artifacts/api-server/src/lib/aiAssistant.ts → ZERO matches (no SSN in AI context)
+7. grep -c "renewal_due" lib/db/src/schema/notifications.ts artifacts/api-server/src/lib/notify.ts → 1 each
+8. grep -c "runRenewalJob" artifacts/api-server/src/index.ts → >= 2 (import + schedule)
+9. grep -c "fundedAt" artifacts/api-server/src/routes/leads.ts → >= 2 (single + bulk status handlers)
+10. grep -c "ai-briefing\|ai-draft\|renewals" lib/api-spec/openapi.yaml → >= 4
+11. Confirm "Draft with AI" and "Generate AI Briefing" appear in lead-detail.tsx
+12. Confirm "Renewal Opportunities" appears in dashboard.tsx
+
+Do not mark this complete until every check passes.
