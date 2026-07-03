@@ -53,6 +53,8 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     lastActivityAt: lead.lastActivityAt?.toISOString() ?? null,
     leadScore: lead.leadScore ?? null,
     leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
+    aiSummary: (lead.aiSummary as any) ?? null,
+    aiSummaryGeneratedAt: lead.aiSummaryGeneratedAt?.toISOString() ?? null,
   };
 }
 

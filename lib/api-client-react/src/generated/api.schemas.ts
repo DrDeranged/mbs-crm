@@ -129,6 +129,14 @@ export const LeadLeadSource = {
  */
 export type LeadLeadScoreBreakdown = { [key: string]: unknown } | null;
 
+export interface AiBriefing {
+  snapshot: string;
+  financialPicture: string;
+  engagementHistory: string;
+  risks: string[];
+  nextBestActions: string[];
+}
+
 export interface Lead {
   id: number;
   /** @nullable */
@@ -163,6 +171,13 @@ export interface Lead {
      * @nullable
      */
   leadScoreBreakdown?: LeadLeadScoreBreakdown;
+  /** Cached AI-generated sales briefing */
+  aiSummary?: AiBriefing | null;
+  /**
+     * When the cached AI briefing was generated
+     * @nullable
+     */
+  aiSummaryGeneratedAt?: string | null;
 }
 
 export interface Company {
@@ -340,6 +355,26 @@ export interface DuplicateResponse {
   duplicate: boolean;
   existingLeadId: number;
   existingLeadName: string;
+}
+
+export type AiDraftRequestChannel = typeof AiDraftRequestChannel[keyof typeof AiDraftRequestChannel];
+
+
+export const AiDraftRequestChannel = {
+  email: 'email',
+  sms: 'sms',
+} as const;
+
+export interface AiDraftRequest {
+  channel: AiDraftRequestChannel;
+  /** Optional short instruction from the rep to guide the draft */
+  instruction?: string;
+}
+
+export interface AiDraftResponse {
+  /** Email subject line (only present for email drafts) */
+  subject?: string;
+  body: string;
 }
 
 export type StatusChangeStatus = typeof StatusChangeStatus[keyof typeof StatusChangeStatus];
@@ -1269,6 +1304,12 @@ export type RecalculateLeadScore200 = {
   leadId: number;
   leadScore: number;
   leadScoreBreakdown: RecalculateLeadScore200LeadScoreBreakdown;
+};
+
+export type GenerateLeadBriefing200 = {
+  leadId: number;
+  briefing: AiBriefing;
+  generatedAt: string;
 };
 
 export type UploadDocumentBody = {

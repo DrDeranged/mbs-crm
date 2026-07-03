@@ -164,7 +164,15 @@ export const ListLeadsResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -325,6 +333,44 @@ export const RecalculateLeadScoreResponse = zod.object({
 
 
 /**
+ * @summary Generate (or regenerate) an AI sales briefing for a lead, cached on the lead record
+ */
+export const GenerateLeadBriefingParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GenerateLeadBriefingResponse = zod.object({
+  "leadId": zod.number(),
+  "briefing": zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),
+  "generatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Generate an AI-drafted email or SMS message for a lead (never sent automatically)
+ */
+export const GenerateAiDraftParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GenerateAiDraftBody = zod.object({
+  "channel": zod.enum(['email', 'sms']),
+  "instruction": zod.string().optional().describe('Optional short instruction from the rep to guide the draft')
+})
+
+export const GenerateAiDraftResponse = zod.object({
+  "subject": zod.string().optional().describe('Email subject line (only present for email drafts)'),
+  "body": zod.string()
+})
+
+
+/**
  * @summary Get lead detail with related data
  */
 export const GetLeadParams = zod.object({
@@ -359,7 +405,15 @@ export const GetLeadResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 }).and(zod.object({
   "company": zod.union([zod.object({
   "id": zod.number().optional(),
@@ -508,7 +562,15 @@ export const UpdateLeadResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })
 
 
@@ -551,7 +613,15 @@ export const ChangeLeadStatusResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })
 
 
@@ -594,7 +664,15 @@ export const AssignLeadResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })
 
 
@@ -840,7 +918,15 @@ export const GetDashboardSummaryResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })),
   "repCounts": zod.array(zod.object({
   "repId": zod.number().optional(),
@@ -882,7 +968,15 @@ export const GetRepDashboardResponse = zod.object({
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
-}).passthrough().nullish().describe('Per-criterion score breakdown')
+}).passthrough().nullish().describe('Per-criterion score breakdown'),
+  "aiSummary": zod.union([zod.object({
+  "snapshot": zod.string(),
+  "financialPicture": zod.string(),
+  "engagementHistory": zod.string(),
+  "risks": zod.array(zod.string()),
+  "nextBestActions": zod.array(zod.string())
+}),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
 })),
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),

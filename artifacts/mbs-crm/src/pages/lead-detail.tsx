@@ -25,6 +25,7 @@ import {
   useGetLeadApplication, useGetLeadFinancials,
   useGetLeadCredit, useCaptureCreditConsent, usePullCreditReport,
   useRecalculateLeadScore,
+  useGenerateLeadBriefing, useGenerateAiDraft, AiDraftRequestChannel,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +37,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy, Sparkles, AlertTriangle, ListChecks } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -70,10 +72,21 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
   const { data: reps } = useListUsers({ role: "rep" });
   const assignLead = useAssignLead();
   const recalcScore = useRecalculateLeadScore();
+  const generateBriefing = useGenerateLeadBriefing();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
+
+  const handleGenerateBriefing = () => {
+    generateBriefing.mutate({ id: leadId }, {
+      onSuccess: () => {
+        toast({ title: "AI briefing generated" });
+        queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+      },
+      onError: () => toast({ title: "Error", description: "Failed to generate AI briefing.", variant: "destructive" }),
+    });
+  };
 
   const handleRecalcScore = () => {
     recalcScore.mutate({ id: leadId }, {
@@ -115,8 +128,73 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
 
   const scoreBreakdown = lead.leadScoreBreakdown as any;
 
+  const briefing = lead.aiSummary as any;
+
   return (
     <div className="mt-4 space-y-6">
+      <Card className="shadow-sm border-[#1F4E79]/20">
+        <CardHeader className="pb-3 border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[#1F4E79]" /> AI Deal Briefing
+            </CardTitle>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
+              disabled={generateBriefing.isPending}
+              onClick={handleGenerateBriefing}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${generateBriefing.isPending ? "animate-spin" : ""}`} />
+              {generateBriefing.isPending ? "Generating…" : briefing ? "Regenerate" : "Generate Briefing"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-4">
+          {briefing ? (
+            <>
+              <div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Snapshot</div>
+                <p className="text-sm">{briefing.snapshot}</p>
+              </div>
+              <div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Financial Picture</div>
+                <p className="text-sm">{briefing.financialPicture}</p>
+              </div>
+              <div>
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Engagement History</div>
+                <p className="text-sm">{briefing.engagementHistory}</p>
+              </div>
+              {briefing.risks?.length > 0 && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-amber-500" /> Risks</div>
+                  <ul className="text-sm list-disc list-inside space-y-0.5">
+                    {briefing.risks.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                  </ul>
+                </div>
+              )}
+              {briefing.nextBestActions?.length > 0 && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><ListChecks className="h-3 w-3 text-green-600" /> Next Best Actions</div>
+                  <ul className="text-sm list-disc list-inside space-y-0.5">
+                    {briefing.nextBestActions.map((a: string, i: number) => <li key={i}>{a}</li>)}
+                  </ul>
+                </div>
+              )}
+              {lead.aiSummaryGeneratedAt && (
+                <p className="text-[11px] text-muted-foreground">Last generated {format(new Date(lead.aiSummaryGeneratedAt), "MMM d, yyyy h:mm a")}</p>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No AI briefing yet</p>
+              <p className="text-xs mt-1">Click Generate Briefing for a summary of this deal</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="shadow-sm">
         <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
@@ -637,6 +715,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const previewEmailTemplate = usePreviewEmailTemplate();
+  const generateDraft = useGenerateAiDraft();
   const [smsBody, setSmsBody] = useState("");
   const [activeCompose, setActiveCompose] = useState<"sms" | "email">("sms");
   const [emailMode, setEmailMode] = useState<"template" | "freeform">("template");
@@ -645,6 +724,31 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
   const [emailBodyHtml, setEmailBodyHtml] = useState("");
   const [emailPreview, setEmailPreview] = useState<{ subject: string; bodyHtml: string } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [draftInstruction, setDraftInstruction] = useState("");
+  const [draftPopoverOpen, setDraftPopoverOpen] = useState<"sms" | "email" | null>(null);
+
+  const handleGenerateDraft = (channel: "sms" | "email") => {
+    generateDraft.mutate(
+      { id: leadId, data: { channel: channel === "sms" ? AiDraftRequestChannel.sms : AiDraftRequestChannel.email, instruction: draftInstruction.trim() || undefined } },
+      {
+        onSuccess: (data: any) => {
+          if (channel === "sms") {
+            setSmsBody(data.body);
+          } else {
+            setEmailMode("freeform");
+            setEmailSubject(data.subject ?? "");
+            setEmailBodyHtml(data.body);
+            setEmailPreview(null);
+            setShowPreview(false);
+          }
+          setDraftInstruction("");
+          setDraftPopoverOpen(null);
+          toast({ title: "AI draft generated", description: "Review before sending." });
+        },
+        onError: () => toast({ title: "Error", description: "Failed to generate AI draft.", variant: "destructive" }),
+      }
+    );
+  };
 
   const handlePreviewTemplate = () => {
     if (!emailTemplateId) return;
@@ -828,6 +932,33 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
 
         {activeCompose === "sms" ? (
           <>
+            <div className="flex justify-end">
+              <Popover open={draftPopoverOpen === "sms"} onOpenChange={(o) => setDraftPopoverOpen(o ? "sms" : null)}>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-[#1F4E79]/30 text-[#1F4E79]">
+                    <Sparkles className="h-3 w-3" /> Draft with AI
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 space-y-2">
+                  <p className="text-xs text-muted-foreground">Optional instruction to guide the draft (e.g. "follow up after missed call")</p>
+                  <Textarea
+                    value={draftInstruction}
+                    onChange={(e) => setDraftInstruction(e.target.value)}
+                    placeholder="Instruction (optional)…"
+                    className="min-h-[60px] text-sm resize-none"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateDraft("sms")}
+                    disabled={generateDraft.isPending}
+                    className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+                  >
+                    {generateDraft.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
+                    Generate Draft
+                  </Button>
+                </PopoverContent>
+              </Popover>
+            </div>
             <div className="flex gap-2">
               <Textarea
                 value={smsBody}
@@ -905,6 +1036,33 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
               </>
             ) : (
               <>
+                <div className="flex justify-end">
+                  <Popover open={draftPopoverOpen === "email"} onOpenChange={(o) => setDraftPopoverOpen(o ? "email" : null)}>
+                    <PopoverTrigger asChild>
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-purple-300 text-purple-700">
+                        <Sparkles className="h-3 w-3" /> Draft with AI
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 space-y-2">
+                      <p className="text-xs text-muted-foreground">Optional instruction to guide the draft (e.g. "ask for updated bank statements")</p>
+                      <Textarea
+                        value={draftInstruction}
+                        onChange={(e) => setDraftInstruction(e.target.value)}
+                        placeholder="Instruction (optional)…"
+                        className="min-h-[60px] text-sm resize-none"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleGenerateDraft("email")}
+                        disabled={generateDraft.isPending}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                      >
+                        {generateDraft.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
+                        Generate Draft
+                      </Button>
+                    </PopoverContent>
+                  </Popover>
+                </div>
                 <input
                   type="text"
                   value={emailSubject}

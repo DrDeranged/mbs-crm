@@ -21,6 +21,8 @@ import type {
 
 import type {
   ActivityEntry,
+  AiDraftRequest,
+  AiDraftResponse,
   AnalyticsPipeline,
   AnalyticsSummary,
   ApplicationRecord,
@@ -67,6 +69,7 @@ import type {
   FlyerTemplateInput,
   GenerateFlyerInput,
   GenerateFlyerResponse,
+  GenerateLeadBriefing200,
   GeneratedFlyer,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
@@ -1414,6 +1417,148 @@ export const useRecalculateLeadScore = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getRecalculateLeadScoreMutationOptions(options));
+    }
+
+export const getGenerateLeadBriefingUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/ai/briefing`
+}
+
+/**
+ * @summary Generate (or regenerate) an AI sales briefing for a lead, cached on the lead record
+ */
+export const generateLeadBriefing = async (id: number, options?: RequestInit): Promise<GenerateLeadBriefing200> => {
+
+  return customFetch<GenerateLeadBriefing200>(getGenerateLeadBriefingUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateLeadBriefingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateLeadBriefing>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateLeadBriefing>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['generateLeadBriefing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateLeadBriefing>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  generateLeadBriefing(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateLeadBriefingMutationResult = NonNullable<Awaited<ReturnType<typeof generateLeadBriefing>>>
+
+    export type GenerateLeadBriefingMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate (or regenerate) an AI sales briefing for a lead, cached on the lead record
+ */
+export const useGenerateLeadBriefing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateLeadBriefing>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateLeadBriefing>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getGenerateLeadBriefingMutationOptions(options));
+    }
+
+export const getGenerateAiDraftUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/ai/draft`
+}
+
+/**
+ * @summary Generate an AI-drafted email or SMS message for a lead (never sent automatically)
+ */
+export const generateAiDraft = async (id: number,
+    aiDraftRequest: AiDraftRequest, options?: RequestInit): Promise<AiDraftResponse> => {
+
+  return customFetch<AiDraftResponse>(getGenerateAiDraftUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      aiDraftRequest,)
+  }
+);}
+
+
+
+
+export const getGenerateAiDraftMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAiDraft>>, TError,{id: number;data: BodyType<AiDraftRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateAiDraft>>, TError,{id: number;data: BodyType<AiDraftRequest>}, TContext> => {
+
+const mutationKey = ['generateAiDraft'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateAiDraft>>, {id: number;data: BodyType<AiDraftRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  generateAiDraft(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateAiDraftMutationResult = NonNullable<Awaited<ReturnType<typeof generateAiDraft>>>
+    export type GenerateAiDraftMutationBody = BodyType<AiDraftRequest>
+    export type GenerateAiDraftMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate an AI-drafted email or SMS message for a lead (never sent automatically)
+ */
+export const useGenerateAiDraft = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAiDraft>>, TError,{id: number;data: BodyType<AiDraftRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateAiDraft>>,
+        TError,
+        {id: number;data: BodyType<AiDraftRequest>},
+        TContext
+      > => {
+      return useMutation(getGenerateAiDraftMutationOptions(options));
     }
 
 export const getGetLeadUrl = (id: number,) => {

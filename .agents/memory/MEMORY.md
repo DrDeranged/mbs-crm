@@ -6,3 +6,4 @@
 - [Pending secrets — add at end](pending-secrets.md) — ENCRYPTION_KEY, TWILIO_API_KEY, TWILIO_API_SECRET, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, TWILIO_TWIML_APP_SID all unset; user will add them manually when ready.
 - [logActivity signature](log-activity.md) — takes one params object (no db arg); leadId is a separate field; entityId is string|number.
 - [OpenAPI inline error responses](openapi-response-refs.md) — spec has no named components/responses; always use inline descriptions for 401/404, never $ref to components/responses.
+- [Drizzle relations must be declared both directions](drizzle-relations-both-sides.md) — a `with: { x: ... }` query throws a cryptic `referencedTable` error if the parent table's `relations()` doesn't also declare that relation name.

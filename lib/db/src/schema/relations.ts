@@ -37,6 +37,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   communications: many(communicationsTable),
   emailSends: many(emailSendsTable),
   dripEnrollments: many(dripEnrollmentsTable),
+  lenderMatches: many(lenderMatchesTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({

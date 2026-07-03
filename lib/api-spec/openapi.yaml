@@ -52,6 +52,8 @@ tags:
     description: Credit bureau (Experian) pulls, consent capture, and compliance log
   - name: workflow-rules
     description: Automated workflow rules that trigger tasks or notifications on status change
+  - name: ai
+    description: AI-generated lead briefings and outbound message drafts
 paths:
   /healthz:
     get:
@@ -546,6 +548,73 @@ paths:
                     type: object
         "401":
           description: Unauthorized
+        "404":
+          description: Lead not found
+
+  /leads/{id}/ai/briefing:
+    post:
+      operationId: generateLeadBriefing
+      tags: [ai]
+      summary: Generate (or regenerate) an AI sales briefing for a lead, cached on the lead record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Generated briefing
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [leadId, briefing, generatedAt]
+                properties:
+                  leadId:
+                    type: integer
+                  briefing:
+                    $ref: "#/components/schemas/AiBriefing"
+                  generatedAt:
+                    type: string
+                    format: date-time
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Lead not found
+
+  /leads/{id}/ai/draft:
+    post:
+      operationId: generateAiDraft
+      tags: [ai]
+      summary: Generate an AI-drafted email or SMS message for a lead (never sent automatically)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiDraftRequest"
+      responses:
+        "200":
+          description: Generated draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiDraftResponse"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
         "404":
           description: Lead not found
 
@@ -2783,6 +2852,15 @@ components:
         leadScoreBreakdown:
           type: ["object", "null"]
           description: Per-criterion score breakdown
+        aiSummary:
+          oneOf:
+            - $ref: "#/components/schemas/AiBriefing"
+            - type: "null"
+          description: Cached AI-generated sales briefing
+        aiSummaryGeneratedAt:
+          type: ["string", "null"]
+          format: date-time
+          description: When the cached AI briefing was generated
 
     LeadDetail:
       allOf:
@@ -2911,6 +2989,46 @@ components:
         existingLeadId:
           type: integer
         existingLeadName:
+          type: string
+
+    AiBriefing:
+      type: object
+      required: [snapshot, financialPicture, engagementHistory, risks, nextBestActions]
+      properties:
+        snapshot:
+          type: string
+        financialPicture:
+          type: string
+        engagementHistory:
+          type: string
+        risks:
+          type: array
+          items:
+            type: string
+        nextBestActions:
+          type: array
+          items:
+            type: string
+
+    AiDraftRequest:
+      type: object
+      required: [channel]
+      properties:
+        channel:
+          type: string
+          enum: [email, sms]
+        instruction:
+          type: string
+          description: Optional short instruction from the rep to guide the draft
+
+    AiDraftResponse:
+      type: object
+      required: [body]
+      properties:
+        subject:
+          type: string
+          description: Email subject line (only present for email drafts)
+        body:
           type: string
 
     StatusChange:
