@@ -22,6 +22,33 @@ export interface AiDraft {
 }
 
 /**
+ * Redacts sensitive patterns from free-text (rep-authored notes, SMS bodies)
+ * before it is ever included in an AI prompt. This is a defense-in-depth
+ * measure on top of only selecting non-sensitive structured fields: notes
+ * and message bodies are free text that a rep could paste an SSN, DOB,
+ * account number, or street address into.
+ */
+function redactSensitiveText(text: string): string {
+  if (!text) return text;
+  let result = text;
+  // SSNs: 123-45-6789, 123 45 6789, or 9 consecutive digits
+  result = result.replace(/\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/g, "[REDACTED-SSN]");
+  // Dates of birth / general dates in common formats (MM/DD/YYYY, MM-DD-YYYY, YYYY-MM-DD)
+  result = result.replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g, "[REDACTED-DATE]");
+  result = result.replace(/\b\d{4}-\d{2}-\d{2}\b/g, "[REDACTED-DATE]");
+  // Long digit runs that look like account/routing numbers (8+ consecutive digits)
+  result = result.replace(/\b\d{8,}\b/g, "[REDACTED-NUMBER]");
+  // Street addresses: "123 Main St", "456 Oak Avenue Apt 2", etc.
+  result = result.replace(
+    /\b\d{1,6}\s+([A-Za-z0-9.'-]+\s){1,4}(Street|St|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Road|Rd|Way|Court|Ct|Circle|Cir|Place|Pl|Terrace|Ter|Highway|Hwy|Parkway|Pkwy)\.?\b[^,.\n]*/gi,
+    "[REDACTED-ADDRESS]",
+  );
+  // ZIP codes (5 or 9 digit), only when clearly formatted with a hyphen for the 9-digit form
+  result = result.replace(/\b\d{5}-\d{4}\b/g, "[REDACTED-ZIP]");
+  return result;
+}
+
+/**
  * Builds a plain-text, privacy-safe summary of a lead for use in AI prompts.
  * By construction this NEVER includes SSNs, dates of birth, home/business addresses,
  * raw or encrypted payloads, or full account numbers — only masked/aggregate
@@ -97,7 +124,7 @@ export async function buildLeadContext(leadId: number): Promise<string> {
   if (lead.notes.length > 0) {
     lines.push(``, `# Recent Notes`);
     for (const n of lead.notes) {
-      lines.push(`- (${n.createdAt.toISOString().slice(0, 10)}, ${n.author?.name || "rep"}): ${n.body}`);
+      lines.push(`- (${n.createdAt.toISOString().slice(0, 10)}, ${n.author?.name || "rep"}): ${redactSensitiveText(n.body)}`);
     }
   }
 
@@ -108,7 +135,7 @@ export async function buildLeadContext(leadId: number): Promise<string> {
       if (c.type === "call") {
         lines.push(`- ${date}: ${c.direction} call, outcome: ${c.callOutcome || c.status}${c.durationSeconds ? `, ${c.durationSeconds}s` : ""}`);
       } else {
-        lines.push(`- ${date}: ${c.direction} SMS: "${(c.body || "").slice(0, 200)}"`);
+        lines.push(`- ${date}: ${c.direction} SMS: "${redactSensitiveText((c.body || "").slice(0, 200))}"`);
       }
     }
   }
