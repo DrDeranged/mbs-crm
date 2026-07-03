@@ -7,7 +7,7 @@ import {
   emailSendsTable,
   leadStatusHistoryTable,
 } from "@workspace/db";
-import { eq, and, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 
 const router: IRouter = Router();
@@ -329,6 +329,38 @@ router.get("/analytics/communications", async (req: Request, res: Response) => {
   }
 
   res.json(Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date)));
+});
+
+// GET /analytics/renewals
+router.get("/analytics/renewals", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const { repId } = parseDateRange(req);
+  const effectiveRepId = user.role === "rep" ? user.id : repId;
+
+  const clauses = [isNotNull(leadsTable.renewalFlaggedAt)];
+  if (effectiveRepId && !isNaN(effectiveRepId)) clauses.push(eq(leadsTable.assignedRepId, effectiveRepId));
+
+  const rows = await db.query.leadsTable.findMany({
+    where: and(...clauses),
+    orderBy: [desc(leadsTable.renewalFlaggedAt)],
+    with: { assignedRep: true },
+  });
+
+  res.json(
+    rows.map((l) => ({
+      id: l.id,
+      firstName: l.firstName,
+      lastName: l.lastName,
+      companyName: l.companyName,
+      fundedAt: l.fundedAt?.toISOString() ?? null,
+      renewalFlaggedAt: l.renewalFlaggedAt?.toISOString() ?? null,
+      assignedRepId: l.assignedRepId,
+      assignedRepName: l.assignedRep ? (l.assignedRep.name ?? l.assignedRep.email) : null,
+      requestedAmount: l.requestedAmount ?? null,
+    })),
+  );
 });
 
 export default router;

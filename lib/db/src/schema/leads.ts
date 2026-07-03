@@ -42,6 +42,9 @@ export const leadsTable = pgTable(
     leadScoreBreakdown: jsonb("lead_score_breakdown"),
     aiSummary: jsonb("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
+    fundedAt: timestamp("funded_at"),
+    estimatedTermMonths: integer("estimated_term_months"),
+    renewalFlaggedAt: timestamp("renewal_flagged_at"),
     trackingToken: text("tracking_token").unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -52,6 +55,7 @@ export const leadsTable = pgTable(
     index("leads_ein_idx").on(t.ein),
     index("leads_status_idx").on(t.status),
     index("leads_rep_idx").on(t.assignedRepId),
+    index("leads_renewal_flagged_idx").on(t.renewalFlaggedAt),
   ],
 );
 

@@ -132,7 +132,8 @@ export const ListLeadsQueryParams = zod.object({
   "sortBy": zod.coerce.string().optional(),
   "sortOrder": zod.enum(['asc', 'desc']).optional(),
   "minScore": zod.coerce.number().optional().describe('Filter leads with score >= minScore'),
-  "maxScore": zod.coerce.number().optional().describe('Filter leads with score <= maxScore')
+  "maxScore": zod.coerce.number().optional().describe('Filter leads with score <= maxScore'),
+  "renewalFlagged": zod.coerce.boolean().optional().describe('When true, only return leads flagged by the renewal radar job as ready to re-fund')
 })
 
 export const ListLeadsResponse = zod.object({
@@ -172,7 +173,10 @@ export const ListLeadsResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -433,7 +437,10 @@ export const GetLeadResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 }).and(zod.object({
   "company": zod.union([zod.object({
   "id": zod.number().optional(),
@@ -590,7 +597,10 @@ export const UpdateLeadResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
 
 
@@ -641,7 +651,10 @@ export const ChangeLeadStatusResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
 
 
@@ -692,7 +705,10 @@ export const AssignLeadResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
 
 
@@ -946,7 +962,10 @@ export const GetDashboardSummaryResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
   "repCounts": zod.array(zod.object({
   "repId": zod.number().optional(),
@@ -996,7 +1015,10 @@ export const GetRepDashboardResponse = zod.object({
   "risks": zod.array(zod.string()),
   "nextBestActions": zod.array(zod.string())
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
-  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated')
+  "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
+  "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),
@@ -1331,6 +1353,27 @@ export const GetAnalyticsCommunicationsResponseItem = zod.object({
   "sms": zod.number()
 })
 export const GetAnalyticsCommunicationsResponse = zod.array(GetAnalyticsCommunicationsResponseItem)
+
+
+/**
+ * @summary List funded leads flagged by the renewal radar job as ready to re-fund
+ */
+export const GetAnalyticsRenewalsQueryParams = zod.object({
+  "rep_id": zod.coerce.number().optional()
+})
+
+export const GetAnalyticsRenewalsResponseItem = zod.object({
+  "id": zod.number(),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish(),
+  "companyName": zod.string().nullish(),
+  "fundedAt": zod.coerce.date().nullable(),
+  "renewalFlaggedAt": zod.coerce.date(),
+  "assignedRepId": zod.number().nullish(),
+  "assignedRepName": zod.string().nullish(),
+  "requestedAmount": zod.number().nullish()
+})
+export const GetAnalyticsRenewalsResponse = zod.array(GetAnalyticsRenewalsResponseItem)
 
 
 /**

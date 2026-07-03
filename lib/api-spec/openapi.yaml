@@ -260,6 +260,11 @@ paths:
           description: Filter leads with score <= maxScore
           schema:
             type: integer
+        - name: renewalFlagged
+          in: query
+          description: When true, only return leads flagged by the renewal radar job as ready to re-fund
+          schema:
+            type: boolean
       responses:
         "200":
           description: Paginated lead list
@@ -1258,6 +1263,28 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CommActivity"
+        "401":
+          description: Unauthorized
+
+  /analytics/renewals:
+    get:
+      operationId: getAnalyticsRenewals
+      tags: [analytics]
+      summary: List funded leads flagged by the renewal radar job as ready to re-fund
+      parameters:
+        - name: rep_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Renewal-flagged funded leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RenewalOpportunity"
         "401":
           description: Unauthorized
 
@@ -2798,6 +2825,31 @@ components:
         sms:
           type: integer
 
+    RenewalOpportunity:
+      type: object
+      required: [id, fundedAt, renewalFlaggedAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: ["string", "null"]
+        lastName:
+          type: ["string", "null"]
+        companyName:
+          type: ["string", "null"]
+        fundedAt:
+          type: ["string", "null"]
+          format: date-time
+        renewalFlaggedAt:
+          type: string
+          format: date-time
+        assignedRepId:
+          type: ["integer", "null"]
+        assignedRepName:
+          type: ["string", "null"]
+        requestedAmount:
+          type: ["integer", "null"]
+
     HealthStatus:
       type: object
       properties:
@@ -2895,6 +2947,17 @@ components:
           type: ["string", "null"]
           format: date-time
           description: When the cached AI briefing was generated
+        fundedAt:
+          type: ["string", "null"]
+          format: date-time
+          description: When the lead's status was first changed to "funded"
+        estimatedTermMonths:
+          type: ["integer", "null"]
+          description: Estimated financing term length in months (defaults to 6 when not set)
+        renewalFlaggedAt:
+          type: ["string", "null"]
+          format: date-time
+          description: When the lead was flagged by the renewal radar job as ready to re-fund
 
     LeadDetail:
       allOf:

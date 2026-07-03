@@ -286,6 +286,7 @@ export default function Leads() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [scoreFilter, setScoreFilter] = useState<"high" | "medium" | "low" | "">("");
+  const [renewalFlagged, setRenewalFlagged] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => { if ((e as CustomEvent).type === "open-import-dialog") setImportOpen(true); };
@@ -414,6 +415,7 @@ export default function Leads() {
     sortBy: "updatedAt",
     sortOrder,
     ...scoreMinMax,
+    ...(renewalFlagged ? { renewalFlagged: true } : {}),
   };
 
   const { data, isLoading } = useListLeads(queryParams, {
@@ -585,6 +587,17 @@ export default function Leads() {
             </button>
           );
         })}
+        <button
+          onClick={() => { setRenewalFlagged((v) => !v); setPage(1); }}
+          className={cn(
+            "px-3 py-1 rounded-full text-xs font-medium border transition-all ml-2",
+            renewalFlagged
+              ? "bg-[#1F4E79] text-white border-[#1F4E79]"
+              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50",
+          )}
+        >
+          Renewals
+        </button>
       </div>
 
       <div className="rounded-md border bg-white shadow-sm">

@@ -7,6 +7,7 @@ import {
   useGetAnalyticsReps, getGetAnalyticsRepsQueryKey,
   useGetAnalyticsSources,
   useGetAnalyticsCommunications,
+  useGetAnalyticsRenewals,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +20,9 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity,
-  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar,
+  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw,
 } from "lucide-react";
+import { Link } from "wouter";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
 
 const BRAND = "#1F4E79";
@@ -156,6 +158,10 @@ export default function Dashboard() {
   const repsParams = { start_date: dateRange.startDate, end_date: dateRange.endDate };
   const { data: reps, isLoading: loadingReps } = useGetAnalyticsReps(repsParams, {
     query: { queryKey: getGetAnalyticsRepsQueryKey(repsParams), enabled: !loadingUser && !isRep },
+  });
+  const renewalsParams = effectiveRepId != null ? { rep_id: effectiveRepId } : {};
+  const { data: renewals, isLoading: loadingRenewals } = useGetAnalyticsRenewals(renewalsParams, {
+    query: { enabled: !loadingUser },
   });
 
   const sortedReps = useMemo(() => {
@@ -350,6 +356,59 @@ export default function Dashboard() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Renewal Opportunities */}
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                Renewal Opportunities
+                <Badge className="bg-[#1F4E79] hover:bg-[#1F4E79]">
+                  {loadingRenewals ? "…" : (renewals?.length ?? 0)}
+                </Badge>
+              </CardTitle>
+              <CardDescription>Funded deals far enough into their term to re-fund</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingRenewals ? (
+            <Skeleton className="h-24 w-full" />
+          ) : !(renewals ?? []).length ? (
+            <div className="h-24 flex flex-col items-center justify-center text-sm text-muted-foreground gap-1">
+              <RefreshCw className="h-5 w-5 opacity-40" />
+              No renewal opportunities right now.
+            </div>
+          ) : (
+            <div className="divide-y">
+              {(renewals ?? []).map((r) => {
+                const name = [r.firstName, r.lastName].filter(Boolean).join(" ") || r.companyName || "Unnamed lead";
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/leads/${r.id}`}
+                    className="flex items-center justify-between py-3 hover:bg-muted/40 transition-colors -mx-2 px-2 rounded"
+                  >
+                    <div>
+                      <p className="font-medium text-[#1F4E79]">{name}</p>
+                      {r.companyName && r.firstName && (
+                        <p className="text-xs text-muted-foreground">{r.companyName}</p>
+                      )}
+                    </div>
+                    <div className="text-right text-sm">
+                      <p className="text-muted-foreground">
+                        Funded {r.fundedAt ? format(new Date(r.fundedAt), "MMM d, yyyy") : "—"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{r.assignedRepName ?? "Unassigned"}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>

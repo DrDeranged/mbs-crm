@@ -18,6 +18,7 @@ export const notificationsTable = pgTable(
         "credit_pulled",
         "application_received",
         "call_received",
+        "renewal_opportunity",
       ],
     }).notNull(),
     title: text("title").notNull(),

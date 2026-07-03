@@ -73,6 +73,7 @@ import type {
   GeneratedFlyer,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
+  GetAnalyticsRenewalsParams,
   GetAnalyticsRepsParams,
   GetAnalyticsSourcesParams,
   GetAnalyticsSummaryParams,
@@ -112,6 +113,7 @@ import type {
   PreviewImportBody,
   PullCreditReportBody,
   RecalculateLeadScore200,
+  RenewalOpportunity,
   RepDashboard,
   RepPerformance,
   RunLenderMatch200,
@@ -3574,6 +3576,90 @@ export function useGetAnalyticsCommunications<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAnalyticsCommunicationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAnalyticsRenewalsUrl = (params?: GetAnalyticsRenewalsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/renewals?${stringifiedParams}` : `/api/analytics/renewals`
+}
+
+/**
+ * @summary List funded leads flagged by the renewal radar job as ready to re-fund
+ */
+export const getAnalyticsRenewals = async (params?: GetAnalyticsRenewalsParams, options?: RequestInit): Promise<RenewalOpportunity[]> => {
+
+  return customFetch<RenewalOpportunity[]>(getGetAnalyticsRenewalsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnalyticsRenewalsQueryKey = (params?: GetAnalyticsRenewalsParams,) => {
+    return [
+    `/api/analytics/renewals`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAnalyticsRenewalsQueryOptions = <TData = Awaited<ReturnType<typeof getAnalyticsRenewals>>, TError = ErrorType<void>>(params?: GetAnalyticsRenewalsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRenewals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnalyticsRenewalsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalyticsRenewals>>> = ({ signal }) => getAnalyticsRenewals(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRenewals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnalyticsRenewalsQueryResult = NonNullable<Awaited<ReturnType<typeof getAnalyticsRenewals>>>
+export type GetAnalyticsRenewalsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List funded leads flagged by the renewal radar job as ready to re-fund
+ */
+
+export function useGetAnalyticsRenewals<TData = Awaited<ReturnType<typeof getAnalyticsRenewals>>, TError = ErrorType<void>>(
+ params?: GetAnalyticsRenewalsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnalyticsRenewals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnalyticsRenewalsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -55,6 +55,9 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
     aiSummary: (lead.aiSummary as any) ?? null,
     aiSummaryGeneratedAt: lead.aiSummaryGeneratedAt?.toISOString() ?? null,
+    fundedAt: lead.fundedAt?.toISOString() ?? null,
+    estimatedTermMonths: lead.estimatedTermMonths ?? null,
+    renewalFlaggedAt: lead.renewalFlaggedAt?.toISOString() ?? null,
   };
 }
 
@@ -93,6 +96,9 @@ router.get("/leads", async (req: Request, res: Response) => {
   }
   if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
   if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
+  if (q.renewalFlagged === true || q.renewalFlagged === "true") {
+    conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
+  }
 
   let searchCondition: any = undefined;
   if (q.search) {
@@ -307,8 +313,12 @@ router.post("/leads/bulk/status", async (req: Request, res: Response) => {
     res.status(400).json({ error: "Invalid body", details: body.error.issues });
     return;
   }
+  const updateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
+  if (body.data.status === "funded") {
+    updateFields["fundedAt"] = sql`coalesce(${leadsTable.fundedAt}, now())`;
+  }
   await db.update(leadsTable)
-    .set({ status: body.data.status as any, updatedAt: new Date() })
+    .set(updateFields as any)
     .where(inArray(leadsTable.id, body.data.ids));
   await logActivity({ userId: user.id, leadId: null, action: "bulk_status_changed", entityType: "lead", entityId: 0, details: { ids: body.data.ids, status: body.data.status } });
   res.json({ updated: body.data.ids.length });
@@ -553,9 +563,14 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     return;
   }
 
+  const statusUpdateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
+  if (body.data.status === "funded" && !existing.fundedAt) {
+    statusUpdateFields["fundedAt"] = new Date();
+  }
+
   const [updated] = await db
     .update(leadsTable)
-    .set({ status: body.data.status as any, updatedAt: new Date() })
+    .set(statusUpdateFields as any)
     .where(eq(leadsTable.id, params.data.id))
     .returning();
 

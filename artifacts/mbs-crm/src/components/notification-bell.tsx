@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { Bell, UserPlus, MessageSquare, ArrowRightCircle, FileText, CreditCard, Phone, Clock, CheckCheck } from "lucide-react";
+import { Bell, UserPlus, MessageSquare, ArrowRightCircle, FileText, CreditCard, Phone, Clock, CheckCheck, RefreshCw } from "lucide-react";
 import { useGetUnreadNotificationCount, useListNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   credit_pulled: CreditCard,
   call_received: Phone,
   task_due: Clock,
+  renewal_opportunity: RefreshCw,
 };
 
 function timeAgo(iso: string): string {

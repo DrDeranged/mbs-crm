@@ -51,6 +51,25 @@ export interface CommActivity {
   sms: number;
 }
 
+export interface RenewalOpportunity {
+  id: number;
+  /** @nullable */
+  firstName?: string | null;
+  /** @nullable */
+  lastName?: string | null;
+  /** @nullable */
+  companyName?: string | null;
+  /** @nullable */
+  fundedAt: string | null;
+  renewalFlaggedAt: string;
+  /** @nullable */
+  assignedRepId?: number | null;
+  /** @nullable */
+  assignedRepName?: string | null;
+  /** @nullable */
+  requestedAmount?: number | null;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -178,6 +197,21 @@ export interface Lead {
      * @nullable
      */
   aiSummaryGeneratedAt?: string | null;
+  /**
+     * When the lead's status was first changed to "funded"
+     * @nullable
+     */
+  fundedAt?: string | null;
+  /**
+     * Estimated financing term length in months (defaults to 6 when not set)
+     * @nullable
+     */
+  estimatedTermMonths?: number | null;
+  /**
+     * When the lead was flagged by the renewal radar job as ready to re-fund
+     * @nullable
+     */
+  renewalFlaggedAt?: string | null;
 }
 
 export interface Company {
@@ -1236,6 +1270,10 @@ minScore?: number;
  * Filter leads with score <= maxScore
  */
 maxScore?: number;
+/**
+ * When true, only return leads flagged by the renewal radar job as ready to re-fund
+ */
+renewalFlagged?: boolean;
 };
 
 export type ListLeadsSortOrder = typeof ListLeadsSortOrder[keyof typeof ListLeadsSortOrder];
@@ -1381,6 +1419,10 @@ export const GetAnalyticsCommunicationsGranularity = {
   daily: 'daily',
   weekly: 'weekly',
 } as const;
+
+export type GetAnalyticsRenewalsParams = {
+rep_id?: number;
+};
 
 export type TwilioVoiceStatus200 = {
   ok?: boolean;

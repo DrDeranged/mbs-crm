@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
+import { runRenewalJob } from "./lib/renewalJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 
 const rawPort = process.env["PORT"];
@@ -42,4 +43,11 @@ app.listen(port, (err) => {
   setInterval(() => {
     runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder job error"));
   }, REMINDER_INTERVAL_MS);
+
+  // Renewal radar — flags funded leads ready to re-fund; runs at startup then once daily
+  const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000;
+  runRenewalJob().catch((err) => logger.error({ err }, "Renewal job startup error"));
+  setInterval(() => {
+    runRenewalJob().catch((err) => logger.error({ err }, "Renewal job error"));
+  }, RENEWAL_INTERVAL_MS);
 });

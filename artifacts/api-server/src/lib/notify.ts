@@ -10,7 +10,8 @@ type NotificationType =
   | "status_changed"
   | "credit_pulled"
   | "application_received"
-  | "call_received";
+  | "call_received"
+  | "renewal_opportunity";
 
 interface NotifyParams {
   userId: number;
