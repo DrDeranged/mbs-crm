@@ -158,7 +158,7 @@ export async function buildLeadContext(leadId: number): Promise<string> {
   if (openTasks.length > 0) {
     lines.push(``, `# Open Tasks`);
     for (const t of openTasks) {
-      lines.push(`- ${t.title}${t.dueDate ? ` (due ${t.dueDate})` : ""}`);
+      lines.push(`- ${redactSensitiveText(t.title)}${t.dueDate ? ` (due ${t.dueDate})` : ""}`);
     }
   }
 
