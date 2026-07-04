@@ -304,20 +304,22 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
 
   const { creditScore, reportSummary } = parseExperianResponse(responseRaw);
 
-  await db.update(creditPullsTable).set({
-    status: "completed",
-    creditScore,
-    reportSummary,
-    responsePayloadEncrypted,
-  }).where(eq(creditPullsTable.id, pull!.id));
+  await db.transaction(async (tx) => {
+    await tx.update(creditPullsTable).set({
+      status: "completed",
+      creditScore,
+      reportSummary,
+      responsePayloadEncrypted,
+    }).where(eq(creditPullsTable.id, pull!.id));
 
-  await db.insert(creditComplianceLogTable).values({
-    creditPullId: pull!.id,
-    leadId,
-    userId: user.id,
-    action: "credit_pull",
-    permissiblePurpose: "credit application evaluation",
-    details: { score: creditScore, pullType: body.data.pull_type },
+    await tx.insert(creditComplianceLogTable).values({
+      creditPullId: pull!.id,
+      leadId,
+      userId: user.id,
+      action: "credit_pull",
+      permissiblePurpose: "credit application evaluation",
+      details: { score: creditScore, pullType: body.data.pull_type },
+    });
   });
 
   await logActivity({

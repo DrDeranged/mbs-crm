@@ -316,18 +316,36 @@ router.post("/leads/bulk/status", async (req: Request, res: Response) => {
     res.status(400).json({ error: "Invalid body", details: body.error.issues });
     return;
   }
-  const updateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
-  if (body.data.status === "funded") {
-    updateFields["fundedAt"] = sql`coalesce(${leadsTable.fundedAt}, now())`;
-    if (body.data.fundedAmount !== undefined) {
-      updateFields["fundedAmount"] = body.data.fundedAmount;
-    }
+  let updatedCount = 0;
+  for (const id of body.data.ids) {
+    const changed = await db.transaction(async (tx) => {
+      const existing = await tx.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
+      if (!existing) return false;
+
+      const updateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
+      if (body.data.status === "funded") {
+        if (!existing.fundedAt) {
+          updateFields["fundedAt"] = new Date();
+        }
+        if (body.data.fundedAmount !== undefined) {
+          updateFields["fundedAmount"] = body.data.fundedAmount;
+        }
+      }
+
+      await tx.update(leadsTable).set(updateFields as any).where(eq(leadsTable.id, id));
+      await tx.insert(leadStatusHistoryTable).values({
+        leadId: id,
+        changedByUserId: user.id,
+        fromStatus: existing.status,
+        toStatus: body.data.status,
+      });
+
+      return true;
+    });
+    if (changed) updatedCount++;
   }
-  await db.update(leadsTable)
-    .set(updateFields as any)
-    .where(inArray(leadsTable.id, body.data.ids));
   await logActivity({ userId: user.id, leadId: null, action: "bulk_status_changed", entityType: "lead", entityId: 0, details: { ids: body.data.ids, status: body.data.status, fundedAmount: body.data.fundedAmount } });
-  res.json({ updated: body.data.ids.length });
+  res.json({ updated: updatedCount });
 });
 
 const BulkAssignBody = z.object({
@@ -347,11 +365,26 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
     res.status(400).json({ error: "Invalid body", details: body.error.issues });
     return;
   }
-  await db.update(leadsTable)
-    .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
-    .where(inArray(leadsTable.id, body.data.ids));
+  let updatedCount = 0;
+  for (const id of body.data.ids) {
+    const changed = await db.transaction(async (tx) => {
+      const existing = await tx.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
+      if (!existing) return false;
+
+      await tx.update(leadsTable).set({ assignedRepId: body.data.repId, updatedAt: new Date() }).where(eq(leadsTable.id, id));
+      await tx.insert(leadAssignmentHistoryTable).values({
+        leadId: id,
+        changedByUserId: user.id,
+        fromRepId: existing.assignedRepId,
+        toRepId: body.data.repId,
+      });
+
+      return true;
+    });
+    if (changed) updatedCount++;
+  }
   await logActivity({ userId: user.id, leadId: null, action: "bulk_assigned", entityType: "lead", entityId: 0, details: { ids: body.data.ids, repId: body.data.repId } });
-  res.json({ updated: body.data.ids.length });
+  res.json({ updated: updatedCount });
 });
 
 const BulkDeleteBody = z.object({
@@ -579,17 +612,21 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     }
   }
 
-  const [updated] = await db
-    .update(leadsTable)
-    .set(statusUpdateFields as any)
-    .where(eq(leadsTable.id, params.data.id))
-    .returning();
+  const updated = await db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(leadsTable)
+      .set(statusUpdateFields as any)
+      .where(eq(leadsTable.id, params.data.id))
+      .returning();
 
-  await db.insert(leadStatusHistoryTable).values({
-    leadId: params.data.id,
-    changedByUserId: user.id,
-    fromStatus: existing.status,
-    toStatus: body.data.status,
+    await tx.insert(leadStatusHistoryTable).values({
+      leadId: params.data.id,
+      changedByUserId: user.id,
+      fromStatus: existing.status,
+      toStatus: body.data.status,
+    });
+
+    return u;
   });
 
   await logActivity({
@@ -704,17 +741,21 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
-  const [updated] = await db
-    .update(leadsTable)
-    .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
-    .where(eq(leadsTable.id, params.data.id))
-    .returning();
+  const updated = await db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(leadsTable)
+      .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
+      .where(eq(leadsTable.id, params.data.id))
+      .returning();
 
-  await db.insert(leadAssignmentHistoryTable).values({
-    leadId: params.data.id,
-    changedByUserId: user.id,
-    fromRepId: existing.assignedRepId,
-    toRepId: body.data.repId,
+    await tx.insert(leadAssignmentHistoryTable).values({
+      leadId: params.data.id,
+      changedByUserId: user.id,
+      fromRepId: existing.assignedRepId,
+      toRepId: body.data.repId,
+    });
+
+    return u;
   });
 
   await logActivity({

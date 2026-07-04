@@ -9,7 +9,14 @@ const DEFAULT_TERM_MONTHS = 6;
 const RENEWAL_THRESHOLD_RATIO = 0.6;
 const MS_PER_MONTH = 30 * 24 * 60 * 60 * 1000;
 
+let running: boolean | undefined;
+
 export async function runRenewalJob(): Promise<void> {
+  if (running) {
+    logger.warn("Renewal job already running, skipping overlapping run");
+    return;
+  }
+  running = true;
   try {
     const fundedLeads = await db.query.leadsTable.findMany({
       where: and(
@@ -82,5 +89,7 @@ export async function runRenewalJob(): Promise<void> {
     }
   } catch (err) {
     logger.error({ err }, "Renewal job failed");
+  } finally {
+    running = false;
   }
 }

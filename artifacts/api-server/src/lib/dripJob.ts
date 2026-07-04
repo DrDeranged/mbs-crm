@@ -12,7 +12,14 @@ import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../rout
 import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 
+let running: boolean | undefined;
+
 export async function runDripJob(): Promise<void> {
+  if (running) {
+    logger.warn("Drip job already running, skipping overlapping run");
+    return;
+  }
+  running = true;
   try {
     const activeEnrollments = await db.query.dripEnrollmentsTable.findMany({
       where: eq(dripEnrollmentsTable.status, "active"),
@@ -123,5 +130,7 @@ export async function runDripJob(): Promise<void> {
     }
   } catch (err) {
     logger.error({ err }, "Drip job failed");
+  } finally {
+    running = false;
   }
 }

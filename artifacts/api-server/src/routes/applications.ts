@@ -264,79 +264,85 @@ router.post(
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
 
-      // ── Create lead ───────────────────────────────────────────────────────
+      // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
-      const [lead] = await db.insert(leadsTable).values({
-        firstName: body.ownerFirstName,
-        lastName: body.ownerLastName,
-        email,
-        phone,
-        companyName: body.businessName,
-        ein,
-        applicationType: body.type as "equipment" | "working_capital",
-        status: "application_received",
-        leadSource: "website",
-        requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
-        assignedRepId,
-        consentCreditPullAt: consentGiven ? new Date() : null,
-        consentIp: clientIp,
-        lastActivityAt: new Date(),
-        trackingToken,
-      }).returning();
+      const { lead, docRecords } = await db.transaction(async (tx) => {
+        const [txLead] = await tx.insert(leadsTable).values({
+          firstName: body.ownerFirstName,
+          lastName: body.ownerLastName,
+          email,
+          phone,
+          companyName: body.businessName,
+          ein,
+          applicationType: body.type as "equipment" | "working_capital",
+          status: "application_received",
+          leadSource: "website",
+          requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
+          assignedRepId,
+          consentCreditPullAt: consentGiven ? new Date() : null,
+          consentIp: clientIp,
+          lastActivityAt: new Date(),
+          trackingToken,
+        }).returning();
 
-      // ── Create application record ─────────────────────────────────────────
-      await db.insert(applicationsTable).values({
-        leadId: lead.id,
-        type: body.type as "equipment" | "working_capital",
-        businessName: body.businessName,
-        dba: body.dba || null,
-        ein,
-        businessAddress: body.businessAddress || null,
-        businessCity: body.businessCity || null,
-        businessState: body.businessState || null,
-        businessZip: body.businessZip || null,
-        industry: body.industry || null,
-        timeInBusinessMonths: body.timeInBusinessMonths ? Number(body.timeInBusinessMonths) : null,
-        monthlyRevenueStated: body.monthlyRevenueStated ? Number(body.monthlyRevenueStated) : null,
-        requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
-        useOfFunds: body.useOfFunds || null,
-        equipmentDescription: body.equipmentDescription || null,
-        vendorName: body.vendorName || null,
-        vendorQuoteAmount: body.vendorQuoteAmount ? String(body.vendorQuoteAmount) : null,
-        equipmentCondition: body.equipmentCondition as "new" | "used" | null || null,
-        ownerFirstName: body.ownerFirstName,
-        ownerLastName: body.ownerLastName,
-        ownerSsnEncrypted,
-        ownerDob: body.ownerDob || null,
-        ownerHomeAddress: body.ownerHomeAddress || null,
-        ownerHomeCity: body.ownerHomeCity || null,
-        ownerHomeState: body.ownerHomeState || null,
-        ownerHomeZip: body.ownerHomeZip || null,
-        ownershipPct: body.ownershipPct ? Number(body.ownershipPct) : null,
-        consentCreditPull: body.consentCreditPull === "true" || body.consentCreditPull === true,
-        consentTerms: body.consentTerms === "true" || body.consentTerms === true,
-        signatureData: body.signatureData || null,
-        signatureIp: req.ip || null,
+        await tx.insert(applicationsTable).values({
+          leadId: txLead.id,
+          type: body.type as "equipment" | "working_capital",
+          businessName: body.businessName,
+          dba: body.dba || null,
+          ein,
+          businessAddress: body.businessAddress || null,
+          businessCity: body.businessCity || null,
+          businessState: body.businessState || null,
+          businessZip: body.businessZip || null,
+          industry: body.industry || null,
+          timeInBusinessMonths: body.timeInBusinessMonths ? Number(body.timeInBusinessMonths) : null,
+          monthlyRevenueStated: body.monthlyRevenueStated ? Number(body.monthlyRevenueStated) : null,
+          requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
+          useOfFunds: body.useOfFunds || null,
+          equipmentDescription: body.equipmentDescription || null,
+          vendorName: body.vendorName || null,
+          vendorQuoteAmount: body.vendorQuoteAmount ? String(body.vendorQuoteAmount) : null,
+          equipmentCondition: body.equipmentCondition as "new" | "used" | null || null,
+          ownerFirstName: body.ownerFirstName,
+          ownerLastName: body.ownerLastName,
+          ownerSsnEncrypted,
+          ownerDob: body.ownerDob || null,
+          ownerHomeAddress: body.ownerHomeAddress || null,
+          ownerHomeCity: body.ownerHomeCity || null,
+          ownerHomeState: body.ownerHomeState || null,
+          ownerHomeZip: body.ownerHomeZip || null,
+          ownershipPct: body.ownershipPct ? Number(body.ownershipPct) : null,
+          consentCreditPull: body.consentCreditPull === "true" || body.consentCreditPull === true,
+          consentTerms: body.consentTerms === "true" || body.consentTerms === true,
+          signatureData: body.signatureData || null,
+          signatureIp: req.ip || null,
+        });
+
+        const txDocRecords: { file: Express.Multer.File; fileKey: string; id: number }[] = [];
+        for (const file of files) {
+          const safeFilename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const fileKey = `leads/${txLead.id}/documents/bankstatement-${Date.now()}-${safeFilename}`;
+          const [docRecord] = await tx.insert(documentsTable).values({
+            leadId: txLead.id,
+            userId: null,
+            filename: file.originalname,
+            fileKey,
+            fileType: file.mimetype,
+            fileSize: file.size,
+          }).returning();
+          txDocRecords.push({ file, fileKey, id: docRecord.id });
+        }
+
+        return { lead: txLead, docRecords: txDocRecords };
       });
 
-      // ── Upload bank statements + OCR (with Documents records) ───────────
+      // ── Upload bank statements + OCR (after commit — external calls) ────
       const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
       const bucket = objectStorageClient.bucket(bucketId);
 
-      for (const file of files) {
-        const safeFilename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const fileKey = `leads/${lead.id}/documents/bankstatement-${Date.now()}-${safeFilename}`;
+      for (const { file, fileKey, id: docId } of docRecords) {
         await bucket.file(fileKey).save(file.buffer, { contentType: file.mimetype });
-
-        // Create document record for traceability
-        const [docRecord] = await db.insert(documentsTable).values({
-          leadId: lead.id,
-          userId: null,
-          filename: file.originalname,
-          fileKey,
-          fileType: file.mimetype,
-          fileSize: file.size,
-        }).returning();
 
         // Run OCR (non-blocking: continue if it fails)
         let ocrResult = null;
@@ -349,7 +355,7 @@ router.post(
         if (ocrResult) {
           await db.insert(bankStatementExtractionsTable).values({
             leadId: lead.id,
-            documentId: docRecord.id,
+            documentId: docId,
             statementMonth: ocrResult.statementMonth,
             statementYear: ocrResult.statementYear,
             totalDeposits: ocrResult.totalDeposits !== null ? String(ocrResult.totalDeposits) : null,

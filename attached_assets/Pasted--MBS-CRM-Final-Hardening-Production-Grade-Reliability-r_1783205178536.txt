@@ -1,0 +1,113 @@
+# MBS CRM — Final Hardening: Production-Grade Reliability (run before go-live)
+
+A line-by-line audit confirmed RBAC, validation, uploads, health checks, and error isolation are
+solid. Four reliability gaps remain. Fix all four + one one-liner. Do NOT restructure anything.
+Follow existing conventions. npx tsc --build must exit 0 at the end.
+
+================================================================================
+FIX 1 — DATABASE TRANSACTIONS ON MULTI-WRITE FLOWS (highest priority)
+================================================================================
+The codebase currently contains ZERO db.transaction calls. Wrap every multi-step write in a
+Drizzle transaction (db.transaction(async (tx) => { ... }) using tx instead of db inside) so a
+mid-flow failure rolls back cleanly. Apply to exactly these flows:
+
+1. artifacts/api-server/src/routes/leads.ts — PUT /leads/:id/status: the lead update
+   (status/fundedAt/fundedAmount) + leadStatusHistory insert must be one transaction.
+   The post-commit side effects (matching, drip enrollment, workflow rules, notifications,
+   logActivity) stay OUTSIDE the transaction — they are best-effort and must not roll back data.
+2. Same file — PUT /leads/:id/assign: lead update + leadAssignmentHistory insert in one transaction.
+3. Same file — both bulk endpoints: wrap EACH lead's update+history pair in a transaction
+   (per-lead, not one giant transaction across 500 leads).
+4. artifacts/api-server/src/routes/applications.ts — POST /applications/submit: creating the
+   lead + application record + document rows must be one transaction. Object Storage uploads
+   and OCR happen AFTER commit (they are external calls — never inside a DB transaction).
+5. artifacts/api-server/src/routes/credit.ts — the credit pull persistence: credit_pulls insert
+   + credit_compliance_log insert in one transaction (the Experian HTTP call itself stays outside;
+   only the persistence of its result is transactional).
+6. artifacts/api-server/src/routes/import.ts — wrap each imported row's inserts per-row.
+
+Pattern:
+await db.transaction(async (tx) => {
+  await tx.update(leadsTable).set({...}).where(...);
+  await tx.insert(leadStatusHistoryTable).values({...});
+});
+
+================================================================================
+FIX 2 — GRACEFUL SHUTDOWN
+================================================================================
+In artifacts/api-server/src/index.ts there is no SIGTERM/SIGINT handling. Add it:
+
+- Capture the server instance: const server = app.listen(...)
+- Store interval handles: const intervals = [dripInterval, reminderInterval, renewalInterval]
+  (assign the existing setInterval calls to consts)
+- Add:
+  let shuttingDown = false;
+  async function shutdown(signal: string) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info({ signal }, "Shutting down gracefully");
+    intervals.forEach(clearInterval);
+    server.close(() => {
+      logger.info("HTTP server closed");
+      process.exit(0);
+    });
+    setTimeout(() => { logger.warn("Forced exit after 15s"); process.exit(1); }, 15_000).unref();
+  }
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+================================================================================
+FIX 3 — JOB OVERLAP LOCKS (prevents duplicate drip emails)
+================================================================================
+The setInterval jobs can overlap if a run outlasts its interval. Add a simple in-process mutex
+to EACH job (dripJob.ts, taskReminderJob.ts, renewalJob.ts). Pattern — at module level:
+
+let running = false;
+export async function runDripJob(): Promise<void> {
+  if (running) { logger.warn("Drip job still running — skipping this tick"); return; }
+  running = true;
+  try {
+    // ... existing body ...
+  } finally {
+    running = false;
+  }
+}
+Apply the identical pattern to runTaskReminderJob and runRenewalJob.
+
+================================================================================
+FIX 4 — PUPPETEER BROWSER SINGLETON
+================================================================================
+artifacts/api-server/src/lib/renderPdf.ts launches a new browser per PDF. Replace with a lazy
+singleton that is reused and recovers if the browser dies:
+
+let browserPromise: Promise<Browser> | null = null;
+async function getBrowser(): Promise<Browser> {
+  if (!browserPromise) {
+    browserPromise = puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
+  }
+  const browser = await browserPromise;
+  if (!browser.connected) { browserPromise = null; return getBrowser(); }
+  return browser;
+}
+In the render function: const browser = await getBrowser(); const page = await browser.newPage();
+... close ONLY the page in finally (await page.close()), never the shared browser.
+Also close the browser in the shutdown() handler from Fix 2 if it was launched.
+
+================================================================================
+FIX 5 — RESPONSE COMPRESSION (one-liner)
+================================================================================
+pnpm --filter @workspace/api-server add compression
+pnpm --filter @workspace/api-server add -D @types/compression
+In app.ts, after helmet: app.use(compression());
+
+================================================================================
+VERIFICATION — run all, report each, ALL must pass
+================================================================================
+1. npx tsc --build → exit 0
+2. grep -rc "db.transaction" artifacts/api-server/src/routes/ → hits in leads.ts, applications.ts,
+   credit.ts, import.ts (>= 6 total)
+3. grep -c "SIGTERM" artifacts/api-server/src/index.ts → >= 1
+4. grep -c "running = false" artifacts/api-server/src/lib/dripJob.ts artifacts/api-server/src/lib/taskReminderJob.ts artifacts/api-server/src/lib/renewalJob.ts → 1 each
+5. grep -c "getBrowser" artifacts/api-server/src/lib/renderPdf.ts → >= 2
+6. grep -c "compression" artifacts/api-server/src/app.ts → >= 2
+7. Confirm no logActivity/notification/matching calls ended up INSIDE any transaction block.

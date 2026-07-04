@@ -240,23 +240,28 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     const appType = resolve(row, "application_type", "applicationtype", "financing_type") || "working_capital";
     const leadSource = resolve(row, "lead_source", "leadsource", "source") || "import";
 
-    const [lead] = await db.insert(leadsTable).values({
-      firstName,
-      lastName,
-      email,
-      phone,
-      companyName,
-      ein,
-      applicationType: appType as any,
-      leadSource: leadSource as any,
-      assignedRepId: null,
-    }).returning();
-
     const industry = resolve(row, "industry") || null;
     const state = resolve(row, "state") || null;
-    if (companyName && (industry || state)) {
-      await db.insert(companiesTable).values({ leadId: lead.id, industry, state }).catch(() => {});
-    }
+
+    const lead = await db.transaction(async (tx) => {
+      const [txLead] = await tx.insert(leadsTable).values({
+        firstName,
+        lastName,
+        email,
+        phone,
+        companyName,
+        ein,
+        applicationType: appType as any,
+        leadSource: leadSource as any,
+        assignedRepId: null,
+      }).returning();
+
+      if (companyName && (industry || state)) {
+        await tx.insert(companiesTable).values({ leadId: txLead.id, industry, state }).catch(() => {});
+      }
+
+      return txLead;
+    });
 
     await logActivity({
       userId: user.id,

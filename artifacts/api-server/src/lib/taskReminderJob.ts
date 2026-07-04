@@ -4,9 +4,17 @@ import { tasksTable, usersTable } from "@workspace/db";
 import { sendPushNotification } from "./pushNotifications";
 import { logger } from "./logger";
 
+let running: boolean | undefined;
+
 export async function runTaskReminderJob(): Promise<void> {
   const now = new Date();
   if (now.getHours() !== 9) return;
+
+  if (running) {
+    logger.warn("Task reminder job already running, skipping overlapping run");
+    return;
+  }
+  running = true;
 
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayStartStr = todayStart.toISOString().slice(0, 10);
@@ -53,5 +61,7 @@ export async function runTaskReminderJob(): Promise<void> {
     logger.info({ usersNotified: byUser.size }, "Task reminder job completed");
   } catch (err) {
     logger.error({ err }, "Task reminder job failed");
+  } finally {
+    running = false;
   }
 }

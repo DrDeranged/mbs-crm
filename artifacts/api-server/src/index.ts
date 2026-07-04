@@ -4,6 +4,7 @@ import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
+import { closeBrowser } from "./lib/renderPdf";
 
 const rawPort = process.env["PORT"];
 
@@ -19,7 +20,9 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
+const intervals: ReturnType<typeof setInterval>[] = [];
+
+const server = app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
     process.exit(1);
@@ -33,21 +36,44 @@ app.listen(port, (err) => {
   // Drip email background job — runs every 10 minutes
   const DRIP_INTERVAL_MS = 10 * 60 * 1000;
   runDripJob().catch((err) => logger.error({ err }, "Drip job startup error"));
-  setInterval(() => {
+  const dripInterval = setInterval(() => {
     runDripJob().catch((err) => logger.error({ err }, "Drip job error"));
   }, DRIP_INTERVAL_MS);
+  intervals.push(dripInterval);
 
   // Task reminder push notifications — checks every hour, fires at 9 AM
   const REMINDER_INTERVAL_MS = 60 * 60 * 1000;
   runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder startup error"));
-  setInterval(() => {
+  const reminderInterval = setInterval(() => {
     runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder job error"));
   }, REMINDER_INTERVAL_MS);
+  intervals.push(reminderInterval);
 
   // Renewal radar — flags funded leads ready to re-fund; runs at startup then once daily
   const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000;
   runRenewalJob().catch((err) => logger.error({ err }, "Renewal job startup error"));
-  setInterval(() => {
+  const renewalInterval = setInterval(() => {
     runRenewalJob().catch((err) => logger.error({ err }, "Renewal job error"));
   }, RENEWAL_INTERVAL_MS);
+  intervals.push(renewalInterval);
 });
+
+let shuttingDown = false;
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info({ signal }, "Shutting down gracefully");
+  intervals.forEach(clearInterval);
+  await closeBrowser().catch((err) => logger.warn({ err }, "Error closing browser during shutdown"));
+  server.close(() => {
+    logger.info("HTTP server closed");
+    process.exit(0);
+  });
+  setTimeout(() => {
+    logger.warn("Forced exit after 15s");
+    process.exit(1);
+  }, 15_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

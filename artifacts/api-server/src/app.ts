@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import compression from "compression";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
@@ -40,6 +41,8 @@ app.use(
     crossOriginEmbedderPolicy: false,
   }),
 );
+
+app.use(compression());
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 

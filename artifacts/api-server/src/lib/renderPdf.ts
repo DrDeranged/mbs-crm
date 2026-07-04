@@ -1,18 +1,44 @@
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
+
+let browserPromise: Promise<Browser> | null = null;
+
+async function getBrowser(): Promise<Browser> {
+  if (!browserPromise) {
+    browserPromise = puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+    }).catch((err) => {
+      browserPromise = null;
+      throw err;
+    });
+  }
+
+  const browser = await browserPromise;
+  if (!browser.connected) {
+    browserPromise = null;
+    return getBrowser();
+  }
+  return browser;
+}
+
+export async function closeBrowser(): Promise<void> {
+  if (!browserPromise) return;
+  const browser = await browserPromise.catch(() => null);
+  browserPromise = null;
+  if (browser) {
+    await browser.close();
+  }
+}
 
 export async function renderPdf(html: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-    ],
-  });
-
+  const browser = await getBrowser();
+  const page = await browser.newPage();
   try {
-    const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load", timeout: 30000 });
     const pdfUint8Array = await page.pdf({
       format: "A4",
@@ -21,7 +47,7 @@ export async function renderPdf(html: string): Promise<Buffer> {
     });
     return Buffer.from(pdfUint8Array);
   } finally {
-    await browser.close();
+    await page.close();
   }
 }
 
