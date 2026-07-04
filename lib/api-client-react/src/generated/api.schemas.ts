@@ -10,6 +10,8 @@ export interface AnalyticsSummary {
   totalApplications: number;
   totalApprovals: number;
   totalFundings: number;
+  /** Sum of fundedAmount across funded leads in the date range */
+  totalRevenue?: number;
   conversionRate: number;
   /** @nullable */
   avgFundingTimeDays?: number | null;
@@ -36,6 +38,8 @@ export interface RepPerformance {
   applications: number;
   approvals: number;
   fundings: number;
+  /** Sum of fundedAmount for this rep's funded leads in the date range */
+  revenue?: number;
 }
 
 export interface SourceAnalytics {
@@ -43,6 +47,8 @@ export interface SourceAnalytics {
   leadCount: number;
   fundedCount: number;
   conversionRate: number;
+  /** Sum of fundedAmount for funded leads from this source in the date range */
+  revenue?: number;
 }
 
 export interface CommActivity {
@@ -176,6 +182,11 @@ export interface Lead {
   assignedRepId?: number | null;
   assignedRep?: User | null;
   leadSource: LeadLeadSource;
+  /**
+     * Amount the lead requested at intake
+     * @nullable
+     */
+  requestedAmount?: number | null;
   createdAt: string;
   updatedAt: string;
   /** @nullable */
@@ -202,6 +213,11 @@ export interface Lead {
      * @nullable
      */
   fundedAt?: string | null;
+  /**
+     * Dollar amount funded, captured when status is changed to "funded"
+     * @nullable
+     */
+  fundedAmount?: number | null;
   /**
      * Estimated financing term length in months (defaults to 6 when not set)
      * @nullable
@@ -427,6 +443,8 @@ export const StatusChangeStatus = {
 
 export interface StatusChange {
   status: StatusChangeStatus;
+  /** Dollar amount funded; required in practice when status is "funded" */
+  fundedAmount?: number;
 }
 
 export interface AssignLead {
@@ -1311,6 +1329,8 @@ export type BulkUpdateLeadStatusBody = {
   /** @maxItems 500 */
   ids: number[];
   status: string;
+  /** Dollar amount funded; applied to all leads in the batch when status is "funded" */
+  fundedAmount?: number;
 };
 
 export type BulkUpdateLeadStatus200 = {

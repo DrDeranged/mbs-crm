@@ -442,6 +442,9 @@ paths:
                   maxItems: 500
                 status:
                   type: string
+                fundedAmount:
+                  type: integer
+                  description: Dollar amount funded; applied to all leads in the batch when status is "funded"
       responses:
         "200":
           description: Bulk status change result
@@ -2756,6 +2759,9 @@ components:
           type: integer
         totalFundings:
           type: integer
+        totalRevenue:
+          type: integer
+          description: Sum of fundedAmount across funded leads in the date range
         conversionRate:
           type: number
         avgFundingTimeDays:
@@ -2800,6 +2806,9 @@ components:
           type: integer
         fundings:
           type: integer
+        revenue:
+          type: integer
+          description: Sum of fundedAmount for this rep's funded leads in the date range
 
     SourceAnalytics:
       type: object
@@ -2813,6 +2822,9 @@ components:
           type: integer
         conversionRate:
           type: number
+        revenue:
+          type: integer
+          description: Sum of fundedAmount for funded leads from this source in the date range
 
     CommActivity:
       type: object
@@ -2923,6 +2935,9 @@ components:
         leadSource:
           type: string
           enum: [website, referral, import, manual]
+        requestedAmount:
+          type: ["integer", "null"]
+          description: Amount the lead requested at intake
         createdAt:
           type: string
           format: date-time
@@ -2951,6 +2966,9 @@ components:
           type: ["string", "null"]
           format: date-time
           description: When the lead's status was first changed to "funded"
+        fundedAmount:
+          type: ["integer", "null"]
+          description: Dollar amount funded, captured when status is changed to "funded"
         estimatedTermMonths:
           type: ["integer", "null"]
           description: Estimated financing term length in months (defaults to 6 when not set)
@@ -3135,6 +3153,9 @@ components:
         status:
           type: string
           enum: [new_lead, contacted, application_received, submitted_to_underwriting, approved, funded, declined, follow_up]
+        fundedAmount:
+          type: integer
+          description: Dollar amount funded; required in practice when status is "funded"
 
     AssignLead:
       type: object

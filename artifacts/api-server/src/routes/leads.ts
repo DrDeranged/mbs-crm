@@ -48,6 +48,7 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     assignedRepId: lead.assignedRepId,
     assignedRep: rep ? userToApi(rep) : null,
     leadSource: lead.leadSource,
+    requestedAmount: lead.requestedAmount ?? null,
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
     lastActivityAt: lead.lastActivityAt?.toISOString() ?? null,
@@ -56,6 +57,7 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     aiSummary: (lead.aiSummary as any) ?? null,
     aiSummaryGeneratedAt: lead.aiSummaryGeneratedAt?.toISOString() ?? null,
     fundedAt: lead.fundedAt?.toISOString() ?? null,
+    fundedAmount: lead.fundedAmount ?? null,
     estimatedTermMonths: lead.estimatedTermMonths ?? null,
     renewalFlaggedAt: lead.renewalFlaggedAt?.toISOString() ?? null,
   };
@@ -299,6 +301,7 @@ router.get("/leads/export", async (req: Request, res: Response) => {
 const BulkStatusBody = z.object({
   ids: z.array(z.number().int().positive()).min(1).max(500),
   status: z.string().min(1),
+  fundedAmount: z.number().int().positive().optional(),
 });
 
 router.post("/leads/bulk/status", async (req: Request, res: Response) => {
@@ -316,11 +319,14 @@ router.post("/leads/bulk/status", async (req: Request, res: Response) => {
   const updateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
   if (body.data.status === "funded") {
     updateFields["fundedAt"] = sql`coalesce(${leadsTable.fundedAt}, now())`;
+    if (body.data.fundedAmount !== undefined) {
+      updateFields["fundedAmount"] = body.data.fundedAmount;
+    }
   }
   await db.update(leadsTable)
     .set(updateFields as any)
     .where(inArray(leadsTable.id, body.data.ids));
-  await logActivity({ userId: user.id, leadId: null, action: "bulk_status_changed", entityType: "lead", entityId: 0, details: { ids: body.data.ids, status: body.data.status } });
+  await logActivity({ userId: user.id, leadId: null, action: "bulk_status_changed", entityType: "lead", entityId: 0, details: { ids: body.data.ids, status: body.data.status, fundedAmount: body.data.fundedAmount } });
   res.json({ updated: body.data.ids.length });
 });
 
@@ -564,8 +570,13 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   }
 
   const statusUpdateFields: Record<string, unknown> = { status: body.data.status as any, updatedAt: new Date() };
-  if (body.data.status === "funded" && !existing.fundedAt) {
-    statusUpdateFields["fundedAt"] = new Date();
+  if (body.data.status === "funded") {
+    if (!existing.fundedAt) {
+      statusUpdateFields["fundedAt"] = new Date();
+    }
+    if (body.data.fundedAmount !== undefined) {
+      statusUpdateFields["fundedAmount"] = body.data.fundedAmount;
+    }
   }
 
   const [updated] = await db
@@ -587,7 +598,13 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     action: "status_changed",
     entityType: "lead",
     entityId: params.data.id,
-    details: { from: existing.status, to: body.data.status },
+    details: {
+      from: existing.status,
+      to: body.data.status,
+      ...(body.data.status === "funded" && body.data.fundedAmount !== undefined
+        ? { fundedAmount: body.data.fundedAmount }
+        : {}),
+    },
   });
 
   // Auto-enroll in any active drip sequences triggered by the new status

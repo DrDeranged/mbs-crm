@@ -2313,9 +2313,11 @@ export default function LeadDetail() {
   });
 
   const changeStatus = useChangeLeadStatus();
+  const [fundedDialogOpen, setFundedDialogOpen] = useState(false);
+  const [fundedAmountInput, setFundedAmountInput] = useState("");
 
-  const handleStatusChange = (newStatus: string) => {
-    changeStatus.mutate({ id, data: { status: newStatus as StatusChangeStatus } }, {
+  const submitStatusChange = (newStatus: string, fundedAmount?: number) => {
+    changeStatus.mutate({ id, data: { status: newStatus as StatusChangeStatus, ...(fundedAmount !== undefined ? { fundedAmount } : {}) } }, {
       onSuccess: () => {
         toast({ title: "Status Updated", description: "Lead status has been changed." });
         queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(id) });
@@ -2325,6 +2327,25 @@ export default function LeadDetail() {
         toast({ title: "Error", description: "Failed to change status.", variant: "destructive" });
       }
     });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    if (newStatus === "funded") {
+      setFundedAmountInput(lead?.requestedAmount != null ? String(lead.requestedAmount) : "");
+      setFundedDialogOpen(true);
+      return;
+    }
+    submitStatusChange(newStatus);
+  };
+
+  const handleConfirmFunded = () => {
+    const amount = parseInt(fundedAmountInput, 10);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Error", description: "Please enter a valid funded amount.", variant: "destructive" });
+      return;
+    }
+    submitStatusChange("funded", amount);
+    setFundedDialogOpen(false);
   };
 
   if (isLoading) {
@@ -2394,6 +2415,40 @@ export default function LeadDetail() {
           </div>
         </div>
       </div>
+
+      <Dialog open={fundedDialogOpen} onOpenChange={setFundedDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Lead as Funded</DialogTitle>
+            <DialogDescription>
+              Enter the funded amount for this deal to record it in revenue reporting.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="funded-amount">Funded amount ($)</Label>
+            <Input
+              id="funded-amount"
+              type="number"
+              min={1}
+              step={1}
+              autoFocus
+              value={fundedAmountInput}
+              onChange={(e) => setFundedAmountInput(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setFundedDialogOpen(false)}>Cancel</Button>
+            <Button
+              className="bg-[#1F4E79] hover:bg-[#1F4E79]/90"
+              onClick={handleConfirmFunded}
+              disabled={changeStatus.isPending}
+            >
+              Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="p-8 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Details */}

@@ -43,6 +43,7 @@ export const leadsTable = pgTable(
     aiSummary: jsonb("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
     fundedAt: timestamp("funded_at"),
+    fundedAmount: integer("funded_amount"),
     estimatedTermMonths: integer("estimated_term_months"),
     renewalFlaggedAt: timestamp("renewal_flagged_at"),
     trackingToken: text("tracking_token").unique(),

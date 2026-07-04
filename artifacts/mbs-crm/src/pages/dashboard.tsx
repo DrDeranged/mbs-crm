@@ -88,7 +88,14 @@ const STAGE_COLORS: Record<string, string> = {
   funded: "#059669",
 };
 
-type SortField = "leadsCount" | "callsMade" | "smsSent" | "emailsSent" | "applications" | "approvals" | "fundings";
+type SortField = "leadsCount" | "callsMade" | "smsSent" | "emailsSent" | "applications" | "approvals" | "fundings" | "revenue";
+
+function formatCurrency(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return `$${value.toLocaleString()}`;
+}
+
 type SortDir = "asc" | "desc";
 
 function KpiCard({
@@ -282,6 +289,12 @@ export default function Dashboard() {
         <KpiCard
           label="Fundings"
           value={summary?.totalFundings ?? 0}
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          loading={loadingSummary}
+        />
+        <KpiCard
+          label="Revenue Generated"
+          value={formatCurrency(summary?.totalRevenue ?? 0)}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
@@ -568,6 +581,7 @@ export default function Dashboard() {
                   Applications: r.applications,
                   Approvals: r.approvals,
                   Fundings: r.fundings,
+                  Revenue: r.revenue,
                 }));
                 downloadCsv(rows, `rep-performance_${dateRange.startDate}_${dateRange.endDate}.csv`);
               }}
@@ -595,6 +609,7 @@ export default function Dashboard() {
                           ["applications", "Applications"],
                           ["approvals", "Approvals"],
                           ["fundings", "Fundings"],
+                          ["revenue", "Revenue"],
                         ] as [SortField, string][]
                       ).map(([field, label]) => (
                         <th
@@ -634,6 +649,9 @@ export default function Dashboard() {
                         <td className="py-2 px-3 text-right tabular-nums">{rep.approvals}</td>
                         <td className="py-2 px-3 text-right tabular-nums font-semibold text-emerald-700">
                           {rep.fundings}
+                        </td>
+                        <td className="py-2 px-3 text-right tabular-nums font-semibold text-[#1F4E79]">
+                          {formatCurrency(rep.revenue)}
                         </td>
                       </tr>
                     ))}

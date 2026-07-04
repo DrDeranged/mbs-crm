@@ -52,7 +52,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
 
   const where = leadDateWhere(startDate, endDate, effectiveRepId);
 
-  const [allLeads, fundedTimeRows] = await Promise.all([
+  const [allLeads, fundedTimeRows, revenueRows] = await Promise.all([
     db
       .select({ status: leadsTable.status, count: sql<number>`cast(count(*) as int)` })
       .from(leadsTable)
@@ -74,6 +74,14 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
           effectiveRepId ? eq(leadsTable.assignedRepId, effectiveRepId) : undefined,
         ),
       ),
+
+    // Total revenue from funded leads in range
+    db
+      .select({
+        totalRevenue: sql<number>`cast(coalesce(sum(${leadsTable.fundedAmount}), 0) as int)`,
+      })
+      .from(leadsTable)
+      .where(and(eq(leadsTable.status, "funded"), where)),
   ]);
 
   const countByStatus: Record<string, number> = {};
@@ -85,6 +93,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
   const totalApplications = APPLICATION_STATUSES.reduce((a, s) => a + (countByStatus[s] ?? 0), 0);
   const totalApprovals = APPROVAL_STATUSES.reduce((a, s) => a + (countByStatus[s] ?? 0), 0);
   const totalFundings = countByStatus["funded"] ?? 0;
+  const totalRevenue = revenueRows[0]?.totalRevenue ?? 0;
   const conversionRate = totalLeads > 0 ? Math.round((totalFundings / totalLeads) * 10000) / 100 : 0;
   const avgFundingTimeDays =
     fundedTimeRows[0]?.avgDays != null ? Math.round(fundedTimeRows[0].avgDays * 10) / 10 : null;
@@ -94,6 +103,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
     totalApplications,
     totalApprovals,
     totalFundings,
+    totalRevenue,
     conversionRate,
     avgFundingTimeDays,
   });
@@ -156,7 +166,7 @@ router.get("/analytics/reps", async (req: Request, res: Response) => {
   if (endDate) emailDateClauses.push(lte(emailSendsTable.createdAt, endDate));
   const emailWhere = emailDateClauses.length ? and(...emailDateClauses) : undefined;
 
-  const [reps, leadCounts, callCounts, smsCounts, emailCounts] = await Promise.all([
+  const [reps, leadCounts, revenueByRep, callCounts, smsCounts, emailCounts] = await Promise.all([
     db.select().from(usersTable).where(eq(usersTable.isActive, true)),
 
     db
@@ -168,6 +178,15 @@ router.get("/analytics/reps", async (req: Request, res: Response) => {
       .from(leadsTable)
       .where(leadWhere)
       .groupBy(leadsTable.assignedRepId, leadsTable.status),
+
+    db
+      .select({
+        repId: leadsTable.assignedRepId,
+        revenue: sql<number>`cast(coalesce(sum(${leadsTable.fundedAmount}), 0) as int)`,
+      })
+      .from(leadsTable)
+      .where(and(eq(leadsTable.status, "funded"), leadWhere))
+      .groupBy(leadsTable.assignedRepId),
 
     db
       .select({
@@ -218,6 +237,9 @@ router.get("/analytics/reps", async (req: Request, res: Response) => {
   const emailMap: Record<number, number> = {};
   for (const r of emailCounts) if (r.userId) emailMap[r.userId] = r.count;
 
+  const revenueMap: Record<number, number> = {};
+  for (const r of revenueByRep) if (r.repId) revenueMap[r.repId] = r.revenue;
+
   // leadCounts grouped by repId + status
   type LeadCountEntry = { repId: number | null; status: string | null; count: number };
   const leadByRepStatus: Record<number, Record<string, number>> = {};
@@ -243,6 +265,7 @@ router.get("/analytics/reps", async (req: Request, res: Response) => {
       applications,
       approvals,
       fundings,
+      revenue: revenueMap[rep.id] ?? 0,
     };
   });
 
@@ -268,24 +291,29 @@ router.get("/analytics/sources", async (req: Request, res: Response) => {
       source: leadsTable.leadSource,
       status: leadsTable.status,
       count: sql<number>`cast(count(*) as int)`,
+      revenue: sql<number>`cast(coalesce(sum(${leadsTable.fundedAmount}), 0) as int)`,
     })
     .from(leadsTable)
     .where(where)
     .groupBy(leadsTable.leadSource, leadsTable.status);
 
-  const sourceMap: Record<string, { totalCount: number; fundedCount: number }> = {};
+  const sourceMap: Record<string, { totalCount: number; fundedCount: number; revenue: number }> = {};
   for (const row of rows) {
     const src = row.source ?? "manual";
-    if (!sourceMap[src]) sourceMap[src] = { totalCount: 0, fundedCount: 0 };
+    if (!sourceMap[src]) sourceMap[src] = { totalCount: 0, fundedCount: 0, revenue: 0 };
     sourceMap[src].totalCount += row.count;
-    if (row.status === "funded") sourceMap[src].fundedCount += row.count;
+    if (row.status === "funded") {
+      sourceMap[src].fundedCount += row.count;
+      sourceMap[src].revenue += row.revenue;
+    }
   }
 
-  const result = Object.entries(sourceMap).map(([source, { totalCount, fundedCount }]) => ({
+  const result = Object.entries(sourceMap).map(([source, { totalCount, fundedCount, revenue }]) => ({
     source,
     leadCount: totalCount,
     fundedCount,
     conversionRate: totalCount > 0 ? Math.round((fundedCount / totalCount) * 10000) / 100 : 0,
+    revenue,
   }));
 
   res.json(result);

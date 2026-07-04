@@ -159,6 +159,7 @@ export const ListLeadsResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -175,6 +176,7 @@ export const ListLeadsResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
@@ -279,7 +281,8 @@ export const bulkUpdateLeadStatusBodyIdsMax = 500;
 
 export const BulkUpdateLeadStatusBody = zod.object({
   "ids": zod.array(zod.number()).max(bulkUpdateLeadStatusBodyIdsMax),
-  "status": zod.string()
+  "status": zod.string(),
+  "fundedAmount": zod.number().optional().describe('Dollar amount funded; applied to all leads in the batch when status is \"funded\"')
 })
 
 export const BulkUpdateLeadStatusResponse = zod.object({
@@ -423,6 +426,7 @@ export const GetLeadResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -439,6 +443,7 @@ export const GetLeadResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 }).and(zod.object({
@@ -583,6 +588,7 @@ export const UpdateLeadResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -599,6 +605,7 @@ export const UpdateLeadResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
@@ -612,7 +619,8 @@ export const ChangeLeadStatusParams = zod.object({
 })
 
 export const ChangeLeadStatusBody = zod.object({
-  "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up'])
+  "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
+  "fundedAmount": zod.number().optional().describe('Dollar amount funded; required in practice when status is \"funded\"')
 })
 
 export const ChangeLeadStatusResponse = zod.object({
@@ -637,6 +645,7 @@ export const ChangeLeadStatusResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -653,6 +662,7 @@ export const ChangeLeadStatusResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
@@ -691,6 +701,7 @@ export const AssignLeadResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -707,6 +718,7 @@ export const AssignLeadResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })
@@ -948,6 +960,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -964,6 +977,7 @@ export const GetDashboardSummaryResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
@@ -1001,6 +1015,7 @@ export const GetRepDashboardResponse = zod.object({
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
@@ -1017,6 +1032,7 @@ export const GetRepDashboardResponse = zod.object({
 }),zod.null()]).optional().describe('Cached AI-generated sales briefing'),
   "aiSummaryGeneratedAt": zod.coerce.date().nullish().describe('When the cached AI briefing was generated'),
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
+  "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
 })),
@@ -1151,6 +1167,7 @@ export const GetAnalyticsSummaryResponse = zod.object({
   "totalApplications": zod.number(),
   "totalApprovals": zod.number(),
   "totalFundings": zod.number(),
+  "totalRevenue": zod.number().optional().describe('Sum of fundedAmount across funded leads in the date range'),
   "conversionRate": zod.number(),
   "avgFundingTimeDays": zod.number().nullish()
 })
@@ -1191,7 +1208,8 @@ export const GetAnalyticsRepsResponseItem = zod.object({
   "emailsSent": zod.number(),
   "applications": zod.number(),
   "approvals": zod.number(),
-  "fundings": zod.number()
+  "fundings": zod.number(),
+  "revenue": zod.number().optional().describe('Sum of fundedAmount for this rep\'s funded leads in the date range')
 })
 export const GetAnalyticsRepsResponse = zod.array(GetAnalyticsRepsResponseItem)
 
@@ -1209,7 +1227,8 @@ export const GetAnalyticsSourcesResponseItem = zod.object({
   "source": zod.string(),
   "leadCount": zod.number(),
   "fundedCount": zod.number(),
-  "conversionRate": zod.number()
+  "conversionRate": zod.number(),
+  "revenue": zod.number().optional().describe('Sum of fundedAmount for funded leads from this source in the date range')
 })
 export const GetAnalyticsSourcesResponse = zod.array(GetAnalyticsSourcesResponseItem)
 
