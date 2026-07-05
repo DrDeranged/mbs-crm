@@ -46,3 +46,6 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
+
+[userenv.production]
+ALLOWED_ORIGINS = "https://app.my-business-solutions.com,https://my-business-solutions.com,https://www.my-business-solutions.com"

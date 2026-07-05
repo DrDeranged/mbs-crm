@@ -1,0 +1,63 @@
+PRE-DEPLOYMENT ALIGNMENT CHECK — REPORT ONLY, CHANGE NOTHING
+
+We are about to publish this app as a Reserved VM deployment. Before we do, produce a
+deployment readiness report. Do NOT modify any code, secrets, or configuration during
+this task — inspect and report only. Answer every numbered item in this exact format.
+
+1. RUN COMMAND: What exact run command is configured for the deployment, and what does
+   it start? Confirm it is a PRODUCTION command (not a dev/watch server).
+
+2. BUILD COMMAND: What exact build command runs at deploy time? Confirm it builds the
+   React web app (artifacts/mbs-crm) for production and that the API server serves the
+   built frontend assets. State the path the server serves static files from.
+
+3. PORT: What port does the server listen on, and is it correctly exposed for the
+   deployment (external port mapping)?
+
+4. DEPLOYMENT SECRETS: List the NAMES ONLY (never values) of every secret currently
+   available to the DEPLOYMENT environment (not the workspace). Then explicitly state
+   which of these are present or missing: DATABASE_URL, ENCRYPTION_KEY,
+   VITE_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+   ALLOWED_ORIGINS, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER,
+   TWILIO_TWIML_APP_SID, SENDGRID_API_KEY, EXPERIAN_API_URL.
+
+5. MISSING-SECRET BEHAVIOR: For each MISSING secret from item 4, state what happens at
+   runtime — does the server crash on boot, or does that feature degrade gracefully?
+   Specifically confirm the app boots and core CRM works with Twilio, SendGrid, and
+   Experian secrets absent.
+
+6. DATABASE: Does the deployment use the same PostgreSQL database as the workspace, or
+   a separate production database? Run the drizzle schema check (push --dry-run or
+   equivalent) and report whether the live database schema matches the code schema.
+   List any pending changes WITHOUT applying them.
+
+7. MIGRATIONS: Confirm whether the two SQL migrations in lib/db/migrations/
+   (001_create_credit_tables.sql and credit_compliance_log_append_only.sql) have been
+   applied to the database this deployment will use. Report how you verified it
+   (e.g., table/trigger existence check).
+
+8. BACKGROUND JOBS: Confirm the drip job, task reminder job, and renewal job are
+   scheduled in the entry point that the deployment run command starts (not a different
+   entry file). State the file and the intervals.
+
+9. GRACEFUL SHUTDOWN: Confirm the SIGTERM handler will run under the deployment's
+   process manager, and that it clears the job intervals and closes the Puppeteer
+   browser.
+
+10. NODE_ENV: Is NODE_ENV set to "production" in the deployment? Note that our CORS
+    restriction and error handler depend on it. If it is not set, report that — do not
+    set it yourself.
+
+11. PUBLIC ROUTES: Confirm these routes work WITHOUT authentication in the deployed
+    build (they are merchant-facing): /apply, /apply/status, POST /api/leads/capture,
+    POST /api/applications/submit, GET /api/applications/status/:token, and the email
+    tracking/unsubscribe endpoints.
+
+12. KNOWN RISKS: List anything you are aware of in the current configuration that could
+    fail on first deploy that was not covered above (e.g., Puppeteer/Chromium
+    dependencies on the deployment image, file upload temp storage, memory ceiling for
+    the chosen VM size, Clerk dev-key domain behavior).
+
+Output the report as a numbered list matching the items above, each answer marked
+PASS / FAIL / MISSING / N-A with one or two lines of evidence. Do not fix anything —
+we will review the report first and decide what to change.

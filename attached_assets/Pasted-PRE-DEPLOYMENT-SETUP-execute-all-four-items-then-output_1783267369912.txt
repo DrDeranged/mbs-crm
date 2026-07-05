@@ -1,0 +1,35 @@
+PRE-DEPLOYMENT SETUP — execute all four items, then output the verification report.
+
+1. ENCRYPTION_KEY
+   Check if a secret named ENCRYPTION_KEY exists. If not, generate a 32-byte key as 64
+   hex characters (crypto.randomBytes(32).toString("hex")) and save it as the
+   ENCRYPTION_KEY secret. NEVER print the key value in chat, logs, or files — set it
+   directly as a secret only. Confirm afterwards by checking length and hex format from
+   process.env (report "64 VALID" or what you found, never the value).
+
+2. ALLOWED_ORIGINS
+   Set a secret named ALLOWED_ORIGINS to exactly:
+   https://app.my-business-solutions.com,https://my-business-solutions.com,https://www.my-business-solutions.com
+   (comma-separated, no spaces, no trailing slash).
+
+3. DEPLOYMENT TARGET
+   The root .replit currently declares deploymentTarget = "autoscale". This app runs
+   background interval jobs (drip, reminders, renewals) and must be a Reserved VM
+   deployment so the process never scales to zero. Update the deployment configuration
+   so Reserved VM is the target. Report what you changed.
+
+4. DATABASE SCHEMA DRIFT CHECK
+   Run the Drizzle schema push in a mode where you can see the proposed changes before
+   they apply (pnpm --filter @workspace/db run push). Report exactly what pending
+   changes it lists. If the pending changes are only ADDITIVE (new columns like
+   funded_amount, ai_summary, renewal columns, tracking_token, or new tables like
+   notifications / workflow_rules), apply them. If it proposes DROPPING or ALTERING
+   existing columns or tables, DO NOT apply — stop and report the full list instead.
+
+VERIFICATION REPORT — output exactly this checklist with PASS/FAIL and one line of
+evidence each (never any secret values):
+[ ] ENCRYPTION_KEY exists, 64 hex chars
+[ ] ALLOWED_ORIGINS set with the 3 domains
+[ ] Deployment target is Reserved VM
+[ ] Schema in sync (list anything applied, or the drift you refused to apply)
+[ ] App still boots after changes (restart the dev server and confirm no boot errors)
