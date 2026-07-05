@@ -1,0 +1,40 @@
+PRODUCTION DATABASE FIX — the deployment uses a separate PRODUCTION copy of the Postgres
+database (forked at deploy time). All prior cleanup/promotion SQL was run against the
+DEVELOPMENT database only. Perform the following against the PRODUCTION database that the
+live deployment reads — NOT the dev database the workspace $DATABASE_URL points to. Use
+Replit's database environment tooling to target production. Never print connection strings
+or secrets.
+
+1. PROMOTE ADMIN (production):
+   UPDATE users SET role='admin' WHERE email='arslandin11@gmail.com';
+
+2. REMOVE TEST DATA (production) — delete ONLY these known test rows, nothing else:
+   a) Delete all leads where assigned_rep_id = 1 (the agent seed admin's 5 demo leads) OR
+      assigned_rep_id IS NULL (the 2 "RevCo" revenue-test leads). Rely on ON DELETE CASCADE
+      for children. If any foreign key blocks deletion, delete the blocking child rows for
+      those specific lead ids only, then retry. If credit_compliance_log rows block anything,
+      STOP for that lead and report it (that table is append-only by design — do not disable
+      or drop its triggers).
+   b) Delete the two test users:
+      DELETE FROM users WHERE email IN ('admin@mbsfinancing.com','revenue.tester@example.com');
+
+3. VERIFY SCHEMA PARITY (production): confirm these exist in the production database and
+   report PASS/FAIL for each:
+   - Tables: notifications, workflow_rules, credit_pulls, credit_compliance_log
+   - Columns on leads: funded_amount, funded_at, renewal_flagged_at, ai_summary, tracking_token
+   - Columns on communications: call_notes, call_outcome
+   - Triggers: SELECT tgname FROM pg_trigger WHERE tgname LIKE 'credit_compliance%';
+     (expect the no-update and no-delete triggers)
+   If anything is missing, report it — do NOT attempt destructive fixes; additive-only.
+
+4. FINAL VERIFICATION — run against production and output the results:
+   SELECT id, email, role FROM users ORDER BY id;   -- expect exactly 1 row: arslandin11@gmail.com, admin
+   SELECT COUNT(*) AS leads FROM leads;             -- expect 0
+
+5. Explain in one paragraph: how the dev and production databases are separated in this
+   project, which one the deployed app reads, which one the workspace $DATABASE_URL points
+   to, and the correct procedure for future schema changes to reach production (so we never
+   edit the wrong database again).
+
+RULES: production-only for this task; no schema drops; no trigger changes; no touching any
+row not explicitly listed above; never output secrets or connection strings.
