@@ -326,7 +326,7 @@ router.get("/analytics/communications", async (req: Request, res: Response) => {
 
   const { startDate, endDate, repId } = parseDateRange(req);
   const effectiveRepId = user.role === "rep" ? user.id : repId;
-  const granularity = (req.query["granularity"] as string) === "weekly" ? "week" : "day";
+  const granularity: "day" | "week" = (req.query["granularity"] as string) === "weekly" ? "week" : "day";
 
   const clauses = [];
   if (startDate) clauses.push(gte(communicationsTable.createdAt, startDate));
@@ -334,7 +334,12 @@ router.get("/analytics/communications", async (req: Request, res: Response) => {
   if (effectiveRepId) clauses.push(eq(communicationsTable.userId, effectiveRepId));
   const where = clauses.length ? and(...clauses) : undefined;
 
-  const truncExpr = sql<string>`date_trunc(${granularity}, "communications"."created_at")::date::text`;
+  // granularity is restricted to a fixed whitelist above, so it is safe to inline as a raw
+  // SQL literal here. It must NOT be passed as a bound parameter: when the same `sql` fragment
+  // is referenced in SELECT, GROUP BY, and ORDER BY, each reference gets its own bind parameter
+  // ($1/$2/$3), and Postgres cannot prove those separately-parameterized expressions are
+  // identical, causing "column must appear in the GROUP BY clause" errors on every query.
+  const truncExpr = sql<string>`date_trunc(${sql.raw(`'${granularity}'`)}, "communications"."created_at")::date::text`;
 
   const rows = await db
     .select({

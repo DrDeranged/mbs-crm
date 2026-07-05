@@ -10,3 +10,4 @@
 - [Redact all free-text before sending to AI providers](ai-prompt-redaction.md) — every free-text input reaching an AI prompt (notes, message bodies, email subjects, user-typed instructions) needs redaction, not just structured/DB fields.
 - [Postgres check constraints drift from Drizzle enums](enum-check-constraints.md) — adding a value to a TS string-union column doesn't update the DB's CHECK constraint; must ALTER it manually and test the real insert path.
 - [drizzle-kit push interactive prompt](drizzle-push-interactive-prompt.md) — push can hang on unrelated pre-existing constraints in non-TTY sessions; apply targeted `ALTER TABLE` via psql instead.
+- [Repeated parameterized sql fragment breaks GROUP BY](drizzle-groupby-param-bug.md) — reusing one `sql` template (e.g. date_trunc(granularity, ...)) across SELECT/GROUP BY/ORDER BY fails in Postgres regardless of row count; use `sql.raw` for whitelisted literals instead.

@@ -1,0 +1,37 @@
+STEP 4 — REMOVE THE ONE-TIME MAINTENANCE ROUTE (mandatory cleanup)
+
+The production data fix is CONFIRMED complete. Owner ran the endpoint from a logged-in
+session; verified JSON output: { promoted: true, leadsRemaining: 0, users: Array(1) } —
+exactly one user (arslandin11@gmail.com, admin), zero leads in production.
+
+The maintenance endpoint must now be permanently removed. In addition, fix one bug that
+production surfaced. Execute in this order:
+
+1. DELETE artifacts/api-server/src/routes/maintenance.ts entirely.
+2. Remove its import and registration from artifacts/api-server/src/routes/index.ts.
+3. FIX: GET /api/analytics/communications?granularity=daily returns 500 in production
+   when the database has zero communications rows (confirmed live — it errored twice on
+   a fresh dashboard load). Find the failure in that handler in
+   artifacts/api-server/src/routes/analytics.ts — likely an unguarded aggregation,
+   date-series generation, or null reduce over an empty result set — and fix it so an
+   empty dataset returns a valid, well-formed response (e.g. an empty series array or
+   zero-filled series), never a 500. Also check the other analytics endpoints
+   (summary, pipeline, reps, sources, renewals) for the same empty-database failure
+   mode and apply the same guard where needed — the dashboard must render fully on a
+   completely fresh database with zero leads and zero communications.
+4. Run npx tsc --build → must exit 0.
+5. Verify locally: with the dev database, confirm GET /api/analytics/communications
+   ?granularity=daily returns 200 (dev has data — also temporarily reason through the
+   empty case in code review since dev is not empty).
+6. Republish the deployment.
+7. Commit and push everything to GitHub.
+
+VERIFICATION — report each:
+[ ] maintenance.ts deleted, no references remain (grep -r "one-time-cleanup" returns nothing)
+[ ] routes/index.ts has no maintenance import/registration
+[ ] analytics communications endpoint hardened for empty datasets (state what the bug was)
+[ ] tsc --build exit 0
+[ ] Republished
+[ ] Pushed to GitHub
+
+Report DONE only when the live deployment no longer contains the maintenance route.

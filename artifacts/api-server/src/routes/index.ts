@@ -24,7 +24,6 @@ import creditRouter from "./credit";
 import workflowRulesRouter from "./workflowRules";
 import notificationsRouter from "./notifications";
 import aiRouter from "./ai";
-import maintenanceRouter from "./maintenance";
 
 const router: IRouter = Router();
 
@@ -53,6 +52,5 @@ router.use(workflowRulesRouter);
 router.use(notificationsRouter);
 router.use(aiRouter);
 router.use(storageRouter);
-router.use(maintenanceRouter);
 
 export default router;
