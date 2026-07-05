@@ -1,0 +1,44 @@
+ONE-TIME PRODUCTION DATA FIX — build a temporary, owner-gated maintenance endpoint,
+because agent tooling cannot write to the production database. This endpoint runs through
+the app's own production DB connection. It will be REMOVED immediately after use.
+
+STEP 1 — Create the endpoint
+In artifacts/api-server/src/routes/, create maintenance.ts with a single route:
+
+POST /maintenance/one-time-cleanup
+
+Security requirements (all mandatory):
+- Use getAuth(req) from @clerk/express. The route executes ONLY if the authenticated
+  Clerk user ID is EXACTLY "user_3G5nqFNmuEbSPu0wZ91SLhCiOZE". Any other caller —
+  authenticated or not — gets 404 (not 403; do not reveal the route exists).
+- POST only. No GET handler.
+- Do NOT use requireUser or the users table for the gate (the caller is currently a
+  "rep" in production — that is the bug being fixed). Gate on the Clerk ID string only.
+
+The route body, in one db.transaction:
+  1. UPDATE users SET role='admin' WHERE email='arslandin11@gmail.com';
+  2. DELETE FROM leads WHERE assigned_rep_id = 1 OR assigned_rep_id IS NULL;
+  3. DELETE FROM users WHERE email IN ('admin@mbsfinancing.com','revenue.tester@example.com');
+Then OUTSIDE the transaction, query and return JSON:
+  { promoted: <bool>, leadsRemaining: <count>, users: [{id, email, role}] }
+Wrap in try/catch; on FK errors return the error message in JSON (do not crash).
+
+Register the router in routes/index.ts. Run npx tsc --build (must exit 0).
+
+STEP 2 — Publish
+Republish the deployment so the route exists in production. Confirm when live.
+
+STEP 3 — I will trigger it myself
+After you confirm it is live, I (the owner) will run from my logged-in browser session:
+fetch("/api/maintenance/one-time-cleanup", { method: "POST" }).then(r => r.json()).then(console.log)
+Do not trigger it yourself — you cannot (the gate is my Clerk ID).
+
+STEP 4 — REMOVAL (mandatory, do not skip)
+After I confirm the JSON shows users = exactly one admin (arslandin11@gmail.com) and
+leadsRemaining = 0:
+  1. DELETE artifacts/api-server/src/routes/maintenance.ts entirely
+  2. Remove its registration from routes/index.ts
+  3. npx tsc --build (exit 0)
+  4. Republish so the endpoint no longer exists in production
+  5. Commit and push to GitHub
+Report DONE only when the route is deleted from the live deployment.
