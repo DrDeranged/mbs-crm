@@ -1,0 +1,117 @@
+Five tasks in one pass for the MBS CRM. Follow existing conventions (requireUser, RBAC,
+logActivity, openapi + codegen, db.transaction where multiple writes occur, existing
+shadcn/ui components and the app's Tailwind theme). The official MBS logo has been added
+at artifacts/mbs-crm/src/assets/mbs-logo.png (black "MBS" wordmark, transparent PNG). Run
+npx tsc --build (must exit 0) and push to GitHub at the end.
+
+================================================================================
+TASK 1 — SEED EMAIL TEMPLATES (MCA broker starter set)
+================================================================================
+Insert these into email_templates if they don't already exist (idempotent — skip any
+whose name already exists). Support the existing variables {{lead_first_name}},
+{{lead_last_name}}, {{lead_company}}, {{rep_name}}, {{rep_email}}. Implement as an
+admin-triggerable "Load starter templates" button on the Email Templates page (preferred)
+OR a one-time seed — either way it must not create duplicates on repeat runs.
+
+1. name "Application Received" | program_type null
+   subject: "We received your application, {{lead_first_name}}"
+   body: warm confirmation that {{lead_company}}'s financing application was received, a
+   specialist ({{rep_name}}) will review and reach out within one business day, invite
+   them to reply with questions.
+
+2. name "Initial Follow-Up" | program_type null
+   subject: "Following up on {{lead_company}}'s financing"
+   body: {{rep_name}} following up, offering to answer questions and outline next steps,
+   light call-to-action to reply or schedule a call.
+
+3. name "Document Request" | program_type null
+   subject: "Quick documents to move {{lead_company}} forward"
+   body: request standard items (3–6 months of business bank statements; note any already
+   on file), explain it speeds approval, reassure about data security.
+
+4. name "Working Capital Program" | program_type working_capital
+   subject: "Working capital options for {{lead_company}}"
+   body: brief overview of working capital / MCA funding benefits (speed, flexibility,
+   revenue-based) WITHOUT specific rates, amounts, or approval promises.
+
+5. name "Equipment Financing Program" | program_type equipment
+   subject: "Equipment financing for {{lead_company}}"
+   body: brief overview of equipment financing benefits, again NO specific rates/terms.
+
+6. name "Status Update" | program_type null
+   subject: "An update on your {{lead_company}} application"
+   body: reassure the application is actively being worked, {{rep_name}} is the point of
+   contact, invite questions.
+
+7. name "Approved" | program_type null
+   subject: "Great news for {{lead_company}}"
+   body: congratulate, {{rep_name}} will call to review details and next steps. No
+   specific dollar figures.
+
+CRITICAL COMPLIANCE: no invented rates, amounts, approval guarantees, or legal/financial
+claims in any template. Neutral, professional, compliant tone throughout.
+
+================================================================================
+TASK 2 — SEED A STARTER DRIP SEQUENCE
+================================================================================
+Create one drip_sequence "New Application Nurture", trigger_status "application_received",
+is_active true, with steps referencing the Task 1 template IDs:
+  step 1: "Application Received", delay_hours 0
+  step 2: "Initial Follow-Up", delay_hours 24
+  step 3: "Document Request", delay_hours 72
+Idempotent — do not duplicate if it already exists.
+
+================================================================================
+TASK 3 — AUTO-ASSIGN FALLBACK
+================================================================================
+In the application submit flow (routes/applications.ts) and any round-robin rep
+assignment: new leads currently assign to an active "rep" and are left Unassigned when no
+reps exist. Add a fallback chain: if zero active reps, assign to an active manager; if no
+managers, to an active admin. Never leave a new application unassigned when any active
+user exists. Log the assignment in activity_log as usual.
+
+================================================================================
+TASK 4 — VISUAL POLISH: LOGIN PAGE + LOGO
+================================================================================
+A) LOGIN / SIGN-IN PAGE (artifacts/mbs-crm/src/pages/login.tsx and any auth wrapper):
+   Upgrade the bare centered card into a polished, premium sign-in experience:
+   - Use the MBS logo at artifacts/mbs-crm/src/assets/mbs-logo.png as the brand mark,
+     replacing the briefcase icon + "MBS CRM" text wordmark. Size it crisply (not
+     stretched).
+   - Replace the flat gray background with a refined split-panel layout: a left brand
+     panel in MBS navy (#1F4E79) with the value line "Business financing, simplified."
+     (white text only on the navy side), and the sign-in card on the right on a clean
+     light background. Collapse gracefully to a single centered column on mobile.
+   - The MBS logo is BLACK, so place it on the white/light sign-in side, never on the
+     navy panel where it would disappear.
+   - Polish the card: refined shadow, radius, padding; ensure the Clerk form container,
+     primary button, inputs, and "Continue with Google" match the app's design language.
+   - Fully responsive and centered on all screen sizes.
+
+B) SIDEBAR LOGO (artifacts/mbs-crm/src/components/app-shell.tsx):
+   Replace the briefcase icon + "MBS CRM" text in the sidebar header with the MBS logo.
+   Since the logo is BLACK and the sidebar is navy, render it inside a small
+   white/rounded container (a chip) so it stays visible against the dark background.
+   Keep it compact and aligned.
+
+================================================================================
+TASK 5 — APP-WIDE POLISH (light touch, high impact — no functional or layout changes)
+================================================================================
+   - Tighten consistent spacing, card shadows, and border radii across Dashboard, Leads,
+     and Lead Detail so they feel like one cohesive design system.
+   - Ensure status badges, score badges, and KPI cards use a consistent, refined,
+     professional color scale (not garish).
+   - Improve empty states and section headers for visual consistency.
+   - Verify sidebar, active-nav states, and typography hierarchy look deliberate.
+   Use only existing Tailwind theme tokens / shadcn components — add no new dependencies.
+
+================================================================================
+VERIFICATION — report each with PASS/FAIL:
+[ ] 7 email templates seeded (idempotent), correct variables, NO invented rates/approvals
+[ ] "New Application Nurture" drip: 3 steps at 0 / 24 / 72 hours
+[ ] Auto-assign fallback: rep → manager → admin; never unassigned when a user exists
+[ ] Login page redesigned (split-panel), MBS logo on the light side, responsive
+[ ] Sidebar uses MBS logo in a white chip against the navy background
+[ ] App-wide polish applied with no functional or layout regressions
+[ ] npx tsc --build exits 0
+[ ] Pushed to GitHub
