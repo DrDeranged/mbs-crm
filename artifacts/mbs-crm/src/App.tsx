@@ -73,7 +73,13 @@ const clerkAppearance = {
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
     headerTitle: "text-slate-900 font-bold",
     headerSubtitle: "text-slate-500",
-    socialButtonsBlockButtonText: "text-slate-700",
+    socialButtonsBlockButtonText: {
+      style: {
+        color: "#1e293b",
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+    },
     formFieldLabel: "text-slate-700",
     footerActionLink: "text-[#1F4E79] hover:text-[#163a5f]",
     footerActionText: "text-slate-500",
@@ -83,7 +89,16 @@ const clerkAppearance = {
     alertText: "text-slate-700",
     logoBox: "mb-2",
     logoImage: "h-10",
-    socialButtonsBlockButton: "border border-slate-200 hover:bg-slate-50",
+    socialButtonsBlockButton: {
+      style: {
+        border: "1.5px solid #d1d5db",
+        backgroundColor: "#ffffff",
+        color: "#1e293b",
+        fontWeight: "500",
+        boxShadow: "0 1px 2px 0 rgba(0,0,0,0.06)",
+        borderRadius: "0.5rem",
+      },
+    },
     formButtonPrimary: "bg-[#1F4E79] hover:bg-[#163a5f] text-white",
     formFieldInput: "border-slate-200 text-slate-900",
     footerAction: "bg-slate-50",
