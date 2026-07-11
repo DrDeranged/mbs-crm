@@ -163,3 +163,22 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Clerk social button — un-layered rules beat @layer clerk and @layer utilities */
+.cl-socialButtonsBlockButton {
+  border: 1.5px solid #d1d5db !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.07) !important;
+  border-radius: 0.5rem !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+}
+.cl-socialButtonsBlockButton:hover {
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+}
+.cl-socialButtonsBlockButtonText,
+.cl-socialButtonsBlockButtonText * {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+}
