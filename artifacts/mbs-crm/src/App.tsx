@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, Show, useClerk } from "@clerk/react";
+import mbsLogo from "@/assets/MBS-Logo-Header-Logo.png";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -104,21 +105,54 @@ function PageLoader() {
 
 function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full flex flex-col items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1F4E79] text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    <div className="flex min-h-screen w-full">
+      {/* Left brand panel — navy, desktop only */}
+      <div
+        className="hidden md:flex md:w-[45%] flex-col items-center justify-center gap-8 px-12 relative overflow-hidden"
+        style={{ backgroundColor: "#1F4E79" }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute top-1/3 -right-4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
+        <div className="max-w-xs text-center space-y-5 relative z-10">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-white tracking-tight leading-tight">
+              My Business Solutions
+            </h1>
+            <p className="text-lg text-blue-200 font-light">
+              Business financing, simplified.
+            </p>
           </div>
-          <span className="text-2xl font-bold text-slate-900">MBS CRM</span>
+          <div className="w-12 h-0.5 bg-blue-400/40 mx-auto rounded-full" />
+          <p className="text-sm text-blue-200/75 leading-relaxed">
+            Fast, flexible funding for businesses ready to grow. Our dedicated specialists guide you every step of the way.
+          </p>
         </div>
-        <SignIn
-          routing="path"
-          path={`${basePath}/sign-in`}
-          appearance={clerkAppearance}
-          signUpUrl={undefined}
-          forceRedirectUrl={`${basePath}/dashboard`}
-        />
+      </div>
+
+      {/* Right sign-in panel */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-slate-50 px-6 py-12">
+        <div className="w-full max-w-[440px] space-y-7">
+          {/* Logo — black wordmark on white chip, visible on light background */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="bg-white rounded-2xl px-5 py-3 shadow-sm border border-slate-100">
+              <img
+                src={mbsLogo}
+                alt="My Business Solutions"
+                className="h-10 w-auto object-contain"
+              />
+            </div>
+            <p className="text-sm text-slate-400 md:hidden">Business financing, simplified.</p>
+          </div>
+          <SignIn
+            routing="path"
+            path={`${basePath}/sign-in`}
+            appearance={clerkAppearance}
+            signUpUrl={undefined}
+            forceRedirectUrl={`${basePath}/dashboard`}
+          />
+        </div>
       </div>
     </div>
   );

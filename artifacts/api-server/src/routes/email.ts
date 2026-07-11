@@ -7,8 +7,10 @@ import {
   emailSendsTable,
   leadsTable,
   usersTable,
+  dripSequencesTable,
+  dripSequenceStepsTable,
 } from "@workspace/db";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { eq, and, isNotNull, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 
@@ -536,6 +538,171 @@ function templateToApi(t: any) {
     updatedAt: t.updatedAt.toISOString(),
   };
 }
+
+// POST /email/seed-starter — admin only, idempotent
+router.post("/email/seed-starter", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") {
+    res.status(403).json({ error: "Admins only" });
+    return;
+  }
+
+  const STARTER_TEMPLATES = [
+    {
+      name: "Application Received",
+      programType: null as string | null,
+      subject: "We received your application, {{lead_first_name}}",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>Thank you for submitting {{lead_company}}'s financing application to My Business Solutions. We're pleased to confirm that we have received everything and your file is now in review.</p>
+<p>{{rep_name}} has been assigned as your dedicated specialist and will personally review your application and reach out within one business day to discuss next steps.</p>
+<p>In the meantime, if you have any questions or need to provide additional information, please don't hesitate to reply to this email.</p>
+<p>We look forward to working with you.</p>
+<p>Warm regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Initial Follow-Up",
+      programType: null as string | null,
+      subject: "Following up on {{lead_company}}'s financing",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>I wanted to follow up on the financing application we received for {{lead_company}}. My name is {{rep_name}} and I'm your point of contact throughout this process.</p>
+<p>I'm happy to answer any questions you may have and walk you through the next steps so everything moves forward smoothly. Whether you'd prefer to reply here or schedule a quick call, I'm available at your convenience.</p>
+<p>Looking forward to hearing from you.</p>
+<p>Best,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Document Request",
+      programType: null as string | null,
+      subject: "Quick documents to move {{lead_company}} forward",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>To keep your application moving forward as quickly as possible, we need a few standard documents for {{lead_company}}:</p>
+<ul>
+  <li>3–6 months of recent business bank statements</li>
+</ul>
+<p>If you've already provided any of these, no need to resend — we'll note what's already on file.</p>
+<p>Submitting these documents helps our team complete the review and move toward a decision faster. Your information is handled securely and kept strictly confidential.</p>
+<p>Please reply to this email with the documents attached, or let me know if you have any questions about what's needed.</p>
+<p>Thank you,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Working Capital Program",
+      programType: "working_capital" as string | null,
+      subject: "Working capital options for {{lead_company}}",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>I wanted to share a quick overview of our working capital program, which may be a strong fit for {{lead_company}}.</p>
+<p>Working capital financing is designed to give businesses fast access to the funds they need to cover day-to-day operations, manage cash flow, or seize growth opportunities. Key benefits include:</p>
+<ul>
+  <li><strong>Speed:</strong> Funding decisions typically happen quickly, without the lengthy timelines of traditional bank loans.</li>
+  <li><strong>Flexibility:</strong> Funds can be used for virtually any business purpose.</li>
+  <li><strong>Revenue-based:</strong> Repayment is structured around your business's cash flow, not a fixed monthly payment.</li>
+</ul>
+<p>I'd love to walk you through how this could work specifically for {{lead_company}}. Reply here or let me know a good time to connect.</p>
+<p>Best,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Equipment Financing Program",
+      programType: "equipment" as string | null,
+      subject: "Equipment financing for {{lead_company}}",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>I wanted to share some information about our equipment financing program, which could be a great solution for {{lead_company}}.</p>
+<p>Equipment financing allows businesses to acquire the tools and machinery they need without a large upfront capital outlay. Some of the key advantages include:</p>
+<ul>
+  <li><strong>Preserve cash flow:</strong> Keep your working capital available for other needs.</li>
+  <li><strong>Fixed repayment structure:</strong> Predictable payments make budgeting straightforward.</li>
+  <li><strong>Wide range of equipment:</strong> From vehicles and machinery to technology and fixtures.</li>
+</ul>
+<p>I'd be happy to discuss how this program could support your goals at {{lead_company}}. Feel free to reply or suggest a time to speak.</p>
+<p>Warm regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Status Update",
+      programType: null as string | null,
+      subject: "An update on your {{lead_company}} application",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>I wanted to touch base with a brief update on {{lead_company}}'s application. Rest assured, your file is actively being worked on and our team is focused on moving things forward.</p>
+<p>As always, {{rep_name}} is your dedicated point of contact and is here to help with any questions or concerns along the way. Please don't hesitate to reach out at {{rep_email}}.</p>
+<p>We appreciate your patience and will be in touch with further updates shortly.</p>
+<p>Best regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Approved",
+      programType: null as string | null,
+      subject: "Great news for {{lead_company}}",
+      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+<p>We have great news regarding {{lead_company}}'s application!</p>
+<p>{{rep_name}} will be reaching out to you shortly to review the details and walk you through the next steps to finalize everything. Please keep an eye out for their call or email.</p>
+<p>If you have any immediate questions in the meantime, feel free to reply to this email or contact {{rep_name}} directly at {{rep_email}}.</p>
+<p>We're excited to support {{lead_company}} and look forward to getting things wrapped up quickly.</p>
+<p>Congratulations and thank you for choosing My Business Solutions!</p>
+<p>Warmly,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+  ];
+
+  // Idempotent insert — skip names that already exist
+  const existingTemplates = await db.select({ name: emailTemplatesTable.name }).from(emailTemplatesTable);
+  const existingNames = new Set(existingTemplates.map((t) => t.name));
+
+  const toInsert = STARTER_TEMPLATES.filter((t) => !existingNames.has(t.name));
+  let templatesCreated = 0;
+  const createdTemplates: { name: string; id: number }[] = [];
+
+  for (const t of toInsert) {
+    const [inserted] = await db.insert(emailTemplatesTable).values({
+      name: t.name,
+      subject: t.subject,
+      bodyHtml: t.bodyHtml,
+      programType: t.programType as any,
+      createdBy: user.id,
+      isActive: true,
+    }).returning();
+    createdTemplates.push({ name: t.name, id: inserted.id });
+    templatesCreated++;
+  }
+
+  // Build a name→id map covering both pre-existing and newly created templates
+  const allTemplates = await db.select({ id: emailTemplatesTable.id, name: emailTemplatesTable.name })
+    .from(emailTemplatesTable)
+    .where(inArray(emailTemplatesTable.name, ["Application Received", "Initial Follow-Up", "Document Request"]));
+  const templateIdByName: Record<string, number> = {};
+  for (const t of allTemplates) templateIdByName[t.name] = t.id;
+
+  // Seed "New Application Nurture" drip sequence (idempotent)
+  let sequenceCreated = false;
+  const SEQUENCE_NAME = "New Application Nurture";
+  const existing = await db.select({ id: dripSequencesTable.id })
+    .from(dripSequencesTable)
+    .where(eq(dripSequencesTable.name, SEQUENCE_NAME));
+
+  if (existing.length === 0) {
+    const appReceivedId = templateIdByName["Application Received"];
+    const followUpId = templateIdByName["Initial Follow-Up"];
+    const docRequestId = templateIdByName["Document Request"];
+
+    if (appReceivedId && followUpId && docRequestId) {
+      const [seq] = await db.insert(dripSequencesTable).values({
+        name: SEQUENCE_NAME,
+        triggerStatus: "application_received",
+        isActive: true,
+      }).returning();
+
+      await db.insert(dripSequenceStepsTable).values([
+        { sequenceId: seq.id, stepOrder: 1, templateId: appReceivedId, delayHours: 0 },
+        { sequenceId: seq.id, stepOrder: 2, templateId: followUpId, delayHours: 24 },
+        { sequenceId: seq.id, stepOrder: 3, templateId: docRequestId, delayHours: 72 },
+      ]);
+      sequenceCreated = true;
+    }
+  }
+
+  res.json({
+    templatesCreated,
+    sequenceCreated,
+    skippedTemplates: STARTER_TEMPLATES.length - templatesCreated,
+    message: templatesCreated > 0 || sequenceCreated
+      ? `Created ${templatesCreated} template(s) and ${sequenceCreated ? 1 : 0} drip sequence.`
+      : "All starter templates already exist. Nothing was duplicated.",
+  });
+});
 
 function sendToApi(s: any) {
   return {

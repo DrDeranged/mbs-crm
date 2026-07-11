@@ -6,7 +6,6 @@ import {
   Users,
   Settings as SettingsIcon,
   LogOut,
-  Briefcase,
   Upload,
   Menu,
   Mail,
@@ -16,6 +15,7 @@ import {
   ShieldCheck,
   GitBranch,
 } from "lucide-react";
+import mbsLogo from "@/assets/MBS-Logo-Header-Logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
@@ -69,13 +69,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0 gap-2">
-        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 font-bold tracking-tight flex-1 min-w-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm flex-shrink-0">
-            <Briefcase size={16} />
-          </div>
-          <div className="flex flex-col leading-none min-w-0">
-            <span className="text-sm font-bold text-sidebar-foreground">MBS CRM</span>
-            <span className="text-xs text-sidebar-foreground/40 font-normal">Business Solutions</span>
+        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 flex-1 min-w-0">
+          {/* White chip so the black logo is visible against the navy sidebar */}
+          <div className="flex items-center justify-center rounded-xl bg-white px-2.5 py-1.5 shadow-sm flex-shrink-0">
+            <img src={mbsLogo} alt="MBS" className="h-6 w-auto object-contain" />
           </div>
         </Link>
         <NotificationBell />
@@ -182,11 +179,10 @@ export function AppShell({ children }: AppShellProps) {
               <SidebarContent onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
-          <div className="flex items-center gap-2 font-bold tracking-tight flex-1 min-w-0">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-              <Briefcase size={14} />
+          <div className="flex items-center flex-1 min-w-0">
+            <div className="flex items-center justify-center rounded-lg bg-white px-2 py-1 shadow-sm flex-shrink-0">
+              <img src={mbsLogo} alt="MBS" className="h-5 w-auto object-contain" />
             </div>
-            <span className="text-sm font-bold">MBS CRM</span>
           </div>
           <NotificationBell />
         </div>

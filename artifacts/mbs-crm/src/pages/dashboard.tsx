@@ -110,18 +110,20 @@ function KpiCard({
   loading?: boolean;
 }) {
   return (
-    <Card>
+    <Card className="shadow-sm border-slate-100">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           {label}
         </CardTitle>
-        {icon}
+        <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400">
+          {icon}
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold tabular-nums">{value}</div>
+          <div className="text-3xl font-bold tabular-nums text-slate-900">{value}</div>
         )}
       </CardContent>
     </Card>

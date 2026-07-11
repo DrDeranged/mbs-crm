@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
 import { useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, usePreviewEmailTemplate, useSendBulkEmail, useListLeads } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +13,47 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Mail, Edit2, Eye, CheckCircle, Send, Users } from "lucide-react";
+import { Plus, Mail, Edit2, Eye, CheckCircle, Send, Users, Loader2, Sparkles } from "lucide-react";
+
+const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+
+function SeedTemplatesButton() {
+  const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleSeed = async () => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${apiBase}/email/seed-starter`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      queryClient.invalidateQueries({ queryKey: ["email-templates"] });
+      toast({ title: data.message });
+    } catch (e: any) {
+      toast({ title: e.message || "Failed to load starter templates", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      onClick={handleSeed}
+      disabled={loading}
+      className="gap-1.5 border-dashed"
+    >
+      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+      Load starter templates
+    </Button>
+  );
+}
 
 const PROGRAM_TYPES = [
   { value: "working_capital", label: "Working Capital" },
@@ -287,13 +328,16 @@ export default function EmailTemplates() {
           <h1 className="text-2xl font-bold text-slate-900">Email Templates</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage reusable email templates with variable substitution.</p>
         </div>
-        <TemplateFormDialog
-          trigger={
-            <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
-              <Plus className="h-4 w-4 mr-1.5" /> New Template
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-2">
+          <SeedTemplatesButton />
+          <TemplateFormDialog
+            trigger={
+              <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                <Plus className="h-4 w-4 mr-1.5" /> New Template
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       {/* Variables reference */}

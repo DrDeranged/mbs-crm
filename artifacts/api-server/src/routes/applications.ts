@@ -155,21 +155,28 @@ async function logActivity(params: {
   });
 }
 
-/** Round-robin: pick the active rep with fewest assigned leads. */
+/**
+ * Round-robin assignment with fallback chain: rep → manager → admin.
+ * Returns null only when no active users exist at all.
+ */
 async function pickNextRep(): Promise<number | null> {
-  const reps = await db.query.usersTable.findMany({
-    where: and(eq(usersTable.role, "rep"), eq(usersTable.isActive, true)),
-  });
-  if (reps.length === 0) return null;
+  const roleFallback = ["rep", "manager", "admin"] as const;
+  for (const role of roleFallback) {
+    const users = await db.query.usersTable.findMany({
+      where: and(eq(usersTable.role, role), eq(usersTable.isActive, true)),
+    });
+    if (users.length === 0) continue;
 
-  const counts = await Promise.all(
-    reps.map(async (rep: { id: number }) => {
-      const leads = await db.query.leadsTable.findMany({ where: eq(leadsTable.assignedRepId, rep.id) });
-      return { repId: rep.id, count: leads.length };
-    })
-  );
-  counts.sort((a: { count: number }, b: { count: number }) => a.count - b.count);
-  return counts[0]?.repId ?? null;
+    const counts = await Promise.all(
+      users.map(async (u: { id: number }) => {
+        const leads = await db.query.leadsTable.findMany({ where: eq(leadsTable.assignedRepId, u.id) });
+        return { repId: u.id, count: leads.length };
+      })
+    );
+    counts.sort((a: { count: number }, b: { count: number }) => a.count - b.count);
+    return counts[0]?.repId ?? null;
+  }
+  return null;
 }
 
 // POST /applications/submit — public, rate-limited, multipart
