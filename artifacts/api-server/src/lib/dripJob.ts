@@ -6,6 +6,7 @@ import {
   emailTemplatesTable,
   leadsTable,
   usersTable,
+  jobRunsTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../routes/email";
@@ -20,6 +21,12 @@ export async function runDripJob(): Promise<void> {
     return;
   }
   running = true;
+
+  const startedAt = new Date();
+  let status: "success" | "error" = "success";
+  let itemsProcessed = 0;
+  let errorMessage: string | undefined;
+
   try {
     const activeEnrollments = await db.query.dripEnrollmentsTable.findMany({
       where: eq(dripEnrollmentsTable.status, "active"),
@@ -124,13 +131,28 @@ export async function runDripJob(): Promise<void> {
           .where(eq(dripEnrollmentsTable.id, enrollment.id));
 
         logger.info({ enrollmentId: enrollment.id, leadId: lead.id, step: newStep }, "Drip step sent");
+        itemsProcessed++;
       } catch (err) {
         logger.error({ err, enrollmentId: enrollment.id }, "Error processing drip enrollment");
       }
     }
   } catch (err) {
+    status = "error";
+    errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Drip job failed");
   } finally {
     running = false;
+    db.insert(jobRunsTable)
+      .values({
+        jobName: "drip",
+        startedAt,
+        finishedAt: new Date(),
+        status,
+        itemsProcessed,
+        errorMessage: errorMessage ?? null,
+      })
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Failed to write drip job run");
+      });
   }
 }

@@ -1,9 +1,10 @@
+import crypto from "crypto";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
+import { clerkMiddleware, getAuth } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import {
   CLERK_PROXY_PATH,
@@ -12,12 +13,21 @@ import {
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { db } from "@workspace/db";
+import { errorLogTable } from "@workspace/db";
 
 const app: Express = express();
+
+// Attach a unique request id to every request
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  req.requestId = crypto.randomUUID();
+  next();
+});
 
 app.use(
   pinoHttp({
     logger,
+    genReqId: (req) => (req as Request).requestId,
     serializers: {
       req(req) {
         return {
@@ -86,9 +96,48 @@ app.use(
 app.use("/api", router);
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const requestId = req.requestId ?? "unknown";
+  const { userId } = getAuth(req);
+
+  const status =
+    (err instanceof Error && "status" in err ? (err as any).status : null) ??
+    (err instanceof Error && "statusCode" in err ? (err as any).statusCode : null) ??
+    500;
+
   const message = err instanceof Error ? err.message : "Internal server error";
-  logger.error({ err, method: req.method, url: req.url }, "Unhandled error");
-  res.status(500).json({ error: message });
+  const stack = err instanceof Error ? err.stack : undefined;
+
+  logger.error(
+    {
+      requestId,
+      method: req.method,
+      path: req.url?.split("?")[0],
+      userId: userId ?? null,
+      status,
+      message,
+      stack,
+    },
+    "Unhandled error",
+  );
+
+  // Fire-and-forget: only log 500-level errors to DB, never block the response
+  if (status >= 500) {
+    db.insert(errorLogTable)
+      .values({
+        requestId,
+        userId: userId ?? null,
+        method: req.method,
+        path: req.url?.split("?")[0] ?? req.url,
+        status,
+        message,
+        stack: stack ?? null,
+      })
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Failed to write to error_log");
+      });
+  }
+
+  res.status(status).json({ error: message, requestId });
 });
 
 export default app;

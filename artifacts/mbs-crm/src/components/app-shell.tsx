@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   GitBranch,
   Search,
+  Activity,
 } from "lucide-react";
 import mbsLogo from "@/assets/MBS-Logo-Header-Logo.png";
 import { Button } from "@/components/ui/button";
@@ -121,6 +122,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {sectionLabel("Administration")}
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
               {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
+              {navLink("/system-health", "System Health", Activity)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
             </>
           )}

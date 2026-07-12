@@ -1,6 +1,6 @@
-import { and, eq, gte, isNotNull, lte, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { tasksTable, usersTable } from "@workspace/db";
+import { tasksTable, usersTable, jobRunsTable } from "@workspace/db";
 import { sendPushNotification } from "./pushNotifications";
 import { logger } from "./logger";
 
@@ -8,7 +8,7 @@ let running: boolean | undefined;
 
 export async function runTaskReminderJob(): Promise<void> {
   const now = new Date();
-  if (now.getHours() !== 9) return;
+  if (now.getHours() !== 9) return; // Not the right hour — no-op, no job run logged
 
   if (running) {
     logger.warn("Task reminder job already running, skipping overlapping run");
@@ -16,9 +16,13 @@ export async function runTaskReminderJob(): Promise<void> {
   }
   running = true;
 
+  const startedAt = new Date();
+  let status: "success" | "error" = "success";
+  let itemsProcessed = 0;
+  let errorMessage: string | undefined;
+
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayStartStr = todayStart.toISOString().slice(0, 10);
-  const todayEndStr = todayStartStr;
 
   try {
     const tasksDueToday = await db
@@ -58,10 +62,25 @@ export async function runTaskReminderJob(): Promise<void> {
       );
     }
 
+    itemsProcessed = byUser.size;
     logger.info({ usersNotified: byUser.size }, "Task reminder job completed");
   } catch (err) {
+    status = "error";
+    errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Task reminder job failed");
   } finally {
     running = false;
+    db.insert(jobRunsTable)
+      .values({
+        jobName: "task-reminder",
+        startedAt,
+        finishedAt: new Date(),
+        status,
+        itemsProcessed,
+        errorMessage: errorMessage ?? null,
+      })
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Failed to write task-reminder job run");
+      });
   }
 }

@@ -17,6 +17,57 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Deep health check — DB connectivity, integration config presence, job run summaries
+ */
+export const GetHealthDeepResponse = zod.object({
+  "status": zod.enum(['ok', 'degraded']).optional(),
+  "db": zod.enum(['ok', 'fail']).optional(),
+  "integrations": zod.object({
+  "twilio": zod.boolean().optional(),
+  "sendgrid": zod.boolean().optional(),
+  "experian": zod.boolean().optional(),
+  "anthropic": zod.boolean().optional()
+}).optional(),
+  "jobs": zod.record(zod.string(), zod.unknown()).optional(),
+  "uptimeSeconds": zod.number().optional(),
+  "timestamp": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary List 500-level error log entries (admin only)
+ */
+export const getAdminErrorsQueryPageDefault = 1;
+
+export const GetAdminErrorsQueryParams = zod.object({
+  "page": zod.coerce.number().default(getAdminErrorsQueryPageDefault)
+})
+
+export const GetAdminErrorsResponse = zod.object({
+  "errors": zod.array(zod.object({
+  "id": zod.number().optional(),
+  "requestId": zod.string().optional(),
+  "userId": zod.string().nullish(),
+  "method": zod.string().optional(),
+  "path": zod.string().optional(),
+  "status": zod.number().optional(),
+  "message": zod.string().optional(),
+  "stack": zod.string().nullish(),
+  "createdAt": zod.coerce.date().optional()
+})).optional(),
+  "pagination": zod.object({
+  "page": zod.number().optional(),
+  "limit": zod.number().optional()
+}).optional(),
+  "summary": zod.object({
+  "last24h": zod.number().optional(),
+  "last7d": zod.number().optional()
+}).optional(),
+  "jobs": zod.record(zod.string(), zod.unknown()).optional()
+})
+
+
+/**
  * @summary Get current user profile
  */
 export const GetMeResponse = zod.object({

@@ -21,6 +21,7 @@ import type {
 
 import type {
   ActivityEntry,
+  AdminErrorsResponse,
   AiDraftRequest,
   AiDraftResponse,
   AnalyticsPipeline,
@@ -47,6 +48,7 @@ import type {
   CreditComplianceLogResponse,
   CreditPullResult,
   DashboardSummary,
+  DeepHealthResponse,
   Document,
   DownloadUrlResponse,
   DripEnrollment,
@@ -71,6 +73,7 @@ import type {
   GenerateFlyerResponse,
   GenerateLeadBriefing200,
   GeneratedFlyer,
+  GetAdminErrorsParams,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
   GetAnalyticsRenewalsParams,
@@ -221,6 +224,167 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetHealthDeepUrl = () => {
+
+
+
+
+  return `/api/health/deep`
+}
+
+/**
+ * @summary Deep health check — DB connectivity, integration config presence, job run summaries
+ */
+export const getHealthDeep = async ( options?: RequestInit): Promise<DeepHealthResponse> => {
+
+  return customFetch<DeepHealthResponse>(getGetHealthDeepUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHealthDeepQueryKey = () => {
+    return [
+    `/api/health/deep`
+    ] as const;
+    }
+
+
+export const getGetHealthDeepQueryOptions = <TData = Awaited<ReturnType<typeof getHealthDeep>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHealthDeep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHealthDeepQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealthDeep>>> = ({ signal }) => getHealthDeep({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHealthDeep>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetHealthDeepQueryResult = NonNullable<Awaited<ReturnType<typeof getHealthDeep>>>
+export type GetHealthDeepQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deep health check — DB connectivity, integration config presence, job run summaries
+ */
+
+export function useGetHealthDeep<TData = Awaited<ReturnType<typeof getHealthDeep>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHealthDeep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetHealthDeepQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAdminErrorsUrl = (params?: GetAdminErrorsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/errors?${stringifiedParams}` : `/api/admin/errors`
+}
+
+/**
+ * @summary List 500-level error log entries (admin only)
+ */
+export const getAdminErrors = async (params?: GetAdminErrorsParams, options?: RequestInit): Promise<AdminErrorsResponse> => {
+
+  return customFetch<AdminErrorsResponse>(getGetAdminErrorsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminErrorsQueryKey = (params?: GetAdminErrorsParams,) => {
+    return [
+    `/api/admin/errors`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAdminErrorsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminErrors>>, TError = ErrorType<void>>(params?: GetAdminErrorsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminErrors>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminErrorsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminErrors>>> = ({ signal }) => getAdminErrors(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminErrors>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminErrorsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminErrors>>>
+export type GetAdminErrorsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List 500-level error log entries (admin only)
+ */
+
+export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErrors>>, TError = ErrorType<void>>(
+ params?: GetAdminErrorsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminErrors>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminErrorsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

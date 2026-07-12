@@ -1,5 +1,5 @@
 import { db } from "@workspace/db";
-import { leadsTable, usersTable } from "@workspace/db";
+import { leadsTable, usersTable, jobRunsTable } from "@workspace/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { logActivity } from "./activityHelper";
 import { createNotification, notifyAllManagers } from "./notify";
@@ -17,6 +17,12 @@ export async function runRenewalJob(): Promise<void> {
     return;
   }
   running = true;
+
+  const startedAt = new Date();
+  let status: "success" | "error" = "success";
+  let itemsProcessed = 0;
+  let errorMessage: string | undefined;
+
   try {
     const fundedLeads = await db.query.leadsTable.findMany({
       where: and(
@@ -83,13 +89,28 @@ export async function runRenewalJob(): Promise<void> {
         });
 
         logger.info({ leadId: lead.id, progressRatio }, "Lead flagged for renewal");
+        itemsProcessed++;
       } catch (err) {
         logger.error({ err, leadId: lead.id }, "Error processing lead for renewal flagging");
       }
     }
   } catch (err) {
+    status = "error";
+    errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Renewal job failed");
   } finally {
     running = false;
+    db.insert(jobRunsTable)
+      .values({
+        jobName: "renewal",
+        startedAt,
+        finishedAt: new Date(),
+        status,
+        itemsProcessed,
+        errorMessage: errorMessage ?? null,
+      })
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Failed to write renewal job run");
+      });
   }
 }

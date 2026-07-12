@@ -12,6 +12,8 @@ tags:
     description: In-app notification center
   - name: health
     description: Health operations
+  - name: admin
+    description: Admin-only system operations
   - name: auth
     description: Authentication
   - name: users
@@ -67,6 +69,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /health/deep:
+    get:
+      operationId: getHealthDeep
+      tags: [health]
+      summary: Deep health check — DB connectivity, integration config presence, job run summaries
+      responses:
+        "200":
+          description: Deep health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeepHealthResponse"
+
+  /admin/errors:
+    get:
+      operationId: getAdminErrors
+      tags: [admin]
+      summary: List 500-level error log entries (admin only)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Paginated error log with summary and job run status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminErrorsResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
 
   /me:
     get:
@@ -4440,3 +4478,99 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    DeepHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        db:
+          type: string
+          enum: [ok, fail]
+        integrations:
+          type: object
+          properties:
+            twilio:
+              type: boolean
+            sendgrid:
+              type: boolean
+            experian:
+              type: boolean
+            anthropic:
+              type: boolean
+        jobs:
+          type: object
+          additionalProperties: true
+        uptimeSeconds:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    AdminErrorEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        requestId:
+          type: string
+        userId:
+          type: ["string", "null"]
+        method:
+          type: string
+        path:
+          type: string
+        status:
+          type: integer
+        message:
+          type: string
+        stack:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminJobRunEntry:
+      type: object
+      properties:
+        jobName:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [success, error]
+        itemsProcessed:
+          type: integer
+        errorMessage:
+          type: ["string", "null"]
+
+    AdminErrorsResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminErrorEntry"
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+        summary:
+          type: object
+          properties:
+            last24h:
+              type: integer
+            last7d:
+              type: integer
+        jobs:
+          type: object
+          additionalProperties: true

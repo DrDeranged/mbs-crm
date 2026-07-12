@@ -1241,6 +1241,96 @@ export interface Notification {
   createdAt?: string;
 }
 
+export type DeepHealthResponseStatus = typeof DeepHealthResponseStatus[keyof typeof DeepHealthResponseStatus];
+
+
+export const DeepHealthResponseStatus = {
+  ok: 'ok',
+  degraded: 'degraded',
+} as const;
+
+export type DeepHealthResponseDb = typeof DeepHealthResponseDb[keyof typeof DeepHealthResponseDb];
+
+
+export const DeepHealthResponseDb = {
+  ok: 'ok',
+  fail: 'fail',
+} as const;
+
+export type DeepHealthResponseIntegrations = {
+  twilio?: boolean;
+  sendgrid?: boolean;
+  experian?: boolean;
+  anthropic?: boolean;
+};
+
+export type DeepHealthResponseJobs = { [key: string]: unknown };
+
+export interface DeepHealthResponse {
+  status?: DeepHealthResponseStatus;
+  db?: DeepHealthResponseDb;
+  integrations?: DeepHealthResponseIntegrations;
+  jobs?: DeepHealthResponseJobs;
+  uptimeSeconds?: number;
+  timestamp?: string;
+}
+
+export interface AdminErrorEntry {
+  id?: number;
+  requestId?: string;
+  /** @nullable */
+  userId?: string | null;
+  method?: string;
+  path?: string;
+  status?: number;
+  message?: string;
+  /** @nullable */
+  stack?: string | null;
+  createdAt?: string;
+}
+
+export type AdminJobRunEntryStatus = typeof AdminJobRunEntryStatus[keyof typeof AdminJobRunEntryStatus];
+
+
+export const AdminJobRunEntryStatus = {
+  success: 'success',
+  error: 'error',
+} as const;
+
+export interface AdminJobRunEntry {
+  jobName?: string;
+  startedAt?: string;
+  /** @nullable */
+  finishedAt?: string | null;
+  status?: AdminJobRunEntryStatus;
+  itemsProcessed?: number;
+  /** @nullable */
+  errorMessage?: string | null;
+}
+
+export type AdminErrorsResponsePagination = {
+  page?: number;
+  limit?: number;
+};
+
+export type AdminErrorsResponseSummary = {
+  last24h?: number;
+  last7d?: number;
+};
+
+export type AdminErrorsResponseJobs = { [key: string]: unknown };
+
+export interface AdminErrorsResponse {
+  errors?: AdminErrorEntry[];
+  pagination?: AdminErrorsResponsePagination;
+  summary?: AdminErrorsResponseSummary;
+  jobs?: AdminErrorsResponseJobs;
+}
+
+export type GetAdminErrorsParams = {
+page?: number;
+};
+
 export type UpdateMyPushTokenBody = {
   /** @nullable */
   pushToken?: string | null;

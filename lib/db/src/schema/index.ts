@@ -20,4 +20,6 @@ export * from "./creditPulls";
 export * from "./workflowRules";
 export * from "./notifications";
 export * from "./companySettings";
+export * from "./errorLog";
+export * from "./jobRuns";
 export * from "./relations";

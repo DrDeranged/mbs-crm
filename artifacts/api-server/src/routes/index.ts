@@ -25,6 +25,7 @@ import workflowRulesRouter from "./workflowRules";
 import notificationsRouter from "./notifications";
 import aiRouter from "./ai";
 import settingsRouter from "./settings";
+import adminErrorsRouter from "./adminErrors";
 
 const router: IRouter = Router();
 
@@ -53,6 +54,7 @@ router.use(workflowRulesRouter);
 router.use(notificationsRouter);
 router.use(aiRouter);
 router.use(settingsRouter);
+router.use(adminErrorsRouter);
 router.use(storageRouter);
 
 export default router;
