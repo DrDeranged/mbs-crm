@@ -1,0 +1,42 @@
+QUESTIONS FROM THE PROJECT AUDIT — answer only, change NOTHING. Do not modify code,
+secrets, or configuration in this task. Provide a written report answering each item.
+
+1. REPUBLISH STATUS: Has the deployment been republished since commit c422341
+   ("Enterprise data governance + compliance formalization")? Report the last publish
+   timestamp and the commit it contains. If the live deployment is behind c422341, say so
+   explicitly — do not republish yet, just report.
+
+2. BATCH 1 / TASK 5 — EXTERNAL MONITORING RECOMMENDATION: The observability batch asked
+   for a recommendation (report-only) on external error tracking and uptime monitoring.
+   Provide it now:
+   a) Error tracking: do you recommend Sentry (or an alternative) for this stack
+      (Express 5 + React/Vite on Replit Reserved VM)? What exact env var(s) and packages
+      would wiring it require? Any Replit-specific constraints? Rough monthly cost at our
+      scale (small team, low error volume) — is the free tier sufficient?
+   b) Uptime monitoring: recommend a service (e.g. UptimeRobot, Better Stack, or similar)
+      to ping GET /api/health/deep. What check interval and alert channel (email/SMS)
+      would you configure? Free tier sufficient?
+   c) For each: what happens today if the app goes down or errors spike — how would we
+      find out, and how does the recommendation change that?
+
+3. BATCH 2 / TASK 4 — SCHEDULED OFF-SITE BACKUP RECOMMENDATION: The on-demand admin
+   backup export exists. Report how you would automate it:
+   a) What schedule (daily/weekly) and destination do you recommend? Options to compare:
+      Replit App/Object Storage (is that sufficiently "off-site"?), an external S3-compatible
+      bucket, or emailing/dropping to Google Drive. Recommend one with reasoning.
+   b) What exactly would implementing it require (new job, env vars/credentials, storage
+      cost estimate)?
+   c) Confirm: does the current export exclude plaintext SSNs and raw credit payloads,
+      and would the scheduled version preserve that exclusion?
+
+4. DEPENDENCY AUDIT RESULTS: Batch 2 Task 5 ran pnpm audit. Report the final state:
+   how many vulnerabilities remain by severity after your safe upgrades, and list any
+   HIGH/CRITICAL that remain unresolved (package, issue, why it wasn't safely fixable,
+   recommended manual action).
+
+5. ANYTHING FLAGGED BUT NOT DONE: Across the three enterprise batches (observability,
+   security/durability, governance), list anything you skipped, deferred, partially
+   implemented, or worked around — with the reason. If everything specified was fully
+   implemented, state that explicitly.
+
+Output as a numbered report matching the items above. Report only — make no changes.
