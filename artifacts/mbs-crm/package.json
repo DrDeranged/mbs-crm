@@ -78,6 +78,9 @@
   "dependencies": {
     "@clerk/themes": "^2.4.57",
     "@sentry/react": "^10.65.0",
+    "@tiptap/extension-link": "^3.27.3",
+    "@tiptap/react": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
     "@twilio/voice-sdk": "^2.18.3",
     "@types/react-signature-canvas": "^1.0.7",
     "react-dropzone": "^15.0.0",

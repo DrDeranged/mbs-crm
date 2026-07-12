@@ -5,8 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -113,24 +113,20 @@ function TemplateFormDialog({
     }
   };
 
-  const insertVariable = (v: string) => {
-    setBodyHtml((prev: string) => prev + v);
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Template" : "New Email Template"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+        <div className="space-y-5 py-2">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Template Name *</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Welcome Email" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Program Type</Label>
               <Select value={programType} onValueChange={setProgramType}>
                 <SelectTrigger><SelectValue placeholder="All programs" /></SelectTrigger>
@@ -143,36 +139,25 @@ function TemplateFormDialog({
               </Select>
             </div>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label>Subject Line *</Label>
             <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Your application status update" />
           </div>
-          <div className="space-y-1">
-            <Label>Body (HTML) *</Label>
-            <div className="flex flex-wrap gap-1 mb-1">
-              {VARIABLES.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => insertVariable(v)}
-                  className="text-[10px] px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded border border-slate-200 font-mono"
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-            <Textarea
+          <div className="space-y-1.5">
+            <Label>Email Body *</Label>
+            <RichTextEditor
               value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              placeholder="<p>Hi {{lead_first_name}},</p><p>...</p>"
-              className="min-h-[200px] font-mono text-xs"
+              onChange={setBodyHtml}
+              variables={VARIABLES}
+              placeholder="Hi {{lead_first_name}}, …"
+              minHeight="220px"
             />
           </div>
           <div className="flex items-center gap-2">
             <Switch checked={isActive} onCheckedChange={setIsActive} id="is-active" />
             <Label htmlFor="is-active">Active</Label>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isBusy} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
               {isBusy ? "Saving…" : isEditing ? "Save Changes" : "Create Template"}

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +143,13 @@ function TemplateDialog({
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TemplateFormState>(initial ?? emptyForm());
   const [showPreview, setShowPreview] = useState(false);
+  const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
   const set = (patch: Partial<TemplateFormState>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Dynamic variable keys defined in variableFields, for chip insertion
+  const variableChips = form.variableFields
+    .filter((f) => f.key.trim())
+    .map((f) => `{{${f.key}}}`);
 
   // Live preview: substitute each field's defaultValue into the HTML
   const previewHtml = form.htmlTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => {
@@ -156,16 +163,25 @@ function TemplateDialog({
     setOpen(false);
   };
 
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (v) {
+      setForm(initial ?? emptyForm());
+      setShowPreview(false);
+      setEditorMode("visual");
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setForm(initial ?? emptyForm()); setShowPreview(false); } }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-2">
+        <div className="space-y-5 mt-2">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Template Name *</Label>
               <Input
                 placeholder="e.g. Working Capital Flyer"
@@ -173,7 +189,7 @@ function TemplateDialog({
                 onChange={(e) => set({ name: e.target.value })}
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Program Type</Label>
               <Select value={form.programType} onValueChange={(v) => set({ programType: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -186,29 +202,64 @@ function TemplateDialog({
             </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between mb-1">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <div>
-                <Label>HTML Template *</Label>
-                <p className="text-xs text-muted-foreground">Use {"{{variable_key}}"} syntax to insert dynamic fields.</p>
+                <Label>Flyer Content *</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {editorMode === "visual"
+                    ? "Visual editor — use the Insert chips to add dynamic fields."
+                    : "HTML source — full document control. Use {{variable_key}} for dynamic fields."}
+                </p>
               </div>
-              {form.htmlTemplate.trim() && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => setShowPreview((v) => !v)}
-                >
-                  {showPreview ? "Hide Preview" : "Show Preview"}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {form.htmlTemplate.trim() && !showPreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowPreview(true)}
+                  >
+                    Preview
+                  </Button>
+                )}
+                {showPreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowPreview(false)}
+                  >
+                    Close Preview
+                  </Button>
+                )}
+                {!showPreview && (
+                  <div className="flex rounded-md border overflow-hidden text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setEditorMode("visual")}
+                      className={`px-3 py-1 transition-colors ${editorMode === "visual" ? "bg-[#1F4E79] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      Visual
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorMode("html")}
+                      className={`px-3 py-1 border-l transition-colors ${editorMode === "html" ? "bg-[#1F4E79] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      HTML
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+
             {showPreview ? (
               <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
                 <div className="flex items-center justify-between px-3 py-1.5 bg-muted/60 border-b text-xs text-muted-foreground">
                   <span>Live Preview — defaults substituted</span>
-                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setShowPreview(false)}>Edit HTML</Button>
                 </div>
                 <iframe
                   srcDoc={previewHtml}
@@ -218,6 +269,14 @@ function TemplateDialog({
                   title="Template Preview"
                 />
               </div>
+            ) : editorMode === "visual" ? (
+              <RichTextEditor
+                value={form.htmlTemplate}
+                onChange={(html) => set({ htmlTemplate: html })}
+                variables={variableChips}
+                placeholder="Compose your flyer content. Use the Insert chips above to add dynamic fields…"
+                minHeight="240px"
+              />
             ) : (
               <Textarea
                 className="font-mono text-xs min-h-[240px]"
@@ -235,7 +294,7 @@ function TemplateDialog({
             <Label>Active (available for use)</Label>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button
               className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"

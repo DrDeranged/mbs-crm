@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy, Sparkles, AlertTriangle, ListChecks } from "lucide-react";
@@ -1070,23 +1071,13 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                   placeholder="Subject…"
                   className="w-full text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
                 />
-                <Textarea
+                <RichTextEditor
                   value={emailBodyHtml}
-                  onChange={(e) => setEmailBodyHtml(e.target.value)}
-                  placeholder="Email body (HTML supported)…"
-                  className="min-h-[80px] text-sm resize-none font-mono"
+                  onChange={setEmailBodyHtml}
+                  placeholder="Compose your email…"
+                  variables={["{{lead_first_name}}", "{{lead_company}}", "{{rep_name}}", "{{rep_email}}"]}
+                  minHeight="100px"
                 />
-                <div className="flex flex-wrap gap-1">
-                  {["{{lead_first_name}}", "{{lead_company}}", "{{rep_name}}", "{{rep_email}}"].map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => insertVar(v)}
-                      className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 rounded px-1.5 py-0.5 hover:bg-purple-100"
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div>
                 <Button
                   onClick={handleSendEmail}
                   disabled={!emailSubject.trim() || !emailBodyHtml.trim() || sendEmail.isPending}
