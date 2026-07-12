@@ -26,6 +26,7 @@ import notificationsRouter from "./notifications";
 import aiRouter from "./ai";
 import settingsRouter from "./settings";
 import adminErrorsRouter from "./adminErrors";
+import adminBackupRouter from "./adminBackup";
 
 const router: IRouter = Router();
 
@@ -55,6 +56,7 @@ router.use(notificationsRouter);
 router.use(aiRouter);
 router.use(settingsRouter);
 router.use(adminErrorsRouter);
+router.use(adminBackupRouter);
 router.use(storageRouter);
 
 export default router;

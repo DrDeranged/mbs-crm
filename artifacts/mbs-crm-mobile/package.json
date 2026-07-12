@@ -56,7 +56,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.19.31",
+    "@clerk/clerk-expo": "^2.19.41",
     "expo-auth-session": "~6.1.5",
     "expo-local-authentication": "^17.0.8",
     "expo-notifications": "^0.32.17",

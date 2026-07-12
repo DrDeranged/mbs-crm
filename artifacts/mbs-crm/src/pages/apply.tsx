@@ -203,6 +203,7 @@ export default function ApplyPage() {
   const [bankFiles, setBankFiles] = useState<File[]>([]);
   const [ssnRaw, setSsnRaw] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmedLeadId, setConfirmedLeadId] = useState<number | null>(null);
   const sigPadRef = useRef<SignaturePad>(null);
@@ -258,6 +259,7 @@ export default function ApplyPage() {
         setSubmitError(data.error || "Submission failed. Please try again.");
         return;
       }
+      setSubmitted(true);
       setConfirmedLeadId(data.lead_id);
       setStep(6);
     } catch {
@@ -680,7 +682,7 @@ export default function ApplyPage() {
               <Button
                 className="bg-[#1F4E79] hover:bg-[#163a5f] text-white flex items-center gap-1.5"
                 onClick={handleSubmit}
-                disabled={!canAdvance() || submitting}
+                disabled={!canAdvance() || submitting || submitted}
               >
                 {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : "Submit Application"}
               </Button>

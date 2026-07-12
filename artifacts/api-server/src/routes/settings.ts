@@ -3,6 +3,7 @@ import { requireUser } from "../lib/authHelpers";
 import { db } from "@workspace/db";
 import { companySettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { logActivity } from "../lib/activityHelper";
 
 const router: IRouter = Router();
 
@@ -39,6 +40,14 @@ router.put("/settings/company", async (req: Request, res: Response) => {
       .returning();
     result = created;
   }
+
+  await logActivity({
+    userId: user.id,
+    action: "company_settings_updated",
+    entityType: "company_settings",
+    entityId: result?.id ?? 0,
+    details: { fields: Object.keys(req.body as object) },
+  });
 
   res.json(result);
 });

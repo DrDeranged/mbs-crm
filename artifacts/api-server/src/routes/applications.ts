@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { randomBytes } from "crypto";
+import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
 import sgMail from "@sendgrid/mail";
 import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
@@ -189,19 +190,49 @@ router.post(
       const body = req.body;
 
       // ── Comprehensive server-side validation ─────────────────────────────
+      const isPositiveAmount = (v: string | undefined) => {
+        if (!v) return true;
+        const n = Number(v);
+        return !isNaN(n) && n > 0;
+      };
       const submitSchema = z.object({
         type: z.enum(["equipment", "working_capital"], { message: "Invalid application type" }),
-        businessName: z.string().min(1, "Business name is required"),
-        ownerFirstName: z.string().min(1, "Owner first name is required"),
-        ownerLastName: z.string().min(1, "Owner last name is required"),
-        email: z.string().email("Invalid email address").optional().or(z.literal("")),
-        phone: z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number").optional().or(z.literal("")),
-        ownerSsn: z.string().regex(/^\d{9}$/, "SSN must be exactly 9 digits").optional().or(z.literal("")),
+        businessName: z.string().min(1, "Business name is required").max(200, "Business name must be 200 characters or fewer"),
+        dba: z.string().max(200, "DBA must be 200 characters or fewer").optional().or(z.literal("")),
+        ein: z.string()
+          .regex(/^\d{2}-\d{7}$/, "EIN must be in XX-XXXXXXX format (e.g. 12-3456789)")
+          .optional().or(z.literal("")).or(z.undefined()),
+        businessAddress: z.string().max(300, "Address too long").optional().or(z.literal("")),
+        businessCity: z.string().max(100, "City too long").optional().or(z.literal("")),
+        businessState: z.string().max(50, "State too long").optional().or(z.literal("")),
+        businessZip: z.string().max(20, "ZIP too long").optional().or(z.literal("")),
+        industry: z.string().max(100, "Industry too long").optional().or(z.literal("")),
+        useOfFunds: z.string().max(1000, "Use of funds must be 1000 characters or fewer").optional().or(z.literal("")),
+        ownerFirstName: z.string().min(1, "Owner first name is required").max(100, "First name must be 100 characters or fewer"),
+        ownerLastName: z.string().min(1, "Owner last name is required").max(100, "Last name must be 100 characters or fewer"),
+        ownerHomeAddress: z.string().max(300).optional().or(z.literal("")),
+        ownerHomeCity: z.string().max(100).optional().or(z.literal("")),
+        ownerHomeState: z.string().max(50).optional().or(z.literal("")),
+        ownerHomeZip: z.string().max(20).optional().or(z.literal("")),
+        email: z.string().email("Invalid email address").max(254, "Email too long").optional().or(z.literal("")),
+        phone: z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number — use digits, spaces, dashes, or parentheses").optional().or(z.literal("")),
+        ownerSsn: z.string().regex(/^\d{9}$/, "SSN must be exactly 9 digits (no dashes)").optional().or(z.literal("")),
+        requestedAmount: z.string()
+          .refine(isPositiveAmount, "Requested amount must be a positive number")
+          .refine((v) => !v || Number(v) <= 10_000_000, "Requested amount cannot exceed $10,000,000")
+          .optional().or(z.literal("")),
+        monthlyRevenueStated: z.string()
+          .refine(isPositiveAmount, "Monthly revenue must be a positive number")
+          .refine((v) => !v || Number(v) <= 100_000_000, "Monthly revenue value out of range")
+          .optional().or(z.literal("")),
+        vendorQuoteAmount: z.string()
+          .refine(isPositiveAmount, "Vendor quote amount must be a positive number")
+          .optional().or(z.literal("")),
         consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
         consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
-        signatureData: z.string().min(1, "Signature is required"),
-        equipmentDescription: z.string().optional(),
-        vendorName: z.string().optional(),
+        signatureData: z.string().min(1, "Signature is required").max(500_000, "Signature data too large"),
+        equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
+        vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
       }).superRefine((data, ctx) => {
         if (data.type === "equipment") {
           if (!data.equipmentDescription?.trim()) {
@@ -233,6 +264,15 @@ router.post(
       const email = (body.email as string)?.trim() || null;
       const phone = (body.phone as string)?.trim() || null;
       const ein = (body.ein as string)?.trim() || null;
+
+      // ── Idempotency check (15-minute window keyed on email+ein) ──────────
+      const timeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
+      const idempKey = deriveKey(`applications/submit|${(email ?? "").toLowerCase()}|${ein ?? ""}|${timeBucket}`);
+      const cachedResult = await checkIdempotency(idempKey, "applications/submit");
+      if (cachedResult) {
+        res.status(201).json(cachedResult);
+        return;
+      }
 
       // ── Duplicate check ───────────────────────────────────────────────────
       if (email || phone || ein) {
@@ -485,7 +525,9 @@ router.post(
         }).catch((e: unknown) => console.error("Confirmation email failed:", e));
       }
 
-      res.status(201).json({ success: true, lead_id: lead.id, tracking_token: lead.trackingToken });
+      const successPayload: Record<string, unknown> = { success: true, lead_id: lead.id, tracking_token: lead.trackingToken };
+      void storeIdempotency(idempKey, "applications/submit", `lead:${lead.id}`, successPayload);
+      res.status(201).json(successPayload);
     } catch (err) {
       console.error("Application submit error:", err);
       res.status(500).json({ error: "Submission failed. Please try again." });

@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
+import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
 import { z } from "zod/v4";
@@ -202,6 +203,38 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
     return;
   }
 
+  // ── Additional server-side validation ──────────────────────────────────
+  const name = (body.data as Record<string, unknown>).firstName as string | undefined ?? "";
+  const lastName = (body.data as Record<string, unknown>).lastName as string | undefined ?? "";
+  const emailVal = body.data.email as string | undefined ?? "";
+  const phoneVal = body.data.phone as string | undefined ?? "";
+  if (name.length > 100 || lastName.length > 100) {
+    res.status(400).json({ error: "Name fields must be 100 characters or fewer" });
+    return;
+  }
+  if (emailVal.length > 254) {
+    res.status(400).json({ error: "Email address too long" });
+    return;
+  }
+  if (phoneVal && !/^\+?[\d\s\-().]{7,20}$/.test(phoneVal)) {
+    res.status(400).json({ error: "Invalid phone number format" });
+    return;
+  }
+  const companyName = (body.data as Record<string, unknown>).companyName as string | undefined ?? "";
+  if (companyName.length > 200) {
+    res.status(400).json({ error: "Company name must be 200 characters or fewer" });
+    return;
+  }
+
+  // ── Idempotency (5-minute window keyed on email+phone) ─────────────────
+  const timeBucket = Math.floor(Date.now() / (5 * 60 * 1000)).toString();
+  const idempKey = deriveKey(`leads/capture|${emailVal.toLowerCase()}|${phoneVal}|${timeBucket}`);
+  const cached = await checkIdempotency(idempKey, "leads/capture");
+  if (cached) {
+    res.status(201).json(cached);
+    return;
+  }
+
   const dup = await findDuplicate(body.data.email, body.data.phone);
   if (dup) {
     res.status(409).json({
@@ -220,7 +253,9 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
 
   await logActivity({ userId: null, leadId: lead.id, action: "captured", entityType: "lead", entityId: lead.id });
 
-  res.status(201).json({ success: true, leadId: lead.id });
+  const capturePayload: Record<string, unknown> = { success: true, leadId: lead.id };
+  void storeIdempotency(idempKey, "leads/capture", `lead:${lead.id}`, capturePayload);
+  res.status(201).json(capturePayload);
 });
 
 function buildLeadsWhere(q: any, userRole: string, userId: number) {

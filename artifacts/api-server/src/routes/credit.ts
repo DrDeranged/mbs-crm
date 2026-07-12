@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod/v4";
+import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
 import { eq, and, gte, desc, count, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
@@ -212,6 +213,14 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   const body = PullBody.safeParse(req.body);
   if (!body.success) return void res.status(400).json({ error: "pull_type must be 'soft' or 'hard'" });
 
+  // ── Idempotency (15-minute window keyed on leadId+pullType) ───────────
+  const creditTimeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
+  const creditIdempKey = deriveKey(`leads/credit/pull|${leadId}|${body.data.pull_type}|${creditTimeBucket}`);
+  const creditCached = await checkIdempotency(creditIdempKey, "leads/credit/pull");
+  if (creditCached) {
+    return void res.status(200).json(creditCached);
+  }
+
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   if (!lead.consentCreditPullAt || lead.consentCreditPullAt < thirtyDaysAgo) {
     return void res.status(422).json({ error: "No valid consent found. Consent must be captured within the last 30 days." });
@@ -345,14 +354,16 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
     }).catch(() => {});
   }
 
-  res.status(201).json({
+  const pullResult: Record<string, unknown> = {
     id: pull!.id,
     creditScore,
     pullType: body.data.pull_type,
     status: "completed",
-    createdAt: pull!.createdAt,
+    createdAt: pull!.createdAt?.toISOString(),
     reportSummary,
-  });
+  };
+  void storeIdempotency(creditIdempKey, "leads/credit/pull", `pull:${pull!.id}`, pullResult);
+  res.status(201).json(pullResult);
 });
 
 // ─── GET /api/leads/:id/credit ───────────────────────────────────────────────
