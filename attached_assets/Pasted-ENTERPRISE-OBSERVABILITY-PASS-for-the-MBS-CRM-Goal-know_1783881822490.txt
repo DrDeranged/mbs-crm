@@ -1,0 +1,55 @@
+ENTERPRISE OBSERVABILITY PASS for the MBS CRM. Goal: know when anything breaks in
+production, before users do. Follow existing conventions (pino logger already in use,
+requireUser/RBAC, existing app.ts middleware structure). Run npx tsc --build (exit 0),
+push, republish.
+
+TASK 1 — STRUCTURED ERROR CAPTURE
+- The global error handler in app.ts currently logs and returns a generic message. Extend
+  it to capture full error context for every unhandled error: timestamp, request method +
+  path, authenticated user id (if any), status code, error message + stack, and a short
+  request id. Log as structured JSON via the existing pino logger at error level.
+- Generate a per-request request id (crypto.randomUUID) in an early middleware, attach to
+  req, include it in all error logs AND return it to the client in error responses as
+  { error, requestId } so a rep reporting an issue can give you the id to grep.
+- Add a lightweight in-app error log: create an error_log table (id, request_id, user_id
+  nullable, method, path, status, message, stack text, created_at) and write to it from
+  the global handler for 500-level errors only (never for 4xx client errors, and never
+  block the response — write async/fire-and-forget with its own try/catch). Add to schema
+  index; push.
+
+TASK 2 — ADMIN ERROR/HEALTH DASHBOARD
+- Add an admin-only page "System Health" (sidebar, Administration section) showing:
+  recent 500-level errors from error_log (paginated: time, path, status, message,
+  request id, user), with a clear empty state "No errors recorded — system healthy."
+- Add GET /api/admin/errors (admin only) feeding it. Add to openapi + codegen.
+- Add a small summary strip: error count last 24h / last 7d.
+
+TASK 3 — DEEP HEALTH CHECK
+- The existing /healthz likely just returns 200. Add GET /api/health/deep (can be public
+  or admin — make it admin or unauthenticated-but-unrevealing) that actually verifies:
+  database connectivity (SELECT 1), and reports which integrations are CONFIGURED
+  (Twilio/SendGrid/Experian/Anthropic secrets present) vs missing — WITHOUT exposing secret
+  values, only booleans. Returns { status, db: ok/fail, integrations: {twilio:bool,...},
+  uptimeSeconds, timestamp }. This is what an uptime monitor pings.
+
+TASK 4 — BACKGROUND JOB VISIBILITY
+- The drip, task-reminder, and renewal jobs run on intervals silently. Add a
+  job_runs table (id, job_name, started_at, finished_at, status success/error,
+  items_processed int, error_message nullable). Each job writes a row per run (wrap in the
+  existing try/catch; never let logging crash the job). Surface the last run of each job on
+  the System Health page: "Drip: last ran 3m ago, 2 emails sent, OK".
+
+TASK 5 — INFRASTRUCTURE NOTE (report, don't implement without confirmation)
+- Recommend whether to wire an external error-tracking service (e.g. Sentry free tier) and
+  an external uptime monitor (e.g. a service pinging /api/health/deep). Do NOT sign up for
+  or hardcode any external service. Just report: what you'd recommend, what env var(s) it
+  would need, and roughly how to add it later. We'll decide separately.
+
+VERIFICATION (report PASS/FAIL each):
+[ ] Global handler captures structured context + request id; client gets requestId
+[ ] error_log table writes on 500s only, async, never blocks response
+[ ] System Health admin page + GET /api/admin/errors (RBAC enforced) + empty state
+[ ] /api/health/deep verifies DB + reports integration config as booleans (no secrets)
+[ ] job_runs table + last-run visibility for drip/reminder/renewal jobs
+[ ] Sentry/uptime recommendation reported (not implemented)
+[ ] npx tsc --build exits 0; pushed; republished (timestamp)
