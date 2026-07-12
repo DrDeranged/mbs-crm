@@ -1,0 +1,58 @@
+ENTERPRISE DATA DURABILITY + SECURITY HARDENING for the MBS CRM. Follow existing
+conventions. Run npx tsc --build (exit 0), push, republish. Do not weaken any existing
+security control.
+
+TASK 1 — IDEMPOTENCY ON CRITICAL WRITE ENDPOINTS
+- Prevent duplicate records from double-submits / retries on: POST /applications/submit,
+  POST /leads/capture, and the credit pull endpoint.
+- Accept an optional Idempotency-Key header; if absent for the public application submit,
+  derive a natural key (e.g. hash of email+ein+submittedAt-bucket) to catch rapid double
+  submissions. Store processed keys in an idempotency_keys table (key, endpoint,
+  result_ref, created_at) with a unique constraint; on repeat key, return the original
+  result instead of creating a second lead/pull. Add table to schema; push.
+- The public /apply form should also disable its submit button after first click (client
+  side) as defense in depth.
+
+TASK 2 — INPUT VALIDATION HARDENING (garbage-in prevention)
+- Audit and tighten server-side validation (Zod) on the application submit and lead
+  create/capture endpoints: EIN format, email format, phone normalization, requested
+  amount within sane bounds (positive, reasonable ceiling), SSN format before encryption,
+  string length caps on all free-text fields to prevent oversized payloads. Reject with
+  clear 400 messages. Mirror key validations client-side on /apply for UX, but SERVER is
+  the source of truth.
+
+TASK 3 — SESSION & AUTH HARDENING
+- Confirm and document how Clerk session lifetime is configured; if configurable from our
+  side, set a reasonable session timeout and inactivity behavior appropriate for a system
+  holding SSNs/credit data. If it's managed in the Clerk dashboard, output exactly what to
+  set there.
+- Ensure sensitive admin actions (credit compliance export, user role changes, company
+  settings, bulk delete) are admin-gated AND write to activity_log with actor + timestamp.
+  Verify none are reachable by rep/manager role. Report any that were under-protected.
+
+TASK 4 — OWNED BACKUP EXPORT
+- Add an admin-only, on-demand full data export: GET /api/admin/backup/export that streams
+  a JSON (or zipped JSON) dump of core business tables (leads, applications, companies,
+  notes, tasks, documents-metadata, communications, lenders, credit_pulls-summary-only,
+  email_sends, activity_log). EXCLUDE decrypted SSNs and raw credit payloads — export the
+  encrypted values as-stored or omit, never plaintext PII. Admin only, logged to
+  activity_log. This gives MBS an owned copy independent of the hosting platform.
+- Also report (don't implement) how to schedule this automatically to external storage
+  later, and what that would require.
+
+TASK 5 — DEPENDENCY VULNERABILITY SCAN
+- Run the package manager audit (pnpm audit) across the workspace and report findings:
+  count by severity, and list any HIGH/CRITICAL with the package + whether a safe upgrade
+  exists. Apply only safe, non-breaking patch/minor upgrades that resolve high/critical
+  issues; do NOT do major-version bumps that risk breakage — list those for manual review.
+- Confirm helmet, compression, CORS restriction, rate limiting, and webhook signature
+  validation are all still active after any dependency changes.
+
+VERIFICATION (report PASS/FAIL each):
+[ ] Idempotency prevents duplicate leads/pulls on double-submit; table + unique constraint
+[ ] Tightened server-side Zod validation on submit/capture; oversized/malformed rejected
+[ ] Session/auth hardening applied or exact Clerk-dashboard settings documented
+[ ] Sensitive admin actions verified admin-only + audit-logged; under-protected ones fixed
+[ ] Admin backup export works, excludes plaintext PII, is audit-logged
+[ ] pnpm audit run; high/critical safe-fixed or listed; core security middleware intact
+[ ] npx tsc --build exits 0; pushed; republished (timestamp)
