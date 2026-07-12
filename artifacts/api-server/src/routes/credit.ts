@@ -15,6 +15,7 @@ import { logActivity } from "../lib/activityHelper";
 import { createNotification } from "../lib/notify";
 import { encrypt, decrypt } from "../lib/encryption";
 import { calculateLeadScore } from "../lib/leadScoring";
+import { logPiiAccess } from "../lib/piiAccess";
 
 const router = Router();
 
@@ -400,6 +401,7 @@ router.get("/leads/:id/credit", async (req: Request, res: Response) => {
     createdAt: p.createdAt,
   }));
 
+  logPiiAccess({ userId: user.id, leadId, fieldCategory: "credit", action: "view", ip: req.ip });
   res.json(results);
 });
 
@@ -513,6 +515,7 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
 
   const csv = [header, ...rows].join("\n");
 
+  logPiiAccess({ userId: user.id, leadId: null, fieldCategory: "credit", action: "export", ip: req.ip });
   res.setHeader("Content-Type", "text/csv");
   res.setHeader("Content-Disposition", `attachment; filename="credit-compliance-${new Date().toISOString().slice(0, 10)}.csv"`);
   res.send(csv);

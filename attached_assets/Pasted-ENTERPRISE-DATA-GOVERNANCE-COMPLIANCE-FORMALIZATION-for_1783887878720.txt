@@ -1,0 +1,51 @@
+ENTERPRISE DATA GOVERNANCE + COMPLIANCE FORMALIZATION for the MBS CRM. This handles the
+regulated-industry layer (FCRA/PII). Follow existing conventions. Run npx tsc --build
+(exit 0), push, republish. Never expose plaintext PII to the client.
+
+TASK 1 — PII ACCESS LOGGING (view-level, not just action-level)
+- Today we log credit PULLS. Add logging of PII VIEWS: whenever an endpoint returns
+  sensitive fields (SSN even masked, credit report data, full application detail), write a
+  pii_access_log row (id, user_id, lead_id, field_category [ssn/credit/application],
+  action [view/export], created_at). Wrap this at the relevant endpoints (lead application
+  detail, credit tab data, compliance export). Fire-and-forget; never block the response.
+  Add table to schema; push.
+- Add an admin-only view of this log on the Credit Compliance page (or a new Governance
+  page): who accessed which lead's sensitive data and when. Paginated, filterable by user
+  and date. CSV export (admin only).
+
+TASK 2 — DATA RETENTION & DELETION PATH
+- Add an admin-only "Data Governance" settings section documenting and enforcing retention:
+  a configurable retention policy (e.g. keep declined/dead leads N months) stored in
+  settings, plus an admin-triggered "purge eligible records" action that soft-deletes (or
+  hard-deletes with confirmation) leads past retention — EXCEPT any with credit_pulls or
+  compliance obligations, which must be preserved or handled per policy. All purges logged
+  to activity_log with counts.
+- Add a per-lead "Delete / Right to be Forgotten" admin action that removes a specific
+  lead's PII (or the full record) on request, with confirmation, logged. Respect the
+  append-only credit_compliance_log (that record of the inquiry legally stays; the
+  underlying PII can be scrubbed) — implement so compliance history integrity is preserved
+  while PII is removed. If there's a conflict, STOP and report rather than violating the
+  append-only guarantee.
+
+TASK 3 — CONSENT & COMPLIANCE VISIBILITY
+- Surface, per lead, a clear compliance panel: credit-pull consent captured (timestamp +
+  IP), TCPA/communications consent captured, terms accepted — read from existing
+  application consent fields. Make it obvious at a glance whether MBS has the right consents
+  before calling/texting/pulling credit. Admin/manager visible.
+- Ensure no automated communication (drip/SMS) can fire to a lead lacking the relevant
+  consent — add a guard that checks consent before enqueuing automated comms, and logs a
+  skip reason if consent is absent.
+
+TASK 4 — GOVERNANCE DOCUMENTATION
+- Generate a GOVERNANCE.md in the repo documenting, in plain language: what PII is stored,
+  how it's encrypted, who can access it (by role), what's logged (pulls, views, exports),
+  the retention policy, the deletion path, and the FCRA/TCPA consent handling. This is the
+  document MBS can show a partner/auditor. Keep it accurate to what the code actually does.
+
+VERIFICATION (report PASS/FAIL each):
+[ ] pii_access_log records views/exports of SSN/credit/application data; admin view + CSV
+[ ] Retention policy configurable + admin purge action (respects compliance holds), logged
+[ ] Per-lead delete/RTBF removes PII while preserving append-only compliance-log integrity
+[ ] Per-lead consent panel; automated comms blocked + logged when consent absent
+[ ] GOVERNANCE.md generated and accurate to the implemented behavior
+[ ] npx tsc --build exits 0; pushed; republished (timestamp)

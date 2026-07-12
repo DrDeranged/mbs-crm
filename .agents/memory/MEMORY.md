@@ -14,3 +14,4 @@
 - [xlsx no-patch vulnerability](xlsx-no-patch.md) — xlsx HIGH vulns (prototype pollution + ReDoS) have no safe npm upgrade; patched versions: <0.0.0. Needs manual library replacement.
 - [Expo Metro stale cache after pnpm add](expo-metro-stale-cache.md) — after upgrading a pnpm workspace package, Metro may show "Unable to resolve" until the expo workflow is restarted to clear its module cache.
 - [Idempotency pattern for POST endpoints](idempotency-table-pattern.md) — use idempotency_keys table with unique(key, endpoint); derive natural key via SHA-256 of stable fields + time-bucket; store result payload in jsonb for replay.
+- [Governance layer](governance-layer.md) — pii_access_log, retention purge, RTBF, consent panel, GOVERNANCE.md implemented; FCRA append-only guarantee enforced via 409 conflict; drip/SMS consent guards log skip reasons.

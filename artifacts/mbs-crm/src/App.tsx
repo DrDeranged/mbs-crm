@@ -25,6 +25,7 @@ const ApplicationStatus = lazy(() => import("@/pages/application-status"));
 const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
 const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
 const SystemHealth = lazy(() => import("@/pages/system-health"));
+const Governance = lazy(() => import("@/pages/governance"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -281,6 +282,9 @@ function AppRoutes() {
             </Route>
             <Route path="/system-health">
               <ProtectedRoute component={SystemHealth} />
+            </Route>
+            <Route path="/governance">
+              <ProtectedRoute component={Governance} />
             </Route>
             <Route>
               <Suspense fallback={<PageLoader />}>

@@ -114,6 +114,13 @@ router.post("/leads/:id/sms", async (req, res) => {
 
   if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
 
+  if (lead.isUnsubscribed) {
+    return void res.status(422).json({
+      error: "consent_required",
+      message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
+    });
+  }
+
   const { body } = req.body as { body?: string };
   if (!body?.trim()) return void res.status(400).json({ error: "Message body is required" });
 

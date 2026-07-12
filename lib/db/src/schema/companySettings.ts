@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -12,6 +12,7 @@ export const companySettingsTable = pgTable("company_settings", {
   companyCity: text("company_city"),
   companyState: text("company_state"),
   companyZip: text("company_zip"),
+  retentionMonths: integer("retention_months").default(36),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

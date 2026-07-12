@@ -22,6 +22,7 @@ import { extractBankStatement } from "../lib/ocrBankStatement";
 import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
+import { logPiiAccess } from "../lib/piiAccess";
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
@@ -571,6 +572,7 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
     ? `/storage/objects/${app.signedDocumentKey}`
     : null;
 
+  logPiiAccess({ userId: user.id, leadId: id, fieldCategory: "application", action: "view", ip: req.ip });
   res.json({
     ...rest,
     ownerSsnMasked,

@@ -68,7 +68,21 @@ export async function runDripJob(): Promise<void> {
 
         const lead = enrollment.lead;
         if (!lead || !lead.email || lead.isUnsubscribed) {
-          // Skip — mark complete to avoid re-processing
+          const skipReason = !lead
+            ? "lead_not_found"
+            : !lead.email
+              ? "no_email_address"
+              : "unsubscribed_tcpa_opt_out";
+          // Log the consent-based skip to activity_log
+          await logActivity({
+            userId: null,
+            leadId: lead?.id ?? null,
+            action: "drip_consent_skip",
+            entityType: "drip_enrollment",
+            entityId: enrollment.id,
+            details: { skipReason, sequenceId: enrollment.sequenceId, step: enrollment.currentStep + 1 },
+          });
+          // Unenroll to avoid repeated re-processing
           await db.update(dripEnrollmentsTable)
             .set({ status: "unenrolled", unenrolledAt: new Date() })
             .where(eq(dripEnrollmentsTable.id, enrollment.id));

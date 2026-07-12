@@ -23,4 +23,5 @@ export * from "./companySettings";
 export * from "./errorLog";
 export * from "./jobRuns";
 export * from "./idempotencyKeys";
+export * from "./piiAccessLog";
 export * from "./relations";

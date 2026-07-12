@@ -27,6 +27,8 @@ import aiRouter from "./ai";
 import settingsRouter from "./settings";
 import adminErrorsRouter from "./adminErrors";
 import adminBackupRouter from "./adminBackup";
+import piiAccessLogRouter from "./piiAccessLog";
+import adminGovernanceRouter from "./adminGovernance";
 
 const router: IRouter = Router();
 
@@ -57,6 +59,8 @@ router.use(aiRouter);
 router.use(settingsRouter);
 router.use(adminErrorsRouter);
 router.use(adminBackupRouter);
+router.use(piiAccessLogRouter);
+router.use(adminGovernanceRouter);
 router.use(storageRouter);
 
 export default router;

@@ -121,6 +121,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </div>
               {sectionLabel("Administration")}
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
+              {isAdmin && navLink("/governance", "Data Governance", ShieldCheck)}
               {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
               {navLink("/system-health", "System Health", Activity)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
