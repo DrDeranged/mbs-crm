@@ -104,10 +104,10 @@ export default function Settings() {
   const isAdmin = me?.role === UserRole.admin;
 
   return (
-    <div className="flex-1 overflow-auto p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account and organization settings.</p>
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Settings</h1>
+        <p className="text-muted-foreground mt-0.5 text-sm">Manage your account and organization settings.</p>
       </div>
 
       <div className="grid gap-8">

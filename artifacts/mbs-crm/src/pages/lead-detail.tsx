@@ -2547,20 +2547,21 @@ export default function LeadDetail() {
   return (
     <div className="flex-1 overflow-auto bg-gray-50/50">
       {/* Header */}
-      <div className="border-b bg-white px-8 py-6 shadow-sm sticky top-0 z-10">
-        <div className="mb-4">
+      <div className="border-b bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <div className="mb-3">
           <Link href="/leads" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to Leads
           </Link>
         </div>
         
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 truncate">
               {lead.firstName} {lead.lastName}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               {lead.companyName && (
                 <div className="flex items-center gap-1.5">
                   <Building2 className="h-4 w-4 text-gray-400" />
@@ -2601,6 +2602,7 @@ export default function LeadDetail() {
             </Select>
             <EditLeadDialog lead={lead} />
           </div>
+        </div>
         </div>
       </div>
 
@@ -2682,20 +2684,22 @@ export default function LeadDetail() {
         {/* Right Column: Tabs */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-12 bg-white shadow-sm border p-1 h-12">
-              <TabsTrigger value="info" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><User className="h-3.5 w-3.5"/> Info</TabsTrigger>
-              <TabsTrigger value="notes" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileText className="h-3.5 w-3.5"/> Notes</TabsTrigger>
-              <TabsTrigger value="tasks" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><CheckSquare className="h-3.5 w-3.5"/> Tasks</TabsTrigger>
-              <TabsTrigger value="documents" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><FileIcon className="h-3.5 w-3.5"/> Docs</TabsTrigger>
-              <TabsTrigger value="communications" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><MessageSquare className="h-3.5 w-3.5"/> Comms</TabsTrigger>
-              <TabsTrigger value="activity" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Clock className="h-3.5 w-3.5"/> Activity</TabsTrigger>
-              <TabsTrigger value="lenders" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Building2 className="h-3.5 w-3.5"/> Lenders</TabsTrigger>
-              <TabsTrigger value="marketing" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><Megaphone className="h-3.5 w-3.5"/> Marketing</TabsTrigger>
-              <TabsTrigger value="application" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><ClipboardList className="h-3.5 w-3.5"/> App</TabsTrigger>
-              <TabsTrigger value="financials" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><BarChart3 className="h-3.5 w-3.5"/> Financials</TabsTrigger>
-              <TabsTrigger value="credit" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><ShieldCheck className="h-3.5 w-3.5"/> Credit</TabsTrigger>
-              <TabsTrigger value="consent" className="flex gap-1.5 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs"><ListChecks className="h-3.5 w-3.5"/> Consent</TabsTrigger>
+            <div className="overflow-x-auto">
+            <TabsList className="flex w-max min-w-full bg-white shadow-sm border p-1 gap-0.5 h-auto rounded-lg">
+              <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileText className="h-3.5 w-3.5 shrink-0"/> Notes</TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><CheckSquare className="h-3.5 w-3.5 shrink-0"/> Tasks</TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileIcon className="h-3.5 w-3.5 shrink-0"/> Docs</TabsTrigger>
+              <TabsTrigger value="communications" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><MessageSquare className="h-3.5 w-3.5 shrink-0"/> Comms</TabsTrigger>
+              <TabsTrigger value="activity" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Clock className="h-3.5 w-3.5 shrink-0"/> Activity</TabsTrigger>
+              <TabsTrigger value="lenders" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Building2 className="h-3.5 w-3.5 shrink-0"/> Lenders</TabsTrigger>
+              <TabsTrigger value="marketing" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Megaphone className="h-3.5 w-3.5 shrink-0"/> Marketing</TabsTrigger>
+              <TabsTrigger value="application" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ClipboardList className="h-3.5 w-3.5 shrink-0"/> App</TabsTrigger>
+              <TabsTrigger value="financials" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><BarChart3 className="h-3.5 w-3.5 shrink-0"/> Financials</TabsTrigger>
+              <TabsTrigger value="credit" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ShieldCheck className="h-3.5 w-3.5 shrink-0"/> Credit</TabsTrigger>
+              <TabsTrigger value="consent" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ListChecks className="h-3.5 w-3.5 shrink-0"/> Consent</TabsTrigger>
             </TabsList>
+          </div>
             <TabsContent value="info" className="outline-none">
               <LeadInfo lead={lead} leadId={id} />
             </TabsContent>

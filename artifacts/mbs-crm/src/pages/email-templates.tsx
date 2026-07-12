@@ -322,10 +322,10 @@ export default function EmailTemplates() {
   const { data: templates, isLoading } = useListEmailTemplates(undefined, { query: { queryKey: ["email-templates"] } });
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Email Templates</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Email Templates</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage reusable email templates with variable substitution.</p>
         </div>
         <div className="flex items-center gap-2">

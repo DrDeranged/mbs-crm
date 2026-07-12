@@ -184,11 +184,11 @@ export default function Governance() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-[#1F4E79]" />
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-[#1F4E79]" />
           Data Governance
         </h1>
         <p className="text-muted-foreground text-sm mt-0.5">PII access log, data retention policy, and Right to be Forgotten (RTBF) controls</p>

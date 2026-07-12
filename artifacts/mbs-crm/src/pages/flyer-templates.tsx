@@ -297,13 +297,13 @@ export default function FlyerTemplatesPage() {
     pt === "working_capital" ? "Working Capital" : pt === "equipment" ? "Equipment" : "General";
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F4E79] flex items-center gap-2">
-            <Megaphone className="h-6 w-6" /> Flyer Templates
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-[#1F4E79]" /> Flyer Templates
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-0.5">
             Create and manage branded PDF flyer templates for marketing to leads.
           </p>
         </div>

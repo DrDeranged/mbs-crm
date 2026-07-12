@@ -68,16 +68,16 @@ export default function CreditCompliance() {
   const handleClear = () => { setStartDate(""); setEndDate(""); setRepId("all"); setLeadIdFilter(""); setPage(1); };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-[#1F4E79]" />
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-[#1F4E79]" />
             Credit Compliance Log
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">Read-only append-only audit trail of all Experian credit pulls</p>
         </div>
-        <Button variant="outline" onClick={handleExport} className="gap-2">
+        <Button variant="outline" onClick={handleExport} className="gap-2 flex-shrink-0">
           <Download className="h-4 w-4" />
           Export CSV
         </Button>

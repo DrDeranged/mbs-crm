@@ -68,7 +68,7 @@ export default function SystemHealth() {
 
   if (!isAdmin) {
     return (
-      <div className="p-6 md:p-8">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <Empty>
           <EmptyMedia variant="icon">
             <ShieldAlert className="h-5 w-5" />
@@ -88,11 +88,11 @@ export default function SystemHealth() {
   const limit = data?.pagination?.limit ?? 25;
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">System Health</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">System Health</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">
           Live error log and background job status.
         </p>
       </div>

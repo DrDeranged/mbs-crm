@@ -217,15 +217,15 @@ export default function WorkflowRules() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1F4E79] text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1F4E79] text-white flex-shrink-0">
             <Zap size={18} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Workflow Rules</h1>
-            <p className="text-sm text-slate-500">Automatically create tasks or send notifications when a lead changes status.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Workflow Rules</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Automatically create tasks or send notifications when a lead changes status.</p>
           </div>
         </div>
         <Button onClick={openCreate} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white gap-2">

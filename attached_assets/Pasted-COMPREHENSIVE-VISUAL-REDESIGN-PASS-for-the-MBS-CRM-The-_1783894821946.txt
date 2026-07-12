@@ -1,0 +1,83 @@
+COMPREHENSIVE VISUAL REDESIGN PASS for the MBS CRM. The app currently looks crammed:
+content jams to the left leaving large empty right-side voids, tab bars have colliding
+labels with no spacing (e.g. "LendersMarketing", "FinancialsCredit" run together),
+spacing is inconsistent, and screen width is underused. Fix layout and spacing across
+EVERY page. Do NOT change functionality, routes, data, or logic — this is purely visual
+(layout, spacing, sizing, typography, alignment). Keep MBS navy (#1F4E79) as primary.
+Follow the existing shadcn/ui + Tailwind setup; add no new dependencies. Run
+npx tsc --build (exit 0), push, and republish.
+
+================================================================================
+STEP 0 — ESTABLISH A CONSISTENT LAYOUT SYSTEM (do this first, then apply everywhere)
+================================================================================
+- Define a standard page container used by every page: a max-width wrapper that USES the
+  available width on large screens (e.g. max-w-7xl or wider, mx-auto, with responsive
+  horizontal padding px-4 md:px-6 lg:px-8) so content fills the screen instead of hugging
+  the left edge with a huge empty right side. Content should breathe, not stretch edge-to-
+  edge nor cram into a narrow left column.
+- Define a standard PageHeader pattern (title + subtitle on the left, primary action on the
+  right, consistent bottom margin) and use it on every page.
+- Define consistent vertical rhythm: standard gap between sections (e.g. space-y-6),
+  standard card padding, standard border-radius and shadow tokens. Apply uniformly.
+- Ensure the main content area next to the sidebar expands to fill remaining width
+  (flex-1, min-w-0) — the empty right-side void suggests the content column isn't growing.
+
+================================================================================
+STEP 1 — FIX THE LEAD DETAIL TAB BAR (visible bug)
+================================================================================
+On lead-detail.tsx the tab labels collide ("LendersMarketing", "FinancialsCredit" have no
+space between them). Fix the TabsList: proper horizontal gap/padding between every
+TabsTrigger, each tab clearly separated, adequate touch target size. On narrow/mobile
+widths make the tab bar horizontally scrollable (overflow-x-auto) so tabs never overlap or
+wrap awkwardly. There are ~13 tabs — they must be legible and evenly spaced at all widths.
+
+================================================================================
+STEP 2 — LEAD DETAIL PAGE LAYOUT
+================================================================================
+- Use the full content width. The Deal Summary card (left) + tab content (right) should use
+  a balanced responsive grid that fills the screen on desktop, stacks on mobile. Right now
+  there's large unused space on the right — widen the content area and give the cards room.
+- Inside the App/Financials/etc tabs, use multi-column card grids that fill the width
+  (e.g. 2-col on md, keep readable max line lengths), consistent card sizing and spacing.
+
+================================================================================
+STEP 3 — APPLY THE SYSTEM TO EVERY PAGE
+================================================================================
+Apply the Step 0 container, header, and spacing system consistently to ALL of:
+dashboard, leads, lead-detail, lender-management, email-templates, drip-sequences,
+flyer-templates, workflow-rules, credit-compliance, data-governance, system-health,
+settings, new-lead, application-status, apply. For each:
+- Content fills the available width appropriately (no cramped-left / empty-right).
+- Consistent page header, section spacing, card styling.
+- Tables/forms use the width well; wide tables scroll or become cards on mobile (preserve
+  the mobile-card behavior already added to leads).
+- No overlapping text anywhere; check every header, tab bar, badge row, and button group.
+
+================================================================================
+STEP 4 — TYPOGRAPHY & VISUAL HIERARCHY
+================================================================================
+- Consistent type scale: page titles, section titles, card titles, body, muted/secondary
+  text — used uniformly so hierarchy reads clearly.
+- Consistent, refined color usage for status badges, score badges, and KPI accents
+  (professional, not garish); unify into shared components if not already.
+- Adequate line-height and letter-spacing; nothing cramped.
+- Consistent icon sizing and alignment with their labels.
+
+================================================================================
+STEP 5 — POLISH DETAILS
+================================================================================
+- Consistent hover/active states on nav, tabs, buttons, table rows.
+- Consistent empty states (reuse the shared EmptyState) and loading skeletons.
+- Ensure the sidebar, header, and content area align to the same vertical grid.
+- Verify responsiveness at common widths (mobile ~375, tablet ~768, desktop ~1280, wide
+  ~1600) — content should look intentional at each, never cramped or marooned in white space.
+
+================================================================================
+VERIFICATION — report PASS/FAIL:
+[ ] Standard page container/header/spacing system created and applied to ALL listed pages
+[ ] Lead-detail tab bar: no colliding labels, evenly spaced, scrollable on mobile
+[ ] Content fills available width on desktop (no cramped-left/empty-right voids)
+[ ] No overlapping text on any page (list any you couldn't fully resolve)
+[ ] Consistent typography, badges, cards, spacing across the app
+[ ] Responsive and intentional at mobile/tablet/desktop/wide widths
+[ ] No functional/route/data changes; npx tsc --build exits 0; pushed; republished

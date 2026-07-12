@@ -441,11 +441,11 @@ export default function Leads() {
   };
 
   return (
-    <div className="flex-1 overflow-auto p-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Leads</h1>
-          <p className="text-muted-foreground mt-1">Manage and track your financing pipeline</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Leads</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">Manage and track your financing pipeline</p>
         </div>
         <div className="flex items-center gap-3">
           {isManagerOrAdmin && (

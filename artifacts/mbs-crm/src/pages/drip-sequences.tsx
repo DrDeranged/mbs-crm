@@ -292,10 +292,10 @@ export default function DripSequences() {
   const { data: sequences, isLoading } = useListDripSequences({ query: { queryKey: ["drip-sequences"] } });
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Drip Sequences</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Drip Sequences</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Automated email campaigns triggered by lead status changes.
           </p>

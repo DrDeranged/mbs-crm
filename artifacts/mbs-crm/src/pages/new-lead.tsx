@@ -74,8 +74,8 @@ export default function NewLead() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-50/50">
-      <div className="mx-auto max-w-3xl p-8">
+    <div className="bg-gray-50/50">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 flex items-center gap-4">
           <Link href="/leads" className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-white hover:bg-gray-100 transition-colors">
             <ArrowLeft className="h-4 w-4" />

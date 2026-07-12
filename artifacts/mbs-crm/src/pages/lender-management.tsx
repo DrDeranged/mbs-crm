@@ -254,11 +254,11 @@ export default function LenderManagement() {
   const visible = (lenders ?? []).filter((l: any) => showInactive || l.isActive);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F4E79]">Lender Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your lender network and matching criteria</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Lender Management</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage your lender network and matching criteria</p>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
