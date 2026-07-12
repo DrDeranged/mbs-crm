@@ -1,8 +1,13 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "lhWS9lQPBDyqqODx3nyWY"
 uri = "file://artifacts/mbs-crm-mobile/assets/images/icon.png"
 type = "image"
 title = "generated_image"
+
+[[outputs]]
+id = "o3z6dDo2HWXmopqbzLI3T"
+uri = "file://MBS_CRM_Audit_Report.pdf"
+type = "pdf"
+title = "MBS CRM — Project Audit Report"
