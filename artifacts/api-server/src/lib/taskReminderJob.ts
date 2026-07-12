@@ -2,6 +2,7 @@ import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { tasksTable, usersTable, jobRunsTable } from "@workspace/db";
 import { sendPushNotification } from "./pushNotifications";
+import { captureException } from "./sentry";
 import { logger } from "./logger";
 
 let running: boolean | undefined;
@@ -68,6 +69,7 @@ export async function runTaskReminderJob(): Promise<void> {
     status = "error";
     errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Task reminder job failed");
+    captureException(err, { job: "task-reminder" });
   } finally {
     running = false;
     db.insert(jobRunsTable)

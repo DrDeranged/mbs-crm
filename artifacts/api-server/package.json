@@ -11,11 +11,17 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "@aws-sdk/client-s3": "^3.1085.0",
     "@clerk/express": "^2.1.28",
     "@clerk/shared": "^4.19.1",
     "@google-cloud/storage": "^7.21.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/instrumentation": "^0.220.0",
+    "@opentelemetry/sdk-trace-base": "^2.9.0",
     "@sendgrid/eventwebhook": "^8.0.0",
     "@sendgrid/mail": "^8.1.6",
+    "@sentry/node": "^10.65.0",
+    "@sentry/opentelemetry": "^10.65.0",
     "@types/compression": "^1.8.1",
     "@types/multer": "^2.1.0",
     "@types/pdf-parse": "^1.1.5",
@@ -25,6 +31,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "drizzle-orm": "catalog:",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "google-auth-library": "^10.7.0",
@@ -36,7 +43,6 @@
     "pino-http": "^10.5.0",
     "puppeteer": "^25.1.0",
     "twilio": "^6.0.2",
-    "xlsx": "^0.18.5",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { initSentry, captureException } from "./lib/sentry";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
@@ -15,6 +16,8 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
+
+initSentry();
 
 const app: Express = express();
 
@@ -119,6 +122,11 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     },
     "Unhandled error",
   );
+
+  // Report 500-level errors to Sentry with the request_id tag
+  if (status >= 500) {
+    captureException(err, { request_id: requestId });
+  }
 
   // Fire-and-forget: only log 500-level errors to DB, never block the response
   if (status >= 500) {

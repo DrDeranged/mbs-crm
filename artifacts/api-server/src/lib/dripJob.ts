@@ -8,6 +8,7 @@ import {
   usersTable,
   jobRunsTable,
 } from "@workspace/db";
+import { captureException } from "./sentry";
 import { eq, and } from "drizzle-orm";
 import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../routes/email";
 import { logActivity } from "./activityHelper";
@@ -154,6 +155,7 @@ export async function runDripJob(): Promise<void> {
     status = "error";
     errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Drip job failed");
+    captureException(err, { job: "drip" });
   } finally {
     running = false;
     db.insert(jobRunsTable)

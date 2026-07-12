@@ -1,0 +1,109 @@
+FINAL INFRASTRUCTURE WIRING for the MBS CRM — three tasks: Sentry (PII-safe), scheduled
+off-site backups to Backblaze B2, and the xlsx→exceljs security swap. Follow existing
+conventions (integration-optional pattern like Twilio — missing secrets must NEVER crash
+boot; job pattern with overlap locks + job_runs logging; graceful shutdown clears
+intervals; pino logging). Run npx tsc --build (exit 0), push to GitHub, republish, and
+report the republish timestamp.
+
+Secrets now available: SENTRY_DSN, VITE_SENTRY_DSN, B2_BUCKET_NAME, B2_KEY_ID,
+B2_APPLICATION_KEY, B2_ENDPOINT.
+
+================================================================================
+TASK 1 — SENTRY ERROR TRACKING (server + frontend, PII-SAFE)
+================================================================================
+Install: pnpm --filter @workspace/api-server add @sentry/node
+         pnpm --filter @workspace/mbs-crm add @sentry/react
+Do NOT install @sentry/profiling-node or enable any profiling/tracing — native binaries
+do not compile on this platform, and we only want error monitoring.
+
+SERVER (artifacts/api-server):
+- Initialize Sentry as early as possible in the entry point, ONLY if process.env.SENTRY_DSN
+  is set (if absent, skip init entirely and log one info line — the app must run
+  identically without it).
+- CRITICAL PII CONFIGURATION — the application-submit endpoint's request body contains
+  SSNs. Sentry must NEVER receive request bodies or PII:
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      sendDefaultPii: false,
+      maxRequestBodySize: "none",   // or the current option name for disabling body capture
+      beforeSend(event) {
+        // strip any request data defensively
+        if (event.request) { delete event.request.data; delete event.request.cookies; delete event.request.headers; }
+        return event;
+      },
+    });
+  Verify against the installed SDK version's option names; the requirement is: no request
+  bodies, no cookies, no headers, no user PII — stack trace, message, URL path, and our
+  request id only.
+- Integrate with the EXISTING global error handler in app.ts: on 500-level errors, call
+  Sentry.captureException(err) with the request id attached as a tag
+  (Sentry.setTag / scope tag "request_id"). Keep the existing error_log table write —
+  Sentry is in ADDITION to, not instead of, our internal logging.
+- Also capture errors from the background jobs: in the catch blocks of dripJob,
+  taskReminderJob, renewalJob (and the new backup job from Task 2), call
+  Sentry.captureException(err) guarded by the same DSN-present check.
+
+FRONTEND (artifacts/mbs-crm):
+- Initialize @sentry/react in the entry (main.tsx) ONLY if import.meta.env.VITE_SENTRY_DSN
+  is present. Error monitoring only: no tracing, no replay, no profiling.
+    Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, sendDefaultPii: false });
+- Wrap the app with the Sentry ErrorBoundary (or integrate with the existing
+  ErrorBoundary) so render crashes are reported with a graceful fallback UI, not a white
+  screen.
+- Ensure VITE_SENTRY_DSN is available to the deployment BUILD step (same mechanism used
+  for VITE_CLERK_PUBLISHABLE_KEY — it is baked at build time).
+
+================================================================================
+TASK 2 — NIGHTLY OFF-SITE BACKUP TO BACKBLAZE B2
+================================================================================
+Install an S3-compatible client: pnpm --filter @workspace/api-server add @aws-sdk/client-s3
+(B2 is S3-compatible; configure the client with endpoint https://{B2_ENDPOINT}, region
+from the endpoint (e.g. "us-west-004"), forcePathStyle true, and credentials
+{ accessKeyId: B2_KEY_ID, secretAccessKey: B2_APPLICATION_KEY }).
+
+- Create artifacts/api-server/src/lib/backupJob.ts exporting runBackupJob():
+  - Overlap lock (running flag) exactly like the other jobs.
+  - Skip with a single warn log if any B2_* secret is missing (integration-optional).
+  - REUSE the existing PII-safe export logic from the admin backup route — refactor the
+    data-gathering into a shared function (lib/backupExport.ts) that both the HTTP route
+    and this job call, so there is exactly ONE place defining what gets exported. The
+    exclusions must hold: SSNs only as stored ciphertext, NO raw credit payloads, NO
+    decryption anywhere in the export path.
+  - Serialize to JSON, gzip it, and upload to the B2 bucket as
+    backups/mbs-crm-backup-YYYY-MM-DD.json.gz.
+  - Retention: after a successful upload, list objects under backups/ and delete any
+    older than 30 days.
+  - Write a job_runs row per run (job_name "backup", items/bytes uploaded, status), same
+    as other jobs; report last run on the System Health page alongside the other jobs.
+  - Errors: captureException to Sentry (if configured) + job_runs error status; never
+    crash the server.
+- Schedule in artifacts/api-server/src/index.ts with the existing pattern: run once ~60s
+  after boot ONLY IF no backup exists for today (check job_runs or list the bucket), then
+  every 24 hours. Add the interval to the shutdown handler's cleared intervals.
+
+================================================================================
+TASK 3 — REPLACE xlsx WITH exceljs (clears the 4 HIGH vulnerabilities)
+================================================================================
+- pnpm --filter @workspace/api-server remove xlsx && pnpm --filter @workspace/api-server add exceljs
+- Rewrite the Excel import parsing (routes/import.ts or wherever xlsx is used) to use
+  exceljs: read the uploaded .xlsx buffer, take the first worksheet, treat row 1 as
+  headers, map rows to the same lead fields as before. Preserve EXACTLY the existing
+  behavior: header mapping, duplicate detection, skipped-row reporting, response shape
+  { imported, skipped, duplicates }, and the activity_log entry.
+- Search the whole workspace for any other xlsx usage (including the web app if it parses
+  spreadsheets client-side) and migrate or report it.
+- After the swap, run pnpm audit and report the new vulnerability counts by severity —
+  the 4 HIGH (xlsx) findings must be gone.
+
+================================================================================
+VERIFICATION — report PASS/FAIL each:
+[ ] Server Sentry init only when SENTRY_DSN set; app boots identically without it
+[ ] PII safety: no request bodies/cookies/headers/PII sent (beforeSend strips defensively)
+[ ] Global error handler reports to Sentry WITH request_id tag; error_log write retained
+[ ] Background jobs (drip/reminder/renewal/backup) capture exceptions to Sentry
+[ ] Frontend Sentry init via VITE_SENTRY_DSN, available at deployment build time,
+    ErrorBoundary wired
+[ ] Backup job: shared PII-safe export function, gzip upload to B2, 30-day retention,
+    overlap lock, job_runs row, visible on System Health, in shutdown handler
+[ ] xlsx fully removed, exceljs import preserves exact behavior, pnpm audit shows 0 HIGH
+[ ] npx tsc --build exits 0; pushed; republished (timestamp)

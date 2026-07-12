@@ -3,6 +3,7 @@ import { leadsTable, usersTable, jobRunsTable } from "@workspace/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { logActivity } from "./activityHelper";
 import { createNotification, notifyAllManagers } from "./notify";
+import { captureException } from "./sentry";
 import { logger } from "./logger";
 
 const DEFAULT_TERM_MONTHS = 6;
@@ -98,6 +99,7 @@ export async function runRenewalJob(): Promise<void> {
     status = "error";
     errorMessage = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Renewal job failed");
+    captureException(err, { job: "renewal" });
   } finally {
     running = false;
     db.insert(jobRunsTable)

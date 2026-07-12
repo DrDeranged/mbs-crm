@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
+import { runBackupJob } from "./lib/backupJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 import { closeBrowser } from "./lib/renderPdf";
 
@@ -56,6 +57,19 @@ const server = app.listen(port, (err) => {
     runRenewalJob().catch((err) => logger.error({ err }, "Renewal job error"));
   }, RENEWAL_INTERVAL_MS);
   intervals.push(renewalInterval);
+
+  // Nightly off-site backup to Backblaze B2 — waits 60s after boot then runs if no backup
+  // exists for today, then repeats every 24 hours
+  const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+  const backupBootDelay = setTimeout(() => {
+    runBackupJob().catch((err) => logger.error({ err }, "Backup job startup error"));
+  }, 60_000);
+  const backupInterval = setInterval(() => {
+    runBackupJob().catch((err) => logger.error({ err }, "Backup job error"));
+  }, BACKUP_INTERVAL_MS);
+  intervals.push(backupInterval);
+  // also clear the boot-delay timer on shutdown
+  (intervals as any).__backupBootDelay = backupBootDelay;
 });
 
 let shuttingDown = false;
@@ -64,6 +78,7 @@ async function shutdown(signal: string) {
   shuttingDown = true;
   logger.info({ signal }, "Shutting down gracefully");
   intervals.forEach(clearInterval);
+  clearTimeout((intervals as any).__backupBootDelay);
   await closeBrowser().catch((err) => logger.warn({ err }, "Error closing browser during shutdown"));
   server.close(() => {
     logger.info("HTTP server closed");

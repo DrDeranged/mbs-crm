@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable } from "@workspace/db";
 import { or, ilike } from "drizzle-orm";
@@ -32,19 +32,35 @@ const upload = multer({
 
 type ParsedRow = Record<string, string>;
 
-function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): { headers: string[]; rows: ParsedRow[] } {
+async function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): Promise<{ headers: string[]; rows: ParsedRow[] }> {
   const isExcel =
     mimetype.includes("spreadsheetml") ||
     mimetype.includes("ms-excel") ||
     originalname.endsWith(".xlsx") ||
     originalname.endsWith(".xls");
 
-  let rawRows: Record<string, unknown>[];
+  let rawRows: Record<string, unknown>[] = [];
 
   if (isExcel) {
-    const workbook = XLSX.read(buffer, { type: "buffer" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    rawRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const sheet = workbook.worksheets[0];
+    if (!sheet) return { headers: [], rows: [] };
+
+    const excelHeaders: string[] = [];
+    sheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
+      excelHeaders.push(String(cell.value ?? ""));
+    });
+
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const obj: Record<string, unknown> = {};
+      excelHeaders.forEach((h, i) => {
+        const cell = row.getCell(i + 1);
+        obj[h] = cell.value ?? "";
+      });
+      rawRows.push(obj);
+    });
   } else {
     const text = buffer.toString("utf-8");
     rawRows = csvToRows(text);
@@ -121,7 +137,7 @@ router.post("/leads/import/preview", upload.single("file"), async (req: Request,
     return;
   }
 
-  const { headers, rows } = parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+  const { headers, rows } = await parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
   if (rows.length === 0) {
     res.status(400).json({ error: "File is empty or has no data rows" });
     return;
@@ -164,7 +180,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     }
   }
 
-  const { rows } = parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+  const { rows } = await parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
   if (rows.length === 0) {
     res.status(400).json({ error: "File is empty or has no data rows" });
     return;
