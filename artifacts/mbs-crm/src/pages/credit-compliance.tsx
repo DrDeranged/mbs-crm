@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
@@ -127,9 +128,14 @@ export default function CreditCompliance() {
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : !data?.data?.length ? (
-            <div className="py-16 text-center">
-              <ShieldCheck className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <p className="text-muted-foreground">No credit pulls found for the selected filters.</p>
+            <div className="py-6">
+              <Empty className="border-0">
+                <EmptyMedia variant="icon"><ShieldCheck className="h-5 w-5" /></EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No credit pulls found</EmptyTitle>
+                  <EmptyDescription>No entries match the selected filters. Try adjusting the date range or rep selection.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             </div>
           ) : (
             <div className="overflow-x-auto">

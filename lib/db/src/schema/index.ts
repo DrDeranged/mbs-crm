@@ -19,4 +19,5 @@ export * from "./applications";
 export * from "./creditPulls";
 export * from "./workflowRules";
 export * from "./notifications";
+export * from "./companySettings";
 export * from "./relations";

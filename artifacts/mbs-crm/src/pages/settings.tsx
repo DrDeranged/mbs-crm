@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldAlert, Phone } from "lucide-react";
+import { ShieldAlert, Phone, Building2, Globe } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Settings() {
@@ -23,6 +23,52 @@ export default function Settings() {
 
   const [mobileInput, setMobileInput] = useState<string>("");
   const [mobileEditing, setMobileEditing] = useState(false);
+
+  const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+
+  const [companyForm, setCompanyForm] = useState({
+    companyName: "", companyEmail: "", companyPhone: "", companyWebsite: "",
+    companyAddress: "", companyCity: "", companyState: "", companyZip: "",
+  });
+  const [loadingCompany, setLoadingCompany] = useState(false);
+  const [savingCompany, setSavingCompany] = useState(false);
+
+  useEffect(() => {
+    if (me?.role !== "admin") return;
+    setLoadingCompany(true);
+    fetch(`${apiBase}/settings/company`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data: Record<string, string | null>) => setCompanyForm({
+        companyName: data.companyName ?? "",
+        companyEmail: data.companyEmail ?? "",
+        companyPhone: data.companyPhone ?? "",
+        companyWebsite: data.companyWebsite ?? "",
+        companyAddress: data.companyAddress ?? "",
+        companyCity: data.companyCity ?? "",
+        companyState: data.companyState ?? "",
+        companyZip: data.companyZip ?? "",
+      }))
+      .catch(() => {})
+      .finally(() => setLoadingCompany(false));
+  }, [me]);
+
+  const handleSaveCompany = async () => {
+    setSavingCompany(true);
+    try {
+      const res = await fetch(`${apiBase}/settings/company`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(companyForm),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Company settings saved" });
+    } catch {
+      toast({ title: "Failed to save company settings", variant: "destructive" });
+    } finally {
+      setSavingCompany(false);
+    }
+  };
 
   const handleRoleChange = (userId: number, newRole: UserUpdateRole) => {
     updateUser.mutate({ id: userId, data: { role: newRole } }, {
@@ -77,7 +123,7 @@ export default function Settings() {
                 <Skeleton className="h-4 w-[200px]" />
               </div>
             ) : me ? (
-              <div className="grid grid-cols-2 gap-4 max-w-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Name</div>
                   <div className="font-medium">{me.name || "N/A"}</div>
@@ -157,6 +203,69 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-[#1F4E79]" />
+                Company Settings
+              </CardTitle>
+              <CardDescription>Contact details and branding for your organization.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingCompany ? (
+                <div className="space-y-3 max-w-2xl">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 max-w-2xl">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground">Company Name</label>
+                    <Input value={companyForm.companyName} onChange={(e) => setCompanyForm((f) => ({ ...f, companyName: e.target.value }))} placeholder="MBS Financial" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground">Contact Email</label>
+                    <Input type="email" value={companyForm.companyEmail} onChange={(e) => setCompanyForm((f) => ({ ...f, companyEmail: e.target.value }))} placeholder="contact@company.com" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                    <Input type="tel" value={companyForm.companyPhone} onChange={(e) => setCompanyForm((f) => ({ ...f, companyPhone: e.target.value }))} placeholder="+1 (800) 000-0000" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Globe className="h-3 w-3" /> Website</label>
+                    <Input type="url" value={companyForm.companyWebsite} onChange={(e) => setCompanyForm((f) => ({ ...f, companyWebsite: e.target.value }))} placeholder="https://company.com" />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground">Street Address</label>
+                    <Input value={companyForm.companyAddress} onChange={(e) => setCompanyForm((f) => ({ ...f, companyAddress: e.target.value }))} placeholder="123 Main St" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground">City</label>
+                    <Input value={companyForm.companyCity} onChange={(e) => setCompanyForm((f) => ({ ...f, companyCity: e.target.value }))} placeholder="New York" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-muted-foreground">State</label>
+                      <Input value={companyForm.companyState} onChange={(e) => setCompanyForm((f) => ({ ...f, companyState: e.target.value }))} placeholder="NY" maxLength={2} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-muted-foreground">ZIP</label>
+                      <Input value={companyForm.companyZip} onChange={(e) => setCompanyForm((f) => ({ ...f, companyZip: e.target.value }))} placeholder="10001" maxLength={10} />
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2 pt-2">
+                    <Button onClick={handleSaveCompany} disabled={savingCompany} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                      {savingCompany ? "Saving…" : "Save Company Settings"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {isAdmin ? (
           <Card>
             <CardHeader>
@@ -164,7 +273,7 @@ export default function Settings() {
               <CardDescription>Manage user roles within your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

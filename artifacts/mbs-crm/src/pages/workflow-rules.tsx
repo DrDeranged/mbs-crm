@@ -247,7 +247,7 @@ export default function WorkflowRules() {
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white overflow-hidden shadow-sm">
+        <div className="rounded-lg border bg-white overflow-x-auto shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>

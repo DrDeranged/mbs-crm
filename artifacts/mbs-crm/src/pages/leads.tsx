@@ -18,7 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X } from "lucide-react";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, Building2 as BuildingIcon } from "lucide-react";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from "@/components/ui/empty";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -431,6 +432,14 @@ export default function Leads() {
   const formatStatus = (status: string) =>
     status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
+  const hasFilters = !!(search || status || applicationType || repId || startDate || endDate || scoreFilter || renewalFlagged);
+
+  const clearFilters = () => {
+    setSearch(""); setDebouncedSearch(""); setStatus(""); setApplicationType("");
+    setRepId(""); setStartDate(""); setEndDate(""); setScoreFilter("");
+    setRenewalFlagged(false); setPage(1);
+  };
+
   return (
     <div className="flex-1 overflow-auto p-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
@@ -600,7 +609,91 @@ export default function Leads() {
         </button>
       </div>
 
-      <div className="rounded-md border bg-white shadow-sm">
+      {/* Mobile lead cards — visible below md breakpoint */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-lg border bg-white shadow-sm p-4 space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-[140px]" />
+                  <Skeleton className="h-3 w-[180px]" />
+                </div>
+                <Skeleton className="h-5 w-[90px] rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-[120px]" />
+              <div className="flex justify-between">
+                <Skeleton className="h-3 w-[100px]" />
+                <Skeleton className="h-3 w-[80px]" />
+              </div>
+            </div>
+          ))
+        ) : data?.leads.length === 0 ? (
+          <div className="py-10">
+            {hasFilters ? (
+              <Empty>
+                <EmptyMedia variant="icon"><Search className="h-5 w-5" /></EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No leads match</EmptyTitle>
+                  <EmptyDescription>Try adjusting your filters to find what you're looking for.</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
+                </EmptyContent>
+              </Empty>
+            ) : (
+              <Empty>
+                <EmptyMedia variant="icon"><Users className="h-5 w-5" /></EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No leads yet</EmptyTitle>
+                  <EmptyDescription>Add your first lead manually or import a list to get started.</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <div className="flex flex-col gap-2 w-full">
+                    <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f]">
+                      <Plus className="mr-2 h-4 w-4" />New Lead
+                    </Link>
+                    {isManagerOrAdmin && (
+                      <button onClick={() => setImportOpen(true)} className="inline-flex h-9 items-center justify-center rounded-md border border-input px-4 text-sm font-medium hover:bg-accent">
+                        <Upload className="mr-2 h-4 w-4" />Import
+                      </button>
+                    )}
+                  </div>
+                </EmptyContent>
+              </Empty>
+            )}
+          </div>
+        ) : (
+          data?.leads.map((lead) => (
+            <Link key={lead.id} href={`/leads/${lead.id}`} className="block">
+              <div className={`rounded-lg border bg-white shadow-sm p-4 space-y-2 transition-colors hover:bg-gray-50/60 ${selectedIds.has(lead.id) ? "border-blue-300 bg-blue-50/40" : ""}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{lead.firstName} {lead.lastName}</div>
+                    <div className="text-xs text-muted-foreground truncate">{lead.email}</div>
+                  </div>
+                  <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
+                    {formatStatus(lead.status)}
+                  </Badge>
+                </div>
+                {lead.companyName && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <BuildingIcon size={12} />
+                    <span className="truncate">{lead.companyName}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
+                  <span className="truncate">{lead.assignedRep ? (lead.assignedRep.name || lead.assignedRep.email) : <span className="italic">Unassigned</span>}</span>
+                  <span className="flex-shrink-0 ml-2">{format(new Date(lead.updatedAt), "MMM d, yyyy")}</span>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table — hidden below md */}
+      <div className="hidden md:block rounded-md border bg-white shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -643,8 +736,39 @@ export default function Leads() {
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="h-24 text-center text-muted-foreground">
-                  No leads found.
+                <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="py-0">
+                  {hasFilters ? (
+                    <Empty className="py-12 border-0">
+                      <EmptyMedia variant="icon"><Search className="h-5 w-5" /></EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No leads match</EmptyTitle>
+                        <EmptyDescription>Try adjusting your search or filters.</EmptyDescription>
+                      </EmptyHeader>
+                      <EmptyContent>
+                        <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
+                      </EmptyContent>
+                    </Empty>
+                  ) : (
+                    <Empty className="py-12 border-0">
+                      <EmptyMedia variant="icon"><Users className="h-5 w-5" /></EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No leads yet</EmptyTitle>
+                        <EmptyDescription>Add your first lead manually or import a list to get started.</EmptyDescription>
+                      </EmptyHeader>
+                      <EmptyContent>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f]">
+                            <Plus className="mr-2 h-4 w-4" />New Lead
+                          </Link>
+                          {isManagerOrAdmin && (
+                            <button onClick={() => setImportOpen(true)} className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent">
+                              <Upload className="mr-2 h-4 w-4" />Import
+                            </button>
+                          )}
+                        </div>
+                      </EmptyContent>
+                    </Empty>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (

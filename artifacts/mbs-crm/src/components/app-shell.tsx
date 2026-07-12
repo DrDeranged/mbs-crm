@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { CommandPalette } from "@/components/command-palette";
 import { useClerk, useUser } from "@clerk/react";
 import {
   LayoutDashboard,
@@ -14,6 +15,7 @@ import {
   Megaphone,
   ShieldCheck,
   GitBranch,
+  Search,
 } from "lucide-react";
 import mbsLogo from "@/assets/MBS-Logo-Header-Logo.png";
 import { Button } from "@/components/ui/button";
@@ -125,6 +127,19 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
 
+      {/* Cmd+K search trigger */}
+      <div className="px-3 pb-2">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+          className="flex items-center gap-2 w-full rounded-lg border border-sidebar-border/60 bg-sidebar-foreground/5 px-3 py-2 text-xs text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-accent/50 transition-colors"
+          aria-label="Open command palette"
+        >
+          <Search size={13} />
+          <span className="flex-1 text-left">Search…</span>
+          <kbd className="font-mono bg-sidebar-foreground/10 px-1.5 py-0.5 rounded text-[10px]">⌘K</kbd>
+        </button>
+      </div>
+
       {/* User footer */}
       <div className="border-t border-sidebar-border p-4 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3 px-1">
@@ -159,6 +174,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
+      <CommandPalette />
       {/* Desktop Sidebar */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm">
         <SidebarContent />

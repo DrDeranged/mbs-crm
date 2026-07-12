@@ -7,7 +7,7 @@ import {
   useGetAnalyticsReps, getGetAnalyticsRepsQueryKey,
   useGetAnalyticsSources,
   useGetAnalyticsCommunications,
-  useGetAnalyticsRenewals,
+  useGetAnalyticsRenewals, getGetAnalyticsRenewalsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity,
-  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw,
+  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus,
 } from "lucide-react";
 import { Link } from "wouter";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
@@ -170,7 +170,7 @@ export default function Dashboard() {
   });
   const renewalsParams = effectiveRepId != null ? { rep_id: effectiveRepId } : {};
   const { data: renewals, isLoading: loadingRenewals } = useGetAnalyticsRenewals(renewalsParams, {
-    query: { enabled: !loadingUser },
+    query: { queryKey: getGetAnalyticsRenewalsQueryKey(renewalsParams), enabled: !loadingUser },
   });
 
   const sortedReps = useMemo(() => {
@@ -267,6 +267,32 @@ export default function Dashboard() {
           </Badge>
         )}
       </div>
+
+      {/* First-run call-to-action */}
+      {!loadingSummary && summary && (summary as any).totalLeads === 0 && (
+        <div className="bg-[#1F4E79]/5 border border-[#1F4E79]/20 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="h-11 w-11 rounded-full bg-[#1F4E79]/10 flex items-center justify-center flex-shrink-0">
+            <Users className="h-5 w-5 text-[#1F4E79]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900">Welcome to MBS CRM!</p>
+            <p className="text-sm text-muted-foreground mt-0.5">Add your first lead or import a list to start tracking your pipeline.</p>
+          </div>
+          <div className="flex gap-2 flex-wrap flex-shrink-0">
+            <Link href="/leads/new">
+              <button className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f] transition-colors">
+                <Plus className="h-4 w-4" />
+                Add First Lead
+              </button>
+            </Link>
+            <Link href="/leads">
+              <button className="inline-flex h-9 items-center rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-accent transition-colors">
+                View Leads
+              </button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards — 2 rows of 3 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
@@ -653,7 +679,7 @@ export default function Dashboard() {
                           {rep.fundings}
                         </td>
                         <td className="py-2 px-3 text-right tabular-nums font-semibold text-[#1F4E79]">
-                          {formatCurrency(rep.revenue)}
+                          {formatCurrency(rep.revenue ?? 0)}
                         </td>
                       </tr>
                     ))}

@@ -1,0 +1,127 @@
+COMPREHENSIVE UX/POLISH/ACCESSIBILITY PASS for the MBS CRM — eight tasks.
+
+GROUND RULES (apply to every task):
+- Follow existing conventions: shadcn/ui components, the app's Tailwind theme tokens,
+  MBS navy (#1F4E79), the existing EmptyState pattern already used in lead-detail.tsx and
+  email-templates.tsx, requireUser + RBAC on endpoints, logActivity for writes,
+  openapi.yaml + codegen for any new endpoint, db.transaction for multi-write flows.
+- Add NO new dependencies unless a task explicitly calls for one.
+- Do NOT change existing functionality or data flow — these are additive/visual/UX only,
+  except Task 3 which intentionally replaces hardcoded values with settings.
+- Complete each task fully and verify it before starting the next.
+- At the end: run npx tsc --build (must exit 0), push to GitHub, and republish the
+  deployment. Report the republish timestamp.
+
+================================================================================
+TASK 1 — EMPTY STATES (pages currently missing them)
+================================================================================
+Add intentional, on-brand empty states (icon + heading + description + action button
+where useful), matching the existing style in lead-detail.tsx / email-templates.tsx:
+- leads.tsx: zero leads → "No leads yet — share your application link or import existing
+  leads." with buttons "Import Leads" and "Copy Application Link". When filters return
+  nothing (but leads exist) → distinct "No leads match these filters" + Clear Filters.
+- dashboard.tsx: whole account has no data → a friendly first-run guidance panel
+  ("Your pipeline is empty — leads appear here as applications come in"). Keep the KPI
+  cards; add the panel above/around them.
+- credit-compliance.tsx: "No credit inquiries recorded yet."
+- settings.tsx: N/A if it's all forms (skip).
+Reuse a shared EmptyState component; if one isn't already extracted, create
+components/empty-state.tsx and refactor the existing inline ones to use it.
+
+================================================================================
+TASK 2 — MOBILE-RESPONSIVE LEADS TABLE
+================================================================================
+leads.tsx currently has no mobile handling and clips on phones. Below the md breakpoint,
+render each lead as a stacked card (name, company, colored status badge, lead score
+badge, assigned rep, last-activity relative time). At md+ keep the existing full table.
+Preserve ALL existing functionality in both layouts: bulk-select checkboxes, bulk action
+bar, filters, search, sorting, and row actions (status change, assign, open). Field reps
+must be able to work leads one-handed on a phone.
+
+================================================================================
+TASK 3 — COMPANY SETTINGS (also removes hardcoded placeholders)
+================================================================================
+Add a "Company" section to settings.tsx (admin only): company name, business phone,
+business email, mailing address. Persist in a company_settings table (create it — a
+single-row or key/value table; add to schema/index.ts and relations if needed; push).
+Endpoints: admin GET/PUT for full settings; plus a PUBLIC GET returning only non-sensitive
+contact info (company name, phone, email) for the public pages.
+Then replace hardcoded placeholders that read the company contact:
+- apply.tsx confirmation screen "Questions? Call us at (800) 000-0000" → real phone from
+  settings (sensible fallback if unset).
+- application-status.tsx and any other public/customer-facing contact line → same source.
+Add all new endpoints to openapi.yaml and run codegen.
+
+================================================================================
+TASK 4 — MOBILE/TABLET RESPONSIVENESS ACROSS ADMIN PAGES
+================================================================================
+These pages have little/no breakpoint work and look rough on tablets/phones:
+lender-management.tsx, email-templates.tsx, drip-sequences.tsx, flyer-templates.tsx,
+workflow-rules.tsx, credit-compliance.tsx, settings.tsx.
+Apply consistent responsive treatment: forms and dialogs stack cleanly on small screens,
+tables get horizontal scroll (overflow-x-auto) or card fallback where a table is unusably
+wide, buttons/headers wrap gracefully, no fixed widths that overflow the viewport. Do not
+restructure desktop layouts — only make them adapt down.
+
+================================================================================
+TASK 5 — ACCESSIBILITY PASS
+================================================================================
+Only ~2 pages currently have any aria/alt coverage. Across the app:
+- Add aria-label to all icon-only buttons (softphone widget, notification bell, table row
+  action icons, close/expand toggles, copy buttons, etc.).
+- Add alt text to all images/logos (MBS logo → alt="My Business Solutions").
+- Ensure interactive elements are real buttons/links (not clickable divs); add role/tabIndex
+  only where a non-semantic element must remain.
+- Ensure form inputs have associated labels (htmlFor / id) across all forms.
+- Verify focus-visible styles exist for keyboard navigation; add a subtle focus ring using
+  the theme if missing.
+Keep it non-visual where possible (labels/roles), no layout changes.
+
+================================================================================
+TASK 6 — GLOBAL COMMAND SEARCH (Cmd+K)
+================================================================================
+Add a command-palette quick search available app-wide (authenticated shell only). Use the
+shadcn "command" component (cmdk) if already present in the UI library; if not present,
+add it via the existing shadcn setup (this is the one allowed new UI primitive).
+- Trigger: Cmd/Ctrl+K, and a small search affordance in the app-shell header.
+- Searches leads by name / company / email / phone (reuse the existing leads search
+  endpoint; debounce input). Selecting a result navigates to that lead detail.
+- Include quick nav actions too (jump to Dashboard, Leads, Lenders, Settings).
+- Respect RBAC: reps only see their own leads in results.
+
+================================================================================
+TASK 7 — APP-WIDE VISUAL CONSISTENCY POLISH
+================================================================================
+Light-touch, no layout changes:
+- Consistent card shadows, border radii, and section spacing across Dashboard, Leads,
+  Lead Detail, and admin pages so they read as one design system.
+- Unify status badges and lead-score badges into a single shared component with a
+  consistent, professional color scale (avoid garish tones).
+- Consistent page headers (title + subtitle + primary action placement) across pages.
+- Consistent loading skeletons (not bare spinners) on data-heavy pages: leads, dashboard,
+  lead-detail, credit-compliance.
+- Consistent typographic hierarchy and muted-text usage.
+
+================================================================================
+TASK 8 — DARK MODE (lowest priority; only if Tasks 1–7 are solid)
+================================================================================
+Add optional dark mode using Tailwind's dark: variant and a theme toggle in settings or
+the user menu, persisting preference (in-memory/user setting — NOT browser localStorage
+if that's disallowed in this environment; use a user setting or React state + the existing
+settings store). Ensure MBS navy branding still reads well in dark. If time/scope is tight,
+implement the toggle + core surfaces (shell, dashboard, leads) and note what's left rather
+than doing it halfway everywhere.
+
+================================================================================
+VERIFICATION — report PASS/FAIL per task:
+[ ] 1: Empty states on leads (zero + filtered), dashboard, credit-compliance; shared component
+[ ] 2: Leads = cards on mobile / table on desktop; all bulk/filter/row actions work in both
+[ ] 3: Company Settings saves; apply.tsx + public pages show real phone (no 800-000-0000);
+       public contact endpoint added + codegen run
+[ ] 4: Admin pages adapt cleanly to tablet/phone widths
+[ ] 5: aria-labels on icon buttons, alt on images, labeled inputs, focus-visible styles
+[ ] 6: Cmd+K palette searches leads (RBAC-respected) + quick nav
+[ ] 7: Unified badges/headers/skeletons/spacing across pages
+[ ] 8: Dark mode toggle + core surfaces (or documented partial)
+[ ] npx tsc --build exits 0
+[ ] Pushed to GitHub + republished (timestamp)
