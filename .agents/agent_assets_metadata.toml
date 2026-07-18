@@ -17,3 +17,9 @@ id = "kcG-Kb5bsp3oUNmk1eRwd"
 uri = "file://mbs-crm-timeline.pdf"
 type = "pdf"
 title = "MBS CRM — Weekly Timeline"
+
+[[outputs]]
+id = "EsrVLSRSGkGHUGWwNLhc-"
+uri = "file://mbs-crm-rte-verification.pdf"
+type = "pdf"
+title = "RTE Verification Report"
