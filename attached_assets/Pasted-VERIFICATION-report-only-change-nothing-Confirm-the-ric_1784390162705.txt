@@ -1,0 +1,38 @@
+VERIFICATION — report only, change nothing. Confirm the rich-text-editor work is complete,
+correct, and live in production. Answer each item PASS/FAIL with brief evidence.
+
+1. DEPLOYMENT: Is the live deployment republished at or past commit 904a187 (the rich text
+   editor work)? Report the last publish timestamp and the commit it contains. If the live
+   app is behind that commit, say so — do not republish in this task, just report.
+
+2. RICH TEXT EDITOR — where applied: Confirm the WYSIWYG editor (components/ui/
+   rich-text-editor.tsx) is actually wired into all three: the email-templates New/Edit
+   dialog, the lead-detail Communications email composer, and flyer-templates. For each,
+   confirm the old raw <textarea>/"Body (HTML)" input is GONE, not just hidden alongside it.
+
+3. VARIABLE INSERTION: Confirm clicking a merge-field chip ({{lead_first_name}} etc.)
+   inserts the token at the cursor position in the editor (not appended to the end, not
+   requiring the user to type it). Note which file holds that logic.
+
+4. CRITICAL — FLYER PDF SECURITY: This is the highest-priority check. Confirm that:
+   a) renderTemplate in artifacts/api-server/src/lib/renderPdf.ts still HTML-escapes
+      variable VALUES while leaving template HTML intact (the escapeHtml function is still
+      called on values).
+   b) The flyer editor's HTML output still flows through the Puppeteer PDF path correctly.
+   c) Generating a flyer with a field value containing a character like < or " does NOT
+      break the PDF or inject raw markup — the value is escaped. Describe how you verified
+      this (trace the code path from editor → save → renderTemplate → Puppeteer).
+
+5. STORED FORMAT & SEEDED TEMPLATES: Confirm the stored format is still HTML (unchanged),
+   and that the 7 seeded starter templates open and render correctly in the new editor
+   without corruption.
+
+6. FLYER TOGGLE: Confirm the flyer editor has a working Visual / HTML-source toggle so an
+   admin can still edit raw HTML for advanced layouts.
+
+7. BUILD: Confirm npx tsc --build exits 0 on the current committed code.
+
+8. ANYTHING INCOMPLETE: List anything skipped, partially done, or worked around. If
+   everything is fully done, state that explicitly.
+
+Output as a numbered PASS/FAIL report. Report only — make no changes.
