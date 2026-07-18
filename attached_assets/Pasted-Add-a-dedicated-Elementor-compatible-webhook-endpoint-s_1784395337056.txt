@@ -1,0 +1,45 @@
+Add a dedicated Elementor-compatible webhook endpoint so the WordPress site's contact form
+can dual-capture leads into the CRM, with spam filtering. Follow existing conventions
+(rate limiting like the existing capture endpoint, idempotency, duplicate detection,
+logActivity). Run npx tsc --build (exit 0), push, republish.
+
+CONTEXT: The site uses Elementor Pro forms. Its webhook sends form fields as a POST with
+keys like: name, email, message, and dynamic field IDs (e.g. field_0bb8c14 for phone).
+The existing POST /leads/capture expects firstName/lastName/phone/companyName and won't map
+Elementor's payload.
+
+TASK 1 — New endpoint POST /api/leads/capture/elementor (PUBLIC, rate-limited):
+- Accept a flexible JSON body (Elementor sends form field key/value pairs). Extract:
+  - name → split into firstName / lastName (first token = firstName, rest = lastName)
+  - email → email
+  - phone → accept common Elementor phone field patterns; also accept a "phone" key if
+    present. Make the field mapping configurable/tolerant since Elementor field IDs vary.
+  - message → store as a note on the created lead
+  - company (if present) → companyName
+- Set lead_source = "website" (or a new "website_contact" source if the enum allows adding).
+- Reuse the SAME validation, idempotency (email+phone window), and duplicate detection as
+  the existing capture endpoint. On duplicate, return 200 (do not create a second lead) so
+  the webhook doesn't error.
+
+TASK 2 — SPAM FILTERING (critical — the contact form receives SEO/scam spam):
+- Reject (silently return 200 without creating a lead, so the webhook still succeeds) if:
+  - message contains common spam signals (e.g. "SEO", "search engine ranking", "t.me/",
+    "wa.me/", "telegram", "skype", "bulk mess", "$59", "feedback form", crypto/marketing
+    spam patterns) — implement a reasonable keyword+URL heuristic, case-insensitive.
+  - message contains more than N URLs (e.g. >1 link = likely spam for a contact form).
+  - email domain is obviously disposable/suspicious (optional, light touch).
+- Log rejected submissions to activity_log as "spam_filtered" (with reason) so nothing is
+  silently lost — an admin can review what was filtered. Do NOT create a lead for spam.
+- Keep the filter conservative: better to let a borderline real inquiry through than to
+  drop it. Real financing inquiries won't contain these spam signals.
+
+TASK 3 — Verify the existing POST /leads/capture still works unchanged (Stream 2 / other
+integrations depend on it). Add the new endpoint to openapi.yaml + codegen.
+
+VERIFICATION — report PASS/FAIL:
+[ ] POST /api/leads/capture/elementor accepts Elementor-style payload, maps name/email/phone/message
+[ ] Creates a website-source lead with the message stored as a note
+[ ] Idempotency + duplicate detection reused; duplicates return 200 (no error, no dupe)
+[ ] Spam heuristic filters SEO/scam/link-spam; filtered items logged as "spam_filtered", no lead created
+[ ] Existing /leads/capture unchanged; new endpoint in openapi + codegen
+[ ] npx tsc --build exits 0; pushed; republished

@@ -414,6 +414,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/DuplicateResponse"
 
+  /leads/capture/elementor:
+    post:
+      operationId: captureLeadFromElementor
+      tags: [leads]
+      summary: Elementor Pro webhook endpoint — maps flexible form fields to a CRM lead with spam filtering (no auth required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElementorCaptureInput"
+      responses:
+        "200":
+          description: Accepted (new lead, duplicate, or spam-filtered — always 200 so Elementor webhook does not error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElementorCaptureResponse"
+        "400":
+          description: Missing required fields (no email and no phone)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
   /leads/export:
     get:
       operationId: exportLeads
@@ -3123,6 +3151,42 @@ components:
         applicationType:
           type: string
           enum: [equipment, working_capital]
+
+    ElementorCaptureInput:
+      type: object
+      description: Flexible key/value payload from Elementor Pro form webhook. At least one of email or phone must be present.
+      properties:
+        name:
+          type: string
+          description: Full name (split into firstName/lastName automatically)
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          description: Also accepted as phone_number, telephone, mobile, or any field whose value matches a phone pattern
+        message:
+          type: string
+          description: Contact message stored in activity log; checked for spam signals
+        company:
+          type: string
+          description: Also accepted as companyName, company_name, business_name
+
+    ElementorCaptureResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        leadId:
+          type: integer
+          description: Present when a new lead was created or a duplicate was detected
+        duplicate:
+          type: boolean
+          description: Present and true when the submission matched an existing lead
 
     LeadCaptureResponse:
       type: object

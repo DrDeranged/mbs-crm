@@ -310,6 +310,26 @@ export const CaptureLeadFromWebsiteBody = zod.object({
 
 
 /**
+ * @summary Elementor Pro webhook endpoint — maps flexible form fields to a CRM lead with spam filtering (no auth required)
+ */
+export const CaptureLeadFromElementorBody = zod.object({
+  "name": zod.string().optional().describe('Full name (split into firstName\/lastName automatically)'),
+  "firstName": zod.string().optional(),
+  "lastName": zod.string().optional(),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional().describe('Also accepted as phone_number, telephone, mobile, or any field whose value matches a phone pattern'),
+  "message": zod.string().optional().describe('Contact message stored in activity log; checked for spam signals'),
+  "company": zod.string().optional().describe('Also accepted as companyName, company_name, business_name')
+}).describe('Flexible key\/value payload from Elementor Pro form webhook. At least one of email or phone must be present.')
+
+export const CaptureLeadFromElementorResponse = zod.object({
+  "success": zod.boolean(),
+  "leadId": zod.number().optional().describe('Present when a new lead was created or a duplicate was detected'),
+  "duplicate": zod.boolean().optional().describe('Present and true when the submission matched an existing lead')
+})
+
+
+/**
  * @summary Export leads as CSV (respects current filter params, or specific IDs)
  */
 export const ExportLeadsQueryParams = zod.object({

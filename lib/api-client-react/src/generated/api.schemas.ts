@@ -396,6 +396,31 @@ export interface LeadCaptureInput {
   applicationType?: LeadCaptureInputApplicationType;
 }
 
+/**
+ * Flexible key/value payload from Elementor Pro form webhook. At least one of email or phone must be present.
+ */
+export interface ElementorCaptureInput {
+  /** Full name (split into firstName/lastName automatically) */
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  /** Also accepted as phone_number, telephone, mobile, or any field whose value matches a phone pattern */
+  phone?: string;
+  /** Contact message stored in activity log; checked for spam signals */
+  message?: string;
+  /** Also accepted as companyName, company_name, business_name */
+  company?: string;
+}
+
+export interface ElementorCaptureResponse {
+  success: boolean;
+  /** Present when a new lead was created or a duplicate was detected */
+  leadId?: number;
+  /** Present and true when the submission matched an existing lead */
+  duplicate?: boolean;
+}
+
 export interface LeadCaptureResponse {
   success: boolean;
   leadId: number;
@@ -1400,6 +1425,10 @@ export type ImportLeadsBody = {
   file: Blob;
   /** JSON-encoded object mapping file column names to lead field names */
   columnMapping?: string;
+};
+
+export type CaptureLeadFromElementor400 = {
+  error?: string;
 };
 
 export type ExportLeadsParams = {
