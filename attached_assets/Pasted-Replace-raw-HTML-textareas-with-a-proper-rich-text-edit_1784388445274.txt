@@ -1,0 +1,46 @@
+Replace raw HTML textareas with a proper rich text editor across the MBS CRM. Reps
+currently must hand-write HTML tags (e.g. "<p>Hi {{lead_first_name}},</p>") to compose
+emails and flyers — a developer interface unusable by non-technical staff, and malformed
+tags produce broken emails to merchants. Follow existing conventions (shadcn/ui, Tailwind,
+the app design system). Run npx tsc --build (exit 0), push to GitHub, and republish.
+
+TASK 1 — RICH TEXT EDITOR COMPONENT
+- Install Tiptap: @tiptap/react, @tiptap/starter-kit, @tiptap/extension-link.
+- Create components/ui/rich-text-editor.tsx: a WYSIWYG editor with a toolbar (Bold, Italic,
+  bullet list, numbered list, headings, Link) and a clean editable area styled to match the
+  app. Props: value (HTML string), onChange (emits HTML), placeholder. It reads/writes HTML
+  so the STORED FORMAT IS UNCHANGED — the database still stores HTML, reps just never see
+  the tags.
+- Variable insertion: the merge-field chips ({{lead_first_name}}, etc.) must insert the
+  token AT THE CURSOR when clicked, not require typing. Keep the chips as clickable buttons
+  near the editor.
+
+TASK 2 — APPLY EVERYWHERE CONTENT IS AUTHORED
+Replace the raw HTML/textarea body inputs in all three places:
+- email-templates.tsx — the "Body (HTML)" field in the New/Edit Template dialog. Relabel to
+  just "Email Body" (drop "HTML"). Variable chips wired to cursor-insert.
+- lead-detail.tsx — the email composer in the Communications tab. Same editor + variable
+  insertion.
+- flyer-templates.tsx — the flyer body field. Flyers render to PDF via the existing
+  renderTemplate + Puppeteer path, so: use the editor, BUT provide a "Visual / HTML source"
+  toggle since flyers are admin-authored design templates that may need raw-HTML control for
+  advanced layout. Confirm the editor's HTML output still flows correctly through the
+  Puppeteer PDF path AND that the renderTemplate value-escaping we added earlier is
+  preserved (values escaped, template HTML intact).
+
+TASK 3 — PRESERVE EXISTING BEHAVIOR
+- Stored format stays HTML; the 7 seeded starter templates must still open and render
+  correctly in the new editor.
+- Variable substitution ({{...}} → real values) at send time unchanged.
+- "Load starter templates" seed, drip sequences, and send logic untouched.
+- Give the New/Edit Template dialog the same polish as the redesigned pages (the redesign
+  pass didn't touch modals): consistent spacing, editor fills width cleanly, responsive.
+
+VERIFICATION — report PASS/FAIL:
+[ ] RTE component created (toolbar: bold/italic/lists/headings/link)
+[ ] Applied in email-templates dialog, lead-detail composer, flyer-templates (with toggle)
+[ ] Variable chips insert at cursor (no manual {{...}} typing)
+[ ] Stored HTML unchanged; 7 seeded templates open/render correctly
+[ ] Flyer PDF path works; renderTemplate escaping preserved
+[ ] "HTML" label removed from rep-facing fields; dialog polished/responsive
+[ ] npx tsc --build exits 0; pushed; republished
