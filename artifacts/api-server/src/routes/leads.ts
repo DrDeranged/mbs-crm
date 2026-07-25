@@ -21,6 +21,7 @@ import {
   CaptureLeadFromWebsiteBody,
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
+import multer from "multer";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
@@ -294,13 +295,20 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   res.status(201).json(capturePayload);
 });
 
+// multer instance for parsing multipart/form-data (fields only, no file uploads)
+const elementorMulter = multer({ storage: multer.memoryStorage(), limits: { fields: 50, fieldSize: 4096, fileSize: 0 } });
+
 // ── Elementor webhook capture ─────────────────────────────────────────────────
 // POST /leads/capture/elementor — public, rate-limited.
 // Accepts Elementor Pro form payloads (flexible key/value pairs).  Returns 200
 // for every non-error outcome (new lead, duplicate, spam) so the webhook never
 // errors on the WordPress side.
-router.post("/leads/capture/elementor", captureRateLimiter, async (req: Request, res: Response) => {
-  const raw = req.body as Record<string, unknown>;
+// Supports all three content-types Elementor may send:
+//   • application/json          (handled by express.json() globally)
+//   • application/x-www-form-urlencoded (handled by express.urlencoded() globally)
+//   • multipart/form-data       (handled by elementorMulter below, this route only)
+router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none(), async (req: Request, res: Response) => {
+  const raw = (req.body ?? {}) as Record<string, unknown>;
 
   // ── Field extraction (Elementor-flexible) ────────────────────────────────
   function strField(...keys: string[]): string {
@@ -333,9 +341,16 @@ router.post("/leads/capture/elementor", captureRateLimiter, async (req: Request,
   const message    = strField("message", "msg", "comment", "comments", "inquiry", "note");
   const companyVal = strField("company", "companyName", "company_name", "business", "business_name");
 
+  // ── Guard: empty / unparseable body — must never 500 on the WordPress side ─
+  if (!emailVal && !firstName && !lastName && !fullName) {
+    req.log.warn({ raw }, "elementor webhook received body with no usable fields — ignoring");
+    res.status(200).json({ success: true, ignored: "empty_or_unparseable" });
+    return;
+  }
+
   // ── Basic validation ──────────────────────────────────────────────────────
   if (!emailVal && !phoneVal) {
-    res.status(400).json({ error: "email or phone required" });
+    res.status(200).json({ success: true, ignored: "no_contact_info" });
     return;
   }
   if (firstName.length > 100 || lastName.length > 100) {
