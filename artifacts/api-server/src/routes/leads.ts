@@ -310,37 +310,99 @@ const elementorMulter = multer({ storage: multer.memoryStorage(), limits: { fiel
 router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none(), async (req: Request, res: Response) => {
   const raw = (req.body ?? {}) as Record<string, unknown>;
 
-  // ── Field extraction (Elementor-flexible) ────────────────────────────────
-  function strField(...keys: string[]): string {
-    for (const k of keys) {
-      const v = raw[k];
-      if (typeof v === "string" && v.trim()) return v.trim();
-    }
-    return "";
-  }
+  // ── Field extraction ──────────────────────────────────────────────────────
+  // Elementor Pro sends a NESTED payload:
+  //   fields = { "name": { id, type, title, value }, "field_0bb8c14": { ... }, … }
+  //   (may arrive as a JSON string when content-type is urlencoded)
+  // Fall back to flat top-level keys when `fields` is absent (direct tests / other callers).
 
-  // Phone: accept explicit key first (including Elementor auto-ID field_0bb8c14),
-  // then fall back to any field whose value looks like a phone number.
-  function findPhone(): string {
-    const explicit = strField("phone", "phone_number", "telephone", "mobile", "field_0bb8c14");
-    if (explicit) return explicit;
-    for (const v of Object.values(raw)) {
-      if (typeof v === "string" && /^\+?[\d\s\-().]{7,20}$/.test(v.trim()) && !v.includes("@")) {
-        return v.trim();
+  let fullName   = "";
+  let firstName  = "";
+  let lastName   = "";
+  let emailVal   = "";
+  let phoneVal   = "";
+  let message    = "";
+  let companyVal = "";
+
+  try {
+    if (raw.fields !== undefined) {
+      // ── Nested Elementor Pro format ─────────────────────────────────────
+      const fieldsRaw = typeof raw.fields === "string"
+        ? (JSON.parse(raw.fields) as Record<string, { id?: string; type?: string; title?: string; value?: unknown }>)
+        : (raw.fields as Record<string, { id?: string; type?: string; title?: string; value?: unknown }>);
+
+      function fieldVal(key: string): string {
+        const entry = fieldsRaw[key];
+        return typeof entry?.value === "string" ? entry.value.trim() : "";
       }
-    }
-    return "";
-  }
 
-  const fullName   = strField("name", "full_name", "fullName");
-  const nameParts  = fullName.split(/\s+/).filter(Boolean);
-  const firstName  = strField("firstName", "first_name") || nameParts[0] || "";
-  const lastName   = strField("lastName",  "last_name")  || nameParts.slice(1).join(" ") || "";
-  const emailVal   = strField("email", "email_address").toLowerCase();
-  const phoneVal   = findPhone();
-  const message    = strField("message", "msg", "comment", "comments", "inquiry", "note");
-  // field_0565986 is the Elementor auto-generated ID for the Business Name field
-  const companyVal = strField("company", "companyName", "company_name", "business", "business_name", "field_0565986");
+      // 1. Explicit field-ID matches (fastest path)
+      fullName   = fieldVal("name");
+      emailVal   = fieldVal("email").toLowerCase();
+      phoneVal   = fieldVal("field_0bb8c14");
+      companyVal = fieldVal("field_0565986");
+      message    = fieldVal("message");
+
+      // 2. Resilient title/type scan — survive field-id changes in the form builder
+      for (const entry of Object.values(fieldsRaw)) {
+        if (!entry || entry.type === "acceptance") continue; // skip terms checkboxes
+        const title = (entry.title ?? "").toLowerCase();
+        const type  = (entry.type  ?? "").toLowerCase();
+        const val   = typeof entry.value === "string" ? entry.value.trim() : "";
+        if (!val) continue;
+
+        if (!phoneVal   && (title.includes("phone") || title.includes("mobile") || title.includes("telephone")))
+          phoneVal = val;
+        if (!companyVal && (title.includes("business") || title.includes("company")))
+          companyVal = val;
+        if (!emailVal   && (type === "email" || title.includes("email")))
+          emailVal = val.toLowerCase();
+        if (!fullName   && (title.includes("full name") || title.includes("name")))
+          fullName = val;
+        if (!message    && (type === "textarea" || title.includes("message") || title.includes("comment")))
+          message = val;
+      }
+
+      // Split full name into first/last
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+      firstName = nameParts[0] ?? "";
+      lastName  = nameParts.slice(1).join(" ");
+
+    } else {
+      // ── Flat top-level format (fallback / direct API callers) ────────────
+      function strField(...keys: string[]): string {
+        for (const k of keys) {
+          const v = raw[k];
+          if (typeof v === "string" && v.trim()) return v.trim();
+        }
+        return "";
+      }
+
+      function findPhone(): string {
+        const explicit = strField("phone", "phone_number", "telephone", "mobile", "field_0bb8c14");
+        if (explicit) return explicit;
+        for (const v of Object.values(raw)) {
+          if (typeof v === "string" && /^\+?[\d\s\-().]{7,20}$/.test(v.trim()) && !v.includes("@")) {
+            return v.trim();
+          }
+        }
+        return "";
+      }
+
+      fullName   = strField("name", "full_name", "fullName");
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+      firstName  = strField("firstName", "first_name") || nameParts[0] || "";
+      lastName   = strField("lastName",  "last_name")  || nameParts.slice(1).join(" ") || "";
+      emailVal   = strField("email", "email_address").toLowerCase();
+      phoneVal   = findPhone();
+      message    = strField("message", "msg", "comment", "comments", "inquiry", "note");
+      companyVal = strField("company", "companyName", "company_name", "business", "business_name", "field_0565986");
+    }
+  } catch (parseErr) {
+    req.log.warn({ parseErr, raw }, "elementor webhook — failed to parse payload, ignoring");
+    res.status(200).json({ success: true, ignored: "empty_or_unparseable" });
+    return;
+  }
 
   // ── Guard: empty / unparseable body — must never 500 on the WordPress side ─
   if (!emailVal && !firstName && !lastName && !fullName) {
