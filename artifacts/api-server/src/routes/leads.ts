@@ -319,10 +319,10 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
     return "";
   }
 
-  // Phone: accept explicit key first, then fall back to any field whose value
-  // looks like a phone number (digits/spaces/dashes, 7–20 chars, no @).
+  // Phone: accept explicit key first (including Elementor auto-ID field_0bb8c14),
+  // then fall back to any field whose value looks like a phone number.
   function findPhone(): string {
-    const explicit = strField("phone", "phone_number", "telephone", "mobile");
+    const explicit = strField("phone", "phone_number", "telephone", "mobile", "field_0bb8c14");
     if (explicit) return explicit;
     for (const v of Object.values(raw)) {
       if (typeof v === "string" && /^\+?[\d\s\-().]{7,20}$/.test(v.trim()) && !v.includes("@")) {
@@ -339,7 +339,8 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
   const emailVal   = strField("email", "email_address").toLowerCase();
   const phoneVal   = findPhone();
   const message    = strField("message", "msg", "comment", "comments", "inquiry", "note");
-  const companyVal = strField("company", "companyName", "company_name", "business", "business_name");
+  // field_0565986 is the Elementor auto-generated ID for the Business Name field
+  const companyVal = strField("company", "companyName", "company_name", "business", "business_name", "field_0565986");
 
   // ── Guard: empty / unparseable body — must never 500 on the WordPress side ─
   if (!emailVal && !firstName && !lastName && !fullName) {
@@ -407,6 +408,27 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
     return;
   }
 
+  // ── Auto-assign: rep → manager → admin (round-robin by fewest leads) ────────
+  async function pickNextRepLocal(): Promise<number | null> {
+    const roleFallback = ["rep", "manager", "admin"] as const;
+    for (const role of roleFallback) {
+      const users = await db.query.usersTable.findMany({
+        where: and(eq(usersTable.role, role), eq(usersTable.isActive, true)),
+      });
+      if (users.length === 0) continue;
+      const counts = await Promise.all(
+        users.map(async (u: { id: number }) => {
+          const leadRows = await db.query.leadsTable.findMany({ where: eq(leadsTable.assignedRepId, u.id) });
+          return { repId: u.id, count: leadRows.length };
+        })
+      );
+      counts.sort((a, b) => a.count - b.count);
+      return counts[0]?.repId ?? null;
+    }
+    return null;
+  }
+  const assignedRepId = await pickNextRepLocal();
+
   // ── Create lead ───────────────────────────────────────────────────────────
   const [lead] = await db.insert(leadsTable).values({
     firstName:    firstName  || null,
@@ -416,6 +438,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
     companyName:  companyVal || null,
     applicationType: "working_capital",
     leadSource:   "website",
+    ...(assignedRepId ? { assignedRepId } : {}),
   }).returning();
 
   // Store message in activity details (notes require a non-null userId)
