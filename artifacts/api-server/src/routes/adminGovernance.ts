@@ -192,7 +192,7 @@ router.post("/admin/data-governance/purge", async (req: Request, res: Response) 
     leadId: null,
     action: "data_purge",
     entityType: "system",
-    entityId: null,
+    entityId: 0,
     details: {
       purgedCount: ids.length,
       retentionMonths,

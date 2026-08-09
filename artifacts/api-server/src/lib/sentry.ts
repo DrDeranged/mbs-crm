@@ -13,7 +13,6 @@ export function initSentry(): void {
   SentryNode.init({
     dsn,
     sendDefaultPii: false,
-    maxRequestBodySize: "none",
     beforeSend(event) {
       if (event.request) {
         delete event.request.data;

@@ -43,6 +43,7 @@ async function parseBuffer(buffer: Buffer, mimetype: string, originalname: strin
 
   if (isExcel) {
     const workbook = new ExcelJS.Workbook();
+    // @ts-expect-error — Node.js Buffer<ArrayBufferLike> vs ExcelJS Buffer type mismatch; runtime-safe
     await workbook.xlsx.load(buffer);
     const sheet = workbook.worksheets[0];
     if (!sheet) return { headers: [], rows: [] };

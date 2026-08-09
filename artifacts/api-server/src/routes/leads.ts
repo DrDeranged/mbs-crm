@@ -23,7 +23,7 @@ import {
 import rateLimit from "express-rate-limit";
 import multer from "multer";
 import { sendPushNotification } from "../lib/pushNotifications";
-import { createNotification } from "../lib/notify";
+import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
 
@@ -515,6 +515,24 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
       ...(message ? { message: message.slice(0, 2000) } : {}),
     },
   });
+
+  // ── Notify assigned rep + all managers of new website lead ───────────────
+  const leadName = [firstName, lastName].filter(Boolean).join(" ") || companyVal || "Website lead";
+  notifyAllManagers(
+    "lead_assigned",
+    "New website lead",
+    `${leadName} submitted a contact form`,
+    lead.id,
+  ).catch(() => {});
+  if (assignedRepId) {
+    createNotification({
+      userId: assignedRepId,
+      type: "lead_assigned",
+      title: "New website lead assigned to you",
+      body: leadName,
+      leadId: lead.id,
+    }).catch(() => {});
+  }
 
   const elementorPayload: Record<string, unknown> = { success: true, leadId: lead.id };
   void storeIdempotency(idempKey, "leads/capture/elementor", `lead:${lead.id}`, elementorPayload);
