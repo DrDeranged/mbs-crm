@@ -16,3 +16,4 @@
 - [Expo Metro stale cache after pnpm add](expo-metro-stale-cache.md) — after upgrading a pnpm workspace package, Metro may show "Unable to resolve" until the expo workflow is restarted to clear its module cache.
 - [Idempotency pattern for POST endpoints](idempotency-table-pattern.md) — use idempotency_keys table with unique(key, endpoint); derive natural key via SHA-256 of stable fields + time-bucket; store result payload in jsonb for replay.
 - [Governance layer](governance-layer.md) — pii_access_log, retention purge, RTBF, consent panel, GOVERNANCE.md implemented; FCRA append-only guarantee enforced via 409 conflict; drip/SMS consent guards log skip reasons.
+- [GitHub push via connectors-sdk](github-push-pattern.md) — only reliable push method; GitHub user is DrDeranged (not MarketingBG); use ReplitConnectors.proxy("github", ...) from @replit/connectors-sdk installed at workspace root.

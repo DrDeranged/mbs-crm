@@ -1,0 +1,57 @@
+FIX the Elementor webhook endpoint's payload parsing. It currently reads flat top-level
+keys (req.body.name, req.body.email, req.body.field_0bb8c14), but the REAL Elementor Pro
+webhook sends a NESTED structure. Confirmed from two live captures: the form POSTs
+application/x-www-form-urlencoded, and the body contains a "fields" object keyed by field
+id, where each field is an object with a .value. Captured shape:
+
+  fields = {
+    "name":          { "id":"name",          "type":"text",       "title":"Full Name",     "value":"Sarah Chen" },
+    "email":         { "id":"email",         "type":"email",      "title":"Email",         "value":"sarahchen@example.com" },
+    "field_0bb8c14": { "id":"field_0bb8c14", "type":"text",       "title":"Phone Number",  "value":"212444555221" },
+    "field_0565986": { "id":"field_0565986", "type":"text",       "title":"Business Name", "value":"TOP DOWN" },
+    "message":       { "id":"message",       "type":"textarea",   "title":"Message",       "value":"testing" },
+    "field_34e9f30": { "id":"field_34e9f30", "type":"acceptance", "title":"...terms...",   "value":"on" }
+  }
+  form = { "id":"7f72dc5", "name":"New Form" }
+  meta = { date, time, page_url, user_agent, remote_ip, credit }   // ignore
+
+So the actual submitted data is at req.body.fields[<key>].value. (Note: depending on
+content-type, fields may arrive already as an object, or as a JSON string that needs
+JSON.parse — handle both: if req.body.fields is a string, JSON.parse it; if it's an
+object, use it directly.)
+
+UPDATE POST /leads/capture/elementor to parse the nested Elementor format:
+
+1. Detect the nested format: if req.body.fields exists, extract from it.
+   - Normalize: let fields = typeof req.body.fields === "string"
+       ? JSON.parse(req.body.fields) : req.body.fields;
+   - For each entry, the value is fields[key].value.
+   - Map by known field id first:
+       name  ← fields["name"].value        (then split into first/last)
+       email ← fields["email"].value
+       message ← fields["message"].value
+       phone ← fields["field_0bb8c14"].value
+       company ← fields["field_0565986"].value
+   - ALSO map resiliently by title/type so it survives field-id changes: iterate all
+     fields, and if a field's title (case-insensitive) contains "phone" → phone;
+     "business" or "company" → company; "email" or type==="email" → email;
+     "full name"/"name" → name; type==="textarea" or title contains "message" → message.
+     Prefer explicit id matches; fall back to title/type matching.
+   - IGNORE fields with type "acceptance" (terms checkbox) and the entire meta/form blocks.
+
+2. Fallback: if req.body.fields does NOT exist, use the current flat-key parsing unchanged
+   (so the direct console tests and any other callers keep working).
+
+3. Confirm express.urlencoded({ extended: true }) applies to this route so bracket-nested
+   urlencoded bodies parse into nested objects; keep multer().none() for multipart too.
+
+4. Keep spam filtering, idempotency, duplicate detection, and the auto-assign fallback all
+   working on the extracted values.
+
+5. NEVER 500 on an unexpected shape — wrap parsing in try/catch and fall through to the
+   existing empty_or_unparseable 200 response if extraction fails.
+
+VERIFY: POST a urlencoded body containing the nested "fields" object above and confirm a
+lead is created with name "Sarah Chen", email, phone "212444555221", company "TOP DOWN",
+and an assigned rep. Also confirm the old flat-key format still creates a lead (no
+regression). npx tsc --build (exit 0), push to GitHub, republish, and report the timestamp.
