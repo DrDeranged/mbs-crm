@@ -1,0 +1,40 @@
+MAINTENANCE PASS — verification first, then small fixes ONLY where verified missing.
+Do not rebuild anything that already exists. Report PASS/FAIL per item with evidence.
+
+================================================================================
+PART 1 — OPERATIONAL VERIFICATION (report only)
+================================================================================
+1. BACKUP PIPELINE: Query the job_runs table for job_name "backup". Report: how many runs,
+   the last 5 run timestamps, their status, and bytes/items uploaded. If runs are failing
+   or absent since deployment, diagnose why (missing B2_* secrets? errors?) and report —
+   do not fix yet.
+2. SENTRY: Confirm SENTRY_DSN and VITE_SENTRY_DSN are set in the environment (report as
+   booleans only, never values). Confirm the server Sentry init runs at boot (check logs
+   for the init line). Report whether the recent Elementor 500s (from the error_log table,
+   ~Jul 25–Aug 1) would have been forwarded to Sentry based on the code path.
+3. ERROR STATE: Report the current error_log count for the last 7 days and the most recent
+   entry. Confirm System Health reflects the same.
+4. WEBSITE-LEAD NOTIFICATIONS: Check whether leads created via POST /leads/capture/elementor
+   currently trigger an in-app notification to the assigned user (trace the code path).
+   Report YES (where) or NO.
+5. TYPESCRIPT: Run npx tsc --build and report the exact errors, if any, with file/line.
+
+================================================================================
+PART 2 — FIXES, ONLY IF PART 1 FOUND GAPS
+================================================================================
+A. If item 4 = NO: add a notification on website-lead creation — reuse the existing
+   createNotification pattern exactly as the application-submit flow does (notify the
+   assigned user; if none, notify admins). Do NOT add if one already fires — no double
+   notifications.
+B. If item 5 found real TS errors (not clone/node_modules artifacts): fix them minimally
+   without behavior changes. List each fix.
+C. If item 1 found the backup job failing for a fixable code reason: fix it. If it's a
+   missing-secret issue, report only — secrets are user-provided.
+
+================================================================================
+Do not touch: the Elementor endpoint parsing, spam filter, auto-assign, Sentry config,
+or any working integration. If everything in Part 1 passes and item 4 = YES, make NO code
+changes at all — just deliver the report.
+Then: npx tsc --build (exit 0), push ONLY if changes were made, republish ONLY if pushed,
+and report what was/wasn't done.
+================================================================================

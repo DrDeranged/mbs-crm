@@ -77,37 +77,73 @@ async function findDuplicate(email?: string, phone?: string, ein?: string) {
   return existing ?? null;
 }
 
-function checkSpam(message: string): { spam: boolean; reason: string } {
+function checkSpam(
+  message: string,
+  email?: string,
+  phone?: string,
+): { spam: boolean; reason: string } {
   const lower = message.toLowerCase();
 
-  // >1 URL in a contact-form message is a strong spam signal
+  // ── Soft signal: phone with fewer than 10 digits ──────────────────────────
+  // Alone it is not enough to reject; combined with any hard signal it is.
+  const hasShortPhone = !!phone && (() => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length > 0 && digits.length < 10;
+  })();
+
+  // Helper — when a hard signal fires, fold the short-phone soft signal in.
+  const hit = (reason: string): { spam: boolean; reason: string } =>
+    ({ spam: true, reason: hasShortPhone ? "combo:short_phone" : reason });
+
+  // ── Lookalike-domain rule ─────────────────────────────────────────────────
+  // Genuine merchants never email from a variant of OUR brand name.
+  // Normalise: lowercase, strip hyphens, dots, underscores.
+  if (email) {
+    const domain = (email.split("@")[1] ?? "").toLowerCase();
+    const norm   = domain.replace(/[-_.]/g, "");
+    const isRealDomain = domain === "my-business-solutions.com";
+    if (!isRealDomain && norm.includes("mybusinesssolutions")) {
+      return hit("lookalike_domain");
+    }
+  }
+
+  // ── Hard URL/messaging signals ────────────────────────────────────────────
   const urls = message.match(/https?:\/\/\S+/gi) ?? [];
-  if (urls.length > 1) return { spam: true, reason: "multiple_urls" };
+  if (urls.length > 1) return hit("multiple_urls");
+  if (/t\.me\/|wa\.me\/|telegram\.me/.test(lower)) return hit("messaging_app_link");
+  if (/\bskype\b/.test(lower) && urls.length > 0) return hit("skype_link");
 
-  // Messaging-app links (single mention is enough)
-  if (/t\.me\/|wa\.me\/|telegram\.me/.test(lower)) return { spam: true, reason: "messaging_app_link" };
-  if (/\bskype\b/.test(lower) && urls.length > 0) return { spam: true, reason: "skype_link" };
-
-  // SEO / marketing / bulk-spam keyword patterns
+  // ── Keyword signals ───────────────────────────────────────────────────────
   const SPAM_KEYWORDS = [
+    // SEO / traffic
     "search engine rank", "search engine optimiz", "seo service", "seo package",
     "google ranking", "google first page", "page one of google",
-    "bulk message", "bulk email", "email blast",
-    "digital marketing agenc", "marketing package",
-    "backlink", "link building", "domain authorit",
-    "cryptocurrency invest", "crypto invest", "bitcoin invest",
-    "$59/", "$49/", "$29/",
     "boost your traffic", "increase your traffic", "drive traffic",
     "traffic to your website", "i noticed your website",
     "i visited your website", "your website ranking",
     "improve your ranking", "free seo audit",
+    "backlink", "link building", "domain authorit",
+    // Bulk messaging / marketing
+    "bulk message", "bulk email", "email blast",
+    "digital marketing agenc", "marketing package",
     "social media marketing", "content marketing service",
+    // Crypto
+    "cryptocurrency invest", "crypto invest", "bitcoin invest",
+    // Price-bait
+    "$59/", "$49/", "$29/",
+    // Generic spam openers
     "dear website owner", "dear admin", "dear sir/madam",
     "i am a professional seo", "we are a seo",
+    // Domain / trademark scam signals
+    "domain registration", "domain expir", "domain renewal",
+    "trademark protect", "brand protection",
+    "domain name notice", "registration notice",
+    "intellectual property protect",
+    "cn domain", "asia domain",
   ];
 
   for (const kw of SPAM_KEYWORDS) {
-    if (lower.includes(kw)) return { spam: true, reason: `keyword:${kw.trim()}` };
+    if (lower.includes(kw)) return hit(`keyword:${kw.trim()}`);
   }
 
   return { spam: false, reason: "" };
@@ -431,7 +467,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
 
   // ── Spam filter ───────────────────────────────────────────────────────────
   if (message) {
-    const spamResult = checkSpam(message);
+    const spamResult = checkSpam(message, emailVal, phoneVal);
     if (spamResult.spam) {
       // Log for admin review — do NOT create a lead
       await logActivity({
