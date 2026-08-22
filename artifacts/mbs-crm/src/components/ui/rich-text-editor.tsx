@@ -68,7 +68,7 @@ export function RichTextEditor({
   useEffect(() => {
     if (!editor) return;
     if (value !== lastEmitted.current) {
-      editor.commands.setContent(value || "", false);
+      editor.commands.setContent(value || "", { emitUpdate: false });
       lastEmitted.current = value;
       setEditorIsEmpty(editor.isEmpty);
     }
