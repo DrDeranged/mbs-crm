@@ -51,14 +51,14 @@ import { SoftphoneContext } from "@/components/softphone-context";
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
 function ScoreBar({ score }: { score: number }) {
-  const color = score >= 70 ? "bg-green-500" : score >= 40 ? "bg-amber-500" : "bg-red-500";
+  const color = score >= 70 ? "bg-[#17A567]" : score >= 40 ? "bg-amber-500" : "bg-red-500";
   const label = score >= 70 ? "High" : score >= 40 ? "Medium" : "Low";
-  const labelColor = score >= 70 ? "text-green-700" : score >= 40 ? "text-amber-700" : "text-red-700";
+  const labelColor = score >= 70 ? "text-[#149258]" : score >= 40 ? "text-amber-700" : "text-red-700";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-gray-900">{score}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${score >= 70 ? "bg-green-100" : score >= 40 ? "bg-amber-100" : "bg-red-100"} ${labelColor}`}>{label}</span>
+        <span className="text-2xl font-bold text-[#0E2A47] tabular-nums">{score}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${score >= 70 ? "bg-[#17A567]/10" : score >= 40 ? "bg-amber-100" : "bg-red-100"} ${labelColor}`}>{label}</span>
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
@@ -917,13 +917,13 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
         <div className="flex gap-1 mb-3">
           <button
             onClick={() => setActiveCompose("sms")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "sms" ? "bg-[#1F4E79] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "sms" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
           >
             <MessageSquare className="h-3 w-3" /> SMS
           </button>
           <button
             onClick={() => setActiveCompose("email")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "email" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"} ${hasNoEmail ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "email" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"} ${hasNoEmail ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={hasNoEmail}
             title={hasNoEmail ? "Lead has no email address" : undefined}
           >
@@ -936,23 +936,23 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
             <div className="flex justify-end">
               <Popover open={draftPopoverOpen === "sms"} onOpenChange={(o) => setDraftPopoverOpen(o ? "sms" : null)}>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-[#1F4E79]/30 text-[#1F4E79]">
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
                     <Sparkles className="h-3 w-3" /> Draft with AI
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 space-y-2">
-                  <p className="text-xs text-muted-foreground">Optional instruction to guide the draft (e.g. "follow up after missed call")</p>
+                  <p className="text-xs text-white/70">Optional instruction to guide the draft (e.g. "follow up after missed call")</p>
                   <Textarea
                     value={draftInstruction}
                     onChange={(e) => setDraftInstruction(e.target.value)}
                     placeholder="Instruction (optional)…"
-                    className="min-h-[60px] text-sm resize-none"
+                    className="min-h-[60px] resize-none border-white/20 bg-white/95 text-sm text-[#0E2A47] placeholder:text-slate-500"
                   />
                   <Button
                     size="sm"
                     onClick={() => handleGenerateDraft("sms")}
                     disabled={generateDraft.isPending}
-                    className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+                    className="w-full text-xs"
                   >
                     {generateDraft.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
                     Generate Draft
@@ -968,7 +968,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                 className="min-h-[64px] text-sm resize-none flex-1"
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSendSms(); }}
               />
-              <Button onClick={handleSendSms} disabled={!smsBody.trim() || sendSms.isPending} className="self-end bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+              <Button onClick={handleSendSms} disabled={!smsBody.trim() || sendSms.isPending} className="self-end">
                 <MessageSquare className="h-4 w-4 mr-1" /> Send
               </Button>
             </div>
@@ -980,13 +980,13 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
             <div className="flex gap-1">
               <button
                 onClick={() => { setEmailMode("template"); setEmailPreview(null); setShowPreview(false); }}
-                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "template" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "template" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
               >
                 From Template
               </button>
               <button
                 onClick={() => { setEmailMode("freeform"); setEmailPreview(null); setShowPreview(false); }}
-                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "freeform" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "freeform" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
               >
                 Custom
               </button>
@@ -1030,7 +1030,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                 <Button
                   onClick={handleSendEmail}
                   disabled={!emailTemplateId || sendEmail.isPending}
-                  className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                  className="w-full"
                 >
                   <Mail className="h-4 w-4 mr-1.5" /> Send Email
                 </Button>
@@ -1040,23 +1040,23 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                 <div className="flex justify-end">
                   <Popover open={draftPopoverOpen === "email"} onOpenChange={(o) => setDraftPopoverOpen(o ? "email" : null)}>
                     <PopoverTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-purple-300 text-purple-700">
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
                         <Sparkles className="h-3 w-3" /> Draft with AI
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 space-y-2">
-                      <p className="text-xs text-muted-foreground">Optional instruction to guide the draft (e.g. "ask for updated bank statements")</p>
+                      <p className="text-xs text-white/70">Optional instruction to guide the draft (e.g. "ask for updated bank statements")</p>
                       <Textarea
                         value={draftInstruction}
                         onChange={(e) => setDraftInstruction(e.target.value)}
                         placeholder="Instruction (optional)…"
-                        className="min-h-[60px] text-sm resize-none"
+                        className="min-h-[60px] resize-none border-white/20 bg-white/95 text-sm text-[#0E2A47] placeholder:text-slate-500"
                       />
                       <Button
                         size="sm"
                         onClick={() => handleGenerateDraft("email")}
                         disabled={generateDraft.isPending}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                        className="w-full text-xs"
                       >
                         {generateDraft.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
                         Generate Draft
@@ -1081,7 +1081,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                 <Button
                   onClick={handleSendEmail}
                   disabled={!emailSubject.trim() || !emailBodyHtml.trim() || sendEmail.isPending}
-                  className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                  className="w-full"
                 >
                   <Mail className="h-4 w-4 mr-1.5" /> Send Email
                 </Button>
@@ -1272,7 +1272,6 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
             <Button variant="outline" size="sm" onClick={() => setPendingLender(null)}>Cancel</Button>
             <Button
               size="sm"
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
               disabled={createSub.isPending}
               onClick={confirmSubmit}
             >
@@ -1292,7 +1291,6 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
           size="sm"
           onClick={handleRunMatch}
           disabled={runMatch.isPending}
-          className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${runMatch.isPending ? "animate-spin" : ""}`} />
           {runMatch.isPending ? "Matching…" : "Run Match"}
@@ -1341,7 +1339,7 @@ function LeadLenderMatch({ leadId }: { leadId: number }) {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs border-[#1F4E79] text-[#1F4E79] hover:bg-[#1F4E79] hover:text-white shrink-0 ml-2"
+                      className="h-7 text-xs shrink-0 ml-2"
                       onClick={() => setPendingLender({ id: m.lenderId, name: lenderName })}
                     >
                       <Send className="h-3 w-3 mr-1" /> Submit
@@ -1633,7 +1631,7 @@ function LeadMarketing({ leadId, lead }: { leadId: number; lead: any }) {
 
           <div className="flex flex-wrap gap-2 pt-2 border-t">
             <Button
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white h-9 text-sm"
+              className="h-9 text-sm"
               onClick={handleGenerate}
               disabled={!selectedTemplateId || generateFlyer.isPending}
             >
@@ -1977,7 +1975,7 @@ function LeadCredit({ leadId }: { leadId: number }) {
                 <Button
                   onClick={handlePull}
                   disabled={!consentChecked || pulling}
-                  className="bg-[#1F4E79] hover:bg-[#163a5f] gap-2 min-w-40"
+                  className="gap-2 min-w-40"
                 >
                   {pulling ? <><Loader2 className="h-4 w-4 animate-spin" /> Pulling...</> : <><ShieldCheck className="h-4 w-4" /> Pull Credit Report</>}
                 </Button>
@@ -2621,7 +2619,6 @@ export default function LeadDetail() {
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setFundedDialogOpen(false)}>Cancel</Button>
             <Button
-              className="bg-[#1F4E79] hover:bg-[#1F4E79]/90"
               onClick={handleConfirmFunded}
               disabled={changeStatus.isPending}
             >

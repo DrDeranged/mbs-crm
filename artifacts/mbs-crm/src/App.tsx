@@ -57,56 +57,56 @@ function stripBase(path: string): string {
 const clerkAppearance = {
   cssLayerName: "clerk" as const,
   variables: {
-    colorPrimary: "#1F4E79",
-    colorForeground: "#0f172a",
-    colorMutedForeground: "#64748b",
+    colorPrimary: "#17A567",
+    colorForeground: "#ffffff",
+    colorMutedForeground: "rgba(255,255,255,.62)",
     colorDanger: "#dc2626",
-    colorBackground: "#f8fafc",
+    colorBackground: "rgba(255,255,255,.08)",
     colorInput: "#ffffff",
     colorInputForeground: "#0f172a",
-    colorNeutral: "#e2e8f0",
+    colorNeutral: "rgba(255,255,255,.2)",
     fontFamily: "Inter, system-ui, sans-serif",
-    borderRadius: "0.5rem",
+    borderRadius: "0.875rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-lg",
+    cardBox: "bg-white/10 border border-white/15 backdrop-blur-xl rounded-[14px] w-[440px] max-w-full overflow-hidden shadow-2xl",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-slate-900 font-bold",
-    headerSubtitle: "text-slate-500",
+    headerTitle: "text-white font-bold",
+    headerSubtitle: "text-white/60",
     socialButtonsBlockButtonText: {
       style: {
-        color: "#1e293b",
+        color: "#ffffff",
         fontWeight: "500",
         fontSize: "0.875rem",
       },
     },
-    formFieldLabel: "text-slate-700",
-    footerActionLink: "text-[#1F4E79] hover:text-[#163a5f]",
-    footerActionText: "text-slate-500",
-    dividerText: "text-slate-400",
-    identityPreviewEditButton: "text-[#1F4E79]",
-    formFieldSuccessText: "text-green-600",
-    alertText: "text-slate-700",
+    formFieldLabel: "text-white/85",
+    footerActionLink: "text-[#65D5A2] hover:text-white",
+    footerActionText: "text-white/60",
+    dividerText: "text-white/45",
+    identityPreviewEditButton: "text-[#65D5A2]",
+    formFieldSuccessText: "text-[#65D5A2]",
+    alertText: "text-white",
     logoBox: "mb-2",
     logoImage: "h-10",
     socialButtonsBlockButton: {
       style: {
-        border: "1.5px solid #d1d5db",
-        backgroundColor: "#ffffff",
-        color: "#1e293b",
+        border: "1px solid rgba(255,255,255,.2)",
+        backgroundColor: "rgba(255,255,255,.08)",
+        color: "#ffffff",
         fontWeight: "500",
-        boxShadow: "0 1px 2px 0 rgba(0,0,0,0.06)",
-        borderRadius: "0.5rem",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,.12)",
+        borderRadius: "9999px",
       },
     },
-    formButtonPrimary: "bg-[#1F4E79] hover:bg-[#163a5f] text-white",
-    formFieldInput: "border-slate-200 text-slate-900",
-    footerAction: "bg-slate-50",
-    dividerLine: "bg-slate-200",
-    alert: "bg-red-50 border-red-200",
-    otpCodeFieldInput: "border-slate-200",
+    formButtonPrimary: "bg-gradient-to-b from-[#1DB674] to-[#149258] hover:shadow-[0_8px_24px_rgba(23,165,103,.35)] text-white rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,.18)]",
+    formFieldInput: "border-white/20 bg-white/95 text-[#0E2A47]",
+    footerAction: "bg-white/8",
+    dividerLine: "bg-white/15",
+    alert: "bg-red-500/15 border-red-300/30",
+    otpCodeFieldInput: "border-white/20 bg-white text-[#0E2A47]",
     formFieldRow: "",
     main: "",
   },
@@ -122,11 +122,11 @@ function PageLoader() {
 
 function SignInPage() {
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-[#0E2A47]">
       {/* Left brand panel — navy, desktop only */}
       <div
         className="hidden md:flex md:w-[45%] flex-col items-center justify-center gap-8 px-12 relative overflow-hidden"
-        style={{ backgroundColor: "#1F4E79" }}
+        style={{ background: "radial-gradient(circle at 18% 20%, rgba(29,182,116,.22), transparent 30%), radial-gradient(circle at 82% 78%, rgba(31,78,121,.9), transparent 42%), #0E2A47" }}
       >
         {/* Decorative circles */}
         <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
@@ -137,30 +137,30 @@ function SignInPage() {
             <h1 className="text-4xl font-bold text-white tracking-tight leading-tight">
               My Business Solutions
             </h1>
-            <p className="text-lg text-blue-200 font-light">
+            <p className="text-lg text-white/65 font-light">
               Business financing, simplified.
             </p>
           </div>
-          <div className="w-12 h-0.5 bg-blue-400/40 mx-auto rounded-full" />
-          <p className="text-sm text-blue-200/75 leading-relaxed">
+          <div className="w-12 h-0.5 bg-[#17A567] mx-auto rounded-full" />
+          <p className="text-sm text-white/65 leading-relaxed">
             Fast, flexible funding for businesses ready to grow. Our dedicated specialists guide you every step of the way.
           </p>
         </div>
       </div>
 
       {/* Right sign-in panel */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-slate-50 px-6 py-12">
+      <div className="flex flex-1 flex-col items-center justify-center bg-[#0E2A47] px-6 py-12" style={{ backgroundImage: "radial-gradient(circle at 75% 20%, rgba(29,182,116,.12), transparent 28%), radial-gradient(circle at 30% 90%, rgba(31,78,121,.85), transparent 40%)" }}>
         <div className="w-full max-w-[440px] space-y-7">
           {/* Logo — black wordmark on white chip, visible on light background */}
           <div className="flex flex-col items-center gap-3">
-            <div className="bg-white rounded-2xl px-5 py-3 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-xl px-5 py-3 shadow-[0_10px_30px_rgba(0,0,0,.2)]">
               <img
                 src={mbsLogo}
                 alt="My Business Solutions"
                 className="h-10 w-auto object-contain"
               />
             </div>
-            <p className="text-sm text-slate-400 md:hidden">Business financing, simplified.</p>
+            <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
           </div>
           <SignIn
             routing="path"

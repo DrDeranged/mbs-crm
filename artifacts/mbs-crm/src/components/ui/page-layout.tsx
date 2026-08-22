@@ -38,7 +38,7 @@ export function PageHeader({
       )}
     >
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0E2A47] leading-tight">
           {title}
         </h1>
         {subtitle && (

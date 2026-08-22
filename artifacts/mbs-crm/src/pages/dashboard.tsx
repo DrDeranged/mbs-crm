@@ -110,12 +110,12 @@ function KpiCard({
   loading?: boolean;
 }) {
   return (
-    <Card className="shadow-sm border-slate-100">
+    <Card className="shadow-sm border-card-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           {label}
         </CardTitle>
-        <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400">
+        <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#17A567]/10 text-[#17A567]">
           {icon}
         </div>
       </CardHeader>
@@ -123,7 +123,7 @@ function KpiCard({
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold tabular-nums text-slate-900">{value}</div>
+          <div className="text-3xl font-bold tabular-nums text-[#0E2A47]">{value}</div>
         )}
       </CardContent>
     </Card>
@@ -214,7 +214,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0E2A47]">Dashboard</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
             {isRep ? "Your performance metrics" : "Team pipeline analytics"}
           </p>
@@ -234,7 +234,7 @@ export default function Dashboard() {
             key={p.id}
             variant={preset === p.id ? "default" : "outline"}
             size="sm"
-            className={preset === p.id ? "bg-[#1F4E79] hover:bg-[#1F4E79]/90" : ""}
+            className={preset === p.id ? "" : ""}
             onClick={() => setPreset(p.id)}
           >
             {p.label}
@@ -270,9 +270,9 @@ export default function Dashboard() {
 
       {/* First-run call-to-action */}
       {!loadingSummary && summary && (summary as any).totalLeads === 0 && (
-        <div className="bg-[#1F4E79]/5 border border-[#1F4E79]/20 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="h-11 w-11 rounded-full bg-[#1F4E79]/10 flex items-center justify-center flex-shrink-0">
-            <Users className="h-5 w-5 text-[#1F4E79]" />
+          <div className="bg-[#17A567]/5 border border-[#17A567]/20 rounded-[14px] p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+           <div className="h-11 w-11 rounded-full bg-[#17A567]/10 flex items-center justify-center flex-shrink-0">
+             <Users className="h-5 w-5 text-[#17A567]" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900">Welcome to MBS CRM!</p>
@@ -280,13 +280,13 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-2 flex-wrap flex-shrink-0">
             <Link href="/leads/new">
-              <button className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f] transition-colors">
+              <button className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[#149258] bg-gradient-to-b from-[#1DB674] to-[#149258] px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.18)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(23,165,103,.35)] transition-all motion-reduce:hover:translate-y-0">
                 <Plus className="h-4 w-4" />
                 Add First Lead
               </button>
             </Link>
             <Link href="/leads">
-              <button className="inline-flex h-9 items-center rounded-md border border-input bg-white px-4 text-sm font-medium hover:bg-accent transition-colors">
+              <button className="inline-flex h-11 items-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-[#46586C] hover:border-[#17A567] hover:text-[#149258] transition-colors">
                 View Leads
               </button>
             </Link>

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -49,6 +50,7 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: var(--app-font-sans);
+  --font-heading: var(--app-font-heading);
   --font-mono: var(--app-font-mono);
 
   --radius-sm: calc(var(--radius) - 2px);
@@ -57,54 +59,54 @@
 }
 
 :root {
-  --background: 210 33% 97%;
-  --foreground: 213 59% 12%;
+  --background: 210 38% 97%;
+  --foreground: 209 67% 17%;
 
   --card: 0 0% 100%;
-  --card-foreground: 213 59% 12%;
-  --card-border: 214 32% 90%;
+  --card-foreground: 209 67% 17%;
+  --card-border: 210 24% 89%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 213 59% 12%;
-  --popover-border: 214 32% 90%;
+  --popover: 209 67% 17%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 210 24% 89%;
 
-  --primary: 213 59% 30%;
-  --primary-foreground: 210 40% 98%;
-  --primary-border: 213 59% 22%;
+  --primary: 154 76% 37%;
+  --primary-foreground: 0 0% 100%;
+  --primary-border: #149258;
 
-  --secondary: 210 40% 94%;
-  --secondary-foreground: 213 59% 20%;
-  --secondary-border: 214 32% 88%;
+  --secondary: 210 38% 97%;
+  --secondary-foreground: 209 67% 17%;
+  --secondary-border: #DCE4EC;
 
-  --muted: 210 33% 94%;
-  --muted-foreground: 215 16% 47%;
-  --muted-border: 214 32% 88%;
+  --muted: 210 38% 97%;
+  --muted-foreground: 211 21% 35%;
+  --muted-border: #DCE4EC;
 
-  --accent: 213 100% 95%;
-  --accent-foreground: 213 59% 25%;
-  --accent-border: 213 60% 88%;
+  --accent: 210 38% 97%;
+  --accent-foreground: 209 67% 17%;
+  --accent-border: #DCE4EC;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --destructive-border: 0 84.2% 50%;
 
-  --border: 214 32% 90%;
-  --input: 214 32% 90%;
-  --ring: 213 59% 30%;
+  --border: 210 24% 89%;
+  --input: 210 24% 89%;
+  --ring: 154 76% 37%;
 
-  /* Sidebar — white with navy accents (Direction B) */
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 213 59% 12%;
-  --sidebar-border: 214 32% 90%;
-  --sidebar-primary: 213 59% 30%;
-  --sidebar-primary-foreground: 210 40% 98%;
-  --sidebar-accent: 213 100% 95%;
-  --sidebar-accent-foreground: 213 59% 25%;
-  --sidebar-ring: 213 59% 30%;
+  --sidebar: 209 67% 17%;
+  --sidebar-foreground: 210 46% 95%;
+  --sidebar-border: 209 54% 22%;
+  --sidebar-primary: 154 76% 37%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 213 59% 30%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 154 76% 37%;
 
-  --radius: 0.5rem;
+  --radius: 0.875rem;
 
   --app-font-sans: 'Inter', system-ui, sans-serif;
+  --app-font-heading: 'Sora', 'Inter', system-ui, sans-serif;
   --app-font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -161,24 +163,43 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--app-font-heading);
+  }
+
+  :focus-visible {
+    outline: 2px solid #17A567;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 /* Clerk social button — un-layered rules beat @layer clerk and @layer utilities */
 .cl-socialButtonsBlockButton {
-  border: 1.5px solid #d1d5db !important;
-  background-color: #ffffff !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.07) !important;
-  border-radius: 0.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  border-radius: 9999px !important;
   transition: background-color 0.15s ease, border-color 0.15s ease !important;
 }
 .cl-socialButtonsBlockButton:hover {
-  background-color: #f9fafb !important;
-  border-color: #9ca3af !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
 }
 .cl-socialButtonsBlockButtonText,
 .cl-socialButtonsBlockButtonText * {
-  color: #1e293b !important;
+  color: #ffffff !important;
   font-weight: 500 !important;
   font-size: 0.875rem !important;
 }

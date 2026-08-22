@@ -24,7 +24,7 @@ function timeAgo(iso: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export function NotificationBell() {
+export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   const [open, setOpen] = useState(false);
   const [, navigate] = useLocation();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -86,27 +86,32 @@ export function NotificationBell() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative text-sidebar-foreground/60 hover:bg-accent hover:text-accent-foreground"
+        className={cn(
+          "relative",
+          onDark
+            ? "text-sidebar-foreground/70 hover:bg-white/10 hover:text-white"
+            : "text-[#0E2A47] hover:bg-[#17A567]/10 hover:text-[#149258]",
+        )}
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground leading-none">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#17A567] px-1 text-[10px] font-bold text-white leading-none shadow-[0_0_0_2px_#0E2A47] animate-pulse motion-reduce:animate-none">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl flex flex-col overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-[14px] border border-white/15 bg-[#0E2A47]/95 text-white shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <span className="text-sm font-semibold">Notifications</span>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 text-xs text-white/60 hover:text-white transition-colors"
               >
                 <CheckCheck size={13} />
                 Mark all read
@@ -117,7 +122,7 @@ export function NotificationBell() {
           {/* List */}
           <div className="overflow-y-auto max-h-[400px]">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+              <div className="flex flex-col items-center justify-center py-12 text-white/55 gap-2">
                 <Bell size={28} className="opacity-30" />
                 <span className="text-sm">No notifications yet</span>
               </div>
@@ -129,22 +134,22 @@ export function NotificationBell() {
                     key={n.id}
                     onClick={() => handleClickNotification(n)}
                     className={cn(
-                      "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/60 border-b border-border/50 last:border-0",
-                      !n.isRead && "bg-primary/5",
+                       "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/8 border-b border-white/8 last:border-0",
+                       !n.isRead && "bg-white/6",
                     )}
                   >
-                    <div className={cn("mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full", !n.isRead ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>
+                     <div className={cn("mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full", !n.isRead ? "bg-[#17A567]/20 text-[#65D5A2]" : "bg-white/10 text-white/55")}>
                       <Icon size={13} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1">
-                        <p className={cn("text-xs leading-snug truncate", !n.isRead ? "font-semibold text-foreground" : "font-medium text-foreground/80")}>
+                         <p className={cn("text-xs leading-snug truncate", !n.isRead ? "font-semibold text-white" : "font-medium text-white/80")}>
                           {n.title}
                         </p>
-                        {!n.isRead && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-primary mt-1" />}
+                         {!n.isRead && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-[#17A567] mt-1" />}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">{timeAgo(n.createdAt)}</p>
+                       <p className="text-xs text-white/60 mt-0.5 line-clamp-2">{n.body}</p>
+                       <p className="text-[10px] text-white/40 mt-1">{timeAgo(n.createdAt)}</p>
                     </div>
                   </button>
                 );

@@ -51,19 +51,19 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         onClick={onNavigate}
         className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
           isActive
-            ? "bg-accent text-accent-foreground"
-            : "text-sidebar-foreground/60 hover:bg-accent/50 hover:text-sidebar-foreground"
+            ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
+            : "text-sidebar-foreground/70 hover:bg-white/8 hover:text-white"
         }`}
-        style={isActive ? { borderLeft: "3px solid hsl(var(--primary))", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
+        style={isActive ? { borderLeft: "3px solid #17A567", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
       >
-        <Icon size={16} className={isActive ? "text-primary" : ""} />
+        <Icon size={16} className={isActive ? "text-[#17A567]" : ""} />
         {label}
       </Link>
     );
   };
 
   const sectionLabel = (text: string) => (
-    <div className="px-3 mb-1 mt-2 text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+    <div className="px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
       {text}
     </div>
   );
@@ -89,7 +89,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           {isManagerOrAdmin && (
             <>
               <div className="pt-4 pb-1">
-                <div className="border-t border-sidebar-border" />
+                <div className="border-t border-white/10" />
               </div>
               {sectionLabel("Marketing")}
               {navLink("/email/templates", "Email Templates", Mail)}
@@ -97,7 +97,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {isAdmin && navLink("/lenders", "Lenders", Building2)}
               {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
               <div className="pt-4 pb-1">
-                <div className="border-t border-sidebar-border" />
+                <div className="border-t border-white/10" />
               </div>
               {sectionLabel("Management")}
               <button
@@ -105,7 +105,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                   window.dispatchEvent(new CustomEvent("open-import-dialog"));
                   onNavigate?.();
                 }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/60 hover:bg-accent/50 hover:text-sidebar-foreground cursor-pointer w-full text-left"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-white/8 hover:text-white cursor-pointer w-full text-left"
                 style={{ borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
               >
                 <Upload size={16} />
@@ -117,7 +117,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           {isAdmin && (
             <>
               <div className="pt-4 pb-1">
-                <div className="border-t border-sidebar-border" />
+                <div className="border-t border-white/10" />
               </div>
               {sectionLabel("Administration")}
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
@@ -134,7 +134,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-3 pb-2">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="flex items-center gap-2 w-full rounded-lg border border-sidebar-border/60 bg-sidebar-foreground/5 px-3 py-2 text-xs text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-accent/50 transition-colors"
+          className="flex items-center gap-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-sidebar-foreground/60 hover:text-white hover:bg-white/10 transition-colors"
           aria-label="Open command palette"
         >
           <Search size={13} />
@@ -144,7 +144,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* User footer */}
-      <div className="border-t border-sidebar-border p-4 flex-shrink-0">
+      <div className="border-t border-white/10 p-4 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3 px-1">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold shadow-sm">
             {user?.imageUrl ? (
@@ -161,7 +161,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full justify-start gap-2 bg-transparent border-sidebar-border text-sidebar-foreground/60 hover:bg-accent hover:text-accent-foreground hover:border-accent-border"
+          className="w-full justify-start gap-2 bg-transparent border-white/15 text-sidebar-foreground/70 hover:bg-white/10 hover:text-white hover:border-white/25"
           onClick={() => signOut()}
         >
           <LogOut size={14} />
@@ -179,17 +179,21 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-screen w-full bg-background">
       <CommandPalette />
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm">
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)]">
         <SidebarContent />
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden">
+        <div className="hidden md:flex h-14 items-center justify-between border-b border-border bg-white px-6 lg:px-8 flex-shrink-0">
+          <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[#46586C]">Operations workspace</span>
+          <span className="text-sm font-medium text-[#0E2A47]">MBS CRM</span>
+        </div>
         {/* Mobile top bar */}
-        <div className="flex md:hidden h-14 items-center border-b border-sidebar-border bg-sidebar text-sidebar-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
+        <div className="flex md:hidden h-14 items-center border-b border-border bg-white text-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-accent">
+              <Button variant="ghost" size="icon" className="text-foreground hover:bg-muted">
                 <Menu size={20} />
                 <span className="sr-only">Open navigation</span>
               </Button>
@@ -203,7 +207,7 @@ export function AppShell({ children }: AppShellProps) {
               <img src={mbsLogo} alt="MBS" className="h-5 w-auto object-contain" />
             </div>
           </div>
-          <NotificationBell />
+          <NotificationBell onDark={false} />
         </div>
 
         <div className="flex-1 overflow-auto">
