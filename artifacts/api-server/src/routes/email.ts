@@ -13,6 +13,7 @@ import {
 import { eq, and, isNotNull, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
 const IS_PROD_EMAIL = process.env["NODE_ENV"] === "production";
@@ -56,13 +57,6 @@ const TRACKING_PIXEL = Buffer.from(
   "base64"
 );
 
-function getBaseUrl(req: Request): string {
-  const proto = (req.headers["x-forwarded-proto"] as string) || "https";
-  const host = (req.headers["x-forwarded-host"] as string) || req.headers["host"] || "";
-  // Strip the /api prefix to get the root so tracking URLs are correct
-  return `${proto}://${host}`;
-}
-
 const SAMPLE_VARS: Record<string, string> = {
   lead_first_name: "Jane",
   lead_last_name: "Smith",
@@ -96,6 +90,7 @@ function escapeHtml(value: string): string {
 
 function renderTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    if (key === "brand_email_header") return "__MBS_BRAND_EMAIL_HEADER__";
     const raw = vars[key];
     return raw == null ? "" : escapeHtml(String(raw));
   });
@@ -139,7 +134,8 @@ async function doSendEmail(params: {
     status: "queued",
   }).returning();
 
-  const trackedHtml = injectTracking(params.bodyHtml, placeholder.id, params.baseUrl, params.toEmail);
+  const brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
+  const trackedHtml = injectTracking(brandedHtml, placeholder.id, params.baseUrl, params.toEmail);
 
   if (!SENDGRID_API_KEY) {
     // Dev mode — mark as sent without actual delivery
@@ -201,6 +197,14 @@ router.get("/email/track/open/:sendId", async (req, res) => {
     }
   }
   res.set("Content-Type", "image/gif").set("Cache-Control", "no-store").send(TRACKING_PIXEL);
+});
+
+// Public and cacheable so it can be resolved by email clients and Puppeteer.
+router.get("/brand/logo.png", (_req, res) => {
+  res
+    .type("png")
+    .set("Cache-Control", "public, max-age=604800, immutable")
+    .send(getBrandLogoPng());
 });
 
 // --- Click tracking redirect (no auth) ---
@@ -326,7 +330,7 @@ router.post("/email/send", async (req: Request, res: Response) => {
     subject: finalSubject,
     bodyHtml: finalBody,
     toEmail: lead.email,
-    baseUrl: getBaseUrl(req),
+    baseUrl: getPublicBaseUrl(),
   });
 
   if (sendError) {
@@ -359,7 +363,7 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   if (!template) return void res.status(404).json({ error: "Template not found" });
 
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
-  const baseUrl = getBaseUrl(req);
+  const baseUrl = getPublicBaseUrl();
 
   let sent = 0;
   let failed = 0;
@@ -496,7 +500,7 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
 
   res.json({
     subject: renderTemplate(template.subject, vars),
-    bodyHtml: renderTemplate(template.bodyHtml, vars),
+    bodyHtml: ensureBrandEmailHeader(renderTemplate(template.bodyHtml, vars), getPublicBaseUrl()),
   });
 });
 
@@ -553,7 +557,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Application Received",
       programType: null as string | null,
       subject: "We received your application, {{lead_first_name}}",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>Thank you for submitting {{lead_company}}'s financing application to My Business Solutions. We're pleased to confirm that we have received everything and your file is now in review.</p>
 <p>{{rep_name}} has been assigned as your dedicated specialist and will personally review your application and reach out within one business day to discuss next steps.</p>
 <p>In the meantime, if you have any questions or need to provide additional information, please don't hesitate to reply to this email.</p>
@@ -564,7 +568,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Initial Follow-Up",
       programType: null as string | null,
       subject: "Following up on {{lead_company}}'s financing",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>I wanted to follow up on the financing application we received for {{lead_company}}. My name is {{rep_name}} and I'm your point of contact throughout this process.</p>
 <p>I'm happy to answer any questions you may have and walk you through the next steps so everything moves forward smoothly. Whether you'd prefer to reply here or schedule a quick call, I'm available at your convenience.</p>
 <p>Looking forward to hearing from you.</p>
@@ -574,7 +578,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Document Request",
       programType: null as string | null,
       subject: "Quick documents to move {{lead_company}} forward",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>To keep your application moving forward as quickly as possible, we need a few standard documents for {{lead_company}}:</p>
 <ul>
   <li>3–6 months of recent business bank statements</li>
@@ -588,7 +592,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Working Capital Program",
       programType: "working_capital" as string | null,
       subject: "Working capital options for {{lead_company}}",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>I wanted to share a quick overview of our working capital program, which may be a strong fit for {{lead_company}}.</p>
 <p>Working capital financing is designed to give businesses fast access to the funds they need to cover day-to-day operations, manage cash flow, or seize growth opportunities. Key benefits include:</p>
 <ul>
@@ -603,7 +607,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Equipment Financing Program",
       programType: "equipment" as string | null,
       subject: "Equipment financing for {{lead_company}}",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>I wanted to share some information about our equipment financing program, which could be a great solution for {{lead_company}}.</p>
 <p>Equipment financing allows businesses to acquire the tools and machinery they need without a large upfront capital outlay. Some of the key advantages include:</p>
 <ul>
@@ -618,7 +622,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Status Update",
       programType: null as string | null,
       subject: "An update on your {{lead_company}} application",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>I wanted to touch base with a brief update on {{lead_company}}'s application. Rest assured, your file is actively being worked on and our team is focused on moving things forward.</p>
 <p>As always, {{rep_name}} is your dedicated point of contact and is here to help with any questions or concerns along the way. Please don't hesitate to reach out at {{rep_email}}.</p>
 <p>We appreciate your patience and will be in touch with further updates shortly.</p>
@@ -628,7 +632,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       name: "Approved",
       programType: null as string | null,
       subject: "Great news for {{lead_company}}",
-      bodyHtml: `<p>Hi {{lead_first_name}},</p>
+      bodyHtml: `{{brand_email_header}}<p>Hi {{lead_first_name}},</p>
 <p>We have great news regarding {{lead_company}}'s application!</p>
 <p>{{rep_name}} will be reaching out to you shortly to review the details and walk you through the next steps to finalize everything. Please keep an eye out for their call or email.</p>
 <p>If you have any immediate questions in the meantime, feel free to reply to this email or contact {{rep_name}} directly at {{rep_email}}.</p>

@@ -10,6 +10,7 @@ import { logActivity } from "../lib/activityHelper";
 import { renderPdf, renderTemplate } from "../lib/renderPdf";
 import { objectStorageClient } from "../lib/objectStorage";
 import sgMail from "@sendgrid/mail";
+import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
@@ -68,8 +69,12 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
 
   try {
     // Render HTML and generate PDF
-    const renderedHtml = renderTemplate(tmpl.htmlTemplate, fieldValues as Record<string, string>);
-    const pdfBuffer = await renderPdf(renderedHtml);
+    const baseUrl = getPublicBaseUrl();
+    const renderedHtml = renderTemplate(tmpl.htmlTemplate, {
+      ...(fieldValues as Record<string, string>),
+      brand_logo_url: getBrandLogoUrl(baseUrl),
+    });
+    const pdfBuffer = await renderPdf(ensureFlyerBranding(renderedHtml, baseUrl));
 
     // Upload PDF to GCS
     const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
@@ -206,10 +211,11 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     const repUser = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
     const repName = repUser?.name || FROM_NAME;
 
+    const logoUrl = getBrandLogoUrl(getPublicBaseUrl());
     const emailHtml = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#1F4E79;padding:24px 32px">
-          <h2 style="color:#fff;margin:0;font-size:20px">My Business Solutions</h2>
+        <div style="background:#fff;padding:20px 32px;border-bottom:1px solid #e2e8f0">
+          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0" />
         </div>
         <div style="padding:24px 32px;background:#fff">
           <p style="color:#333">Hi ${leadRow.firstName || leadRow.companyName || "there"},</p>

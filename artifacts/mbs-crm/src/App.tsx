@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, Show, useClerk } from "@clerk/react";
-import mbsLogo from "@/assets/MBS-Logo-Header-Logo.png";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/app-shell";
+import { BrandLogo } from "@/components/brand-logo";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
 
@@ -151,15 +151,12 @@ function SignInPage() {
       {/* Right sign-in panel */}
       <div className="flex flex-1 flex-col items-center justify-center bg-[#0E2A47] px-6 py-12" style={{ backgroundImage: "radial-gradient(circle at 75% 20%, rgba(29,182,116,.12), transparent 28%), radial-gradient(circle at 30% 90%, rgba(31,78,121,.85), transparent 40%)" }}>
         <div className="w-full max-w-[440px] space-y-7">
-          {/* Logo — black wordmark on white chip, visible on light background */}
           <div className="flex flex-col items-center gap-3">
-            <div className="bg-white rounded-xl px-5 py-3 shadow-[0_10px_30px_rgba(0,0,0,.2)]">
-              <img
-                src={mbsLogo}
-                alt="My Business Solutions"
-                className="h-10 w-auto object-contain"
-              />
-            </div>
+            <BrandLogo
+              variant="chip"
+              className="px-5 py-3 shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+              imageClassName="h-8"
+            />
             <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
           </div>
           <SignIn
@@ -304,6 +301,7 @@ function App() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 text-center">
         <div className="rounded-lg border bg-white p-8 shadow-sm">
+          <BrandLogo variant="raw" className="mb-6" imageClassName="h-8" />
           <h1 className="mb-2 text-xl font-bold text-red-600">Missing Clerk Configuration</h1>
           <p className="text-gray-600">Please set the VITE_CLERK_PUBLISHABLE_KEY environment variable.</p>
         </div>

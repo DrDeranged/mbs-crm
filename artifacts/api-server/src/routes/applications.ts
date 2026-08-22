@@ -23,6 +23,7 @@ import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
+import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
@@ -482,10 +483,9 @@ router.post(
 
       // ── Send confirmation email with tracking token (non-blocking) ─────────
       if (SENDGRID_API_KEY && email && lead.trackingToken) {
-        const proto = (req.headers["x-forwarded-proto"] as string) || "https";
-        const host = (req.headers["x-forwarded-host"] as string) || req.headers["host"] || "";
-        const baseUrl = `${proto}://${host}`.replace(/\/api$/, "");
+        const baseUrl = getPublicBaseUrl();
         const statusUrl = `${baseUrl}/apply/status`;
+        const logoUrl = getBrandLogoUrl(baseUrl);
         const token = lead.trackingToken;
 
         sgMail.send({
@@ -499,9 +499,9 @@ router.post(
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-        <tr><td style="background:#1F4E79;padding:28px 32px;">
-          <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;">My Business Solutions</p>
-          <p style="margin:4px 0 0;font-size:13px;color:#93c5fd;">Financing made simple</p>
+        <tr><td style="background:#ffffff;padding:20px 32px;border-bottom:1px solid #e2e8f0;">
+          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0;" />
+          <p style="margin:8px 0 0;font-size:13px;color:#64748b;">Financing made simple</p>
         </td></tr>
         <tr><td style="padding:32px;">
           <h2 style="margin:0 0 8px;font-size:22px;color:#1e293b;">We received your application!</h2>

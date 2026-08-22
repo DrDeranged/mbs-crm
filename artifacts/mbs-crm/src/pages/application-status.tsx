@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { CheckCircle2, Circle, Clock, Building2, Phone, Mail } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 
 // All pipeline stages in order — must include every status from LEAD_STATUSES
@@ -159,9 +160,7 @@ export default function ApplicationStatus() {
       {/* Navy header */}
       <header className="bg-[#1F4E79] text-white py-5 px-6 shadow-md">
         <div className="mx-auto max-w-2xl flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
-            <Building2 className="h-5 w-5 text-white" />
-          </div>
+          <BrandLogo variant="chip" alt="My Business Solutions" imageClassName="h-7" />
           <div>
             <h1 className="text-lg font-bold leading-tight">My Business Solutions</h1>
             <p className="text-xs text-blue-200">Application Status Tracker</p>

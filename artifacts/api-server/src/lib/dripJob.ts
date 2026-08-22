@@ -13,6 +13,7 @@ import { eq, and } from "drizzle-orm";
 import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../routes/email";
 import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
+import { getPublicBaseUrl } from "./brand";
 
 let running: boolean | undefined;
 
@@ -105,8 +106,7 @@ export async function runDripJob(): Promise<void> {
         const subject = renderTemplate(template.subject, vars);
         const bodyHtml = renderTemplate(template.bodyHtml, vars);
 
-        const baseUrl = process.env["API_BASE_URL"] ||
-          (process.env["REPLIT_DEV_DOMAIN"] ? `https://${process.env["REPLIT_DEV_DOMAIN"]}` : "http://localhost:8080");
+        const baseUrl = getPublicBaseUrl();
 
         const { send, error: sendError } = await doSendEmail({
           leadId: lead.id,

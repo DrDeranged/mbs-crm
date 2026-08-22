@@ -19,7 +19,8 @@ const STARTER_TEMPLATES = [
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; background: #fff; }
   .header { background: #1F4E79; color: #fff; padding: 36px 48px; }
-  .header .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .header .logo { display: inline-block; background: #fff; border-radius: 8px; padding: 8px 10px; line-height: 0; margin-bottom: 8px; }
+  .header .logo img { display: block; width: 116px; height: auto; max-height: 56px; }
   .header .tagline { font-size: 13px; opacity: 0.8; }
   .hero { background: #f0f6ff; padding: 32px 48px 28px; border-bottom: 3px solid #1F4E79; }
   .hero h1 { font-size: 28px; color: #1F4E79; font-weight: 700; margin-bottom: 8px; }
@@ -44,7 +45,7 @@ const STARTER_TEMPLATES = [
 </head>
 <body>
   <div class="header">
-    <div class="logo">My Business Solutions</div>
+    <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions" /></div>
     <div class="tagline">Business Financing Specialists</div>
   </div>
   <div class="hero">
@@ -104,7 +105,8 @@ const STARTER_TEMPLATES = [
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; background: #fff; }
   .header { background: #1F4E79; color: #fff; padding: 36px 48px; display: flex; justify-content: space-between; align-items: center; }
-  .header .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .header .logo { display: inline-block; background: #fff; border-radius: 8px; padding: 8px 10px; line-height: 0; }
+  .header .logo img { display: block; width: 116px; height: auto; max-height: 56px; }
   .header .tagline { font-size: 12px; opacity: 0.8; margin-top: 2px; }
   .header .badge { background: rgba(255,255,255,0.15); border-radius: 6px; padding: 8px 14px; font-size: 12px; text-align: center; }
   .hero { background: linear-gradient(135deg, #1F4E79 0%, #2d6ca2 100%); color: #fff; padding: 36px 48px; }
@@ -130,7 +132,7 @@ const STARTER_TEMPLATES = [
 <body>
   <div class="header">
     <div>
-      <div class="logo">My Business Solutions</div>
+      <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions" /></div>
       <div class="tagline">Equipment Financing Division</div>
     </div>
     <div class="badge">Fast Approvals<br/>100% Financing</div>

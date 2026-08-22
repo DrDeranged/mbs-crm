@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BrandLogo } from "@/components/brand-logo";
 import {
   CheckCircle2,
   Building2,
@@ -186,12 +187,10 @@ function ProgressBar({ step }: { step: number }) {
 function MBSHeader() {
   return (
     <div className="flex items-center gap-3 mb-2">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1F4E79] text-white flex-shrink-0">
-        <Building2 className="h-5 w-5" />
-      </div>
+      <BrandLogo variant="chip" alt="My Business Solutions" imageClassName="h-7" />
       <div>
-        <p className="font-bold text-[#1F4E79] text-lg leading-tight">My Business Solutions</p>
-        <p className="text-xs text-gray-400">Business Financing Application</p>
+        <p className="font-semibold text-white text-sm leading-tight">Business Financing Application</p>
+        <p className="text-xs text-white/65">My Business Solutions</p>
       </div>
     </div>
   );
