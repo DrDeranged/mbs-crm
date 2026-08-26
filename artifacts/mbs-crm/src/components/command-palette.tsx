@@ -26,7 +26,7 @@ import { useGetMe } from "@workspace/api-client-react";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { data: me } = useGetMe();
 
   const isAdmin = me?.role === "admin";
@@ -128,7 +128,11 @@ export function CommandPalette() {
             <CommandItem
               onSelect={() => {
                 setOpen(false);
-                window.dispatchEvent(new CustomEvent("open-import-dialog"));
+                if (location.split("?")[0] === "/leads") {
+                  window.dispatchEvent(new CustomEvent("open-import-dialog"));
+                } else {
+                  navigate("/leads?import=1");
+                }
               }}
             >
               <Upload />

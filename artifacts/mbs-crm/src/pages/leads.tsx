@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers,
   useImportLeads, usePreviewImport,
@@ -271,6 +271,7 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
 }
 
 export default function Leads() {
+  const [location] = useLocation();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<string>("");
@@ -290,10 +291,16 @@ export default function Leads() {
   const [renewalFlagged, setRenewalFlagged] = useState(false);
 
   useEffect(() => {
-    const handler = (e: Event) => { if ((e as CustomEvent).type === "open-import-dialog") setImportOpen(true); };
+    const handler = () => setImportOpen(true);
     window.addEventListener("open-import-dialog", handler);
     return () => window.removeEventListener("open-import-dialog", handler);
   }, []);
+
+  useEffect(() => {
+    if (location === "/leads" && new URLSearchParams(window.location.search).get("import") === "1") {
+      setImportOpen(true);
+    }
+  }, [location]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();

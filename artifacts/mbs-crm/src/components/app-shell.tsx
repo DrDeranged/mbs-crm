@@ -29,7 +29,7 @@ interface AppShellProps {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
   const { data: currentUser } = useGetMe();
@@ -99,7 +99,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {sectionLabel("Management")}
               <button
                 onClick={() => {
-                  window.dispatchEvent(new CustomEvent("open-import-dialog"));
+                  if (location.split("?")[0] === "/leads") {
+                    window.dispatchEvent(new CustomEvent("open-import-dialog"));
+                  } else {
+                    navigate("/leads?import=1");
+                  }
                   onNavigate?.();
                 }}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-white/8 hover:text-white cursor-pointer w-full text-left"
