@@ -256,6 +256,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
 
     const appType = resolve(row, "application_type", "applicationtype", "financing_type") || "working_capital";
     const leadSource = resolve(row, "lead_source", "leadsource", "source") || "import";
+    const notes = resolve(row, "notes");
 
     const industry = resolve(row, "industry") || null;
     const state = resolve(row, "state") || null;
@@ -288,6 +289,20 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
       entityId: lead.id,
       details: { row: rowNum, source: req.file.originalname.endsWith(".xlsx") || req.file.originalname.endsWith(".xls") ? "xlsx_import" : "csv_import" },
     });
+
+    if (notes) {
+      await logActivity({
+        userId: user.id,
+        leadId: lead.id,
+        action: "captured",
+        entityType: "lead",
+        entityId: lead.id,
+        details: {
+          source: "csv_import",
+          message: notes.slice(0, 2000),
+        },
+      });
+    }
 
     imported++;
   }
