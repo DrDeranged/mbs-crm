@@ -7,7 +7,7 @@ export const usersTable = pgTable("users", {
   clerkId: text("clerk_id").notNull().unique(),
   name: text("name"),
   email: text("email").notNull().unique(),
-  role: text("role", { enum: ["admin", "manager", "rep"] }).notNull().default("rep"),
+  role: text("role", { enum: ["admin", "manager", "rep", "pending"] }).notNull().default("pending"),
   isActive: boolean("is_active").notNull().default(true),
   mobileNumber: text("mobile_number"),
   pushToken: text("push_token"),

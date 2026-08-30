@@ -175,7 +175,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [admin, manager, rep]
+            enum: [admin, manager, rep, pending]
       responses:
         "200":
           description: List of users
@@ -2950,7 +2950,7 @@ components:
           type: string
         role:
           type: string
-          enum: [admin, manager, rep]
+          enum: [admin, manager, rep, pending]
         isActive:
           type: boolean
         mobileNumber:
@@ -2964,7 +2964,7 @@ components:
       properties:
         role:
           type: string
-          enum: [admin, manager, rep]
+          enum: [admin, manager, rep, pending]
         isActive:
           type: boolean
 

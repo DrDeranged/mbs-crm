@@ -87,6 +87,7 @@ export const UserRole = {
   admin: 'admin',
   manager: 'manager',
   rep: 'rep',
+  pending: 'pending',
 } as const;
 
 export interface User {
@@ -109,6 +110,7 @@ export const UserUpdateRole = {
   admin: 'admin',
   manager: 'manager',
   rep: 'rep',
+  pending: 'pending',
 } as const;
 
 export interface UserUpdate {
@@ -1377,6 +1379,7 @@ export const ListUsersRole = {
   admin: 'admin',
   manager: 'manager',
   rep: 'rep',
+  pending: 'pending',
 } as const;
 
 export type UpdateUserPushTokenBody = {

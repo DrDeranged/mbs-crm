@@ -75,7 +75,7 @@ export const GetMeResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -102,7 +102,7 @@ export const UpdateMyMobileResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -113,7 +113,7 @@ export const UpdateMyMobileResponse = zod.object({
  * @summary List all users (for assignment dropdown)
  */
 export const ListUsersQueryParams = zod.object({
-  "role": zod.enum(['admin', 'manager', 'rep']).optional()
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']).optional()
 })
 
 export const ListUsersResponseItem = zod.object({
@@ -121,7 +121,7 @@ export const ListUsersResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -137,7 +137,7 @@ export const UpdateUserParams = zod.object({
 })
 
 export const UpdateUserBody = zod.object({
-  "role": zod.enum(['admin', 'manager', 'rep']).optional(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']).optional(),
   "isActive": zod.boolean().optional()
 })
 
@@ -146,7 +146,7 @@ export const UpdateUserResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -204,7 +204,7 @@ export const ListLeadsResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -491,7 +491,7 @@ export const GetLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -539,7 +539,7 @@ export const GetLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -556,7 +556,7 @@ export const GetLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -577,7 +577,7 @@ export const GetLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -596,7 +596,7 @@ export const GetLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -653,7 +653,7 @@ export const UpdateLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -710,7 +710,7 @@ export const ChangeLeadStatusResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -766,7 +766,7 @@ export const AssignLeadResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -811,7 +811,7 @@ export const ListNotesResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -850,7 +850,7 @@ export const ListTasksResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -903,7 +903,7 @@ export const UpdateTaskResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -933,7 +933,7 @@ export const ListDocumentsResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -987,7 +987,7 @@ export const ListLeadActivityResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1025,7 +1025,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1080,7 +1080,7 @@ export const GetRepDashboardResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1116,7 +1116,7 @@ export const GetRepDashboardResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1136,7 +1136,7 @@ export const GetRepDashboardResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1167,7 +1167,7 @@ export const GetMyTasksResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1188,7 +1188,7 @@ export const GetMyTasksResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1209,7 +1209,7 @@ export const GetMyTasksResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1547,7 +1547,7 @@ export const UpdateCommunicationResponse = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -1585,7 +1585,7 @@ export const ListCommunicationsResponseItem = zod.object({
   "clerkId": zod.string(),
   "name": zod.string().nullish(),
   "email": zod.string(),
-  "role": zod.enum(['admin', 'manager', 'rep']),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()

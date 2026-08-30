@@ -7,14 +7,14 @@ import { eq } from "drizzle-orm";
 const router: IRouter = Router();
 
 router.get("/me", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+  const user = await requireUser(req, res, { allowPending: true });
   if (!user) return;
   res.json(userToApi(user));
 });
 
 // PUT /api/me/mobile — rep sets their call forwarding mobile number
 router.put("/me/mobile", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+  const user = await requireUser(req, res, { allowPending: true });
   if (!user) return;
 
   const { mobileNumber } = req.body as { mobileNumber?: string | null };
@@ -30,7 +30,7 @@ router.put("/me/mobile", async (req: Request, res: Response) => {
 
 // PUT /api/me/push-token — store or clear Expo push notification token
 router.put("/me/push-token", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+  const user = await requireUser(req, res, { allowPending: true });
   if (!user) return;
 
   const { pushToken } = req.body as { pushToken?: string | null };

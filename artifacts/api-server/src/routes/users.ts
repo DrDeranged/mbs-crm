@@ -69,7 +69,7 @@ router.put("/users/:id", async (req: Request, res: Response) => {
 
 // PUT /api/users/:id/push-token — own-user push token update
 router.put("/users/:id/push-token", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+  const user = await requireUser(req, res, { allowPending: true });
   if (!user) return;
 
   const targetId = parseInt(req.params["id"] as string, 10);

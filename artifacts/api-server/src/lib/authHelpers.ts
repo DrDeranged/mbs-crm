@@ -5,7 +5,15 @@ import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
 
-export async function requireUser(req: Request, res: Response): Promise<typeof usersTable.$inferSelect | null> {
+type RequireUserOptions = {
+  allowPending?: boolean;
+};
+
+export async function requireUser(
+  req: Request,
+  res: Response,
+  options: RequireUserOptions = {},
+): Promise<typeof usersTable.$inferSelect | null> {
   const { userId: clerkId } = getAuth(req);
   if (!clerkId) {
     res.status(401).json({ error: "Unauthorized" });
@@ -25,12 +33,11 @@ export async function requireUser(req: Request, res: Response): Promise<typeof u
         user = existing;
         await db.update(usersTable).set({ clerkId }).where(eq(usersTable.id, existing.id));
       } else {
-        const isFirst = (await db.select({ id: usersTable.id }).from(usersTable).limit(1)).length === 0;
         const [created] = await db.insert(usersTable).values({
           clerkId,
           email,
           name,
-          role: isFirst ? "admin" : "rep",
+          role: "pending",
         }).returning();
         user = created;
       }
@@ -42,6 +49,14 @@ export async function requireUser(req: Request, res: Response): Promise<typeof u
 
   if (!user!.isActive) {
     res.status(403).json({ error: "Account is inactive" });
+    return null;
+  }
+
+  if (user!.role === "pending" && !options.allowPending) {
+    res.status(403).json({
+      error: "Your account is awaiting approval — contact your administrator",
+      code: "ACCOUNT_PENDING",
+    });
     return null;
   }
 

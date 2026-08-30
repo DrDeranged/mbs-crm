@@ -311,6 +311,7 @@ export default function Settings() {
                               <SelectItem value={UserUpdateRole.admin}>Admin</SelectItem>
                               <SelectItem value={UserUpdateRole.manager}>Manager</SelectItem>
                               <SelectItem value={UserUpdateRole.rep}>Rep</SelectItem>
+                              <SelectItem value={UserUpdateRole.pending}>Pending</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>

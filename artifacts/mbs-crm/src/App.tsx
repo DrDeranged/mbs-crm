@@ -9,6 +9,7 @@ import { AppShell } from "@/components/app-shell";
 import { BrandLogo } from "@/components/brand-logo";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
+import { getGetMeQueryKey, useGetMe, UserRole } from "@workspace/api-client-react";
 
 // Lazy-loaded pages — each becomes a separate chunk, downloaded only when first visited
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -120,6 +121,51 @@ function PageLoader() {
   );
 }
 
+function PendingApprovalGate() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#0E2A47] px-6">
+      <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-white/10 p-8 text-center shadow-2xl backdrop-blur-xl">
+        <BrandLogo
+          variant="chip"
+          className="mx-auto mb-6 w-fit px-5 py-3"
+          imageClassName="h-8"
+        />
+        <p className="text-lg font-semibold text-white">
+          Your account is awaiting approval — contact your administrator
+        </p>
+      </div>
+    </main>
+  );
+}
+
+function ApprovedUserRoute({ component: Component }: { component: React.ComponentType }) {
+  const { data: me, isLoading } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      retry: false,
+    },
+  });
+
+  if (isLoading || !me) {
+    return <PageLoader />;
+  }
+
+  if (me.role === UserRole.pending) {
+    return <PendingApprovalGate />;
+  }
+
+  return (
+    <SoftphoneProvider>
+      <AppShell>
+        <Suspense fallback={<PageLoader />}>
+          <Component />
+        </Suspense>
+      </AppShell>
+      <SoftphoneWidget />
+    </SoftphoneProvider>
+  );
+}
+
 function SignInPage() {
   return (
     <div className="flex min-h-screen w-full bg-[#0E2A47]">
@@ -176,14 +222,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return (
     <>
       <Show when="signed-in">
-        <SoftphoneProvider>
-          <AppShell>
-            <Suspense fallback={<PageLoader />}>
-              <Component />
-            </Suspense>
-          </AppShell>
-          <SoftphoneWidget />
-        </SoftphoneProvider>
+        <ApprovedUserRoute component={Component} />
       </Show>
       <Show when="signed-out">
         <Redirect to="/sign-in" />
