@@ -434,6 +434,30 @@ export interface DuplicateResponse {
   existingLeadName: string;
 }
 
+export type AiPipelineDigestTopLeadsItem = {
+  leadId: number;
+  name: string;
+  industry: string;
+  why: string;
+};
+
+export interface AiPipelineDigest {
+  overview: string;
+  recommendations: string[];
+  /** @maxItems 5 */
+  topLeads: AiPipelineDigestTopLeadsItem[];
+  generatedAt: string;
+}
+
+export interface AiNextBestAction {
+  /**
+     * @minItems 2
+     * @maxItems 3
+     */
+  actions: string[];
+  generatedAt: string;
+}
+
 export type AiDraftRequestChannel = typeof AiDraftRequestChannel[keyof typeof AiDraftRequestChannel];
 
 

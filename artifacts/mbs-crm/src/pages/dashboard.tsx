@@ -8,6 +8,7 @@ import {
   useGetAnalyticsSources,
   useGetAnalyticsCommunications,
   useGetAnalyticsRenewals, getGetAnalyticsRenewalsQueryKey,
+  useGeneratePipelineDigest,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,10 +21,11 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity,
-  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus,
+  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks,
 } from "lucide-react";
 import { Link } from "wouter";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const BRAND = "#1F4E79";
 const TEAL = "#0D9488";
@@ -130,6 +132,110 @@ function KpiCard({
   );
 }
 
+function DailyBriefingCard() {
+  const generateDigest = useGeneratePipelineDigest();
+  const { toast } = useToast();
+  const digest = generateDigest.data;
+
+  const handleGenerate = () => {
+    generateDigest.mutate(undefined, {
+      onError: () => toast({
+        title: "Briefing unavailable",
+        description: "The daily briefing could not be generated. Please try again.",
+        variant: "destructive",
+      }),
+    });
+  };
+
+  return (
+    <Card className="mb-6 overflow-hidden border-0 bg-[#0E2A47] text-white shadow-[0_20px_50px_rgba(14,42,71,0.18)]">
+      <CardHeader className="border-b border-white/10 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10">
+                <Sparkles className="h-4 w-4 text-[#6EE7C0]" />
+              </span>
+              Daily Briefing
+            </CardTitle>
+            <CardDescription className="mt-1 text-white/65">
+              A concise AI read on today&apos;s pipeline priorities
+            </CardDescription>
+          </div>
+          <Button
+            size="sm"
+            data-testid="generate-pipeline-digest"
+            onClick={handleGenerate}
+            disabled={generateDigest.isPending}
+            className="border border-white/20 bg-white/10 text-white shadow-none hover:bg-white/20"
+          >
+            <RefreshCw className={`mr-2 h-3.5 w-3.5 ${generateDigest.isPending ? "animate-spin" : ""}`} />
+            {generateDigest.isPending ? "Generating…" : digest ? "Refresh briefing" : "Generate briefing"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-5">
+        {generateDigest.isPending ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="h-28 animate-pulse rounded-2xl bg-white/10" />
+            <div className="h-28 animate-pulse rounded-2xl bg-white/10" />
+          </div>
+        ) : digest ? (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
+              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6EE7C0]">Overview</div>
+              <p className="text-sm leading-6 text-white/90">{digest.overview}</p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
+                <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
+                  <ListChecks className="h-3.5 w-3.5 text-[#6EE7C0]" /> Focus recommendations
+                </div>
+                <ol className="space-y-3">
+                  {digest.recommendations.map((recommendation, index) => (
+                    <li key={`${recommendation}-${index}`} className="flex gap-3 text-sm leading-5 text-white/90">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#6EE7C0]/15 text-xs font-semibold text-[#6EE7C0]">
+                        {index + 1}
+                      </span>
+                      <span>{recommendation}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/65">Leads worth attention today</div>
+                <div className="space-y-2">
+                  {digest.topLeads.map((lead, index) => (
+                    <Link key={lead.leadId} href={`/leads/${lead.leadId}`} className="block rounded-xl border border-white/5 bg-black/10 p-3 transition-colors hover:border-[#6EE7C0]/40 hover:bg-white/10">
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 text-xs font-semibold text-[#6EE7C0]">0{index + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            <span className="font-semibold text-white">{lead.name}</span>
+                            <span className="text-xs text-white/55">{lead.industry}</span>
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-white/70">{lead.why}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-[11px] text-white/45">Generated {format(new Date(digest.generatedAt), "MMM d, h:mm a")}</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.04] px-5 py-8 text-center">
+            <Sparkles className="mx-auto mb-2 h-7 w-7 text-white/30" />
+            <p className="text-sm text-white/75">Generate a concise, read-only briefing from your current pipeline.</p>
+            <p className="mt-1 text-xs text-white/45">It highlights data gaps, recent activity, and leads that may need attention.</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const [preset, setPreset] = useState<DateRangePreset>("this_month");
   const [customRange, setCustomRange] = useState<DateRange>({
@@ -226,6 +332,8 @@ export default function Dashboard() {
           </Button>
         )}
       </div>
+
+      <DailyBriefingCard />
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap items-center gap-2 mb-6">

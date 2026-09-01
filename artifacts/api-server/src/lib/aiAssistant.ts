@@ -1,7 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@workspace/db";
-import { leadsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import {
+  activityLogTable,
+  companiesTable,
+  lenderMatchesTable,
+  leadsTable,
+} from "@workspace/db";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 
 const anthropic = new Anthropic({
   baseURL: process.env["AI_INTEGRATIONS_ANTHROPIC_BASE_URL"],
@@ -31,6 +36,10 @@ export interface AiDraft {
 function redactSensitiveText(text: string): string {
   if (!text) return text;
   let result = text;
+  // Email addresses
+  result = result.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[REDACTED-EMAIL]");
+  // North American phone numbers, including optional country code and common punctuation
+  result = result.replace(/(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, "[REDACTED-PHONE]");
   // SSNs: 123-45-6789, 123 45 6789, or 9 consecutive digits
   result = result.replace(/\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/g, "[REDACTED-SSN]");
   // Dates of birth / general dates in common formats (MM/DD/YYYY, MM-DD-YYYY, YYYY-MM-DD)
@@ -43,8 +52,9 @@ function redactSensitiveText(text: string): string {
     /\b\d{1,6}\s+([A-Za-z0-9.'-]+\s){1,4}(Street|St|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Road|Rd|Way|Court|Ct|Circle|Cir|Place|Pl|Terrace|Ter|Highway|Hwy|Parkway|Pkwy)\.?\b[^,.\n]*/gi,
     "[REDACTED-ADDRESS]",
   );
-  // ZIP codes (5 or 9 digit), only when clearly formatted with a hyphen for the 9-digit form
-  result = result.replace(/\b\d{5}-\d{4}\b/g, "[REDACTED-ZIP]");
+  // PO boxes and ZIP codes
+  result = result.replace(/\bP\.?\s*O\.?\s+Box\s+\d+\b/gi, "[REDACTED-ADDRESS]");
+  result = result.replace(/\b\d{5}(?:-\d{4})?\b/g, "[REDACTED-ZIP]");
   return result;
 }
 
@@ -147,11 +157,13 @@ export async function buildLeadContext(leadId: number): Promise<string> {
     }
   }
 
+  lines.push(``, `# Current Lender-Match State`);
   if (lead.lenderMatches.length > 0) {
-    lines.push(``, `# Top Lender Matches`);
     for (const m of lead.lenderMatches) {
       lines.push(`- ${m.lender.name} (match score ${m.matchScore}/100)`);
     }
+  } else {
+    lines.push(`No lender matches have been calculated yet.`);
   }
 
   const openTasks = lead.tasks.filter((t) => !t.isCompleted);
@@ -220,6 +232,349 @@ export async function generateLeadBriefing(leadId: number): Promise<LeadBriefing
     .where(eq(leadsTable.id, leadId));
 
   return briefing;
+}
+
+export interface PipelineDigestLead {
+  leadId: number;
+  name: string;
+  industry: string;
+  why: string;
+}
+
+export interface PipelineDigest {
+  overview: string;
+  recommendations: string[];
+  topLeads: PipelineDigestLead[];
+  generatedAt: string;
+}
+
+interface PipelineDigestScope {
+  userId: number;
+  role: string;
+}
+
+interface PipelineDigestCacheEntry {
+  expiresAt: number;
+  digest: PipelineDigest;
+}
+
+const pipelineDigestCache = new Map<string, PipelineDigestCacheEntry>();
+const PIPELINE_DIGEST_CACHE_MS = 60 * 60 * 1000;
+
+const PIPELINE_DIGEST_SYSTEM = `You are a sales operations assistant for a commercial lending CRM.
+Create a concise daily pipeline briefing from the supplied aggregates and candidate companies.
+
+HARD RULES:
+- Base every statement strictly on the supplied data. Never invent facts, figures, activity, or lender decisions.
+- The data contains aggregate buckets and company names only. Do not request or infer contact details or other personal information.
+- Recommendations are operational guidance only. Never promise approval, funding, rates, terms, or eligibility.
+- Return ONLY valid JSON with this exact structure:
+{
+  "overview": "<2-3 concise sentences>",
+  "recommendations": ["<focus recommendation 1>", "<focus recommendation 2>", "<focus recommendation 3>"],
+  "topLeads": [
+    {"leadId": 123, "name": "<company name>", "industry": "<industry or Unknown>", "why": "<specific reason grounded in the supplied candidate data>"}
+  ]
+}
+- Return exactly 3 recommendations and no more than 5 topLeads.
+- Do not include markdown or any text outside the JSON object.`;
+
+function parseJsonObject(rawText: string): Record<string, unknown> {
+  try {
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    return jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+  } catch {
+    return {};
+  }
+}
+
+function incrementBucket(buckets: Record<string, number>, value: string | null | undefined) {
+  const key = value?.trim() || "Unknown";
+  buckets[key] = (buckets[key] ?? 0) + 1;
+}
+
+function containsProhibitedPromise(text: string): boolean {
+  return /\b(guarantee(?:d)?|promise(?:d)?|assur(?:e|ed)|certain(?:ly)?|definite(?:ly)?)\b.{0,40}\b(approval|approved|funding|funded|rate|terms?|eligib(?:le|ility))\b/i.test(text)
+    || /\b(approval|funding|rate|terms?|eligib(?:le|ility))\b.{0,40}\b(guarantee(?:d)?|promise(?:d)?|assur(?:e|ed)|certain(?:ly)?|definite(?:ly)?)\b/i.test(text)
+    || /\b(auto(?:matically)?[- ]?send|send automatically|will send (?:an? )?(?:email|sms|message))\b/i.test(text);
+}
+
+function safeModelStrings(value: unknown, count: number): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const strings = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (strings.length !== count || strings.some((item) => item.length > 600 || containsProhibitedPromise(item))) {
+    return null;
+  }
+  return strings;
+}
+
+export async function generatePipelineDigest(scope: PipelineDigestScope): Promise<PipelineDigest> {
+  const repFilter = scope.role === "rep" ? eq(leadsTable.assignedRepId, scope.userId) : undefined;
+  const leads = await db
+    .select({
+      leadId: leadsTable.id,
+      companyName: leadsTable.companyName,
+      applicationType: leadsTable.applicationType,
+      leadSource: leadsTable.leadSource,
+      status: leadsTable.status,
+      requestedAmount: leadsTable.requestedAmount,
+      creditScore: leadsTable.creditScore,
+      lastActivityAt: leadsTable.lastActivityAt,
+      industry: companiesTable.industry,
+      state: companiesTable.state,
+      matchCount: sql<number>`cast(count(${lenderMatchesTable.id}) as int)`,
+    })
+    .from(leadsTable)
+    .leftJoin(companiesTable, eq(companiesTable.leadId, leadsTable.id))
+    .leftJoin(lenderMatchesTable, eq(lenderMatchesTable.leadId, leadsTable.id))
+    .where(repFilter)
+    .groupBy(
+      leadsTable.id,
+      leadsTable.companyName,
+      leadsTable.applicationType,
+      leadsTable.leadSource,
+      leadsTable.status,
+      leadsTable.requestedAmount,
+      leadsTable.creditScore,
+      leadsTable.lastActivityAt,
+      companiesTable.industry,
+      companiesTable.state,
+    );
+
+  const recentActivitySince = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentActivity = await db
+    .select({
+      action: activityLogTable.action,
+      count: sql<number>`cast(count(*) as int)`,
+    })
+    .from(activityLogTable)
+    .innerJoin(leadsTable, eq(activityLogTable.leadId, leadsTable.id))
+    .where(and(gte(activityLogTable.createdAt, recentActivitySince), repFilter))
+    .groupBy(activityLogTable.action);
+
+  const bySource: Record<string, number> = {};
+  const byIndustry: Record<string, number> = {};
+  const byState: Record<string, number> = {};
+  const byType: Record<string, number> = {};
+  let missingAmount = 0;
+  let missingCredit = 0;
+
+  for (const lead of leads) {
+    incrementBucket(bySource, lead.leadSource);
+    incrementBucket(byIndustry, lead.industry);
+    incrementBucket(byState, lead.state);
+    incrementBucket(byType, lead.applicationType);
+    if (lead.requestedAmount == null) missingAmount += 1;
+    if (lead.creditScore == null) missingCredit += 1;
+  }
+
+  const activeStatuses = new Set(["new_lead", "contacted", "application_received", "follow_up", "submitted_to_underwriting"]);
+  const now = Date.now();
+  const attentionCandidates = leads
+    .map((lead) => {
+      const daysSinceActivity = lead.lastActivityAt
+        ? Math.max(0, (now - lead.lastActivityAt.getTime()) / (24 * 60 * 60 * 1000))
+        : Number.POSITIVE_INFINITY;
+      const score =
+        (activeStatuses.has(lead.status) ? 2 : 0) +
+        (lead.matchCount === 0 ? 2 : 0) +
+        (lead.requestedAmount == null ? 2 : 0) +
+        (lead.creditScore == null ? 2 : 0) +
+        (daysSinceActivity > 7 ? 2 : 0);
+      return { ...lead, attentionScore: score, daysSinceActivity };
+    })
+    .sort((a, b) => b.attentionScore - a.attentionScore || a.leadId - b.leadId)
+    .slice(0, 5);
+
+  const aggregateContext = JSON.stringify({
+    totalLeads: leads.length,
+    countsBySource: bySource,
+    countsByIndustry: byIndustry,
+    countsByState: byState,
+    countsByFinancingType: byType,
+    leadsWithLenderMatches: leads.filter((lead) => lead.matchCount > 0).length,
+    missingRequestedAmount: missingAmount,
+    missingCreditScore: missingCredit,
+    recentActivityLast7Days: {
+      total: recentActivity.reduce((sum, row) => sum + row.count, 0),
+      byAction: Object.fromEntries(recentActivity.map((row) => [row.action, row.count])),
+    },
+    attentionCandidates: attentionCandidates.map((lead) => ({
+      leadId: lead.leadId,
+      companyName: lead.companyName || `Lead ${lead.leadId}`,
+      industry: lead.industry || "Unknown",
+      financingType: lead.applicationType,
+      status: lead.status,
+      hasLenderMatches: lead.matchCount > 0,
+      missingRequestedAmount: lead.requestedAmount == null,
+      missingCreditScore: lead.creditScore == null,
+      daysSinceActivity: Number.isFinite(lead.daysSinceActivity) ? Math.round(lead.daysSinceActivity) : null,
+    })),
+  });
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 8192,
+    system: PIPELINE_DIGEST_SYSTEM,
+    messages: [{ role: "user", content: aggregateContext }],
+  });
+
+  const rawText = message.content[0]?.type === "text" ? message.content[0].text : "{}";
+  const parsed = parseJsonObject(rawText);
+  const candidateMap = new Map(attentionCandidates.map((lead) => [lead.leadId, lead]));
+  const parsedLeads = Array.isArray(parsed["topLeads"])
+    ? parsed["topLeads"]
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const value = item as Record<string, unknown>;
+          const leadId = typeof value["leadId"] === "number" ? value["leadId"] : Number(value["leadId"]);
+          const candidate = candidateMap.get(leadId);
+          if (
+            !candidate
+            || typeof value["why"] !== "string"
+            || value["why"].length > 500
+            || containsProhibitedPromise(value["why"])
+          ) return null;
+          return {
+            leadId,
+            name: candidate.companyName || `Lead ${leadId}`,
+            industry: candidate.industry || "Unknown",
+            why: value["why"].slice(0, 500),
+          };
+        })
+        .filter((lead): lead is PipelineDigestLead => lead !== null)
+        .slice(0, 5)
+    : [];
+
+  const fallbackLeads: PipelineDigestLead[] = attentionCandidates.map((lead) => ({
+    leadId: lead.leadId,
+    name: lead.companyName || `Lead ${lead.leadId}`,
+    industry: lead.industry || "Unknown",
+    why: [
+      lead.matchCount === 0 ? "No lender match is currently recorded." : null,
+      lead.requestedAmount == null ? "Requested amount is missing." : null,
+      lead.creditScore == null ? "Credit score is missing." : null,
+      !Number.isFinite(lead.daysSinceActivity) || lead.daysSinceActivity > 7 ? "No recent activity is recorded." : null,
+    ].filter(Boolean).join(" ") || "Active pipeline lead worth a timely review.",
+  }));
+
+  const fallbackRecommendations = [
+    `Qualify missing requested amounts on ${missingAmount} lead${missingAmount === 1 ? "" : "s"} and missing credit scores on ${missingCredit} lead${missingCredit === 1 ? "" : "s"} before advancing lender review.`,
+    attentionCandidates.length > 0
+      ? `Review the ${attentionCandidates.length} highest-attention active lead${attentionCandidates.length === 1 ? "" : "s"}, prioritizing records with stale activity and no current lender match.`
+      : "Review active pipeline records for the next timely follow-up.",
+    `Enrich industry and state data where unknown to improve pipeline segmentation and lender-match readiness.`,
+  ];
+  const recommendations = safeModelStrings(parsed["recommendations"], 3) ?? fallbackRecommendations;
+  const parsedOverview = typeof parsed["overview"] === "string" ? parsed["overview"].trim() : "";
+
+  return {
+    overview: parsedOverview && parsedOverview.length <= 1000 && !containsProhibitedPromise(parsedOverview)
+      ? parsedOverview
+      : `The visible pipeline contains ${leads.length} leads. ${leads.filter((lead) => lead.matchCount > 0).length} currently have lender matches; ${missingAmount} are missing requested amounts and ${missingCredit} are missing credit scores.`,
+    recommendations,
+    topLeads: parsedLeads.length > 0 ? parsedLeads : fallbackLeads,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+export async function getPipelineDigest(scope: PipelineDigestScope): Promise<PipelineDigest> {
+  const cacheKey = `${scope.role}:${scope.userId}`;
+  const cached = pipelineDigestCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.digest;
+  }
+
+  const digest = await generatePipelineDigest(scope);
+  pipelineDigestCache.set(cacheKey, {
+    expiresAt: Date.now() + PIPELINE_DIGEST_CACHE_MS,
+    digest,
+  });
+  return digest;
+}
+
+export interface NextBestAction {
+  actions: string[];
+  generatedAt: string;
+}
+
+const NEXT_ACTION_SYSTEM = `You are a sales operations assistant for a commercial lending CRM.
+Recommend the next best actions for a rep working one lead, using only the supplied lead fields, activity summary, and current lender-match state.
+
+HARD RULES:
+- Recommendations only: never execute, schedule, send, or draft anything.
+- Never promise approval, funding, rates, terms, eligibility, or a lender decision.
+- Never invent missing facts, lender criteria, activity, or financial figures.
+- If important data is missing, recommend qualifying that data.
+- Include 2 or 3 concrete actions. When lender matches exist, explain which recorded match is worth reviewing and why based only on its recorded score. When no match exists, recommend reviewing or running the existing matching workflow rather than claiming a fit.
+- Return ONLY valid JSON with this exact structure:
+{"actions":["<action 1>","<action 2>","<action 3>"]}
+- Do not include markdown or any text outside the JSON object.`;
+
+export async function generateNextBestAction(leadId: number): Promise<NextBestAction> {
+  const context = await buildLeadContext(leadId);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 8192,
+    system: NEXT_ACTION_SYSTEM,
+    messages: [{ role: "user", content: context }],
+  });
+  const rawText = message.content[0]?.type === "text" ? message.content[0].text : "{}";
+  const parsed = parseJsonObject(rawText);
+  const parsedActions = Array.isArray(parsed["actions"])
+    ? parsed["actions"]
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+  const validActions = parsedActions.length >= 2
+    && parsedActions.every((item) => item.length <= 600 && !containsProhibitedPromise(item));
+
+  if (validActions) {
+    return {
+      actions: parsedActions,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  const lead = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.id, leadId),
+    with: {
+      company: true,
+      lenderMatches: {
+        with: { lender: true },
+        orderBy: (table, { desc: orderDesc }) => [orderDesc(table.matchScore)],
+        limit: 1,
+      },
+    },
+  });
+  if (!lead) throw new Error("Lead not found");
+
+  const missingFields = [
+    lead.requestedAmount == null ? "requested amount" : null,
+    lead.creditScore == null ? "credit score" : null,
+    !lead.company?.industry ? "industry" : null,
+    lead.company?.timeInBusinessMonths == null ? "time in business" : null,
+    lead.company?.annualRevenue == null ? "annual revenue" : null,
+  ].filter((field): field is string => field !== null);
+  const fallbackActions = [
+    missingFields.length > 0
+      ? `Qualify the missing ${missingFields.join(", ")} and record the verified details before advancing lender review.`
+      : "Confirm the existing qualification details are current and identify any remaining underwriting gaps.",
+    lead.lenderMatches[0]
+      ? `Review the recorded ${lead.lenderMatches[0].lender.name} match and its ${lead.lenderMatches[0].matchScore}/100 score; treat it as a recommendation for manual review, not an approval or rate promise.`
+      : "After the lead profile is complete, review or run the existing lender-matching workflow; no current lender match is recorded.",
+    `Plan a manual outreach conversation focused on the ${lead.applicationType.replace(/_/g, " ")} need and the missing qualification details; do not auto-send a message.`,
+  ];
+
+  return {
+    actions: fallbackActions,
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 const DRAFT_PROMPT_BASE = `You are a sales assistant for a commercial lending CRM, drafting an outbound message on behalf of a rep to a lead. Use only the facts present in the lead context — never invent figures, approvals, rates, or promises that are not present in the context. Keep the tone professional and warm, and keep the message reasonably short.

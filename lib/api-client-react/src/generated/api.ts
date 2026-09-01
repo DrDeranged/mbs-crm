@@ -24,6 +24,8 @@ import type {
   AdminErrorsResponse,
   AiDraftRequest,
   AiDraftResponse,
+  AiNextBestAction,
+  AiPipelineDigest,
   AnalyticsPipeline,
   AnalyticsSummary,
   ApplicationRecord,
@@ -1805,6 +1807,146 @@ export const useGenerateLeadBriefing = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getGenerateLeadBriefingMutationOptions(options));
+    }
+
+export const getGeneratePipelineDigestUrl = () => {
+
+
+
+
+  return `/api/ai/pipeline-digest`
+}
+
+/**
+ * @summary Generate a cached daily AI briefing for the visible pipeline
+ */
+export const generatePipelineDigest = async ( options?: RequestInit): Promise<AiPipelineDigest> => {
+
+  return customFetch<AiPipelineDigest>(getGeneratePipelineDigestUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGeneratePipelineDigestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePipelineDigest>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generatePipelineDigest>>, TError,void, TContext> => {
+
+const mutationKey = ['generatePipelineDigest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generatePipelineDigest>>, void> = () => {
+
+
+          return  generatePipelineDigest(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GeneratePipelineDigestMutationResult = NonNullable<Awaited<ReturnType<typeof generatePipelineDigest>>>
+
+    export type GeneratePipelineDigestMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate a cached daily AI briefing for the visible pipeline
+ */
+export const useGeneratePipelineDigest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePipelineDigest>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generatePipelineDigest>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGeneratePipelineDigestMutationOptions(options));
+    }
+
+export const getGenerateNextBestActionUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/next-action`
+}
+
+/**
+ * @summary Recommend the next best actions for a lead
+ */
+export const generateNextBestAction = async (id: number, options?: RequestInit): Promise<AiNextBestAction> => {
+
+  return customFetch<AiNextBestAction>(getGenerateNextBestActionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateNextBestActionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateNextBestAction>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateNextBestAction>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['generateNextBestAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateNextBestAction>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  generateNextBestAction(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateNextBestActionMutationResult = NonNullable<Awaited<ReturnType<typeof generateNextBestAction>>>
+
+    export type GenerateNextBestActionMutationError = ErrorType<void>
+
+    /**
+ * @summary Recommend the next best actions for a lead
+ */
+export const useGenerateNextBestAction = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateNextBestAction>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateNextBestAction>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getGenerateNextBestActionMutationOptions(options));
     }
 
 export const getGenerateAiDraftUrl = (id: number,) => {

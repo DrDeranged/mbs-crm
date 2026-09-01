@@ -451,6 +451,44 @@ export const GenerateLeadBriefingResponse = zod.object({
 
 
 /**
+ * @summary Generate a cached daily AI briefing for the visible pipeline
+ */
+export const generatePipelineDigestResponseTopLeadsMax = 5;
+
+
+
+export const GeneratePipelineDigestResponse = zod.object({
+  "overview": zod.string(),
+  "recommendations": zod.array(zod.string()),
+  "topLeads": zod.array(zod.object({
+  "leadId": zod.number(),
+  "name": zod.string(),
+  "industry": zod.string(),
+  "why": zod.string()
+})).max(generatePipelineDigestResponseTopLeadsMax),
+  "generatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Recommend the next best actions for a lead
+ */
+export const GenerateNextBestActionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const generateNextBestActionResponseActionsMin = 2;
+export const generateNextBestActionResponseActionsMax = 3;
+
+
+
+export const GenerateNextBestActionResponse = zod.object({
+  "actions": zod.array(zod.string()).min(generateNextBestActionResponseActionsMin).max(generateNextBestActionResponseActionsMax),
+  "generatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Generate an AI-drafted email or SMS message for a lead (never sent automatically)
  */
 export const GenerateAiDraftParams = zod.object({

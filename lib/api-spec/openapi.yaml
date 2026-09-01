@@ -55,7 +55,7 @@ tags:
   - name: workflow-rules
     description: Automated workflow rules that trigger tasks or notifications on status change
   - name: ai
-    description: AI-generated lead briefings and outbound message drafts
+    description: AI-generated pipeline briefings, lead recommendations, and outbound message drafts
 paths:
   /healthz:
     get:
@@ -686,6 +686,48 @@ paths:
                   generatedAt:
                     type: string
                     format: date-time
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Lead not found
+
+  /ai/pipeline-digest:
+    post:
+      operationId: generatePipelineDigest
+      tags: [ai]
+      summary: Generate a cached daily AI briefing for the visible pipeline
+      responses:
+        "200":
+          description: Pipeline briefing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiPipelineDigest"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /leads/{id}/next-action:
+    post:
+      operationId: generateNextBestAction
+      tags: [ai]
+      summary: Recommend the next best actions for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recommended next actions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiNextBestAction"
         "401":
           description: Unauthorized
         "403":
@@ -3226,6 +3268,49 @@ components:
           type: array
           items:
             type: string
+
+    AiPipelineDigest:
+      type: object
+      required: [overview, recommendations, topLeads, generatedAt]
+      properties:
+        overview:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        topLeads:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            required: [leadId, name, industry, why]
+            properties:
+              leadId:
+                type: integer
+              name:
+                type: string
+              industry:
+                type: string
+              why:
+                type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+    AiNextBestAction:
+      type: object
+      required: [actions, generatedAt]
+      properties:
+        actions:
+          type: array
+          minItems: 2
+          maxItems: 3
+          items:
+            type: string
+        generatedAt:
+          type: string
+          format: date-time
 
     AiDraftRequest:
       type: object

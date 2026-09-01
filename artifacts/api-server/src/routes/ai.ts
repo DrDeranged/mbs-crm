@@ -5,7 +5,12 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { generateLeadBriefing, generateDraft } from "../lib/aiAssistant";
+import {
+  generateLeadBriefing,
+  generateDraft,
+  generateNextBestAction,
+  getPipelineDigest,
+} from "../lib/aiAssistant";
 import rateLimit from "express-rate-limit";
 
 const router: IRouter = Router();
@@ -16,6 +21,14 @@ const aiRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many AI requests. Please try again later." },
+});
+
+const pipelineDigestRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Daily briefing limit reached. Please try again later." },
 });
 
 const GenerateDraftBody = z.object({
@@ -35,6 +48,19 @@ async function loadAccessibleLead(leadId: number, user: { id: number; role: stri
   }
   return lead;
 }
+
+router.post("/ai/pipeline-digest", pipelineDigestRateLimiter, async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  try {
+    const digest = await getPipelineDigest({ userId: user.id, role: user.role });
+    res.json(digest);
+  } catch (err) {
+    console.error("[ai] Pipeline digest generation failed:", err instanceof Error ? err.message : err);
+    res.status(500).json({ error: "Failed to generate pipeline digest" });
+  }
+});
 
 router.get("/leads/:id/ai/briefing", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -82,6 +108,27 @@ router.post("/leads/:id/ai/briefing", aiRateLimiter, async (req: Request, res: R
   } catch (err) {
     console.error("[ai] Briefing generation failed:", err instanceof Error ? err.message : err);
     res.status(500).json({ error: "Failed to generate AI briefing" });
+  }
+});
+
+router.post("/leads/:id/next-action", aiRateLimiter, async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const leadId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(leadId)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const lead = await loadAccessibleLead(leadId, user, res);
+  if (!lead) return;
+
+  try {
+    res.json(await generateNextBestAction(leadId));
+  } catch (err) {
+    console.error("[ai] Next best action generation failed:", err instanceof Error ? err.message : err);
+    res.status(500).json({ error: "Failed to generate next best action" });
   }
 });
 

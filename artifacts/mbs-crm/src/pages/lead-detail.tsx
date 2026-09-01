@@ -25,7 +25,7 @@ import {
   useGetLeadApplication, useGetLeadFinancials,
   useGetLeadCredit, useCaptureCreditConsent, usePullCreditReport,
   useRecalculateLeadScore,
-  useGenerateLeadBriefing, useGenerateAiDraft, AiDraftRequestChannel,
+  useGenerateLeadBriefing, useGenerateNextBestAction, useGenerateAiDraft, AiDraftRequestChannel,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,6 +74,7 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
   const assignLead = useAssignLead();
   const recalcScore = useRecalculateLeadScore();
   const generateBriefing = useGenerateLeadBriefing();
+  const generateNextAction = useGenerateNextBestAction();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -96,6 +97,16 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
         queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
       },
       onError: () => toast({ title: "Score calculation failed", variant: "destructive" }),
+    });
+  };
+
+  const handleGenerateNextAction = () => {
+    generateNextAction.mutate({ id: leadId }, {
+      onError: () => toast({
+        title: "Next action unavailable",
+        description: "Could not generate recommendations for this lead.",
+        variant: "destructive",
+      }),
     });
   };
 
@@ -139,16 +150,29 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#1F4E79]" /> AI Deal Briefing
             </CardTitle>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
-              disabled={generateBriefing.isPending}
-              onClick={handleGenerateBriefing}
-            >
-              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${generateBriefing.isPending ? "animate-spin" : ""}`} />
-              {generateBriefing.isPending ? "Generating…" : briefing ? "Regenerate" : "Generate Briefing"}
-            </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
+                  disabled={generateBriefing.isPending}
+                  onClick={handleGenerateBriefing}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 mr-1 ${generateBriefing.isPending ? "animate-spin" : ""}`} />
+                  {generateBriefing.isPending ? "Generating…" : briefing ? "Regenerate" : "Generate Briefing"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  data-testid="generate-next-action"
+                  className="h-7 border-[#1F4E79]/20 px-2 text-xs text-[#1F4E79] hover:bg-[#1F4E79]/5"
+                  disabled={generateNextAction.isPending}
+                  onClick={handleGenerateNextAction}
+                >
+                  <ListChecks className={`mr-1 h-3.5 w-3.5 ${generateNextAction.isPending ? "animate-pulse" : ""}`} />
+                  {generateNextAction.isPending ? "Thinking…" : "Next best action"}
+                </Button>
+              </div>
           </div>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -192,6 +216,25 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
               <p className="text-sm">No AI briefing yet</p>
               <p className="text-xs mt-1">Click Generate Briefing for a summary of this deal</p>
             </div>
+          )}
+          {generateNextAction.data && (
+            <div className="border-t border-[#1F4E79]/10 pt-4">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <ListChecks className="h-3.5 w-3.5 text-[#1F4E79]" /> Next best action
+              </div>
+              <ol className="space-y-2">
+                {generateNextAction.data.actions.map((action, index) => (
+                  <li key={`${action}-${index}`} className="flex gap-2 text-sm">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1F4E79]/10 text-xs font-semibold text-[#1F4E79]">{index + 1}</span>
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-[11px] text-muted-foreground">Recommendations only · generated {formatDistanceToNow(new Date(generateNextAction.data.generatedAt), { addSuffix: true })}</p>
+            </div>
+          )}
+          {generateNextAction.isPending && (
+            <div className="border-t border-[#1F4E79]/10 pt-4 text-sm text-muted-foreground">Analyzing lead details, activity, and lender matches…</div>
           )}
         </CardContent>
       </Card>
