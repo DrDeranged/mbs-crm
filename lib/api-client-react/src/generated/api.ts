@@ -164,6 +164,83 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
+export const getApiRootHealthCheckUrl = () => {
+
+
+
+
+  return `/api/`
+}
+
+/**
+ * @summary API root health check for deployment monitoring
+ */
+export const apiRootHealthCheck = async ( options?: RequestInit): Promise<HealthStatus> => {
+
+  return customFetch<HealthStatus>(getApiRootHealthCheckUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getApiRootHealthCheckQueryKey = () => {
+    return [
+    `/api/`
+    ] as const;
+    }
+
+
+export const getApiRootHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof apiRootHealthCheck>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof apiRootHealthCheck>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getApiRootHealthCheckQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof apiRootHealthCheck>>> = ({ signal }) => apiRootHealthCheck({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof apiRootHealthCheck>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ApiRootHealthCheckQueryResult = NonNullable<Awaited<ReturnType<typeof apiRootHealthCheck>>>
+export type ApiRootHealthCheckQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary API root health check for deployment monitoring
+ */
+
+export function useApiRootHealthCheck<TData = Awaited<ReturnType<typeof apiRootHealthCheck>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof apiRootHealthCheck>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getApiRootHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getHealthCheckUrl = () => {
 
 

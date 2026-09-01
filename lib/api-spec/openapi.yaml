@@ -57,6 +57,19 @@ tags:
   - name: ai
     description: AI-generated pipeline briefings, lead recommendations, and outbound message drafts
 paths:
+  /:
+    get:
+      operationId: apiRootHealthCheck
+      tags: [health]
+      summary: API root health check for deployment monitoring
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -2857,10 +2870,14 @@ components:
   schemas:
     AnalyticsSummary:
       type: object
-      required: [totalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]
+      required: [totalLeads, allTimeTotalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]
       properties:
         totalLeads:
           type: integer
+          description: Total leads created in the selected date range, regardless of lead source or status
+        allTimeTotalLeads:
+          type: integer
+          description: Unfiltered all-time lead count used only to determine whether the CRM is truly empty
         totalApplications:
           type: integer
         totalApprovals:

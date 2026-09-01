@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 export interface AnalyticsSummary {
+  /** Total leads created in the selected date range, regardless of lead source or status */
   totalLeads: number;
+  /** Unfiltered all-time lead count used only to determine whether the CRM is truly empty */
+  allTimeTotalLeads: number;
   totalApplications: number;
   totalApprovals: number;
   totalFundings: number;

@@ -237,7 +237,7 @@ function DailyBriefingCard() {
 }
 
 export default function Dashboard() {
-  const [preset, setPreset] = useState<DateRangePreset>("this_month");
+  const [preset, setPreset] = useState<DateRangePreset>("ytd");
   const [customRange, setCustomRange] = useState<DateRange>({
     startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
@@ -377,7 +377,7 @@ export default function Dashboard() {
       </div>
 
       {/* First-run call-to-action */}
-      {!loadingSummary && summary && (summary as any).totalLeads === 0 && (
+      {!loadingSummary && summary && summary.allTimeTotalLeads === 0 && (
           <div className="bg-[#17A567]/5 border border-[#17A567]/20 rounded-[14px] p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
            <div className="h-11 w-11 rounded-full bg-[#17A567]/10 flex items-center justify-center flex-shrink-0">
              <Users className="h-5 w-5 text-[#17A567]" />

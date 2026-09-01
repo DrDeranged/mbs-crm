@@ -52,12 +52,25 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
 
   const where = leadDateWhere(startDate, endDate, effectiveRepId);
 
-  const [allLeads, fundedTimeRows, revenueRows] = await Promise.all([
+  const [allLeads, leadCountRows, allTimeLeadCountRows, fundedTimeRows, revenueRows] = await Promise.all([
     db
       .select({ status: leadsTable.status, count: sql<number>`cast(count(*) as int)` })
       .from(leadsTable)
       .where(where)
       .groupBy(leadsTable.status),
+
+    // Leads generated is every lead created in the selected range, regardless
+    // of source or status. Keep this independent from funnel categorization.
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(leadsTable)
+      .where(where),
+
+    // Used only for the first-run state; date/rep filters must not make an
+    // established CRM look empty.
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(leadsTable),
 
     // Avg time from lead created to funded status in history
     db
@@ -89,7 +102,8 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
     if (row.status) countByStatus[row.status] = row.count;
   }
 
-  const totalLeads = Object.values(countByStatus).reduce((a, b) => a + b, 0);
+  const totalLeads = leadCountRows[0]?.count ?? 0;
+  const allTimeTotalLeads = allTimeLeadCountRows[0]?.count ?? 0;
   const totalApplications = APPLICATION_STATUSES.reduce((a, s) => a + (countByStatus[s] ?? 0), 0);
   const totalApprovals = APPROVAL_STATUSES.reduce((a, s) => a + (countByStatus[s] ?? 0), 0);
   const totalFundings = countByStatus["funded"] ?? 0;
@@ -100,6 +114,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
 
   res.json({
     totalLeads,
+    allTimeTotalLeads,
     totalApplications,
     totalApprovals,
     totalFundings,

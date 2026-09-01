@@ -7,6 +7,11 @@ import { desc, eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+router.get("/", (_req, res) => {
+  const data = HealthCheckResponse.parse({ status: "ok" });
+  res.json(data);
+});
+
 router.get("/healthz", (_req, res) => {
   const data = HealthCheckResponse.parse({ status: "ok" });
   res.json(data);

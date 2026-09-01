@@ -9,6 +9,14 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary API root health check for deployment monitoring
+ */
+export const ApiRootHealthCheckResponse = zod.object({
+  "status": zod.string()
+})
+
+
+/**
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -1272,7 +1280,8 @@ export const GetAnalyticsSummaryQueryParams = zod.object({
 })
 
 export const GetAnalyticsSummaryResponse = zod.object({
-  "totalLeads": zod.number(),
+  "totalLeads": zod.number().describe('Total leads created in the selected date range, regardless of lead source or status'),
+  "allTimeTotalLeads": zod.number().describe('Unfiltered all-time lead count used only to determine whether the CRM is truly empty'),
   "totalApplications": zod.number(),
   "totalApprovals": zod.number(),
   "totalFundings": zod.number(),
