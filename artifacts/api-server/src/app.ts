@@ -21,6 +21,10 @@ initSentry();
 
 const app: Express = express();
 
+// Replit routes requests through one trusted proxy hop. This lets middleware
+// such as express-rate-limit derive the originating client IP safely.
+app.set("trust proxy", 1);
+
 // Attach a unique request id to every request
 app.use((req: Request, _res: Response, next: NextFunction) => {
   req.requestId = crypto.randomUUID();
