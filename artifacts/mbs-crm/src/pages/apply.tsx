@@ -118,15 +118,16 @@ const emptyForm = (): FormData => ({
 });
 
 // Dropzone for bank statements
-function BankStatementDropzone({ files, onChange }: { files: File[]; onChange: (f: File[]) => void }) {
+function BankStatementDropzone({ files, onChange, maxFiles }: { files: File[]; onChange: (f: File[]) => void; maxFiles: number }) {
   const onDrop = useCallback((accepted: File[]) => {
-    onChange([...files, ...accepted.filter((f) => f.type === "application/pdf")]);
-  }, [files, onChange]);
+    onChange([...files, ...accepted.filter((f) => f.type === "application/pdf")].slice(0, maxFiles));
+  }, [files, onChange, maxFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
-    multiple: true,
+        multiple: true,
+        maxFiles,
   });
 
   return (
@@ -165,7 +166,7 @@ function BankStatementDropzone({ files, onChange }: { files: File[]; onChange: (
         </ul>
       )}
       <p className="text-xs text-gray-400">
-        Minimum 3 months of bank statements required. More months = faster approval.
+        {maxFiles === 6 ? "Upload 3–6 months of statements." : "Statements are optional for equipment financing."}
       </p>
     </div>
   );
@@ -200,6 +201,8 @@ export default function ApplyPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(emptyForm());
   const [bankFiles, setBankFiles] = useState<File[]>([]);
+  const [statementsSkipped, setStatementsSkipped] = useState(false);
+  const [skipConfirmation, setSkipConfirmation] = useState(false);
   const [ssnRaw, setSsnRaw] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -237,6 +240,7 @@ export default function ApplyPage() {
         if (typeof v === "boolean") formData.append(k, String(v));
         else if (v) formData.append(k, v as string);
       });
+      if (statementsSkipped) formData.append("statementsSkipped", "true");
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();
       if (sig) formData.append("signatureData", sig);
@@ -273,7 +277,7 @@ export default function ApplyPage() {
       case 1: return form.type !== "";
       case 2: return !!(form.businessName && form.email && form.phone && form.industry && form.timeInBusinessMonths && form.monthlyRevenueStated && form.requestedAmount);
       case 3: return !!(form.ownerFirstName && form.ownerLastName && ssnRaw.replace(/\D/g,"").length === 9);
-      case 4: return bankFiles.length >= 3;
+      case 4: return statementsSkipped || (form.type === "equipment" ? bankFiles.length > 0 : (bankFiles.length >= 3 && bankFiles.length <= 6));
       case 5: return form.consentCreditPull && form.consentTerms && (
         signatureMode === "type" ? typedName.trim().length > 2 : (sigPadRef.current && !sigPadRef.current.isEmpty())
       );
@@ -549,14 +553,35 @@ export default function ApplyPage() {
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Bank Statement Upload</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Please upload your 3 most recent months of business bank statements (PDF format).
+                     {form.type === "working_capital"
+                       ? "Upload your last 3–6 months of business bank statements (PDF format)."
+                       : "Upload your business bank statements (PDF format), or skip this step to continue."}
                     Our AI will extract your financial data automatically.
                   </p>
                 </div>
-                <BankStatementDropzone files={bankFiles} onChange={setBankFiles} />
-                {bankFiles.length < 3 && bankFiles.length > 0 && (
-                  <p className="text-xs text-amber-600">Please add at least {3 - bankFiles.length} more statement(s).</p>
-                )}
+                 <BankStatementDropzone files={bankFiles} onChange={(files) => { setBankFiles(files); setStatementsSkipped(false); setSkipConfirmation(false); }} maxFiles={form.type === "working_capital" ? 6 : 12} />
+                 {bankFiles.length < 3 && bankFiles.length > 0 && !statementsSkipped && (
+                   <p className="text-xs text-amber-600">Please add at least {3 - bankFiles.length} more statement(s).</p>
+                 )}
+                 {form.type === "working_capital" && bankFiles.length > 6 && (
+                   <p className="text-xs text-amber-600">Please upload no more than 6 statements.</p>
+                 )}
+                 <div className="border-t pt-4">
+                   <Button type="button" variant="outline" className="w-full" onClick={() => {
+                     setStatementsSkipped(true);
+                     setBankFiles([]);
+                     setSkipConfirmation(true);
+                   }}>
+                     {form.type === "equipment" ? "Skip this step" : "I'll send statements to my representative instead"}
+                   </Button>
+                   {skipConfirmation && (
+                     <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                       {form.type === "working_capital"
+                         ? "Your representative will follow up to collect your statements."
+                         : "You can continue your application without uploading bank statements."}
+                     </p>
+                   )}
+                 </div>
               </div>
             )}
 
@@ -577,7 +602,7 @@ export default function ApplyPage() {
                     <span className="text-gray-500">Phone</span><span className="font-medium">{form.phone}</span>
                     <span className="text-gray-500">Revenue/mo</span><span className="font-medium">${Number(form.monthlyRevenueStated).toLocaleString()}</span>
                     <span className="text-gray-500">Requested</span><span className="font-medium">${Number(form.requestedAmount).toLocaleString()}</span>
-                    <span className="text-gray-500">Bank Stmts</span><span className="font-medium">{bankFiles.length} file(s)</span>
+                    <span className="text-gray-500">Bank Stmts</span><span className="font-medium">{statementsSkipped ? "Skipped" : `${bankFiles.length} file(s)`}</span>
                   </div>
                 </div>
 

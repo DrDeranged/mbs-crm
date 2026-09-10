@@ -15,6 +15,7 @@ import {
   activityLogTable,
   usersTable,
   leadStatusHistoryTable,
+  tasksTable,
 } from "@workspace/db";
 import { encrypt, maskSsn } from "../lib/encryption";
 import { createNotification, notifyAllManagers } from "../lib/notify";
@@ -158,6 +159,18 @@ async function logActivity(params: {
   });
 }
 
+/** Return a YYYY-MM-DD date two business days after today. */
+function twoBusinessDaysOut(from = new Date()): string {
+  const date = new Date(from);
+  let remaining = 2;
+  while (remaining > 0) {
+    date.setUTCDate(date.getUTCDate() + 1);
+    const day = date.getUTCDay();
+    if (day !== 0 && day !== 6) remaining--;
+  }
+  return date.toISOString().slice(0, 10);
+}
+
 /**
  * Round-robin assignment with fallback chain: rep → manager → admin.
  * Returns null only when no active users exist at all.
@@ -235,6 +248,7 @@ router.post(
         signatureData: z.string().min(1, "Signature is required").max(500_000, "Signature data too large"),
         equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
         vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
+         statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
       }).superRefine((data, ctx) => {
         if (data.type === "equipment") {
           if (!data.equipmentDescription?.trim()) {
@@ -293,11 +307,24 @@ router.post(
         }
       }
 
+      // Equipment financing has an optional statement step. A direct API caller
+      // omitting the flag is therefore treated as having skipped it when empty.
+      const statementsSkipped = body.statementsSkipped === "true"
+        || body.statementsSkipped === true
+        || (body.type === "equipment" && files.length === 0);
       // ── Validate bank statement count (server-side) ──────────────────────
-      if (files.length < 3) {
+      if (body.type === "working_capital" && files.length < 3 && !statementsSkipped) {
         res.status(400).json({ error: "At least 3 bank statement PDFs are required." });
         return;
       }
+      if (body.type === "working_capital" && files.length > 6) {
+        res.status(400).json({ error: "A maximum of 6 bank statement PDFs may be uploaded." });
+        return;
+       }
+      if (statementsSkipped && files.length > 0) {
+        res.status(400).json({ error: "Remove uploaded statements before choosing to skip this step." });
+        return;
+       }
 
       // ── Encrypt SSN — hard fail if key is absent ──────────────────────────
       const rawSsn: string = (body.ownerSsn ?? "").replace(/\D/g, "");
@@ -461,6 +488,30 @@ router.post(
         entityId: lead.id,
         details: { type: body.type, filesCount: files.length },
       });
+
+      if (statementsSkipped) {
+        const isWorkingCapital = body.type === "working_capital";
+        const message = isWorkingCapital
+          ? "Bank statements skipped at application; applicant chose to send statements to their representative instead."
+          : "Bank statements skipped at application (equipment)";
+        await logActivity({
+          userId: null,
+          leadId: lead.id,
+          action: "bank_statements_skipped",
+          entityType: "lead",
+          entityId: lead.id,
+          details: { message, type: body.type, filesCount: 0 },
+        });
+        if (isWorkingCapital && assignedRepId) {
+          await db.insert(tasksTable).values({
+            leadId: lead.id,
+            userId: assignedRepId,
+            title: "Collect 3–6 months bank statements — applicant chose to send directly",
+            description: "Applicant chose to send statements directly to their representative. Collect the last 3–6 months of business bank statements.",
+            dueDate: twoBusinessDaysOut(),
+          });
+        }
+      }
 
       calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
 
