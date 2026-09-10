@@ -63,6 +63,7 @@ const PROGRAM_TYPES = [
 const VARIABLES = [
   "{{lead_first_name}}", "{{lead_last_name}}", "{{lead_company}}",
   "{{lead_email}}", "{{lead_phone}}", "{{rep_name}}", "{{rep_email}}",
+  "{{rep_phone}}",
 ];
 
 function TemplateFormDialog({

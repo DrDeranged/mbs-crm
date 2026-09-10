@@ -64,6 +64,7 @@ const SAMPLE_VARS: Record<string, string> = {
   lead_email: "jane@acme.com",
   lead_phone: "+15551234567",
   rep_name: "Your Rep",
+  rep_phone: "+15559876543",
   rep_email: "rep@company.com",
 };
 
@@ -75,6 +76,7 @@ function buildVariables(lead: any, rep: any): Record<string, string> {
     lead_email: lead?.email || "",
     lead_phone: lead?.phone || "",
     rep_name: rep?.name || "",
+    rep_phone: rep?.mobileNumber || "",
     rep_email: rep?.email || "",
   };
 }
@@ -639,6 +641,56 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
 <p>We're excited to support {{lead_company}} and look forward to getting things wrapped up quickly.</p>
 <p>Congratulations and thank you for choosing My Business Solutions!</p>
 <p>Warmly,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+    },
+    {
+      name: "Quick Question About Business Funding",
+      programType: null as string | null,
+      subject: "Quick Question About Business Funding",
+      bodyHtml: `<p>Hello {{lead_first_name}},</p>
+<p>I work with My Business Solutions (MBS) helping businesses secure fast capital from $4,000 to $20,000,000.</p>
+<p>Programs include working capital, SBA loans, equipment financing, commercial real estate funding, and factoring.</p>
+<p>Approvals are same day, and many deals fund within 24 hours.</p>
+<p>All we need to review options:</p>
+<ul>
+<li>Short application</li>
+<li>3–6 months of business bank statements</li>
+</ul>
+<p>Would you like me to send over the application to see what your business qualifies for?</p>
+<p>Best,<br>{{rep_name}}</p>`,
+    },
+    {
+      name: "Fast Business Funding Options – Same Day Approval",
+      programType: null as string | null,
+      subject: "Fast Business Funding Options – Same Day Approval",
+      bodyHtml: `<p>Hello {{lead_first_name}},</p>
+<p>My name is {{rep_name}} with My Business Solutions (MBS). We help businesses access fast and flexible funding when they need capital for growth, payroll, equipment, inventory, or cash flow.</p>
+<p>We offer several commercial financing options including:</p>
+<ul>
+<li>Merchant Cash Advances</li>
+<li>Business Loans</li>
+<li>SBA Loan Programs</li>
+<li>Equipment Financing</li>
+<li>Commercial Real Estate Capital</li>
+<li>Invoice Factoring</li>
+</ul>
+<p>Funding amounts range from $4,000 to $20,000,000, and we work with companies of all sizes and industries.</p>
+<p>What makes MBS different:</p>
+<ul>
+<li>✔ Same Day Approvals</li>
+<li>✔ Same Day Funding for Working Capital</li>
+<li>✔ Next Day Funding on Titled Equipment</li>
+<li>✔ Simple Application Process</li>
+<li>✔ Flexible Programs for Most Credit Profiles</li>
+</ul>
+<p>What we need to get started:</p>
+<ul>
+<li>1 Short Application</li>
+<li>3–6 Months of Business Bank Statements</li>
+</ul>
+<p>That's it.</p>
+<p>If you'd like to see what your business qualifies for, simply reply to this email and I'll send the application over right away, or apply here:<br><a href="https://app.my-business-solutions.com/apply">https://app.my-business-solutions.com/apply</a></p>
+<p>P.S. Many businesses receive approvals the same day and funding within 24 hours.</p>
+<p>Best regards,<br>{{rep_name}}<br>My Business Solutions (MBS)<br>{{rep_phone}}<br>{{rep_email}}<br>www.my-business-solutions.com</p>`,
     },
   ];
 
