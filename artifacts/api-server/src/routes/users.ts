@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { usersTable, activityLogTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
@@ -45,6 +45,14 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     return;
   }
 
+  const existing = await db.query.usersTable.findFirst({ where: eq(usersTable.id, params.data.id) });
+  if (!existing) { res.status(404).json({ error: "User not found" }); return; }
+  if (body.data.slug && body.data.slug !== existing.slug) {
+    const used = await db.query.activityLogTable.findFirst({
+      where: (a, { and, eq }) => and(eq(a.entityType, "rep_slug_visit"), eq(a.entityId, existing.slug ?? "")),
+    });
+    if (used) { res.status(409).json({ error: "This slug is locked because it has served traffic." }); return; }
+  }
   const [updated] = await db
     .update(usersTable)
     .set({ ...body.data, updatedAt: new Date() })

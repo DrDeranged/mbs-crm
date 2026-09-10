@@ -22,6 +22,7 @@ const DripSequences = lazy(() => import("@/pages/drip-sequences"));
 const LenderManagement = lazy(() => import("@/pages/lender-management"));
 const FlyerTemplates = lazy(() => import("@/pages/flyer-templates"));
 const ApplyPage = lazy(() => import("@/pages/apply"));
+const RepChooser = lazy(() => import("@/pages/rep-chooser"));
 const ApplicationStatus = lazy(() => import("@/pages/application-status"));
 const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
 const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
@@ -309,6 +310,7 @@ function AppRoutes() {
               <ProtectedRoute component={FlyerTemplates} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
+            <Route path="/r/:slug" component={RepChooser} />
             <Route path="/apply/status" component={ApplicationStatus} />
             <Route path="/credit/compliance">
               <ProtectedRoute component={CreditCompliance} />

@@ -249,6 +249,7 @@ router.post(
         equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
         vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
          statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
+         rep: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
       }).superRefine((data, ctx) => {
         if (data.type === "equipment") {
           if (!data.equipmentDescription?.trim()) {
@@ -334,8 +335,13 @@ router.post(
         ownerSsnEncrypted = encrypt(rawSsn);
       }
 
-      // ── Round-robin rep assignment ────────────────────────────────────────
-      const assignedRepId = await pickNextRep();
+       // A QR attribution is advisory: invalid/missing values use normal assignment.
+       const attributedRep = body.rep
+         ? await db.query.usersTable.findFirst({
+           where: and(eq(usersTable.slug, String(body.rep).toLowerCase()), eq(usersTable.isActive, true)),
+         })
+         : null;
+       const assignedRepId = attributedRep?.id ?? await pickNextRep();
 
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
@@ -352,7 +358,7 @@ router.post(
           ein,
           applicationType: body.type as "equipment" | "working_capital",
           status: "application_received",
-          leadSource: "website",
+           leadSource: attributedRep ? "qr-card" : "website",
           requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
           assignedRepId,
           consentCreditPullAt: consentGiven ? new Date() : null,
@@ -360,6 +366,14 @@ router.post(
           lastActivityAt: new Date(),
           trackingToken,
         }).returning();
+
+         if (attributedRep) {
+           await tx.insert(activityLogTable).values({
+             userId: null, leadId: txLead.id, action: "attributed",
+             entityType: "rep_slug", entityId: attributedRep.slug ?? "",
+             details: { slug: attributedRep.slug, source: "qr-card" },
+           });
+         }
 
         await tx.insert(applicationsTable).values({
           leadId: txLead.id,

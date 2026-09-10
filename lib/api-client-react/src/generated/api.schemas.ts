@@ -99,6 +99,8 @@ export interface User {
   /** @nullable */
   name?: string | null;
   email: string;
+  /** @nullable */
+  slug: string | null;
   role: UserRole;
   isActive?: boolean;
   /** @nullable */
@@ -119,6 +121,21 @@ export const UserUpdateRole = {
 export interface UserUpdate {
   role?: UserUpdateRole;
   isActive?: boolean;
+  /**
+     * @minLength 1
+     * @maxLength 50
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  slug?: string;
+}
+
+export interface PublicRep {
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  slug: string | null;
 }
 
 export type LeadApplicationType = typeof LeadApplicationType[keyof typeof LeadApplicationType];

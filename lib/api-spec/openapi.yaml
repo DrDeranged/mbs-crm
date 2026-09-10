@@ -199,6 +199,25 @@ paths:
                 items:
                   $ref: "#/components/schemas/User"
 
+  /public/reps/{slug}:
+    get:
+      operationId: getPublicRep
+      tags: [users]
+      summary: Resolve an active representative for the public application chooser
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Representative details or a generic fallback payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicRep"
+
   /users/{id}:
     put:
       operationId: updateUser
@@ -2997,7 +3016,7 @@ components:
 
     User:
       type: object
-      required: [id, clerkId, email, role, createdAt]
+      required: [id, clerkId, email, slug, role, createdAt]
       properties:
         id:
           type: integer
@@ -3007,6 +3026,8 @@ components:
           type: ["string", "null"]
         email:
           type: string
+        slug:
+          type: ["string", "null"]
         role:
           type: string
           enum: [admin, manager, rep, pending]
@@ -3026,6 +3047,22 @@ components:
           enum: [admin, manager, rep, pending]
         isActive:
           type: boolean
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+
+    PublicRep:
+      type: object
+      required: [name, phone, slug]
+      properties:
+        name:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        slug:
+          type: ["string", "null"]
 
     Lead:
       type: object

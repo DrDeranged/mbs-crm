@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldAlert, Phone, Building2, Globe } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import QRCode from "qrcode";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -23,6 +24,8 @@ export default function Settings() {
 
   const [mobileInput, setMobileInput] = useState<string>("");
   const [mobileEditing, setMobileEditing] = useState(false);
+  const [editingSlug, setEditingSlug] = useState<number | null>(null);
+  const [slugInput, setSlugInput] = useState("");
 
   const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -79,6 +82,28 @@ export default function Settings() {
       onError: () => {
         toast({ title: "Error", description: "Failed to update user role.", variant: "destructive" });
       }
+    });
+  };
+
+  const downloadQr = async (slug: string, format: "png" | "svg") => {
+    const url = `https://app.my-business-solutions.com/r/${slug}`;
+    const options = { width: 1000, margin: 4, color: { dark: "#0E2A47", light: "#FFFFFF" } };
+    if (format === "png") {
+      const dataUrl = await QRCode.toDataURL(url, options);
+      const a = document.createElement("a"); a.href = dataUrl; a.download = `${slug}-qr.png`; a.click();
+    } else {
+      const svg = await QRCode.toString(url, { ...options, type: "svg" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      a.download = `${slug}-qr.svg`; a.click(); URL.revokeObjectURL(a.href);
+    }
+  };
+
+  const saveSlug = (userId: number) => {
+    const slug = slugInput.trim().toLowerCase();
+    updateUser.mutate({ id: userId, data: { slug } }, {
+      onSuccess: () => { setEditingSlug(null); queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() }); toast({ title: "Rep link updated" }); },
+      onError: (error: any) => toast({ title: "Unable to update link", description: error?.message || "This link may already be in use or locked.", variant: "destructive" }),
     });
   };
 
@@ -140,6 +165,14 @@ export default function Settings() {
                   <div className="text-sm font-medium text-muted-foreground mb-1">Member Since</div>
                   <div className="font-medium">{format(new Date(me.createdAt), 'MMM d, yyyy')}</div>
                 </div>
+                {me.slug && (
+                  <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Your application link:</span>
+                    <span className="font-mono text-sm">/r/{me.slug}</span>
+                    <Button size="sm" variant="outline" onClick={() => downloadQr(me.slug!, "png")}>Download QR PNG</Button>
+                    <Button size="sm" variant="outline" onClick={() => downloadQr(me.slug!, "svg")}>Download QR SVG</Button>
+                  </div>
+                )}
               </div>
             ) : null}
           </CardContent>
@@ -279,6 +312,7 @@ export default function Settings() {
                     <TableRow>
                       <TableHead>User</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Rep link</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead>Role</TableHead>
                     </TableRow>
@@ -297,6 +331,21 @@ export default function Settings() {
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.name || "User"}</TableCell>
                         <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          {editingSlug === user.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input className="h-8 w-32 font-mono text-xs" value={slugInput} onChange={(e) => setSlugInput(e.target.value.toLowerCase())} />
+                              <Button size="sm" className="h-8" onClick={() => saveSlug(user.id)} disabled={updateUser.isPending}>Save</Button>
+                              <Button size="sm" variant="ghost" className="h-8" onClick={() => setEditingSlug(null)}>Cancel</Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs text-muted-foreground">{user.slug ? `/r/${user.slug}` : "—"}</span>
+                              {!user.slug && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setEditingSlug(user.id); setSlugInput(""); }}>Set slug</Button>}
+                              {user.slug && <><Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => downloadQr(user.slug!, "png")}>PNG</Button><Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => downloadQr(user.slug!, "svg")}>SVG</Button><Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingSlug(user.id); setSlugInput(user.slug!); }}>Edit</Button></>}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
                         <TableCell>
                           <Select

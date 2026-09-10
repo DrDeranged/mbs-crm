@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import SignaturePad from "react-signature-canvas";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,9 @@ function formatSsnTyping(digits: string): string {
 }
 
 interface FormData {
+  rep: string;
+  estimatedTermMonths: string;
+  paymentFrequency: string;
   type: "working_capital" | "equipment" | "";
   businessName: string;
   dba: string;
@@ -104,6 +107,9 @@ interface FormData {
 }
 
 const emptyForm = (): FormData => ({
+  rep: "",
+  estimatedTermMonths: "",
+  paymentFrequency: "",
   type: "",
   businessName: "", dba: "", ein: "",
   businessAddress: "", businessCity: "", businessState: "", businessZip: "",
@@ -211,6 +217,25 @@ export default function ApplyPage() {
   const sigPadRef = useRef<SignaturePad>(null);
   const [signatureMode, setSignatureMode] = useState<"draw" | "type">("draw");
   const [typedName, setTypedName] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    const amount = params.get("amount");
+    const term = params.get("term");
+    const freq = params.get("freq");
+    const rep = params.get("rep");
+    const validType = type === "equipment" || type === "working_capital" ? type : "";
+    const sane = (v: string | null, max: number) => v && /^\d+(?:\.\d+)?$/.test(v) && Number(v) > 0 && Number(v) <= max ? v : "";
+    setForm((f) => ({
+      ...f,
+      type: validType || f.type,
+      rep: rep && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rep) ? rep : f.rep,
+      requestedAmount: sane(amount, 10_000_000) || f.requestedAmount,
+      estimatedTermMonths: sane(term, 360) || f.estimatedTermMonths,
+      paymentFrequency: ["daily", "weekly", "monthly"].includes(freq || "") ? freq || f.paymentFrequency : f.paymentFrequency,
+    }));
+  }, []);
 
   const set = (patch: Partial<FormData>) => setForm((f) => ({ ...f, ...patch }));
 

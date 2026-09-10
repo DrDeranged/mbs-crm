@@ -119,6 +119,7 @@ import type {
   PreviewEmailTemplate200,
   PreviewEmailTemplateBody,
   PreviewImportBody,
+  PublicRep,
   PullCreditReportBody,
   RecalculateLeadScore200,
   RenewalOpportunity,
@@ -770,6 +771,83 @@ export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListUsersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPublicRepUrl = (slug: string,) => {
+
+
+
+
+  return `/api/public/reps/${slug}`
+}
+
+/**
+ * @summary Resolve an active representative for the public application chooser
+ */
+export const getPublicRep = async (slug: string, options?: RequestInit): Promise<PublicRep> => {
+
+  return customFetch<PublicRep>(getGetPublicRepUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicRepQueryKey = (slug: string,) => {
+    return [
+    `/api/public/reps/${slug}`
+    ] as const;
+    }
+
+
+export const getGetPublicRepQueryOptions = <TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<unknown>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicRepQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicRep>>> = ({ signal }) => getPublicRep(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(slug), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicRepQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicRep>>>
+export type GetPublicRepQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Resolve an active representative for the public application chooser
+ */
+
+export function useGetPublicRep<TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<unknown>>(
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicRepQueryOptions(slug,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
