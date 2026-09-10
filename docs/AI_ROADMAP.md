@@ -76,3 +76,23 @@ analyst-facing review and export surface.
 
 **Rough effort:** 2–3 weeks, including metric definitions, aggregate analysis,
 gap detection, review workflow, and scheduled report generation.
+
+## 6. Data Enrichment & Prospecting Integration
+
+**What it does:** Enriches leads on demand with third-party B2B data — verified
+direct dials, revenue estimates, employee counts, and firmographics — and
+enables prospect list building by industry and geography. It is implemented as
+enrich-on-demand through an admin-controlled button on the lead, not automatic
+bulk enrichment, keeping data-credit consumption deliberate. A
+provider-agnostic adapter design allows the vendor (an entry tier around
+$50–100/month such as Apollo, or ZoomInfo as the premium option) to be selected
+or swapped without rework.
+
+**What it needs:** A provider account and API key, with a business decision on
+tier. Premium providers are a five-figure annual commitment better justified by
+observed data gaps and deal volume. A defined TCPA/CAN-SPAM outreach policy must
+precede any enriched cold outreach; obligations apply to purchased contact data
+and exposure scales with SMS/email volume.
+
+**Rough effort:** 2–3 days for the adapter, on-demand flow, and field mapping;
+1–2 days per additional provider.
