@@ -9,6 +9,17 @@ type RequireUserOptions = {
   allowPending?: boolean;
 };
 
+const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
+  "calvintuon@gmail.com": "calvin",
+  "calvin@my-business-solutions.com": "calvin",
+  "rahmaredavis@gmail.com": "rahmare",
+  "rahmare@my-business-solutions.com": "rahmare",
+};
+
+function reservedSlugForEmail(email: string): string | undefined {
+  return RESERVED_REP_SLUGS[email.trim().toLowerCase()];
+}
+
 export async function requireUser(
   req: Request,
   res: Response,
@@ -27,17 +38,25 @@ export async function requireUser(
       const clerkUser = await clerkClient.users.getUser(clerkId);
       const email = clerkUser.emailAddresses[0]?.emailAddress ?? "";
       const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null;
+      const reservedSlug = reservedSlugForEmail(email);
 
       const existing = await db.query.usersTable.findFirst({ where: eq(usersTable.email, email) });
       if (existing) {
-        user = existing;
-        await db.update(usersTable).set({ clerkId }).where(eq(usersTable.id, existing.id));
+        const [linked] = await db.update(usersTable)
+          .set({
+            clerkId,
+            ...(reservedSlug && !existing.slug ? { slug: reservedSlug } : {}),
+          })
+          .where(eq(usersTable.id, existing.id))
+          .returning();
+        user = linked;
       } else {
         const [created] = await db.insert(usersTable).values({
           clerkId,
           email,
           name,
           role: "pending",
+          slug: reservedSlug,
         }).returning();
         user = created;
       }

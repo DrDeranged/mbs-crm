@@ -62,6 +62,45 @@ const REQUESTED_AMOUNTS = [
   { label: "$500,000+", value: "500000" },
 ];
 
+const TERM_OPTIONS = [3, 6, 9, 12, 18, 24, 36, 48, 60, 72, 84].map((months) => ({
+  label: `${months} months`,
+  value: String(months),
+}));
+
+const PAYMENT_FREQUENCIES = [
+  { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Biweekly", value: "biweekly" },
+  { label: "Monthly", value: "monthly" },
+];
+
+function saneNumber(value: string | null, max: number): number | null {
+  if (!value || !/^\d+(?:\.\d+)?$/.test(value)) return null;
+  const parsed = Number(value);
+  return parsed > 0 && parsed <= max ? parsed : null;
+}
+
+function requestedAmountBand(value: string | null): string {
+  const amount = saneNumber(value, 10_000_000);
+  if (amount === null) return "";
+  if (amount <= 15_000) return "10000";
+  if (amount <= 50_000) return "32500";
+  if (amount <= 100_000) return "75000";
+  if (amount <= 250_000) return "175000";
+  if (amount <= 500_000) return "375000";
+  return "500000";
+}
+
+function nearestTerm(value: string | null): string {
+  const term = saneNumber(value, 360);
+  if (term === null) return "";
+  return TERM_OPTIONS.reduce((nearest, option) => (
+    Math.abs(Number(option.value) - term) < Math.abs(Number(nearest.value) - term)
+      ? option
+      : nearest
+  )).value;
+}
+
 // Mask SSN input so it shows dots for first 5 digits
 /** Format partial SSN digits as user types (plain digits until complete). */
 function formatSsnTyping(digits: string): string {
@@ -226,14 +265,16 @@ export default function ApplyPage() {
     const freq = params.get("freq");
     const rep = params.get("rep");
     const validType = type === "equipment" || type === "working_capital" ? type : "";
-    const sane = (v: string | null, max: number) => v && /^\d+(?:\.\d+)?$/.test(v) && Number(v) > 0 && Number(v) <= max ? v : "";
+    const amountBand = requestedAmountBand(amount);
+    const snappedTerm = nearestTerm(term);
+    const validFrequency = PAYMENT_FREQUENCIES.some((option) => option.value === freq) ? freq ?? "" : "";
     setForm((f) => ({
       ...f,
       type: validType || f.type,
       rep: rep && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rep) ? rep : f.rep,
-      requestedAmount: sane(amount, 10_000_000) || f.requestedAmount,
-      estimatedTermMonths: sane(term, 360) || f.estimatedTermMonths,
-      paymentFrequency: ["daily", "weekly", "monthly"].includes(freq || "") ? freq || f.paymentFrequency : f.paymentFrequency,
+      requestedAmount: amountBand || f.requestedAmount,
+      estimatedTermMonths: snappedTerm || f.estimatedTermMonths,
+      paymentFrequency: validFrequency || f.paymentFrequency,
     }));
   }, []);
 
@@ -460,6 +501,20 @@ export default function ApplyPage() {
                     <Select value={form.requestedAmount} onValueChange={(v) => set({ requestedAmount: v })}>
                       <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                       <SelectContent>{REQUESTED_AMOUNTS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Estimated Term</Label>
+                    <Select value={form.estimatedTermMonths} onValueChange={(v) => set({ estimatedTermMonths: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>{TERM_OPTIONS.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Payment Frequency</Label>
+                    <Select value={form.paymentFrequency} onValueChange={(v) => set({ paymentFrequency: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>{PAYMENT_FREQUENCIES.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="sm:col-span-2 space-y-1">
