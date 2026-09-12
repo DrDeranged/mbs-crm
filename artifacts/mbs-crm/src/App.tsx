@@ -14,6 +14,9 @@ import { getGetMeQueryKey, useGetMe, UserRole } from "@workspace/api-client-reac
 // Lazy-loaded pages — each becomes a separate chunk, downloaded only when first visited
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const Leads = lazy(() => import("@/pages/leads"));
+const Deals = lazy(() => import("@/pages/deals"));
+const NewDeal = lazy(() => import("@/pages/new-deal"));
+const DealDetail = lazy(() => import("@/pages/deal-detail"));
 const LeadDetail = lazy(() => import("@/pages/lead-detail"));
 const NewLead = lazy(() => import("@/pages/new-lead"));
 const Settings = lazy(() => import("@/pages/settings"));
@@ -293,6 +296,15 @@ function AppRoutes() {
             </Route>
             <Route path="/leads">
               <ProtectedRoute component={Leads} />
+            </Route>
+            <Route path="/deals/new">
+              <ProtectedRoute component={NewDeal} />
+            </Route>
+            <Route path="/deals/:id">
+              <ProtectedRoute component={DealDetail} />
+            </Route>
+            <Route path="/deals">
+              <ProtectedRoute component={Deals} />
             </Route>
             <Route path="/settings">
               <ProtectedRoute component={Settings} />

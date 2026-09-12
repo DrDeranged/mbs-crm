@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 export async function logActivity(params: {
   userId: number | null;
   leadId?: number | null;
+  dealId?: number | null;
   action: string;
   entityType: string;
   entityId: string | number;
@@ -13,6 +14,7 @@ export async function logActivity(params: {
   await db.insert(activityLogTable).values({
     userId: params.userId,
     leadId: params.leadId ?? null,
+    dealId: params.dealId ?? null,
     action: params.action,
     entityType: params.entityType,
     entityId: String(params.entityId),

@@ -17,6 +17,7 @@ import {
   GitBranch,
   Search,
   Activity,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -40,6 +41,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
+    { href: "/deals", label: "Deals", icon: Briefcase },
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {

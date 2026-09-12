@@ -51,6 +51,14 @@ import type {
   CreditComplianceLogResponse,
   CreditPullResult,
   DashboardSummary,
+  Deal,
+  DealActivity,
+  DealDetail,
+  DealInput,
+  DealListResponse,
+  DealSeedResponse,
+  DealUpdate,
+  DealsAnalytics,
   DeepHealthResponse,
   Document,
   DownloadUrlResponse,
@@ -87,6 +95,7 @@ import type {
   GetAnalyticsSummaryParams,
   GetCommunicationMetricsParams,
   GetCreditComplianceLogParams,
+  GetDealsAnalyticsParams,
   GetLeadBriefing200,
   GetUnreadNotificationCount200,
   HealthStatus,
@@ -96,6 +105,7 @@ import type {
   Lead,
   LeadCaptureInput,
   LeadCaptureResponse,
+  LeadDealConversion,
   LeadDetail,
   LeadInput,
   LeadListResponse,
@@ -104,6 +114,7 @@ import type {
   LenderInput,
   LenderMatch,
   LenderSubmission,
+  ListDealsParams,
   ListEmailTemplatesParams,
   ListFlyerTemplatesParams,
   ListLeadsParams,
@@ -3374,6 +3385,753 @@ export function useGetMyTasks<TData = Awaited<ReturnType<typeof getMyTasks>>, TE
 
 
 
+
+export const getListDealsUrl = (params?: ListDealsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/deals?${stringifiedParams}` : `/api/deals`
+}
+
+/**
+ * @summary List deals visible to the current user
+ */
+export const listDeals = async (params?: ListDealsParams, options?: RequestInit): Promise<DealListResponse> => {
+
+  return customFetch<DealListResponse>(getListDealsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDealsQueryKey = (params?: ListDealsParams,) => {
+    return [
+    `/api/deals`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDealsQueryOptions = <TData = Awaited<ReturnType<typeof listDeals>>, TError = ErrorType<unknown>>(params?: ListDealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDealsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDeals>>> = ({ signal }) => listDeals(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDeals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDealsQueryResult = NonNullable<Awaited<ReturnType<typeof listDeals>>>
+export type ListDealsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List deals visible to the current user
+ */
+
+export function useListDeals<TData = Awaited<ReturnType<typeof listDeals>>, TError = ErrorType<unknown>>(
+ params?: ListDealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDealsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateDealUrl = () => {
+
+
+
+
+  return `/api/deals`
+}
+
+/**
+ * @summary Create a deal
+ */
+export const createDeal = async (dealInput: DealInput, options?: RequestInit): Promise<Deal> => {
+
+  return customFetch<Deal>(getCreateDealUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dealInput,)
+  }
+);}
+
+
+
+
+export const getCreateDealMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeal>>, TError,{data: BodyType<DealInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDeal>>, TError,{data: BodyType<DealInput>}, TContext> => {
+
+const mutationKey = ['createDeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDeal>>, {data: BodyType<DealInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDeal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDealMutationResult = NonNullable<Awaited<ReturnType<typeof createDeal>>>
+    export type CreateDealMutationBody = BodyType<DealInput>
+    export type CreateDealMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a deal
+ */
+export const useCreateDeal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeal>>, TError,{data: BodyType<DealInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDeal>>,
+        TError,
+        {data: BodyType<DealInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDealMutationOptions(options));
+    }
+
+export const getGetDealUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}`
+}
+
+/**
+ * @summary Get deal detail, lead, and timeline
+ */
+export const getDeal = async (id: number, options?: RequestInit): Promise<DealDetail> => {
+
+  return customFetch<DealDetail>(getGetDealUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDealQueryKey = (id: number,) => {
+    return [
+    `/api/deals/${id}`
+    ] as const;
+    }
+
+
+export const getGetDealQueryOptions = <TData = Awaited<ReturnType<typeof getDeal>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDealQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeal>>> = ({ signal }) => getDeal(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDealQueryResult = NonNullable<Awaited<ReturnType<typeof getDeal>>>
+export type GetDealQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get deal detail, lead, and timeline
+ */
+
+export function useGetDeal<TData = Awaited<ReturnType<typeof getDeal>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDealQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateDealUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}`
+}
+
+/**
+ * @summary Update editable deal fields or stage
+ */
+export const updateDeal = async (id: number,
+    dealUpdate: DealUpdate, options?: RequestInit): Promise<Deal> => {
+
+  return customFetch<Deal>(getUpdateDealUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dealUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateDealMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDeal>>, TError,{id: number;data: BodyType<DealUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDeal>>, TError,{id: number;data: BodyType<DealUpdate>}, TContext> => {
+
+const mutationKey = ['updateDeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDeal>>, {id: number;data: BodyType<DealUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDeal(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDealMutationResult = NonNullable<Awaited<ReturnType<typeof updateDeal>>>
+    export type UpdateDealMutationBody = BodyType<DealUpdate>
+    export type UpdateDealMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update editable deal fields or stage
+ */
+export const useUpdateDeal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDeal>>, TError,{id: number;data: BodyType<DealUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDeal>>,
+        TError,
+        {id: number;data: BodyType<DealUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateDealMutationOptions(options));
+    }
+
+export const getDeleteDealUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}`
+}
+
+/**
+ * @summary Permanently delete a deal (admin only; conversion cleanup)
+ */
+export const deleteDeal = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteDealUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDealMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDeal>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDeal>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDeal>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDeal(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDealMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDeal>>>
+
+    export type DeleteDealMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Permanently delete a deal (admin only; conversion cleanup)
+ */
+export const useDeleteDeal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDeal>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDeal>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDealMutationOptions(options));
+    }
+
+export const getArchiveDealUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/archive`
+}
+
+/**
+ * @summary Archive a deal
+ */
+export const archiveDeal = async (id: number, options?: RequestInit): Promise<Deal> => {
+
+  return customFetch<Deal>(getArchiveDealUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getArchiveDealMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveDeal>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveDeal>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['archiveDeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveDeal>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  archiveDeal(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveDealMutationResult = NonNullable<Awaited<ReturnType<typeof archiveDeal>>>
+
+    export type ArchiveDealMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Archive a deal
+ */
+export const useArchiveDeal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveDeal>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof archiveDeal>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getArchiveDealMutationOptions(options));
+    }
+
+export const getListDealActivityUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/activity`
+}
+
+/**
+ * @summary List deal activity and stage history with users
+ */
+export const listDealActivity = async (id: number, options?: RequestInit): Promise<DealActivity[]> => {
+
+  return customFetch<DealActivity[]>(getListDealActivityUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDealActivityQueryKey = (id: number,) => {
+    return [
+    `/api/deals/${id}/activity`
+    ] as const;
+    }
+
+
+export const getListDealActivityQueryOptions = <TData = Awaited<ReturnType<typeof listDealActivity>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDealActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDealActivityQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDealActivity>>> = ({ signal }) => listDealActivity(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDealActivity>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDealActivityQueryResult = NonNullable<Awaited<ReturnType<typeof listDealActivity>>>
+export type ListDealActivityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List deal activity and stage history with users
+ */
+
+export function useListDealActivity<TData = Awaited<ReturnType<typeof listDealActivity>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDealActivity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDealActivityQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getConvertLeadToDealUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/convert-to-deal`
+}
+
+/**
+ * @summary Convert a lead into a linked deal without changing lead status
+ */
+export const convertLeadToDeal = async (id: number,
+    leadDealConversion?: LeadDealConversion, options?: RequestInit): Promise<Deal> => {
+
+  return customFetch<Deal>(getConvertLeadToDealUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      leadDealConversion,)
+  }
+);}
+
+
+
+
+export const getConvertLeadToDealMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof convertLeadToDeal>>, TError,{id: number;data?: BodyType<LeadDealConversion>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof convertLeadToDeal>>, TError,{id: number;data?: BodyType<LeadDealConversion>}, TContext> => {
+
+const mutationKey = ['convertLeadToDeal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof convertLeadToDeal>>, {id: number;data?: BodyType<LeadDealConversion>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  convertLeadToDeal(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConvertLeadToDealMutationResult = NonNullable<Awaited<ReturnType<typeof convertLeadToDeal>>>
+    export type ConvertLeadToDealMutationBody = BodyType<LeadDealConversion> | undefined
+    export type ConvertLeadToDealMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Convert a lead into a linked deal without changing lead status
+ */
+export const useConvertLeadToDeal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof convertLeadToDeal>>, TError,{id: number;data?: BodyType<LeadDealConversion>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof convertLeadToDeal>>,
+        TError,
+        {id: number;data?: BodyType<LeadDealConversion>},
+        TContext
+      > => {
+      return useMutation(getConvertLeadToDealMutationOptions(options));
+    }
+
+export const getGetDealsAnalyticsUrl = (params?: GetDealsAnalyticsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/deals/analytics?${stringifiedParams}` : `/api/deals/analytics`
+}
+
+/**
+ * @summary Deal pipeline analytics dashboard
+ */
+export const getDealsAnalytics = async (params?: GetDealsAnalyticsParams, options?: RequestInit): Promise<DealsAnalytics> => {
+
+  return customFetch<DealsAnalytics>(getGetDealsAnalyticsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDealsAnalyticsQueryKey = (params?: GetDealsAnalyticsParams,) => {
+    return [
+    `/api/deals/analytics`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDealsAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getDealsAnalytics>>, TError = ErrorType<unknown>>(params?: GetDealsAnalyticsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealsAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDealsAnalyticsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDealsAnalytics>>> = ({ signal }) => getDealsAnalytics(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDealsAnalytics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDealsAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getDealsAnalytics>>>
+export type GetDealsAnalyticsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deal pipeline analytics dashboard
+ */
+
+export function useGetDealsAnalytics<TData = Awaited<ReturnType<typeof getDealsAnalytics>>, TError = ErrorType<unknown>>(
+ params?: GetDealsAnalyticsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealsAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDealsAnalyticsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSeedDealsUrl = () => {
+
+
+
+
+  return `/api/admin/deals/seed`
+}
+
+/**
+ * @summary Idempotently seed the real deal pipeline (admin only)
+ */
+export const seedDeals = async ( options?: RequestInit): Promise<DealSeedResponse> => {
+
+  return customFetch<DealSeedResponse>(getSeedDealsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSeedDealsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedDeals>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof seedDeals>>, TError,void, TContext> => {
+
+const mutationKey = ['seedDeals'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof seedDeals>>, void> = () => {
+
+
+          return  seedDeals(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeedDealsMutationResult = NonNullable<Awaited<ReturnType<typeof seedDeals>>>
+
+    export type SeedDealsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Idempotently seed the real deal pipeline (admin only)
+ */
+export const useSeedDeals = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedDeals>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof seedDeals>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSeedDealsMutationOptions(options));
+    }
 
 export const getGetAnalyticsSummaryUrl = (params?: GetAnalyticsSummaryParams,) => {
   const normalizedParams = new URLSearchParams();

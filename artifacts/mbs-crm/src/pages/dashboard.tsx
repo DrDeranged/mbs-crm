@@ -9,6 +9,7 @@ import {
   useGetAnalyticsCommunications,
   useGetAnalyticsRenewals, getGetAnalyticsRenewalsQueryKey,
   useGeneratePipelineDigest,
+  useGetDealsAnalytics, getGetDealsAnalyticsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +22,7 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity,
-  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks,
+  Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks, Briefcase, BarChart2
 } from "lucide-react";
 import { Link } from "wouter";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
@@ -263,6 +264,9 @@ export default function Dashboard() {
     ...(effectiveRepId != null ? { rep_id: effectiveRepId } : {}),
   };
 
+
+  const { data: dealsAnalytics, isLoading: loadingDealsAnalytics } = useGetDealsAnalytics(queryParams);
+
   const { data: summary, isLoading: loadingSummary } = useGetAnalyticsSummary(queryParams);
   const { data: pipeline, isLoading: loadingPipeline } = useGetAnalyticsPipeline(queryParams);
   const { data: sources, isLoading: loadingSources } = useGetAnalyticsSources(queryParams);
@@ -446,6 +450,102 @@ export default function Dashboard() {
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
+      </div>
+
+
+      {/* Deals KPIs */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-[#0E2A47] mb-3 flex items-center gap-2">
+          <Briefcase className="h-5 w-5 text-muted-foreground" /> Deals Performance
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+          <KpiCard
+            label="Funded GM"
+            value={formatCurrency(dealsAnalytics?.fundedGm ?? 0)}
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            loading={loadingDealsAnalytics}
+          />
+          <KpiCard
+            label="Awaiting GM"
+            value={formatCurrency(dealsAnalytics?.awaitingGm ?? 0)}
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            loading={loadingDealsAnalytics}
+          />
+          <KpiCard
+            label="Pipeline Value"
+            value={formatCurrency(dealsAnalytics?.pipelineValue ?? 0)}
+            icon={<BarChart2 className="h-4 w-4 text-muted-foreground" />}
+            loading={loadingDealsAnalytics}
+          />
+          <KpiCard
+            label="Avg Funding Time"
+            value={dealsAnalytics?.avgFundingTimeDays != null ? `${dealsAnalytics.avgFundingTimeDays}d` : "—"}
+            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+            loading={loadingDealsAnalytics}
+          />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deals by Stage</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingDealsAnalytics ? (
+                <Skeleton className="h-24 w-full" />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(dealsAnalytics?.stageCounts || {}).map(([stage, count]) => (
+                    <div key={stage} className="flex flex-col border rounded p-2 bg-gray-50 flex-1 min-w-[100px]">
+                      <span className="text-[10px] uppercase text-muted-foreground truncate">{formatStage(stage)}</span>
+                      <span className="text-lg font-bold text-gray-800">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rep Deal Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingDealsAnalytics ? (
+                <Skeleton className="h-24 w-full" />
+              ) : dealsAnalytics?.reps?.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-4">No rep data</div>
+              ) : (
+                <div className="space-y-3 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+                  {dealsAnalytics?.reps.map(rep => (
+                    <div key={rep.repId} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {rep.repName.charAt(0) || "U"}
+                        </div>
+                        <span className="text-sm font-medium truncate">{rep.repName}</span>
+                      </div>
+                      <div className="flex gap-4 text-right shrink-0">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase">Active</p>
+                          <p className="text-sm font-semibold">{rep.activeDeals}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase">Funded</p>
+                          <p className="text-sm font-semibold">{rep.fundedCount}</p>
+                        </div>
+                        <div className="w-20">
+                          <p className="text-[10px] text-muted-foreground uppercase">GM</p>
+                          <p className="text-sm font-semibold text-emerald-600">{formatCurrency(rep.fundedGm)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Pipeline Funnel */}

@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { leadsTable } from "./leads";
+import { dealsTable } from "./deals";
 import { usersTable } from "./users";
 import { notificationsTable } from "./notifications";
 import { companiesTable } from "./companies";
@@ -34,6 +35,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   documents: many(documentsTable),
   statusHistory: many(leadStatusHistoryTable),
   activityLog: many(activityLogTable),
+  deals: many(dealsTable),
   communications: many(communicationsTable),
   emailSends: many(emailSendsTable),
   dripEnrollments: many(dripEnrollmentsTable),
@@ -42,6 +44,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
   leads: many(leadsTable),
+  deals: many(dealsTable),
   notes: many(notesTable),
   tasks: many(tasksTable),
   documents: many(documentsTable),
@@ -112,6 +115,22 @@ export const activityLogRelations = relations(activityLogTable, ({ one }) => ({
     fields: [activityLogTable.userId],
     references: [usersTable.id],
   }),
+  deal: one(dealsTable, {
+    fields: [activityLogTable.dealId],
+    references: [dealsTable.id],
+  }),
+}));
+
+export const dealsRelations = relations(dealsTable, ({ one, many }) => ({
+  lead: one(leadsTable, {
+    fields: [dealsTable.leadId],
+    references: [leadsTable.id],
+  }),
+  assignedUser: one(usersTable, {
+    fields: [dealsTable.assignedTo],
+    references: [usersTable.id],
+  }),
+  activityLog: many(activityLogTable),
 }));
 
 export const communicationsRelations = relations(communicationsTable, ({ one }) => ({

@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,6 +26,7 @@ import {
   useGetLeadCredit, useCaptureCreditConsent, usePullCreditReport,
   useRecalculateLeadScore,
   useGenerateLeadBriefing, useGenerateNextBestAction, useGenerateAiDraft, AiDraftRequestChannel,
+  useConvertLeadToDeal, useListDeals, getListDealsQueryKey
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +38,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, Building2, User, Phone, Mail, FileText, CheckSquare, Clock, Download, UploadCloud, Plus, Calendar as CalendarIcon, File as FileIcon, MessageSquare, PhoneCall, PhoneIncoming, PhoneOutgoing, ArrowUpRight, ArrowDownLeft, MailCheck, Zap, MailOpen, Star, RefreshCw, Send, CheckCircle2, XCircle, Megaphone, FileDown, Loader2, ClipboardList, BarChart3, TrendingUp, ShieldCheck, Copy, Sparkles, AlertTriangle, ListChecks } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
@@ -355,6 +356,8 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
           </div>
         </CardContent>
       </Card>
+
+      <LeadDeals lead={lead} leadId={leadId} />
     </div>
   );
 }
@@ -2522,6 +2525,112 @@ function LeadConsent({ leadId }: { leadId: number }) {
   );
 }
 
+
+
+function ConvertToDealDialog({ lead }: { lead: any }) {
+  const [open, setOpen] = useState(false);
+  const convert = useConvertLeadToDeal();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const [formData, setFormData] = useState({
+    dealName: `${lead.firstName || ''} ${lead.lastName || ''} - ${lead.companyName || 'Deal'}`.trim(),
+    amount: lead.requestedAmount ? String(lead.requestedAmount) : "",
+    approxGm: ""
+  });
+
+  const handleConvert = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.dealName) return void toast({ title: "Deal name required", variant: "destructive" });
+
+    convert.mutate({
+      id: lead.id,
+      data: {
+        dealName: formData.dealName,
+        amount: formData.amount ? Number(formData.amount) : undefined,
+        approxGm: formData.approxGm ? Number(formData.approxGm) : undefined,
+      }
+    }, {
+      onSuccess: (deal) => {
+        toast({ title: "Deal created!" });
+        setOpen(false);
+        queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(lead.id) });
+        queryClient.invalidateQueries({ queryKey: getListDealsQueryKey() }); // or window.location
+        setLocation(`/deals/${deal.id}`);
+      },
+      onError: () => toast({ title: "Failed to convert", variant: "destructive" })
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" className="shadow-sm">Convert to Deal</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Convert to Deal</DialogTitle>
+          <DialogDescription>
+            This will create a Deal linked to {lead.firstName} {lead.lastName} and keep the Lead intact.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleConvert} className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label>Deal Name</Label>
+            <Input value={formData.dealName} onChange={e => setFormData(f => ({...f, dealName: e.target.value}))} autoFocus />
+          </div>
+          <div className="space-y-2">
+            <Label>Deal Amount</Label>
+            <Input type="number" value={formData.amount} onChange={e => setFormData(f => ({...f, amount: e.target.value}))} placeholder="0.00" />
+          </div>
+          <div className="space-y-2">
+            <Label>Expected GM</Label>
+            <Input type="number" value={formData.approxGm} onChange={e => setFormData(f => ({...f, approxGm: e.target.value}))} placeholder="0.00" />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={convert.isPending}>{convert.isPending ? "Creating..." : "Create Deal"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LeadDeals({ lead, leadId }: { lead: any; leadId: number }) {
+  const { data: response, isLoading } = useListDeals({ lead_id: leadId });
+  const deals = response?.deals || [];
+
+  return (
+    <Card className="shadow-sm mt-6">
+      <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
+        <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Related Deals</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4 space-y-3">
+        {isLoading ? (
+          <Skeleton className="h-12 w-full" />
+        ) : deals.length === 0 ? (
+          <div className="text-center text-sm text-muted-foreground py-4">No deals linked to this lead.</div>
+        ) : (
+          deals.map(deal => (
+            <Link key={deal.id} href={`/deals/${deal.id}`} className="block border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-[#0E2A47]">{deal.dealName}</span>
+                <span className="text-sm text-[#149258] font-semibold">{deal.amount ? `${deal.amount.toLocaleString()}` : "—"}</span>
+              </div>
+              <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0">{deal.stage.replace(/_/g, ' ')}</Badge>
+                <span>Created {new Date(deal.createdAt).toLocaleDateString()}</span>
+              </div>
+            </Link>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function LeadDetail() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
@@ -2632,6 +2741,7 @@ export default function LeadDetail() {
                 <SelectItem value="follow_up">Follow Up</SelectItem>
               </SelectContent>
             </Select>
+            <ConvertToDealDialog lead={lead} />
             <EditLeadDialog lead={lead} />
           </div>
         </div>

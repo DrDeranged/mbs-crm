@@ -21,6 +21,7 @@ import {
   Settings,
   Plus,
   Upload,
+  Briefcase,
 } from "lucide-react";
 import { useGetMe } from "@workspace/api-client-react";
 
@@ -74,6 +75,10 @@ export function CommandPalette() {
           <CommandItem onSelect={() => go("/leads")}>
             <Users />
             Leads
+          </CommandItem>
+          <CommandItem onSelect={() => go("/deals")}>
+            <Briefcase />
+            Deals
           </CommandItem>
           {isManagerOrAdmin && (
             <>

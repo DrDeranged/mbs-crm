@@ -1137,6 +1137,215 @@ paths:
               schema:
                 $ref: "#/components/schemas/MyTasksSummary"
 
+  /deals:
+    get:
+      operationId: listDeals
+      tags: [deals]
+      summary: List deals visible to the current user
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: rep_id
+          in: query
+          schema: { type: integer }
+        - name: lead_id
+          in: query
+          schema: { type: integer }
+        - name: start_date
+          in: query
+          schema: { type: string, format: date }
+        - name: end_date
+          in: query
+          schema: { type: string, format: date }
+        - name: include_archived
+          in: query
+          schema: { type: boolean, default: false }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+      responses:
+        "200":
+          description: Paginated deals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealListResponse"
+    post:
+      operationId: createDeal
+      tags: [deals]
+      summary: Create a deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealInput"
+      responses:
+        "201":
+          description: Deal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}:
+    get:
+      operationId: getDeal
+      tags: [deals]
+      summary: Get deal detail, lead, and timeline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealDetail"
+    put:
+      operationId: updateDeal
+      tags: [deals]
+      summary: Update editable deal fields or stage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealUpdate"
+      responses:
+        "200":
+          description: Updated deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+    delete:
+      operationId: deleteDeal
+      tags: [deals]
+      summary: Permanently delete a deal (admin only; conversion cleanup)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deal deleted }
+
+  /deals/{id}/archive:
+    post:
+      operationId: archiveDeal
+      tags: [deals]
+      summary: Archive a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Archived deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/{id}/activity:
+    get:
+      operationId: listDealActivity
+      tags: [deals]
+      summary: List deal activity and stage history with users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deal timeline
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DealActivity"
+
+  /leads/{id}/convert-to-deal:
+    post:
+      operationId: convertLeadToDeal
+      tags: [deals]
+      summary: Convert a lead into a linked deal without changing lead status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadDealConversion"
+      responses:
+        "201":
+          description: Converted deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/analytics:
+    get:
+      operationId: getDealsAnalytics
+      tags: [deals]
+      summary: Deal pipeline analytics dashboard
+      parameters:
+        - name: start_date
+          in: query
+          schema: { type: string, format: date }
+        - name: end_date
+          in: query
+          schema: { type: string, format: date }
+        - name: rep_id
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deal analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealsAnalytics"
+
+  /admin/deals/seed:
+    post:
+      operationId: seedDeals
+      tags: [admin]
+      summary: Idempotently seed the real deal pipeline (admin only)
+      responses:
+        "200":
+          description: Seed result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealSeedResponse"
+
   /analytics/summary:
     get:
       operationId: getAnalyticsSummary
@@ -4710,6 +4919,139 @@ components:
         timestamp:
           type: string
           format: date-time
+
+    Deal:
+      type: object
+      required: [id, dealName, stage, createdAt, updatedAt, isArchived]
+      properties:
+        id: { type: integer }
+        leadId: { type: ["integer", "null"] }
+        dealName: { type: string }
+        stage:
+          type: string
+          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        amount: { type: ["integer", "null"] }
+        approxGm: { type: ["integer", "null"] }
+        actualGm: { type: ["integer", "null"] }
+        assignedTo: { type: ["integer", "null"] }
+        assignedUser:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        fundedAt: { type: ["string", "null"], format: date-time }
+        isArchived: { type: boolean }
+
+    DealInput:
+      type: object
+      required: [dealName]
+      properties:
+        leadId: { type: ["integer", "null"] }
+        dealName: { type: string, minLength: 1 }
+        stage:
+          type: string
+          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        amount: { type: ["integer", "null"] }
+        approxGm: { type: ["integer", "null"] }
+        actualGm: { type: ["integer", "null"] }
+        assignedTo: { type: ["integer", "null"] }
+
+    DealUpdate:
+      type: object
+      properties:
+        dealName: { type: string, minLength: 1 }
+        stage:
+          type: string
+          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        amount: { type: ["integer", "null"] }
+        approxGm: { type: ["integer", "null"] }
+        actualGm: { type: ["integer", "null"] }
+        assignedTo: { type: ["integer", "null"] }
+
+    DealListResponse:
+      type: object
+      required: [deals, total, page, limit, totalPages]
+      properties:
+        deals:
+          type: array
+          items: { $ref: "#/components/schemas/Deal" }
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+        totalPages: { type: integer }
+
+    DealActivity:
+      type: object
+      required: [id, action, entityType, entityId, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: ["integer", "null"] }
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        dealId: { type: ["integer", "null"] }
+        action: { type: string }
+        entityType: { type: string }
+        entityId: { type: string }
+        details: { type: ["object", "null"], additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+
+    DealDetail:
+      allOf:
+        - $ref: "#/components/schemas/Deal"
+        - type: object
+          properties:
+            lead: { type: ["object", "null"], additionalProperties: true }
+            activity:
+              type: array
+              items: { $ref: "#/components/schemas/DealActivity" }
+
+    LeadDealConversion:
+      type: object
+      properties:
+        dealName: { type: string, minLength: 1 }
+        stage:
+          type: string
+          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        amount: { type: ["integer", "null"] }
+        approxGm: { type: ["integer", "null"] }
+        actualGm: { type: ["integer", "null"] }
+        assignedTo: { type: ["integer", "null"] }
+
+    DealsAnalytics:
+      type: object
+      required: [fundedGm, awaitingGm, pipelineValue, avgFundingTimeDays, stageCounts, reps]
+      properties:
+        fundedGm: { type: integer }
+        awaitingGm: { type: integer }
+        pipelineValue: { type: integer }
+        avgFundingTimeDays: { type: ["number", "null"] }
+        stageCounts:
+          type: object
+          additionalProperties: { type: integer }
+        reps:
+          type: array
+          items:
+            type: object
+            required: [repId, repName, activeDeals, fundedCount, fundedGm]
+            properties:
+              repId: { type: integer }
+              repName: { type: string }
+              activeDeals: { type: integer }
+              fundedCount: { type: integer }
+              fundedGm: { type: integer }
+
+    DealSeedResponse:
+      type: object
+      required: [created, existing, activitiesAdded, primaryAdminId, assignedCalvinId]
+      properties:
+        created: { type: integer }
+        existing: { type: integer }
+        activitiesAdded: { type: integer }
+        primaryAdminId: { type: integer }
+        assignedCalvinId: { type: ["integer", "null"] }
 
     AdminErrorEntry:
       type: object

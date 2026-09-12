@@ -1346,6 +1346,204 @@ export interface DeepHealthResponse {
   timestamp?: string;
 }
 
+export type DealStage = typeof DealStage[keyof typeof DealStage];
+
+
+export const DealStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export interface Deal {
+  id: number;
+  /** @nullable */
+  leadId?: number | null;
+  dealName: string;
+  stage: DealStage;
+  /** @nullable */
+  amount?: number | null;
+  /** @nullable */
+  approxGm?: number | null;
+  /** @nullable */
+  actualGm?: number | null;
+  /** @nullable */
+  assignedTo?: number | null;
+  assignedUser?: User | null;
+  createdAt: string;
+  updatedAt: string;
+  /** @nullable */
+  fundedAt?: string | null;
+  isArchived: boolean;
+}
+
+export type DealInputStage = typeof DealInputStage[keyof typeof DealInputStage];
+
+
+export const DealInputStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export interface DealInput {
+  /** @nullable */
+  leadId?: number | null;
+  /** @minLength 1 */
+  dealName: string;
+  stage?: DealInputStage;
+  /** @nullable */
+  amount?: number | null;
+  /** @nullable */
+  approxGm?: number | null;
+  /** @nullable */
+  actualGm?: number | null;
+  /** @nullable */
+  assignedTo?: number | null;
+}
+
+export type DealUpdateStage = typeof DealUpdateStage[keyof typeof DealUpdateStage];
+
+
+export const DealUpdateStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export interface DealUpdate {
+  /** @minLength 1 */
+  dealName?: string;
+  stage?: DealUpdateStage;
+  /** @nullable */
+  amount?: number | null;
+  /** @nullable */
+  approxGm?: number | null;
+  /** @nullable */
+  actualGm?: number | null;
+  /** @nullable */
+  assignedTo?: number | null;
+}
+
+export interface DealListResponse {
+  deals: Deal[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/**
+ * @nullable
+ */
+export type DealActivityDetails = { [key: string]: unknown } | null;
+
+export interface DealActivity {
+  id: number;
+  /** @nullable */
+  userId?: number | null;
+  user?: User | null;
+  /** @nullable */
+  dealId?: number | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  /** @nullable */
+  details?: DealActivityDetails;
+  createdAt: string;
+}
+
+/**
+ * @nullable
+ */
+export type DealDetailLead = { [key: string]: unknown } | null;
+
+export type DealDetail = Deal & {
+  /** @nullable */
+  lead?: DealDetailLead;
+  activity?: DealActivity[];
+};
+
+export type LeadDealConversionStage = typeof LeadDealConversionStage[keyof typeof LeadDealConversionStage];
+
+
+export const LeadDealConversionStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export interface LeadDealConversion {
+  /** @minLength 1 */
+  dealName?: string;
+  stage?: LeadDealConversionStage;
+  /** @nullable */
+  amount?: number | null;
+  /** @nullable */
+  approxGm?: number | null;
+  /** @nullable */
+  actualGm?: number | null;
+  /** @nullable */
+  assignedTo?: number | null;
+}
+
+export type DealsAnalyticsStageCounts = {[key: string]: number};
+
+export type DealsAnalyticsRepsItem = {
+  repId: number;
+  repName: string;
+  activeDeals: number;
+  fundedCount: number;
+  fundedGm: number;
+};
+
+export interface DealsAnalytics {
+  fundedGm: number;
+  awaitingGm: number;
+  pipelineValue: number;
+  /** @nullable */
+  avgFundingTimeDays: number | null;
+  stageCounts: DealsAnalyticsStageCounts;
+  reps: DealsAnalyticsRepsItem[];
+}
+
+export interface DealSeedResponse {
+  created: number;
+  existing: number;
+  activitiesAdded: number;
+  primaryAdminId: number;
+  /** @nullable */
+  assignedCalvinId: number | null;
+}
+
 export interface AdminErrorEntry {
   id?: number;
   requestId?: string;
@@ -1544,6 +1742,47 @@ export type GenerateLeadBriefing200 = {
 
 export type UploadDocumentBody = {
   file: Blob;
+};
+
+export type ListDealsParams = {
+stage?: ListDealsStage;
+search?: string;
+rep_id?: number;
+lead_id?: number;
+start_date?: string;
+end_date?: string;
+include_archived?: boolean;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ListDealsStage = typeof ListDealsStage[keyof typeof ListDealsStage];
+
+
+export const ListDealsStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export type GetDealsAnalyticsParams = {
+start_date?: string;
+end_date?: string;
+rep_id?: number;
 };
 
 export type GetAnalyticsSummaryParams = {

@@ -30,11 +30,13 @@ import adminBackupRouter from "./adminBackup";
 import piiAccessLogRouter from "./piiAccessLog";
 import adminGovernanceRouter from "./adminGovernance";
 import repPublicRouter from "./repPublic";
+import dealsRouter from "./deals";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(repPublicRouter);
+router.use(dealsRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);

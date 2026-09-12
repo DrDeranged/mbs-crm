@@ -1317,6 +1317,312 @@ export const GetMyTasksResponse = zod.object({
 
 
 /**
+ * @summary List deals visible to the current user
+ */
+export const listDealsQueryIncludeArchivedDefault = false;
+export const listDealsQueryPageDefault = 1;
+
+export const listDealsQueryLimitDefault = 25;
+export const listDealsQueryLimitMax = 100;
+
+
+
+export const ListDealsQueryParams = zod.object({
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "search": zod.coerce.string().optional(),
+  "rep_id": zod.coerce.number().optional(),
+  "lead_id": zod.coerce.number().optional(),
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "include_archived": zod.coerce.boolean().default(listDealsQueryIncludeArchivedDefault),
+  "page": zod.coerce.number().min(1).default(listDealsQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(listDealsQueryLimitMax).default(listDealsQueryLimitDefault)
+})
+
+export const ListDealsResponse = zod.object({
+  "deals": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "limit": zod.number(),
+  "totalPages": zod.number()
+})
+
+
+/**
+ * @summary Create a deal
+ */
+
+
+
+export const CreateDealBody = zod.object({
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string().min(1),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish()
+})
+
+
+/**
+ * @summary Get deal detail, lead, and timeline
+ */
+export const GetDealParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDealResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean()
+}).and(zod.object({
+  "lead": zod.record(zod.string(), zod.unknown()).nullish(),
+  "activity": zod.array(zod.object({
+  "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "user": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string(),
+  "details": zod.record(zod.string(), zod.unknown()).nullish(),
+  "createdAt": zod.coerce.date()
+})).optional()
+}))
+
+
+/**
+ * @summary Update editable deal fields or stage
+ */
+export const UpdateDealParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const UpdateDealBody = zod.object({
+  "dealName": zod.string().min(1).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish()
+})
+
+export const UpdateDealResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean()
+})
+
+
+/**
+ * @summary Permanently delete a deal (admin only; conversion cleanup)
+ */
+export const DeleteDealParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Archive a deal
+ */
+export const ArchiveDealParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ArchiveDealResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean()
+})
+
+
+/**
+ * @summary List deal activity and stage history with users
+ */
+export const ListDealActivityParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListDealActivityResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "user": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string(),
+  "details": zod.record(zod.string(), zod.unknown()).nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListDealActivityResponse = zod.array(ListDealActivityResponseItem)
+
+
+/**
+ * @summary Convert a lead into a linked deal without changing lead status
+ */
+export const ConvertLeadToDealParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ConvertLeadToDealBody = zod.object({
+  "dealName": zod.string().min(1).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "assignedTo": zod.number().nullish()
+})
+
+
+/**
+ * @summary Deal pipeline analytics dashboard
+ */
+export const GetDealsAnalyticsQueryParams = zod.object({
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "rep_id": zod.coerce.number().optional()
+})
+
+export const GetDealsAnalyticsResponse = zod.object({
+  "fundedGm": zod.number(),
+  "awaitingGm": zod.number(),
+  "pipelineValue": zod.number(),
+  "avgFundingTimeDays": zod.number().nullable(),
+  "stageCounts": zod.record(zod.string(), zod.number()),
+  "reps": zod.array(zod.object({
+  "repId": zod.number(),
+  "repName": zod.string(),
+  "activeDeals": zod.number(),
+  "fundedCount": zod.number(),
+  "fundedGm": zod.number()
+}))
+})
+
+
+/**
+ * @summary Idempotently seed the real deal pipeline (admin only)
+ */
+export const SeedDealsResponse = zod.object({
+  "created": zod.number(),
+  "existing": zod.number(),
+  "activitiesAdded": zod.number(),
+  "primaryAdminId": zod.number(),
+  "assignedCalvinId": zod.number().nullable()
+})
+
+
+/**
  * @summary KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
  */
 export const GetAnalyticsSummaryQueryParams = zod.object({
