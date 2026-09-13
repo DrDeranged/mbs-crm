@@ -76,6 +76,21 @@ export const GetAdminErrorsResponse = zod.object({
 
 
 /**
+ * @summary Verify active representative resolver and QR routes (admin only)
+ */
+export const VerifyAdminRepQrRoutesResponse = zod.object({
+  "results": zod.array(zod.object({
+  "slug": zod.string(),
+  "userDisplay": zod.string(),
+  "routeHttpStatus": zod.number(),
+  "personalized": zod.boolean(),
+  "qrHttpStatus": zod.number(),
+  "servesPng": zod.boolean()
+}))
+})
+
+
+/**
  * @summary Get current user profile
  */
 export const GetMeResponse = zod.object({
@@ -152,6 +167,14 @@ export const GetPublicRepResponse = zod.object({
   "name": zod.string().nullable(),
   "phone": zod.string().nullable(),
   "slug": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get a QR PNG for an active representative slug
+ */
+export const GetPublicRepQrPngParams = zod.object({
+  "slug": zod.coerce.string()
 })
 
 

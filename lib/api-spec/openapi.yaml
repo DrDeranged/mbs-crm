@@ -119,6 +119,25 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/qr-verify:
+    get:
+      operationId: verifyAdminRepQrRoutes
+      tags: [admin]
+      summary: Verify active representative resolver and QR routes (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Per-representative public route and QR verification results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminQrVerifyResponse"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
   /me:
     get:
       operationId: getMe
@@ -222,6 +241,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PublicRep"
+
+  /public/reps/{slug}/qr.png:
+    get:
+      operationId: getPublicRepQrPng
+      tags: [users]
+      summary: Get a QR PNG for an active representative slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: QR code PNG encoding the production representative route
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Representative not found or inactive
 
   /users/{id}:
     put:
@@ -3318,6 +3359,32 @@ components:
           type: ["string", "null"]
         slug:
           type: ["string", "null"]
+
+    QrVerifyResult:
+      type: object
+      required: [slug, userDisplay, routeHttpStatus, personalized, qrHttpStatus, servesPng]
+      properties:
+        slug:
+          type: string
+        userDisplay:
+          type: string
+        routeHttpStatus:
+          type: integer
+        personalized:
+          type: boolean
+        qrHttpStatus:
+          type: integer
+        servesPng:
+          type: boolean
+
+    AdminQrVerifyResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/QrVerifyResult"
 
     Lead:
       type: object

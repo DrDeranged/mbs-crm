@@ -22,6 +22,7 @@ import type {
 import type {
   ActivityEntry,
   AdminErrorsResponse,
+  AdminQrVerifyResponse,
   AiDraftRequest,
   AiDraftResponse,
   AiNextBestAction,
@@ -492,6 +493,83 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
 
 
+export const getVerifyAdminRepQrRoutesUrl = () => {
+
+
+
+
+  return `/api/admin/qr-verify`
+}
+
+/**
+ * @summary Verify active representative resolver and QR routes (admin only)
+ */
+export const verifyAdminRepQrRoutes = async ( options?: RequestInit): Promise<AdminQrVerifyResponse> => {
+
+  return customFetch<AdminQrVerifyResponse>(getVerifyAdminRepQrRoutesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVerifyAdminRepQrRoutesQueryKey = () => {
+    return [
+    `/api/admin/qr-verify`
+    ] as const;
+    }
+
+
+export const getVerifyAdminRepQrRoutesQueryOptions = <TData = Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVerifyAdminRepQrRoutesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>> = ({ signal }) => verifyAdminRepQrRoutes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VerifyAdminRepQrRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>>
+export type VerifyAdminRepQrRoutesQueryError = ErrorType<void>
+
+
+/**
+ * @summary Verify active representative resolver and QR routes (admin only)
+ */
+
+export function useVerifyAdminRepQrRoutes<TData = Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof verifyAdminRepQrRoutes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVerifyAdminRepQrRoutesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetMeUrl = () => {
 
 
@@ -860,6 +938,83 @@ export function useGetPublicRep<TData = Awaited<ReturnType<typeof getPublicRep>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPublicRepQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPublicRepQrPngUrl = (slug: string,) => {
+
+
+
+
+  return `/api/public/reps/${slug}/qr.png`
+}
+
+/**
+ * @summary Get a QR PNG for an active representative slug
+ */
+export const getPublicRepQrPng = async (slug: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetPublicRepQrPngUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicRepQrPngQueryKey = (slug: string,) => {
+    return [
+    `/api/public/reps/${slug}/qr.png`
+    ] as const;
+    }
+
+
+export const getGetPublicRepQrPngQueryOptions = <TData = Awaited<ReturnType<typeof getPublicRepQrPng>>, TError = ErrorType<void>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrPng>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicRepQrPngQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicRepQrPng>>> = ({ signal }) => getPublicRepQrPng(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(slug), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrPng>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicRepQrPngQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicRepQrPng>>>
+export type GetPublicRepQrPngQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a QR PNG for an active representative slug
+ */
+
+export function useGetPublicRepQrPng<TData = Awaited<ReturnType<typeof getPublicRepQrPng>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrPng>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicRepQrPngQueryOptions(slug,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -138,6 +138,19 @@ export interface PublicRep {
   slug: string | null;
 }
 
+export interface QrVerifyResult {
+  slug: string;
+  userDisplay: string;
+  routeHttpStatus: number;
+  personalized: boolean;
+  qrHttpStatus: number;
+  servesPng: boolean;
+}
+
+export interface AdminQrVerifyResponse {
+  results: QrVerifyResult[];
+}
+
 export type LeadApplicationType = typeof LeadApplicationType[keyof typeof LeadApplicationType];
 
 
