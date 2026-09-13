@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { getUserDisplayName } from "@/lib/utils";
 import { ShieldAlert, Phone, Building2, Globe } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
@@ -151,7 +152,7 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Name</div>
-                  <div className="font-medium">{me.name || "N/A"}</div>
+                  <div className="font-medium">{getUserDisplayName(me, "N/A")}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Email</div>
@@ -329,7 +330,7 @@ export default function Settings() {
                       ))
                     ) : users?.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name || "User"}</TableCell>
+                        <TableCell className="font-medium">{getUserDisplayName(user)}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           {editingSlug === user.id ? (

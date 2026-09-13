@@ -2,7 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, tasksTable, activityLogTable, usersTable } from "@workspace/db";
 import { eq, desc, and, gte, lte, sql, isNull } from "drizzle-orm";
-import { requireUser, userToApi } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 
 const router: IRouter = Router();
 
@@ -76,12 +76,13 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
       .select({
         repId: usersTable.id,
         repName: usersTable.name,
+         repEmail: usersTable.email,
         count: sql<number>`cast(count(${leadsTable.id}) as int)`,
       })
       .from(usersTable)
       .leftJoin(leadsTable, eq(leadsTable.assignedRepId, usersTable.id))
       .where(eq(usersTable.role, "rep"))
-      .groupBy(usersTable.id, usersTable.name),
+       .groupBy(usersTable.id, usersTable.name, usersTable.email),
   ]);
 
   res.json({
@@ -89,7 +90,7 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
     recentLeads: recentLeadsRaw.map((l) => leadToApi(l, (l as any).assignedRep)),
     repCounts: repCountsRaw.map((r) => ({
       repId: r.repId,
-      repName: r.repName ?? "Unknown",
+       repName: getUserDisplayName({ name: r.repName, email: r.repEmail }, "Unknown"),
       count: r.count,
     })),
   });

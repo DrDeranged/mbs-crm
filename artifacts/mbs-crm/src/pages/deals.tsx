@@ -11,7 +11,7 @@ import {
   ListDealsSortOrder,
   useListUsers,
 } from "@workspace/api-client-react";
-import { cn } from "@/lib/utils";
+import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -47,7 +47,7 @@ function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: stri
   return (
     <span className="flex flex-col">
       <span>{formatDistanceToNow(new Date(at), { addSuffix: true })}</span>
-      <span className="text-xs text-muted-foreground">{actor?.name || actor?.email || "System"}</span>
+      <span className="text-xs text-muted-foreground">{getUserDisplayName(actor, "System")}</span>
     </span>
   );
 }
@@ -200,6 +200,14 @@ export default function DealsPage() {
           <div className="p-6 grid grid-cols-4 gap-6 h-full">
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-full rounded-xl" />)}
           </div>
+        ) : isRep && deals.length === 0 ? (
+          <div className="flex h-full items-center justify-center p-6">
+            <div className="rounded-xl border border-dashed bg-white px-8 py-12 text-center shadow-sm">
+              <UserIcon className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
+              <h2 className="text-lg font-semibold text-[#0E2A47]">No deals assigned to you yet</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Deals assigned to you will appear here.</p>
+            </div>
+          </div>
         ) : view === "kanban" ? (
           <div className="h-full overflow-x-auto overflow-y-hidden p-6">
             <div className="flex gap-4 h-full min-w-max pb-4">
@@ -246,7 +254,7 @@ export default function DealsPage() {
                               <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                   <UserIcon className="w-3 h-3" />
-                                  <span className="truncate max-w-[100px]">{rep?.name || "Unassigned"}</span>
+                                  <span className="truncate max-w-[100px]">{rep ? getUserDisplayName(rep) : "Unassigned"}</span>
                                 </div>
                                 {deal.isArchived && <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Archived</Badge>}
                               </div>
@@ -307,7 +315,7 @@ export default function DealsPage() {
                           <TableCell>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <UserIcon className="w-3.5 h-3.5" />
-                              {rep?.name || "Unassigned"}
+                              {rep ? getUserDisplayName(rep) : "Unassigned"}
                             </div>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">

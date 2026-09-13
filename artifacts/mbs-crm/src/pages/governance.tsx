@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, Download, ChevronLeft, ChevronRight, Trash2, Eye, FileText, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { getUserDisplayName } from "@/lib/utils";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -226,7 +227,7 @@ export default function Governance() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All users</SelectItem>
-                  {users?.map((u: any) => <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>)}
+                  {users?.map((u: any) => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

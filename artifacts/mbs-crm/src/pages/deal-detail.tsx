@@ -8,7 +8,7 @@ import {
   DealStage,
   useArchiveDeal
 } from "@workspace/api-client-react";
-import { cn } from "@/lib/utils";
+import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -154,7 +154,7 @@ export default function DealDetail() {
             )}
             {deal.lastActivityAt && (
               <p className="text-xs text-muted-foreground mt-1">
-                Last activity {formatDistanceToNow(new Date(deal.lastActivityAt), { addSuffix: true })} · {deal.lastActivityActor?.name || deal.lastActivityActor?.email || "System"}
+                Last activity {formatDistanceToNow(new Date(deal.lastActivityAt), { addSuffix: true })} · {getUserDisplayName(deal.lastActivityActor, "System")}
               </p>
             )}
           </div>
@@ -202,7 +202,7 @@ export default function DealDetail() {
                       <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>)}
+                        {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -245,7 +245,7 @@ export default function DealDetail() {
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Assigned Rep</div>
                     <div className="text-sm font-medium flex items-center gap-2 text-gray-700">
-                      <User className="h-4 w-4 text-muted-foreground" /> {assignedRep?.name || "Unassigned"}
+                      <User className="h-4 w-4 text-muted-foreground" /> {assignedRep ? getUserDisplayName(assignedRep) : "Unassigned"}
                     </div>
                   </div>
                   <div>
@@ -310,7 +310,7 @@ export default function DealDetail() {
                             )}
                             <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
                               {format(new Date(activity.createdAt), "MMM d, h:mm a")} 
-                              {activity.user && <span>· by {activity.user.name || activity.user.email}</span>}
+                              {activity.user && <span>· by {getUserDisplayName(activity.user)}</span>}
                             </div>
                           </div>
                         </div>

@@ -284,6 +284,9 @@ function AppRoutes() {
           <ClerkQueryClientCacheInvalidator />
           <Switch>
             <Route path="/" component={HomeRedirect} />
+            <Route path="/login">
+              <Redirect to="/sign-in" />
+            </Route>
             <Route path="/sign-in/*?" component={SignInPage} />
             <Route path="/dashboard">
               <ProtectedRoute component={Dashboard} />

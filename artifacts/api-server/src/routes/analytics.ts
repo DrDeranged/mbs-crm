@@ -8,7 +8,7 @@ import {
   leadStatusHistoryTable,
 } from "@workspace/db";
 import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
-import { requireUser } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 
 const router: IRouter = Router();
 
@@ -51,6 +51,9 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
   const effectiveRepId = user.role === "rep" ? user.id : repId;
 
   const where = leadDateWhere(startDate, endDate, effectiveRepId);
+  const allTimeWhere = user.role === "rep"
+    ? eq(leadsTable.assignedRepId, user.id)
+    : undefined;
 
   const [allLeads, leadCountRows, allTimeLeadCountRows, fundedTimeRows, revenueRows] = await Promise.all([
     db
@@ -66,11 +69,13 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
       .from(leadsTable)
       .where(where),
 
-    // Used only for the first-run state; date/rep filters must not make an
-    // established CRM look empty.
+    // Used only for the first-run state. Managers should not lose the
+    // established-CRM check when changing filters, while reps must not see
+    // another user's records in this value.
     db
       .select({ count: sql<number>`cast(count(*) as int)` })
-      .from(leadsTable),
+      .from(leadsTable)
+      .where(allTimeWhere),
 
     // Avg time from lead created to funded status in history
     db
@@ -272,7 +277,7 @@ router.get("/analytics/reps", async (req: Request, res: Response) => {
     const fundings = statusMap["funded"] ?? 0;
     return {
       repId: rep.id,
-      repName: rep.name ?? rep.email,
+      repName: getUserDisplayName(rep),
       leadsCount,
       callsMade: callMap[rep.id] ?? 0,
       smsSent: smsMap[rep.id] ?? 0,
@@ -405,7 +410,7 @@ router.get("/analytics/renewals", async (req: Request, res: Response) => {
       fundedAt: l.fundedAt?.toISOString() ?? null,
       renewalFlaggedAt: l.renewalFlaggedAt?.toISOString() ?? null,
       assignedRepId: l.assignedRepId,
-      assignedRepName: l.assignedRep ? (l.assignedRep.name ?? l.assignedRep.email) : null,
+      assignedRepName: l.assignedRep ? getUserDisplayName(l.assignedRep) : null,
       requestedAmount: l.requestedAmount ?? null,
     })),
   );

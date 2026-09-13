@@ -18,6 +18,7 @@ import {
   tasksTable,
 } from "@workspace/db";
 import { encrypt, maskSsn } from "../lib/encryption";
+import { getUserDisplayName } from "../lib/authHelpers";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { extractBankStatement } from "../lib/ocrBankStatement";
 import { objectStorageClient } from "../lib/objectStorage";
@@ -751,7 +752,7 @@ router.get("/applications/status/:token", statusRateLimiter, async (req: Request
   if (lead.assignedRepId) {
     const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) });
     if (rep) {
-      repName = rep.name || null;
+      repName = getUserDisplayName(rep, "MBS representative");
     }
   }
 

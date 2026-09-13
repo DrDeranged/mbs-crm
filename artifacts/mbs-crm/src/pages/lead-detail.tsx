@@ -1,4 +1,5 @@
 import { useState, useContext } from "react";
+import { getUserDisplayName } from "@/lib/utils";
 import { useParams, Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -107,7 +108,7 @@ function LeadAssignmentPicker({ lead, leadId }: { lead: any; leadId: number }) {
       <SelectContent>
         {reps.map((rep) => (
           <SelectItem key={rep.id} value={String(rep.id)}>
-            {rep.name || rep.email}
+            {getUserDisplayName(rep)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -389,7 +390,7 @@ function LeadNotes({ leadId }: { leadId: number }) {
           notes?.map((note) => (
             <div key={note.id} className="bg-white p-4 rounded-lg border shadow-sm space-y-2">
               <div className="flex justify-between items-start">
-                <span className="font-medium text-sm">{note.author?.name || 'User'}</span>
+                <span className="font-medium text-sm">{getUserDisplayName(note.author, "User")}</span>
                 <span className="text-xs text-muted-foreground">{format(new Date(note.createdAt), 'MMM d, yyyy h:mm a')}</span>
               </div>
               <p className="text-sm whitespace-pre-wrap">{note.body}</p>
@@ -600,7 +601,7 @@ function LeadActivity({ leadId }: { leadId: number }) {
                 <p className="text-sm font-medium">
                   {typeof activity.details?.message === "string"
                     ? activity.details.message
-                    : <>{activity.user?.name || "System"} <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}</>}
+                    : <>{getUserDisplayName(activity.user, "System")} <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}</>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}
@@ -908,7 +909,7 @@ function LeadCommunications({ leadId, leadPhone, leadEmail }: { leadId: number; 
                     <CallNoteBlock notes={(c as any).callNotes} />
                   )}
                   {c.recordingUrl && <audio controls className="mt-2 w-full h-8" src={c.recordingUrl} />}
-                  {c.user && <p className="mt-1 text-xs text-muted-foreground">via {c.user.name ?? c.user.email}</p>}
+                  {c.user && <p className="mt-1 text-xs text-muted-foreground">via {getUserDisplayName(c.user)}</p>}
                 </div>
               </div>
             );
@@ -1510,7 +1511,7 @@ function LeadMarketing({ leadId, lead }: { leadId: number; lead: any }) {
     if (tmpl) {
       const defaults: Record<string, string> = {};
       for (const f of tmpl.variableFields ?? []) {
-        if (f.key === "rep_name" && lead.assignedRep?.name) defaults[f.key] = lead.assignedRep.name;
+        if (f.key === "rep_name" && lead.assignedRep) defaults[f.key] = getUserDisplayName(lead.assignedRep);
         else if (f.key === "rep_email" && lead.assignedRep?.email) defaults[f.key] = lead.assignedRep.email;
         else if (f.key === "rep_phone" && lead.assignedRep?.phone) defaults[f.key] = lead.assignedRep.phone;
         else defaults[f.key] = f.defaultValue ?? "";
@@ -2060,7 +2061,7 @@ function LeadCredit({ leadId }: { leadId: number }) {
                 <Badge variant="outline" className={displayPull.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
                   {displayPull.pullType === "hard" ? "Hard Pull" : "Soft Pull"}
                 </Badge>
-                <span>pulled by {(displayPull.pulledBy as { name?: string } | null)?.name ?? "Unknown"}</span>
+                <span>pulled by {getUserDisplayName(displayPull.pulledBy as { name?: string | null; email?: string | null } | null, "Unknown")}</span>
                 <span>·</span>
                 <span>{format(new Date(displayPull.createdAt!), "MMM d, yyyy 'at' h:mm a")}</span>
               </div>
@@ -2150,7 +2151,7 @@ function LeadCredit({ leadId }: { leadId: number }) {
                         {p.pullType === "hard" ? "Hard" : "Soft"}
                       </Badge>
                     </td>
-                    <td className="py-2.5 px-4">{(p.pulledBy as { name?: string } | null)?.name ?? "—"}</td>
+                    <td className="py-2.5 px-4">{getUserDisplayName(p.pulledBy as { name?: string | null; email?: string | null } | null, "—")}</td>
                     <td className="py-2.5 px-4 font-semibold">{p.creditScore ?? "—"}</td>
                     <td className="py-2.5 px-4">
                       {p.status === "completed" && <Badge className="bg-green-100 text-green-700 border-green-200">Completed</Badge>}
@@ -2703,7 +2704,7 @@ export default function LeadDetail() {
               )}
               {lead.lastActivityAt && (
                 <div className="text-xs">
-                  Last activity {formatDistanceToNow(new Date(lead.lastActivityAt), { addSuffix: true })} · {lead.lastActivityActor?.name || lead.lastActivityActor?.email || "System"}
+                  Last activity {formatDistanceToNow(new Date(lead.lastActivityAt), { addSuffix: true })} · {getUserDisplayName(lead.lastActivityActor, "System")}
                 </div>
               )}
             </div>
@@ -2795,9 +2796,9 @@ export default function LeadDetail() {
                     {lead.assignedRep ? (
                       <>
                         <div className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
-                          {lead.assignedRep.name?.charAt(0) || 'U'}
+                          {getUserDisplayName(lead.assignedRep).charAt(0) || 'U'}
                         </div>
-                        {lead.assignedRep.name}
+                        {getUserDisplayName(lead.assignedRep)}
                       </>
                     ) : 'Unassigned'}
                   </div>

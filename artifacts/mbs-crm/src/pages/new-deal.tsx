@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getUserDisplayName } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import {
   useCreateDeal,
@@ -112,7 +113,7 @@ export default function NewDeal() {
                     <SelectTrigger className="bg-white"><SelectValue placeholder="Unassigned" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
-                      {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>)}
+                      {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

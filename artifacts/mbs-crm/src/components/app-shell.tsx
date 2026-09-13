@@ -24,6 +24,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { getUserDisplayName } from "@/lib/utils";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -157,8 +158,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             )}
           </div>
           <div className="flex flex-col truncate min-w-0">
-            <span className="text-sm font-semibold truncate text-sidebar-foreground">{user?.fullName || "User"}</span>
-            <span className="text-xs text-sidebar-foreground/50 truncate">{user?.primaryEmailAddress?.emailAddress}</span>
+            <span className="text-sm font-semibold truncate text-sidebar-foreground">{getUserDisplayName(user)}</span>
           </div>
         </div>
         <Button

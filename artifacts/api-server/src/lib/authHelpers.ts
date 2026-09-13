@@ -168,3 +168,13 @@ export function userToApi(user: typeof usersTable.$inferSelect) {
     createdAt: user.createdAt.toISOString(),
   };
 }
+
+export function getUserDisplayName(
+  user: { name?: string | null; email?: string | null } | null | undefined,
+  fallback = "User",
+): string {
+  const name = user?.name?.trim();
+  if (name) return name;
+  const localPart = user?.email?.trim().split("@")[0]?.trim();
+  return localPart || fallback;
+}

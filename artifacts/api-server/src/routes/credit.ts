@@ -10,7 +10,7 @@ import {
   creditPullsTable,
   creditComplianceLogTable,
 } from "@workspace/db";
-import { requireUser } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { createNotification } from "../lib/notify";
 import { encrypt, decrypt } from "../lib/encryption";
@@ -506,7 +506,7 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
       e.createdAt.toISOString(),
       leadName,
       e.leadId,
-      e.user?.name ?? "",
+      getUserDisplayName(e.user, ""),
       e.creditPull?.pullType ?? "",
       score,
       e.permissiblePurpose,

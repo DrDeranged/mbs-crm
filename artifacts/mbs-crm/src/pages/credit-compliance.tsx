@@ -10,6 +10,7 @@ import { ShieldCheck, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
+import { getUserDisplayName } from "@/lib/utils";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -106,7 +107,7 @@ export default function CreditCompliance() {
                 <SelectContent>
                   <SelectItem value="all">All Reps</SelectItem>
                   {users?.map((u) => (
-                    <SelectItem key={u.id} value={String(u.id)}>{u.name}</SelectItem>
+                    <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -165,7 +166,7 @@ export default function CreditCompliance() {
                           {entry.leadName}
                         </a>
                       </td>
-                      <td className="py-3 px-4">{entry.pulledBy?.name ?? "—"}</td>
+                      <td className="py-3 px-4">{getUserDisplayName(entry.pulledBy, "—")}</td>
                       <td className="py-3 px-4">
                         {entry.pullType ? (
                           <Badge variant="outline" className={entry.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>

@@ -3,7 +3,7 @@ import twilio from "twilio";
 import { db } from "@workspace/db";
 import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
-import { requireUser } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 
@@ -236,7 +236,7 @@ router.get("/metrics/communications", async (req, res) => {
 
   const result = [...metrics.entries()].map(([uid, m]) => ({
     userId: uid,
-    userName: userMap.get(uid)?.name ?? null,
+    userName: getUserDisplayName(userMap.get(uid), "Unknown"),
     callsMade: m.callsMade,
     callsReceived: m.callsReceived,
     smsSent: m.smsSent,

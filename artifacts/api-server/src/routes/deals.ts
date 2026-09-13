@@ -9,7 +9,7 @@ import {
   DEAL_STAGES,
 } from "@workspace/db";
 import { db } from "@workspace/db";
-import { requireUser, userToApi } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 import { getLatestActivities, logActivity } from "../lib/activityHelper";
 import { CreateDealBody, UpdateDealBody, ConvertLeadToDealBody } from "@workspace/api-zod";
 
@@ -390,7 +390,7 @@ router.get("/deals/analytics", async (req, res): Promise<void> => {
     ]);
     return {
       repId: rep.id,
-      repName: rep.name?.trim() || rep.email.split("@")[0] || "Unknown",
+      repName: getUserDisplayName(rep, "Unknown"),
       activeDeals: active[0]?.count ?? 0,
       fundedCount: funded[0]?.count ?? 0,
       fundedGm: funded[0]?.gm ?? 0,

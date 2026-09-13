@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Mail, Edit2, Eye, CheckCircle, Send, Users, Loader2, Sparkles } from "lucide-react";
+import { getUserDisplayName } from "@/lib/utils";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -383,7 +384,7 @@ export default function EmailTemplates() {
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">Subject: {t.subject}</p>
                     <p className="text-xs text-muted-foreground">
-                      By {t.creator?.name ?? t.creator?.email ?? "unknown"} · {new Date(t.updatedAt).toLocaleDateString()}
+                      By {getUserDisplayName(t.creator, "unknown")} · {new Date(t.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">

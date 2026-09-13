@@ -3,10 +3,14 @@ import {
   useGetMe, getGetMeQueryKey,
   useGetMyTasks, getGetMyTasksQueryKey,
   useGetAnalyticsSummary,
+  getGetAnalyticsSummaryQueryKey,
   useGetAnalyticsPipeline,
+  getGetAnalyticsPipelineQueryKey,
   useGetAnalyticsReps, getGetAnalyticsRepsQueryKey,
   useGetAnalyticsSources,
+  getGetAnalyticsSourcesQueryKey,
   useGetAnalyticsCommunications,
+  getGetAnalyticsCommunicationsQueryKey,
   useGetAnalyticsRenewals, getGetAnalyticsRenewalsQueryKey,
   useGeneratePipelineDigest,
   useGetDealsAnalytics, getGetDealsAnalyticsQueryKey,
@@ -265,22 +269,36 @@ export default function Dashboard() {
   };
 
 
-  const { data: dealsAnalytics, isLoading: loadingDealsAnalytics } = useGetDealsAnalytics(queryParams);
+  const analyticsEnabled = !loadingUser && !!currentUser;
+  const { data: dealsAnalytics, isLoading: loadingDealsAnalytics } = useGetDealsAnalytics(queryParams, {
+    query: { queryKey: getGetDealsAnalyticsQueryKey(queryParams), enabled: analyticsEnabled },
+  });
 
-  const { data: summary, isLoading: loadingSummary } = useGetAnalyticsSummary(queryParams);
-  const { data: pipeline, isLoading: loadingPipeline } = useGetAnalyticsPipeline(queryParams);
-  const { data: sources, isLoading: loadingSources } = useGetAnalyticsSources(queryParams);
+  const { data: summary, isLoading: loadingSummary } = useGetAnalyticsSummary(queryParams, {
+    query: { queryKey: getGetAnalyticsSummaryQueryKey(queryParams), enabled: analyticsEnabled },
+  });
+  const { data: pipeline, isLoading: loadingPipeline } = useGetAnalyticsPipeline(queryParams, {
+    query: { queryKey: getGetAnalyticsPipelineQueryKey(queryParams), enabled: analyticsEnabled },
+  });
+  const { data: sources, isLoading: loadingSources } = useGetAnalyticsSources(queryParams, {
+    query: { queryKey: getGetAnalyticsSourcesQueryKey(queryParams), enabled: analyticsEnabled },
+  });
   const { data: communications, isLoading: loadingComms } = useGetAnalyticsCommunications({
     ...queryParams,
     granularity: "daily",
+  }, {
+    query: {
+      queryKey: getGetAnalyticsCommunicationsQueryKey({ ...queryParams, granularity: "daily" }),
+      enabled: analyticsEnabled,
+    },
   });
   const repsParams = { start_date: dateRange.startDate, end_date: dateRange.endDate };
   const { data: reps, isLoading: loadingReps } = useGetAnalyticsReps(repsParams, {
-    query: { queryKey: getGetAnalyticsRepsQueryKey(repsParams), enabled: !loadingUser && !isRep },
+    query: { queryKey: getGetAnalyticsRepsQueryKey(repsParams), enabled: analyticsEnabled && !isRep },
   });
   const renewalsParams = effectiveRepId != null ? { rep_id: effectiveRepId } : {};
   const { data: renewals, isLoading: loadingRenewals } = useGetAnalyticsRenewals(renewalsParams, {
-    query: { queryKey: getGetAnalyticsRenewalsQueryKey(renewalsParams), enabled: !loadingUser },
+    query: { queryKey: getGetAnalyticsRenewalsQueryKey(renewalsParams), enabled: analyticsEnabled },
   });
 
   const sortedReps = useMemo(() => {

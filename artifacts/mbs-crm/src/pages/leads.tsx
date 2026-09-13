@@ -8,7 +8,7 @@ import {
   useBulkAssignLeads,
   useBulkDeleteLeads,
 } from "@workspace/api-client-react";
-import { cn } from "@/lib/utils";
+import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,7 +60,7 @@ function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: stri
   return (
     <span className="flex flex-col">
       <span>{formatDistanceToNow(new Date(at), { addSuffix: true })}</span>
-      <span className="text-xs text-muted-foreground">{actor?.name || actor?.email || "System"}</span>
+      <span className="text-xs text-muted-foreground">{getUserDisplayName(actor, "System")}</span>
     </span>
   );
 }
@@ -318,6 +318,7 @@ export default function Leads() {
   const { toast } = useToast();
 
   const { data: currentUser } = useGetMe();
+  const isRep = currentUser?.role === "rep";
   const isManagerOrAdmin = currentUser?.role === "manager" || currentUser?.role === "admin";
   const isAdmin = currentUser?.role === "admin";
 
@@ -579,7 +580,7 @@ export default function Leads() {
               <SelectItem value="all">All Reps</SelectItem>
               {usersData.map((rep) => (
                 <SelectItem key={rep.id} value={String(rep.id)}>
-                  {rep.name || rep.email}
+                  {getUserDisplayName(rep)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -700,6 +701,14 @@ export default function Leads() {
                   <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
                 </EmptyContent>
               </Empty>
+            ) : isRep ? (
+              <Empty>
+                <EmptyMedia variant="icon"><Users className="h-5 w-5" /></EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No leads assigned to you yet</EmptyTitle>
+                  <EmptyDescription>Leads assigned to you will appear here.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <Empty>
                 <EmptyMedia variant="icon"><Users className="h-5 w-5" /></EmptyMedia>
@@ -753,7 +762,7 @@ export default function Leads() {
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
-                  <span className="truncate">{lead.assignedRep ? (lead.assignedRep.name || lead.assignedRep.email) : <span className="italic">Unassigned</span>}</span>
+                  <span className="truncate">{lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic">Unassigned</span>}</span>
                   <span className="flex-shrink-0 ml-2">{format(new Date(lead.updatedAt), "MMM d, yyyy")}</span>
                 </div>
               </div>
@@ -820,6 +829,14 @@ export default function Leads() {
                       <EmptyContent>
                         <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
                       </EmptyContent>
+                    </Empty>
+                  ) : isRep ? (
+                    <Empty className="py-12 border-0">
+                      <EmptyMedia variant="icon"><Users className="h-5 w-5" /></EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No leads assigned to you yet</EmptyTitle>
+                        <EmptyDescription>Leads assigned to you will appear here.</EmptyDescription>
+                      </EmptyHeader>
                     </Empty>
                   ) : (
                     <Empty className="py-12 border-0">
@@ -903,7 +920,7 @@ export default function Leads() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     <Link href={`/leads/${lead.id}`} className="block w-full">
-                      {lead.assignedRep ? (lead.assignedRep.name || lead.assignedRep.email) : <span className="italic text-xs">Unassigned</span>}
+                      {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-xs">Unassigned</span>}
                     </Link>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -1006,7 +1023,7 @@ export default function Leads() {
                 <SelectContent>
                   {usersData.map((rep) => (
                     <SelectItem key={rep.id} value={String(rep.id)}>
-                      {rep.name || rep.email}
+                      {getUserDisplayName(rep)}
                     </SelectItem>
                   ))}
                 </SelectContent>

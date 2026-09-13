@@ -5,7 +5,7 @@ import {
   leadsTable, usersTable, activityLogTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireUser } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { renderPdf, renderTemplate } from "../lib/renderPdf";
 import { objectStorageClient } from "../lib/objectStorage";
@@ -209,7 +209,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     const [pdfBuffer] = await gcsFile.download();
 
     const repUser = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
-    const repName = repUser?.name || FROM_NAME;
+    const repName = repUser ? getUserDisplayName(repUser, FROM_NAME) : FROM_NAME;
 
     const logoUrl = getBrandLogoUrl(getPublicBaseUrl());
     const emailHtml = `

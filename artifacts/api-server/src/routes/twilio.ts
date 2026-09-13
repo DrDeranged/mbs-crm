@@ -43,7 +43,17 @@ router.post("/twilio/token", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !TWIML_APP_SID) {
+  // Read integration settings when the request arrives so a credential
+  // rotation or a secret added after process startup is immediately usable.
+  // requireUser already rejects inactive and pending accounts; active reps
+  // are intentionally allowed to mint their own browser token.
+  const accountSid = process.env["TWILIO_ACCOUNT_SID"];
+  const authToken = process.env["TWILIO_AUTH_TOKEN"];
+  const twimlAppSid = process.env["TWILIO_TWIML_APP_SID"];
+  const apiKey = process.env["TWILIO_API_KEY"];
+  const apiSecret = process.env["TWILIO_API_SECRET"];
+
+  if (!accountSid || !authToken || !twimlAppSid) {
     return void res.status(503).json({ error: "Twilio not configured" });
   }
 
@@ -52,16 +62,16 @@ router.post("/twilio/token", async (req, res) => {
 
   const identity = `user_${user.id}`;
 
-  if (!API_KEY || !API_SECRET) {
+  if (!apiKey || !apiSecret) {
     return void res.status(503).json({
       error:
         "Twilio API Key not configured. Create an API Key in the Twilio console and set TWILIO_API_KEY + TWILIO_API_SECRET.",
     });
   }
 
-  const token = new AccessToken(ACCOUNT_SID, API_KEY, API_SECRET, { identity });
+  const token = new AccessToken(accountSid, apiKey, apiSecret, { identity });
   const voiceGrant = new VoiceGrant({
-    outgoingApplicationSid: TWIML_APP_SID,
+    outgoingApplicationSid: twimlAppSid,
     incomingAllow: true,
   });
   token.addGrant(voiceGrant);

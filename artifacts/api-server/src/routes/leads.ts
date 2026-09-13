@@ -5,7 +5,7 @@ import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotenc
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
 import { z } from "zod/v4";
-import { requireUser, userToApi } from "../lib/authHelpers";
+import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
 import { getLatestActivities, logActivity } from "../lib/activityHelper";
 import {
@@ -647,7 +647,7 @@ router.get("/leads/export", async (req: Request, res: Response) => {
     l.status,
     l.applicationType,
     l.leadSource,
-    l.assignedRep ? (l.assignedRep.name || l.assignedRep.email) : "",
+    l.assignedRep ? getUserDisplayName(l.assignedRep) : "",
     l.createdAt.toISOString(),
     l.updatedAt.toISOString(),
   ]);
@@ -741,8 +741,8 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
     return;
   }
 
-  const actorName = user.name || user.email;
-  const destinationName = destinationRep.name || destinationRep.email;
+  const actorName = getUserDisplayName(user);
+  const destinationName = getUserDisplayName(destinationRep);
   const message = `Assigned to ${destinationName} by ${actorName}`;
   const assignmentWhere = body.data.ids
     ? inArray(leadsTable.id, [...new Set(body.data.ids)])
@@ -1177,8 +1177,8 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
-  const actorName = user.name || user.email;
-  const destinationName = destinationRep.name || destinationRep.email;
+  const actorName = getUserDisplayName(user);
+  const destinationName = getUserDisplayName(destinationRep);
   const message = `Assigned to ${destinationName} by ${actorName}`;
   const updated = await db.transaction(async (tx) => {
     const changedAt = new Date();
