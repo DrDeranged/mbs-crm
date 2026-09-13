@@ -347,22 +347,35 @@ router.get("/deals/analytics", async (req, res): Promise<void> => {
   conditions.push(...dateConditions(req));
   const where = and(...conditions);
   const activeWhere = and(where, sql`${dealsTable.stage} in ${sql.raw(`(${ACTIVE_STAGES.map((s) => `'${s}'`).join(",")})`)}`);
-  const [stageRows, fundedRows, awaitingRows, pipelineRows, avgRows, reps] = await Promise.all([
+  const [stageRows, fundedRows, awaitingRows, pipelineRows, avgRows, users, assignedUsers] = await Promise.all([
     db.select({ stage: dealsTable.stage, count: sql<number>`cast(count(*) as int)` }).from(dealsTable).where(where).groupBy(dealsTable.stage),
     db.select({ value: sql<number>`cast(coalesce(sum(${dealsTable.actualGm}), 0) as int)` }).from(dealsTable).where(and(where, eq(dealsTable.stage, "funded"))),
     db.select({ value: sql<number>`cast(coalesce(sum(${dealsTable.approxGm}), 0) as int)` }).from(dealsTable).where(activeWhere),
     db.select({ value: sql<number>`cast(coalesce(sum(${dealsTable.amount}), 0) as int)` }).from(dealsTable).where(activeWhere),
     db.select({ value: sql<number>`avg(extract(epoch from (${dealsTable.fundedAt} - ${dealsTable.createdAt})) / 86400)` }).from(dealsTable).where(and(where, eq(dealsTable.stage, "funded"))),
     db.select().from(usersTable).where(eq(usersTable.isActive, true)),
+    db.selectDistinct({ userId: dealsTable.assignedTo }).from(dealsTable),
   ]);
-  const visibleReps = user.role === "rep" ? reps.filter((rep) => rep.id === user.id) : reps;
+  const assignedUserIds = new Set(assignedUsers.map((assigned) => assigned.userId));
+  const performanceUsers = users.filter((candidate) =>
+    candidate.role === "rep" || assignedUserIds.has(candidate.id),
+  );
+  const visibleReps = user.role === "rep"
+    ? performanceUsers.filter((rep) => rep.id === user.id)
+    : performanceUsers;
   const repRows = await Promise.all(visibleReps.map(async (rep) => {
     const repWhere = and(where, eq(dealsTable.assignedTo, rep.id));
     const [active, funded] = await Promise.all([
       db.select({ count: sql<number>`cast(count(*) as int)` }).from(dealsTable).where(and(repWhere, sql`${dealsTable.stage} in ${sql.raw(`(${ACTIVE_STAGES.map((s) => `'${s}'`).join(",")})`)} `)),
       db.select({ count: sql<number>`cast(count(*) as int)`, gm: sql<number>`cast(coalesce(sum(${dealsTable.actualGm}), 0) as int)` }).from(dealsTable).where(and(repWhere, eq(dealsTable.stage, "funded"))),
     ]);
-    return { repId: rep.id, repName: rep.name ?? rep.email, activeDeals: active[0]?.count ?? 0, fundedCount: funded[0]?.count ?? 0, fundedGm: funded[0]?.gm ?? 0 };
+    return {
+      repId: rep.id,
+      repName: rep.name?.trim() || rep.email.split("@")[0] || "Unknown",
+      activeDeals: active[0]?.count ?? 0,
+      fundedCount: funded[0]?.count ?? 0,
+      fundedGm: funded[0]?.gm ?? 0,
+    };
   }));
   const stageCounts: Record<string, number> = {};
   for (const row of stageRows) stageCounts[row.stage] = row.count;
