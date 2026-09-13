@@ -189,7 +189,7 @@ export default function DealsPage() {
           <h1 className="text-2xl font-bold text-[#0E2A47]">Deals</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your funding pipeline</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {currentUser?.role === "admin" && (
             <Button
               variant="outline"
@@ -210,34 +210,34 @@ export default function DealsPage() {
           {(currentUser?.role === "rep" || currentUser?.role === "manager" || currentUser?.role === "admin") && (
             <Button variant="outline" size="sm" disabled={isExporting} onClick={handleExport}>
               <Download className="w-4 h-4 mr-1" />
-              {isExporting ? "Exporting…" : "Export"}
+              <span className="hidden sm:inline">{isExporting ? "Exporting…" : "Export"}</span>
             </Button>
           )}
-          <div className="relative">
+          <div className="relative flex-1 min-w-[150px] sm:flex-none">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search deals..." 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
-              className="pl-9 w-64 h-9 bg-gray-50 border-gray-200"
+              className="pl-9 w-full sm:w-64 h-9 bg-gray-50 border-gray-200"
             />
           </div>
-          <div className="flex border rounded-md overflow-hidden bg-gray-50 p-0.5">
+          <div className="flex border rounded-md overflow-hidden bg-gray-50 p-0.5 shrink-0">
             <button 
               onClick={() => setView("kanban")} 
               className={cn("px-2 py-1 rounded text-sm flex items-center gap-1", view === "kanban" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
             >
-              <LayoutGrid className="w-4 h-4" /> Kanban
+              <LayoutGrid className="w-4 h-4" /> <span className="hidden sm:inline">Kanban</span>
             </button>
             <button 
               onClick={() => setView("table")} 
               className={cn("px-2 py-1 rounded text-sm flex items-center gap-1", view === "table" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
             >
-              <List className="w-4 h-4" /> Table
+              <List className="w-4 h-4" /> <span className="hidden sm:inline">Table</span>
             </button>
           </div>
-          <Link href="/deals/new">
-            <Button size="sm" className="h-9"><Plus className="w-4 h-4 mr-1" /> New Deal</Button>
+          <Link href="/deals/new" className="shrink-0">
+            <Button size="sm" className="h-9"><Plus className="w-4 h-4 mr-1 sm:mr-1" /><span className="hidden sm:inline">New Deal</span><span className="sm:hidden">New</span></Button>
           </Link>
         </div>
       </div>

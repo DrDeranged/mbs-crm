@@ -534,9 +534,9 @@ export default function Dashboard() {
               ) : dealsAnalytics?.reps?.length === 0 ? (
                 <div className="text-sm text-muted-foreground text-center py-4">No rep data</div>
               ) : (
-                <div className="space-y-3 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 max-h-[140px] overflow-y-auto overflow-x-auto pr-2 custom-scrollbar">
                   {dealsAnalytics?.reps.map(rep => (
-                    <div key={rep.repId} className="flex items-center justify-between">
+                    <div key={rep.repId} className="flex items-center justify-between min-w-[250px] gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
                           {rep.repName.charAt(0) || "U"}

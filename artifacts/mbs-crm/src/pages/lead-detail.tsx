@@ -388,12 +388,12 @@ function LeadNotes({ leadId }: { leadId: number }) {
           <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No notes yet.</div>
         ) : (
           notes?.map((note) => (
-            <div key={note.id} className="bg-white p-4 rounded-lg border shadow-sm space-y-2">
-              <div className="flex justify-between items-start">
-                <span className="font-medium text-sm">{getUserDisplayName(note.author, "User")}</span>
-                <span className="text-xs text-muted-foreground">{format(new Date(note.createdAt), 'MMM d, yyyy h:mm a')}</span>
+            <div key={note.id} className="bg-white p-4 rounded-lg border shadow-sm space-y-2 min-w-0">
+              <div className="flex flex-wrap justify-between items-start gap-2">
+                <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-[250px]" title={getUserDisplayName(note.author, "User")}>{getUserDisplayName(note.author, "User")}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(note.createdAt), 'MMM d, yyyy h:mm a')}</span>
               </div>
-              <p className="text-sm whitespace-pre-wrap">{note.body}</p>
+              <p className="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{note.body}</p>
             </div>
           ))
         )}
@@ -473,19 +473,19 @@ function LeadTasks({ leadId }: { leadId: number }) {
           <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No tasks assigned.</div>
         ) : (
           tasks?.map((task) => (
-            <div key={task.id} className={`flex items-start gap-3 bg-white p-3 rounded-lg border shadow-sm transition-opacity ${task.isCompleted ? 'opacity-60' : ''}`}>
+            <div key={task.id} className={`flex items-start gap-3 bg-white p-3 rounded-lg border shadow-sm transition-opacity min-w-0 ${task.isCompleted ? 'opacity-60' : ''}`}>
               <Checkbox 
                 checked={task.isCompleted} 
                 onCheckedChange={() => handleToggle(task.id, task.isCompleted)} 
-                className="mt-1"
+                className="mt-1 shrink-0"
               />
-              <div className="flex-1 space-y-1">
-                <p className={`text-sm font-medium ${task.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+              <div className="flex-1 space-y-1 min-w-0">
+                <p className={`text-sm font-medium break-words [overflow-wrap:anywhere] ${task.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                   {task.title}
                 </p>
                 {task.dueDate && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <CalendarIcon className="w-3 h-3" /> {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                    <CalendarIcon className="w-3 h-3 shrink-0" /> {format(new Date(task.dueDate), 'MMM d, yyyy')}
                   </p>
                 )}
               </div>
@@ -558,19 +558,19 @@ function LeadDocuments({ leadId }: { leadId: number }) {
         ) : (
           <div className="divide-y">
             {documents?.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded bg-blue-50 flex items-center justify-center text-blue-600">
+              <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50 min-w-0 gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                     <FileIcon className="h-5 w-5" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{doc.filename}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate" title={doc.filename}>{doc.filename}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {(doc.fileSize / 1024).toFixed(1)} KB • {format(new Date(doc.createdAt), 'MMM d, yyyy')}
                     </p>
                   </div>
                 </div>
-                <Button size="sm" variant="ghost" onClick={() => handleDownload(doc.id, doc.filename)}>
+                <Button size="sm" variant="ghost" className="shrink-0" onClick={() => handleDownload(doc.id, doc.filename)}>
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
@@ -589,21 +589,21 @@ function LeadActivity({ leadId }: { leadId: number }) {
   if (isLoading) return <div className="mt-4 space-y-4"><Skeleton className="h-16 w-full"/><Skeleton className="h-16 w-full"/></div>;
 
   return (
-    <div className="space-y-6 mt-4 relative">
+    <div className="space-y-6 mt-4 relative max-w-full">
       {activities?.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No activity yet.</div>
       ) : (
         <div className="space-y-6 pl-4 border-l-2 border-gray-200 ml-2 py-2">
           {activities?.map((activity) => (
-            <div key={activity.id} className="relative">
-              <div className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-white" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium">
+            <div key={activity.id} className="relative flex min-w-0">
+              <div className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-white shrink-0" />
+              <div className="space-y-1 min-w-0 flex-1">
+                <p className="text-sm font-medium break-words [overflow-wrap:anywhere]">
                   {typeof activity.details?.message === "string"
                     ? activity.details.message
-                    : <>{getUserDisplayName(activity.user, "System")} <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}</>}
+                    : <><span className="truncate inline-block align-bottom max-w-[120px] sm:max-w-[200px]" title={getUserDisplayName(activity.user, "System")}>{getUserDisplayName(activity.user, "System")}</span> <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}</>}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate" title={format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}>
                   {format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}
                 </p>
               </div>
@@ -2710,14 +2710,14 @@ export default function LeadDetail() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <LeadAssignmentPicker lead={lead} leadId={id} />
             <Select 
               value={lead.status} 
               onValueChange={handleStatusChange}
               disabled={changeStatus.isPending}
             >
-              <SelectTrigger className="w-[180px] bg-white font-medium shadow-sm">
+              <SelectTrigger className="w-[150px] sm:w-[180px] bg-white font-medium shadow-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>

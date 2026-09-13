@@ -131,35 +131,35 @@ export default function DealDetail() {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-y-auto">
-      <div className="flex-none px-6 py-4 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-4">
-          <Link href="/deals">
+      <div className="flex-none px-6 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <Link href="/deals" className="shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-[#0E2A47]">{deal.dealName}</h1>
-              {deal.isArchived && <Badge variant="secondary" className="bg-slate-100 text-slate-700">Archived</Badge>}
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{currentStage}</Badge>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-[#0E2A47] truncate">{deal.dealName}</h1>
+              {deal.isArchived && <Badge variant="secondary" className="bg-slate-100 text-slate-700 shrink-0">Archived</Badge>}
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 shrink-0">{currentStage}</Badge>
             </div>
             {deal.leadId && deal.lead && (
-              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                 Linked to Lead: 
-                <Link href={`/leads/${deal.leadId}`} className="text-primary hover:underline font-medium flex items-center gap-1">
-                  {(deal.lead as any).firstName} {(deal.lead as any).lastName} <ArrowUpRight className="w-3 h-3" />
+                <Link href={`/leads/${deal.leadId}`} className="text-primary hover:underline font-medium flex items-center gap-1 truncate max-w-[200px]">
+                  <span className="truncate">{(deal.lead as any).firstName} {(deal.lead as any).lastName}</span> <ArrowUpRight className="w-3 h-3 shrink-0" />
                 </Link>
               </p>
             )}
             {deal.lastActivityAt && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 truncate">
                 Last activity {formatDistanceToNow(new Date(deal.lastActivityAt), { addSuffix: true })} · {getUserDisplayName(deal.lastActivityActor, "System")}
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end sm:justify-start">
           {editMode ? (
             <>
               <Button variant="outline" size="sm" onClick={() => setEditMode(false)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
@@ -293,12 +293,12 @@ export default function DealDetail() {
                       const newStage = STAGES.find(s => s.id === (activity.details as any)?.newStage)?.label || (activity.details as any)?.newStage;
                       
                       return (
-                        <div key={activity.id} className="relative flex items-start gap-4 z-10">
+                        <div key={activity.id} className="relative flex items-start gap-4 z-10 min-w-0">
                           <div className={cn("h-8 w-8 rounded-full border-2 border-white flex items-center justify-center shrink-0 shadow-sm", isStageChange ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>
                             {isStageChange ? <ChevronRight className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 break-words [overflow-wrap:anywhere]">
                               {isStageChange ? (
                                 <>Moved to <span className="font-semibold text-blue-700">{newStage}</span></>
                               ) : (
@@ -306,11 +306,11 @@ export default function DealDetail() {
                               )}
                             </p>
                             {isStageChange && oldStage && (
-                              <p className="text-xs text-muted-foreground mt-0.5">from {oldStage}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5 break-words">from {oldStage}</p>
                             )}
-                            <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
-                              {format(new Date(activity.createdAt), "MMM d, h:mm a")} 
-                              {activity.user && <span>· by {getUserDisplayName(activity.user)}</span>}
+                            <div className="text-[11px] text-muted-foreground mt-1 flex flex-wrap items-center gap-1.5">
+                              <span className="whitespace-nowrap">{format(new Date(activity.createdAt), "MMM d, h:mm a")}</span>
+                              {activity.user && <span className="truncate max-w-[120px] sm:max-w-full" title={`by ${getUserDisplayName(activity.user)}`}>· by {getUserDisplayName(activity.user)}</span>}
                             </div>
                           </div>
                         </div>

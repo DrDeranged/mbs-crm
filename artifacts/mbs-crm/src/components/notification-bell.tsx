@@ -104,7 +104,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-[14px] border border-white/15 bg-[#0E2A47]/95 text-white shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden">
+        <div className="absolute right-0 md:right-auto md:-left-2 top-full mt-2 z-50 w-[300px] sm:w-80 rounded-[14px] border border-white/15 bg-[#0E2A47]/95 text-white shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden max-w-[calc(100vw-32px)]">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <span className="text-sm font-semibold">Notifications</span>
