@@ -14,6 +14,7 @@ const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
   "calvin@my-business-solutions.com": "calvin",
   "rahmaredavis@gmail.com": "rahmare",
   "rahmare@my-business-solutions.com": "rahmare",
+  "manny@my-business-solutions.com": "manny",
 };
 
 function reservedSlugForEmail(email: string): string | undefined {
