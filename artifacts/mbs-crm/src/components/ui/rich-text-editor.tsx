@@ -42,7 +42,7 @@ export function RichTextEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       Link.configure({
         openOnClick: false,
         autolink: true,

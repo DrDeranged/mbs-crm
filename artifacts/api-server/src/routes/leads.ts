@@ -28,6 +28,7 @@ import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
 import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDistribution";
+import { writeCsvRow } from "../lib/csv";
 
 const router: IRouter = Router();
 
@@ -661,46 +662,102 @@ router.get("/leads/export", async (req: Request, res: Response) => {
   if (!user) return;
 
   const q = req.query as any;
-  const whereClause = buildLeadsWhere(q, user.role, user.id, await getStaleThresholdDays());
+  const staleThresholdDays = await getStaleThresholdDays();
+  const whereClause = buildLeadsWhere(q, user.role, user.id, staleThresholdDays);
 
   const ids = q.ids
     ? String(q.ids).split(",").map(Number).filter((n: number) => !isNaN(n) && n > 0)
     : null;
-
-  const leads = await db.query.leadsTable.findMany({
-    where: ids && ids.length > 0
+  const leadWhere = ids && ids.length > 0
+    ? whereClause
       ? and(whereClause as any, inArray(leadsTable.id, ids))
-      : (whereClause as any),
-    with: { assignedRep: true },
-    orderBy: [desc(leadsTable.createdAt)],
-    limit: 5000,
+      : inArray(leadsTable.id, ids)
+    : (whereClause as any);
+  const sortField = (q.sortBy as string) || "createdAt";
+  const sortDirection = q.sortOrder === "asc" ? asc : desc;
+  const validSortFields: Record<string, any> = {
+    createdAt: leadsTable.createdAt,
+    updatedAt: leadsTable.updatedAt,
+    lastName: leadsTable.lastName,
+    status: leadsTable.status,
+    lastActivityAt: leadsTable.lastActivityAt,
+    leadScore: leadsTable.leadScore,
+  };
+  const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
+  const headers = [
+    "ID", "First Name", "Last Name", "Email", "Phone", "Company", "EIN",
+    "Status", "Application Type", "Lead Source", "Assigned Rep", "Lead Score",
+    "Renewal Flagged", "Stale", "Last Activity", "Created At", "Updated At",
+  ];
+  const today = new Date().toISOString().slice(0, 10);
+  res.status(200);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="mbs-leads-${today}.csv"`);
+  res.flushHeaders();
+  await writeCsvRow(res, headers);
+
+  // Read in bounded pages and write each page directly to the response. This
+  // avoids the old 5,000-row cap and avoids buffering a potentially large
+  // export in application memory.
+  let exported = 0;
+  const batchSize = 1000;
+  await db.transaction(async (tx) => {
+    // Keep all pages on one repeatable-read snapshot. This makes the bounded
+    // batches consistent even when leads or activities change during export.
+    await tx.execute(sql`set transaction isolation level repeatable read`);
+    let offset = 0;
+    while (!res.destroyed) {
+      const leads = await tx.query.leadsTable.findMany({
+        where: leadWhere,
+        with: { assignedRep: true },
+        orderBy: [sortDirection(sortColumn), asc(leadsTable.id)],
+        limit: batchSize,
+        offset,
+      });
+      if (leads.length === 0) break;
+      const activityRows = await tx
+        .selectDistinctOn([activityLogTable.leadId], {
+          leadId: activityLogTable.leadId,
+          createdAt: activityLogTable.createdAt,
+        })
+        .from(activityLogTable)
+        .where(inArray(activityLogTable.leadId, leads.map((lead) => lead.id)))
+        .orderBy(activityLogTable.leadId, desc(activityLogTable.createdAt), desc(activityLogTable.id));
+      const activityDates = new Map(activityRows
+        .filter((row) => row.leadId != null)
+        .map((row) => [row.leadId!, row.createdAt]));
+      for (const l of leads as any[]) {
+        const activityAt = activityDates.get(l.id);
+        const daysIdle = activityAt == null
+          ? Math.max(0, Math.floor((Date.now() - l.createdAt.getTime()) / (24 * 60 * 60 * 1000)))
+          : Math.max(0, Math.floor((Date.now() - activityAt.getTime()) / (24 * 60 * 60 * 1000)));
+        await writeCsvRow(res, [
+          l.id,
+          l.firstName,
+          l.lastName,
+          l.email,
+          l.phone,
+          l.companyName,
+          l.ein,
+          l.status,
+          l.applicationType,
+          l.leadSource,
+          l.assignedRep ? getUserDisplayName(l.assignedRep) : "",
+          l.leadScore,
+          l.renewalFlaggedAt ? "Yes" : "No",
+          l.assignedRepId != null && daysIdle >= staleThresholdDays ? "Yes" : "No",
+          activityAt?.toISOString() ?? "",
+          l.createdAt.toISOString(),
+          l.updatedAt.toISOString(),
+        ]);
+        exported++;
+      }
+      offset += leads.length;
+      if (leads.length < batchSize) break;
+    }
   });
-
-  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Company", "EIN", "Status", "Type", "Lead Source", "Assigned Rep", "Created At", "Updated At"];
-  const rows = leads.map((l: any) => [
-    l.id,
-    l.firstName ?? "",
-    l.lastName ?? "",
-    l.email ?? "",
-    l.phone ?? "",
-    l.companyName ?? "",
-    l.ein ?? "",
-    l.status,
-    l.applicationType,
-    l.leadSource,
-    l.assignedRep ? getUserDisplayName(l.assignedRep) : "",
-    l.createdAt.toISOString(),
-    l.updatedAt.toISOString(),
-  ]);
-
-  const csv = [headers, ...rows]
-    .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
-  res.setHeader("Content-Type", "text/csv");
-  res.setHeader("Content-Disposition", `attachment; filename="leads-${Date.now()}.csv"`);
-  res.send(csv);
-  await logActivity({ userId: user.id, leadId: null, action: "exported", entityType: "lead", entityId: 0, details: { count: leads.length } });
+  res.end();
+  await logActivity({ userId: user.id, leadId: null, action: "exported", entityType: "lead", entityId: 0, details: { count: exported } });
 });
 
 const BulkStatusBody = z.object({

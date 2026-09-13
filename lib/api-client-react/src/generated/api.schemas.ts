@@ -1822,7 +1822,47 @@ endDate?: string;
  * When true, only export assigned leads with no activity within the configured staleness threshold
  */
 stale?: boolean;
+/**
+ * Filter leads with score >= minScore
+ */
+minScore?: number;
+/**
+ * Filter leads with score <= maxScore
+ */
+maxScore?: number;
+/**
+ * When true, only export leads flagged for renewal
+ */
+renewalFlagged?: boolean;
+/**
+ * Sort field for export ordering, matching the lead list
+ */
+sortBy?: ExportLeadsSortBy;
+/**
+ * Sort direction for export ordering
+ */
+sortOrder?: ExportLeadsSortOrder;
 };
+
+export type ExportLeadsSortBy = typeof ExportLeadsSortBy[keyof typeof ExportLeadsSortBy];
+
+
+export const ExportLeadsSortBy = {
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastName: 'lastName',
+  status: 'status',
+  lastActivityAt: 'lastActivityAt',
+  leadScore: 'leadScore',
+} as const;
+
+export type ExportLeadsSortOrder = typeof ExportLeadsSortOrder[keyof typeof ExportLeadsSortOrder];
+
+
+export const ExportLeadsSortOrder = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
 
 export type BulkUpdateLeadStatusBody = {
   /** @maxItems 500 */
@@ -1931,6 +1971,59 @@ export type ListDealsSortOrder = typeof ListDealsSortOrder[keyof typeof ListDeal
 
 
 export const ListDealsSortOrder = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+
+export type ExportDealsParams = {
+stage?: ExportDealsStage;
+search?: string;
+rep_id?: number;
+lead_id?: number;
+start_date?: string;
+end_date?: string;
+include_archived?: boolean;
+/**
+ * Sort field for export ordering
+ */
+sort_by?: ExportDealsSortBy;
+/**
+ * Sort direction for export ordering
+ */
+sort_order?: ExportDealsSortOrder;
+};
+
+export type ExportDealsStage = typeof ExportDealsStage[keyof typeof ExportDealsStage];
+
+
+export const ExportDealsStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export type ExportDealsSortBy = typeof ExportDealsSortBy[keyof typeof ExportDealsSortBy];
+
+
+export const ExportDealsSortBy = {
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  dealName: 'dealName',
+  stage: 'stage',
+  lastActivityAt: 'lastActivityAt',
+} as const;
+
+export type ExportDealsSortOrder = typeof ExportDealsSortOrder[keyof typeof ExportDealsSortOrder];
+
+
+export const ExportDealsSortOrder = {
   asc: 'asc',
   desc: 'desc',
 } as const;

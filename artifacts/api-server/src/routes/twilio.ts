@@ -56,6 +56,11 @@ router.post("/twilio/token", async (req, res) => {
   if (!accountSid || !authToken || !twimlAppSid) {
     return void res.status(503).json({ error: "Twilio not configured" });
   }
+  if (!/^AP[0-9a-fA-F]{32}$/.test(twimlAppSid)) {
+    return void res.status(503).json({
+      error: "Twilio application SID is invalid. TWILIO_TWIML_APP_SID must start with AP.",
+    });
+  }
 
   const AccessToken = twilio.jwt.AccessToken;
   const VoiceGrant = AccessToken.VoiceGrant;

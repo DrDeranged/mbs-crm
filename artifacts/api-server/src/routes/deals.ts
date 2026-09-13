@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { and, asc, desc, eq, gte, ilike, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, lte, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
   activityLogTable,
@@ -11,6 +11,8 @@ import {
 import { db } from "@workspace/db";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 import { getLatestActivities, logActivity } from "../lib/activityHelper";
+import { sanitizeLikeInput } from "../lib/sanitize";
+import { writeCsvRow } from "../lib/csv";
 import { CreateDealBody, UpdateDealBody, ConvertLeadToDealBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -74,6 +76,11 @@ function dateConditions(req: Request, table = dealsTable) {
   return clauses;
 }
 
+// Register this static path before the dynamic /deals/:id route below. Keeping
+// it as a named handler makes the precedence explicit without special-casing
+// "export" in the ID parser.
+router.get("/deals/export", exportDeals);
+
 router.get("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -93,7 +100,7 @@ router.get("/deals", async (req, res): Promise<void> => {
     }
     conditions.push(eq(dealsTable.stage, stage.data));
   }
-  if (q.search) conditions.push(ilike(dealsTable.dealName, `%${q.search.replace(/[%_]/g, "\\$&")}%`));
+  if (q.search) conditions.push(ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`));
   conditions.push(...dateConditions(req));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
@@ -127,6 +134,109 @@ router.get("/deals", async (req, res): Promise<void> => {
     totalPages: Math.ceil(total / limit),
   });
 });
+
+async function exportDeals(req: Request, res: Response): Promise<void> {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const q = req.query as Record<string, string | undefined>;
+  const conditions: any[] = [];
+  if (q.include_archived !== "true") conditions.push(eq(dealsTable.isArchived, false));
+  // Reps are always restricted to their own assignments. A rep_id supplied by
+  // a client can narrow that set, but can never widen it.
+  if (user.role === "rep") conditions.push(eq(dealsTable.assignedTo, user.id));
+  else if (q.rep_id) conditions.push(eq(dealsTable.assignedTo, Number(q.rep_id)));
+  if (q.lead_id) conditions.push(eq(dealsTable.leadId, Number(q.lead_id)));
+  if (q.stage) {
+    const stage = stageSchema.safeParse(q.stage);
+    if (!stage.success) {
+      res.status(400).json({ error: "Invalid deal stage" });
+      return;
+    }
+    conditions.push(eq(dealsTable.stage, stage.data));
+  }
+  if (q.search) conditions.push(ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`));
+  conditions.push(...dateConditions(req));
+  const where = and(...conditions);
+  const sortField = q.sort_by ?? "updatedAt";
+  const sortDirection = q.sort_order === "asc" ? asc : desc;
+  const latestActivitySort = sql`(select max(${activityLogTable.createdAt}) from ${activityLogTable} where ${activityLogTable.dealId} = ${dealsTable.id})`;
+  const validSortFields: Record<string, any> = {
+    createdAt: dealsTable.createdAt,
+    updatedAt: dealsTable.updatedAt,
+    dealName: dealsTable.dealName,
+    stage: dealsTable.stage,
+    lastActivityAt: latestActivitySort,
+  };
+  const sortColumn = validSortFields[sortField] ?? dealsTable.updatedAt;
+  const today = new Date().toISOString().slice(0, 10);
+  res.status(200);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="mbs-deals-${today}.csv"`);
+  res.flushHeaders();
+  await writeCsvRow(res, [
+    "Deal", "Stage", "Amount", "Approx GM", "Actual GM", "Assigned Rep",
+    "Last Activity", "Created At", "Updated At", "Funded At", "Archived",
+  ]);
+
+  let exported = 0;
+  const batchSize = 1000;
+  await db.transaction(async (tx) => {
+    // A repeatable-read snapshot prevents mutable deal/activity rows from
+    // moving between batches and being duplicated or skipped.
+    await tx.execute(sql`set transaction isolation level repeatable read`);
+    let offset = 0;
+    while (!res.destroyed) {
+      const deals = await tx.query.dealsTable.findMany({
+        where,
+        with: { assignedUser: true },
+        orderBy: [sortDirection(sortColumn), asc(dealsTable.id)],
+        limit: batchSize,
+        offset,
+      });
+      if (deals.length === 0) break;
+      const activityRows = await tx
+        .selectDistinctOn([activityLogTable.dealId], {
+          dealId: activityLogTable.dealId,
+          createdAt: activityLogTable.createdAt,
+        })
+        .from(activityLogTable)
+        .where(inArray(activityLogTable.dealId, deals.map((deal) => deal.id)))
+        .orderBy(activityLogTable.dealId, desc(activityLogTable.createdAt), desc(activityLogTable.id));
+      const activityDates = new Map(activityRows
+        .filter((row) => row.dealId != null)
+        .map((row) => [row.dealId!, row.createdAt]));
+      for (const deal of deals as any[]) {
+        await writeCsvRow(res, [
+          deal.dealName,
+          deal.stage,
+          deal.amount,
+          deal.approxGm,
+          deal.actualGm,
+          deal.assignedUser ? getUserDisplayName(deal.assignedUser) : "",
+          activityDates.get(deal.id)?.toISOString() ?? "",
+          deal.createdAt.toISOString(),
+          deal.updatedAt.toISOString(),
+          deal.fundedAt?.toISOString() ?? "",
+          deal.isArchived ? "Yes" : "No",
+        ]);
+        exported++;
+      }
+      offset += deals.length;
+      if (deals.length < batchSize) break;
+    }
+  });
+  res.end();
+  await logActivity({
+    userId: user.id,
+    dealId: null,
+    leadId: null,
+    action: "exported",
+    entityType: "deal",
+    entityId: 0,
+    details: { count: exported },
+  });
+}
 
 router.post("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);

@@ -447,6 +447,9 @@ export const CaptureLeadFromElementorResponse = zod.object({
 /**
  * @summary Export leads as CSV (respects current filter params, or specific IDs)
  */
+export const exportLeadsQuerySortByDefault = `createdAt`;
+export const exportLeadsQuerySortOrderDefault = `desc`;
+
 export const ExportLeadsQueryParams = zod.object({
   "ids": zod.coerce.string().optional().describe('Comma-separated lead IDs to export (if omitted, exports all matching filter)'),
   "search": zod.coerce.string().optional(),
@@ -455,7 +458,12 @@ export const ExportLeadsQueryParams = zod.object({
   "repId": zod.coerce.number().optional(),
   "startDate": zod.coerce.string().optional(),
   "endDate": zod.coerce.string().optional(),
-  "stale": zod.coerce.boolean().optional().describe('When true, only export assigned leads with no activity within the configured staleness threshold')
+  "stale": zod.coerce.boolean().optional().describe('When true, only export assigned leads with no activity within the configured staleness threshold'),
+  "minScore": zod.coerce.number().optional().describe('Filter leads with score >= minScore'),
+  "maxScore": zod.coerce.number().optional().describe('Filter leads with score <= maxScore'),
+  "renewalFlagged": zod.coerce.boolean().optional().describe('When true, only export leads flagged for renewal'),
+  "sortBy": zod.enum(['createdAt', 'updatedAt', 'lastName', 'status', 'lastActivityAt', 'leadScore']).default(exportLeadsQuerySortByDefault).describe('Sort field for export ordering, matching the lead list'),
+  "sortOrder": zod.enum(['asc', 'desc']).default(exportLeadsQuerySortOrderDefault).describe('Sort direction for export ordering')
 })
 
 
@@ -1573,6 +1581,26 @@ export const CreateDealBody = zod.object({
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
   "assignedTo": zod.number().nullish()
+})
+
+
+/**
+ * @summary Export deals as CSV using the current list filters
+ */
+export const exportDealsQueryIncludeArchivedDefault = false;
+export const exportDealsQuerySortByDefault = `updatedAt`;
+export const exportDealsQuerySortOrderDefault = `desc`;
+
+export const ExportDealsQueryParams = zod.object({
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "search": zod.coerce.string().optional(),
+  "rep_id": zod.coerce.number().optional(),
+  "lead_id": zod.coerce.number().optional(),
+  "start_date": zod.date().optional(),
+  "end_date": zod.date().optional(),
+  "include_archived": zod.coerce.boolean().default(exportDealsQueryIncludeArchivedDefault),
+  "sort_by": zod.enum(['createdAt', 'updatedAt', 'dealName', 'stage', 'lastActivityAt']).default(exportDealsQuerySortByDefault).describe('Sort field for export ordering'),
+  "sort_order": zod.enum(['asc', 'desc']).default(exportDealsQuerySortOrderDefault).describe('Sort direction for export ordering')
 })
 
 

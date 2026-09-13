@@ -79,6 +79,7 @@ import type {
   EmailTemplateInput,
   EnrollLeadInDripBody,
   ExportCreditComplianceLogParams,
+  ExportDealsParams,
   ExportLeadsParams,
   FinancialsResponse,
   FlyerTemplate,
@@ -3846,6 +3847,90 @@ export const useCreateDeal = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateDealMutationOptions(options));
     }
+
+export const getExportDealsUrl = (params?: ExportDealsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/deals/export?${stringifiedParams}` : `/api/deals/export`
+}
+
+/**
+ * @summary Export deals as CSV using the current list filters
+ */
+export const exportDeals = async (params?: ExportDealsParams, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getExportDealsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportDealsQueryKey = (params?: ExportDealsParams,) => {
+    return [
+    `/api/deals/export`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportDealsQueryOptions = <TData = Awaited<ReturnType<typeof exportDeals>>, TError = ErrorType<void>>(params?: ExportDealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportDeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportDealsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportDeals>>> = ({ signal }) => exportDeals(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportDeals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportDealsQueryResult = NonNullable<Awaited<ReturnType<typeof exportDeals>>>
+export type ExportDealsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Export deals as CSV using the current list filters
+ */
+
+export function useExportDeals<TData = Awaited<ReturnType<typeof exportDeals>>, TError = ErrorType<void>>(
+ params?: ExportDealsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportDeals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportDealsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetDealUrl = (id: number,) => {
 

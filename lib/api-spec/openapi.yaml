@@ -603,6 +603,35 @@ paths:
           description: When true, only export assigned leads with no activity within the configured staleness threshold
           schema:
             type: boolean
+        - name: minScore
+          in: query
+          description: Filter leads with score >= minScore
+          schema:
+            type: integer
+        - name: maxScore
+          in: query
+          description: Filter leads with score <= maxScore
+          schema:
+            type: integer
+        - name: renewalFlagged
+          in: query
+          description: When true, only export leads flagged for renewal
+          schema:
+            type: boolean
+        - name: sortBy
+          in: query
+          description: Sort field for export ordering, matching the lead list
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, lastName, status, lastActivityAt, leadScore]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort direction for export ordering
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
       responses:
         "200":
           description: CSV file download
@@ -1295,6 +1324,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Deal"
+
+  /deals/export:
+    get:
+      operationId: exportDeals
+      tags: [deals]
+      summary: Export deals as CSV using the current list filters
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: rep_id
+          in: query
+          schema: { type: integer }
+        - name: lead_id
+          in: query
+          schema: { type: integer }
+        - name: start_date
+          in: query
+          schema: { type: string, format: date }
+        - name: end_date
+          in: query
+          schema: { type: string, format: date }
+        - name: include_archived
+          in: query
+          schema: { type: boolean, default: false }
+        - name: sort_by
+          in: query
+          description: Sort field for export ordering
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, dealName, stage, lastActivityAt]
+            default: updatedAt
+        - name: sort_order
+          in: query
+          description: Sort direction for export ordering
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: CSV file download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid deal stage
+        "401":
+          description: Unauthorized
 
   /deals/{id}:
     get:

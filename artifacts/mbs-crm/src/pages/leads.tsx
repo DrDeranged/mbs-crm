@@ -414,7 +414,12 @@ export default function Leads() {
       if (repId) params.set("repId", repId);
       if (startDate) params.set("startDate", startDate);
       if (endDate) params.set("endDate", endDate);
+      if (scoreMinMax.minScore !== undefined) params.set("minScore", String(scoreMinMax.minScore));
+      if (scoreMinMax.maxScore !== undefined) params.set("maxScore", String(scoreMinMax.maxScore));
+      if (renewalFlagged) params.set("renewalFlagged", "true");
       if (staleOnly || isStaleView) params.set("stale", "true");
+      params.set("sortBy", sortBy);
+      params.set("sortOrder", sortOrder);
       if (ids && ids.length > 0) params.set("ids", ids.join(","));
       const qs = params.toString();
       const response = await fetch(`/api/leads/export${qs ? `?${qs}` : ""}`, {
@@ -424,7 +429,14 @@ export default function Leads() {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = `leads-${Date.now()}.csv`; a.click();
+      const contentDisposition = response.headers.get("Content-Disposition") ?? "";
+      const encodedFilename = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+      const quotedFilename = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1];
+      const fallbackFilename = `mbs-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+      const filename = encodedFilename
+        ? decodeURIComponent(encodedFilename)
+        : quotedFilename || fallbackFilename;
+      a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
     } catch {
       toast({ title: "Export failed", variant: "destructive" });
@@ -521,12 +533,14 @@ export default function Leads() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {(isRep || isManagerOrAdmin) && (
+            <Button variant="outline" onClick={() => handleExport()} disabled={isExporting}>
+              <Download className="mr-2 h-4 w-4" />
+              {isExporting ? "Exporting…" : "Export All"}
+            </Button>
+          )}
           {isManagerOrAdmin && (
             <>
-              <Button variant="outline" onClick={() => handleExport()} disabled={isExporting}>
-                <Download className="mr-2 h-4 w-4" />
-                {isExporting ? "Exporting…" : "Export All"}
-              </Button>
               <Button variant="outline" onClick={() => setImportOpen(true)}>
                 <Upload className="mr-2 h-4 w-4" />
                 Import

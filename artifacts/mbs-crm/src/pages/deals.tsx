@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import {
   useListDeals, getListDealsQueryKey,
@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, LayoutGrid, List, Plus, DollarSign, Building2, User as UserIcon, ArrowUpDown } from "lucide-react";
+import { Search, LayoutGrid, List, Plus, Download, DollarSign, Building2, User as UserIcon, ArrowUpDown } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
@@ -55,13 +55,27 @@ function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: stri
 export default function DealsPage() {
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState<ListDealsSortBy>(ListDealsSortBy.updatedAt);
   const [sortOrder, setSortOrder] = useState<ListDealsSortOrder>(ListDealsSortOrder.desc);
+  const [isExporting, setIsExporting] = useState(false);
   
   const { data: currentUser } = useGetMe();
   const isRep = currentUser?.role === "rep";
 
-  const { data: response, isLoading } = useListDeals({ sort_by: sortBy, sort_order: sortOrder });
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const listParams = {
+    search: debouncedSearch || undefined,
+    sort_by: sortBy,
+    sort_order: sortOrder,
+  };
+  const { data: response, isLoading } = useListDeals(listParams, {
+    query: { queryKey: getListDealsQueryKey(listParams) },
+  });
   const deals = response?.deals || [];
 
   const { data: users } = useListUsers();
@@ -78,11 +92,38 @@ export default function DealsPage() {
   const [pendingFundDeal, setPendingFundDeal] = useState<Deal | null>(null);
   const [actualGm, setActualGm] = useState("");
 
-  const filteredDeals = useMemo(() => {
-    return deals.filter(d => 
-      d.dealName.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [deals, search]);
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      params.set("sort_by", sortBy);
+      params.set("sort_order", sortOrder);
+      const query = params.toString();
+      const response = await fetch(`/api/deals/export${query ? `?${query}` : ""}`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Export failed");
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition") ?? "";
+      const encodedFilename = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+      const quotedFilename = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1];
+      const fallbackFilename = `mbs-deals-${new Date().toISOString().slice(0, 10)}.csv`;
+      const filename = encodedFilename
+        ? decodeURIComponent(encodedFilename)
+        : quotedFilename || fallbackFilename;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({ title: "Export failed", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const toggleActivitySort = () => {
     if (sortBy === ListDealsSortBy.lastActivityAt) {
@@ -166,6 +207,12 @@ export default function DealsPage() {
               {seedDeals.isPending ? "Loading pipeline…" : "Load real pipeline"}
             </Button>
           )}
+          {(currentUser?.role === "rep" || currentUser?.role === "manager" || currentUser?.role === "admin") && (
+            <Button variant="outline" size="sm" disabled={isExporting} onClick={handleExport}>
+              <Download className="w-4 h-4 mr-1" />
+              {isExporting ? "Exporting…" : "Export"}
+            </Button>
+          )}
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -212,7 +259,7 @@ export default function DealsPage() {
           <div className="h-full overflow-x-auto overflow-y-hidden p-6">
             <div className="flex gap-4 h-full min-w-max pb-4">
               {STAGES.map(stage => {
-                const stageDeals = filteredDeals.filter(d => d.stage === stage.id);
+                const stageDeals = deals.filter(d => d.stage === stage.id);
                 return (
                   <div 
                     key={stage.id} 
@@ -288,14 +335,14 @@ export default function DealsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDeals.length === 0 ? (
+                  {deals.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center h-32 text-muted-foreground">
                         No deals found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredDeals.map(deal => {
+                    deals.map(deal => {
                       const rep = users?.find(u => u.id === deal.assignedTo);
                       const stageObj = STAGES.find(s => s.id === deal.stage);
                       return (
