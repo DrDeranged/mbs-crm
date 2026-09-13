@@ -283,6 +283,7 @@ export default function Leads() {
   const [sortOrder, setSortOrder] = useState<ListLeadsSortOrder>(ListLeadsSortOrder.desc);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectAllMatching, setSelectAllMatching] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("");
   const [bulkRepId, setBulkRepId] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -314,6 +315,7 @@ export default function Leads() {
   const bulkDelete = useBulkDeleteLeads();
 
   const toggleSelect = (id: number) => {
+    setSelectAllMatching(false);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -325,6 +327,7 @@ export default function Leads() {
     if (!data?.leads) return;
     const allIds = data.leads.map((l) => l.id);
     const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+    setSelectAllMatching(false);
     setSelectedIds(allSelected ? new Set() : new Set(allIds));
   };
 
@@ -344,14 +347,29 @@ export default function Leads() {
   };
 
   const handleBulkAssign = () => {
-    if (!bulkRepId || selectedIds.size === 0) return;
+    if (!bulkRepId || (selectedIds.size === 0 && !selectAllMatching)) return;
+    const filter = {
+      search: debouncedSearch || undefined,
+      status: status || undefined,
+      applicationType: applicationType || undefined,
+      repId: repId ? Number(repId) : undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      ...scoreMinMax,
+      ...(renewalFlagged ? { renewalFlagged: true } : {}),
+    };
     bulkAssign.mutate(
-      { data: { ids: [...selectedIds], repId: Number(bulkRepId) } },
       {
-        onSuccess: () => {
+        data: selectAllMatching
+          ? { filter, repId: Number(bulkRepId) }
+          : { ids: [...selectedIds], repId: Number(bulkRepId) },
+      },
+      {
+        onSuccess: (result) => {
+          const count = result?.updated ?? (selectAllMatching ? data?.total ?? 0 : selectedIds.size);
           queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          setSelectedIds(new Set()); setBulkRepId("");
-          toast({ title: `Reassigned ${selectedIds.size} lead${selectedIds.size > 1 ? "s" : ""}` });
+          setSelectedIds(new Set()); setSelectAllMatching(false); setBulkRepId("");
+          toast({ title: `Reassigned ${count} lead${count !== 1 ? "s" : ""}` });
         },
         onError: () => toast({ title: "Failed to reassign leads", variant: "destructive" }),
       },
@@ -411,6 +429,11 @@ export default function Leads() {
 
   const scoreMinMax = scoreFilter === "high" ? { minScore: 70 } : scoreFilter === "medium" ? { minScore: 40, maxScore: 69 } : scoreFilter === "low" ? { maxScore: 39 } : {};
 
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setSelectAllMatching(false);
+  }, [debouncedSearch, status, applicationType, repId, startDate, endDate, scoreFilter, renewalFlagged]);
+
   const queryParams = {
     search: debouncedSearch || undefined,
     status: status || undefined,
@@ -430,7 +453,8 @@ export default function Leads() {
     query: { queryKey: getListLeadsQueryKey(queryParams) },
   });
 
-  const { data: usersData } = useListUsers({ role: "rep" });
+  const { data: usersData } = useListUsers({ role: "rep", isActive: true });
+  const allPageSelected = !!data?.leads?.length && data.leads.every((lead) => selectedIds.has(lead.id));
 
   const handleStatusChange = (val: string) => { setStatus(val === "all" ? "" : val); setPage(1); };
   const handleAppTypeChange = (val: string) => { setApplicationType(val === "all" ? "" : val); setPage(1); };
@@ -616,6 +640,13 @@ export default function Leads() {
         </button>
       </div>
 
+      {isManagerOrAdmin && data?.leads?.length ? (
+        <div className="md:hidden mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+          <Checkbox checked={allPageSelected} onCheckedChange={toggleSelectAll} aria-label="Select all leads on this page" />
+          <span>Select all leads on this page</span>
+        </div>
+      ) : null}
+
       {/* Mobile lead cards — visible below md breakpoint */}
       <div className="md:hidden space-y-3">
         {isLoading ? (
@@ -676,7 +707,18 @@ export default function Leads() {
               <div className={`rounded-lg border bg-white shadow-sm p-4 space-y-2 transition-colors hover:bg-gray-50/60 ${selectedIds.has(lead.id) ? "border-blue-300 bg-blue-50/40" : ""}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-semibold text-sm truncate">{lead.firstName} {lead.lastName}</div>
+                    <div className="flex items-center gap-2">
+                      {isManagerOrAdmin && (
+                        <span onClick={(event) => event.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(lead.id)}
+                            onCheckedChange={() => toggleSelect(lead.id)}
+                            aria-label={`Select lead ${lead.id}`}
+                          />
+                        </span>
+                      )}
+                      <div className="font-semibold text-sm truncate">{lead.firstName} {lead.lastName}</div>
+                    </div>
                     <div className="text-xs text-muted-foreground truncate">{lead.email}</div>
                   </div>
                   <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
@@ -708,8 +750,7 @@ export default function Leads() {
                 <TableHead className="w-10">
                   <Checkbox
                     checked={
-                      !!data?.leads?.length &&
-                      data.leads.every((l) => selectedIds.has(l.id))
+                      allPageSelected
                     }
                     onCheckedChange={toggleSelectAll}
                     aria-label="Select all"
@@ -890,8 +931,18 @@ export default function Leads() {
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-gray-200 shadow-xl rounded-xl px-5 py-3">
           <span className="text-sm font-semibold text-[#1F4E79] whitespace-nowrap">
-            {selectedIds.size} selected
+            {selectAllMatching ? data?.total ?? selectedIds.size : selectedIds.size} selected
           </span>
+          {!selectAllMatching && allPageSelected && data && data.total > data.leads.length && (
+            <Button
+              size="sm"
+              variant="link"
+              className="h-8 px-1 text-xs text-[#1F4E79]"
+              onClick={() => setSelectAllMatching(true)}
+            >
+              Select all {data.total} matching leads
+            </Button>
+          )}
 
           <div className="h-4 w-px bg-gray-200" />
 
@@ -913,7 +964,7 @@ export default function Leads() {
           <Button
             size="sm"
             className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
-            disabled={!bulkStatus || bulkUpdateStatus.isPending}
+             disabled={selectAllMatching || !bulkStatus || bulkUpdateStatus.isPending}
             onClick={handleBulkStatus}
           >
             Apply
@@ -938,7 +989,7 @@ export default function Leads() {
               <Button
                 size="sm"
                 className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
-                disabled={!bulkRepId || bulkAssign.isPending}
+                 disabled={!bulkRepId || bulkAssign.isPending}
                 onClick={handleBulkAssign}
               >
                 Assign
@@ -952,13 +1003,13 @@ export default function Leads() {
             variant="outline"
             className="h-8 text-xs"
             disabled={isExporting}
-            onClick={() => handleExport([...selectedIds])}
+             onClick={() => handleExport(selectAllMatching ? undefined : [...selectedIds])}
           >
             <Download className="mr-1.5 h-3.5 w-3.5" />
             Export Selected
           </Button>
 
-          {isAdmin && (
+           {isAdmin && !selectAllMatching && (
             <Button
               size="sm"
               variant="outline"

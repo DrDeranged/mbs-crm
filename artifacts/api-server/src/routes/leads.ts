@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
+import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, activityLogTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
 import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
@@ -18,6 +18,7 @@ import {
   ChangeLeadStatusBody,
   AssignLeadParams,
   AssignLeadBody,
+  BulkAssignLeadsBody,
   CaptureLeadFromWebsiteBody,
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
@@ -576,7 +577,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
 });
 
 function buildLeadsWhere(q: any, userRole: string, userId: number) {
-  const conditions: ReturnType<typeof eq>[] = [];
+  const conditions: any[] = [];
   if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
   if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
   if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
@@ -586,6 +587,11 @@ function buildLeadsWhere(q: any, userRole: string, userId: number) {
     const end = new Date(q.endDate as string);
     end.setHours(23, 59, 59, 999);
     conditions.push(lte(leadsTable.createdAt, end));
+  }
+  if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
+  if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
+  if (q.renewalFlagged === true || q.renewalFlagged === "true") {
+    conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null`);
   }
   let searchCondition: any = undefined;
   if (q.search) {
@@ -700,42 +706,94 @@ router.post("/leads/bulk/status", async (req: Request, res: Response) => {
   res.json({ updated: updatedCount });
 });
 
-const BulkAssignBody = z.object({
-  ids: z.array(z.number().int().positive()).min(1).max(500),
-  repId: z.number().int().positive(),
-});
-
 router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") {
+  if (user.role !== "admin" && user.role !== "manager") {
     res.status(403).json({ error: "Forbidden: managers and admins only" });
     return;
   }
-  const body = BulkAssignBody.safeParse(req.body);
+  const body = BulkAssignLeadsBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid body", details: body.error.issues });
     return;
   }
-  let updatedCount = 0;
-  for (const id of body.data.ids) {
-    const changed = await db.transaction(async (tx) => {
-      const existing = await tx.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
-      if (!existing) return false;
-
-      await tx.update(leadsTable).set({ assignedRepId: body.data.repId, updatedAt: new Date() }).where(eq(leadsTable.id, id));
-      await tx.insert(leadAssignmentHistoryTable).values({
-        leadId: id,
-        changedByUserId: user.id,
-        fromRepId: existing.assignedRepId,
-        toRepId: body.data.repId,
-      });
-
-      return true;
-    });
-    if (changed) updatedCount++;
+  if ((body.data.ids && body.data.filter) || (!body.data.ids && !body.data.filter) || body.data.ids?.length === 0) {
+    res.status(400).json({ error: "Provide either non-empty ids or a filter" });
+    return;
   }
-  await logActivity({ userId: user.id, leadId: null, action: "bulk_assigned", entityType: "lead", entityId: 0, details: { ids: body.data.ids, repId: body.data.repId } });
+
+  const destinationRep = await db.query.usersTable.findFirst({
+    where: and(
+      eq(usersTable.id, body.data.repId),
+      eq(usersTable.role, "rep"),
+      eq(usersTable.isActive, true),
+    ),
+  });
+  if (!destinationRep) {
+    res.status(400).json({ error: "Destination user must be an active rep" });
+    return;
+  }
+
+  const actorName = user.name || user.email;
+  const destinationName = destinationRep.name || destinationRep.email;
+  const message = `Assigned to ${destinationName} by ${actorName}`;
+  const assignmentWhere = body.data.ids
+    ? inArray(leadsTable.id, [...new Set(body.data.ids)])
+    : buildLeadsWhere(body.data.filter, user.role, user.id);
+
+  const changedLeads = await db.transaction(async (tx) => {
+    const candidates = await tx.query.leadsTable.findMany({
+      where: and(
+        assignmentWhere as any,
+        sql`${leadsTable.assignedRepId} is distinct from ${body.data.repId}`,
+      ) as any,
+      columns: { id: true, assignedRepId: true },
+    });
+    if (candidates.length === 0) return [];
+
+    const changedAt = new Date();
+    // Keep SQL parameter counts bounded for an unbounded filter selection while
+    // still doing set-based writes rather than one transaction per lead.
+    for (let offset = 0; offset < candidates.length; offset += 500) {
+      const batch = candidates.slice(offset, offset + 500);
+      await tx
+        .update(leadsTable)
+        .set({
+          assignedRepId: body.data.repId,
+          lastActivityAt: changedAt,
+          updatedAt: changedAt,
+        })
+        .where(inArray(leadsTable.id, batch.map((lead) => lead.id)));
+      await tx.insert(leadAssignmentHistoryTable).values(batch.map((lead) => ({
+        leadId: lead.id,
+        changedByUserId: user.id,
+        fromRepId: lead.assignedRepId,
+        toRepId: body.data.repId,
+      })));
+      await tx.insert(activityLogTable).values(batch.map((lead) => ({
+        userId: user.id,
+        leadId: lead.id,
+        action: "assigned",
+        entityType: "lead",
+        entityId: String(lead.id),
+        details: { message },
+      })));
+    }
+    return candidates;
+  });
+
+  if (changedLeads.length > 0) {
+    await createNotification({
+      userId: body.data.repId,
+      type: "lead_assigned",
+      title: "Leads assigned to you",
+      body: `${changedLeads.length} lead${changedLeads.length === 1 ? "" : "s"} assigned to you`,
+      leadId: null,
+    });
+  }
+
+  const updatedCount = changedLeads.length;
   res.json({ updated: updatedCount });
 });
 
@@ -1070,7 +1128,7 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
 router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") {
+  if (user.role !== "admin" && user.role !== "manager") {
     res.status(403).json({ error: "Forbidden: managers and admins only" });
     return;
   }
@@ -1087,6 +1145,18 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
+  const destinationRep = await db.query.usersTable.findFirst({
+    where: and(
+      eq(usersTable.id, body.data.repId),
+      eq(usersTable.role, "rep"),
+      eq(usersTable.isActive, true),
+    ),
+  });
+  if (!destinationRep) {
+    res.status(400).json({ error: "Destination user must be an active rep" });
+    return;
+  }
+
   const existing = await db.query.leadsTable.findFirst({
     where: eq(leadsTable.id, params.data.id),
   });
@@ -1095,10 +1165,19 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
+  if (existing.assignedRepId === body.data.repId) {
+    res.json(leadToApi(existing, destinationRep));
+    return;
+  }
+
+  const actorName = user.name || user.email;
+  const destinationName = destinationRep.name || destinationRep.email;
+  const message = `Assigned to ${destinationName} by ${actorName}`;
   const updated = await db.transaction(async (tx) => {
+    const changedAt = new Date();
     const [u] = await tx
       .update(leadsTable)
-      .set({ assignedRepId: body.data.repId, updatedAt: new Date() })
+      .set({ assignedRepId: body.data.repId, lastActivityAt: changedAt, updatedAt: changedAt })
       .where(eq(leadsTable.id, params.data.id))
       .returning();
 
@@ -1108,34 +1187,29 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
       fromRepId: existing.assignedRepId,
       toRepId: body.data.repId,
     });
+    await tx.insert(activityLogTable).values({
+      userId: user.id,
+      leadId: params.data.id,
+      action: "assigned",
+      entityType: "lead",
+      entityId: String(params.data.id),
+      details: { message },
+    });
 
     return u;
   });
 
-  await logActivity({
-    userId: user.id,
-    leadId: params.data.id,
-    action: "assigned",
-    entityType: "lead",
-    entityId: params.data.id,
-    details: { fromRepId: existing.assignedRepId, toRepId: body.data.repId },
+  // A single-lead assignment still emits one notification, with no lead-specific
+  // fan-out. Bulk assignments use the same one-row digest pattern above.
+  await createNotification({
+    userId: body.data.repId,
+    type: "lead_assigned",
+    title: "Lead assigned to you",
+    body: "1 lead assigned to you",
+    leadId: null,
   });
 
-  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, body.data.repId) });
-
-  // Notify newly assigned rep
-  if (body.data.repId && body.data.repId !== existing.assignedRepId && body.data.repId !== user.id) {
-    const leadName = [updated.firstName, updated.lastName].filter(Boolean).join(" ") || updated.companyName || "A lead";
-    createNotification({
-      userId: body.data.repId,
-      type: "lead_assigned",
-      title: "Lead assigned to you",
-      body: `${leadName} was assigned to you`,
-      leadId: updated.id,
-    }).catch(() => {});
-  }
-
-  res.json(leadToApi(updated, rep));
+  res.json(leadToApi(updated, destinationRep));
 });
 
 export { leadToApi };

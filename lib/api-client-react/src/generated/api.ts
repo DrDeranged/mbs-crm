@@ -33,11 +33,11 @@ import type {
   ApplicationSubmitResponse,
   AssignLead,
   BulkAssignLeads200,
-  BulkAssignLeadsBody,
   BulkDeleteLeads200,
   BulkDeleteLeadsBody,
   BulkEmailInput,
   BulkEmailResult,
+  BulkLeadAssignment,
   BulkUpdateLeadStatus200,
   BulkUpdateLeadStatusBody,
   CaptureCreditConsent201,
@@ -1626,9 +1626,9 @@ export const getBulkAssignLeadsUrl = () => {
 }
 
 /**
- * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ * @summary Reassign selected leads or all leads matching a filter (manager/admin only)
  */
-export const bulkAssignLeads = async (bulkAssignLeadsBody: BulkAssignLeadsBody, options?: RequestInit): Promise<BulkAssignLeads200> => {
+export const bulkAssignLeads = async (bulkLeadAssignment: BulkLeadAssignment, options?: RequestInit): Promise<BulkAssignLeads200> => {
 
   return customFetch<BulkAssignLeads200>(getBulkAssignLeadsUrl(),
   {
@@ -1636,7 +1636,7 @@ export const bulkAssignLeads = async (bulkAssignLeadsBody: BulkAssignLeadsBody, 
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      bulkAssignLeadsBody,)
+      bulkLeadAssignment,)
   }
 );}
 
@@ -1644,8 +1644,8 @@ export const bulkAssignLeads = async (bulkAssignLeadsBody: BulkAssignLeadsBody, 
 
 
 export const getBulkAssignLeadsMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkLeadAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkLeadAssignment>}, TContext> => {
 
 const mutationKey = ['bulkAssignLeads'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -1657,7 +1657,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkAssignLeads>>, {data: BodyType<BulkAssignLeadsBody>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkAssignLeads>>, {data: BodyType<BulkLeadAssignment>}> = (props) => {
           const {data} = props ?? {};
 
           return  bulkAssignLeads(data,requestOptions)
@@ -1671,18 +1671,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type BulkAssignLeadsMutationResult = NonNullable<Awaited<ReturnType<typeof bulkAssignLeads>>>
-    export type BulkAssignLeadsMutationBody = BodyType<BulkAssignLeadsBody>
+    export type BulkAssignLeadsMutationBody = BodyType<BulkLeadAssignment>
     export type BulkAssignLeadsMutationError = ErrorType<void>
 
     /**
- * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ * @summary Reassign selected leads or all leads matching a filter (manager/admin only)
  */
 export const useBulkAssignLeads = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkAssignLeadsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkAssignLeads>>, TError,{data: BodyType<BulkLeadAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof bulkAssignLeads>>,
         TError,
-        {data: BodyType<BulkAssignLeadsBody>},
+        {data: BodyType<BulkLeadAssignment>},
         TContext
       > => {
       return useMutation(getBulkAssignLeadsMutationOptions(options));

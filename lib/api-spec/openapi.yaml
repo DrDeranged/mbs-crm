@@ -189,6 +189,11 @@ paths:
           schema:
             type: string
             enum: [admin, manager, rep, pending]
+        - name: isActive
+          in: query
+          description: When true, only return active users
+          schema:
+            type: boolean
       responses:
         "200":
           description: List of users
@@ -562,22 +567,13 @@ paths:
     post:
       operationId: bulkAssignLeads
       tags: [leads]
-      summary: Reassign up to 500 leads to a rep (manager/admin only)
+      summary: Reassign selected leads or all leads matching a filter (manager/admin only)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ids, repId]
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: integer
-                  maxItems: 500
-                repId:
-                  type: integer
+              $ref: "#/components/schemas/BulkLeadAssignment"
       responses:
         "200":
           description: Bulk assign result
@@ -3647,6 +3643,44 @@ components:
       type: object
       required: [repId]
       properties:
+        repId:
+          type: integer
+
+    BulkLeadFilter:
+      type: object
+      description: The current lead-list filters. Used to select matching leads server-side.
+      properties:
+        search:
+          type: string
+        status:
+          type: string
+        applicationType:
+          type: string
+        repId:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        minScore:
+          type: integer
+        maxScore:
+          type: integer
+        renewalFlagged:
+          type: boolean
+
+    BulkLeadAssignment:
+      type: object
+      description: Assign explicit lead IDs or all leads matching a server-side filter.
+      required: [repId]
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+          maxItems: 500
+        filter:
+          $ref: "#/components/schemas/BulkLeadFilter"
         repId:
           type: integer
 

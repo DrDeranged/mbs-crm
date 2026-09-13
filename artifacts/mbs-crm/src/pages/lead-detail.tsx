@@ -68,18 +68,60 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
+function LeadAssignmentPicker({ lead, leadId }: { lead: any; leadId: number }) {
+  const { data: currentUser } = useGetMe();
+  const { data: reps } = useListUsers({ role: "rep", isActive: true });
+  const assignLead = useAssignLead();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
+
+  if (!canAssign || !reps) return null;
+
+  const handleAssign = (repId: string) => {
+    assignLead.mutate(
+      { id: leadId, data: { repId: Number(repId) } },
+      {
+        onSuccess: () => {
+          toast({ title: "Lead reassigned" });
+          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+        },
+        onError: () => toast({
+          title: "Could not reassign lead",
+          variant: "destructive",
+        }),
+      },
+    );
+  };
+
+  return (
+    <Select
+      value={lead.assignedRepId ? String(lead.assignedRepId) : undefined}
+      onValueChange={handleAssign}
+      disabled={assignLead.isPending}
+    >
+      <SelectTrigger className="w-[190px] bg-white font-medium shadow-sm">
+        <SelectValue placeholder="Assign to rep…" />
+      </SelectTrigger>
+      <SelectContent>
+        {reps.map((rep) => (
+          <SelectItem key={rep.id} value={String(rep.id)}>
+            {rep.name || rep.email}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 // Info Tab
 function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
-  const { data: currentUser } = useGetMe();
-  const { data: reps } = useListUsers({ role: "rep" });
-  const assignLead = useAssignLead();
   const recalcScore = useRecalculateLeadScore();
   const generateBriefing = useGenerateLeadBriefing();
   const generateNextAction = useGenerateNextBestAction();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
-  const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
 
   const handleGenerateBriefing = () => {
     generateBriefing.mutate({ id: leadId }, {
@@ -109,21 +151,6 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
         variant: "destructive",
       }),
     });
-  };
-
-  const handleAssign = (repIdStr: string) => {
-    const repId = repIdStr === "unassigned" ? null : Number(repIdStr);
-    assignLead.mutate(
-      { id: leadId, data: { repId: repId as number } },
-      {
-        onSuccess: () => {
-          toast({ title: "Lead Reassigned" });
-          queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(leadId) });
-          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
-        },
-        onError: () => toast({ title: "Error", description: "Could not reassign lead.", variant: "destructive" }),
-      },
-    );
   };
 
   const fields = [
@@ -308,52 +335,6 @@ function LeadInfo({ lead, leadId }: { lead: any; leadId: number }) {
               </div>
             ))}
           </dl>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3 border-b">
-          <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Assignment</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Assigned Rep</div>
-              <div className="text-sm font-medium">
-                {lead.assignedRep ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
-                      {lead.assignedRep.name?.charAt(0) || "U"}
-                    </div>
-                    {lead.assignedRep.name || lead.assignedRep.email}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Unassigned</span>
-                )}
-              </div>
-            </div>
-            {canAssign && reps && (
-              <div className="w-52">
-                <Select
-                  value={lead.assignedRepId ? String(lead.assignedRepId) : "unassigned"}
-                  onValueChange={handleAssign}
-                  disabled={assignLead.isPending}
-                >
-                  <SelectTrigger className="h-9 text-sm bg-white">
-                    <SelectValue placeholder="Assign to rep…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {reps.map((rep) => (
-                      <SelectItem key={rep.id} value={String(rep.id)}>
-                        {rep.name || rep.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
         </CardContent>
       </Card>
 
@@ -617,7 +598,9 @@ function LeadActivity({ leadId }: { leadId: number }) {
               <div className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-white" />
               <div className="space-y-1">
                 <p className="text-sm font-medium">
-                  {activity.user?.name || "System"} <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}
+                  {typeof activity.details?.message === "string"
+                    ? activity.details.message
+                    : <>{activity.user?.name || "System"} <span className="font-normal text-muted-foreground">{activity.action}</span> {activity.entityType}</>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}
@@ -2722,6 +2705,7 @@ export default function LeadDetail() {
           </div>
           
           <div className="flex items-center gap-3">
+            <LeadAssignmentPicker lead={lead} leadId={id} />
             <Select 
               value={lead.status} 
               onValueChange={handleStatusChange}

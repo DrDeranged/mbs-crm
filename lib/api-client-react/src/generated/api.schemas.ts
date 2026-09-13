@@ -522,6 +522,31 @@ export interface AssignLead {
   repId: number;
 }
 
+/**
+ * The current lead-list filters. Used to select matching leads server-side.
+ */
+export interface BulkLeadFilter {
+  search?: string;
+  status?: string;
+  applicationType?: string;
+  repId?: number;
+  startDate?: string;
+  endDate?: string;
+  minScore?: number;
+  maxScore?: number;
+  renewalFlagged?: boolean;
+}
+
+/**
+ * Assign explicit lead IDs or all leads matching a server-side filter.
+ */
+export interface BulkLeadAssignment {
+  /** @maxItems 500 */
+  ids?: number[];
+  filter?: BulkLeadFilter;
+  repId: number;
+}
+
 export type ImportPreviewResultPreviewRowsItem = {[key: string]: string};
 
 export interface ImportPreviewResult {
@@ -1650,6 +1675,10 @@ export type UpdateMyMobileBody = {
 
 export type ListUsersParams = {
 role?: ListUsersRole;
+/**
+ * When true, only return active users
+ */
+isActive?: boolean;
 };
 
 export type ListUsersRole = typeof ListUsersRole[keyof typeof ListUsersRole];
@@ -1737,12 +1766,6 @@ export type BulkUpdateLeadStatusBody = {
 
 export type BulkUpdateLeadStatus200 = {
   updated?: number;
-};
-
-export type BulkAssignLeadsBody = {
-  /** @maxItems 500 */
-  ids: number[];
-  repId: number;
 };
 
 export type BulkAssignLeads200 = {

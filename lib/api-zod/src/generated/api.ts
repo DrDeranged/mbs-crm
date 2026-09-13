@@ -123,7 +123,8 @@ export const UpdateMyMobileResponse = zod.object({
  * @summary List all users (for assignment dropdown)
  */
 export const ListUsersQueryParams = zod.object({
-  "role": zod.enum(['admin', 'manager', 'rep', 'pending']).optional()
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']).optional(),
+  "isActive": zod.coerce.boolean().optional().describe('When true, only return active users')
 })
 
 export const ListUsersResponseItem = zod.object({
@@ -396,16 +397,27 @@ export const BulkUpdateLeadStatusResponse = zod.object({
 
 
 /**
- * @summary Reassign up to 500 leads to a rep (manager/admin only)
+ * @summary Reassign selected leads or all leads matching a filter (manager/admin only)
  */
 export const bulkAssignLeadsBodyIdsMax = 500;
 
 
 
 export const BulkAssignLeadsBody = zod.object({
-  "ids": zod.array(zod.number()).max(bulkAssignLeadsBodyIdsMax),
+  "ids": zod.array(zod.number()).max(bulkAssignLeadsBodyIdsMax).optional(),
+  "filter": zod.object({
+  "search": zod.string().optional(),
+  "status": zod.string().optional(),
+  "applicationType": zod.string().optional(),
+  "repId": zod.number().optional(),
+  "startDate": zod.string().optional(),
+  "endDate": zod.string().optional(),
+  "minScore": zod.number().optional(),
+  "maxScore": zod.number().optional(),
+  "renewalFlagged": zod.boolean().optional()
+}).optional().describe('The current lead-list filters. Used to select matching leads server-side.'),
   "repId": zod.number()
-})
+}).describe('Assign explicit lead IDs or all leads matching a server-side filter.')
 
 export const BulkAssignLeadsResponse = zod.object({
   "updated": zod.number().optional()

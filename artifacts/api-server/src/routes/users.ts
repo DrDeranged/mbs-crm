@@ -95,7 +95,12 @@ router.get("/users", async (req: Request, res: Response) => {
 
   const params = ListUsersQueryParams.safeParse(req.query);
   const users = await db.query.usersTable.findMany({
-    where: params.success && params.data.role ? eq(usersTable.role, params.data.role) : undefined,
+    where: params.success
+      ? and(
+          params.data.role ? eq(usersTable.role, params.data.role) : undefined,
+          params.data.isActive === undefined ? undefined : eq(usersTable.isActive, params.data.isActive),
+        )
+      : undefined,
     orderBy: (t, { asc }) => [asc(t.name)],
   });
 
