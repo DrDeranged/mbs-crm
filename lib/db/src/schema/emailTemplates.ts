@@ -8,6 +8,7 @@ export const emailTemplatesTable = pgTable("email_templates", {
   subject: text("subject").notNull(),
   bodyHtml: text("body_html").notNull(),
   programType: text("program_type", { enum: APPLICATION_TYPES }),
+  senderMode: text("sender_mode").notNull().default("default"),
   createdBy: integer("created_by").references(() => usersTable.id, { onDelete: "set null" }),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),

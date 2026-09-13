@@ -1,0 +1,214 @@
+COMPLETE BUILD CYCLE — four workstreams + full self-verification. A prior audit
+confirmed NONE of this exists yet: no slug field, no /r/ routes, no skip options, no
+roadmap section 6, no CEO templates. Do NOT assume partial implementation — build
+each workstream from scratch exactly as specified. Report a commit hash per
+workstream; a workstream without a commit hash is not complete.
+
+GLOBAL RULES: tsc clean after every workstream; push after every workstream; publish
+ONCE at the end; then run the full verification section against PRODUCTION. No
+email/SMS sending anywhere. No schema changes beyond those specified here.
+
+════════════════════════════════════════════════════════════════
+WORKSTREAM A — APPLICATION STATEMENT-SKIP CHANGES (client-confirmed)
+════════════════════════════════════════════════════════════════
+Current behavior (confirmed by audit): the application REQUIRES 3+ statement PDFs —
+UI blocks fewer, API returns 400. That requirement becomes conditional:
+
+A1. EQUIPMENT FINANCE applications: statement upload becomes OPTIONAL. Add a clearly
+    visible "Skip this step" action on the statement step. Skipping proceeds through
+    the rest of the application normally. Server: accept zero statements for
+    equipment-type submissions (relax the 3-file validation for this type only).
+    On the created lead, record the skip: prefer an existing boolean/status field if
+    one fits; otherwise write an activity entry "Bank statements skipped at
+    application (equipment)".
+A2. WORKING CAPITAL applications: step copy becomes "Upload your last 3–6 months of
+    business bank statements" (currently says "3 most recent months" — change it).
+    Uploading 3–6 files is accepted (raise any max-file cap to 6+ if lower). Add a
+    skip option labeled "I'll send statements to my representative instead".
+    Choosing it: (a) shows a brief confirmation telling the applicant their
+    representative will follow up to collect statements; (b) the created lead gets a
+    prominent activity entry AND an auto-created task assigned to the lead's
+    assigned rep titled "Collect 3–6 months bank statements — applicant chose to
+    send directly", due 2 business days out; (c) server accepts zero statements for
+    working_capital when this skip flag is set.
+A3. DOWNSTREAM SAFETY: trace every consumer of statements — OCR/bank-statement
+    pipeline, completeness scoring, rep notifications, application status logic —
+    and make each handle the zero-statement path without errors or stuck states.
+    The application must submit cleanly end-to-end with zero statements in BOTH
+    flows.
+
+════════════════════════════════════════════════════════════════
+WORKSTREAM B — QR REP SYSTEM (permanent per-rep application links)
+════════════════════════════════════════════════════════════════
+B1. REP SLUGS: add a `slug` column to app users — unique, lowercase, immutable once
+    used. Generate for ALL existing users from first names (arslan, nate, manny,
+    calvin, rahmare) with collision handling (append last-initial). Admin may edit a
+    slug in User Management ONLY while it has never served traffic; after first use
+    it locks. A deactivated user's slug is retired forever — enforce that reuse is
+    impossible (uniqueness must include deactivated users).
+B2. PUBLIC CHOOSER at /r/:slug — a real route, PUBLIC (no auth), server-light,
+    mobile-first, loads fast:
+    - Momentum styling consistent with /apply: MBS logo, "You're applying with
+      {Rep Full Name}" plus the rep's work phone if set, and two large buttons:
+      "Equipment Financing" and "Working Capital".
+    - Buttons route into the existing public application with financing type
+      preselected AND rep attribution carried: /apply?type=equipment&rep={slug} and
+      /apply?type=working_capital&rep={slug}.
+    - Unknown, empty, or deactivated slug → the SAME page unpersonalized ("Apply
+      with My Business Solutions"), both buttons functional, no error shown, no
+      information leaked about which slugs exist.
+B3. ATTRIBUTION + AUTO-ASSIGN: when an application/lead arrives carrying a valid rep
+    slug: auto-assign the lead to that rep (bypassing round-robin) and set the lead
+    source to "qr-card" (audit confirmed leadSource is currently hardcoded
+    "website" on this path — make it dynamic). Record the slug on the lead (field
+    or activity) so channel reporting can group by rep. Invalid slug → normal
+    round-robin + normal source; NEVER block or fail the application over
+    attribution.
+B4. /apply PARAM SUPPORT: /apply reads type (preselect the financing type),
+    rep (attribution per B3), and additionally amount, term, freq — prefill those
+    into the relevant application fields when present and sane (ignore silently
+    when absent/invalid). This also serves the marketing site's calculator handoff.
+B5. QR GENERATION: in User Management (admin view) and on each user's own profile:
+    "Download QR code" producing PNG (1000×1000, quiet zone) AND SVG encoding
+    https://app.my-business-solutions.com/r/{slug}, ink #0E2A47 on white. Use a
+    library, no external QR service.
+
+════════════════════════════════════════════════════════════════
+WORKSTREAM C — ROADMAP SECTION 6 (doc-only commit)
+════════════════════════════════════════════════════════════════
+Append to docs/AI_ROADMAP.md, matching sections 1–5's exact format (heading, "What
+it does", "What it needs", "Rough effort"). This commit touches ONLY this file.
+
+## 6. Data Enrichment & Prospecting Integration
+What it does: Enriches leads on demand with third-party B2B data — verified direct
+dials, revenue estimates, employee counts, firmographics — and enables prospect list
+building by industry and geography. Implemented as enrich-on-demand (an
+admin-controlled button on the lead), not automatic bulk enrichment, keeping
+data-credit consumption deliberate. Provider-agnostic adapter design so the vendor
+(entry tier ~$50–100/mo such as Apollo; ZoomInfo as the premium option) can be
+selected or swapped without rework.
+What it needs: A provider account and API key (business decision on tier — premium
+providers are a five-figure annual commitment better justified by observed data gaps
+and deal volume). A defined TCPA/CAN-SPAM outreach policy must precede any enriched
+cold outreach; obligations apply to purchased contact data and exposure scales with
+SMS/email volume.
+Rough effort: 2–3 days for the adapter, on-demand flow, and field mapping; 1–2 days
+per additional provider.
+
+════════════════════════════════════════════════════════════════
+WORKSTREAM D — CEO EMAIL TEMPLATES
+════════════════════════════════════════════════════════════════
+Add BOTH templates to the Email Templates library. This is the CEO's own outreach
+copy — preserve his language and claims exactly. Only allowed changes: (a) merge
+fields where shown below, using the library's REAL merge-field syntax; (b) legacy
+application links (smartyapp.io / typeform.com) replaced with
+https://app.my-business-solutions.com/apply. Seed idempotently (match on template
+name — re-running creates no duplicates). Verify both render in the template editor.
+
+TEMPLATE 1 — name & subject: "Quick Question About Business Funding"
+Hello {{firstName}},
+
+I work with My Business Solutions (MBS) helping businesses secure fast capital from
+$4,000 to $20,000,000.
+
+Programs include working capital, SBA loans, equipment financing, commercial real
+estate funding, and factoring.
+
+Approvals are same day, and many deals fund within 24 hours.
+
+All we need to review options:
+
+- Short application
+- 3–6 months of business bank statements
+
+Would you like me to send over the application to see what your business qualifies
+for?
+
+Best,
+{{repName}}
+
+TEMPLATE 2 — name & subject: "Fast Business Funding Options – Same Day Approval"
+Hello {{firstName}},
+
+My name is {{repName}} with My Business Solutions (MBS). We help businesses access
+fast and flexible funding when they need capital for growth, payroll, equipment,
+inventory, or cash flow.
+
+We offer several commercial financing options including:
+
+- Merchant Cash Advances
+- Business Loans
+- SBA Loan Programs
+- Equipment Financing
+- Commercial Real Estate Capital
+- Invoice Factoring
+
+Funding amounts range from $4,000 to $20,000,000, and we work with companies of all
+sizes and industries.
+
+What makes MBS different:
+
+✔ Same Day Approvals
+✔ Same Day Funding for Working Capital
+✔ Next Day Funding on Titled Equipment
+✔ Simple Application Process
+✔ Flexible Programs for Most Credit Profiles
+
+What we need to get started:
+
+- 1 Short Application
+- 3–6 Months of Business Bank Statements
+
+That's it.
+
+If you'd like to see what your business qualifies for, simply reply to this email
+and I'll send the application over right away, or apply here:
+https://app.my-business-solutions.com/apply
+
+P.S. Many businesses receive approvals the same day and funding within 24 hours.
+
+Best regards,
+{{repName}}
+My Business Solutions (MBS)
+{{repPhone}}
+{{repEmail}}
+www.my-business-solutions.com
+
+════════════════════════════════════════════════════════════════
+PUBLISH, THEN FULL VERIFICATION (production, evidence per item)
+════════════════════════════════════════════════════════════════
+Publish once. Then verify on app.my-business-solutions.com and report PASS/FAIL per
+item WITH EVIDENCE (screenshots, stored-field dumps, status codes, decoded QR
+strings). Test data: create only what's listed, delete every test record after
+capturing evidence.
+
+V1. Equipment application with ZERO statements completes; skip UI screenshot; lead
+    carries the skip flag/activity. Delete test lead.
+V2. Working-capital application: "3–6 months" copy visible; skip-to-rep flow shows
+    the confirmation; lead has the activity AND the rep task with correct title.
+    Screenshot both. Delete test lead + task.
+V3. Normal WITH-statements application still works end-to-end (regression). Delete.
+V4. All users have slugs (list them). /r/calvin renders personalized (screenshots
+    desktop + 390px); /r/notreal renders the generic fallback; both buttons on each
+    land in the correct application type with correct params.
+V5. A test application through /r/calvin: lead auto-assigned to Calvin, source
+    "qr-card", slug recorded (dump the stored fields). Delete.
+V6. /apply?amount=150000&term=24&freq=weekly&type=equipment prefills correctly
+    (screenshot).
+V7. QR PNG + SVG download for one rep; programmatically decode the PNG and show the
+    decoded URL matches /r/{slug}.
+V8. Security: /r/:slug public but /api/leads, /api/users, /api/analytics/summary
+    still 401 unauthenticated; a fresh sign-in still lands on the pending gate.
+V9. docs/AI_ROADMAP.md has section 6; that commit's file list shows ONLY the
+    roadmap file.
+V10. Both CEO templates exist with exact names; stored bodies contain zero
+     smartyapp/typeform URLs (grep them); merge fields render in the editor;
+     re-running the seed does not duplicate (counts before/after).
+V11. Health: healthz + deep health OK; error_log 24h count; no new 5xx since
+     publish; scheduled jobs green; Daily Briefing and next-best-action still
+     respond from an authenticated session if available — if authentication cannot
+     be automated, state so explicitly rather than marking FAIL.
+V12. FINAL TABLE: every V-item, PASS/FAIL, evidence reference, plus the four
+     workstream commit hashes. Any FAIL: precise description + minimal fix
+     proposal — implement fixes ONLY for items that fail their own spec above, then
+     re-verify that item and re-publish once if needed.

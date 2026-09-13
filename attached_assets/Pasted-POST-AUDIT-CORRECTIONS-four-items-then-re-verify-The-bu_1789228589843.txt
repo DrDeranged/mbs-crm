@@ -1,0 +1,31 @@
+POST-AUDIT CORRECTIONS — four items, then re-verify. The build is live; these are the
+deployment-data gaps + one bug the audit isolated.
+
+1. SLUG BACKFILL (production): the slug column shipped but the backfill never ran.
+   Execute the backfill against production through a production-safe path (the same
+   mechanism the publish/migration flow uses — NOT raw workspace DB access): every
+   active user gets a slug from first name, collision rule last-initial. Expected:
+   nate, and resolve the duplicate-admin situation for the two "Arslan Din" users
+   (id 7, 12) — assign arslan to the PRIMARY account (the one that owns existing
+   leads/activity; report which that is) and flag the other as the duplicate for my
+   review — do NOT delete it. Report all users with final slugs.
+2. RESERVED SLUGS FOR PENDING REPS: Calvin Tuon and Rahmare Davis have not signed in
+   yet, so no user rows exist. Implement slug reservation: when a new user
+   auto-creates on first sign-in, if their email matches a reserved mapping
+   (calvintuon@gmail.com OR calvin@my-business-solutions.com → calvin;
+   rahmaredavis@gmail.com OR rahmare@my-business-solutions.com → rahmare) assign
+   that slug on creation. Until then /r/calvin correctly falls back to generic —
+   that's acceptable; cards don't print until reps exist.
+3. CALCULATOR PREFILL BUG: /apply?amount=150000 does not populate Requested Amount,
+   and term/freq don't land. Diagnose the actual control types and map incoming
+   values properly: amount → the amount field/band it belongs to; term (months) →
+   the term control; freq (daily|weekly|biweekly|monthly) → frequency. Sane-value
+   coercion (snap to nearest allowed option); garbage ignored silently (that part
+   already works). Verify with the exact URL from the audit.
+4. TEMPLATE SEED (production): run the CEO-template seed once through an
+   authenticated/production-safe execution path. Then run it AGAIN and report both
+   counts to prove idempotency (must be identical). Confirm both exact names exist
+   with smartyapp/typeform absent from bodies.
+Then RE-RUN only the failed/blocked audit items that these fixes unblock (3.1, 3.2,
+3.3 valid-vs-invalid comparison, 3.6, 3.7, 4.2, 4.3) and report the updated table.
+tsc clean, push (hash), publish if any code changed, verify on production.

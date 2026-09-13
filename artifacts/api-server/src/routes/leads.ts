@@ -998,28 +998,30 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
 
   // Auto-enroll in any active drip sequences triggered by the new status
   try {
-    const triggeredSequences = await db.query.dripSequencesTable.findMany({
+    if (process.env["DRIP_AUTOMATION_ENABLED"] === "true") {
+      const triggeredSequences = await db.query.dripSequencesTable.findMany({
       where: and(
         eq(dripSequencesTable.triggerStatus, body.data.status as any),
         eq(dripSequencesTable.isActive, true)
       ),
       with: { steps: true },
-    });
-    for (const seq of triggeredSequences) {
-      if (!seq.steps || seq.steps.length === 0) continue;
-      const existingEnrollment = await db.query.dripEnrollmentsTable.findFirst({
-        where: and(
-          eq(dripEnrollmentsTable.leadId, params.data.id),
-          eq(dripEnrollmentsTable.status, "active")
-        ),
       });
-      if (!existingEnrollment) {
-        await db.insert(dripEnrollmentsTable).values({
-          leadId: params.data.id,
-          sequenceId: seq.id,
-          currentStep: 0,
-          status: "active",
+      for (const seq of triggeredSequences) {
+        if (!seq.steps || seq.steps.length === 0) continue;
+        const existingEnrollment = await db.query.dripEnrollmentsTable.findFirst({
+          where: and(
+            eq(dripEnrollmentsTable.leadId, params.data.id),
+            eq(dripEnrollmentsTable.status, "active")
+          ),
         });
+        if (!existingEnrollment) {
+          await db.insert(dripEnrollmentsTable).values({
+            leadId: params.data.id,
+            sequenceId: seq.id,
+            currentStep: 0,
+            status: "active",
+          });
+        }
       }
     }
   } catch (err) {

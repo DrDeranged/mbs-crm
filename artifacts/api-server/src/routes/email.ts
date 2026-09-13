@@ -44,8 +44,8 @@ function verifyUnsubToken(sendId: number, email: string, token: string): boolean
 const router = Router();
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
-const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
-const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "MBS CRM";
+const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "funding@my-business-solutions.com";
+const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "My Business Solutions";
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -117,14 +117,27 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
 }
 
 async function doSendEmail(params: {
-  leadId: number;
+  leadId: number | null;
   userId: number | null;
   templateId: number | null;
   subject: string;
   bodyHtml: string;
   toEmail: string;
   baseUrl: string;
+  senderMode?: "default" | "assigned_rep";
+  rep?: { name?: string | null; email?: string | null } | null;
 }): Promise<{ send: any; error?: string }> {
+  const repEmail = params.rep?.email?.trim() || "";
+  const repCanSend = repEmail.toLowerCase().endsWith("@my-business-solutions.com");
+  const useRepSender = params.senderMode === "assigned_rep" && repCanSend;
+  const from = {
+    email: useRepSender ? repEmail : FROM_EMAIL,
+    name: useRepSender ? (params.rep?.name?.trim() || FROM_NAME) : FROM_NAME,
+  };
+  const replyTo = repEmail
+    ? { email: repEmail, name: params.rep?.name?.trim() || repEmail }
+    : undefined;
+
   // Create a placeholder record first to get the ID for tracking URLs
   const [placeholder] = await db.insert(emailSendsTable).values({
     leadId: params.leadId,
@@ -132,7 +145,7 @@ async function doSendEmail(params: {
     templateId: params.templateId,
     subject: params.subject,
     toEmail: params.toEmail,
-    fromEmail: FROM_EMAIL,
+    fromEmail: from.email,
     status: "queued",
   }).returning();
 
@@ -150,10 +163,15 @@ async function doSendEmail(params: {
 
   try {
     const [response] = await sgMail.send({
-      from: { email: FROM_EMAIL, name: FROM_NAME },
+      from,
+      ...(replyTo ? { replyTo } : {}),
       to: params.toEmail,
       subject: params.subject,
       html: trackedHtml,
+      trackingSettings: {
+        clickTracking: { enable: true, enableText: true },
+        openTracking: { enable: true },
+      },
     });
 
     const messageId = (response.headers?.["x-message-id"] as string) || null;
@@ -308,17 +326,21 @@ router.post("/email/send", async (req: Request, res: Response) => {
   if (!lead.email) return void res.status(400).json({ error: "Lead has no email address" });
   if (lead.isUnsubscribed) return void res.status(409).json({ error: "Lead is unsubscribed" });
 
-  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
+  const rep = lead.assignedRepId
+    ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+    : await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
   const vars = buildVariables(lead, rep);
 
   let finalSubject = subject || "";
   let finalBody = bodyHtml || "";
+  let senderMode: "default" | "assigned_rep" = "default";
 
   if (templateId) {
     const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
     if (!template) return void res.status(404).json({ error: "Template not found" });
     finalSubject = renderTemplate(template.subject, vars);
     finalBody = renderTemplate(template.bodyHtml, vars);
+    senderMode = template.senderMode as "default" | "assigned_rep";
   }
 
   if (!finalSubject.trim() || !finalBody.trim()) {
@@ -333,6 +355,8 @@ router.post("/email/send", async (req: Request, res: Response) => {
     bodyHtml: finalBody,
     toEmail: lead.email,
     baseUrl: getPublicBaseUrl(),
+    senderMode,
+    rep,
   });
 
   if (sendError) {
@@ -364,7 +388,6 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
   if (!template) return void res.status(404).json({ error: "Template not found" });
 
-  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
   const baseUrl = getPublicBaseUrl();
 
   let sent = 0;
@@ -378,6 +401,9 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
       failed++;
       continue;
     }
+    const rep = lead.assignedRepId
+      ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+      : await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
     const vars = buildVariables(lead, rep);
     const { error } = await doSendEmail({
       leadId: lead.id,
@@ -387,6 +413,8 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
       bodyHtml: renderTemplate(template.bodyHtml, vars),
       toEmail: lead.email,
       baseUrl,
+      senderMode: template.senderMode as "default" | "assigned_rep",
+      rep,
     });
     if (error) failed++;
     else {
@@ -438,7 +466,7 @@ router.post("/email/templates", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
-  const { name, subject, bodyHtml, programType, isActive } = req.body as any;
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
   if (!name || !subject || !bodyHtml) return void res.status(400).json({ error: "name, subject, bodyHtml required" });
 
   const [template] = await db.insert(emailTemplatesTable).values({
@@ -446,6 +474,7 @@ router.post("/email/templates", async (req: Request, res: Response) => {
     subject,
     bodyHtml,
     programType: programType || null,
+    senderMode: senderMode === "assigned_rep" ? "assigned_rep" : "default",
     createdBy: user.id,
     isActive: isActive ?? true,
   }).returning();
@@ -460,7 +489,7 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const id = parseInt(req.params["id"] as string, 10);
-  const { name, subject, bodyHtml, programType, isActive } = req.body as any;
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
 
   const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
@@ -471,6 +500,7 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
       subject: subject ?? existing.subject,
       bodyHtml: bodyHtml ?? existing.bodyHtml,
       programType: programType !== undefined ? programType : existing.programType,
+      senderMode: senderMode === "assigned_rep" || senderMode === "default" ? senderMode : existing.senderMode,
       isActive: isActive ?? existing.isActive,
       updatedAt: new Date(),
     })
@@ -506,6 +536,72 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   });
 });
 
+// --- Admin-only test send; never associates with or sends to a lead ---
+router.post("/email/test-send", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Admins only" });
+
+  const { templateId, toEmail } = req.body as { templateId?: number; toEmail?: string };
+  if (!templateId || !toEmail?.trim()) {
+    return void res.status(400).json({ error: "templateId and toEmail are required" });
+  }
+
+  const template = await db.query.emailTemplatesTable.findFirst({
+    where: eq(emailTemplatesTable.id, templateId),
+  });
+  if (!template) return void res.status(404).json({ error: "Template not found" });
+
+  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
+  const recipientName = toEmail.split("@")[0] || "Test";
+  const vars = buildVariables(
+    {
+      firstName: recipientName,
+      lastName: "",
+      companyName: "My Business Solutions",
+      email: toEmail,
+      phone: "",
+    },
+    rep,
+  );
+  const finalSubject = renderTemplate(template.subject, vars);
+  const finalBody = renderTemplate(template.bodyHtml, vars);
+  if (/\{\{\w+\}\}/.test(finalSubject) || /\{\{\w+\}\}/.test(finalBody)) {
+    return void res.status(422).json({ error: "Template contains unresolved merge fields" });
+  }
+
+  const { send, error: sendError } = await doSendEmail({
+    leadId: null,
+    userId: user.id,
+    templateId: template.id,
+    subject: finalSubject,
+    bodyHtml: finalBody,
+    toEmail: toEmail.trim(),
+    baseUrl: getPublicBaseUrl(),
+    senderMode: template.senderMode as "default" | "assigned_rep",
+    rep,
+  });
+  if (sendError) {
+    return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
+  }
+
+  await logActivity({
+    userId: user.id,
+    leadId: null,
+    action: "email_test_sent",
+    entityType: "email_send",
+    entityId: send.id,
+    details: {
+      subject: finalSubject,
+      to: toEmail.trim(),
+      templateId: template.id,
+      tracking: { open: true, click: true },
+    },
+  });
+
+  res.status(201).json(sendToApi(send));
+});
+
 // --- List emails for a lead ---
 router.get("/leads/:id/emails", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -537,6 +633,7 @@ function templateToApi(t: any) {
     subject: t.subject,
     bodyHtml: t.bodyHtml,
     programType: t.programType ?? null,
+    senderMode: t.senderMode ?? "default",
     isActive: t.isActive,
     createdBy: t.createdBy ?? null,
     creator: t.creator ? { id: t.creator.id, name: t.creator.name, email: t.creator.email } : null,
@@ -708,6 +805,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       subject: t.subject,
       bodyHtml: t.bodyHtml,
       programType: t.programType as any,
+      senderMode: "default",
       createdBy: user.id,
       isActive: true,
     }).returning();
@@ -738,7 +836,7 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
       const [seq] = await db.insert(dripSequencesTable).values({
         name: SEQUENCE_NAME,
         triggerStatus: "application_received",
-        isActive: true,
+        isActive: false,
       }).returning();
 
       await db.insert(dripSequenceStepsTable).values([

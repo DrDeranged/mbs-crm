@@ -1,0 +1,83 @@
+MAJOR BUILD CYCLE — three workstreams, build in order, verify each before the next.
+Rules: no schema changes beyond those specified; no email/SMS sending; tsc clean per
+workstream; push after each; publish ONCE at the end after all verification.
+
+════════════════════════════════════════════════════════════════════
+WORKSTREAM A — APPLICATION CHANGES (client-confirmed spec)
+════════════════════════════════════════════════════════════════════
+The public application's bank-statement step changes by financing type:
+
+1. EQUIPMENT FINANCE applications: bank statement upload becomes OPTIONAL. Add a
+   clearly visible "Skip this step" action. Skipping proceeds normally; the created
+   application/lead is flagged (e.g. statementsProvided: false or equivalent existing
+   mechanism — prefer a field that already exists; if none, an activity-log entry
+   "Statements skipped at application").
+2. WORKING CAPITAL applications: the step requests 3–6 months of business bank
+   statements (copy: "Upload your last 3–6 months of business bank statements").
+   Multiple files supported (already true — verify). Add a skip option labeled
+   "I'll send statements to my representative instead" — skipping shows a brief
+   confirmation note telling the applicant their rep will follow up for statements,
+   and the created lead gets a prominent activity entry + a task assigned to the
+   lead's assigned rep: "Collect 3–6 months bank statements — applicant chose to send
+   directly."
+3. DOWNSTREAM SAFETY: verify the OCR/bank-statement pipeline, completeness checks,
+   and rep notifications all handle the no-statements path gracefully (no errors, no
+   stuck states). The application must submit cleanly with zero statements in both
+   flows.
+4. VERIFY: complete one equipment application (skipping) and one working-capital
+   application (skipping) end-to-end on preview; confirm leads created, flags/tasks
+   present, no console/server errors. Screenshot both skip screens.
+
+════════════════════════════════════════════════════════════════════
+WORKSTREAM B — QR REP SYSTEM (per-rep application links)
+════════════════════════════════════════════════════════════════════
+Every rep gets a permanent personal application link for printed business cards.
+
+1. REP SLUGS: add a slug (unique, lowercase, immutable once set) to app users.
+   Auto-generate from first name (calvin, rahmare, nate, manny, arslan) with
+   collision handling; editable ONCE by admin in User Management before first use.
+   Slugs are permanent — they will be printed on physical cards. A deactivated user's
+   slug must NEVER be reassigned.
+2. PUBLIC CHOOSER PAGE at /r/{slug} (PUBLIC route, no auth, server-light, must load
+   fast on mobile):
+   - Momentum-styled (match the /apply visual language): MBS logo, "You're applying
+     with {Rep Name}" + rep's work phone if set, and two large buttons:
+     "Equipment Financing" and "Working Capital" → each routes into the existing
+     public application with the financing type preselected AND the rep attribution
+     carried (e.g. /apply?type=equipment&rep={slug}).
+   - Unknown or deactivated slug → generic fallback: same page without rep
+     personalization ("Apply with My Business Solutions"), both buttons work, no
+     error shown.
+3. ATTRIBUTION + AUTO-ASSIGN: applications/leads arriving with a rep param:
+   - auto-assign to that rep (override round-robin), and
+   - set lead source to "qr-card" (or leadSource "qr-card" + note of the slug if
+     source is an enum — use whatever the source mechanism supports without schema
+     surgery; the rep and channel must both be queryable).
+   - If the slug is invalid, fall back to normal assignment; never block the
+     application.
+4. QR GENERATION: in User Management (admin) and on the user's own profile, a
+   "Download QR code" action producing PNG (1000px, quiet zone) + SVG of
+   https://app.my-business-solutions.com/r/{slug} in brand ink (#0E2A47) on white.
+   Server-side or client-side generation is fine — no external QR service.
+5. VERIFY: /r/calvin renders (after creating slugs for existing users), both buttons
+   land in the right application type, a completed test application via
+   /r/calvin?… auto-assigns to Calvin's user and carries the qr-card source; invalid
+   slug falls back gracefully; QR downloads scan correctly to the URL. Screenshot the
+   chooser page (desktop + mobile width) and one QR. Delete test applications after.
+
+════════════════════════════════════════════════════════════════════
+WORKSTREAM C — ROADMAP DOC
+════════════════════════════════════════════════════════════════════
+Append section 6 to docs/AI_ROADMAP.md matching sections 1–5's exact format:
+"## 6. Data Enrichment & Prospecting Integration" — What it does: enrich-on-demand
+(button on lead, admin-controlled) for third-party B2B data (direct dials, revenue,
+employee counts) via a provider-agnostic adapter (entry option ~$50–100/mo e.g.
+Apollo; ZoomInfo as the premium tier justified later by observed gaps and volume).
+What it needs: provider account + key; a defined TCPA/CAN-SPAM outreach policy BEFORE
+any enriched cold outreach. Rough effort: 2–3 days adapter + flow; 1–2 days per
+additional provider.
+
+════════════════════════════════════════════════════════════════════
+FINAL: publish once. Then verify ON PRODUCTION: both application skip flows, /r/{slug}
+chooser live, one full QR-attributed test application (then delete it), QR download.
+Report every verification with evidence.

@@ -78,6 +78,7 @@ function TemplateFormDialog({
   const [subject, setSubject] = useState(template?.subject ?? "");
   const [bodyHtml, setBodyHtml] = useState(template?.bodyHtml ?? "");
   const [programType, setProgramType] = useState<string>(template?.programType ?? "none");
+  const [senderMode, setSenderMode] = useState<string>(template?.senderMode ?? "default");
   const [isActive, setIsActive] = useState(template?.isActive ?? true);
   const createTemplate = useCreateEmailTemplate();
   const updateTemplate = useUpdateEmailTemplate();
@@ -93,6 +94,7 @@ function TemplateFormDialog({
       subject: subject.trim(),
       bodyHtml: bodyHtml.trim(),
       programType: programType === "none" ? null : (programType || null),
+      senderMode,
       isActive,
     };
     if (!payload.name || !payload.subject || !payload.bodyHtml) {
@@ -143,6 +145,17 @@ function TemplateFormDialog({
           <div className="space-y-1.5">
             <Label>Subject Line *</Label>
             <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Your application status update" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Sender</Label>
+            <Select value={senderMode} onValueChange={setSenderMode}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">My Business Solutions — funding@my-business-solutions.com</SelectItem>
+                <SelectItem value="assigned_rep">Assigned rep (verified company-domain addresses only)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Replies go to the assigned rep whenever one is available.</p>
           </div>
           <div className="space-y-1.5">
             <Label>Email Body *</Label>

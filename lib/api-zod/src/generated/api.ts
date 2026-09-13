@@ -2531,6 +2531,7 @@ export const ListEmailTemplatesResponseItem = zod.object({
   "subject": zod.string(),
   "bodyHtml": zod.string(),
   "programType": zod.string().nullish(),
+  "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
   "creator": zod.union([zod.object({
@@ -2552,6 +2553,7 @@ export const CreateEmailTemplateBody = zod.object({
   "subject": zod.string(),
   "bodyHtml": zod.string(),
   "programType": zod.string().nullish(),
+  "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean().optional()
 })
 
@@ -2569,6 +2571,7 @@ export const GetEmailTemplateResponse = zod.object({
   "subject": zod.string(),
   "bodyHtml": zod.string(),
   "programType": zod.string().nullish(),
+  "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
   "creator": zod.union([zod.object({
@@ -2593,6 +2596,7 @@ export const UpdateEmailTemplateBody = zod.object({
   "subject": zod.string(),
   "bodyHtml": zod.string(),
   "programType": zod.string().nullish(),
+  "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean().optional()
 })
 
@@ -2602,6 +2606,7 @@ export const UpdateEmailTemplateResponse = zod.object({
   "subject": zod.string(),
   "bodyHtml": zod.string(),
   "programType": zod.string().nullish(),
+  "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
   "creator": zod.union([zod.object({
@@ -2639,6 +2644,15 @@ export const SendEmailBody = zod.object({
   "templateId": zod.number().optional(),
   "subject": zod.string().optional(),
   "bodyHtml": zod.string().optional()
+})
+
+
+/**
+ * @summary Send and log an admin-only test email without associating it with a lead
+ */
+export const SendTestEmailBody = zod.object({
+  "templateId": zod.number(),
+  "toEmail": zod.string().email()
 })
 
 
@@ -2772,6 +2786,7 @@ export const ListDripSequencesResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "triggerStatus": zod.string(),
+  "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdAt": zod.coerce.date(),
@@ -2786,6 +2801,7 @@ export const ListDripSequencesResponse = zod.array(ListDripSequencesResponseItem
 export const CreateDripSequenceBody = zod.object({
   "name": zod.string(),
   "triggerStatus": zod.string(),
+  "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean().optional()
 })
 
@@ -2801,6 +2817,7 @@ export const GetDripSequenceResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "triggerStatus": zod.string(),
+  "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdAt": zod.coerce.date(),
@@ -2832,6 +2849,7 @@ export const UpdateDripSequenceParams = zod.object({
 export const UpdateDripSequenceBody = zod.object({
   "name": zod.string(),
   "triggerStatus": zod.string(),
+  "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean().optional()
 })
 
@@ -2839,6 +2857,7 @@ export const UpdateDripSequenceResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "triggerStatus": zod.string(),
+  "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdAt": zod.coerce.date(),

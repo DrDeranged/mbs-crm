@@ -2534,6 +2534,42 @@ paths:
         "409":
           description: Lead is unsubscribed
 
+  /email/test-send:
+    post:
+      operationId: sendTestEmail
+      tags: [email]
+      summary: Send and log an admin-only test email without associating it with a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [templateId, toEmail]
+              properties:
+                templateId:
+                  type: integer
+                toEmail:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: Test email sent and logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSend"
+        "400":
+          description: Missing template ID or recipient email
+        "403":
+          description: Admin access required
+        "404":
+          description: Template not found
+        "422":
+          description: Template contains unresolved merge fields
+        "502":
+          description: SendGrid delivery request failed
+
   /email/bulk:
     post:
       operationId: sendBulkEmail
@@ -4035,6 +4071,9 @@ components:
           type: string
         programType:
           type: ["string", "null"]
+        senderMode:
+          type: string
+          enum: [default, assigned_rep]
         isActive:
           type: boolean
         createdBy:
@@ -4069,6 +4108,9 @@ components:
           type: string
         programType:
           type: ["string", "null"]
+        senderMode:
+          type: string
+          enum: [default, assigned_rep]
         isActive:
           type: boolean
 
@@ -4158,6 +4200,9 @@ components:
           type: string
         triggerStatus:
           type: string
+        senderMode:
+          type: string
+          enum: [template, default, assigned_rep]
         isActive:
           type: boolean
         stepCount:
@@ -4187,6 +4232,9 @@ components:
           type: string
         triggerStatus:
           type: string
+        senderMode:
+          type: string
+          enum: [template, default, assigned_rep]
         isActive:
           type: boolean
 

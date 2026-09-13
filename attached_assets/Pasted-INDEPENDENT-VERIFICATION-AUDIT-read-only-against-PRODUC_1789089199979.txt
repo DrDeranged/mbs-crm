@@ -1,0 +1,91 @@
+INDEPENDENT VERIFICATION AUDIT — read-only against PRODUCTION
+(app.my-business-solutions.com). You are auditing a build cycle that claims four
+completed workstreams. Trust nothing claimed: verify each item yourself with
+evidence. NO fixes, NO code changes, NO publishes. The ONLY writes permitted are the
+explicitly listed test flows, and every test record MUST be deleted after evidence
+capture. Report PASS / FAIL / BLOCKED per item — with evidence (screenshot, stored
+field dump, status code, decoded string, commit hash). Never mark PASS on inference;
+if you cannot test something, mark BLOCKED with the reason.
+
+SECTION 1 — GIT FORENSICS (do this first)
+1.1 List the last 8 commits (hash + message + files-changed count). Identify which
+    commits correspond to: application skip changes, QR rep system, roadmap
+    section 6, CEO templates. Report each hash — a workstream with no identifiable
+    commit is an automatic FAIL for its section below.
+1.2 Confirm the deployed production build postdates those commits (deployment
+    build time vs commit times). If production predates them, everything below
+    is FAIL "not published" — say so and stop.
+
+SECTION 2 — APPLICATION SKIP FLOWS (production test flows, then delete)
+2.1 EQUIPMENT: open the public application, financing type equipment. The
+    statement step must offer a visible skip. Complete a submission with ZERO
+    statements (applicant "Verify EquipSkip", email verify-equip@example.com).
+    Evidence: skip UI screenshot; the created lead's skip flag or activity entry
+    (dump it). Then DELETE the lead.
+2.2 WORKING CAPITAL: statement step copy must say "3–6 months". Use the skip
+    option "I'll send statements to my representative instead" (applicant "Verify
+    WCSkip", verify-wc@example.com). Evidence: the confirmation message screenshot;
+    the lead's activity entry; the auto-created task on the assigned rep titled
+    "Collect 3–6 months bank statements — applicant chose to send directly".
+    DELETE lead + task.
+2.3 REGRESSION: one normal working-capital application WITH 3 statement PDFs
+    completes; OCR/processing shows no errors for it. DELETE it.
+2.4 Server-side check: the API must REJECT a zero-statement working-capital
+    submission when the skip flag is NOT set (this proves validation was relaxed
+    conditionally, not removed). Report the status code.
+
+SECTION 3 — QR REP SYSTEM
+3.1 Dump all user slugs (user id → slug). Every active user must have one; report
+    duplicates or missing.
+3.2 GET /r/calvin unauthenticated: personalized chooser renders (name, phone if
+    set, two buttons). Screenshots at desktop and 390px. Verify each button's
+    target URL carries the right type and rep params.
+3.3 GET /r/notreal: generic fallback renders, both buttons work, no error, and the
+    response does NOT differ in any way that reveals which slugs exist (compare
+    headers/status).
+3.4 Submit a test application via the /r/calvin equipment path (applicant "Verify
+    QRAttr", verify-qr@example.com). Dump the stored lead: assignedTo must be
+    Calvin's user, leadSource "qr-card", slug recorded. DELETE it.
+3.5 Submit one WITHOUT a rep param: round-robin assignment and normal source
+    (proves attribution is conditional). DELETE it.
+3.6 /apply?amount=150000&term=24&freq=weekly&type=equipment — fields prefilled
+    (screenshot). Then /apply?amount=notanumber — page loads normally, garbage
+    ignored (no crash, no prefill).
+3.7 Download one rep's QR PNG and SVG. Programmatically decode the PNG; the decoded
+    string must exactly equal https://app.my-business-solutions.com/r/{slug}.
+3.8 SECURITY: with no auth — /api/leads, /api/users, /api/analytics/summary all
+    401; /r/:slug 200. A fresh sign-in (if testable) lands on the pending gate
+    with zero data access; if auth automation is blocked, mark BLOCKED not FAIL,
+    and verify the pending-gate code path exists at the commit instead.
+
+SECTION 4 — ROADMAP + TEMPLATES
+4.1 docs/AI_ROADMAP.md contains "## 6. Data Enrichment & Prospecting Integration"
+    with the What-it-does / What-it-needs / Rough-effort structure matching
+    sections 1–5. The commit that added it touched ONLY this file (show its file
+    list).
+4.2 Query the templates store: both "Quick Question About Business Funding" and
+    "Fast Business Funding Options – Same Day Approval" exist (exact names). Grep
+    their stored bodies: zero occurrences of smartyapp or typeform; the apply link
+    is app.my-business-solutions.com/apply; merge fields use the library's actual
+    syntax (name it) and render in the editor preview (screenshot one).
+4.3 Idempotency: run the template seed twice; template count identical before and
+    after the second run (report counts).
+
+SECTION 5 — SYSTEM HEALTH & NON-REGRESSION
+5.1 /api/healthz and deep health: 200, db ok, anthropic ok. Report the full deep
+    payload minus secrets.
+5.2 error_log count last 24h; scan deployment logs since the publish for 5xx —
+    report anything that is not the known Twilio 503.
+5.3 Scheduled jobs (drip, task-reminder, renewal): last-run status each.
+5.4 Lead count ≈ 521+ (the imported base plus nothing unexpected); lender count
+    exactly 4 pending the new WC additions; dashboard KPIs still show the real
+    counts, not zero.
+5.5 Daily Briefing and next-best-action endpoints: unauthenticated → 401 (proves
+    live + gated). If an authenticated session is available, generate each once
+    and confirm sane output; else BLOCKED.
+
+SECTION 6 — VERDICT
+One table: every item above → PASS / FAIL / BLOCKED → one-line evidence reference.
+Then a final line: SHIP / DO-NOT-SHIP for the website integration cycle that
+depends on /apply params and /r/ routes. For every FAIL: exact description +
+minimal fix proposal. CHANGE NOTHING.

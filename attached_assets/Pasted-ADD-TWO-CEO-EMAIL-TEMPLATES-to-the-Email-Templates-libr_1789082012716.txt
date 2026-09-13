@@ -1,0 +1,82 @@
+ADD TWO CEO EMAIL TEMPLATES to the Email Templates library. These are the CEO's own
+outreach copy — preserve his language and claims exactly; the ONLY changes allowed:
+(a) insert merge fields where indicated, (b) replace legacy application links
+(smartyapp.io / typeform) with https://app.my-business-solutions.com/apply — those
+vendors are retiring. Seed idempotently (match on name, no duplicates), verify both
+render in the template editor with merge fields intact.
+
+TEMPLATE 1 — name: "Quick Question About Business Funding", subject same:
+---
+Hello {{firstName}},
+
+I work with My Business Solutions (MBS) helping businesses secure fast capital from
+$4,000 to $20,000,000.
+
+Programs include working capital, SBA loans, equipment financing, commercial real
+estate funding, and factoring.
+
+Approvals are same day, and many deals fund within 24 hours.
+
+All we need to review options:
+
+- Short application
+- 3–6 months of business bank statements
+
+Would you like me to send over the application to see what your business qualifies
+for?
+
+Best,
+{{repName}}
+---
+
+TEMPLATE 2 — name: "Fast Business Funding Options – Same Day Approval", subject same:
+---
+Hello {{firstName}},
+
+My name is {{repName}} with My Business Solutions (MBS). We help businesses access
+fast and flexible funding when they need capital for growth, payroll, equipment,
+inventory, or cash flow.
+
+We offer several commercial financing options including:
+
+- Merchant Cash Advances
+- Business Loans
+- SBA Loan Programs
+- Equipment Financing
+- Commercial Real Estate Capital
+- Invoice Factoring
+
+Funding amounts range from $4,000 to $20,000,000, and we work with companies of all
+sizes and industries.
+
+What makes MBS different:
+
+✔ Same Day Approvals
+✔ Same Day Funding for Working Capital
+✔ Next Day Funding on Titled Equipment
+✔ Simple Application Process
+✔ Flexible Programs for Most Credit Profiles
+
+What we need to get started:
+
+- 1 Short Application
+- 3–6 Months of Business Bank Statements
+
+That's it.
+
+If you'd like to see what your business qualifies for, simply reply to this email and
+I'll send the application over right away, or apply here:
+https://app.my-business-solutions.com/apply
+
+P.S. Many businesses receive approvals the same day and funding within 24 hours.
+
+Best regards,
+{{repName}}
+My Business Solutions (MBS)
+{{repPhone}}
+{{repEmail}}
+www.my-business-solutions.com
+---
+Note: template 2's second personalization in the intro uses the rep's name, not
+Nate's — his original was written first-person; merge fields make it work for every
+rep. Use the library's actual merge-field syntax if it differs from {{x}}.

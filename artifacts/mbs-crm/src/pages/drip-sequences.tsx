@@ -31,7 +31,8 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(sequence?.name ?? "");
   const [triggerStatus, setTriggerStatus] = useState(sequence?.triggerStatus ?? "");
-  const [isActive, setIsActive] = useState(sequence?.isActive ?? true);
+  const [isActive, setIsActive] = useState(sequence?.isActive ?? false);
+  const [senderMode, setSenderMode] = useState(sequence?.senderMode ?? "template");
   const create = useCreateDripSequence();
   const update = useUpdateDripSequence();
   const queryClient = useQueryClient();
@@ -45,7 +46,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
       toast({ title: "Name and trigger status are required", variant: "destructive" });
       return;
     }
-    const payload = { name: name.trim(), triggerStatus, isActive };
+    const payload = { name: name.trim(), triggerStatus, senderMode, isActive };
     const opts = {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["drip-sequences"] });
@@ -62,7 +63,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v && !isEditing) { setName(""); setTriggerStatus(""); setIsActive(true); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v && !isEditing) { setName(""); setTriggerStatus(""); setSenderMode("template"); setIsActive(false); } }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -88,6 +89,18 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
           <div className="flex items-center gap-2">
             <Switch checked={isActive} onCheckedChange={setIsActive} id="seq-active" />
             <Label htmlFor="seq-active">Active (auto-enroll enabled)</Label>
+          </div>
+          <div className="space-y-1">
+            <Label>Sender</Label>
+            <Select value={senderMode} onValueChange={setSenderMode}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="template">Use each template's sender</SelectItem>
+                <SelectItem value="default">My Business Solutions default sender</SelectItem>
+                <SelectItem value="assigned_rep">Assigned rep (verified company-domain addresses only)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Replies go to the assigned rep whenever one is available.</p>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

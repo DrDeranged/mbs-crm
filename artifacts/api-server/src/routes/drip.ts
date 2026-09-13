@@ -17,6 +17,7 @@ function sequenceToApi(seq: any) {
     id: seq.id,
     name: seq.name,
     triggerStatus: seq.triggerStatus,
+    senderMode: seq.senderMode ?? "template",
     isActive: seq.isActive,
     stepCount: seq.steps?.length ?? 0,
     createdAt: seq.createdAt.toISOString(),
@@ -83,13 +84,14 @@ router.post("/drip/sequences", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
-  const { name, triggerStatus, isActive } = req.body as any;
+  const { name, triggerStatus, senderMode, isActive } = req.body as any;
   if (!name || !triggerStatus) return void res.status(400).json({ error: "name and triggerStatus required" });
 
   const [seq] = await db.insert(dripSequencesTable).values({
     name,
     triggerStatus,
-    isActive: isActive ?? true,
+    senderMode: ["template", "default", "assigned_rep"].includes(senderMode) ? senderMode : "template",
+    isActive: isActive ?? false,
   }).returning();
 
   res.status(201).json({ ...seq, stepCount: 0, createdAt: seq.createdAt.toISOString(), updatedAt: seq.updatedAt.toISOString() });
@@ -128,11 +130,12 @@ router.put("/drip/sequences/:id", async (req: Request, res: Response) => {
   const existing = await db.query.dripSequencesTable.findFirst({ where: eq(dripSequencesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
 
-  const { name, triggerStatus, isActive } = req.body as any;
+  const { name, triggerStatus, senderMode, isActive } = req.body as any;
   const [updated] = await db.update(dripSequencesTable)
     .set({
       name: name ?? existing.name,
       triggerStatus: triggerStatus ?? existing.triggerStatus,
+      senderMode: ["template", "default", "assigned_rep"].includes(senderMode) ? senderMode : existing.senderMode,
       isActive: isActive ?? existing.isActive,
       updatedAt: new Date(),
     })

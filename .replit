@@ -46,6 +46,11 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
+SENDGRID_FROM_EMAIL = "funding@my-business-solutions.com"
+SENDGRID_FROM_NAME = "My Business Solutions"
 
 [userenv.production]
 ALLOWED_ORIGINS = "https://app.my-business-solutions.com,https://my-business-solutions.com,https://www.my-business-solutions.com"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-f3f5a47e-8f3f-4900-8d52-6ff73ad08e06"

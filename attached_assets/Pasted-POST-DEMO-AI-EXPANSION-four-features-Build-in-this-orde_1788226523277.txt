@@ -1,0 +1,33 @@
+POST-DEMO AI EXPANSION — four features. Build in this order, verify each fully before
+the next. Same Anthropic integration and hard rules as existing AI features (no
+promises of rates/approval; nothing auto-sends without explicit human confirmation).
+
+1. NATURAL-LANGUAGE LEAD SEARCH: a search-with-AI mode on the leads list ("show me NC
+   contractors that fit AMUR", "leads missing phone numbers", "construction leads over
+   $100K"). Server: Claude translates the query into a STRUCTURED filter object
+   validated against a whitelist of filterable fields (never raw SQL from the model);
+   apply filters server-side; return leads + a one-line explanation of the
+   interpretation. Show the interpreted filters as removable chips so users see and
+   correct what the AI understood.
+
+2. AI BULK OUTREACH DRAFTS (drafts ONLY): on the leads list, select up to 25 leads →
+   "Draft outreach" → for each, Claude drafts a personalized intro email using lead
+   fields + industry (working-capital/equipment angle per their type). Results land in
+   a review queue UI — nothing sends; each draft is copy/editable, and any future
+   sending goes through the existing email path only after a human clicks per-lead.
+   TCPA/CAN-SPAM note in the UI: this list is cold prospects — sending policy is a
+   business decision, drafts are prep only.
+
+3. AI DEDUPE & MERGE ASSISTANT: a "Find duplicates" tool (admin only) — heuristic pass
+   (same email/phone/company-normalized) + Claude adjudication of borderline pairs
+   (similar names, same domain). Present pairs with a confidence + rationale; admin
+   approves each merge. Merge = combine activities/notes/docs onto the richer record,
+   soft-archive the loser (no hard deletes). Build the merge endpoint idempotent.
+
+4. AI DATA ENRICHMENT FROM NOTES: for the 521 imported leads, an admin action that
+   parses each lead's provenance activity note (website/LinkedIn text) into structured
+   fields where the schema has homes (website URL if a field exists; otherwise leave in
+   notes). Claude only extracts what's literally present — no inference, no lookups.
+
+Each: tsc clean, unit tests where logic warrants (filter whitelist, merge idempotency),
+push, verify on preview, THEN publish, then production spot-check. Report per feature.

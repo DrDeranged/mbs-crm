@@ -10,7 +10,7 @@ import {
 } from "@workspace/db";
 import { captureException } from "./sentry";
 import { eq, and } from "drizzle-orm";
-import { doSendEmail, renderTemplate, buildVariables, FROM_EMAIL } from "../routes/email";
+import { doSendEmail, renderTemplate, buildVariables } from "../routes/email";
 import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 import { getPublicBaseUrl } from "./brand";
@@ -30,6 +30,11 @@ export async function runDripJob(): Promise<void> {
   let errorMessage: string | undefined;
 
   try {
+    if (process.env["DRIP_AUTOMATION_ENABLED"] !== "true") {
+      logger.info("Drip automation is disarmed");
+      return;
+    }
+
     const activeEnrollments = await db.query.dripEnrollmentsTable.findMany({
       where: eq(dripEnrollmentsTable.status, "active"),
       with: {
@@ -116,6 +121,12 @@ export async function runDripJob(): Promise<void> {
           bodyHtml,
           toEmail: lead.email,
           baseUrl,
+          senderMode: (
+            enrollment.sequence.senderMode === "template"
+              ? template.senderMode
+              : enrollment.sequence.senderMode
+          ) as "default" | "assigned_rep",
+          rep,
         });
 
         if (sendError) {

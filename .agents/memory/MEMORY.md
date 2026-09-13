@@ -18,3 +18,5 @@
 - [Governance layer](governance-layer.md) — pii_access_log, retention purge, RTBF, consent panel, GOVERNANCE.md implemented; FCRA append-only guarantee enforced via 409 conflict; drip/SMS consent guards log skip reasons.
 - [GitHub push via connectors-sdk](github-push-pattern.md) — only reliable push method; GitHub user is DrDeranged (not MarketingBG); use ReplitConnectors.proxy("github", ...) from @replit/connectors-sdk installed at workspace root.
 - [Trusted public URLs](trusted-public-urls.md) — email/PDF URLs must come only from configured or platform-owned origins, never request forwarding headers.
+- [Wouter query-state handoffs](wouter-query-state.md) — `useLocation()` exposes the pathname, so route-triggered UI state must read query parameters separately.
+- [Deployment API root health](deployment-api-root-health.md) — monitoring probes the API mount root, so keep GET /api healthy alongside /api/healthz.

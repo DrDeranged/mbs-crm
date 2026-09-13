@@ -5,7 +5,8 @@ export const dripSequencesTable = pgTable("drip_sequences", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   triggerStatus: text("trigger_status", { enum: LEAD_STATUSES }).notNull(),
-  isActive: boolean("is_active").notNull().default(true),
+  senderMode: text("sender_mode").notNull().default("template"),
+  isActive: boolean("is_active").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -137,6 +137,7 @@ import type {
   RepDashboard,
   RepPerformance,
   RunLenderMatch200,
+  SendTestEmailBody,
   SmsInput,
   SourceAnalytics,
   StatusChange,
@@ -7614,6 +7615,77 @@ export const useSendEmail = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getSendEmailMutationOptions(options));
+    }
+
+export const getSendTestEmailUrl = () => {
+
+
+
+
+  return `/api/email/test-send`
+}
+
+/**
+ * @summary Send and log an admin-only test email without associating it with a lead
+ */
+export const sendTestEmail = async (sendTestEmailBody: SendTestEmailBody, options?: RequestInit): Promise<EmailSend> => {
+
+  return customFetch<EmailSend>(getSendTestEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendTestEmailBody,)
+  }
+);}
+
+
+
+
+export const getSendTestEmailMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendTestEmail>>, TError,{data: BodyType<SendTestEmailBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendTestEmail>>, TError,{data: BodyType<SendTestEmailBody>}, TContext> => {
+
+const mutationKey = ['sendTestEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendTestEmail>>, {data: BodyType<SendTestEmailBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendTestEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendTestEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendTestEmail>>>
+    export type SendTestEmailMutationBody = BodyType<SendTestEmailBody>
+    export type SendTestEmailMutationError = ErrorType<void>
+
+    /**
+ * @summary Send and log an admin-only test email without associating it with a lead
+ */
+export const useSendTestEmail = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendTestEmail>>, TError,{data: BodyType<SendTestEmailBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendTestEmail>>,
+        TError,
+        {data: BodyType<SendTestEmailBody>},
+        TContext
+      > => {
+      return useMutation(getSendTestEmailMutationOptions(options));
     }
 
 export const getSendBulkEmailUrl = () => {

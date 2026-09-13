@@ -1,0 +1,55 @@
+FULL-CYCLE VERIFICATION — read-only audit of everything just built. NO fixes, NO
+writes beyond the specified test flows (each cleaned up after), NO publishes. Report
+PASS/FAIL per item with evidence (query results, screenshots, status codes). Run
+against PRODUCTION (app.my-business-solutions.com) unless marked preview.
+
+A. APPLICATION CHANGES
+A1. Equipment application: statement step shows a visible skip option; a full test
+    application completes with zero statements; lead created with the
+    skipped-statements flag/activity. Screenshot the skip UI.
+A2. Working-capital application: copy requests "3–6 months"; skip option reads
+    "I'll send statements to my representative instead"; skipping shows the rep
+    follow-up note; created lead has the prominent activity AND a task assigned to
+    its rep ("Collect 3–6 months bank statements…"). Screenshot.
+A3. Downstream: neither skip path produced errors in logs; OCR/completeness/
+    notifications handled the no-statements case; both test leads deletable and
+    DELETED after evidence captured.
+
+B. QR REP SYSTEM
+B1. Slugs exist for all current users (list them); slug editing is admin-only and
+    one-time; deactivated-user slug reuse is impossible (state how enforced).
+B2. /r/calvin loads publicly (no auth), fast, Momentum-styled, correct name/phone;
+    both buttons land in the right application type with rep param carried.
+    Screenshot desktop + 390px.
+B3. A test application via /r/calvin: lead auto-assigned to Calvin, source = qr-card
+    (show the stored lead fields). Delete the test lead after.
+B4. Invalid slug (/r/notreal) → generic fallback page, both buttons functional, no
+    error surfaced.
+B5. QR download: PNG + SVG produced, ink-on-white, scans to the exact /r/{slug} URL
+    (decode the QR programmatically and show the decoded string).
+
+C. ROADMAP: docs/AI_ROADMAP.md contains section 6 in the same format as 1–5; no
+   other file touched by that commit (show the commit's file list).
+
+D. EMAIL TEMPLATES
+D1. Both CEO templates exist in the library, names exact; body copy matches the
+    provided text; merge fields use the library's real syntax and render in the
+    editor preview; NO smartyapp/typeform URLs anywhere in them (grep the stored
+    bodies); application link points to app.my-business-solutions.com/apply.
+D2. Templates seeded idempotently — re-running the seed creates no duplicates
+    (show count before/after).
+
+E. REGRESSION SWEEP
+E1. Existing flows untouched: normal application WITH statements still works
+    end-to-end (test on preview); lender matching still returns results on an
+    equipment lead; Daily Briefing + next-best-action still respond; dashboard KPIs
+    still show ~521+ leads.
+E2. Auth posture intact: a fresh sign-in still lands as pending with zero data
+    access (verify the gate screen); /r/{slug} being public did NOT expose any
+    authenticated route (probe 3 data endpoints unauthenticated → all 401).
+E3. Production health: /api/healthz + deep health OK; error_log last 24h count;
+    no new 5xx in logs since the publish; all scheduled jobs green.
+
+F. FINAL: one-table summary — every item above, PASS/FAIL, evidence link/note. Any
+   FAIL: describe precisely and propose the minimal fix, but change NOTHING without
+   approval.

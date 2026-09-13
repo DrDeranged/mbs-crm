@@ -692,6 +692,14 @@ export interface CommunicationMetrics {
   totalCallDurationMinutes: number;
 }
 
+export type EmailTemplateSenderMode = typeof EmailTemplateSenderMode[keyof typeof EmailTemplateSenderMode];
+
+
+export const EmailTemplateSenderMode = {
+  default: 'default',
+  assigned_rep: 'assigned_rep',
+} as const;
+
 export type EmailTemplateCreator = {
   id?: number;
   /** @nullable */
@@ -706,6 +714,7 @@ export interface EmailTemplate {
   bodyHtml: string;
   /** @nullable */
   programType?: string | null;
+  senderMode?: EmailTemplateSenderMode;
   isActive: boolean;
   /** @nullable */
   createdBy?: number | null;
@@ -714,12 +723,21 @@ export interface EmailTemplate {
   updatedAt: string;
 }
 
+export type EmailTemplateInputSenderMode = typeof EmailTemplateInputSenderMode[keyof typeof EmailTemplateInputSenderMode];
+
+
+export const EmailTemplateInputSenderMode = {
+  default: 'default',
+  assigned_rep: 'assigned_rep',
+} as const;
+
 export interface EmailTemplateInput {
   name: string;
   subject: string;
   bodyHtml: string;
   /** @nullable */
   programType?: string | null;
+  senderMode?: EmailTemplateInputSenderMode;
   isActive?: boolean;
 }
 
@@ -778,10 +796,20 @@ export interface BulkEmailResult {
   skipped?: number[];
 }
 
+export type DripSequenceSenderMode = typeof DripSequenceSenderMode[keyof typeof DripSequenceSenderMode];
+
+
+export const DripSequenceSenderMode = {
+  template: 'template',
+  default: 'default',
+  assigned_rep: 'assigned_rep',
+} as const;
+
 export interface DripSequence {
   id: number;
   name: string;
   triggerStatus: string;
+  senderMode?: DripSequenceSenderMode;
   isActive: boolean;
   stepCount: number;
   createdAt: string;
@@ -808,9 +836,19 @@ export type DripSequenceDetail = DripSequence & {
   steps?: DripSequenceStep[];
 };
 
+export type DripSequenceInputSenderMode = typeof DripSequenceInputSenderMode[keyof typeof DripSequenceInputSenderMode];
+
+
+export const DripSequenceInputSenderMode = {
+  template: 'template',
+  default: 'default',
+  assigned_rep: 'assigned_rep',
+} as const;
+
 export interface DripSequenceInput {
   name: string;
   triggerStatus: string;
+  senderMode?: DripSequenceInputSenderMode;
   isActive?: boolean;
 }
 
@@ -2014,6 +2052,11 @@ export type PreviewEmailTemplateBody = {
 export type PreviewEmailTemplate200 = {
   subject?: string;
   bodyHtml?: string;
+};
+
+export type SendTestEmailBody = {
+  templateId: number;
+  toEmail: string;
 };
 
 export type TrackEmailClickParams = {

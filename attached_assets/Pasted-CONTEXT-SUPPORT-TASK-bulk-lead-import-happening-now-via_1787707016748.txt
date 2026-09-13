@@ -1,0 +1,28 @@
+CONTEXT + SUPPORT TASK — bulk lead import happening now via the UI.
+
+WHAT'S HAPPENING: I am importing 521 prospect leads through the deployed app's Import
+Leads page (CSV upload) at app.my-business-solutions.com. The CSV uses headers your
+import route resolves: first_name, last_name, email, phone, company, plus
+financing_type, lead_source ("prospect_list"), and notes (provenance: LeadX list from
+the CEO, industry, location, website, LinkedIn per lead). Source: a 521-contact LeadX
+export, deduped, phones normalized to 10 digits.
+
+YOUR ROLE — support and verify, do NOT touch the database directly:
+1. BEFORE I upload: confirm from the code (artifacts/api-server/src/routes/import.ts)
+   that: (a) a 521-row CSV is within any row/size limits on the import endpoint — if a
+   batch cap exists, tell me the max so I can split the file; (b) the importer accepts
+   the extra columns (financing_type, lead_source, notes) — report whether it maps them
+   to lead fields or ignores them; if ignored, tell me exactly which of my columns will
+   NOT persist so nothing is silently lost; (c) confirm import performs NO drip/email
+   enrollment and NO outbound sends of any kind — these are cold prospects and must not
+   be emailed.
+2. AFTER I report the upload finished: verify through the app's own API/read paths
+   (not direct DB) — total lead count, count with lead_source "prospect_list" (or
+   whatever source the importer actually assigned), and 3 sample imported leads showing
+   name/company/phone/notes intact. Report discrepancies vs 521 expected.
+3. IF anything failed (partial import, mapping loss, errors): diagnose from the import
+   route's response/logs and propose the minimal fix — do not re-run or mutate data
+   yourself; I re-upload after any fix (the importer's dedup makes re-upload safe).
+RULES: no direct database writes, no drip enrollment, no emails, no schema changes.
+If notes/lead_source columns turn out unmapped and we need them, propose the small
+import-route enhancement as a separate change for my approval — do not bundle it.

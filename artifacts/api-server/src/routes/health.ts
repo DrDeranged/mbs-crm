@@ -30,7 +30,7 @@ router.get("/health/deep", async (_req, res) => {
   // 2. Integration presence (booleans only, no secret values)
   const integrations = {
     twilio: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
-    sendgrid: !!process.env.SENDGRID_API_KEY,
+    sendgrid: !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL),
     experian: !!(process.env.EXPERIAN_CLIENT_ID || process.env.EXPERIAN_CLIENT_SECRET),
     anthropic: !!(
       process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||
