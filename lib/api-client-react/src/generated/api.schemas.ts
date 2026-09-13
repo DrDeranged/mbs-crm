@@ -213,6 +213,8 @@ export interface Lead {
   updatedAt: string;
   /** @nullable */
   lastActivityAt?: string | null;
+  /** User who performed the most recent activity */
+  lastActivityActor?: User | null;
   /**
      * Automated 0-100 lead quality score
      * @nullable
@@ -1445,6 +1447,10 @@ export interface Deal {
   /** @nullable */
   fundedAt?: string | null;
   isArchived: boolean;
+  /** @nullable */
+  lastActivityAt?: string | null;
+  /** User who performed the most recent activity */
+  lastActivityActor?: User | null;
 }
 
 export type DealInputStage = typeof DealInputStage[keyof typeof DealInputStage];
@@ -1822,6 +1828,14 @@ page?: number;
  * @maximum 100
  */
 limit?: number;
+/**
+ * Sort field for the list
+ */
+sort_by?: ListDealsSortBy;
+/**
+ * Sort direction for the list
+ */
+sort_order?: ListDealsSortOrder;
 };
 
 export type ListDealsStage = typeof ListDealsStage[keyof typeof ListDealsStage];
@@ -1838,6 +1852,25 @@ export const ListDealsStage = {
   declined: 'declined',
   dead: 'dead',
   hold_on: 'hold_on',
+} as const;
+
+export type ListDealsSortBy = typeof ListDealsSortBy[keyof typeof ListDealsSortBy];
+
+
+export const ListDealsSortBy = {
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  dealName: 'dealName',
+  stage: 'stage',
+  lastActivityAt: 'lastActivityAt',
+} as const;
+
+export type ListDealsSortOrder = typeof ListDealsSortOrder[keyof typeof ListDealsSortOrder];
+
+
+export const ListDealsSortOrder = {
+  asc: 'asc',
+  desc: 'desc',
 } as const;
 
 export type GetDealsAnalyticsParams = {

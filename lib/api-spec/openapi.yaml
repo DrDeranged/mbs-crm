@@ -1168,6 +1168,20 @@ paths:
         - name: limit
           in: query
           schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+        - name: sort_by
+          in: query
+          description: Sort field for the list
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, dealName, stage, lastActivityAt]
+            default: updatedAt
+        - name: sort_order
+          in: query
+          description: Sort direction for the list
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
       responses:
         "200":
           description: Paginated deals
@@ -3350,6 +3364,11 @@ components:
         lastActivityAt:
           type: ["string", "null"]
           format: date-time
+        lastActivityActor:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+          description: User who performed the most recent activity
         leadScore:
           type: ["integer", "null"]
           description: Automated 0-100 lead quality score
@@ -5024,6 +5043,12 @@ components:
         updatedAt: { type: string, format: date-time }
         fundedAt: { type: ["string", "null"], format: date-time }
         isArchived: { type: boolean }
+        lastActivityAt: { type: ["string", "null"], format: date-time }
+        lastActivityActor:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+          description: User who performed the most recent activity
 
     DealInput:
       type: object

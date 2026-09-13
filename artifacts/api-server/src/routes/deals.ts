@@ -10,7 +10,7 @@ import {
 } from "@workspace/db";
 import { db } from "@workspace/db";
 import { requireUser, userToApi } from "../lib/authHelpers";
-import { logActivity } from "../lib/activityHelper";
+import { getLatestActivities, logActivity } from "../lib/activityHelper";
 import { CreateDealBody, UpdateDealBody, ConvertLeadToDealBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -22,7 +22,11 @@ const idSchema = z.coerce.number().int().positive();
 
 const ACTIVE_STAGES = DEAL_STAGES.filter((stage) => !["funded", "declined", "dead", "hold_on"].includes(stage));
 
-function toApi(deal: typeof dealsTable.$inferSelect, assignedUser?: typeof usersTable.$inferSelect | null) {
+function toApi(
+  deal: typeof dealsTable.$inferSelect,
+  assignedUser?: typeof usersTable.$inferSelect | null,
+  latestActivity?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
+) {
   return {
     id: deal.id,
     leadId: deal.leadId,
@@ -37,6 +41,8 @@ function toApi(deal: typeof dealsTable.$inferSelect, assignedUser?: typeof users
     updatedAt: deal.updatedAt.toISOString(),
     fundedAt: deal.fundedAt?.toISOString() ?? null,
     isArchived: deal.isArchived,
+    lastActivityAt: latestActivity?.createdAt.toISOString() ?? null,
+    lastActivityActor: latestActivity?.user ? userToApi(latestActivity.user) : null,
   };
 }
 
@@ -90,19 +96,31 @@ router.get("/deals", async (req, res): Promise<void> => {
   if (q.search) conditions.push(ilike(dealsTable.dealName, `%${q.search.replace(/[%_]/g, "\\$&")}%`));
   conditions.push(...dateConditions(req));
   const where = and(...conditions);
+  const sortField = q.sort_by ?? "updatedAt";
+  const sortDirection = q.sort_order === "asc" ? asc : desc;
+  const latestActivitySort = sql`(select max(${activityLogTable.createdAt}) from ${activityLogTable} where ${activityLogTable.dealId} = ${dealsTable.id})`;
+  const validSortFields: Record<string, any> = {
+    createdAt: dealsTable.createdAt,
+    updatedAt: dealsTable.updatedAt,
+    dealName: dealsTable.dealName,
+    stage: dealsTable.stage,
+    lastActivityAt: latestActivitySort,
+  };
+  const sortColumn = validSortFields[sortField] ?? dealsTable.updatedAt;
   const [rows, totals] = await Promise.all([
     db.query.dealsTable.findMany({
       where,
       with: { assignedUser: true },
-      orderBy: [desc(dealsTable.updatedAt), asc(dealsTable.id)],
+      orderBy: [sortDirection(sortColumn), asc(dealsTable.id)],
       limit,
       offset: (page - 1) * limit,
     }),
     db.select({ total: sql<number>`cast(count(*) as int)` }).from(dealsTable).where(where),
   ]);
+  const latestActivities = await getLatestActivities("deal", rows.map((deal) => deal.id));
   const total = totals[0]?.total ?? 0;
   res.json({
-    deals: rows.map((deal) => toApi(deal, deal.assignedUser)),
+    deals: rows.map((deal) => toApi(deal, deal.assignedUser, latestActivities.get(deal.id))),
     total,
     page,
     limit,
@@ -159,8 +177,9 @@ router.get("/deals/:id", async (req, res, next): Promise<void> => {
     with: { user: true },
     orderBy: [asc(activityLogTable.createdAt), asc(activityLogTable.id)],
   });
+  const latestActivity = activity.length > 0 ? activity[activity.length - 1] : null;
   res.json({
-    ...toApi(deal, deal.assignedUser),
+    ...toApi(deal, deal.assignedUser, latestActivity),
     lead: deal.lead ?? null,
     activity: activity.map((entry) => ({
       ...entry,

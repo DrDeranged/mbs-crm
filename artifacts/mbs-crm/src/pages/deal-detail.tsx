@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Label } from "@/components/ui/label";
 
 const STAGES = [
@@ -150,6 +150,11 @@ export default function DealDetail() {
                 <Link href={`/leads/${deal.leadId}`} className="text-primary hover:underline font-medium flex items-center gap-1">
                   {(deal.lead as any).firstName} {(deal.lead as any).lastName} <ArrowUpRight className="w-3 h-3" />
                 </Link>
+              </p>
+            )}
+            {deal.lastActivityAt && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Last activity {formatDistanceToNow(new Date(deal.lastActivityAt), { addSuffix: true })} · {deal.lastActivityActor?.name || deal.lastActivityActor?.email || "System"}
               </p>
             )}
           </div>

@@ -7,6 +7,8 @@ import {
   useGetMe,
   DealStage,
   Deal,
+  ListDealsSortBy,
+  ListDealsSortOrder,
   useListUsers,
 } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -17,10 +19,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, LayoutGrid, List, Plus, DollarSign, Building2, User as UserIcon } from "lucide-react";
+import { Search, LayoutGrid, List, Plus, DollarSign, Building2, User as UserIcon, ArrowUpDown } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 const STAGES = [
   { id: DealStage.waiting_on_app, label: "Waiting on App", color: "bg-gray-100 text-gray-700" },
@@ -40,14 +42,26 @@ function formatCurrency(val?: number | null) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
 }
 
+function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: string | null; email?: string } | null }) {
+  if (!at) return <span>—</span>;
+  return (
+    <span className="flex flex-col">
+      <span>{formatDistanceToNow(new Date(at), { addSuffix: true })}</span>
+      <span className="text-xs text-muted-foreground">{actor?.name || actor?.email || "System"}</span>
+    </span>
+  );
+}
+
 export default function DealsPage() {
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<ListDealsSortBy>(ListDealsSortBy.updatedAt);
+  const [sortOrder, setSortOrder] = useState<ListDealsSortOrder>(ListDealsSortOrder.desc);
   
   const { data: currentUser } = useGetMe();
   const isRep = currentUser?.role === "rep";
 
-  const { data: response, isLoading } = useListDeals();
+  const { data: response, isLoading } = useListDeals({ sort_by: sortBy, sort_order: sortOrder });
   const deals = response?.deals || [];
 
   const { data: users } = useListUsers();
@@ -69,6 +83,15 @@ export default function DealsPage() {
       d.dealName.toLowerCase().includes(search.toLowerCase())
     );
   }, [deals, search]);
+
+  const toggleActivitySort = () => {
+    if (sortBy === ListDealsSortBy.lastActivityAt) {
+      setSortOrder((current) => current === ListDealsSortOrder.desc ? ListDealsSortOrder.asc : ListDealsSortOrder.desc);
+    } else {
+      setSortBy(ListDealsSortBy.lastActivityAt);
+      setSortOrder(ListDealsSortOrder.desc);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, deal: Deal) => {
     setDraggedDeal(deal);
@@ -248,13 +271,18 @@ export default function DealsPage() {
                     <TableHead>Amount</TableHead>
                     <TableHead>Expected GM</TableHead>
                     <TableHead>Rep</TableHead>
+                    <TableHead>
+                      <Button variant="ghost" size="sm" className="-ml-3 h-8 px-3 font-medium" onClick={toggleActivitySort}>
+                        Last Activity <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                      </Button>
+                    </TableHead>
                     <TableHead>Created</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDeals.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center h-32 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center h-32 text-muted-foreground">
                         No deals found
                       </TableCell>
                     </TableRow>
@@ -281,6 +309,11 @@ export default function DealsPage() {
                               <UserIcon className="w-3.5 h-3.5" />
                               {rep?.name || "Unassigned"}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            <Link href={`/deals/${deal.id}`} className="block w-full">
+                              <LastActivity at={deal.lastActivityAt} actor={deal.lastActivityActor} />
+                            </Link>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {format(new Date(deal.createdAt), "MMM d, yyyy")}

@@ -2701,6 +2701,11 @@ export default function LeadDetail() {
               {lead.phone && (
                 <PhoneLink phone={lead.phone} />
               )}
+              {lead.lastActivityAt && (
+                <div className="text-xs">
+                  Last activity {formatDistanceToNow(new Date(lead.lastActivityAt), { addSuffix: true })} · {lead.lastActivityActor?.name || lead.lastActivityActor?.email || "System"}
+                </div>
+              )}
             </div>
           </div>
           

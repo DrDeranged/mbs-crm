@@ -18,9 +18,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, Building2 as BuildingIcon } from "lucide-react";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, Building2 as BuildingIcon, ArrowUpDown } from "lucide-react";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from "@/components/ui/empty";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -54,6 +54,16 @@ const AUTO_MAP: Record<string, string> = {
 type ImportStep = "idle" | "upload" | "preview" | "mapping" | "confirm" | "results";
 
 interface ImportResults { imported: number; skipped: number; duplicates: { row: number; reason: string }[] }
+
+function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: string | null; email?: string } | null }) {
+  if (!at) return <span>—</span>;
+  return (
+    <span className="flex flex-col">
+      <span>{formatDistanceToNow(new Date(at), { addSuffix: true })}</span>
+      <span className="text-xs text-muted-foreground">{actor?.name || actor?.email || "System"}</span>
+    </span>
+  );
+}
 
 function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const { toast } = useToast();
@@ -280,6 +290,7 @@ export default function Leads() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("updatedAt");
   const [sortOrder, setSortOrder] = useState<ListLeadsSortOrder>(ListLeadsSortOrder.desc);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -443,7 +454,7 @@ export default function Leads() {
     endDate: endDate || undefined,
     page,
     limit: 20,
-    sortBy: "updatedAt",
+    sortBy,
     sortOrder,
     ...scoreMinMax,
     ...(renewalFlagged ? { renewalFlagged: true } : {}),
@@ -452,6 +463,16 @@ export default function Leads() {
   const { data, isLoading } = useListLeads(queryParams, {
     query: { queryKey: getListLeadsQueryKey(queryParams) },
   });
+
+  const toggleActivitySort = () => {
+    if (sortBy === "lastActivityAt") {
+      setSortOrder((current) => current === ListLeadsSortOrder.desc ? ListLeadsSortOrder.asc : ListLeadsSortOrder.desc);
+    } else {
+      setSortBy("lastActivityAt");
+      setSortOrder(ListLeadsSortOrder.desc);
+    }
+    setPage(1);
+  };
 
   const { data: usersData } = useListUsers({ role: "rep", isActive: true });
   const allPageSelected = !!data?.leads?.length && data.leads.every((lead) => selectedIds.has(lead.id));
@@ -763,7 +784,11 @@ export default function Leads() {
               <TableHead>Score</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Assigned Rep</TableHead>
-              <TableHead>Last Activity</TableHead>
+              <TableHead>
+                <Button variant="ghost" size="sm" className="-ml-3 h-8 px-3 font-medium" onClick={toggleActivitySort}>
+                  Last Activity <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </TableHead>
               <TableHead>Updated</TableHead>
             </TableRow>
           </TableHeader>
@@ -883,7 +908,7 @@ export default function Leads() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     <Link href={`/leads/${lead.id}`} className="block w-full">
-                      {lead.lastActivityAt ? format(new Date(lead.lastActivityAt), "MMM d, yyyy") : "-"}
+                      <LastActivity at={lead.lastActivityAt} actor={lead.lastActivityActor} />
                     </Link>
                   </TableCell>
                   <TableCell>

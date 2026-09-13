@@ -7,7 +7,7 @@ import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-o
 import { z } from "zod/v4";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
-import { logActivity } from "../lib/activityHelper";
+import { getLatestActivities, logActivity } from "../lib/activityHelper";
 import {
   ListLeadsQueryParams,
   CreateLeadBody,
@@ -37,7 +37,11 @@ const captureRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable.$inferSelect | null) {
+function leadToApi(
+  lead: typeof leadsTable.$inferSelect,
+  rep?: typeof usersTable.$inferSelect | null,
+  latestActivity?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
+) {
   return {
     id: lead.id,
     firstName: lead.firstName,
@@ -54,7 +58,8 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
     requestedAmount: lead.requestedAmount ?? null,
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
-    lastActivityAt: lead.lastActivityAt?.toISOString() ?? null,
+    lastActivityAt: latestActivity?.createdAt.toISOString() ?? lead.lastActivityAt?.toISOString() ?? null,
+    lastActivityActor: latestActivity?.user ? userToApi(latestActivity.user) : null,
     leadScore: lead.leadScore ?? null,
     leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
     aiSummary: (lead.aiSummary as any) ?? null,
@@ -219,9 +224,10 @@ router.get("/leads", async (req: Request, res: Response) => {
       .from(leadsTable)
       .where(whereClause as any),
   ]);
+  const latestActivities = await getLatestActivities("lead", leadsRaw.map((lead) => lead.id));
 
   res.json({
-    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep)),
+    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, latestActivities.get(l.id))),
     total,
     page,
     limit,
@@ -872,9 +878,10 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
   }
 
   const { company, notes, tasks, documents, activityLog, assignedRep, ...leadFields } = lead as any;
+  const latestActivity = activityLog[0] ?? null;
 
   res.json({
-    ...leadToApi(leadFields, assignedRep),
+    ...leadToApi(leadFields, assignedRep, latestActivity),
     company: company ? {
       id: company.id,
       leadId: company.leadId,

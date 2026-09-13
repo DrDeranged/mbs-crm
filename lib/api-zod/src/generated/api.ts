@@ -249,6 +249,17 @@ export const ListLeadsResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -586,6 +597,17 @@ export const GetLeadResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -753,6 +775,17 @@ export const UpdateLeadResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -811,6 +844,17 @@ export const ChangeLeadStatusResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -868,6 +912,17 @@ export const AssignLeadResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1133,6 +1188,17 @@ export const GetDashboardSummaryResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1189,6 +1255,17 @@ export const GetRepDashboardResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1337,7 +1414,8 @@ export const listDealsQueryPageDefault = 1;
 export const listDealsQueryLimitDefault = 25;
 export const listDealsQueryLimitMax = 100;
 
-
+export const listDealsQuerySortByDefault = `updatedAt`;
+export const listDealsQuerySortOrderDefault = `desc`;
 
 export const ListDealsQueryParams = zod.object({
   "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
@@ -1348,7 +1426,9 @@ export const ListDealsQueryParams = zod.object({
   "end_date": zod.date().optional(),
   "include_archived": zod.coerce.boolean().default(listDealsQueryIncludeArchivedDefault),
   "page": zod.coerce.number().min(1).default(listDealsQueryPageDefault),
-  "limit": zod.coerce.number().min(1).max(listDealsQueryLimitMax).default(listDealsQueryLimitDefault)
+  "limit": zod.coerce.number().min(1).max(listDealsQueryLimitMax).default(listDealsQueryLimitDefault),
+  "sort_by": zod.enum(['createdAt', 'updatedAt', 'dealName', 'stage', 'lastActivityAt']).default(listDealsQuerySortByDefault).describe('Sort field for the list'),
+  "sort_order": zod.enum(['asc', 'desc']).default(listDealsQuerySortOrderDefault).describe('Sort direction for the list')
 })
 
 export const ListDealsResponse = zod.object({
@@ -1375,7 +1455,19 @@ export const ListDealsResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "fundedAt": zod.coerce.date().nullish(),
-  "isArchived": zod.boolean()
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -1431,7 +1523,19 @@ export const GetDealResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "fundedAt": zod.coerce.date().nullish(),
-  "isArchived": zod.boolean()
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
 }).and(zod.object({
   "lead": zod.record(zod.string(), zod.unknown()).nullish(),
   "activity": zod.array(zod.object({
@@ -1500,7 +1604,19 @@ export const UpdateDealResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "fundedAt": zod.coerce.date().nullish(),
-  "isArchived": zod.boolean()
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
 })
 
 
@@ -1542,7 +1658,19 @@ export const ArchiveDealResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "fundedAt": zod.coerce.date().nullish(),
-  "isArchived": zod.boolean()
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
 })
 
 
