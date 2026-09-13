@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/react";
-import { useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, usePreviewEmailTemplate, useSendBulkEmail, useListLeads } from "@workspace/api-client-react";
+import { useGetMe, useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, useDeleteEmailTemplate, usePreviewEmailTemplate, useSendBulkEmail, useListLeads } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Mail, Edit2, Eye, CheckCircle, Send, Users, Loader2, Sparkles } from "lucide-react";
+import { Plus, Mail, Edit2, Trash2, Eye, CheckCircle, Send, Users, Loader2, Sparkles } from "lucide-react";
 import { getUserDisplayName } from "@/lib/utils";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
@@ -319,7 +319,27 @@ function BulkSendDialog({ template }: { template: any }) {
 }
 
 export default function EmailTemplates() {
+  const { data: me } = useGetMe();
   const { data: templates, isLoading } = useListEmailTemplates(undefined, { query: { queryKey: ["email-templates"] } });
+  const deleteTemplate = useDeleteEmailTemplate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const canManageAll = me?.role === "manager" || me?.role === "admin";
+  const isAdmin = me?.role === "admin";
+
+  const handleDelete = (template: any) => {
+    if (!window.confirm(`Delete "${template.name}"?`)) return;
+    deleteTemplate.mutate({ id: template.id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["email-templates"] });
+        toast({ title: "Template deleted" });
+      },
+      onError: (error: any) => toast({
+        title: error?.data?.error || "Failed to delete template",
+        variant: "destructive",
+      }),
+    });
+  };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
@@ -329,7 +349,7 @@ export default function EmailTemplates() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage reusable email templates with variable substitution.</p>
         </div>
         <div className="flex items-center gap-2">
-          <SeedTemplatesButton />
+          {isAdmin && <SeedTemplatesButton />}
           <TemplateFormDialog
             trigger={
               <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
@@ -385,19 +405,34 @@ export default function EmailTemplates() {
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">Subject: {t.subject}</p>
                     <p className="text-xs text-muted-foreground">
                       By {getUserDisplayName(t.creator, "unknown")} · {new Date(t.updatedAt).toLocaleDateString()}
+                      {!canManageAll && t.createdBy !== me?.id && <span className="ml-1">(read-only)</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <PreviewDialog template={t} />
-                    {t.isActive && <BulkSendDialog template={t} />}
-                    <TemplateFormDialog
-                      template={t}
-                      trigger={
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
-                          <Edit2 className="h-3.5 w-3.5" />
+                    {t.isActive && canManageAll && <BulkSendDialog template={t} />}
+                    {(canManageAll || t.createdBy === me?.id) && (
+                      <>
+                        <TemplateFormDialog
+                          template={t}
+                          trigger={
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Edit template">
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                          title="Delete template"
+                          disabled={deleteTemplate.isPending}
+                          onClick={() => handleDelete(t)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
-                      }
-                    />
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>

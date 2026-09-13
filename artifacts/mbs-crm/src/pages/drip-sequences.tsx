@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  useListDripSequences, useCreateDripSequence, useUpdateDripSequence,
+  useGetMe, useListDripSequences, useCreateDripSequence, useUpdateDripSequence, useDeleteDripSequence,
   useGetDripSequence, useUpsertDripSequenceSteps, useListEmailTemplates,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -114,7 +114,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
   );
 }
 
-function StepBuilder({ sequenceId }: { sequenceId: number }) {
+function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boolean }) {
   const { data: seq, isLoading } = useGetDripSequence(sequenceId, { query: { queryKey: ["drip-seq-detail", sequenceId] } });
   const { data: templates } = useListEmailTemplates();
   const upsertSteps = useUpsertDripSequenceSteps();
@@ -181,7 +181,7 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
               <div className="flex flex-col flex-shrink-0">
                 <button
                   onClick={() => moveStep(i, -1)}
-                  disabled={i === 0}
+                  disabled={!canEdit || i === 0}
                   className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
                   title="Move up"
                 >
@@ -189,7 +189,7 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
                 </button>
                 <button
                   onClick={() => moveStep(i, 1)}
-                  disabled={i === steps.length - 1}
+                  disabled={!canEdit || i === steps.length - 1}
                   className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
                   title="Move down"
                 >
@@ -200,7 +200,7 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
                 {i + 1}
               </div>
               <div className="flex-1 flex items-center gap-2 min-w-0 flex-wrap">
-                <Select value={step.templateId} onValueChange={(v) => updateStep(i, "templateId", v)}>
+                <Select value={step.templateId} onValueChange={(v) => updateStep(i, "templateId", v)} disabled={!canEdit}>
                   <SelectTrigger className="flex-1 min-w-[160px] h-8 text-xs">
                     <SelectValue placeholder="Select template…" />
                   </SelectTrigger>
@@ -217,42 +217,55 @@ function StepBuilder({ sequenceId }: { sequenceId: number }) {
                     min={0}
                     value={step.delayHours}
                     onChange={(e) => updateStep(i, "delayHours", parseInt(e.target.value) || 0)}
+                    disabled={!canEdit}
                     className="w-16 h-8 text-xs text-center"
                   />
                   <span className="text-xs text-muted-foreground">hrs delay</span>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
-                onClick={() => removeStep(i)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
+                  onClick={() => removeStep(i)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between pt-1">
-        <Button size="sm" variant="outline" onClick={addStep} className="text-xs h-8">
-          <Plus className="h-3 w-3 mr-1" /> Add Step
-        </Button>
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={upsertSteps.isPending}
-          className="bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs h-8"
-        >
-          {upsertSteps.isPending ? "Saving…" : "Save Steps"}
-        </Button>
-      </div>
+      {canEdit ? (
+        <div className="flex items-center justify-between pt-1">
+          <Button size="sm" variant="outline" onClick={addStep} className="text-xs h-8">
+            <Plus className="h-3 w-3 mr-1" /> Add Step
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={upsertSteps.isPending}
+            className="bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs h-8"
+          >
+            {upsertSteps.isPending ? "Saving…" : "Save Steps"}
+          </Button>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">This sequence is read-only because it was created by an administrator or manager.</p>
+      )}
     </div>
   );
 }
 
-function SequenceCard({ seq }: { seq: any }) {
+function SequenceCard({ seq, canManageAll, userId, onDelete }: {
+  seq: any;
+  canManageAll: boolean;
+  userId?: number;
+  onDelete: (sequence: any) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
+  const canEdit = canManageAll || seq.createdBy === userId;
 
   const triggerLabel = LEAD_STATUSES.find((s) => s.value === seq.triggerStatus)?.label ?? seq.triggerStatus;
 
@@ -276,15 +289,29 @@ function SequenceCard({ seq }: { seq: any }) {
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Mail className="h-3 w-3" /> {seq.stepCount} step{seq.stepCount !== 1 ? "s" : ""}
               </span>
+              {!canManageAll && !canEdit && <Badge variant="outline" className="text-[10px]">Read-only</Badge>}
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <SequenceFormDialog
-              sequence={seq}
-              trigger={
-                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Edit</Button>
-              }
-            />
+            {canEdit && (
+              <>
+                <SequenceFormDialog
+                  sequence={seq}
+                  trigger={
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Edit</Button>
+                  }
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                  title="Delete sequence"
+                  onClick={() => onDelete(seq)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
             <Button
               size="sm"
               variant="ghost"
@@ -295,14 +322,33 @@ function SequenceCard({ seq }: { seq: any }) {
             </Button>
           </div>
         </div>
-        {expanded && <StepBuilder sequenceId={seq.id} />}
+        {expanded && <StepBuilder sequenceId={seq.id} canEdit={canEdit} />}
       </CardContent>
     </Card>
   );
 }
 
 export default function DripSequences() {
+  const { data: me } = useGetMe();
   const { data: sequences, isLoading } = useListDripSequences({ query: { queryKey: ["drip-sequences"] } });
+  const deleteSequence = useDeleteDripSequence();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const canManageAll = me?.role === "manager" || me?.role === "admin";
+
+  const handleDelete = (sequence: any) => {
+    if (!window.confirm(`Delete "${sequence.name}"?`)) return;
+    deleteSequence.mutate({ id: sequence.id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["drip-sequences"] });
+        toast({ title: "Sequence deleted" });
+      },
+      onError: (error: any) => toast({
+        title: error?.data?.error || "Failed to delete sequence",
+        variant: "destructive",
+      }),
+    });
+  };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
@@ -346,7 +392,7 @@ export default function DripSequences() {
       ) : (
         <div className="space-y-3">
           {sequences.map((seq: any) => (
-            <SequenceCard key={seq.id} seq={seq} />
+            <SequenceCard key={seq.id} seq={seq} canManageAll={canManageAll} userId={me?.id} onDelete={handleDelete} />
           ))}
         </div>
       )}

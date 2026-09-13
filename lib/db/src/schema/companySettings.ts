@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -13,6 +13,9 @@ export const companySettingsTable = pgTable("company_settings", {
   companyState: text("company_state"),
   companyZip: text("company_zip"),
   retentionMonths: integer("retention_months").default(36),
+  includeAdminsInRoundRobin: boolean("include_admins_in_round_robin").notNull().default(false),
+  roundRobinCursor: integer("round_robin_cursor").notNull().default(0),
+  staleThresholdDays: integer("stale_threshold_days").notNull().default(7),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

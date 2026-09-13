@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,12 +14,21 @@ import { getUserDisplayName } from "@/lib/utils";
 import { ShieldAlert, Phone, Building2, Globe } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
+import { Switch } from "@/components/ui/switch";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const { data: users, isLoading: loadingUsers } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
   const updateUser = useUpdateUser();
   const updateMobile = useUpdateMyMobile();
+  const isAdmin = me?.role === UserRole.admin;
+  const { data: leadDistribution, isLoading: loadingLeadDistribution } = useGetLeadDistributionSettings({
+    query: {
+      queryKey: getGetLeadDistributionSettingsQueryKey(),
+      enabled: isAdmin,
+    },
+  });
+  const updateLeadDistribution = useUpdateLeadDistributionSettings();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -27,6 +36,7 @@ export default function Settings() {
   const [mobileEditing, setMobileEditing] = useState(false);
   const [editingSlug, setEditingSlug] = useState<number | null>(null);
   const [slugInput, setSlugInput] = useState("");
+  const [staleThresholdInput, setStaleThresholdInput] = useState("7");
 
   const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -127,7 +137,30 @@ export default function Settings() {
     );
   };
 
-  const isAdmin = me?.role === UserRole.admin;
+  useEffect(() => {
+    if (leadDistribution?.staleThresholdDays != null) {
+      setStaleThresholdInput(String(leadDistribution.staleThresholdDays));
+    }
+  }, [leadDistribution?.staleThresholdDays]);
+
+  const handleSaveStaleThreshold = () => {
+    const staleThresholdDays = Number(staleThresholdInput);
+    if (!Number.isInteger(staleThresholdDays) || staleThresholdDays < 1 || staleThresholdDays > 365) {
+      toast({ title: "Invalid threshold", description: "Enter a whole number from 1 to 365 days.", variant: "destructive" });
+      return;
+    }
+    updateLeadDistribution.mutate(
+      { data: { staleThresholdDays } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetLeadDistributionSettingsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          toast({ title: "Staleness threshold saved" });
+        },
+        onError: () => toast({ title: "Error", description: "Failed to save staleness threshold.", variant: "destructive" }),
+      },
+    );
+  };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
@@ -236,6 +269,65 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Lead Distribution</CardTitle>
+              <CardDescription>
+                New inbound website leads and applications are assigned round-robin across one pool of eligible active users. Admins are excluded unless enabled here.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4 max-w-2xl">
+                <div>
+                  <div className="font-medium">Include admins in round-robin</div>
+                  <div className="text-sm text-muted-foreground">
+                    When enabled, active admins join the same pool as active reps and managers. Pending and inactive users are never eligible.
+                  </div>
+                </div>
+                <Switch
+                  checked={leadDistribution?.includeAdminsInRoundRobin ?? false}
+                  disabled={loadingLeadDistribution || updateLeadDistribution.isPending}
+                  onCheckedChange={(checked) => updateLeadDistribution.mutate(
+                    { data: { includeAdminsInRoundRobin: checked } },
+                    {
+                      onSuccess: () => {
+                        queryClient.invalidateQueries({ queryKey: getGetLeadDistributionSettingsQueryKey() });
+                        toast({ title: "Lead distribution setting saved" });
+                      },
+                      onError: () => toast({ title: "Error", description: "Failed to save lead distribution setting.", variant: "destructive" }),
+                    },
+                  )}
+                  aria-label="Include admins in round-robin"
+                />
+              </div>
+              <div className="flex items-end justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Stale lead threshold</div>
+                  <div className="text-sm text-muted-foreground">
+                    Assigned leads with no activity for this many days are marked stale. Unassigned leads are never stale.
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={staleThresholdInput}
+                    onChange={(event) => setStaleThresholdInput(event.target.value)}
+                    className="w-24"
+                    aria-label="Stale lead threshold in days"
+                  />
+                  <span className="text-sm text-muted-foreground">days</span>
+                  <Button size="sm" onClick={handleSaveStaleThreshold} disabled={updateLeadDistribution.isPending}>
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {isAdmin && (
           <Card>

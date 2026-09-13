@@ -52,6 +52,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   communications: many(communicationsTable),
   emailSends: many(emailSendsTable),
   emailTemplates: many(emailTemplatesTable),
+  dripSequences: many(dripSequencesTable),
   notifications: many(notificationsTable),
 }));
 
@@ -153,7 +154,11 @@ export const emailTemplatesRelations = relations(emailTemplatesTable, ({ one, ma
   sequenceSteps: many(dripSequenceStepsTable),
 }));
 
-export const dripSequencesRelations = relations(dripSequencesTable, ({ many }) => ({
+export const dripSequencesRelations = relations(dripSequencesTable, ({ one, many }) => ({
+  creator: one(usersTable, {
+    fields: [dripSequencesTable.createdBy],
+    references: [usersTable.id],
+  }),
   steps: many(dripSequenceStepsTable),
   enrollments: many(dripEnrollmentsTable),
 }));

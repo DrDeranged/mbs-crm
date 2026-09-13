@@ -211,6 +211,45 @@ export const UpdateUserResponse = zod.object({
 
 
 /**
+ * @summary Get inbound lead distribution settings (admin only)
+ */
+export const getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
+export const getLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
+export const getLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+
+
+
+export const GetLeadDistributionSettingsResponse = zod.object({
+  "includeAdminsInRoundRobin": zod.boolean().default(getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
+  "staleThresholdDays": zod.number().min(1).max(getLeadDistributionSettingsResponseStaleThresholdDaysMax).default(getLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+})
+
+
+/**
+ * @summary Update inbound lead distribution settings (admin only)
+ */
+export const updateLeadDistributionSettingsBodyStaleThresholdDaysMax = 365;
+
+
+
+export const UpdateLeadDistributionSettingsBody = zod.object({
+  "includeAdminsInRoundRobin": zod.boolean().optional(),
+  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyStaleThresholdDaysMax).optional()
+})
+
+export const updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
+export const updateLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
+export const updateLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+
+
+
+export const UpdateLeadDistributionSettingsResponse = zod.object({
+  "includeAdminsInRoundRobin": zod.boolean().default(updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
+  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseStaleThresholdDaysMax).default(updateLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+})
+
+
+/**
  * @summary Store or clear push token for own account (own user only)
  */
 export const UpdateUserPushTokenParams = zod.object({
@@ -241,7 +280,8 @@ export const ListLeadsQueryParams = zod.object({
   "sortOrder": zod.enum(['asc', 'desc']).optional(),
   "minScore": zod.coerce.number().optional().describe('Filter leads with score >= minScore'),
   "maxScore": zod.coerce.number().optional().describe('Filter leads with score <= maxScore'),
-  "renewalFlagged": zod.coerce.boolean().optional().describe('When true, only return leads flagged by the renewal radar job as ready to re-fund')
+  "renewalFlagged": zod.coerce.boolean().optional().describe('When true, only return leads flagged by the renewal radar job as ready to re-fund'),
+  "stale": zod.coerce.boolean().optional().describe('When true, only return assigned leads with no activity within the configured staleness threshold')
 })
 
 export const ListLeadsResponse = zod.object({
@@ -298,7 +338,9 @@ export const ListLeadsResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -318,7 +360,7 @@ export const CreateLeadBody = zod.object({
   "companyName": zod.string().optional(),
   "ein": zod.string().optional(),
   "applicationType": zod.enum(['equipment', 'working_capital']).optional(),
-  "assignedRepId": zod.number().optional(),
+  "assignedRepId": zod.number().optional().describe('Optional assignment; only managers\/admins may provide this, and the destination must be an active eligible user'),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual']).optional(),
   "company": zod.object({
   "name": zod.string().optional(),
@@ -368,13 +410,17 @@ export const ImportLeadsResponse = zod.object({
 /**
  * @summary Public endpoint for website lead capture (no auth required)
  */
+export const captureLeadFromWebsiteBodyRepRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)\*$');
+
+
 export const CaptureLeadFromWebsiteBody = zod.object({
   "firstName": zod.string(),
   "lastName": zod.string(),
   "email": zod.string().optional(),
   "phone": zod.string().optional(),
   "companyName": zod.string().optional(),
-  "applicationType": zod.enum(['equipment', 'working_capital']).optional()
+  "applicationType": zod.enum(['equipment', 'working_capital']).optional(),
+  "rep": zod.string().regex(captureLeadFromWebsiteBodyRepRegExp).optional().describe('Optional active representative slug attribution')
 })
 
 
@@ -408,7 +454,8 @@ export const ExportLeadsQueryParams = zod.object({
   "applicationType": zod.coerce.string().optional(),
   "repId": zod.coerce.number().optional(),
   "startDate": zod.coerce.string().optional(),
-  "endDate": zod.coerce.string().optional()
+  "endDate": zod.coerce.string().optional(),
+  "stale": zod.coerce.boolean().optional().describe('When true, only export assigned leads with no activity within the configured staleness threshold')
 })
 
 
@@ -448,7 +495,8 @@ export const BulkAssignLeadsBody = zod.object({
   "endDate": zod.string().optional(),
   "minScore": zod.number().optional(),
   "maxScore": zod.number().optional(),
-  "renewalFlagged": zod.boolean().optional()
+  "renewalFlagged": zod.boolean().optional(),
+  "stale": zod.boolean().optional()
 }).optional().describe('The current lead-list filters. Used to select matching leads server-side.'),
   "repId": zod.number()
 }).describe('Assign explicit lead IDs or all leads matching a server-side filter.')
@@ -646,7 +694,9 @@ export const GetLeadResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 }).and(zod.object({
   "company": zod.union([zod.object({
   "id": zod.number().optional(),
@@ -824,7 +874,9 @@ export const UpdateLeadResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })
 
 
@@ -893,7 +945,9 @@ export const ChangeLeadStatusResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })
 
 
@@ -961,7 +1015,9 @@ export const AssignLeadResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })
 
 
@@ -1237,7 +1293,9 @@ export const GetDashboardSummaryResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })),
   "repCounts": zod.array(zod.object({
   "repId": zod.number().optional(),
@@ -1304,7 +1362,9 @@ export const GetRepDashboardResponse = zod.object({
   "fundedAt": zod.coerce.date().nullish().describe('When the lead\'s status was first changed to \"funded\"'),
   "fundedAmount": zod.number().nullish().describe('Dollar amount funded, captured when status is changed to \"funded\"'),
   "estimatedTermMonths": zod.number().nullish().describe('Estimated financing term length in months (defaults to 6 when not set)'),
-  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund')
+  "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
+  "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
+  "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
 })),
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),
@@ -2709,7 +2769,7 @@ export const ListEmailTemplatesResponse = zod.array(ListEmailTemplatesResponseIt
 
 
 /**
- * @summary Create a new email template (manager/admin)
+ * @summary Create a new email template (all approved users; reps own the result)
  */
 export const CreateEmailTemplateBody = zod.object({
   "name": zod.string(),
@@ -2748,7 +2808,7 @@ export const GetEmailTemplateResponse = zod.object({
 
 
 /**
- * @summary Update an email template (manager/admin)
+ * @summary Update an email template (managers/admins or owning rep)
  */
 export const UpdateEmailTemplateParams = zod.object({
   "id": zod.coerce.number()
@@ -2779,6 +2839,14 @@ export const UpdateEmailTemplateResponse = zod.object({
 }),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an email template (reps may delete only their own)
+ */
+export const DeleteEmailTemplateParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
@@ -2952,6 +3020,12 @@ export const ListDripSequencesResponseItem = zod.object({
   "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
+  "createdBy": zod.number().nullable(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -2959,7 +3033,7 @@ export const ListDripSequencesResponse = zod.array(ListDripSequencesResponseItem
 
 
 /**
- * @summary Create a drip sequence (manager/admin)
+ * @summary Create a drip sequence (all approved users; reps own the result)
  */
 export const CreateDripSequenceBody = zod.object({
   "name": zod.string(),
@@ -2983,6 +3057,12 @@ export const GetDripSequenceResponse = zod.object({
   "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
+  "createdBy": zod.number().nullable(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }).and(zod.object({
@@ -3003,7 +3083,7 @@ export const GetDripSequenceResponse = zod.object({
 
 
 /**
- * @summary Update a drip sequence (manager/admin)
+ * @summary Update a drip sequence (managers/admins or owning rep)
  */
 export const UpdateDripSequenceParams = zod.object({
   "id": zod.coerce.number()
@@ -3023,8 +3103,22 @@ export const UpdateDripSequenceResponse = zod.object({
   "senderMode": zod.enum(['template', 'default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
+  "createdBy": zod.number().nullable(),
+  "creator": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().optional()
+}),zod.null()]).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a drip sequence (reps may delete only their own)
+ */
+export const DeleteDripSequenceParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 

@@ -20,6 +20,8 @@ function sequenceToApi(seq: any) {
     senderMode: seq.senderMode ?? "template",
     isActive: seq.isActive,
     stepCount: seq.steps?.length ?? 0,
+    createdBy: seq.createdBy ?? null,
+    creator: seq.creator ? { id: seq.creator.id, name: seq.creator.name, email: seq.creator.email } : null,
     createdAt: seq.createdAt.toISOString(),
     updatedAt: seq.updatedAt.toISOString(),
   };
@@ -71,7 +73,7 @@ router.get("/drip/sequences", async (req: Request, res: Response) => {
   if (!user) return;
 
   const sequences = await db.query.dripSequencesTable.findMany({
-    with: { steps: true },
+    with: { steps: true, creator: true },
     orderBy: (t, { desc }) => [desc(t.createdAt)],
   });
 
@@ -82,7 +84,6 @@ router.get("/drip/sequences", async (req: Request, res: Response) => {
 router.post("/drip/sequences", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const { name, triggerStatus, senderMode, isActive } = req.body as any;
   if (!name || !triggerStatus) return void res.status(400).json({ error: "name and triggerStatus required" });
@@ -92,9 +93,17 @@ router.post("/drip/sequences", async (req: Request, res: Response) => {
     triggerStatus,
     senderMode: ["template", "default", "assigned_rep"].includes(senderMode) ? senderMode : "template",
     isActive: isActive ?? false,
+    createdBy: user.id,
   }).returning();
 
-  res.status(201).json({ ...seq, stepCount: 0, createdAt: seq.createdAt.toISOString(), updatedAt: seq.updatedAt.toISOString() });
+  res.status(201).json({
+    ...seq,
+    stepCount: 0,
+    createdBy: seq.createdBy ?? null,
+    creator: { id: user.id, name: user.name, email: user.email },
+    createdAt: seq.createdAt.toISOString(),
+    updatedAt: seq.updatedAt.toISOString(),
+  });
 });
 
 // GET /api/drip/sequences/:id
@@ -106,6 +115,7 @@ router.get("/drip/sequences/:id", async (req: Request, res: Response) => {
   const seq = await db.query.dripSequencesTable.findFirst({
     where: eq(dripSequencesTable.id, id),
     with: {
+      creator: true,
       steps: {
         with: { template: true },
         orderBy: (s, { asc }) => [asc(s.stepOrder)],
@@ -124,11 +134,16 @@ router.get("/drip/sequences/:id", async (req: Request, res: Response) => {
 router.put("/drip/sequences/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const id = parseInt(req.params["id"] as string, 10);
-  const existing = await db.query.dripSequencesTable.findFirst({ where: eq(dripSequencesTable.id, id) });
+  const existing = await db.query.dripSequencesTable.findFirst({
+    where: eq(dripSequencesTable.id, id),
+    with: { creator: true },
+  });
   if (!existing) return void res.status(404).json({ error: "Not found" });
+  if (user.role === "rep" && existing.createdBy !== user.id) {
+    return void res.status(403).json({ error: "You can only edit sequences you created" });
+  }
 
   const { name, triggerStatus, senderMode, isActive } = req.body as any;
   const [updated] = await db.update(dripSequencesTable)
@@ -142,18 +157,46 @@ router.put("/drip/sequences/:id", async (req: Request, res: Response) => {
     .where(eq(dripSequencesTable.id, id))
     .returning();
 
-  res.json({ ...updated, stepCount: 0, createdAt: updated.createdAt.toISOString(), updatedAt: updated.updatedAt.toISOString() });
+  res.json({
+    ...updated,
+    stepCount: 0,
+    createdBy: updated.createdBy ?? null,
+    creator: existing.creator
+      ? { id: existing.creator.id, name: existing.creator.name, email: existing.creator.email }
+      : null,
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString(),
+  });
+});
+
+// DELETE /api/drip/sequences/:id — reps may delete only their own sequences.
+router.delete("/drip/sequences/:id", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const id = parseInt(req.params["id"] as string, 10);
+  if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
+  const existing = await db.query.dripSequencesTable.findFirst({ where: eq(dripSequencesTable.id, id) });
+  if (!existing) return void res.status(404).json({ error: "Not found" });
+  if (user.role === "rep" && existing.createdBy !== user.id) {
+    return void res.status(403).json({ error: "You can only delete sequences you created" });
+  }
+
+  await db.delete(dripSequencesTable).where(eq(dripSequencesTable.id, id));
+  res.status(204).send();
 });
 
 // PUT /api/drip/sequences/:id/steps — replace all steps
 router.put("/drip/sequences/:id/steps", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const id = parseInt(req.params["id"] as string, 10);
   const seq = await db.query.dripSequencesTable.findFirst({ where: eq(dripSequencesTable.id, id) });
   if (!seq) return void res.status(404).json({ error: "Sequence not found" });
+  if (user.role === "rep" && seq.createdBy !== user.id) {
+    return void res.status(403).json({ error: "You can only edit sequences you created" });
+  }
 
   const { steps } = req.body as { steps: Array<{ templateId: number; delayHours: number }> };
   if (!Array.isArray(steps)) return void res.status(400).json({ error: "steps array required" });

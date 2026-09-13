@@ -294,6 +294,9 @@ function AppRoutes() {
             <Route path="/leads/new">
               <ProtectedRoute component={NewLead} />
             </Route>
+            <Route path="/leads/stale">
+              <ProtectedRoute component={Leads} />
+            </Route>
             <Route path="/leads/:id">
               <ProtectedRoute component={LeadDetail} />
             </Route>

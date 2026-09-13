@@ -108,6 +108,8 @@ import type {
   LeadCaptureResponse,
   LeadDealConversion,
   LeadDetail,
+  LeadDistributionSettings,
+  LeadDistributionSettingsUpdate,
   LeadInput,
   LeadListResponse,
   LeadUpdate,
@@ -1097,6 +1099,154 @@ export const useUpdateUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserMutationOptions(options));
+    }
+
+export const getGetLeadDistributionSettingsUrl = () => {
+
+
+
+
+  return `/api/settings/lead-distribution`
+}
+
+/**
+ * @summary Get inbound lead distribution settings (admin only)
+ */
+export const getLeadDistributionSettings = async ( options?: RequestInit): Promise<LeadDistributionSettings> => {
+
+  return customFetch<LeadDistributionSettings>(getGetLeadDistributionSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadDistributionSettingsQueryKey = () => {
+    return [
+    `/api/settings/lead-distribution`
+    ] as const;
+    }
+
+
+export const getGetLeadDistributionSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getLeadDistributionSettings>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadDistributionSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadDistributionSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadDistributionSettings>>> = ({ signal }) => getLeadDistributionSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadDistributionSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadDistributionSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadDistributionSettings>>>
+export type GetLeadDistributionSettingsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get inbound lead distribution settings (admin only)
+ */
+
+export function useGetLeadDistributionSettings<TData = Awaited<ReturnType<typeof getLeadDistributionSettings>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadDistributionSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadDistributionSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateLeadDistributionSettingsUrl = () => {
+
+
+
+
+  return `/api/settings/lead-distribution`
+}
+
+/**
+ * @summary Update inbound lead distribution settings (admin only)
+ */
+export const updateLeadDistributionSettings = async (leadDistributionSettingsUpdate: LeadDistributionSettingsUpdate, options?: RequestInit): Promise<LeadDistributionSettings> => {
+
+  return customFetch<LeadDistributionSettings>(getUpdateLeadDistributionSettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      leadDistributionSettingsUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateLeadDistributionSettingsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeadDistributionSettings>>, TError,{data: BodyType<LeadDistributionSettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLeadDistributionSettings>>, TError,{data: BodyType<LeadDistributionSettingsUpdate>}, TContext> => {
+
+const mutationKey = ['updateLeadDistributionSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLeadDistributionSettings>>, {data: BodyType<LeadDistributionSettingsUpdate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateLeadDistributionSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLeadDistributionSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateLeadDistributionSettings>>>
+    export type UpdateLeadDistributionSettingsMutationBody = BodyType<LeadDistributionSettingsUpdate>
+    export type UpdateLeadDistributionSettingsMutationError = ErrorType<void>
+
+    /**
+ * @summary Update inbound lead distribution settings (admin only)
+ */
+export const useUpdateLeadDistributionSettings = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeadDistributionSettings>>, TError,{data: BodyType<LeadDistributionSettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLeadDistributionSettings>>,
+        TError,
+        {data: BodyType<LeadDistributionSettingsUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateLeadDistributionSettingsMutationOptions(options));
     }
 
 export const getUpdateUserPushTokenUrl = (id: number,) => {
@@ -7418,7 +7568,7 @@ export const getCreateEmailTemplateUrl = () => {
 }
 
 /**
- * @summary Create a new email template (manager/admin)
+ * @summary Create a new email template (all approved users; reps own the result)
  */
 export const createEmailTemplate = async (emailTemplateInput: EmailTemplateInput, options?: RequestInit): Promise<EmailTemplate> => {
 
@@ -7467,7 +7617,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateEmailTemplateMutationError = ErrorType<unknown>
 
     /**
- * @summary Create a new email template (manager/admin)
+ * @summary Create a new email template (all approved users; reps own the result)
  */
 export const useCreateEmailTemplate = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmailTemplate>>, TError,{data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -7566,7 +7716,7 @@ export const getUpdateEmailTemplateUrl = (id: number,) => {
 }
 
 /**
- * @summary Update an email template (manager/admin)
+ * @summary Update an email template (managers/admins or owning rep)
  */
 export const updateEmailTemplate = async (id: number,
     emailTemplateInput: EmailTemplateInput, options?: RequestInit): Promise<EmailTemplate> => {
@@ -7616,7 +7766,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateEmailTemplateMutationError = ErrorType<unknown>
 
     /**
- * @summary Update an email template (manager/admin)
+ * @summary Update an email template (managers/admins or owning rep)
  */
 export const useUpdateEmailTemplate = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailTemplate>>, TError,{id: number;data: BodyType<EmailTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -7627,6 +7777,76 @@ export const useUpdateEmailTemplate = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateEmailTemplateMutationOptions(options));
+    }
+
+export const getDeleteEmailTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/email/templates/${id}`
+}
+
+/**
+ * @summary Delete an email template (reps may delete only their own)
+ */
+export const deleteEmailTemplate = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteEmailTemplateUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteEmailTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmailTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEmailTemplate>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteEmailTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmailTemplate>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteEmailTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEmailTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEmailTemplate>>>
+
+    export type DeleteEmailTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an email template (reps may delete only their own)
+ */
+export const useDeleteEmailTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmailTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEmailTemplate>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteEmailTemplateMutationOptions(options));
     }
 
 export const getPreviewEmailTemplateUrl = (id: number,) => {
@@ -8462,7 +8682,7 @@ export const getCreateDripSequenceUrl = () => {
 }
 
 /**
- * @summary Create a drip sequence (manager/admin)
+ * @summary Create a drip sequence (all approved users; reps own the result)
  */
 export const createDripSequence = async (dripSequenceInput: DripSequenceInput, options?: RequestInit): Promise<DripSequence> => {
 
@@ -8511,7 +8731,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateDripSequenceMutationError = ErrorType<unknown>
 
     /**
- * @summary Create a drip sequence (manager/admin)
+ * @summary Create a drip sequence (all approved users; reps own the result)
  */
 export const useCreateDripSequence = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDripSequence>>, TError,{data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -8610,7 +8830,7 @@ export const getUpdateDripSequenceUrl = (id: number,) => {
 }
 
 /**
- * @summary Update a drip sequence (manager/admin)
+ * @summary Update a drip sequence (managers/admins or owning rep)
  */
 export const updateDripSequence = async (id: number,
     dripSequenceInput: DripSequenceInput, options?: RequestInit): Promise<DripSequence> => {
@@ -8660,7 +8880,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateDripSequenceMutationError = ErrorType<unknown>
 
     /**
- * @summary Update a drip sequence (manager/admin)
+ * @summary Update a drip sequence (managers/admins or owning rep)
  */
 export const useUpdateDripSequence = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDripSequence>>, TError,{id: number;data: BodyType<DripSequenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -8671,6 +8891,76 @@ export const useUpdateDripSequence = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateDripSequenceMutationOptions(options));
+    }
+
+export const getDeleteDripSequenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/drip/sequences/${id}`
+}
+
+/**
+ * @summary Delete a drip sequence (reps may delete only their own)
+ */
+export const deleteDripSequence = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteDripSequenceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDripSequenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDripSequence>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDripSequence>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDripSequence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDripSequence>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDripSequence(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDripSequenceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDripSequence>>>
+
+    export type DeleteDripSequenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a drip sequence (reps may delete only their own)
+ */
+export const useDeleteDripSequence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDripSequence>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDripSequence>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDripSequenceMutationOptions(options));
     }
 
 export const getUpsertDripSequenceStepsUrl = (id: number,) => {

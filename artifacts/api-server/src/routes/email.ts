@@ -464,7 +464,6 @@ router.get("/email/templates/:id", async (req: Request, res: Response) => {
 router.post("/email/templates", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
   if (!name || !subject || !bodyHtml) return void res.status(400).json({ error: "name, subject, bodyHtml required" });
@@ -486,13 +485,15 @@ router.post("/email/templates", async (req: Request, res: Response) => {
 router.put("/email/templates/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const id = parseInt(req.params["id"] as string, 10);
   const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
 
   const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
+  if (user.role === "rep" && existing.createdBy !== user.id) {
+    return void res.status(403).json({ error: "You can only edit templates you created" });
+  }
 
   const [updated] = await db.update(emailTemplatesTable)
     .set({
@@ -510,6 +511,32 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
   res.json(updated);
 });
 
+// --- Delete template (reps may delete only their own; managers/admins may delete any) ---
+router.delete("/email/templates/:id", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  const id = parseInt(req.params["id"] as string, 10);
+  if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
+
+  const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
+  if (!existing) return void res.status(404).json({ error: "Not found" });
+  if (user.role === "rep" && existing.createdBy !== user.id) {
+    return void res.status(403).json({ error: "You can only delete templates you created" });
+  }
+
+  try {
+    await db.delete(emailTemplatesTable).where(eq(emailTemplatesTable.id, id));
+  } catch (error: any) {
+    // Templates referenced by sequence steps use an intentional RESTRICT FK.
+    if (error?.code === "23503") {
+      return void res.status(409).json({ error: "Template is used by a drip sequence and cannot be deleted" });
+    }
+    throw error;
+  }
+  res.status(204).send();
+});
+
 // --- Preview template ---
 router.post("/email/templates/:id/preview", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -524,10 +551,14 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   let vars = SAMPLE_VARS;
   if (leadId) {
     const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+    if (!lead) return void res.status(404).json({ error: "Lead not found" });
+    if (user.role === "rep" && lead.assignedRepId !== user.id) {
+      return void res.status(403).json({ error: "Forbidden" });
+    }
     const rep = lead?.assignedRepId
       ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
       : null;
-    if (lead) vars = buildVariables(lead, rep);
+    vars = buildVariables(lead, rep);
   }
 
   res.json({

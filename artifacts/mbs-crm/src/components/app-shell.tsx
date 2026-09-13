@@ -86,7 +86,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <nav className="space-y-0.5">
           {navItems.map((item) => navLink(item.href, item.label, item.icon))}
 
-          {isManagerOrAdmin && (
+          {(isManagerOrAdmin || currentUser?.role === "rep") && (
             <>
               <div className="pt-4 pb-1">
                 <div className="border-t border-white/10" />
@@ -96,25 +96,30 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
               {isAdmin && navLink("/lenders", "Lenders", Building2)}
               {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
-              <div className="pt-4 pb-1">
-                <div className="border-t border-white/10" />
-              </div>
-              {sectionLabel("Management")}
-              <button
-                onClick={() => {
-                  if (location.split("?")[0] === "/leads") {
-                    window.dispatchEvent(new CustomEvent("open-import-dialog"));
-                  } else {
-                    navigate("/leads?import=1");
-                  }
-                  onNavigate?.();
-                }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-white/8 hover:text-white cursor-pointer w-full text-left"
-                style={{ borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
-              >
-                <Upload size={16} />
-                Import Leads
-              </button>
+              {isManagerOrAdmin && (
+                <>
+                  <div className="pt-4 pb-1">
+                    <div className="border-t border-white/10" />
+                  </div>
+                  {sectionLabel("Management")}
+                  {navLink("/leads/stale", "Stale Leads", Activity)}
+                  <button
+                    onClick={() => {
+                      if (location.split("?")[0] === "/leads") {
+                        window.dispatchEvent(new CustomEvent("open-import-dialog"));
+                      } else {
+                        navigate("/leads?import=1");
+                      }
+                      onNavigate?.();
+                    }}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-white/8 hover:text-white cursor-pointer w-full text-left"
+                    style={{ borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
+                  >
+                    <Upload size={16} />
+                    Import Leads
+                  </button>
+                </>
+              )}
             </>
           )}
 

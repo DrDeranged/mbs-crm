@@ -27,6 +27,7 @@ import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
+import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDistribution";
 
 const router: IRouter = Router();
 
@@ -41,7 +42,14 @@ function leadToApi(
   lead: typeof leadsTable.$inferSelect,
   rep?: typeof usersTable.$inferSelect | null,
   latestActivity?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
+  staleThresholdDays = 7,
 ) {
+  // Staleness is based on the activity log itself, rather than the denormalized
+  // lead timestamp, so an assigned lead with no logged activity is handled
+  // consistently even if legacy data has a populated lastActivityAt.
+  const activityAt = latestActivity?.createdAt ?? null;
+  const idleSince = activityAt ?? lead.createdAt;
+  const daysIdle = Math.max(0, Math.floor((Date.now() - idleSince.getTime()) / (24 * 60 * 60 * 1000)));
   return {
     id: lead.id,
     firstName: lead.firstName,
@@ -60,6 +68,8 @@ function leadToApi(
     updatedAt: lead.updatedAt.toISOString(),
     lastActivityAt: latestActivity?.createdAt.toISOString() ?? lead.lastActivityAt?.toISOString() ?? null,
     lastActivityActor: latestActivity?.user ? userToApi(latestActivity.user) : null,
+    isStale: lead.assignedRepId != null && daysIdle >= staleThresholdDays,
+    daysIdle,
     leadScore: lead.leadScore ?? null,
     leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
     aiSummary: (lead.aiSummary as any) ?? null,
@@ -69,6 +79,33 @@ function leadToApi(
     estimatedTermMonths: lead.estimatedTermMonths ?? null,
     renewalFlaggedAt: lead.renewalFlaggedAt?.toISOString() ?? null,
   };
+}
+
+function staleLeadCondition(staleThresholdDays: number) {
+  const cutoff = new Date(Date.now() - staleThresholdDays * 24 * 60 * 60 * 1000);
+  // Keep this expression in lockstep with leadToApi: effective idle time is
+  // the latest logged activity, or creation time when no activity exists.
+  return sql`${leadsTable.assignedRepId} is not null and coalesce(
+    (select max(${activityLogTable.createdAt}) from ${activityLogTable}
+      where ${activityLogTable.leadId} = ${leadsTable.id}),
+    ${leadsTable.createdAt}
+  ) < ${cutoff}`;
+}
+
+async function getStaleThresholdDays() {
+  const settings = await db.query.companySettingsTable.findFirst();
+  return settings?.staleThresholdDays ?? 7;
+}
+
+async function leadToApiWithCurrentActivity(
+  lead: typeof leadsTable.$inferSelect,
+  rep?: typeof usersTable.$inferSelect | null,
+) {
+  const [latestActivities, staleThresholdDays] = await Promise.all([
+    getLatestActivities("lead", [lead.id]),
+    getStaleThresholdDays(),
+  ]);
+  return leadToApi(lead, rep, latestActivities.get(lead.id), staleThresholdDays);
 }
 
 async function findDuplicate(email?: string, phone?: string, ein?: string) {
@@ -164,6 +201,7 @@ router.get("/leads", async (req: Request, res: Response) => {
   const page = Number(q.page ?? 1);
   const limit = Math.min(Number(q.limit ?? 25), 100);
   const offset = (page - 1) * limit;
+  const staleThresholdDays = await getStaleThresholdDays();
 
   const conditions: ReturnType<typeof eq>[] = [];
   if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
@@ -180,6 +218,9 @@ router.get("/leads", async (req: Request, res: Response) => {
   if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
   if (q.renewalFlagged === true || q.renewalFlagged === "true") {
     conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
+  }
+  if (q.stale === true || q.stale === "true") {
+    conditions.push(staleLeadCondition(staleThresholdDays) as any);
   }
 
   let searchCondition: any = undefined;
@@ -227,7 +268,7 @@ router.get("/leads", async (req: Request, res: Response) => {
   const latestActivities = await getLatestActivities("lead", leadsRaw.map((lead) => lead.id));
 
   res.json({
-    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, latestActivities.get(l.id))),
+    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, latestActivities.get(l.id), staleThresholdDays)),
     total,
     page,
     limit,
@@ -246,6 +287,19 @@ router.post("/leads", async (req: Request, res: Response) => {
   }
 
   const { company, ...leadData } = body.data;
+
+  if (leadData.assignedRepId != null) {
+    if (user.role !== "admin" && user.role !== "manager") {
+      res.status(403).json({ error: "Only managers and admins may assign leads" });
+      return;
+    }
+    if (!await isEligibleInboundAssignee(leadData.assignedRepId)) {
+      res.status(400).json({
+        error: "Destination user must be active and eligible for inbound assignment",
+      });
+      return;
+    }
+  }
 
   const dup = await findDuplicate(leadData.email, leadData.phone, leadData.ein);
   if (dup) {
@@ -273,7 +327,7 @@ router.post("/leads", async (req: Request, res: Response) => {
 
   await logActivity({ userId: user.id, leadId: lead.id, action: "created", entityType: "lead", entityId: lead.id });
 
-  res.status(201).json(leadToApi(lead, null));
+  res.status(201).json(await leadToApiWithCurrentActivity(lead, null));
 });
 
 router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Response) => {
@@ -325,10 +379,13 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
     return;
   }
 
+  const { rep: repSlug, ...captureData } = body.data;
+  const assignedRepId = await resolveInboundAssignee(repSlug);
   const [lead] = await db.insert(leadsTable).values({
-    ...body.data,
-    applicationType: (body.data.applicationType as any) ?? "working_capital",
+    ...captureData,
+    applicationType: (captureData.applicationType as any) ?? "working_capital",
     leadSource: "website",
+    ...(assignedRepId ? { assignedRepId } : {}),
   }).returning();
 
   await logActivity({ userId: null, leadId: lead.id, action: "captured", entityType: "lead", entityId: lead.id });
@@ -513,26 +570,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
     return;
   }
 
-  // ── Auto-assign: rep → manager → admin (round-robin by fewest leads) ────────
-  async function pickNextRepLocal(): Promise<number | null> {
-    const roleFallback = ["rep", "manager", "admin"] as const;
-    for (const role of roleFallback) {
-      const users = await db.query.usersTable.findMany({
-        where: and(eq(usersTable.role, role), eq(usersTable.isActive, true)),
-      });
-      if (users.length === 0) continue;
-      const counts = await Promise.all(
-        users.map(async (u: { id: number }) => {
-          const leadRows = await db.query.leadsTable.findMany({ where: eq(leadsTable.assignedRepId, u.id) });
-          return { repId: u.id, count: leadRows.length };
-        })
-      );
-      counts.sort((a, b) => a.count - b.count);
-      return counts[0]?.repId ?? null;
-    }
-    return null;
-  }
-  const assignedRepId = await pickNextRepLocal();
+  const assignedRepId = await resolveInboundAssignee();
 
   // ── Create lead ───────────────────────────────────────────────────────────
   const [lead] = await db.insert(leadsTable).values({
@@ -582,7 +620,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
   res.status(200).json(elementorPayload);
 });
 
-function buildLeadsWhere(q: any, userRole: string, userId: number) {
+function buildLeadsWhere(q: any, userRole: string, userId: number, staleThresholdDays = 7) {
   const conditions: any[] = [];
   if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
   if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
@@ -598,6 +636,9 @@ function buildLeadsWhere(q: any, userRole: string, userId: number) {
   if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
   if (q.renewalFlagged === true || q.renewalFlagged === "true") {
     conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null`);
+  }
+  if (q.stale === true || q.stale === "true") {
+    conditions.push(staleLeadCondition(staleThresholdDays));
   }
   let searchCondition: any = undefined;
   if (q.search) {
@@ -620,7 +661,7 @@ router.get("/leads/export", async (req: Request, res: Response) => {
   if (!user) return;
 
   const q = req.query as any;
-  const whereClause = buildLeadsWhere(q, user.role, user.id);
+  const whereClause = buildLeadsWhere(q, user.role, user.id, await getStaleThresholdDays());
 
   const ids = q.ids
     ? String(q.ids).split(",").map(Number).filter((n: number) => !isNaN(n) && n > 0)
@@ -744,9 +785,10 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
   const actorName = getUserDisplayName(user);
   const destinationName = getUserDisplayName(destinationRep);
   const message = `Assigned to ${destinationName} by ${actorName}`;
+  const staleThresholdDays = await getStaleThresholdDays();
   const assignmentWhere = body.data.ids
     ? inArray(leadsTable.id, [...new Set(body.data.ids)])
-    : buildLeadsWhere(body.data.filter, user.role, user.id);
+    : buildLeadsWhere(body.data.filter, user.role, user.id, staleThresholdDays);
 
   const changedLeads = await db.transaction(async (tx) => {
     const candidates = await tx.query.leadsTable.findMany({
@@ -881,7 +923,7 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
   const latestActivity = activityLog[0] ?? null;
 
   res.json({
-    ...leadToApi(leadFields, assignedRep, latestActivity),
+    ...leadToApi(leadFields, assignedRep, latestActivity, await getStaleThresholdDays()),
     company: company ? {
       id: company.id,
       leadId: company.leadId,
@@ -990,7 +1032,7 @@ router.put("/leads/:id", async (req: Request, res: Response) => {
     ).catch(() => {});
   }
 
-  res.json(leadToApi(updated, rep));
+  res.json(await leadToApiWithCurrentActivity(updated, rep));
 });
 
 router.put("/leads/:id/status", async (req: Request, res: Response) => {
@@ -1129,7 +1171,7 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
     }).catch(() => {});
   }
 
-  res.json(leadToApi(updated, rep));
+  res.json(await leadToApiWithCurrentActivity(updated, rep));
 });
 
 router.put("/leads/:id/assign", async (req: Request, res: Response) => {
@@ -1173,7 +1215,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   }
 
   if (existing.assignedRepId === body.data.repId) {
-    res.json(leadToApi(existing, destinationRep));
+    res.json(await leadToApiWithCurrentActivity(existing, destinationRep));
     return;
   }
 
@@ -1216,7 +1258,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     leadId: null,
   });
 
-  res.json(leadToApi(updated, destinationRep));
+  res.json(await leadToApiWithCurrentActivity(updated, destinationRep));
 });
 
 export { leadToApi };

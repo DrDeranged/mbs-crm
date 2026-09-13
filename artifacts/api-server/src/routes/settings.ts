@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { companySettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
+import { UpdateLeadDistributionSettingsBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -50,6 +51,71 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   });
 
   res.json(result);
+});
+
+router.get("/settings/lead-distribution", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
+
+  const [settings] = await db.select().from(companySettingsTable).limit(1);
+  res.json({
+    includeAdminsInRoundRobin: settings?.includeAdminsInRoundRobin ?? false,
+    staleThresholdDays: settings?.staleThresholdDays ?? 7,
+  });
+});
+
+router.put("/settings/lead-distribution", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
+
+  const body = UpdateLeadDistributionSettingsBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Invalid body", details: body.error.issues });
+    return;
+  }
+
+  if (body.data.includeAdminsInRoundRobin === undefined && body.data.staleThresholdDays === undefined) {
+    res.status(400).json({ error: "At least one setting must be provided" });
+    return;
+  }
+
+  const [existing] = await db.select().from(companySettingsTable).limit(1);
+  const updateFields = {
+    ...(body.data.includeAdminsInRoundRobin === undefined ? {} : { includeAdminsInRoundRobin: body.data.includeAdminsInRoundRobin }),
+    ...(body.data.staleThresholdDays === undefined ? {} : { staleThresholdDays: body.data.staleThresholdDays }),
+    updatedAt: new Date(),
+  };
+  let result;
+  if (existing) {
+    [result] = await db
+      .update(companySettingsTable)
+      .set(updateFields)
+      .where(eq(companySettingsTable.id, existing.id))
+      .returning();
+  } else {
+    [result] = await db
+      .insert(companySettingsTable)
+      .values({
+        includeAdminsInRoundRobin: body.data.includeAdminsInRoundRobin ?? false,
+        staleThresholdDays: body.data.staleThresholdDays ?? 7,
+      })
+      .returning();
+  }
+
+  await logActivity({
+    userId: user.id,
+    action: "lead_distribution_settings_updated",
+    entityType: "company_settings",
+    entityId: result?.id ?? 0,
+    details: updateFields,
+  });
+
+  res.json({
+    includeAdminsInRoundRobin: result?.includeAdminsInRoundRobin ?? false,
+    staleThresholdDays: result?.staleThresholdDays ?? 7,
+  });
 });
 
 export default router;

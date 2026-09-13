@@ -301,6 +301,7 @@ export default function Leads() {
   const [isExporting, setIsExporting] = useState(false);
   const [scoreFilter, setScoreFilter] = useState<"high" | "medium" | "low" | "">("");
   const [renewalFlagged, setRenewalFlagged] = useState(false);
+  const [staleOnly, setStaleOnly] = useState(false);
 
   useEffect(() => {
     const handler = () => setImportOpen(true);
@@ -321,6 +322,7 @@ export default function Leads() {
   const isRep = currentUser?.role === "rep";
   const isManagerOrAdmin = currentUser?.role === "manager" || currentUser?.role === "admin";
   const isAdmin = currentUser?.role === "admin";
+  const isStaleView = location === "/leads/stale";
 
   const bulkUpdateStatus = useBulkUpdateLeadStatus();
   const bulkAssign = useBulkAssignLeads();
@@ -369,6 +371,7 @@ export default function Leads() {
       endDate: endDate || undefined,
       ...scoreMinMax,
       ...(renewalFlagged ? { renewalFlagged: true } : {}),
+      ...((staleOnly || isStaleView) ? { stale: true } : {}),
     };
     bulkAssign.mutate(
       {
@@ -388,6 +391,19 @@ export default function Leads() {
     );
   };
 
+  const handleSingleAssign = (leadId: number, repId: string) => {
+    bulkAssign.mutate(
+      { data: { ids: [leadId], repId: Number(repId) } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+          toast({ title: "Lead reassigned" });
+        },
+        onError: () => toast({ title: "Failed to reassign lead", variant: "destructive" }),
+      },
+    );
+  };
+
   const handleExport = async (ids?: number[]) => {
     setIsExporting(true);
     try {
@@ -398,6 +414,7 @@ export default function Leads() {
       if (repId) params.set("repId", repId);
       if (startDate) params.set("startDate", startDate);
       if (endDate) params.set("endDate", endDate);
+      if (staleOnly || isStaleView) params.set("stale", "true");
       if (ids && ids.length > 0) params.set("ids", ids.join(","));
       const qs = params.toString();
       const response = await fetch(`/api/leads/export${qs ? `?${qs}` : ""}`, {
@@ -444,7 +461,7 @@ export default function Leads() {
   useEffect(() => {
     setSelectedIds(new Set());
     setSelectAllMatching(false);
-  }, [debouncedSearch, status, applicationType, repId, startDate, endDate, scoreFilter, renewalFlagged]);
+  }, [debouncedSearch, status, applicationType, repId, startDate, endDate, scoreFilter, renewalFlagged, staleOnly, isStaleView]);
 
   const queryParams = {
     search: debouncedSearch || undefined,
@@ -459,6 +476,7 @@ export default function Leads() {
     sortOrder,
     ...scoreMinMax,
     ...(renewalFlagged ? { renewalFlagged: true } : {}),
+    ...((staleOnly || isStaleView) ? { stale: true } : {}),
   };
 
   const { data, isLoading } = useListLeads(queryParams, {
@@ -485,20 +503,22 @@ export default function Leads() {
   const formatStatus = (status: string) =>
     status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-  const hasFilters = !!(search || status || applicationType || repId || startDate || endDate || scoreFilter || renewalFlagged);
+  const hasFilters = !!(search || status || applicationType || repId || startDate || endDate || scoreFilter || renewalFlagged || staleOnly || isStaleView);
 
   const clearFilters = () => {
     setSearch(""); setDebouncedSearch(""); setStatus(""); setApplicationType("");
     setRepId(""); setStartDate(""); setEndDate(""); setScoreFilter("");
-    setRenewalFlagged(false); setPage(1);
+    setRenewalFlagged(false); setStaleOnly(false); setPage(1);
   };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Leads</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">Manage and track your financing pipeline</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{isStaleView ? "Stale Leads" : "Leads"}</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">
+            {isStaleView ? "Assigned leads with no recent activity" : "Manage and track your financing pipeline"}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {isManagerOrAdmin && (
@@ -660,6 +680,19 @@ export default function Leads() {
         >
           Renewals
         </button>
+        {!isStaleView && (
+          <button
+            onClick={() => { setStaleOnly((value) => !value); setPage(1); }}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-medium border transition-all ml-2",
+              staleOnly
+                ? "bg-red-100 text-red-700 border-red-200 ring-2 ring-offset-1 ring-[#1F4E79]"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50",
+            )}
+          >
+            Stale
+          </button>
+        )}
       </div>
 
       {isManagerOrAdmin && data?.leads?.length ? (
@@ -751,9 +784,12 @@ export default function Leads() {
                     </div>
                     <div className="text-xs text-muted-foreground truncate">{lead.email}</div>
                   </div>
-                  <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
-                    {formatStatus(lead.status)}
-                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
+                      {formatStatus(lead.status)}
+                    </Badge>
+                    {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">Stale</Badge>}
+                  </div>
                 </div>
                 {lead.companyName && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -790,6 +826,7 @@ export default function Leads() {
               <TableHead>Lead</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Stale</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Assigned Rep</TableHead>
@@ -814,11 +851,12 @@ export default function Leads() {
                   <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                 </TableRow>
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="py-0">
+                <TableCell colSpan={isManagerOrAdmin ? 10 : 9} className="py-0">
                   {hasFilters ? (
                     <Empty className="py-12 border-0">
                       <EmptyMedia variant="icon"><Search className="h-5 w-5" /></EmptyMedia>
@@ -889,9 +927,21 @@ export default function Leads() {
                   </TableCell>
                   <TableCell>
                     <Link href={`/leads/${lead.id}`} className="block w-full">
-                      <Badge variant="secondary" className="font-normal capitalize">
-                        {formatStatus(lead.status)}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="secondary" className="font-normal capitalize">
+                          {formatStatus(lead.status)}
+                        </Badge>
+                        {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Stale</Badge>}
+                      </div>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/leads/${lead.id}`} className="block w-full">
+                      {lead.isStale ? (
+                        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{lead.daysIdle}d idle</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </Link>
                   </TableCell>
                   <TableCell>
@@ -919,9 +969,28 @@ export default function Leads() {
                     </Link>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    <Link href={`/leads/${lead.id}`} className="block w-full">
-                      {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-xs">Unassigned</span>}
-                    </Link>
+                    {isStaleView && isManagerOrAdmin ? (
+                      <div onClick={(event) => event.stopPropagation()}>
+                        <Select
+                          value={lead.assignedRepId ? String(lead.assignedRepId) : undefined}
+                          onValueChange={(repId) => handleSingleAssign(lead.id, repId)}
+                          disabled={bulkAssign.isPending}
+                        >
+                          <SelectTrigger className="h-8 w-[160px] text-xs">
+                            <SelectValue placeholder="Assign rep…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {usersData?.map((rep) => (
+                              <SelectItem key={rep.id} value={String(rep.id)}>{getUserDisplayName(rep)}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <Link href={`/leads/${lead.id}`} className="block w-full">
+                        {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-xs">Unassigned</span>}
+                      </Link>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     <Link href={`/leads/${lead.id}`} className="block w-full">

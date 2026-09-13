@@ -289,6 +289,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
+  /settings/lead-distribution:
+    get:
+      operationId: getLeadDistributionSettings
+      tags: [admin]
+      summary: Get inbound lead distribution settings (admin only)
+      responses:
+        "200":
+          description: Inbound lead distribution settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDistributionSettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    put:
+      operationId: updateLeadDistributionSettings
+      tags: [admin]
+      summary: Update inbound lead distribution settings (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadDistributionSettingsUpdate"
+      responses:
+        "200":
+          description: Updated inbound lead distribution settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDistributionSettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
   /users/{id}/push-token:
     put:
       operationId: updateUserPushToken
@@ -379,6 +417,11 @@ paths:
         - name: renewalFlagged
           in: query
           description: When true, only return leads flagged by the renewal radar job as ready to re-fund
+          schema:
+            type: boolean
+        - name: stale
+          in: query
+          description: When true, only return assigned leads with no activity within the configured staleness threshold
           schema:
             type: boolean
       responses:
@@ -555,6 +598,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: stale
+          in: query
+          description: When true, only export assigned leads with no activity within the configured staleness threshold
+          schema:
+            type: boolean
       responses:
         "200":
           description: CSV file download
@@ -2472,7 +2520,7 @@ paths:
     post:
       operationId: createEmailTemplate
       tags: [email]
-      summary: Create a new email template (manager/admin)
+      summary: Create a new email template (all approved users; reps own the result)
       requestBody:
         required: true
         content:
@@ -2508,7 +2556,7 @@ paths:
     put:
       operationId: updateEmailTemplate
       tags: [email]
-      summary: Update an email template (manager/admin)
+      summary: Update an email template (managers/admins or owning rep)
       parameters:
         - name: id
           in: path
@@ -2528,6 +2576,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EmailTemplate"
+    delete:
+      operationId: deleteEmailTemplate
+      tags: [email]
+      summary: Delete an email template (reps may delete only their own)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Template deleted
 
   /email/templates/{id}/preview:
     post:
@@ -2787,7 +2848,7 @@ paths:
     post:
       operationId: createDripSequence
       tags: [drip]
-      summary: Create a drip sequence (manager/admin)
+      summary: Create a drip sequence (all approved users; reps own the result)
       requestBody:
         required: true
         content:
@@ -2823,7 +2884,7 @@ paths:
     put:
       operationId: updateDripSequence
       tags: [drip]
-      summary: Update a drip sequence (manager/admin)
+      summary: Update a drip sequence (managers/admins or owning rep)
       parameters:
         - name: id
           in: path
@@ -2843,6 +2904,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DripSequence"
+    delete:
+      operationId: deleteDripSequence
+      tags: [drip]
+      summary: Delete a drip sequence (reps may delete only their own)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Sequence deleted
 
   /drip/sequences/{id}/steps:
     put:
@@ -3388,7 +3462,7 @@ components:
 
     Lead:
       type: object
-      required: [id, status, applicationType, leadSource, createdAt, updatedAt]
+      required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle]
       properties:
         id:
           type: integer
@@ -3465,6 +3539,12 @@ components:
           type: ["string", "null"]
           format: date-time
           description: When the lead was flagged by the renewal radar job as ready to re-fund
+        isStale:
+          type: boolean
+          description: Whether the assigned lead has had no activity within the configured staleness threshold
+        daysIdle:
+          type: integer
+          description: Number of complete days since the most recent activity (or lead creation when no activity exists)
 
     LeadDetail:
       allOf:
@@ -3530,6 +3610,7 @@ components:
           enum: [equipment, working_capital]
         assignedRepId:
           type: integer
+          description: Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user
         leadSource:
           type: string
           enum: [website, referral, import, manual]
@@ -3574,6 +3655,10 @@ components:
         applicationType:
           type: string
           enum: [equipment, working_capital]
+        rep:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          description: Optional active representative slug attribution
 
     ElementorCaptureInput:
       type: object
@@ -3619,6 +3704,32 @@ components:
           type: boolean
         leadId:
           type: integer
+
+    LeadDistributionSettings:
+      type: object
+      required: [includeAdminsInRoundRobin, staleThresholdDays]
+      properties:
+        includeAdminsInRoundRobin:
+          type: boolean
+          default: false
+          description: Include active admins after active reps and managers in inbound round-robin assignment
+        staleThresholdDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 7
+          description: Number of idle days before an assigned lead is considered stale
+
+    LeadDistributionSettingsUpdate:
+      type: object
+      required: []
+      properties:
+        includeAdminsInRoundRobin:
+          type: boolean
+        staleThresholdDays:
+          type: integer
+          minimum: 1
+          maximum: 365
 
     DuplicateResponse:
       type: object
@@ -3753,6 +3864,8 @@ components:
         maxScore:
           type: integer
         renewalFlagged:
+          type: boolean
+        stale:
           type: boolean
 
     BulkLeadAssignment:
@@ -4312,7 +4425,7 @@ components:
 
     DripSequence:
       type: object
-      required: [id, name, triggerStatus, isActive, stepCount, createdAt, updatedAt]
+      required: [id, name, triggerStatus, isActive, stepCount, createdBy, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -4327,6 +4440,19 @@ components:
           type: boolean
         stepCount:
           type: integer
+        createdBy:
+          type: ["integer", "null"]
+        creator:
+          oneOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: ["string", "null"]
+                email:
+                  type: string
+            - type: "null"
         createdAt:
           type: string
           format: date-time

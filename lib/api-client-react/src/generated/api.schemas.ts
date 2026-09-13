@@ -265,6 +265,10 @@ export interface Lead {
      * @nullable
      */
   renewalFlaggedAt?: string | null;
+  /** Whether the assigned lead has had no activity within the configured staleness threshold */
+  isStale: boolean;
+  /** Number of complete days since the most recent activity (or lead creation when no activity exists) */
+  daysIdle: number;
 }
 
 export interface Company {
@@ -392,6 +396,7 @@ export interface LeadInput {
   companyName?: string;
   ein?: string;
   applicationType?: LeadInputApplicationType;
+  /** Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user */
   assignedRepId?: number;
   leadSource?: LeadInputLeadSource;
   company?: CompanyInput;
@@ -431,6 +436,11 @@ export interface LeadCaptureInput {
   phone?: string;
   companyName?: string;
   applicationType?: LeadCaptureInputApplicationType;
+  /**
+     * Optional active representative slug attribution
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  rep?: string;
 }
 
 /**
@@ -461,6 +471,26 @@ export interface ElementorCaptureResponse {
 export interface LeadCaptureResponse {
   success: boolean;
   leadId: number;
+}
+
+export interface LeadDistributionSettings {
+  /** Include active admins after active reps and managers in inbound round-robin assignment */
+  includeAdminsInRoundRobin: boolean;
+  /**
+     * Number of idle days before an assigned lead is considered stale
+     * @minimum 1
+     * @maximum 365
+     */
+  staleThresholdDays: number;
+}
+
+export interface LeadDistributionSettingsUpdate {
+  includeAdminsInRoundRobin?: boolean;
+  /**
+     * @minimum 1
+     * @maximum 365
+     */
+  staleThresholdDays?: number;
 }
 
 export interface DuplicateResponse {
@@ -550,6 +580,7 @@ export interface BulkLeadFilter {
   minScore?: number;
   maxScore?: number;
   renewalFlagged?: boolean;
+  stale?: boolean;
 }
 
 /**
@@ -845,6 +876,13 @@ export const DripSequenceSenderMode = {
   assigned_rep: 'assigned_rep',
 } as const;
 
+export type DripSequenceCreator = {
+  id?: number;
+  /** @nullable */
+  name?: string | null;
+  email?: string;
+} | null;
+
 export interface DripSequence {
   id: number;
   name: string;
@@ -852,6 +890,9 @@ export interface DripSequence {
   senderMode?: DripSequenceSenderMode;
   isActive: boolean;
   stepCount: number;
+  /** @nullable */
+  createdBy: number | null;
+  creator?: DripSequenceCreator;
   createdAt: string;
   updatedAt: string;
 }
@@ -1738,6 +1779,10 @@ maxScore?: number;
  * When true, only return leads flagged by the renewal radar job as ready to re-fund
  */
 renewalFlagged?: boolean;
+/**
+ * When true, only return assigned leads with no activity within the configured staleness threshold
+ */
+stale?: boolean;
 };
 
 export type ListLeadsSortOrder = typeof ListLeadsSortOrder[keyof typeof ListLeadsSortOrder];
@@ -1773,6 +1818,10 @@ applicationType?: string;
 repId?: number;
 startDate?: string;
 endDate?: string;
+/**
+ * When true, only export assigned leads with no activity within the configured staleness threshold
+ */
+stale?: boolean;
 };
 
 export type BulkUpdateLeadStatusBody = {

@@ -26,6 +26,7 @@ import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
+import { resolveInboundAssignee } from "../lib/leadDistribution";
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
@@ -172,30 +173,6 @@ function twoBusinessDaysOut(from = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
-/**
- * Round-robin assignment with fallback chain: rep → manager → admin.
- * Returns null only when no active users exist at all.
- */
-async function pickNextRep(): Promise<number | null> {
-  const roleFallback = ["rep", "manager", "admin"] as const;
-  for (const role of roleFallback) {
-    const users = await db.query.usersTable.findMany({
-      where: and(eq(usersTable.role, role), eq(usersTable.isActive, true)),
-    });
-    if (users.length === 0) continue;
-
-    const counts = await Promise.all(
-      users.map(async (u: { id: number }) => {
-        const leads = await db.query.leadsTable.findMany({ where: eq(leadsTable.assignedRepId, u.id) });
-        return { repId: u.id, count: leads.length };
-      })
-    );
-    counts.sort((a: { count: number }, b: { count: number }) => a.count - b.count);
-    return counts[0]?.repId ?? null;
-  }
-  return null;
-}
-
 // POST /applications/submit — public, rate-limited, multipart
 router.post(
   "/applications/submit",
@@ -337,12 +314,16 @@ router.post(
       }
 
        // A QR attribution is advisory: invalid/missing values use normal assignment.
-       const attributedRep = body.rep
-         ? await db.query.usersTable.findFirst({
-           where: and(eq(usersTable.slug, String(body.rep).toLowerCase()), eq(usersTable.isActive, true)),
-         })
-         : null;
-       const assignedRepId = attributedRep?.id ?? await pickNextRep();
+        const attributedRep = body.rep
+          ? await db.query.usersTable.findFirst({
+            where: and(
+              eq(usersTable.slug, String(body.rep).toLowerCase()),
+              eq(usersTable.role, "rep"),
+              eq(usersTable.isActive, true),
+            ),
+          })
+          : null;
+        const assignedRepId = await resolveInboundAssignee(body.rep);
 
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
