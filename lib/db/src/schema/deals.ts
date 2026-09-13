@@ -28,6 +28,7 @@ export const dealsTable = pgTable(
     approxGm: integer("approx_gm"),
     actualGm: integer("actual_gm"),
     assignedTo: integer("assigned_to").references(() => usersTable.id, { onDelete: "set null" }),
+     intendedRepSlug: text("intended_rep_slug"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     fundedAt: timestamp("funded_at"),

@@ -1,9 +1,10 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response } from "express";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { activityLogTable, dealsTable, usersTable } from "@workspace/db";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
+import { logger } from "./logger";
 
 type RequireUserOptions = {
   allowPending?: boolean;
@@ -17,8 +18,68 @@ const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
   "manny@my-business-solutions.com": "manny",
 };
 
+const RESERVED_REP_SLUG_SET = new Set(Object.values(RESERVED_REP_SLUGS));
+
 function reservedSlugForEmail(email: string): string | undefined {
   return RESERVED_REP_SLUGS[email.trim().toLowerCase()];
+}
+
+/**
+ * Move deals carrying an intended-rep marker to the matching signed-in user.
+ *
+ * The conditional update is important for idempotency and concurrent sign-ins:
+ * PostgreSQL rechecks the predicate after waiting on a row lock, so only the
+ * request that actually changes an assignment writes the activity entry.
+ */
+export async function reconcileReservedRepDeals(user: typeof usersTable.$inferSelect): Promise<number> {
+  const intendedRepSlug = user.slug;
+  if (
+    !user.isActive ||
+    user.role === "pending" ||
+    !intendedRepSlug ||
+    !RESERVED_REP_SLUG_SET.has(intendedRepSlug)
+  ) return 0;
+
+  const displayName = user.name?.trim() || user.email;
+  return db.transaction(async (tx) => {
+    const markedDeals = await tx
+      .select({
+        id: dealsTable.id,
+        leadId: dealsTable.leadId,
+      })
+      .from(dealsTable)
+      .where(eq(dealsTable.intendedRepSlug, intendedRepSlug));
+
+    let reassigned = 0;
+    for (const deal of markedDeals) {
+      const [updated] = await tx
+        .update(dealsTable)
+        .set({ assignedTo: user.id, updatedAt: new Date() })
+        .where(and(
+          eq(dealsTable.id, deal.id),
+          eq(dealsTable.intendedRepSlug, intendedRepSlug),
+          or(isNull(dealsTable.assignedTo), ne(dealsTable.assignedTo, user.id)),
+        ))
+        .returning({ id: dealsTable.id });
+
+      if (!updated) continue;
+
+      await tx.insert(activityLogTable).values({
+        userId: user.id,
+        leadId: deal.leadId,
+        dealId: deal.id,
+        action: "assignment_reconciled",
+        entityType: "deal",
+        entityId: String(deal.id),
+        details: {
+          note: `Reserved rep ${intendedRepSlug} signed in; deal #${deal.id} was reassigned to ${displayName}.`,
+          intendedRepSlug,
+        },
+      });
+      reassigned++;
+    }
+    return reassigned;
+  });
 }
 
 export async function requireUser(
@@ -78,6 +139,17 @@ export async function requireUser(
       code: "ACCOUNT_PENDING",
     });
     return null;
+  }
+
+  // This runs on every authenticated request after the user has successfully
+  // synced and passed the active/pending gates, making sign-in reconciliation
+  // self-healing without a separate migration or admin action.
+  try {
+    await reconcileReservedRepDeals(user!);
+  } catch (e) {
+    // Do not turn a successful sign-in into a failed request if reconciliation
+    // cannot complete; the next authenticated request will retry it.
+    logger.warn({ err: e, userId: user!.id }, "Failed to reconcile reserved rep deals");
   }
 
   return user!;

@@ -390,32 +390,42 @@ router.get("/deals/analytics", async (req, res): Promise<void> => {
   });
 });
 
-const SEED_DEALS: Array<[string, typeof DEAL_STAGES[number], number | null, number | null, number | null, string | null, boolean]> = [
-  ["Fastgrass Hydroseed LLC", "submitted", 65000, 8000, null, "Customer held out another month", false],
-  ["Heartlands Entertainment LLC", "submitted", 250000, 20000, null, "Awaiting Banks", false],
-  ["University of Illinois", "in_funding", 365000, 12000, 12000, "In Funding", false],
-  ["Browns Farm", "information_needed", 40000, null, null, "Ghosted", false],
-  ["Emerald Hydroturf", "information_needed", 65000, null, null, "Awaiting App/Banks/Quote", false],
-  ["Frisco Station Arcade", "dead", null, null, null, "Lost deal, Declined", false],
-  ["Bryce Roder dba SETX Hydroseed", "dead", null, null, null, "Did not need", false],
-  ["Jim (Moss Deal)", "hold_on", 120000, null, null, null, false],
-  ["Wyatt (Kincaid Deal)", "dead", 123000, null, null, null, false],
-  ["Integrity Outdoor Services", "submitted", 65000, 12000, 6000, "Docs In, customer ghosted", false],
-  ["Jared Yost dba Tribal AG", "approved", 225000, 22000, 12000, "Waiting on docs from CPA", false],
-  ["Cornell University", "approved", 504000, 15000, 15000, "Waiting on signed proposal", false],
-  ["Talya Friend", "dead", 40000, 4000, null, "Tesla Chargers, waiting on App and Banks", false],
-  ["Diamond AG", "going_to_funding", 360000, 25000, null, "Waiting SOS", false],
-  ["Oregon Hydroseed", "submitted", 116000, 10000, null, "May want to hold off, trying better option", false],
-  ["AM Global Investments", "declined", 10000, 2000, null, null, false],
-  ["Slick City Water Park", "waiting_on_app", 1000000, 40000, null, "Spoke to Pat, doing app and quotes", false],
-  ["5 Boys Moving", "declined", 36000, 3000, null, "sent quote", false],
-  ["Mitchell & Vereen Transportation LLC", "funded", 30000, null, null, "Calvin's deal → assign", true],
-  ["Four Pillars", "in_funding", 118000, null, null, "Calvin's deal", true],
-  ["Antleys", "submitted", 36000, null, null, "Calvin's deal", true],
-  ["R2Muse Trucking", "submitted", 37000, null, null, "Calvin's deal", true],
-  ["Erosion Specialist", "funded", 17000, 2300, 2300, "Booked", false],
-  ["TP K1 Speed", "funded", 1500000, 35000, 25500, "Funded", false],
-  ["Jared Yost dba Tribal AG (funded tranche)", "funded", 110000, 9000, 8800, "Booked", false],
+type SeedDealDefinition = {
+  dealName: string;
+  stage: typeof DEAL_STAGES[number];
+  amount: number | null;
+  approxGm: number | null;
+  actualGm: number | null;
+  note: string | null;
+  intendedRepSlug?: string | null;
+};
+
+const SEED_DEALS: SeedDealDefinition[] = [
+  { dealName: "Fastgrass Hydroseed LLC", stage: "submitted", amount: 65000, approxGm: 8000, actualGm: null, note: "Customer held out another month" },
+  { dealName: "Heartlands Entertainment LLC", stage: "submitted", amount: 250000, approxGm: 20000, actualGm: null, note: "Awaiting Banks" },
+  { dealName: "University of Illinois", stage: "in_funding", amount: 365000, approxGm: 12000, actualGm: 12000, note: "In Funding" },
+  { dealName: "Browns Farm", stage: "information_needed", amount: 40000, approxGm: null, actualGm: null, note: "Ghosted" },
+  { dealName: "Emerald Hydroturf", stage: "information_needed", amount: 65000, approxGm: null, actualGm: null, note: "Awaiting App/Banks/Quote" },
+  { dealName: "Frisco Station Arcade", stage: "dead", amount: null, approxGm: null, actualGm: null, note: "Lost deal, Declined" },
+  { dealName: "Bryce Roder dba SETX Hydroseed", stage: "dead", amount: null, approxGm: null, actualGm: null, note: "Did not need" },
+  { dealName: "Jim (Moss Deal)", stage: "hold_on", amount: 120000, approxGm: null, actualGm: null, note: null },
+  { dealName: "Wyatt (Kincaid Deal)", stage: "dead", amount: 123000, approxGm: null, actualGm: null, note: null },
+  { dealName: "Integrity Outdoor Services", stage: "submitted", amount: 65000, approxGm: 12000, actualGm: 6000, note: "Docs In, customer ghosted" },
+  { dealName: "Jared Yost dba Tribal AG", stage: "approved", amount: 225000, approxGm: 22000, actualGm: 12000, note: "Waiting on docs from CPA" },
+  { dealName: "Cornell University", stage: "approved", amount: 504000, approxGm: 15000, actualGm: 15000, note: "Waiting on signed proposal" },
+  { dealName: "Talya Friend", stage: "dead", amount: 40000, approxGm: 4000, actualGm: null, note: "Tesla Chargers, waiting on App and Banks" },
+  { dealName: "Diamond AG", stage: "going_to_funding", amount: 360000, approxGm: 25000, actualGm: null, note: "Waiting SOS" },
+  { dealName: "Oregon Hydroseed", stage: "submitted", amount: 116000, approxGm: 10000, actualGm: null, note: "May want to hold off, trying better option" },
+  { dealName: "AM Global Investments", stage: "declined", amount: 10000, approxGm: 2000, actualGm: null, note: null },
+  { dealName: "Slick City Water Park", stage: "waiting_on_app", amount: 1000000, approxGm: 40000, actualGm: null, note: "Spoke to Pat, doing app and quotes" },
+  { dealName: "5 Boys Moving", stage: "declined", amount: 36000, approxGm: 3000, actualGm: null, note: "sent quote" },
+  { dealName: "Mitchell & Vereen Transportation LLC", stage: "funded", amount: 30000, approxGm: null, actualGm: null, note: "Calvin's deal → assign", intendedRepSlug: "calvin" },
+  { dealName: "Four Pillars", stage: "in_funding", amount: 118000, approxGm: null, actualGm: null, note: "Calvin's deal", intendedRepSlug: "calvin" },
+  { dealName: "Antleys", stage: "submitted", amount: 36000, approxGm: null, actualGm: null, note: "Calvin's deal", intendedRepSlug: "calvin" },
+  { dealName: "R2Muse Trucking", stage: "submitted", amount: 37000, approxGm: null, actualGm: null, note: "Calvin's deal", intendedRepSlug: "calvin" },
+  { dealName: "Erosion Specialist", stage: "funded", amount: 17000, approxGm: 2300, actualGm: 2300, note: "Booked" },
+  { dealName: "TP K1 Speed", stage: "funded", amount: 1500000, approxGm: 35000, actualGm: 25500, note: "Funded" },
+  { dealName: "Jared Yost dba Tribal AG (funded tranche)", stage: "funded", amount: 110000, approxGm: 9000, actualGm: 8800, note: "Booked" },
 ];
 
 router.post("/admin/deals/seed", async (req, res): Promise<void> => {
@@ -436,13 +446,21 @@ router.post("/admin/deals/seed", async (req, res): Promise<void> => {
   }));
   activityCounts.sort((a, b) => b.count - a.count || a.admin.id - b.admin.id);
   const primaryAdmin = activityCounts[0].admin;
-  const calvin = await db.query.usersTable.findFirst({ where: and(eq(usersTable.slug, "calvin"), eq(usersTable.isActive, true)) });
+  const activeUsers = await db.query.usersTable.findMany({ where: eq(usersTable.isActive, true) });
+  const activeUsersBySlug = new Map(
+    activeUsers
+      .filter((candidate) => candidate.slug)
+      .map((candidate) => [candidate.slug!, candidate]),
+  );
+  const calvin = activeUsersBySlug.get("calvin");
   const seededAt = new Date();
   let created = 0;
   let existing = 0;
   let activitiesAdded = 0;
-  for (const [dealName, stage, amount, approxGm, actualGm, note, isCalvin] of SEED_DEALS) {
-    const assignedTo = isCalvin ? (calvin?.id ?? primaryAdmin.id) : primaryAdmin.id;
+  for (const definition of SEED_DEALS) {
+    const { dealName, stage, amount, approxGm, actualGm, note, intendedRepSlug = null } = definition;
+    const intendedRep = intendedRepSlug ? activeUsersBySlug.get(intendedRepSlug) : undefined;
+    const assignedTo = intendedRep?.id ?? primaryAdmin.id;
     const found = await db.query.dealsTable.findFirst({ where: eq(dealsTable.dealName, dealName) });
     let deal = found;
     if (!deal) {
@@ -453,11 +471,21 @@ router.post("/admin/deals/seed", async (req, res): Promise<void> => {
         approxGm,
         actualGm,
         assignedTo,
+        intendedRepSlug,
         fundedAt: stage === "funded" ? seededAt : null,
       }).returning();
       created++;
     } else {
       existing++;
+      // Backfill the marker on deals created by the earlier seed definition.
+      // Assignment remains untouched; sign-in reconciliation owns reassignment.
+      const existingDeal = deal;
+      if (existingDeal && existingDeal.intendedRepSlug !== intendedRepSlug) {
+        [deal] = await db.update(dealsTable)
+          .set({ intendedRepSlug, updatedAt: new Date() })
+          .where(eq(dealsTable.id, existingDeal.id))
+          .returning();
+      }
     }
     if (note && deal) {
       const prior = await db.query.activityLogTable.findFirst({ where: and(eq(activityLogTable.dealId, deal.id), eq(activityLogTable.action, "seed_note")) });
