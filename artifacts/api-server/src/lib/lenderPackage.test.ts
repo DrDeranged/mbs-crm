@@ -7,6 +7,7 @@ import {
   buildLenderPackagePdf,
   createLenderPackageHandler,
   getDocumentExclusionReason,
+  isEligibleBankStatement,
   sanitizeLenderPackageBusinessName,
 } from "./lenderPackage";
 
@@ -52,7 +53,7 @@ function documentRow(overrides: Record<string, unknown> = {}) {
     leadId: 42,
     userId: null,
     filename: "bank-statement-january.pdf",
-    fileKey: "leads/42/documents/bank-statement-january.pdf",
+    fileKey: "leads/42/documents/bankstatement-2025-01-bank-statement-january",
     fileType: "application/pdf",
     fileSize: 100,
     createdAt: new Date("2025-01-01T00:00:00.000Z"),
@@ -116,24 +117,35 @@ function fakeResponse() {
   return response;
 }
 
-test("selection requires explicit bank and statement terms, and exclusions are substring based", () => {
+test("selection uses the trusted upload-key category and PDF metadata, not filenames", () => {
   assert.equal(sanitizeLenderPackageBusinessName(`Acme, "North" Café LLC`), "Acme-North-Caf-LLC");
+  const taggedChase = documentRow({
+    filename: "Chase_Checking_Statement_Jan.pdf",
+    fileKey: "leads/42/documents/bankstatement-2025-01-Chase_Checking_Statement_Jan",
+  });
+  const manualTax = documentRow({
+    filename: "Tax_Return_2025.pdf",
+    fileKey: "leads/42/documents/manual-tax-return-2025.pdf",
+  });
+  const taggedNonPdf = documentRow({
+    filename: "Chase_Checking_Statement_Jan.txt",
+    fileKey: "leads/42/documents/bankstatement-2025-01-Chase_Checking_Statement_Jan.txt",
+    fileType: "text/plain",
+  });
+  assert.equal(isEligibleBankStatement(taggedChase), true);
+  assert.equal(isEligibleBankStatement(manualTax), false);
+  assert.equal(isEligibleBankStatement(taggedNonPdf), false);
   assert.equal(
-    getDocumentExclusionReason(documentRow({ filename: "2024-taxreturn.pdf" })),
-    "excluded by safety pattern (tax, return, license, ssn, id, or check)",
+    getDocumentExclusionReason(taggedChase),
+    null,
   );
   assert.equal(
-    getDocumentExclusionReason(documentRow({ filename: "voidedcheck-photoID.pdf" })),
-    "excluded by safety pattern (tax, return, license, ssn, id, or check)",
+    getDocumentExclusionReason(manualTax),
+    "upload key is not in the trusted bank statement category",
   );
   assert.equal(
-    getDocumentExclusionReason(documentRow({ filename: "monthly-statement.pdf" })),
-    "filename/stored-type does not identify a bank statement",
-  );
-  assert.equal(getDocumentExclusionReason(documentRow({ filename: "BANKSTATEMENT-JANUARY.PDF" })), null);
-  assert.equal(
-    getDocumentExclusionReason(documentRow({ filename: "bank-account-overview.pdf" })),
-    "filename/stored-type does not identify a bank statement",
+    getDocumentExclusionReason(taggedNonPdf),
+    "not a PDF",
   );
 });
 
@@ -197,7 +209,12 @@ test("malformed and excluded files are skipped and every exclusion is named on t
     documents: [
       documentRow({ id: 1, filename: "bank-statement-january.pdf" }),
       documentRow({ id: 2, filename: "corrupt-bank-statement.pdf", createdAt: new Date("2025-01-02T00:00:00.000Z") }),
-      documentRow({ id: 3, filename: "taxreturn.pdf", createdAt: new Date("2025-01-03T00:00:00.000Z") }),
+      documentRow({
+        id: 3,
+        filename: "Tax_Return_2025.pdf",
+        fileKey: "leads/42/documents/manual-tax-return-2025.pdf",
+        createdAt: new Date("2025-01-03T00:00:00.000Z"),
+      }),
     ],
     renderPdf: markerRenderer(renderCalls),
     downloadDocument: async (document) =>
@@ -208,10 +225,10 @@ test("malformed and excluded files are skipped and every exclusion is named on t
   assert.equal(pages.length, 4, "cover, application, valid statement, and exclusion page");
   assert.ok(pages[2].includes("STATEMENT_VALID"));
   assert.ok(pages[3].includes("corrupt-bank-statement.pdf"));
-  assert.ok(pages[3].includes("taxreturn.pdf"));
+  assert.ok(pages[3].includes("Tax_Return_2025.pdf"));
   assert.deepEqual(result.exclusions.map((item) => item.filename), [
     "corrupt-bank-statement.pdf",
-    "taxreturn.pdf",
+    "Tax_Return_2025.pdf",
   ]);
   pages.forEach((page, index) => assert.match(page, new RegExp(`page ${index + 1} of 4`)));
 });

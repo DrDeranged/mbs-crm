@@ -1,13 +1,17 @@
 ---
 name: Lender package safety
-description: Conservative document selection and legacy signature evidence decisions.
+description: Trusted upload-key document selection and legacy signature evidence decisions.
 ---
 
-Prefer omitting uncertain documents from lender packages rather than broadening filename matching.
+Treat the trusted upload key as the document category for lender-package bank statements: only
+keys under `/documents/bankstatement-` with PDF metadata are eligible. A filename is display
+metadata, not a category.
 
-**Why:** The user explicitly requires protection against accidentally appending tax, identity, or other documents containing unmasked SSNs. A generic “statement” filename is not evidence of a bank statement.
+**Why:** The upload workflow assigns the bankstatement key category to bank statement documents.
+Filename matching is unreliable and can both omit valid statements and classify unrelated documents.
 
-**How to apply:** Keep explicit bank-statement identification and sensitive-name exclusions until a trustworthy document classification workflow exists; list omissions rather than silently dropping them. This is a selection safeguard, not content-level SSN detection.
+**How to apply:** Require the trusted upload-key category and PDF check, then list omissions rather
+than silently dropping them. This is a selection safeguard, not content-level SSN detection.
 
 Never infer a missing historical signing timestamp from submission time or infer a missing signature method.
 

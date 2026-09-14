@@ -14,8 +14,8 @@ export const LENDER_PACKAGE_MAX_SOURCE_BYTES = 100 * 1024 * 1024;
 export const LENDER_PACKAGE_MAX_STATEMENT_PAGES = 100;
 
 const SELECTION_NOTE =
-  "No document category field is available; bank statements were selected using the conservative filename/stored-type filter.";
-const EXCLUSION_PATTERN = /tax|return|license|ssn|id|check/i;
+  "Only PDFs in the trusted upload-key category /documents/bankstatement- are selected as lender-package bank statements.";
+const BANK_STATEMENT_UPLOAD_KEY_PATTERN = /\/documents\/bankstatement-/;
 
 type Database = typeof db;
 type Lead = typeof leadsTable.$inferSelect;
@@ -91,41 +91,28 @@ function displayDocumentName(document: Document): string {
   return document.filename?.trim() || document.fileKey;
 }
 
-function documentSearchText(document: Pick<Document, "filename" | "fileKey" | "fileType">): string {
-  // fileKey is an opaque storage path, not a user-controlled document type.
-  // The safety decision is intentionally limited to filename and stored type.
-  return [document.filename, document.fileType].filter(Boolean).join(" ");
-}
-
 /**
- * The database intentionally has no document category column. Do not broaden
- * this predicate to ordinary "bank" matches: only explicit statement wording
- * is safe to append to a lender package.
+ * The bankstatement upload key is the trusted document category. Filenames
+ * are display metadata and must not determine whether a document is selected.
  */
 export function isEligibleBankStatement(document: Pick<Document, "filename" | "fileKey" | "fileType">): boolean {
-  const name = documentSearchText(document);
   const isPdf =
     document.fileType.toLowerCase().includes("pdf") ||
     document.filename.toLowerCase().endsWith(".pdf") ||
     document.fileKey.toLowerCase().endsWith(".pdf");
-  const hasBankAndStatement = /bank/i.test(name) && /statement/i.test(name);
-  return isPdf && !EXCLUSION_PATTERN.test(name) && hasBankAndStatement;
+  return BANK_STATEMENT_UPLOAD_KEY_PATTERN.test(document.fileKey) && isPdf;
 }
 
 export function getDocumentExclusionReason(
   document: Pick<Document, "filename" | "fileKey" | "fileType">,
 ): string | null {
-  const name = documentSearchText(document);
   const isPdf =
     document.fileType.toLowerCase().includes("pdf") ||
     document.filename.toLowerCase().endsWith(".pdf") ||
     document.fileKey.toLowerCase().endsWith(".pdf");
   if (!isPdf) return "not a PDF";
-  if (EXCLUSION_PATTERN.test(name)) {
-    return "excluded by safety pattern (tax, return, license, ssn, id, or check)";
-  }
-  if (!/bank/i.test(name) || !/statement/i.test(name)) {
-    return "filename/stored-type does not identify a bank statement";
+  if (!BANK_STATEMENT_UPLOAD_KEY_PATTERN.test(document.fileKey)) {
+    return "upload key is not in the trusted bank statement category";
   }
   return null;
 }
