@@ -9,7 +9,7 @@ import {
 } from "@workspace/db";
 import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
-import { normalizeFundingTimeDays } from "../lib/analyticsHelpers";
+import { activeRepListingCondition, normalizeFundingTimeDays } from "../lib/analyticsHelpers";
 import { unassignedInboundLeadCondition } from "../lib/inboundLead";
 
 const router: IRouter = Router();
@@ -180,137 +180,157 @@ router.get("/analytics/pipeline", async (req: Request, res: Response) => {
   res.json({ stages });
 });
 
+type ListAnalyticsRepsDependencies = {
+  database?: typeof db;
+  authenticate?: typeof requireUser;
+};
+
+/**
+ * Build the rep analytics handler with production defaults. Keeping the
+ * database/auth collaborators injectable lets the API regression exercise the
+ * actual HTTP handler and SQL predicate without a second test-only query.
+ */
+export function createListAnalyticsRepsHandler({
+  database = db,
+  authenticate = requireUser,
+}: ListAnalyticsRepsDependencies = {}) {
+  return async (req: Request, res: Response) => {
+    const user = await authenticate(req, res);
+    if (!user) return;
+
+    if (user.role === "rep") {
+      return void res.status(403).json({ error: "Forbidden: managers and admins only" });
+    }
+
+    const { startDate, endDate } = parseDateRange(req);
+
+    const leadDateClauses = [];
+    if (startDate) leadDateClauses.push(gte(leadsTable.createdAt, startDate));
+    if (endDate) leadDateClauses.push(lte(leadsTable.createdAt, endDate));
+    const leadWhere = leadDateClauses.length ? and(...leadDateClauses) : undefined;
+
+    const commDateClauses = [];
+    if (startDate) commDateClauses.push(gte(communicationsTable.createdAt, startDate));
+    if (endDate) commDateClauses.push(lte(communicationsTable.createdAt, endDate));
+    const commWhere = commDateClauses.length ? and(...commDateClauses) : undefined;
+
+    const emailDateClauses = [];
+    if (startDate) emailDateClauses.push(gte(emailSendsTable.createdAt, startDate));
+    if (endDate) emailDateClauses.push(lte(emailSendsTable.createdAt, endDate));
+    const emailWhere = emailDateClauses.length ? and(...emailDateClauses) : undefined;
+
+    const [reps, leadCounts, revenueByRep, callCounts, smsCounts, emailCounts] = await Promise.all([
+      database
+        .select()
+        .from(usersTable)
+        .where(activeRepListingCondition(database)),
+
+      database
+        .select({
+          repId: leadsTable.assignedRepId,
+          status: leadsTable.status,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(leadsTable)
+        .where(leadWhere)
+        .groupBy(leadsTable.assignedRepId, leadsTable.status),
+
+      database
+        .select({
+          repId: leadsTable.assignedRepId,
+          revenue: sql<number>`cast(coalesce(sum(${leadsTable.fundedAmount}), 0) as int)`,
+        })
+        .from(leadsTable)
+        .where(and(eq(leadsTable.status, "funded"), leadWhere))
+        .groupBy(leadsTable.assignedRepId),
+
+      database
+        .select({
+          userId: communicationsTable.userId,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(communicationsTable)
+        .where(
+          and(
+            eq(communicationsTable.type, "call"),
+            eq(communicationsTable.direction, "outbound"),
+            commWhere,
+          ),
+        )
+        .groupBy(communicationsTable.userId),
+
+      database
+        .select({
+          userId: communicationsTable.userId,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(communicationsTable)
+        .where(
+          and(
+            eq(communicationsTable.type, "sms"),
+            eq(communicationsTable.direction, "outbound"),
+            commWhere,
+          ),
+        )
+        .groupBy(communicationsTable.userId),
+
+      database
+        .select({
+          userId: emailSendsTable.userId,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(emailSendsTable)
+        .where(emailWhere)
+        .groupBy(emailSendsTable.userId),
+    ]);
+
+    const callMap: Record<number, number> = {};
+    for (const r of callCounts) if (r.userId) callMap[r.userId] = r.count;
+
+    const smsMap: Record<number, number> = {};
+    for (const r of smsCounts) if (r.userId) smsMap[r.userId] = r.count;
+
+    const emailMap: Record<number, number> = {};
+    for (const r of emailCounts) if (r.userId) emailMap[r.userId] = r.count;
+
+    const revenueMap: Record<number, number> = {};
+    for (const r of revenueByRep) if (r.repId) revenueMap[r.repId] = r.revenue;
+
+    // leadCounts grouped by repId + status
+    type LeadCountEntry = { repId: number | null; status: string | null; count: number };
+    const leadByRepStatus: Record<number, Record<string, number>> = {};
+    for (const r of leadCounts as LeadCountEntry[]) {
+      if (!r.repId || !r.status) continue;
+      if (!leadByRepStatus[r.repId]) leadByRepStatus[r.repId] = {};
+      leadByRepStatus[r.repId][r.status] = r.count;
+    }
+
+    const result = reps.map((rep) => {
+      const statusMap = leadByRepStatus[rep.id] ?? {};
+      const leadsCount = Object.values(statusMap).reduce((a, b) => a + b, 0);
+      const applications = APPLICATION_STATUSES.reduce((a, s) => a + (statusMap[s] ?? 0), 0);
+      const approvals = APPROVAL_STATUSES.reduce((a, s) => a + (statusMap[s] ?? 0), 0);
+      const fundings = statusMap["funded"] ?? 0;
+      return {
+        repId: rep.id,
+        repName: getUserDisplayName(rep),
+        leadsCount,
+        callsMade: callMap[rep.id] ?? 0,
+        smsSent: smsMap[rep.id] ?? 0,
+        emailsSent: emailMap[rep.id] ?? 0,
+        applications,
+        approvals,
+        fundings,
+        revenue: revenueMap[rep.id] ?? 0,
+      };
+    });
+
+    res.json(result);
+  };
+}
+
 // GET /analytics/reps
-router.get("/analytics/reps", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-
-  if (user.role === "rep") {
-    return void res.status(403).json({ error: "Forbidden: managers and admins only" });
-  }
-
-  const { startDate, endDate } = parseDateRange(req);
-
-  const leadDateClauses = [];
-  if (startDate) leadDateClauses.push(gte(leadsTable.createdAt, startDate));
-  if (endDate) leadDateClauses.push(lte(leadsTable.createdAt, endDate));
-  const leadWhere = leadDateClauses.length ? and(...leadDateClauses) : undefined;
-
-  const commDateClauses = [];
-  if (startDate) commDateClauses.push(gte(communicationsTable.createdAt, startDate));
-  if (endDate) commDateClauses.push(lte(communicationsTable.createdAt, endDate));
-  const commWhere = commDateClauses.length ? and(...commDateClauses) : undefined;
-
-  const emailDateClauses = [];
-  if (startDate) emailDateClauses.push(gte(emailSendsTable.createdAt, startDate));
-  if (endDate) emailDateClauses.push(lte(emailSendsTable.createdAt, endDate));
-  const emailWhere = emailDateClauses.length ? and(...emailDateClauses) : undefined;
-
-  const [reps, leadCounts, revenueByRep, callCounts, smsCounts, emailCounts] = await Promise.all([
-    db.select().from(usersTable).where(eq(usersTable.isActive, true)),
-
-    db
-      .select({
-        repId: leadsTable.assignedRepId,
-        status: leadsTable.status,
-        count: sql<number>`cast(count(*) as int)`,
-      })
-      .from(leadsTable)
-      .where(leadWhere)
-      .groupBy(leadsTable.assignedRepId, leadsTable.status),
-
-    db
-      .select({
-        repId: leadsTable.assignedRepId,
-        revenue: sql<number>`cast(coalesce(sum(${leadsTable.fundedAmount}), 0) as int)`,
-      })
-      .from(leadsTable)
-      .where(and(eq(leadsTable.status, "funded"), leadWhere))
-      .groupBy(leadsTable.assignedRepId),
-
-    db
-      .select({
-        userId: communicationsTable.userId,
-        count: sql<number>`cast(count(*) as int)`,
-      })
-      .from(communicationsTable)
-      .where(
-        and(
-          eq(communicationsTable.type, "call"),
-          eq(communicationsTable.direction, "outbound"),
-          commWhere,
-        ),
-      )
-      .groupBy(communicationsTable.userId),
-
-    db
-      .select({
-        userId: communicationsTable.userId,
-        count: sql<number>`cast(count(*) as int)`,
-      })
-      .from(communicationsTable)
-      .where(
-        and(
-          eq(communicationsTable.type, "sms"),
-          eq(communicationsTable.direction, "outbound"),
-          commWhere,
-        ),
-      )
-      .groupBy(communicationsTable.userId),
-
-    db
-      .select({
-        userId: emailSendsTable.userId,
-        count: sql<number>`cast(count(*) as int)`,
-      })
-      .from(emailSendsTable)
-      .where(emailWhere)
-      .groupBy(emailSendsTable.userId),
-  ]);
-
-  const callMap: Record<number, number> = {};
-  for (const r of callCounts) if (r.userId) callMap[r.userId] = r.count;
-
-  const smsMap: Record<number, number> = {};
-  for (const r of smsCounts) if (r.userId) smsMap[r.userId] = r.count;
-
-  const emailMap: Record<number, number> = {};
-  for (const r of emailCounts) if (r.userId) emailMap[r.userId] = r.count;
-
-  const revenueMap: Record<number, number> = {};
-  for (const r of revenueByRep) if (r.repId) revenueMap[r.repId] = r.revenue;
-
-  // leadCounts grouped by repId + status
-  type LeadCountEntry = { repId: number | null; status: string | null; count: number };
-  const leadByRepStatus: Record<number, Record<string, number>> = {};
-  for (const r of leadCounts as LeadCountEntry[]) {
-    if (!r.repId || !r.status) continue;
-    if (!leadByRepStatus[r.repId]) leadByRepStatus[r.repId] = {};
-    leadByRepStatus[r.repId][r.status] = r.count;
-  }
-
-  const result = reps.map((rep) => {
-    const statusMap = leadByRepStatus[rep.id] ?? {};
-    const leadsCount = Object.values(statusMap).reduce((a, b) => a + b, 0);
-    const applications = APPLICATION_STATUSES.reduce((a, s) => a + (statusMap[s] ?? 0), 0);
-    const approvals = APPROVAL_STATUSES.reduce((a, s) => a + (statusMap[s] ?? 0), 0);
-    const fundings = statusMap["funded"] ?? 0;
-    return {
-      repId: rep.id,
-      repName: getUserDisplayName(rep),
-      leadsCount,
-      callsMade: callMap[rep.id] ?? 0,
-      smsSent: smsMap[rep.id] ?? 0,
-      emailsSent: emailMap[rep.id] ?? 0,
-      applications,
-      approvals,
-      fundings,
-      revenue: revenueMap[rep.id] ?? 0,
-    };
-  });
-
-  res.json(result);
-});
+router.get("/analytics/reps", createListAnalyticsRepsHandler());
 
 // GET /analytics/sources
 router.get("/analytics/sources", async (req: Request, res: Response) => {
