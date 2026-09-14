@@ -18,6 +18,8 @@ import {
   Search,
   Activity,
   Briefcase,
+  BookOpen,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -25,6 +27,14 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { getUserDisplayName } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -154,18 +164,41 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* User footer */}
       <div className="border-t border-white/10 p-4 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-3 px-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold shadow-sm">
-            {user?.imageUrl ? (
-              <img src={user.imageUrl} alt="Avatar" className="h-full w-full object-cover" />
-            ) : (
-              <span>{user?.firstName?.charAt(0) || "U"}</span>
-            )}
-          </div>
-          <div className="flex flex-col truncate min-w-0">
-            <span className="text-sm font-semibold truncate text-sidebar-foreground">{getUserDisplayName(user)}</span>
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="mb-3 flex w-full items-center gap-3 rounded-xl px-1 py-1 text-left outline-none transition-colors hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-[#6EE7C0]"
+              aria-label="Open user menu"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold shadow-sm">
+                {user?.imageUrl ? (
+                  <img src={user.imageUrl} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{user?.firstName?.charAt(0) || "U"}</span>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col truncate min-w-0">
+                <span className="text-sm font-semibold truncate text-sidebar-foreground">{getUserDisplayName(user)}</span>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45">Account menu</span>
+              </div>
+              <ChevronDown className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56 border-white/15 bg-[#0E2A47] text-white">
+            <DropdownMenuLabel className="text-white/55">Workspace</DropdownMenuLabel>
+            <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white">
+              <Link href="/help/rep-quickstart" onClick={onNavigate}>
+                <BookOpen className="h-4 w-4 text-[#6EE7C0]" />
+                Rep Quickstart
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuLabel className="text-xs font-normal text-white/45">
+              Signed in as {getUserDisplayName(user)}
+            </DropdownMenuLabel>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="outline"
           size="sm"

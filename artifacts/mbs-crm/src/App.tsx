@@ -31,6 +31,7 @@ const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
 const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
 const SystemHealth = lazy(() => import("@/pages/system-health"));
 const Governance = lazy(() => import("@/pages/governance"));
+const RepQuickstart = lazy(() => import("@/pages/rep-quickstart"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -341,6 +342,9 @@ function AppRoutes() {
             </Route>
             <Route path="/governance">
               <ProtectedRoute component={Governance} />
+            </Route>
+            <Route path="/help/rep-quickstart">
+              <ProtectedRoute component={RepQuickstart} />
             </Route>
             <Route>
               <Suspense fallback={<PageLoader />}>
