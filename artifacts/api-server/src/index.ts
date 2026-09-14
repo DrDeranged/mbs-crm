@@ -1,5 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
@@ -23,6 +25,35 @@ if (Number.isNaN(port) || port <= 0) {
 
 const intervals: ReturnType<typeof setInterval>[] = [];
 
+async function checkApplicationSignatureColumns(): Promise<void> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN ('signature_method', 'signature_signed_at')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+    );
+    const requiredColumns = ["signature_method", "signature_signed_at"];
+    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "012_application_signature.sql" },
+        "Required application signature columns are missing; apply 012_application_signature.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "012_application_signature.sql" },
+      "Could not verify application signature columns for 012_application_signature.sql",
+    );
+  }
+}
+
 const server = app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
@@ -30,6 +61,8 @@ const server = app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  void checkApplicationSignatureColumns();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));
