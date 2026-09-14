@@ -1247,6 +1247,17 @@ export const ApplicationRecordEquipmentCondition = {
   used: 'used',
 } as const;
 
+/**
+ * @nullable
+ */
+export type ApplicationRecordSignatureMethod = typeof ApplicationRecordSignatureMethod[keyof typeof ApplicationRecordSignatureMethod] | null;
+
+
+export const ApplicationRecordSignatureMethod = {
+  typed: 'typed',
+  drawn: 'drawn',
+} as const;
+
 export interface ApplicationRecord {
   id: number;
   leadId: number;
@@ -1302,6 +1313,12 @@ export interface ApplicationRecord {
   consentTerms?: boolean;
   /** @nullable */
   signatureData?: string | null;
+  /** @nullable */
+  signatureMethod?: ApplicationRecordSignatureMethod;
+  /** @nullable */
+  signatureSignedAt?: string | null;
+  /** @nullable */
+  signatureIp?: string | null;
   /** @nullable */
   signedDocumentUrl?: string | null;
   submittedAt: string;
@@ -2197,6 +2214,14 @@ export const SubmitApplicationBodyType = {
   working_capital: 'working_capital',
 } as const;
 
+export type SubmitApplicationBodySignatureMethod = typeof SubmitApplicationBodySignatureMethod[keyof typeof SubmitApplicationBodySignatureMethod];
+
+
+export const SubmitApplicationBodySignatureMethod = {
+  typed: 'typed',
+  drawn: 'drawn',
+} as const;
+
 export type SubmitApplicationBody = {
   type: SubmitApplicationBodyType;
   ownerFirstName: string;
@@ -2207,7 +2232,17 @@ export type SubmitApplicationBody = {
   ein?: string;
   ownerSsn?: string;
   ownerDob?: string;
-  signatureData?: string;
+  consentCreditPull: boolean;
+  consentTerms: boolean;
+  signatureMethod: SubmitApplicationBodySignatureMethod;
+  /**
+     * Typed legal name or base64 image data URL for a drawn signature
+     * @maxLength 500000
+     */
+  signatureData: string;
+  equipmentDescription?: string;
+  /** Optional vendor/dealer name */
+  vendorName?: string;
   bankStatements?: Blob[];
 };
 

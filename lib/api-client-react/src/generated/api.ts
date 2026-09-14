@@ -5339,8 +5339,15 @@ if(submitApplicationBody.ownerSsn !== undefined) {
 if(submitApplicationBody.ownerDob !== undefined) {
  formData.append(`ownerDob`, submitApplicationBody.ownerDob);
  }
-if(submitApplicationBody.signatureData !== undefined) {
- formData.append(`signatureData`, submitApplicationBody.signatureData);
+formData.append(`consentCreditPull`, submitApplicationBody.consentCreditPull.toString())
+formData.append(`consentTerms`, submitApplicationBody.consentTerms.toString())
+formData.append(`signatureMethod`, submitApplicationBody.signatureMethod);
+formData.append(`signatureData`, submitApplicationBody.signatureData);
+if(submitApplicationBody.equipmentDescription !== undefined) {
+ formData.append(`equipmentDescription`, submitApplicationBody.equipmentDescription);
+ }
+if(submitApplicationBody.vendorName !== undefined) {
+ formData.append(`vendorName`, submitApplicationBody.vendorName);
  }
 if(submitApplicationBody.bankStatements !== undefined) {
  submitApplicationBody.bankStatements.forEach(value => formData.append(`bankStatements`, value));

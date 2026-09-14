@@ -1801,7 +1801,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [type, ownerFirstName, ownerLastName, businessName]
+              required: [type, ownerFirstName, ownerLastName, businessName, consentCreditPull, consentTerms, signatureMethod, signatureData]
               properties:
                 type:
                   type: string
@@ -1822,8 +1822,22 @@ paths:
                   type: string
                 ownerDob:
                   type: string
+                consentCreditPull:
+                  type: boolean
+                consentTerms:
+                  type: boolean
+                signatureMethod:
+                  type: string
+                  enum: [typed, drawn]
                 signatureData:
                   type: string
+                  description: Typed legal name or base64 image data URL for a drawn signature
+                  maxLength: 500000
+                equipmentDescription:
+                  type: string
+                vendorName:
+                  type: string
+                  description: Optional vendor/dealer name
                 bankStatements:
                   type: array
                   items:
@@ -5324,6 +5338,14 @@ components:
         consentTerms:
           type: boolean
         signatureData:
+          type: ["string", "null"]
+        signatureMethod:
+          type: ["string", "null"]
+          enum: [typed, drawn, null]
+        signatureSignedAt:
+          type: ["string", "null"]
+          format: date-time
+        signatureIp:
           type: ["string", "null"]
         signedDocumentUrl:
           type: ["string", "null"]

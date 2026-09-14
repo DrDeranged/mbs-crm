@@ -27,98 +27,15 @@ import { logPiiAccess } from "../lib/piiAccess";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { resolveInboundAssignee } from "../lib/leadDistribution";
 import { doSendEmail } from "./email";
+import {
+  buildSignedApplicationHtml,
+  normalizeSignature,
+  validateApplicationRules,
+} from "../lib/applicationSignature";
 
 const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
-
-/** Escapes a value for safe HTML insertion (prevents XSS). */
-function esc(v: unknown): string {
-  return String(v ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
-}
-
-/** Validates that a data URL is a safe base64-encoded image (no embedded scripts). */
-function isSafeImageDataUrl(v: string): boolean {
-  return /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+=*$/.test(v);
-}
-
-/** Generates a signed application HTML document suitable for archiving. */
-function buildSignedApplicationHtml(params: {
-  lead: { id: number; firstName: string | null; lastName: string | null; email: string | null; phone: string | null };
-  body: Record<string, unknown>;
-  submittedAt: Date;
-  clientIp: string | null;
-}): string {
-  const { lead, body, submittedAt, clientIp } = params;
-  const field = (v: unknown) => esc(v != null && v !== "" ? v : "—");
-  const bool = (v: unknown) => (v === "true" || v === true) ? "✓ Yes" : "No";
-
-  const rawSig = typeof body["signatureData"] === "string" ? body["signatureData"] : "";
-  const sigDataUrl = isSafeImageDataUrl(rawSig)
-    ? `<img src="${esc(rawSig)}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
-    : "<em>Signature on file</em>";
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><title>MBS Application — ${lead.firstName} ${lead.lastName}</title>
-<style>
-  body{font-family:Arial,sans-serif;color:#222;max-width:860px;margin:40px auto;padding:0 24px;}
-  h1{color:#1F4E79;border-bottom:3px solid #1F4E79;padding-bottom:8px;}
-  h2{color:#1F4E79;font-size:15px;margin-top:28px;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  td{padding:6px 12px;border:1px solid #e5e7eb;vertical-align:top;}
-  td:first-child{font-weight:600;width:38%;background:#f8fafc;color:#374151;}
-  .footer{margin-top:40px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;}
-</style>
-</head>
-<body>
-<h1>My Business Solutions — Financing Application</h1>
-<p style="color:#6b7280;font-size:13px;">Application ID: <strong>LEAD-${lead.id}</strong> &nbsp;|&nbsp; Submitted: <strong>${submittedAt.toUTCString()}</strong> &nbsp;|&nbsp; IP: <strong>${clientIp ?? "unknown"}</strong></p>
-
-<h2>Business Information</h2>
-<table>
-  <tr><td>Business Name</td><td>${field(body["businessName"])}</td></tr>
-  <tr><td>DBA</td><td>${field(body["dba"])}</td></tr>
-  <tr><td>EIN</td><td>${field(body["ein"])}</td></tr>
-  <tr><td>Industry</td><td>${field(body["industry"])}</td></tr>
-  <tr><td>Address</td><td>${field(body["businessAddress"])}, ${field(body["businessCity"])}, ${field(body["businessState"])} ${field(body["businessZip"])}</td></tr>
-  <tr><td>Time in Business</td><td>${body["timeInBusinessMonths"] ? `${body["timeInBusinessMonths"]} months` : "—"}</td></tr>
-  <tr><td>Monthly Revenue (Stated)</td><td>${body["monthlyRevenueStated"] ? `$${Number(body["monthlyRevenueStated"]).toLocaleString()}` : "—"}</td></tr>
-  <tr><td>Requested Amount</td><td>${body["requestedAmount"] ? `$${Number(body["requestedAmount"]).toLocaleString()}` : "—"}</td></tr>
-  <tr><td>Use of Funds</td><td>${field(body["useOfFunds"])}</td></tr>
-  <tr><td>Application Type</td><td>${field(body["type"])}</td></tr>
-</table>
-
-<h2>Owner Information</h2>
-<table>
-  <tr><td>Name</td><td>${field(body["ownerFirstName"])} ${field(body["ownerLastName"])}</td></tr>
-  <tr><td>Date of Birth</td><td>${field(body["ownerDob"])}</td></tr>
-  <tr><td>SSN</td><td>***-**-**** (encrypted)</td></tr>
-  <tr><td>Home Address</td><td>${field(body["ownerHomeAddress"])}, ${field(body["ownerHomeCity"])}, ${field(body["ownerHomeState"])} ${field(body["ownerHomeZip"])}</td></tr>
-  <tr><td>Ownership %</td><td>${field(body["ownershipPct"])}</td></tr>
-</table>
-
-<h2>Consent &amp; Signature</h2>
-<table>
-  <tr><td>Credit Pull Consent</td><td>${bool(body["consentCreditPull"])}</td></tr>
-  <tr><td>Terms Consent</td><td>${bool(body["consentTerms"])}</td></tr>
-  <tr><td>Signature IP</td><td>${clientIp ?? "unknown"}</td></tr>
-</table>
-<div style="margin-top:16px;">${sigDataUrl}</div>
-
-<div class="footer">
-  This document was generated automatically by My Business Solutions CRM on ${submittedAt.toUTCString()}.
-  It contains a verbatim record of the applicant's submission and electronic signature.
-  SSN is stored separately in encrypted form and is not included here.
-</div>
-</body>
-</html>`;
-}
 
 const submitRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -195,6 +112,7 @@ router.post(
         useOfFunds: z.string().max(1000, "Use of funds must be 1000 characters or fewer").optional().or(z.literal("")),
         ownerFirstName: z.string().min(1, "Owner first name is required").max(100, "First name must be 100 characters or fewer"),
         ownerLastName: z.string().min(1, "Owner last name is required").max(100, "Last name must be 100 characters or fewer"),
+        ownerDob: z.string().max(20).optional().or(z.literal("")),
         ownerHomeAddress: z.string().max(300).optional().or(z.literal("")),
         ownerHomeCity: z.string().max(100).optional().or(z.literal("")),
         ownerHomeState: z.string().max(50).optional().or(z.literal("")),
@@ -215,19 +133,22 @@ router.post(
           .optional().or(z.literal("")),
         consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
         consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
-        signatureData: z.string().min(1, "Signature is required").max(500_000, "Signature data too large"),
+        signatureMethod: z.enum(["typed", "drawn"], { message: "Signature method must be typed or drawn" }),
+        signatureData: z.string().max(500_000, "Signature data must be 500,000 characters or fewer"),
         equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
         vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
          statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
          rep: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+         timeInBusinessMonths: z.string().max(4).optional().or(z.literal("")),
+         ownershipPct: z.string().max(3).optional().or(z.literal("")),
+         equipmentCondition: z.enum(["new", "used"]).optional().or(z.literal("")),
       }).superRefine((data, ctx) => {
-        if (data.type === "equipment") {
-          if (!data.equipmentDescription?.trim()) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Equipment description is required", path: ["equipmentDescription"] });
-          }
-          if (!data.vendorName?.trim()) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vendor name is required", path: ["vendorName"] });
-          }
+        for (const issue of validateApplicationRules(data)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue.error, path: [issue.field] });
+        }
+        const signature = normalizeSignature(data.signatureMethod, data.signatureData);
+        if (!signature.success) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: signature.error, path: [signature.field] });
         }
       });
 
@@ -237,6 +158,17 @@ router.post(
         res.status(400).json({ error: firstIssue?.message ?? "Validation failed", field: firstIssue?.path.join(".") });
         return;
       }
+      // Keep typed signatures as the applicant's actual legal-name string. Drawn
+      // signatures remain their original image data URL.
+      const normalizedSignature = normalizeSignature(validation.data.signatureMethod, validation.data.signatureData);
+      if (!normalizedSignature.success) {
+        res.status(400).json({ error: normalizedSignature.error, field: normalizedSignature.field });
+        return;
+      }
+      const applicationBody = {
+        ...validation.data,
+        signatureData: normalizedSignature.data,
+      };
 
       // ── Validate uploaded files are PDFs ─────────────────────────────────
       const files = (req.files as Express.Multer.File[]) ?? [];
@@ -248,9 +180,9 @@ router.post(
         return;
       }
 
-      const email = (body.email as string)?.trim() || null;
-      const phone = (body.phone as string)?.trim() || null;
-      const ein = (body.ein as string)?.trim() || null;
+      const email = applicationBody.email?.trim() || null;
+      const phone = applicationBody.phone?.trim() || null;
+      const ein = applicationBody.ein?.trim() || null;
 
       // ── Idempotency check (15-minute window keyed on email+ein) ──────────
       const timeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
@@ -280,15 +212,15 @@ router.post(
 
       // Equipment financing has an optional statement step. A direct API caller
       // omitting the flag is therefore treated as having skipped it when empty.
-      const statementsSkipped = body.statementsSkipped === "true"
-        || body.statementsSkipped === true
-        || (body.type === "equipment" && files.length === 0);
+      const statementsSkipped = applicationBody.statementsSkipped === "true"
+        || applicationBody.statementsSkipped === true
+        || (applicationBody.type === "equipment" && files.length === 0);
       // ── Validate bank statement count (server-side) ──────────────────────
-      if (body.type === "working_capital" && files.length < 3 && !statementsSkipped) {
+      if (applicationBody.type === "working_capital" && files.length < 3 && !statementsSkipped) {
         res.status(400).json({ error: "At least 3 bank statement PDFs are required." });
         return;
       }
-      if (body.type === "working_capital" && files.length > 6) {
+      if (applicationBody.type === "working_capital" && files.length > 6) {
         res.status(400).json({ error: "A maximum of 6 bank statement PDFs may be uploaded." });
         return;
        }
@@ -298,7 +230,7 @@ router.post(
        }
 
       // ── Encrypt SSN — hard fail if key is absent ──────────────────────────
-      const rawSsn: string = (body.ownerSsn ?? "").replace(/\D/g, "");
+      const rawSsn: string = (applicationBody.ownerSsn ?? "").replace(/\D/g, "");
       let ownerSsnEncrypted: string | null = null;
       if (rawSsn) {
         // Throws if ENCRYPTION_KEY is missing/malformed — do not swallow
@@ -306,34 +238,35 @@ router.post(
       }
 
        // A QR attribution is advisory: invalid/missing values use normal assignment.
-        const attributedRep = body.rep
+        const attributedRep = applicationBody.rep
           ? await db.query.usersTable.findFirst({
             where: and(
-              eq(usersTable.slug, String(body.rep).toLowerCase()),
+              eq(usersTable.slug, String(applicationBody.rep).toLowerCase()),
               eq(usersTable.role, "rep"),
               eq(usersTable.isActive, true),
             ),
           })
           : null;
-        const assignedRepId = await resolveInboundAssignee(body.rep);
+        const assignedRepId = await resolveInboundAssignee(applicationBody.rep);
 
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
-      const consentGiven = body.consentCreditPull === "true" || body.consentCreditPull === true;
+      const signatureSignedAt = new Date();
+      const consentGiven = applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true;
 
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
-      const { lead, docRecords } = await db.transaction(async (tx) => {
+      const { lead, application, docRecords } = await db.transaction(async (tx) => {
         const [txLead] = await tx.insert(leadsTable).values({
-          firstName: body.ownerFirstName,
-          lastName: body.ownerLastName,
+          firstName: applicationBody.ownerFirstName,
+          lastName: applicationBody.ownerLastName,
           email,
           phone,
-          companyName: body.businessName,
+          companyName: applicationBody.businessName,
           ein,
-          applicationType: body.type as "equipment" | "working_capital",
+          applicationType: applicationBody.type as "equipment" | "working_capital",
           status: "application_received",
            leadSource: attributedRep ? "qr-card" : "website",
-          requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
+          requestedAmount: applicationBody.requestedAmount ? Number(applicationBody.requestedAmount) : null,
           assignedRepId,
           consentCreditPullAt: consentGiven ? new Date() : null,
           consentIp: clientIp,
@@ -358,39 +291,41 @@ router.post(
            });
          }
 
-        await tx.insert(applicationsTable).values({
+        const [txApplication] = await tx.insert(applicationsTable).values({
           leadId: txLead.id,
-          type: body.type as "equipment" | "working_capital",
-          businessName: body.businessName,
-          dba: body.dba || null,
+          type: applicationBody.type as "equipment" | "working_capital",
+          businessName: applicationBody.businessName,
+          dba: applicationBody.dba || null,
           ein,
-          businessAddress: body.businessAddress || null,
-          businessCity: body.businessCity || null,
-          businessState: body.businessState || null,
-          businessZip: body.businessZip || null,
-          industry: body.industry || null,
-          timeInBusinessMonths: body.timeInBusinessMonths ? Number(body.timeInBusinessMonths) : null,
-          monthlyRevenueStated: body.monthlyRevenueStated ? Number(body.monthlyRevenueStated) : null,
-          requestedAmount: body.requestedAmount ? Number(body.requestedAmount) : null,
-          useOfFunds: body.useOfFunds || null,
-          equipmentDescription: body.equipmentDescription || null,
-          vendorName: body.vendorName || null,
-          vendorQuoteAmount: body.vendorQuoteAmount ? String(body.vendorQuoteAmount) : null,
-          equipmentCondition: body.equipmentCondition as "new" | "used" | null || null,
-          ownerFirstName: body.ownerFirstName,
-          ownerLastName: body.ownerLastName,
+          businessAddress: applicationBody.businessAddress || null,
+          businessCity: applicationBody.businessCity || null,
+          businessState: applicationBody.businessState || null,
+          businessZip: applicationBody.businessZip || null,
+          industry: applicationBody.industry || null,
+          timeInBusinessMonths: applicationBody.timeInBusinessMonths ? Number(applicationBody.timeInBusinessMonths) : null,
+          monthlyRevenueStated: applicationBody.monthlyRevenueStated ? Number(applicationBody.monthlyRevenueStated) : null,
+          requestedAmount: applicationBody.requestedAmount ? Number(applicationBody.requestedAmount) : null,
+          useOfFunds: applicationBody.useOfFunds || null,
+          equipmentDescription: applicationBody.equipmentDescription || null,
+          vendorName: applicationBody.vendorName || null,
+          vendorQuoteAmount: applicationBody.vendorQuoteAmount ? String(applicationBody.vendorQuoteAmount) : null,
+          equipmentCondition: applicationBody.equipmentCondition as "new" | "used" | null || null,
+          ownerFirstName: applicationBody.ownerFirstName,
+          ownerLastName: applicationBody.ownerLastName,
           ownerSsnEncrypted,
-          ownerDob: body.ownerDob || null,
-          ownerHomeAddress: body.ownerHomeAddress || null,
-          ownerHomeCity: body.ownerHomeCity || null,
-          ownerHomeState: body.ownerHomeState || null,
-          ownerHomeZip: body.ownerHomeZip || null,
-          ownershipPct: body.ownershipPct ? Number(body.ownershipPct) : null,
-          consentCreditPull: body.consentCreditPull === "true" || body.consentCreditPull === true,
-          consentTerms: body.consentTerms === "true" || body.consentTerms === true,
-          signatureData: body.signatureData || null,
-          signatureIp: req.ip || null,
-        });
+          ownerDob: applicationBody.ownerDob || null,
+          ownerHomeAddress: applicationBody.ownerHomeAddress || null,
+          ownerHomeCity: applicationBody.ownerHomeCity || null,
+          ownerHomeState: applicationBody.ownerHomeState || null,
+          ownerHomeZip: applicationBody.ownerHomeZip || null,
+          ownershipPct: applicationBody.ownershipPct ? Number(applicationBody.ownershipPct) : null,
+          consentCreditPull: applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true,
+          consentTerms: applicationBody.consentTerms === "true" || applicationBody.consentTerms === true,
+           signatureMethod: applicationBody.signatureMethod as "typed" | "drawn",
+           signatureData: applicationBody.signatureData,
+           signatureIp: clientIp,
+           signatureSignedAt,
+        }).returning();
 
         const txDocRecords: { file: Express.Multer.File; fileKey: string; id: number }[] = [];
         for (const file of files) {
@@ -407,7 +342,7 @@ router.post(
           txDocRecords.push({ file, fileKey, id: docRecord.id });
         }
 
-        return { lead: txLead, docRecords: txDocRecords };
+        return { lead: txLead, application: txApplication, docRecords: txDocRecords };
       });
 
       // ── Upload bank statements + OCR (after commit — external calls) ────
@@ -458,8 +393,9 @@ router.post(
       // ── Generate and store signed application document ────────────────────
       const signedHtml = buildSignedApplicationHtml({
         lead,
-        body,
-        submittedAt: new Date(),
+        body: applicationBody,
+        submittedAt: application.submittedAt,
+        signatureSignedAt,
         clientIp,
       });
       const htmlBuffer = Buffer.from(signedHtml, "utf-8");
@@ -483,11 +419,11 @@ router.post(
         action: "application_submitted",
         entityType: "lead",
         entityId: lead.id,
-        details: { type: body.type, filesCount: files.length },
+        details: { type: applicationBody.type, filesCount: files.length },
       });
 
       if (statementsSkipped) {
-        const isWorkingCapital = body.type === "working_capital";
+        const isWorkingCapital = applicationBody.type === "working_capital";
         const message = isWorkingCapital
           ? "Bank statements skipped at application; applicant chose to send statements to their representative instead."
           : "Bank statements skipped at application (equipment)";
@@ -497,7 +433,7 @@ router.post(
           action: "bank_statements_skipped",
           entityType: "lead",
           entityId: lead.id,
-          details: { message, type: body.type, filesCount: 0 },
+          details: { message, type: applicationBody.type, filesCount: 0 },
         });
         if (isWorkingCapital && assignedRepId) {
           await db.insert(tasksTable).values({
@@ -516,7 +452,7 @@ router.post(
       notifyAllManagers(
         "application_received",
         "New application received",
-        `${body.businessName} submitted a ${body.type} application`,
+        `${applicationBody.businessName} submitted a ${applicationBody.type} application`,
         lead.id,
       ).catch(() => {});
       if (assignedRepId) {
@@ -524,7 +460,7 @@ router.post(
           userId: assignedRepId,
           type: "application_received",
           title: "New application assigned to you",
-          body: `${body.businessName} — ${body.type}`,
+          body: `${applicationBody.businessName} — ${applicationBody.type}`,
           leadId: lead.id,
         }).catch(() => {});
       }

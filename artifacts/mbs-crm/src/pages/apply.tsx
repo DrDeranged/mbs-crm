@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrandLogo } from "@/components/brand-logo";
+import { getSignatureReadiness, serializeDrawnSignature } from "@/lib/signatureReadiness";
 import {
   CheckCircle2,
   Building2,
@@ -256,6 +257,8 @@ export default function ApplyPage() {
   const sigPadRef = useRef<SignaturePad>(null);
   const [signatureMode, setSignatureMode] = useState<"draw" | "type">("draw");
   const [typedName, setTypedName] = useState("");
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -278,30 +281,40 @@ export default function ApplyPage() {
     }));
   }, []);
 
-  const set = (patch: Partial<FormData>) => setForm((f) => ({ ...f, ...patch }));
+  const set = (patch: Partial<FormData>) => {
+    setForm((f) => ({ ...f, ...patch }));
+    setSubmitError(null);
+  };
 
   const getSignatureData = (): string => {
     if (signatureMode === "draw") {
-      if (!sigPadRef.current || sigPadRef.current.isEmpty()) return "";
-      return sigPadRef.current.getTrimmedCanvas().toDataURL("image/png");
+      if (!sigPadRef.current || !hasDrawnSignature || sigPadRef.current.isEmpty()) return "";
+      return serializeDrawnSignature(sigPadRef.current.getCanvas());
     }
-    // Type mode: render name as canvas
-    const canvas = document.createElement("canvas");
-    canvas.width = 400; canvas.height = 80;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.font = "italic 32px Georgia, serif";
-      ctx.fillStyle = "#1F4E79";
-      ctx.fillText(typedName, 20, 55);
-    }
-    return canvas.toDataURL("image/png");
+    return typedName.trim();
   };
 
   const handleSubmit = async () => {
+    setSubmitAttempted(true);
+    if (!form.consentCreditPull) {
+      setSubmitError("Credit pull consent is required.");
+      return;
+    }
+    if (!form.consentTerms) {
+      setSubmitError("Terms consent is required.");
+      return;
+    }
+    const signatureReadiness = getSignatureReadiness(signatureMode, typedName, hasDrawnSignature && !sigPadRef.current?.isEmpty());
+    if (!signatureReadiness.ready) {
+      setSubmitError(signatureReadiness.error);
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(null);
+    let formData: globalThis.FormData;
     try {
-      const formData = new FormData();
+      formData = new FormData();
       Object.entries(form).forEach(([k, v]) => {
         if (typeof v === "boolean") formData.append(k, String(v));
         else if (v) formData.append(k, v as string);
@@ -309,11 +322,18 @@ export default function ApplyPage() {
       if (statementsSkipped) formData.append("statementsSkipped", "true");
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();
-      if (sig) formData.append("signatureData", sig);
+      formData.append("signatureMethod", signatureMode === "type" ? "typed" : "drawn");
+      formData.append("signatureData", sig);
       for (const file of bankFiles) {
         formData.append("bankStatements", file);
       }
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to prepare your signature. Please clear it and draw again.");
+      setSubmitting(false);
+      return;
+    }
 
+    try {
       const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       const res = await fetch(`${base}/api/applications/submit`, {
         method: "POST",
@@ -341,12 +361,13 @@ export default function ApplyPage() {
   const canAdvance = () => {
     switch (step) {
       case 1: return form.type !== "";
-      case 2: return !!(form.businessName && form.email && form.phone && form.industry && form.timeInBusinessMonths && form.monthlyRevenueStated && form.requestedAmount);
+      case 2: return !!(form.businessName && form.email && form.phone && form.industry && form.timeInBusinessMonths && form.monthlyRevenueStated && form.requestedAmount)
+        && (form.type !== "equipment" || !!form.equipmentDescription.trim());
       case 3: return !!(form.ownerFirstName && form.ownerLastName && ssnRaw.replace(/\D/g,"").length === 9);
       case 4: return statementsSkipped || (form.type === "equipment" ? bankFiles.length > 0 : (bankFiles.length >= 3 && bankFiles.length <= 6));
-      case 5: return form.consentCreditPull && form.consentTerms && (
-        signatureMode === "type" ? typedName.trim().length > 2 : (sigPadRef.current && !sigPadRef.current.isEmpty())
-      );
+      // Step 5 deliberately allows an attempt so the applicant receives a
+      // precise inline validation message instead of a disabled button.
+      case 5: return true;
       default: return true;
     }
   };
@@ -699,6 +720,9 @@ export default function ApplyPage() {
                       I authorize My Business Solutions (MBS) and its lending partners to obtain my business and personal credit report for the purpose of evaluating my financing application.
                     </Label>
                   </div>
+                  {submitAttempted && !form.consentCreditPull && (
+                    <p className="text-xs text-red-600">Credit pull consent is required.</p>
+                  )}
                   <div className="flex gap-3 items-start">
                     <Checkbox
                       id="consent_terms"
@@ -710,6 +734,9 @@ export default function ApplyPage() {
                       I confirm that all information provided is accurate and complete. I agree to MBS&apos;s Terms of Service and Privacy Policy.
                     </Label>
                   </div>
+                  {submitAttempted && !form.consentTerms && (
+                    <p className="text-xs text-red-600">Terms consent is required.</p>
+                  )}
                 </div>
 
                 {/* Signature */}
@@ -719,12 +746,18 @@ export default function ApplyPage() {
                     <div className="flex rounded-lg border overflow-hidden text-xs">
                       <button
                         type="button"
-                        onClick={() => setSignatureMode("draw")}
+                        onClick={() => {
+                          setSignatureMode("draw");
+                          setSubmitError(null);
+                        }}
                         className={`px-3 py-1.5 ${signatureMode === "draw" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
                       >Draw</button>
                       <button
                         type="button"
-                        onClick={() => setSignatureMode("type")}
+                        onClick={() => {
+                          setSignatureMode("type");
+                          setSubmitError(null);
+                        }}
                         className={`px-3 py-1.5 ${signatureMode === "type" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
                       >Type</button>
                     </div>
@@ -735,11 +768,19 @@ export default function ApplyPage() {
                         ref={sigPadRef}
                         canvasProps={{ className: "w-full", style: { height: 120 } }}
                         penColor="#1F4E79"
+                        onEnd={() => {
+                          setHasDrawnSignature(true);
+                          setSubmitError(null);
+                        }}
                       />
                       <div className="flex justify-end px-2 pb-1">
                         <button
                           type="button"
-                          onClick={() => sigPadRef.current?.clear()}
+                          onClick={() => {
+                            sigPadRef.current?.clear();
+                            setHasDrawnSignature(false);
+                            setSubmitError(null);
+                          }}
                           className="text-xs text-gray-400 hover:text-gray-600"
                         >Clear</button>
                       </div>
@@ -748,12 +789,28 @@ export default function ApplyPage() {
                     <div className="space-y-2">
                       <Input
                         value={typedName}
-                        onChange={(e) => setTypedName(e.target.value)}
+                        onChange={(e) => {
+                          setTypedName(e.target.value);
+                          setSubmitError(null);
+                        }}
                         placeholder="Type your full legal name"
                         className="text-lg italic font-serif text-[#1F4E79]"
                       />
                       <p className="text-xs text-gray-400">Your typed name serves as your electronic signature.</p>
                     </div>
+                  )}
+                  {submitAttempted && !getSignatureReadiness(
+                    signatureMode,
+                    typedName,
+                    hasDrawnSignature && !sigPadRef.current?.isEmpty(),
+                  ).ready && (
+                    <p className="text-xs text-red-600">
+                      {getSignatureReadiness(
+                        signatureMode,
+                        typedName,
+                        hasDrawnSignature && !sigPadRef.current?.isEmpty(),
+                      ).error}
+                    </p>
                   )}
                 </div>
 
@@ -769,7 +826,7 @@ export default function ApplyPage() {
           {/* Footer nav */}
           <div className="px-6 pb-6 flex justify-between gap-3">
             {step > 1 ? (
-              <Button variant="outline" onClick={() => setStep(step - 1)} className="flex items-center gap-1.5">
+                <Button variant="outline" onClick={() => { setSubmitError(null); setSubmitAttempted(false); setStep(step - 1); }} className="flex items-center gap-1.5">
                 <ChevronLeft className="h-4 w-4" /> Back
               </Button>
             ) : <div />}
@@ -786,7 +843,7 @@ export default function ApplyPage() {
               <Button
                 className="bg-[#1F4E79] hover:bg-[#163a5f] text-white flex items-center gap-1.5"
                 onClick={handleSubmit}
-                disabled={!canAdvance() || submitting || submitted}
+                disabled={submitting || submitted}
               >
                 {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : "Submit Application"}
               </Button>

@@ -2133,6 +2133,10 @@ export const GetAnalyticsSourcesResponse = zod.array(GetAnalyticsSourcesResponse
 /**
  * @summary Public application submit (no auth, multipart, rate-limited)
  */
+export const submitApplicationBodySignatureDataMax = 500000;
+
+
+
 export const SubmitApplicationBody = zod.object({
   "type": zod.enum(['equipment', 'working_capital']),
   "ownerFirstName": zod.string(),
@@ -2143,7 +2147,12 @@ export const SubmitApplicationBody = zod.object({
   "ein": zod.string().optional(),
   "ownerSsn": zod.string().optional(),
   "ownerDob": zod.string().optional(),
-  "signatureData": zod.string().optional(),
+  "consentCreditPull": zod.boolean(),
+  "consentTerms": zod.boolean(),
+  "signatureMethod": zod.enum(['typed', 'drawn']),
+  "signatureData": zod.string().max(submitApplicationBodySignatureDataMax).describe('Typed legal name or base64 image data URL for a drawn signature'),
+  "equipmentDescription": zod.string().optional(),
+  "vendorName": zod.string().optional().describe('Optional vendor\/dealer name'),
   "bankStatements": zod.array(zod.instanceof(File)).optional()
 })
 
@@ -2207,6 +2216,9 @@ export const GetLeadApplicationResponse = zod.object({
   "consentCreditPull": zod.boolean().optional(),
   "consentTerms": zod.boolean().optional(),
   "signatureData": zod.string().nullish(),
+  "signatureMethod": zod.union([zod.literal('typed'),zod.literal('drawn'),zod.literal(null)]).nullish(),
+  "signatureSignedAt": zod.coerce.date().nullish(),
+  "signatureIp": zod.string().nullish(),
   "signedDocumentUrl": zod.string().nullish(),
   "submittedAt": zod.coerce.date()
 })
