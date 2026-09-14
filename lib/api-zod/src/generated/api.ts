@@ -92,6 +92,21 @@ export const BackfillSlugsResponse = zod.object({
 
 
 /**
+ * Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+ * @summary Run the ordered production data closeout (admin only)
+ */
+export const RunProductionCloseoutResponse = zod.object({
+  "status": zod.enum(['succeeded', 'failed']),
+  "overallStatus": zod.enum(['succeeded', 'failed']),
+  "results": zod.array(zod.object({
+  "operation": zod.enum(['ownership', 'slugs', 'templates', 'lenders']),
+  "status": zod.enum(['succeeded', 'failed', 'skipped']),
+  "details": zod.unknown().optional()
+}))
+})
+
+
+/**
  * @summary Verify active representative resolver and QR routes (admin only)
  */
 export const VerifyAdminRepQrRoutesResponse = zod.object({

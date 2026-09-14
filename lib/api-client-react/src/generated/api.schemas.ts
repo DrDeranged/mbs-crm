@@ -1748,6 +1748,53 @@ export interface NewLenderSeedResponse {
   lenders: Lender[];
 }
 
+export type ProductionCloseoutResponseStatus = typeof ProductionCloseoutResponseStatus[keyof typeof ProductionCloseoutResponseStatus];
+
+
+export const ProductionCloseoutResponseStatus = {
+  succeeded: 'succeeded',
+  failed: 'failed',
+} as const;
+
+export type ProductionCloseoutResponseOverallStatus = typeof ProductionCloseoutResponseOverallStatus[keyof typeof ProductionCloseoutResponseOverallStatus];
+
+
+export const ProductionCloseoutResponseOverallStatus = {
+  succeeded: 'succeeded',
+  failed: 'failed',
+} as const;
+
+export type ProductionCloseoutResponseResultsItemOperation = typeof ProductionCloseoutResponseResultsItemOperation[keyof typeof ProductionCloseoutResponseResultsItemOperation];
+
+
+export const ProductionCloseoutResponseResultsItemOperation = {
+  ownership: 'ownership',
+  slugs: 'slugs',
+  templates: 'templates',
+  lenders: 'lenders',
+} as const;
+
+export type ProductionCloseoutResponseResultsItemStatus = typeof ProductionCloseoutResponseResultsItemStatus[keyof typeof ProductionCloseoutResponseResultsItemStatus];
+
+
+export const ProductionCloseoutResponseResultsItemStatus = {
+  succeeded: 'succeeded',
+  failed: 'failed',
+  skipped: 'skipped',
+} as const;
+
+export type ProductionCloseoutResponseResultsItem = {
+  operation: ProductionCloseoutResponseResultsItemOperation;
+  status: ProductionCloseoutResponseResultsItemStatus;
+  details?: unknown;
+};
+
+export interface ProductionCloseoutResponse {
+  status: ProductionCloseoutResponseStatus;
+  overallStatus: ProductionCloseoutResponseOverallStatus;
+  results: ProductionCloseoutResponseResultsItem[];
+}
+
 export interface AdminMaintenanceError {
   error: string;
 }

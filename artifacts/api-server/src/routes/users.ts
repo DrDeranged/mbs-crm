@@ -1,18 +1,13 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { usersTable, activityLogTable } from "@workspace/db";
-import { eq, and, inArray, notInArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
+import { backfillProductionSlugs, ProductionMaintenanceError } from "../lib/productionMaintenance";
 
 const router: IRouter = Router();
-
-const PRODUCTION_SLUG_BACKFILL = [
-  { id: 7, slug: "arslan", duplicateForReview: false },
-  { id: 12, slug: "arslan-d2", duplicateForReview: true },
-  { id: 16, slug: "nate", duplicateForReview: false },
-] as const;
 
 router.post("/admin/users/backfill-slugs", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -22,67 +17,15 @@ router.post("/admin/users/backfill-slugs", async (req: Request, res: Response) =
     return;
   }
 
-  const targetIds = PRODUCTION_SLUG_BACKFILL.map((target) => target.id);
-  const targetSlugs = PRODUCTION_SLUG_BACKFILL.map((target) => target.slug);
-  const targets = await db.query.usersTable.findMany({
-    where: inArray(usersTable.id, targetIds),
-  });
-  const targetsById = new Map(targets.map((target) => [target.id, target]));
-  const missingUserIds = targetIds.filter((id) => !targetsById.has(id));
-
-  if (missingUserIds.length > 0) {
-    res.status(409).json({
-      error: "Slug backfill aborted because one or more target users do not exist",
-      missingUserIds,
-    });
-    return;
-  }
-
-  const conflictingUsers = await db.query.usersTable.findMany({
-    where: and(
-      inArray(usersTable.slug, targetSlugs),
-      notInArray(usersTable.id, targetIds),
-    ),
-  });
-  if (conflictingUsers.length > 0) {
-    res.status(409).json({
-      error: "Slug backfill aborted because one or more target slugs are already assigned",
-      conflicts: conflictingUsers.map((conflict) => ({
-        userId: conflict.id,
-        slug: conflict.slug,
-      })),
-    });
-    return;
-  }
-
-  const results = await db.transaction(async (tx) => {
-    const summary = [];
-    for (const target of PRODUCTION_SLUG_BACKFILL) {
-      const existing = targetsById.get(target.id)!;
-      const changed = existing.slug !== target.slug;
-      if (changed) {
-        await tx
-          .update(usersTable)
-          .set({ slug: target.slug, updatedAt: new Date() })
-          .where(eq(usersTable.id, target.id));
-      }
-      summary.push({
-        userId: target.id,
-        previousSlug: existing.slug,
-        slug: target.slug,
-        changed,
-        duplicateForReview: target.duplicateForReview,
-      });
+  try {
+    res.json(await backfillProductionSlugs());
+  } catch (error) {
+    if (error instanceof ProductionMaintenanceError) {
+      res.status(409).json({ error: error.message, ...error.details });
+      return;
     }
-    return summary;
-  });
-
-  const changed = results.filter((result) => result.changed).length;
-  res.json({
-    changed,
-    unchanged: results.length - changed,
-    users: results,
-  });
+    throw error;
+  }
 });
 
 router.get("/users", async (req: Request, res: Response) => {

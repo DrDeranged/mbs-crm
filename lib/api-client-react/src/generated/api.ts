@@ -138,6 +138,7 @@ import type {
   PreviewEmailTemplate200,
   PreviewEmailTemplateBody,
   PreviewImportBody,
+  ProductionCloseoutResponse,
   PublicRep,
   PullCreditReportBody,
   RecalculateLeadScore200,
@@ -574,6 +575,77 @@ export const useBackfillSlugs = <TError = ErrorType<AdminMaintenanceError>,
         TContext
       > => {
       return useMutation(getBackfillSlugsMutationOptions(options));
+    }
+
+export const getRunProductionCloseoutUrl = () => {
+
+
+
+
+  return `/api/admin/production-closeout`
+}
+
+/**
+ * Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+ * @summary Run the ordered production data closeout (admin only)
+ */
+export const runProductionCloseout = async ( options?: RequestInit): Promise<ProductionCloseoutResponse> => {
+
+  return customFetch<ProductionCloseoutResponse>(getRunProductionCloseoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRunProductionCloseoutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext> => {
+
+const mutationKey = ['runProductionCloseout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runProductionCloseout>>, void> = () => {
+
+
+          return  runProductionCloseout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunProductionCloseoutMutationResult = NonNullable<Awaited<ReturnType<typeof runProductionCloseout>>>
+
+    export type RunProductionCloseoutMutationError = ErrorType<void>
+
+    /**
+ * @summary Run the ordered production data closeout (admin only)
+ */
+export const useRunProductionCloseout = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runProductionCloseout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRunProductionCloseoutMutationOptions(options));
     }
 
 export const getVerifyAdminRepQrRoutesUrl = () => {

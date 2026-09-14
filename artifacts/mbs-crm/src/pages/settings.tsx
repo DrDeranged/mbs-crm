@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, useRunProductionCloseout, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +15,7 @@ import { ShieldAlert, Phone, Building2, Globe, Wrench } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
+import { formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -33,6 +34,7 @@ export default function Settings() {
   const backfillSlugs = useBackfillSlugs();
   const seedStarterEmail = useSeedStarterEmail();
   const seedNewLenders = useSeedNewLenders();
+  const productionCloseout = useRunProductionCloseout();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -253,6 +255,22 @@ export default function Settings() {
         toast({
           title: "New lender seed checked",
           description: `${result.created} created; ${result.unchanged} already matched. Full lender records are available in the lender directory.`,
+        });
+      },
+    });
+  };
+
+  const handleProductionCloseout = () => {
+    if (!window.confirm("Run production closeout in order: ownership correction, slug backfill, starter email/template seed, then Dexly/Thoro lender seed? Each completed operation remains committed if a later operation fails.")) return;
+    productionCloseout.reset();
+    productionCloseout.mutate(undefined, {
+      onSuccess: (result) => {
+        queryClient.invalidateQueries({ queryKey: getListDealsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast({
+          title: result.overallStatus === "succeeded" ? "Production closeout complete" : "Production closeout stopped",
+          description: result.overallStatus === "succeeded" ? "All four operations completed in order." : "Review the ordered results below and use an individual fallback if needed.",
+          variant: result.overallStatus === "succeeded" ? "default" : "destructive",
         });
       },
     });
@@ -483,6 +501,45 @@ export default function Settings() {
               <CardDescription>Run narrowly scoped, admin-only maintenance actions for seeded CRM data.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="rounded-md border border-[#1F4E79]/30 bg-[#1F4E79]/5 p-4 max-w-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">Production closeout</h3>
+                    <div className="text-sm text-muted-foreground">
+                      Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure stops the sequence but does not roll back earlier successful operations.
+                    </div>
+                  </div>
+                  <Button onClick={handleProductionCloseout} disabled={productionCloseout.isPending} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                    {productionCloseout.isPending ? "Running production closeout…" : "Run production closeout"}
+                  </Button>
+                </div>
+                {productionCloseout.error && (
+                  <p className="mt-3 text-sm text-destructive" role="alert">
+                    {productionCloseout.error.message || "Unable to run production closeout."}
+                  </p>
+                )}
+                {productionCloseout.data && (
+                  <div className="mt-4 space-y-2 border-t pt-3" aria-live="polite">
+                    <div className="text-sm font-medium">
+                      Ordered closeout summary — {productionCloseout.data.overallStatus}
+                    </div>
+                    {formatProductionCloseoutResults(productionCloseout.data.results).map((line) => (
+                      <div key={line.operation} className="flex flex-wrap gap-2 text-sm">
+                        <span className="font-medium capitalize">{line.label}</span>
+                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
+                          {line.status}
+                        </span>
+                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
+                          — {line.summary}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-6 border-t pt-5">
+                <h3 className="font-medium">Individual fallback actions</h3>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl">
                 <div>
                   <div className="font-medium">Correct seeded deal ownership</div>

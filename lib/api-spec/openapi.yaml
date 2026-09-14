@@ -150,6 +150,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminMaintenanceError"
 
+  /admin/production-closeout:
+    post:
+      operationId: runProductionCloseout
+      tags: [admin]
+      summary: Run the ordered production data closeout (admin only)
+      description: Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+      responses:
+        "200":
+          description: Ordered closeout operation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionCloseoutResponse"
+        "401":
+          description: Authentication required
+        "403":
+          description: Admin access required
+
   /admin/qr-verify:
     get:
       operationId: verifyAdminRepQrRoutes
@@ -5771,6 +5789,30 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Lender"
+
+    ProductionCloseoutResponse:
+      type: object
+      required: [status, overallStatus, results]
+      properties:
+        status:
+          type: string
+          enum: [succeeded, failed]
+        overallStatus:
+          type: string
+          enum: [succeeded, failed]
+        results:
+          type: array
+          items:
+            type: object
+            required: [operation, status]
+            properties:
+              operation:
+                type: string
+                enum: [ownership, slugs, templates, lenders]
+              status:
+                type: string
+                enum: [succeeded, failed, skipped]
+              details: {}
 
     AdminMaintenanceError:
       type: object

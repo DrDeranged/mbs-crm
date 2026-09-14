@@ -18,6 +18,7 @@ import { logActivity } from "../lib/activityHelper";
 import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
+import { seedStarterEmailData } from "../lib/productionMaintenance";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
 const SESSION_SECRET = process.env["SESSION_SECRET"];
@@ -844,15 +845,9 @@ function templateToApi(t: any) {
   };
 }
 
-// POST /email/seed-starter — admin only, idempotent
-router.post("/email/seed-starter", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  if (user.role !== "admin") {
-    res.status(403).json({ error: "Admins only" });
-    return;
-  }
-
+// Auth-independent starter seed used by both the legacy endpoint and the
+// ordered production closeout.
+export async function seedStarterEmail(actorId: number) {
   const STARTER_TEMPLATES = [
     {
       name: "Application Received",
@@ -993,71 +988,18 @@ router.post("/email/seed-starter", async (req: Request, res: Response) => {
     },
   ];
 
-  // Idempotent insert — skip names that already exist
-  const existingTemplates = await db.select({ name: emailTemplatesTable.name }).from(emailTemplatesTable);
-  const existingNames = new Set(existingTemplates.map((t) => t.name));
+  return seedStarterEmailData(actorId, STARTER_TEMPLATES);
+}
 
-  const toInsert = STARTER_TEMPLATES.filter((t) => !existingNames.has(t.name));
-  let templatesCreated = 0;
-  const createdTemplates: { name: string; id: number }[] = [];
-
-  for (const t of toInsert) {
-    const [inserted] = await db.insert(emailTemplatesTable).values({
-      name: t.name,
-      subject: t.subject,
-      bodyHtml: t.bodyHtml,
-      programType: t.programType as any,
-      senderMode: "default",
-      createdBy: user.id,
-      isActive: true,
-    }).returning();
-    createdTemplates.push({ name: t.name, id: inserted.id });
-    templatesCreated++;
+// POST /email/seed-starter — admin only, idempotent
+router.post("/email/seed-starter", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") {
+    res.status(403).json({ error: "Admins only" });
+    return;
   }
-
-  // Build a name→id map covering both pre-existing and newly created templates
-  const allTemplates = await db.select({ id: emailTemplatesTable.id, name: emailTemplatesTable.name })
-    .from(emailTemplatesTable)
-    .where(inArray(emailTemplatesTable.name, ["Application Received", "Initial Follow-Up", "Document Request"]));
-  const templateIdByName: Record<string, number> = {};
-  for (const t of allTemplates) templateIdByName[t.name] = t.id;
-
-  // Seed "New Application Nurture" drip sequence (idempotent)
-  let sequenceCreated = false;
-  const SEQUENCE_NAME = "New Application Nurture";
-  const existing = await db.select({ id: dripSequencesTable.id })
-    .from(dripSequencesTable)
-    .where(eq(dripSequencesTable.name, SEQUENCE_NAME));
-
-  if (existing.length === 0) {
-    const appReceivedId = templateIdByName["Application Received"];
-    const followUpId = templateIdByName["Initial Follow-Up"];
-    const docRequestId = templateIdByName["Document Request"];
-
-    if (appReceivedId && followUpId && docRequestId) {
-      const [seq] = await db.insert(dripSequencesTable).values({
-        name: SEQUENCE_NAME,
-        triggerStatus: "application_received",
-        isActive: false,
-      }).returning();
-
-      await db.insert(dripSequenceStepsTable).values([
-        { sequenceId: seq.id, stepOrder: 1, templateId: appReceivedId, delayHours: 0 },
-        { sequenceId: seq.id, stepOrder: 2, templateId: followUpId, delayHours: 24 },
-        { sequenceId: seq.id, stepOrder: 3, templateId: docRequestId, delayHours: 72 },
-      ]);
-      sequenceCreated = true;
-    }
-  }
-
-  res.json({
-    templatesCreated,
-    sequenceCreated,
-    skippedTemplates: STARTER_TEMPLATES.length - templatesCreated,
-    message: templatesCreated > 0 || sequenceCreated
-      ? `Created ${templatesCreated} template(s) and ${sequenceCreated ? 1 : 0} drip sequence.`
-      : "All starter templates already exist. Nothing was duplicated.",
-  });
+  res.json(await seedStarterEmail(user.id));
 });
 
 function sendToApi(s: any) {
