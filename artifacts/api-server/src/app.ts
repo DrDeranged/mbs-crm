@@ -16,6 +16,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
+import { getSafeUserId } from "./lib/requestAuth";
 
 initSentry();
 
@@ -104,7 +105,7 @@ app.use("/api", router);
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const requestId = req.requestId ?? "unknown";
-  const { userId } = getAuth(req);
+  const userId = getSafeUserId(() => getAuth(req));
 
   const status =
     (err instanceof Error && "status" in err ? (err as any).status : null) ??

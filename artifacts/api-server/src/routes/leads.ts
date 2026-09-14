@@ -31,6 +31,14 @@ import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
 import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDistribution";
 import { writeCsvRow } from "../lib/csv";
+import { isLeadStale } from "../lib/staleLeadPredicate";
+import { buildStaleLeadCondition } from "../lib/staleLeadCondition";
+import { parseElementorCaptureRequest } from "../lib/elementorCaptureResult";
+import {
+  buildLeadHydrationWhere,
+  buildLeadPageIdsQuery,
+  reorderByIds,
+} from "../lib/twoPhaseQueries";
 
 const router: IRouter = Router();
 
@@ -53,7 +61,8 @@ function leadToApi(
   // consistently even if legacy data has a populated lastActivityAt.
   const activityAt = latestActivity?.createdAt ?? null;
   const idleSince = activityAt ?? lead.createdAt;
-  const daysIdle = Math.max(0, Math.floor((Date.now() - idleSince.getTime()) / (24 * 60 * 60 * 1000)));
+  const now = Date.now();
+  const daysIdle = Math.max(0, Math.floor((now - idleSince.getTime()) / (24 * 60 * 60 * 1000)));
   return {
     id: lead.id,
     firstName: lead.firstName,
@@ -74,7 +83,7 @@ function leadToApi(
     lastActivityActor: latestActivity?.user ? userToApi(latestActivity.user) : null,
     createdBy: createdBy?.user ? userToApi(createdBy.user) : null,
     needsAssignment: isUnassignedInboundLead(lead),
-    isStale: lead.assignedRepId != null && daysIdle >= staleThresholdDays,
+    isStale: isLeadStale(lead.assignedRepId, idleSince, staleThresholdDays, now),
     daysIdle,
     leadScore: lead.leadScore ?? null,
     leadScoreBreakdown: (lead.leadScoreBreakdown as any) ?? null,
@@ -85,17 +94,6 @@ function leadToApi(
     estimatedTermMonths: lead.estimatedTermMonths ?? null,
     renewalFlaggedAt: lead.renewalFlaggedAt?.toISOString() ?? null,
   };
-}
-
-function staleLeadCondition(staleThresholdDays: number) {
-  const cutoff = new Date(Date.now() - staleThresholdDays * 24 * 60 * 60 * 1000);
-  // Keep this expression in lockstep with leadToApi: effective idle time is
-  // the latest logged activity, or creation time when no activity exists.
-  return sql`${leadsTable.assignedRepId} is not null and coalesce(
-    (select max(${activityLogTable.createdAt}) from ${activityLogTable}
-      where ${activityLogTable.leadId} = ${leadsTable.id}),
-    ${leadsTable.createdAt}
-  ) < ${cutoff}`;
 }
 
 async function getStaleThresholdDays() {
@@ -227,7 +225,7 @@ router.get("/leads", async (req: Request, res: Response) => {
     conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
   }
   if (q.stale === true || q.stale === "true") {
-    conditions.push(staleLeadCondition(staleThresholdDays) as any);
+    conditions.push(buildStaleLeadCondition(staleThresholdDays) as any);
   }
 
   let searchCondition: any = undefined;
@@ -259,19 +257,41 @@ router.get("/leads", async (req: Request, res: Response) => {
   };
   const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
 
-  const [leadsRaw, [{ total }]] = await Promise.all([
-    db.query.leadsTable.findMany({
-      where: whereClause as any,
-      orderBy: [sortDir(sortColumn)],
-      limit,
-      offset,
-      with: { assignedRep: true },
-    }),
-    db
-      .select({ total: sql<number>`cast(count(*) as int)` })
-      .from(leadsTable)
-      .where(whereClause as any),
-  ]);
+  const staleRequested = q.stale === true || q.stale === "true";
+  let leadsRaw: any[];
+  let total: number;
+  const totalQuery = db
+    .select({ total: sql<number>`cast(count(*) as int)` })
+    .from(leadsTable)
+    .where(whereClause as any);
+  if (staleRequested) {
+    const [leadIdRows, totals] = await Promise.all([
+      buildLeadPageIdsQuery(db, whereClause, [sortDir(sortColumn), asc(leadsTable.id)], limit, offset),
+      totalQuery,
+    ]);
+    const leadIds = leadIdRows.map((row: { id: number }) => row.id);
+    const hydrated = leadIds.length === 0
+      ? []
+      : await db.query.leadsTable.findMany({
+        where: buildLeadHydrationWhere(leadIds),
+        with: { assignedRep: true },
+      });
+    leadsRaw = reorderByIds(hydrated, leadIds);
+    total = totals[0]?.total ?? 0;
+  } else {
+    const [rows, totals] = await Promise.all([
+      db.query.leadsTable.findMany({
+        where: whereClause as any,
+        orderBy: [sortDir(sortColumn), asc(leadsTable.id)],
+        limit,
+        offset,
+        with: { assignedRep: true },
+      }),
+      totalQuery,
+    ]);
+    leadsRaw = rows;
+    total = totals[0]?.total ?? 0;
+  }
   const leadIds = leadsRaw.map((lead) => lead.id);
   const [latestActivities, creationActivities] = await Promise.all([
     getLatestActivities("lead", leadIds),
@@ -425,105 +445,17 @@ const elementorMulter = multer({ storage: multer.memoryStorage(), limits: { fiel
 //   • application/x-www-form-urlencoded (handled by express.urlencoded() globally)
 //   • multipart/form-data       (handled by elementorMulter below, this route only)
 router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none(), async (req: Request, res: Response) => {
-  const raw = (req.body ?? {}) as Record<string, unknown>;
-
-  // ── Field extraction ──────────────────────────────────────────────────────
-  // Elementor Pro sends a NESTED payload:
-  //   fields = { "name": { id, type, title, value }, "field_0bb8c14": { ... }, … }
-  //   (may arrive as a JSON string when content-type is urlencoded)
-  // Fall back to flat top-level keys when `fields` is absent (direct tests / other callers).
-
-  let fullName   = "";
-  let firstName  = "";
-  let lastName   = "";
-  let emailVal   = "";
-  let phoneVal   = "";
-  let message    = "";
-  let companyVal = "";
-
-  try {
-    if (raw.fields !== undefined) {
-      // ── Nested Elementor Pro format ─────────────────────────────────────
-      const fieldsRaw = typeof raw.fields === "string"
-        ? (JSON.parse(raw.fields) as Record<string, { id?: string; type?: string; title?: string; value?: unknown }>)
-        : (raw.fields as Record<string, { id?: string; type?: string; title?: string; value?: unknown }>);
-
-      function fieldVal(key: string): string {
-        const entry = fieldsRaw[key];
-        return typeof entry?.value === "string" ? entry.value.trim() : "";
-      }
-
-      // 1. Explicit field-ID matches (fastest path)
-      fullName   = fieldVal("name");
-      emailVal   = fieldVal("email").toLowerCase();
-      phoneVal   = fieldVal("field_0bb8c14");
-      companyVal = fieldVal("field_0565986");
-      message    = fieldVal("message");
-
-      // 2. Resilient title/type scan — survive field-id changes in the form builder
-      for (const entry of Object.values(fieldsRaw)) {
-        if (!entry || entry.type === "acceptance") continue; // skip terms checkboxes
-        const title = (entry.title ?? "").toLowerCase();
-        const type  = (entry.type  ?? "").toLowerCase();
-        const val   = typeof entry.value === "string" ? entry.value.trim() : "";
-        if (!val) continue;
-
-        if (!phoneVal   && (title.includes("phone") || title.includes("mobile") || title.includes("telephone")))
-          phoneVal = val;
-        if (!companyVal && (title.includes("business") || title.includes("company")))
-          companyVal = val;
-        if (!emailVal   && (type === "email" || title.includes("email")))
-          emailVal = val.toLowerCase();
-        if (!fullName   && (title.includes("full name") || title.includes("name")))
-          fullName = val;
-        if (!message    && (type === "textarea" || title.includes("message") || title.includes("comment")))
-          message = val;
-      }
-
-      // Split full name into first/last
-      const nameParts = fullName.split(/\s+/).filter(Boolean);
-      firstName = nameParts[0] ?? "";
-      lastName  = nameParts.slice(1).join(" ");
-
-    } else {
-      // ── Flat top-level format (fallback / direct API callers) ────────────
-      function strField(...keys: string[]): string {
-        for (const k of keys) {
-          const v = raw[k];
-          if (typeof v === "string" && v.trim()) return v.trim();
-        }
-        return "";
-      }
-
-      function findPhone(): string {
-        const explicit = strField("phone", "phone_number", "telephone", "mobile", "field_0bb8c14");
-        if (explicit) return explicit;
-        for (const v of Object.values(raw)) {
-          if (typeof v === "string" && /^\+?[\d\s\-().]{7,20}$/.test(v.trim()) && !v.includes("@")) {
-            return v.trim();
-          }
-        }
-        return "";
-      }
-
-      fullName   = strField("name", "full_name", "fullName");
-      const nameParts = fullName.split(/\s+/).filter(Boolean);
-      firstName  = strField("firstName", "first_name") || nameParts[0] || "";
-      lastName   = strField("lastName",  "last_name")  || nameParts.slice(1).join(" ") || "";
-      emailVal   = strField("email", "email_address").toLowerCase();
-      phoneVal   = findPhone();
-      message    = strField("message", "msg", "comment", "comments", "inquiry", "note");
-      companyVal = strField("company", "companyName", "company_name", "business", "business_name", "field_0565986");
-    }
-  } catch (parseErr) {
-    req.log.warn({ parseErr, raw }, "elementor webhook — failed to parse payload, ignoring");
-    res.status(200).json({ success: true, ignored: "empty_or_unparseable" });
+  const parsed = parseElementorCaptureRequest(req.body);
+  if (!parsed.ok) {
+    req.log.warn({ error: parsed.body.error }, "elementor webhook — malformed payload");
+    res.status(parsed.status).json(parsed.body);
     return;
   }
+  const { firstName, lastName, fullName, email: emailVal, phone: phoneVal, message, company: companyVal } = parsed.data;
 
-  // ── Guard: empty / unparseable body — must never 500 on the WordPress side ─
+  // ── Guard: empty body — valid webhook outcome, but nothing to capture ─────
   if (!emailVal && !firstName && !lastName && !fullName) {
-    req.log.warn({ raw }, "elementor webhook received body with no usable fields — ignoring");
+    req.log.warn({ body: req.body }, "elementor webhook received body with no usable fields — ignoring");
     res.status(200).json({ success: true, ignored: "empty_or_unparseable" });
     return;
   }
@@ -637,7 +569,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
   res.status(200).json(elementorPayload);
 });
 
-function buildLeadsWhere(q: any, userRole: string, userId: number, staleThresholdDays = 7) {
+function buildLeadsWhere(q: any, userRole: string, userId: number, staleThresholdDays = 7, now = Date.now()) {
   const conditions: any[] = [];
   if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
   if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
@@ -655,7 +587,7 @@ function buildLeadsWhere(q: any, userRole: string, userId: number, staleThreshol
     conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null`);
   }
   if (q.stale === true || q.stale === "true") {
-    conditions.push(staleLeadCondition(staleThresholdDays));
+    conditions.push(buildStaleLeadCondition(staleThresholdDays, now));
   }
   let searchCondition: any = undefined;
   if (q.search) {
@@ -679,7 +611,9 @@ router.get("/leads/export", async (req: Request, res: Response) => {
 
   const q = req.query as any;
   const staleThresholdDays = await getStaleThresholdDays();
-  const whereClause = buildLeadsWhere(q, user.role, user.id, staleThresholdDays);
+  const staleRequested = q.stale === true || q.stale === "true";
+  const staleNow = Date.now();
+  const whereClause = buildLeadsWhere(q, user.role, user.id, staleThresholdDays, staleNow);
 
   const ids = q.ids
     ? String(q.ids).split(",").map(Number).filter((n: number) => !isNaN(n) && n > 0)
@@ -723,13 +657,30 @@ router.get("/leads/export", async (req: Request, res: Response) => {
     await tx.execute(sql`set transaction isolation level repeatable read`);
     let offset = 0;
     while (!res.destroyed) {
-      const leads = await tx.query.leadsTable.findMany({
-        where: leadWhere,
-        with: { assignedRep: true },
-        orderBy: [sortDirection(sortColumn), asc(leadsTable.id)],
-        limit: batchSize,
-        offset,
-      });
+      const leads = staleRequested
+        ? await (async () => {
+          const pageRows = await buildLeadPageIdsQuery(
+            tx,
+            leadWhere,
+            [sortDirection(sortColumn), asc(leadsTable.id)],
+            batchSize,
+            offset,
+          );
+          const pageIds = pageRows.map((row: { id: number }) => row.id);
+          if (pageIds.length === 0) return [];
+          const hydrated = await tx.query.leadsTable.findMany({
+            where: buildLeadHydrationWhere(pageIds),
+            with: { assignedRep: true },
+          });
+          return reorderByIds(hydrated, pageIds);
+        })()
+        : await tx.query.leadsTable.findMany({
+          where: leadWhere,
+          with: { assignedRep: true },
+          orderBy: [sortDirection(sortColumn), asc(leadsTable.id)],
+          limit: batchSize,
+          offset,
+        });
       if (leads.length === 0) break;
       const activityRows = await tx
         .selectDistinctOn([activityLogTable.leadId], {
@@ -744,9 +695,7 @@ router.get("/leads/export", async (req: Request, res: Response) => {
         .map((row) => [row.leadId!, row.createdAt]));
       for (const l of leads as any[]) {
         const activityAt = activityDates.get(l.id);
-        const daysIdle = activityAt == null
-          ? Math.max(0, Math.floor((Date.now() - l.createdAt.getTime()) / (24 * 60 * 60 * 1000)))
-          : Math.max(0, Math.floor((Date.now() - activityAt.getTime()) / (24 * 60 * 60 * 1000)));
+        const idleSince = activityAt ?? l.createdAt;
         await writeCsvRow(res, [
           l.id,
           l.firstName,
@@ -761,7 +710,7 @@ router.get("/leads/export", async (req: Request, res: Response) => {
           l.assignedRep ? getUserDisplayName(l.assignedRep) : "",
           l.leadScore,
           l.renewalFlaggedAt ? "Yes" : "No",
-          l.assignedRepId != null && daysIdle >= staleThresholdDays ? "Yes" : "No",
+          isLeadStale(l.assignedRepId, idleSince, staleThresholdDays, staleNow) ? "Yes" : "No",
           activityAt?.toISOString() ?? "",
           l.createdAt.toISOString(),
           l.updatedAt.toISOString(),

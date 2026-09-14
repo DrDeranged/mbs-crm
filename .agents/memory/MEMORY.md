@@ -20,3 +20,4 @@
 - [Trusted public URLs](trusted-public-urls.md) — email/PDF URLs must come only from configured or platform-owned origins, never request forwarding headers.
 - [Wouter query-state handoffs](wouter-query-state.md) — `useLocation()` exposes the pathname, so route-triggered UI state must read query parameters separately.
 - [Deployment API root health](deployment-api-root-health.md) — monitoring probes the API mount root, so keep GET /api healthy alongside /api/healthz.
+- [Drizzle relational alias rewriting](drizzle-relational-alias-rewriting.md) — correlated SQL inside relational findMany can rewrite inner aliases; select IDs with the core builder, then hydrate relations.

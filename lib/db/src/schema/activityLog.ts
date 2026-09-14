@@ -18,6 +18,7 @@ export const activityLogTable = pgTable(
   },
   (t) => [
     index("activity_lead_idx").on(t.leadId),
+    index("activity_lead_created_idx").on(t.leadId, t.createdAt),
     index("activity_deal_idx").on(t.dealId),
     index("activity_user_idx").on(t.userId),
     index("activity_created_idx").on(t.createdAt),
