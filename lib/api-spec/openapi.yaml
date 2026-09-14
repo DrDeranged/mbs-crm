@@ -2530,6 +2530,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lender"
 
+  /admin/lenders/seed-new:
+    post:
+      operationId: seedNewLenders
+      tags: [admin]
+      summary: Seed the two verified working-capital lenders (admin only)
+      description: Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
+      responses:
+        "200":
+          description: Seed result with full lender records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewLenderSeedResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "500":
+          description: Seed failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+
   /lenders/{id}:
     put:
       operationId: updateLender
@@ -5722,6 +5754,23 @@ components:
         sequenceCreated: { type: boolean }
         skippedTemplates: { type: integer }
         message: { type: string }
+
+    NewLenderSeedResponse:
+      type: object
+      required: [created, unchanged, createdNames, unchangedNames, lenders]
+      properties:
+        created: { type: integer }
+        unchanged: { type: integer }
+        createdNames:
+          type: array
+          items: { type: string }
+        unchangedNames:
+          type: array
+          items: { type: string }
+        lenders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lender"
 
     AdminMaintenanceError:
       type: object

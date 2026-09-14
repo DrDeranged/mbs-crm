@@ -5,9 +5,10 @@ import {
   leadsTable, usersTable, activityLogTable,
   insertLenderSchema,
 } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
+import { NEW_LENDER_SEEDS, planNewLenderSeeds } from "../lib/newLenderSeeds";
 
 const router: IRouter = Router();
 
@@ -143,6 +144,61 @@ router.delete("/lenders/:id", async (req: Request, res: Response) => {
 
   if (!updated) return void res.status(404).json({ error: "Lender not found" });
   res.json(lenderToApi(updated));
+});
+
+// POST /admin/lenders/seed-new — admin-only, idempotent, and intentionally
+// name-matched so an existing lender is never rewritten by this maintenance
+// action.
+router.post("/admin/lenders/seed-new", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Admin only" });
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(874240)`);
+      const existing = await tx.select().from(lendersTable).where(
+        sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
+      );
+      const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
+
+      for (const seed of plan.toCreate) {
+
+        await tx.insert(lendersTable).values({
+          name: seed.name,
+          programTypes: [...seed.programTypes],
+          minAmount: seed.minAmount,
+          maxAmount: seed.maxAmount,
+          minCreditScore: seed.minCreditScore,
+          acceptedIndustries: [...seed.acceptedIndustries],
+          minTimeInBusinessMonths: seed.minTimeInBusinessMonths,
+          acceptedStates: [...seed.acceptedStates],
+          // The schema requires defaults for fields that the source did not
+          // supply. Do not invent contactName, priority, or Thoro's position.
+          ...(seed.name === "Dexly Finance" ? { maxExistingPositions: 5 } : {}),
+          contactEmail: "contactEmail" in seed ? seed.contactEmail : null,
+          notes: seed.notes,
+          isActive: seed.isActive,
+        });
+      }
+
+      const lenders = await tx.select().from(lendersTable).where(
+        sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
+      );
+      return { createdNames: plan.toCreate.map((seed) => seed.name), unchangedNames: plan.unchangedNames, lenders };
+    });
+
+    res.status(200).json({
+      created: result.createdNames.length,
+      unchanged: result.unchangedNames.length,
+      createdNames: result.createdNames,
+      unchangedNames: result.unchangedNames,
+      lenders: result.lenders.map(lenderToApi),
+    });
+  } catch (error) {
+    console.error("Failed to seed new lenders", error);
+    res.status(500).json({ error: "Unable to seed new lenders" });
+  }
 });
 
 // --- Match endpoints ---

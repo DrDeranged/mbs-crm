@@ -2663,6 +2663,37 @@ export const CreateLenderBody = zod.object({
 
 
 /**
+ * Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
+ * @summary Seed the two verified working-capital lenders (admin only)
+ */
+export const SeedNewLendersResponse = zod.object({
+  "created": zod.number(),
+  "unchanged": zod.number(),
+  "createdNames": zod.array(zod.string()),
+  "unchangedNames": zod.array(zod.string()),
+  "lenders": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "minTimeInBusinessMonths": zod.number(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Update a lender (admin only)
  */
 export const UpdateLenderParams = zod.object({

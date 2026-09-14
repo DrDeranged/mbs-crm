@@ -132,6 +132,7 @@ import type {
   MarkAllNotificationsRead200,
   MarkNotificationRead200,
   MyTasksSummary,
+  NewLenderSeedResponse,
   Note,
   NoteInput,
   PreviewEmailTemplate200,
@@ -7422,6 +7423,77 @@ export const useCreateLender = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateLenderMutationOptions(options));
+    }
+
+export const getSeedNewLendersUrl = () => {
+
+
+
+
+  return `/api/admin/lenders/seed-new`
+}
+
+/**
+ * Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
+ * @summary Seed the two verified working-capital lenders (admin only)
+ */
+export const seedNewLenders = async ( options?: RequestInit): Promise<NewLenderSeedResponse> => {
+
+  return customFetch<NewLenderSeedResponse>(getSeedNewLendersUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSeedNewLendersMutationOptions = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedNewLenders>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof seedNewLenders>>, TError,void, TContext> => {
+
+const mutationKey = ['seedNewLenders'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof seedNewLenders>>, void> = () => {
+
+
+          return  seedNewLenders(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeedNewLendersMutationResult = NonNullable<Awaited<ReturnType<typeof seedNewLenders>>>
+
+    export type SeedNewLendersMutationError = ErrorType<AdminMaintenanceError>
+
+    /**
+ * @summary Seed the two verified working-capital lenders (admin only)
+ */
+export const useSeedNewLenders = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedNewLenders>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof seedNewLenders>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSeedNewLendersMutationOptions(options));
     }
 
 export const getUpdateLenderUrl = (id: number,) => {

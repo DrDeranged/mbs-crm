@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,6 +32,7 @@ export default function Settings() {
   const reassignSeededDeals = useReassignSeededDeals();
   const backfillSlugs = useBackfillSlugs();
   const seedStarterEmail = useSeedStarterEmail();
+  const seedNewLenders = useSeedNewLenders();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -239,6 +240,19 @@ export default function Settings() {
         toast({
           title: "Starter email data checked",
           description: `${result.templatesCreated} template${result.templatesCreated === 1 ? "" : "s"} created; ${result.sequenceCreated ? "nurture sequence created" : "nurture sequence already existed"}.`,
+        });
+      },
+    });
+  };
+
+  const handleSeedNewLenders = () => {
+    if (!window.confirm("Create Dexly Finance and Thoro Corp if they are missing? Existing lenders with those exact names will be left unchanged.")) return;
+    seedNewLenders.reset();
+    seedNewLenders.mutate(undefined, {
+      onSuccess: (result) => {
+        toast({
+          title: "New lender seed checked",
+          description: `${result.created} created; ${result.unchanged} already matched. Full lender records are available in the lender directory.`,
         });
       },
     });
@@ -537,6 +551,31 @@ export default function Settings() {
               {seedStarterEmail.data && (
                 <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
                   Starter email seed complete: {seedStarterEmail.data.templatesCreated} template{seedStarterEmail.data.templatesCreated === 1 ? "" : "s"} created, {seedStarterEmail.data.skippedTemplates} skipped, and the nurture sequence was {seedStarterEmail.data.sequenceCreated ? "created" : "already present"}.
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Seed verified lenders</div>
+                  <div className="text-sm text-muted-foreground">
+                    Adds Dexly Finance and Thoro Corp without changing an existing lender with either exact name.
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleSeedNewLenders}
+                  disabled={seedNewLenders.isPending}
+                >
+                  Seed new lenders
+                </Button>
+              </div>
+              {seedNewLenders.error && (
+                <p className="mt-2 text-sm text-destructive" role="alert">
+                  {seedNewLenders.error.message || "Unable to seed new lenders."}
+                </p>
+              )}
+              {seedNewLenders.data && (
+                <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
+                  New lender seed complete: {seedNewLenders.data.created} created, {seedNewLenders.data.unchanged} unchanged, and {seedNewLenders.data.lenders.length} full lender records returned.
                 </p>
               )}
             </CardContent>

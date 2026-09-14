@@ -1740,6 +1740,14 @@ export interface StarterEmailSeedResponse {
   message: string;
 }
 
+export interface NewLenderSeedResponse {
+  created: number;
+  unchanged: number;
+  createdNames: string[];
+  unchangedNames: string[];
+  lenders: Lender[];
+}
+
 export interface AdminMaintenanceError {
   error: string;
 }
