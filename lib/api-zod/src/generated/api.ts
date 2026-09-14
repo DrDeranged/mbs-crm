@@ -1321,6 +1321,16 @@ export const DownloadDocumentResponse = zod.object({
 
 
 /**
+ * Returns a lender package for a submitted application. Reps may download only packages for leads assigned to them; administrators and managers may download any package. The response is a PDF attachment.
+
+ * @summary Download the submitted application and eligible bank statements as one PDF
+ */
+export const DownloadLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Get chronological activity log for a lead
  */
 export const ListLeadActivityParams = zod.object({

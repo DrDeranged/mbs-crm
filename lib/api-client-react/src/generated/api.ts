@@ -3611,6 +3611,85 @@ export function useDownloadDocument<TData = Awaited<ReturnType<typeof downloadDo
 
 
 
+export const getDownloadLenderPackageUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/lender-package`
+}
+
+/**
+ * Returns a lender package for a submitted application. Reps may download only packages for leads assigned to them; administrators and managers may download any package. The response is a PDF attachment.
+
+ * @summary Download the submitted application and eligible bank statements as one PDF
+ */
+export const downloadLenderPackage = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadLenderPackageUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadLenderPackageQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/lender-package`
+    ] as const;
+    }
+
+
+export const getDownloadLenderPackageQueryOptions = <TData = Awaited<ReturnType<typeof downloadLenderPackage>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadLenderPackage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadLenderPackageQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadLenderPackage>>> = ({ signal }) => downloadLenderPackage(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadLenderPackage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadLenderPackageQueryResult = NonNullable<Awaited<ReturnType<typeof downloadLenderPackage>>>
+export type DownloadLenderPackageQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download the submitted application and eligible bank statements as one PDF
+ */
+
+export function useDownloadLenderPackage<TData = Awaited<ReturnType<typeof downloadLenderPackage>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadLenderPackage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadLenderPackageQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListLeadActivityUrl = (id: number,) => {
 
 

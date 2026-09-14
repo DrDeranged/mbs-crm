@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useRef } from "react";
 import { getUserDisplayName } from "@/lib/utils";
 import { useParams, Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -49,8 +49,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { PhoneLink } from "@/components/phone-link";
 import { SoftphoneContext } from "@/components/softphone-context";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getLenderPackageFilename } from "@/lib/lenderPackageDownload";
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 70 ? "bg-[#17A567]" : score >= 40 ? "bg-amber-500" : "bg-red-500";
@@ -500,9 +503,12 @@ function LeadTasks({ leadId }: { leadId: number }) {
 // Documents Tab
 function LeadDocuments({ leadId }: { leadId: number }) {
   const { data: documents, isLoading } = useListDocuments(leadId, { query: { queryKey: getListDocumentsQueryKey(leadId) } });
+  const { data: application, isLoading: applicationLoading } = useGetLeadApplication(leadId);
   const uploadDocument = useUploadDocument();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const packageDownloadInFlight = useRef(false);
+  const [isGeneratingPackage, setIsGeneratingPackage] = useState(false);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -530,20 +536,96 @@ function LeadDocuments({ leadId }: { leadId: number }) {
     }
   };
 
+  const handleLenderPackageDownload = async () => {
+    if (!application?.submittedAt || packageDownloadInFlight.current) return;
+
+    packageDownloadInFlight.current = true;
+    setIsGeneratingPackage(true);
+    try {
+      const response = await fetch(`${apiBase}/leads/${leadId}/lender-package`, {
+        method: "GET",
+        headers: { Accept: "application/pdf" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+
+      const blob = await response.blob();
+      if (!blob.size) throw new Error("The lender package was empty");
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = getLenderPackageFilename(
+        response.headers.get("Content-Disposition"),
+        `MBS-Application-${leadId}.pdf`,
+      );
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: "Lender package failed",
+        description: "Could not generate the lender package. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      packageDownloadInFlight.current = false;
+      setIsGeneratingPackage(false);
+    }
+  };
+
+  const lenderPackageButton = (
+    <Button
+      size="sm"
+      variant="outline"
+      className="shrink-0"
+      data-testid="button-lender-package"
+      onClick={handleLenderPackageDownload}
+      disabled={applicationLoading || !application?.submittedAt || isGeneratingPackage}
+      aria-label="Download Lender Package PDF"
+    >
+      {isGeneratingPackage ? (
+        <><Loader2 className="h-4 w-4 animate-spin" /> Generating…</>
+      ) : (
+        <><FileDown className="h-4 w-4" /> Lender Package (PDF)</>
+      )}
+    </Button>
+  );
+
   return (
     <div className="space-y-6 mt-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-2">
         <h3 className="font-medium">Documents</h3>
-        <div className="relative">
-          <Input 
-            type="file" 
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-            onChange={handleUpload}
-            disabled={uploadDocument.isPending}
-          />
-          <Button size="sm" variant="outline" disabled={uploadDocument.isPending}>
-            {uploadDocument.isPending ? "Uploading..." : <><UploadCloud className="w-4 h-4 mr-2" /> Upload</>}
-          </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {!applicationLoading && !application?.submittedAt ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  tabIndex={0}
+                  title="No application on file"
+                  data-testid="tooltip-lender-package-unavailable"
+                >
+                  {lenderPackageButton}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>No application on file</TooltipContent>
+            </Tooltip>
+          ) : (
+            lenderPackageButton
+          )}
+          <div className="relative">
+            <Input
+              type="file"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={handleUpload}
+              disabled={uploadDocument.isPending}
+            />
+            <Button size="sm" variant="outline" disabled={uploadDocument.isPending}>
+              {uploadDocument.isPending ? "Uploading..." : <><UploadCloud className="w-4 h-4 mr-2" /> Upload</>}
+            </Button>
+          </div>
         </div>
       </div>
 

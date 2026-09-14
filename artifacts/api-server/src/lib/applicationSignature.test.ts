@@ -65,3 +65,24 @@ test("signed application HTML escapes injection strings and signature metadata",
   assert.match(html, /&lt;script&gt;alert\(2\)&lt;\/script&gt;/);
   assert.doesNotMatch(html, /<script>alert/);
 });
+
+test("legacy applications do not invent a signature method or signed timestamp", () => {
+  const html = buildSignedApplicationHtml({
+    lead: { id: 2, firstName: "Legacy", lastName: "Applicant" },
+    body: {
+      businessName: "Legacy Company",
+      signatureMethod: null,
+      signatureData: null,
+      consentCreditPull: true,
+      consentTerms: true,
+    },
+    submittedAt: new Date("2025-01-01T00:00:00.000Z"),
+    signatureSignedAt: null,
+    clientIp: null,
+  });
+  assert.match(html, /Signature Method<\/td><td>Unavailable/);
+  assert.match(html, /Signature Signed At<\/td><td>Unavailable/);
+  assert.match(html, /Signature unavailable/);
+  assert.doesNotMatch(html, /Signature Method<\/td><td>drawn/);
+  assert.doesNotMatch(html, /Signature Signed At<\/td><td>Wed, 01 Jan 2025/);
+});

@@ -77,7 +77,7 @@ export type SignedApplicationHtmlParams = {
   lead: { id: number; firstName: string | null; lastName: string | null };
   body: Record<string, unknown>;
   submittedAt: Date;
-  signatureSignedAt: Date;
+  signatureSignedAt: Date | null;
   clientIp: string | null;
 };
 
@@ -87,14 +87,19 @@ export function buildSignedApplicationHtml(params: SignedApplicationHtmlParams):
   const field = (v: unknown) => escapeHtml(v != null && v !== "" ? v : "—");
   const bool = (v: unknown) => (v === "true" || v === true) ? "✓ Yes" : "No";
   const rawSig = typeof body["signatureData"] === "string" ? body["signatureData"] : "";
-  const signatureMethod = body["signatureMethod"] === "typed" ? "typed" : "drawn";
+  const signatureMethod = body["signatureMethod"] === "typed" || body["signatureMethod"] === "drawn"
+    ? body["signatureMethod"]
+    : null;
   const sigData = signatureMethod === "typed"
     ? `<span style="font-size:22px;font-style:italic;color:#1F4E79;">${escapeHtml(rawSig)}</span>`
-    : isSafeImageDataUrl(rawSig)
+    : signatureMethod === "drawn" && isSafeImageDataUrl(rawSig)
       ? `<img src="${escapeHtml(rawSig)}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
-      : "<em>Signature image unavailable</em>";
+      : signatureMethod === null
+        ? "<em>Signature unavailable</em>"
+        : "<em>Signature image unavailable</em>";
   const submitted = escapeHtml(submittedAt.toUTCString());
-  const signed = escapeHtml(signatureSignedAt.toUTCString());
+  const signed = signatureSignedAt ? escapeHtml(signatureSignedAt.toUTCString()) : "Unavailable";
+  const signatureMethodLabel = signatureMethod ?? "Unavailable";
   const ip = escapeHtml(clientIp ?? "unknown");
   const timeInBusiness = body["timeInBusinessMonths"]
     ? `${field(body["timeInBusinessMonths"])} months`
@@ -150,7 +155,7 @@ export function buildSignedApplicationHtml(params: SignedApplicationHtmlParams):
 <table>
   <tr><td>Credit Pull Consent</td><td>${bool(body["consentCreditPull"])}</td></tr>
   <tr><td>Terms Consent</td><td>${bool(body["consentTerms"])}</td></tr>
-  <tr><td>Signature Method</td><td>${field(signatureMethod)}</td></tr>
+  <tr><td>Signature Method</td><td>${field(signatureMethodLabel)}</td></tr>
   <tr><td>Signature Signed At</td><td>${signed}</td></tr>
   <tr><td>Signature IP</td><td>${ip}</td></tr>
 </table>

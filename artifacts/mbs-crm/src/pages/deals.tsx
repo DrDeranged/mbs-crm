@@ -210,7 +210,7 @@ export default function DealsPage() {
           {(currentUser?.role === "rep" || currentUser?.role === "manager" || currentUser?.role === "admin") && (
             <Button variant="outline" size="sm" disabled={isExporting} onClick={handleExport}>
               <Download className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">{isExporting ? "Exporting…" : "Export"}</span>
+              <span className="hidden sm:inline">{isExporting ? "Exporting…" : "Export CSV"}</span>
             </Button>
           )}
           <div className="relative flex-1 min-w-[150px] sm:flex-none">

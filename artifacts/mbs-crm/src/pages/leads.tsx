@@ -546,7 +546,7 @@ export default function Leads() {
           {(isRep || isManagerOrAdmin) && (
             <Button variant="outline" onClick={() => handleExport()} disabled={isExporting}>
               <Download className="mr-2 h-4 w-4" />
-              {isExporting ? "Exporting…" : "Export All"}
+              {isExporting ? "Exporting…" : "Export CSV"}
             </Button>
           )}
           {isManagerOrAdmin && (
@@ -1163,7 +1163,7 @@ export default function Leads() {
              onClick={() => handleExport(selectAllMatching ? undefined : [...selectedIds])}
           >
             <Download className="mr-1.5 h-3.5 w-3.5" />
-            Export Selected
+            Export CSV
           </Button>
 
            {isAdmin && !selectAllMatching && (

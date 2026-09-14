@@ -21,3 +21,4 @@
 - [Wouter query-state handoffs](wouter-query-state.md) — `useLocation()` exposes the pathname, so route-triggered UI state must read query parameters separately.
 - [Deployment API root health](deployment-api-root-health.md) — monitoring probes the API mount root, so keep GET /api healthy alongside /api/healthz.
 - [Drizzle relational alias rewriting](drizzle-relational-alias-rewriting.md) — correlated SQL inside relational findMany can rewrite inner aliases; select IDs with the core builder, then hydrate relations.
+- [Lender package safety](lender-package-safety.md) — prefer omission over uncertain statement selection; never infer legacy signature evidence.
