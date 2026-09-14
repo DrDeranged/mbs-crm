@@ -3,7 +3,6 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { randomBytes } from "crypto";
 import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
-import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
@@ -30,8 +29,11 @@ import { doSendEmail } from "./email";
 import {
   buildSignedApplicationHtml,
   normalizeSignature,
-  validateApplicationRules,
 } from "../lib/applicationSignature";
+import {
+  firstValidationError,
+  parseApplicationSubmission,
+} from "../lib/applicationValidation";
 
 const router = Router();
 
@@ -89,73 +91,10 @@ router.post(
   upload.array("bankStatements", 12),
   async (req: Request, res: Response) => {
     try {
-      const body = req.body;
-
-      // ── Comprehensive server-side validation ─────────────────────────────
-      const isPositiveAmount = (v: string | undefined) => {
-        if (!v) return true;
-        const n = Number(v);
-        return !isNaN(n) && n > 0;
-      };
-      const submitSchema = z.object({
-        type: z.enum(["equipment", "working_capital"], { message: "Invalid application type" }),
-        businessName: z.string().min(1, "Business name is required").max(200, "Business name must be 200 characters or fewer"),
-        dba: z.string().max(200, "DBA must be 200 characters or fewer").optional().or(z.literal("")),
-        ein: z.string()
-          .regex(/^\d{2}-\d{7}$/, "EIN must be in XX-XXXXXXX format (e.g. 12-3456789)")
-          .optional().or(z.literal("")).or(z.undefined()),
-        businessAddress: z.string().max(300, "Address too long").optional().or(z.literal("")),
-        businessCity: z.string().max(100, "City too long").optional().or(z.literal("")),
-        businessState: z.string().max(50, "State too long").optional().or(z.literal("")),
-        businessZip: z.string().max(20, "ZIP too long").optional().or(z.literal("")),
-        industry: z.string().max(100, "Industry too long").optional().or(z.literal("")),
-        useOfFunds: z.string().max(1000, "Use of funds must be 1000 characters or fewer").optional().or(z.literal("")),
-        ownerFirstName: z.string().min(1, "Owner first name is required").max(100, "First name must be 100 characters or fewer"),
-        ownerLastName: z.string().min(1, "Owner last name is required").max(100, "Last name must be 100 characters or fewer"),
-        ownerDob: z.string().max(20).optional().or(z.literal("")),
-        ownerHomeAddress: z.string().max(300).optional().or(z.literal("")),
-        ownerHomeCity: z.string().max(100).optional().or(z.literal("")),
-        ownerHomeState: z.string().max(50).optional().or(z.literal("")),
-        ownerHomeZip: z.string().max(20).optional().or(z.literal("")),
-        email: z.string().email("Invalid email address").max(254, "Email too long").optional().or(z.literal("")),
-        phone: z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number — use digits, spaces, dashes, or parentheses").optional().or(z.literal("")),
-        ownerSsn: z.string().regex(/^\d{9}$/, "SSN must be exactly 9 digits (no dashes)").optional().or(z.literal("")),
-        requestedAmount: z.string()
-          .refine(isPositiveAmount, "Requested amount must be a positive number")
-          .refine((v) => !v || Number(v) <= 10_000_000, "Requested amount cannot exceed $10,000,000")
-          .optional().or(z.literal("")),
-        monthlyRevenueStated: z.string()
-          .refine(isPositiveAmount, "Monthly revenue must be a positive number")
-          .refine((v) => !v || Number(v) <= 100_000_000, "Monthly revenue value out of range")
-          .optional().or(z.literal("")),
-        vendorQuoteAmount: z.string()
-          .refine(isPositiveAmount, "Vendor quote amount must be a positive number")
-          .optional().or(z.literal("")),
-        consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
-        consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
-        signatureMethod: z.enum(["typed", "drawn"], { message: "Signature method must be typed or drawn" }),
-        signatureData: z.string().max(500_000, "Signature data must be 500,000 characters or fewer"),
-        equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
-        vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
-         statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
-         rep: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-         timeInBusinessMonths: z.string().max(4).optional().or(z.literal("")),
-         ownershipPct: z.string().max(3).optional().or(z.literal("")),
-         equipmentCondition: z.enum(["new", "used"]).optional().or(z.literal("")),
-      }).superRefine((data, ctx) => {
-        for (const issue of validateApplicationRules(data)) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue.error, path: [issue.field] });
-        }
-        const signature = normalizeSignature(data.signatureMethod, data.signatureData);
-        if (!signature.success) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: signature.error, path: [signature.field] });
-        }
-      });
-
-      const validation = submitSchema.safeParse(body);
+      const validation = parseApplicationSubmission(req.body as Record<string, unknown>);
       if (!validation.success) {
-        const firstIssue = validation.error.issues[0];
-        res.status(400).json({ error: firstIssue?.message ?? "Validation failed", field: firstIssue?.path.join(".") });
+        const validationError = firstValidationError(validation.error.issues);
+        res.status(400).json({ error: validationError.message, field: validationError.field });
         return;
       }
       // Keep typed signatures as the applicant's actual legal-name string. Drawn

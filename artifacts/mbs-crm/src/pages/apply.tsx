@@ -16,6 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BrandLogo } from "@/components/brand-logo";
 import { getSignatureReadiness, serializeDrawnSignature } from "@/lib/signatureReadiness";
 import {
+  formatApplicationValidationError,
+  formatEinTyping,
+  parseApplicationResponse,
+  sanitizeApplicationError,
+} from "@/lib/applicationValidation";
+import {
   CheckCircle2,
   Building2,
   Wrench,
@@ -253,6 +259,7 @@ export default function ApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitErrorStep, setSubmitErrorStep] = useState<number | null>(null);
   const [confirmedLeadId, setConfirmedLeadId] = useState<number | null>(null);
   const sigPadRef = useRef<SignaturePad>(null);
   const [signatureMode, setSignatureMode] = useState<"draw" | "type">("draw");
@@ -283,7 +290,12 @@ export default function ApplyPage() {
 
   const set = (patch: Partial<FormData>) => {
     setForm((f) => ({ ...f, ...patch }));
+    clearSubmitError();
+  };
+
+  const clearSubmitError = () => {
     setSubmitError(null);
+    setSubmitErrorStep(null);
   };
 
   const getSignatureData = (): string => {
@@ -311,7 +323,7 @@ export default function ApplyPage() {
     }
 
     setSubmitting(true);
-    setSubmitError(null);
+    clearSubmitError();
     let formData: globalThis.FormData;
     try {
       formData = new FormData();
@@ -339,17 +351,29 @@ export default function ApplyPage() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+      const data = parseApplicationResponse(await res.json().catch(() => null));
+      if (!data) {
+        setSubmitError("Submission failed. Please try again.");
+        setSubmitErrorStep(null);
+        return;
+      }
       if (res.status === 409) {
         setSubmitError("An application with your email, phone, or EIN already exists. Please contact us directly.");
         return;
       }
       if (!res.ok) {
-        setSubmitError(data.error || "Submission failed. Please try again.");
+        if (res.status === 400 && typeof data.field === "string") {
+          const validationError = formatApplicationValidationError(data.field, data.error);
+          setSubmitError(validationError.message);
+          setSubmitErrorStep(validationError.step ?? null);
+        } else {
+          setSubmitError(sanitizeApplicationError(data.error, "Submission failed. Please try again."));
+          setSubmitErrorStep(null);
+        }
         return;
       }
       setSubmitted(true);
-      setConfirmedLeadId(data.lead_id);
+      setConfirmedLeadId(data.lead_id ?? null);
       setStep(6);
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
@@ -468,7 +492,13 @@ export default function ApplyPage() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">EIN / Tax ID</Label>
-                    <Input value={form.ein} onChange={(e) => set({ ein: e.target.value })} placeholder="XX-XXXXXXX" />
+                    <Input
+                      value={form.ein}
+                      onChange={(e) => set({ ein: formatEinTyping(e.target.value) })}
+                      placeholder="XX-XXXXXXX"
+                      maxLength={10}
+                      inputMode="numeric"
+                    />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Email *</Label>
@@ -748,7 +778,7 @@ export default function ApplyPage() {
                         type="button"
                         onClick={() => {
                           setSignatureMode("draw");
-                          setSubmitError(null);
+                          clearSubmitError();
                         }}
                         className={`px-3 py-1.5 ${signatureMode === "draw" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
                       >Draw</button>
@@ -756,7 +786,7 @@ export default function ApplyPage() {
                         type="button"
                         onClick={() => {
                           setSignatureMode("type");
-                          setSubmitError(null);
+                          clearSubmitError();
                         }}
                         className={`px-3 py-1.5 ${signatureMode === "type" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
                       >Type</button>
@@ -770,7 +800,7 @@ export default function ApplyPage() {
                         penColor="#1F4E79"
                         onEnd={() => {
                           setHasDrawnSignature(true);
-                          setSubmitError(null);
+                          clearSubmitError();
                         }}
                       />
                       <div className="flex justify-end px-2 pb-1">
@@ -779,7 +809,7 @@ export default function ApplyPage() {
                           onClick={() => {
                             sigPadRef.current?.clear();
                             setHasDrawnSignature(false);
-                            setSubmitError(null);
+                            clearSubmitError();
                           }}
                           className="text-xs text-gray-400 hover:text-gray-600"
                         >Clear</button>
@@ -791,7 +821,7 @@ export default function ApplyPage() {
                         value={typedName}
                         onChange={(e) => {
                           setTypedName(e.target.value);
-                          setSubmitError(null);
+                          clearSubmitError();
                         }}
                         placeholder="Type your full legal name"
                         className="text-lg italic font-serif text-[#1F4E79]"
@@ -817,6 +847,20 @@ export default function ApplyPage() {
                 {submitError && (
                   <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
                     {submitError}
+                    {submitErrorStep !== null && submitErrorStep < 5 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 block border-red-300 text-red-700 hover:bg-red-100"
+                        onClick={() => {
+                          clearSubmitError();
+                          setStep(submitErrorStep);
+                        }}
+                      >
+                        Go to step {submitErrorStep}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -826,7 +870,7 @@ export default function ApplyPage() {
           {/* Footer nav */}
           <div className="px-6 pb-6 flex justify-between gap-3">
             {step > 1 ? (
-                <Button variant="outline" onClick={() => { setSubmitError(null); setSubmitAttempted(false); setStep(step - 1); }} className="flex items-center gap-1.5">
+                <Button variant="outline" onClick={() => { clearSubmitError(); setSubmitAttempted(false); setStep(step - 1); }} className="flex items-center gap-1.5">
                 <ChevronLeft className="h-4 w-4" /> Back
               </Button>
             ) : <div />}
