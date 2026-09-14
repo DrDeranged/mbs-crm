@@ -16,6 +16,13 @@ export async function resolve(specifier, context, nextResolve) {
         // Try the next source extension.
       }
     }
+    for (const extension of [".ts", ".js", ".mjs"]) {
+      try {
+        return await nextResolve(`${specifier}/index${extension}`, context);
+      } catch {
+        // Try the next source index extension.
+      }
+    }
     throw error;
   }
 }

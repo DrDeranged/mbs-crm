@@ -113,6 +113,143 @@ async function leadToApiWithCurrentActivity(
   return leadToApi(lead, rep, latestActivities.get(lead.id), creationActivities.get(lead.id), staleThresholdDays);
 }
 
+type ListLeadsDependencies = {
+  database?: typeof db;
+  authenticate?: typeof requireUser;
+  getLatestActivities?: typeof getLatestActivities;
+  getLeadCreationActivities?: typeof getLeadCreationActivities;
+  getStaleThresholdDays?: typeof getStaleThresholdDays;
+};
+
+/**
+ * Build the list handler with its query collaborators injectable. The default
+ * collaborators are the production implementations; injection is intentionally
+ * limited to this handler so the production router and HTTP integration tests
+ * exercise the same two-phase stale-lead orchestration.
+ */
+export function createListLeadsHandler({
+  database = db,
+  authenticate = requireUser,
+  getLatestActivities: getLatestActivitiesImpl = getLatestActivities,
+  getLeadCreationActivities: getLeadCreationActivitiesImpl = getLeadCreationActivities,
+  getStaleThresholdDays: getStaleThresholdDaysImpl = getStaleThresholdDays,
+}: ListLeadsDependencies = {}) {
+  return async (req: Request, res: Response) => {
+    const user = await authenticate(req, res);
+    if (!user) return;
+
+    const params = ListLeadsQueryParams.safeParse(req.query);
+    const q = (params.success ? params.data : {}) as any;
+    const page = Number(q.page ?? 1);
+    const limit = Math.min(Number(q.limit ?? 25), 100);
+    const offset = (page - 1) * limit;
+    const staleThresholdDays = await getStaleThresholdDaysImpl();
+
+    const conditions: ReturnType<typeof eq>[] = [];
+    if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
+    if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
+    if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
+    if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
+    if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
+    if (q.endDate) {
+      const end = new Date(q.endDate as string);
+      end.setHours(23, 59, 59, 999);
+      conditions.push(lte(leadsTable.createdAt, end));
+    }
+    if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
+    if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
+    if (q.renewalFlagged === true || q.renewalFlagged === "true") {
+      conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
+    }
+    if (q.stale === true || q.stale === "true") {
+      conditions.push(buildStaleLeadCondition(staleThresholdDays) as any);
+    }
+
+    let searchCondition: any = undefined;
+    if (q.search) {
+      const safe = sanitizeLikeInput(q.search);
+      searchCondition = or(
+        ilike(leadsTable.firstName, `%${safe}%`),
+        ilike(leadsTable.lastName, `%${safe}%`),
+        ilike(leadsTable.companyName, `%${safe}%`),
+        ilike(leadsTable.email, `%${safe}%`),
+        ilike(leadsTable.phone, `%${safe}%`),
+      );
+    }
+
+    const whereClause = conditions.length > 0 || searchCondition
+      ? and(...(conditions as any[]), ...(searchCondition ? [searchCondition] : []))
+      : undefined;
+
+    const sortField = (q.sortBy as string) || "createdAt";
+    const sortDir = q.sortOrder === "asc" ? asc : desc;
+    const validSortFields: Record<string, any> = {
+      createdAt: leadsTable.createdAt,
+      updatedAt: leadsTable.updatedAt,
+      lastName: leadsTable.lastName,
+      status: leadsTable.status,
+      lastActivityAt: leadsTable.lastActivityAt,
+      leadScore: leadsTable.leadScore,
+    };
+    const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
+
+    const staleRequested = q.stale === true || q.stale === "true";
+    let leadsRaw: any[];
+    let total: number;
+    const totalQuery = database
+      .select({ total: sql<number>`cast(count(*) as int)` })
+      .from(leadsTable)
+      .where(whereClause as any);
+    if (staleRequested) {
+      const [leadIdRows, totals] = await Promise.all([
+        buildLeadPageIdsQuery(database, whereClause, [sortDir(sortColumn), asc(leadsTable.id)], limit, offset),
+        totalQuery,
+      ]);
+      const leadIds = leadIdRows.map((row: { id: number }) => row.id);
+      const hydrated = leadIds.length === 0
+        ? []
+        : await database.query.leadsTable.findMany({
+          where: buildLeadHydrationWhere(leadIds),
+          with: { assignedRep: true },
+        });
+      leadsRaw = reorderByIds(hydrated, leadIds);
+      total = totals[0]?.total ?? 0;
+    } else {
+      const [rows, totals] = await Promise.all([
+        database.query.leadsTable.findMany({
+          where: whereClause as any,
+          orderBy: [sortDir(sortColumn), asc(leadsTable.id)],
+          limit,
+          offset,
+          with: { assignedRep: true },
+        }),
+        totalQuery,
+      ]);
+      leadsRaw = rows;
+      total = totals[0]?.total ?? 0;
+    }
+    const leadIds = leadsRaw.map((lead) => lead.id);
+    const [latestActivities, creationActivities] = await Promise.all([
+      getLatestActivitiesImpl("lead", leadIds),
+      getLeadCreationActivitiesImpl(leadIds),
+    ]);
+
+    res.json({
+      leads: leadsRaw.map((l) => leadToApi(
+        l,
+        (l as any).assignedRep,
+        latestActivities.get(l.id),
+        creationActivities.get(l.id),
+        staleThresholdDays,
+      )),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  };
+}
+
 async function findDuplicate(email?: string, phone?: string, ein?: string) {
   if (!email && !phone && !ein) return null;
   const conditions = [];
@@ -197,121 +334,7 @@ function checkSpam(
   return { spam: false, reason: "" };
 }
 
-router.get("/leads", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-
-  const params = ListLeadsQueryParams.safeParse(req.query);
-  const q = (params.success ? params.data : {}) as any;
-  const page = Number(q.page ?? 1);
-  const limit = Math.min(Number(q.limit ?? 25), 100);
-  const offset = (page - 1) * limit;
-  const staleThresholdDays = await getStaleThresholdDays();
-
-  const conditions: ReturnType<typeof eq>[] = [];
-  if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
-  if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
-  if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
-  if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
-  if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
-  if (q.endDate) {
-    const end = new Date(q.endDate as string);
-    end.setHours(23, 59, 59, 999);
-    conditions.push(lte(leadsTable.createdAt, end));
-  }
-  if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
-  if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
-  if (q.renewalFlagged === true || q.renewalFlagged === "true") {
-    conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
-  }
-  if (q.stale === true || q.stale === "true") {
-    conditions.push(buildStaleLeadCondition(staleThresholdDays) as any);
-  }
-
-  let searchCondition: any = undefined;
-  if (q.search) {
-    const safe = sanitizeLikeInput(q.search);
-    searchCondition = or(
-      ilike(leadsTable.firstName, `%${safe}%`),
-      ilike(leadsTable.lastName, `%${safe}%`),
-      ilike(leadsTable.companyName, `%${safe}%`),
-      ilike(leadsTable.email, `%${safe}%`),
-      ilike(leadsTable.phone, `%${safe}%`),
-    );
-  }
-
-  const whereClause = conditions.length > 0 || searchCondition
-    ? and(...(conditions as any[]), ...(searchCondition ? [searchCondition] : []))
-    : undefined;
-
-  const sortField = (q.sortBy as string) || "createdAt";
-  const sortDir = q.sortOrder === "asc" ? asc : desc;
-
-  const validSortFields: Record<string, any> = {
-    createdAt: leadsTable.createdAt,
-    updatedAt: leadsTable.updatedAt,
-    lastName: leadsTable.lastName,
-    status: leadsTable.status,
-    lastActivityAt: leadsTable.lastActivityAt,
-    leadScore: leadsTable.leadScore,
-  };
-  const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
-
-  const staleRequested = q.stale === true || q.stale === "true";
-  let leadsRaw: any[];
-  let total: number;
-  const totalQuery = db
-    .select({ total: sql<number>`cast(count(*) as int)` })
-    .from(leadsTable)
-    .where(whereClause as any);
-  if (staleRequested) {
-    const [leadIdRows, totals] = await Promise.all([
-      buildLeadPageIdsQuery(db, whereClause, [sortDir(sortColumn), asc(leadsTable.id)], limit, offset),
-      totalQuery,
-    ]);
-    const leadIds = leadIdRows.map((row: { id: number }) => row.id);
-    const hydrated = leadIds.length === 0
-      ? []
-      : await db.query.leadsTable.findMany({
-        where: buildLeadHydrationWhere(leadIds),
-        with: { assignedRep: true },
-      });
-    leadsRaw = reorderByIds(hydrated, leadIds);
-    total = totals[0]?.total ?? 0;
-  } else {
-    const [rows, totals] = await Promise.all([
-      db.query.leadsTable.findMany({
-        where: whereClause as any,
-        orderBy: [sortDir(sortColumn), asc(leadsTable.id)],
-        limit,
-        offset,
-        with: { assignedRep: true },
-      }),
-      totalQuery,
-    ]);
-    leadsRaw = rows;
-    total = totals[0]?.total ?? 0;
-  }
-  const leadIds = leadsRaw.map((lead) => lead.id);
-  const [latestActivities, creationActivities] = await Promise.all([
-    getLatestActivities("lead", leadIds),
-    getLeadCreationActivities(leadIds),
-  ]);
-
-  res.json({
-    leads: leadsRaw.map((l) => leadToApi(
-      l,
-      (l as any).assignedRep,
-      latestActivities.get(l.id),
-      creationActivities.get(l.id),
-      staleThresholdDays,
-    )),
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-  });
-});
+router.get("/leads", createListLeadsHandler());
 
 router.post("/leads", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
