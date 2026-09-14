@@ -20,6 +20,7 @@ import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
+import { retiredRepSlugsTable } from "./retiredRepSlugs";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -54,6 +55,14 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   emailTemplates: many(emailTemplatesTable),
   dripSequences: many(dripSequencesTable),
   notifications: many(notificationsTable),
+  retiredRepSlugs: many(retiredRepSlugsTable),
+}));
+
+export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [retiredRepSlugsTable.userId],
+    references: [usersTable.id],
+  }),
 }));
 
 export const companiesRelations = relations(companiesTable, ({ one }) => ({

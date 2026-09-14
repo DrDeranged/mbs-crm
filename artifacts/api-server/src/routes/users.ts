@@ -1,13 +1,81 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { usersTable, activityLogTable } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { usersTable, retiredRepSlugsTable } from "@workspace/db";
+import { eq, and, inArray, ne } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
 import { backfillProductionSlugs, ProductionMaintenanceError } from "../lib/productionMaintenance";
+import { retireRepSlug } from "./repPublic";
+import { isSlugRetirementAuthorized, requiresSlugRetirement } from "../lib/repSlugPolicy";
 
 const router: IRouter = Router();
+
+function parseRetirementBody(body: unknown): { newSlug: string; displayName?: string | null } | null {
+  if (!body || typeof body !== "object") return null;
+  const value = body as Record<string, unknown>;
+  // `slug`/`name` are accepted as compatibility aliases for administrative
+  // callers that use the database field names; OpenAPI documents the clearer
+  // newSlug/displayName names.
+  const newSlug = value.newSlug ?? value.slug;
+  const displayName = value.displayName ?? value.name;
+  if (typeof newSlug !== "string") return null;
+  if (displayName !== undefined && displayName !== null && typeof displayName !== "string") return null;
+  return {
+    newSlug,
+    displayName: displayName as string | null | undefined,
+  };
+}
+
+async function handleRetireSlug(req: Request, res: Response, userId: number) {
+  const actor = await requireUser(req, res);
+  if (!actor) return;
+  if (!isSlugRetirementAuthorized(actor)) {
+    res.status(403).json({ error: "Admins only" });
+    return;
+  }
+
+  const body = parseRetirementBody(req.body);
+  if (!body) {
+    res.status(400).json({ error: "newSlug is required and displayName must be a string or null" });
+    return;
+  }
+
+  try {
+    const updated = await retireRepSlug({ userId, ...body });
+    res.json(userToApi(updated));
+  } catch (error) {
+    const status = typeof error === "object" && error !== null && "status" in error
+      ? Number((error as { status: unknown }).status)
+      : 500;
+    if (status >= 400 && status < 500) {
+      res.status(status).json({ error: error instanceof Error ? error.message : "Unable to retire slug" });
+      return;
+    }
+    throw error;
+  }
+}
+
+// The user-scoped route is convenient for the existing admin user table.
+router.post("/admin/users/:id/retire-slug", async (req: Request, res: Response) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+  await handleRetireSlug(req, res, userId);
+});
+
+// Generic form for administrative tooling that already has a user id in its
+// payload. Both routes share the exact transactional implementation.
+router.post("/admin/rep-slugs/retire", async (req: Request, res: Response) => {
+  const userId = Number((req.body as Record<string, unknown> | null)?.userId);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    res.status(400).json({ error: "Invalid userId" });
+    return;
+  }
+  await handleRetireSlug(req, res, userId);
+});
 
 router.post("/admin/users/backfill-slugs", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -72,11 +140,34 @@ router.put("/users/:id", async (req: Request, res: Response) => {
 
   const existing = await db.query.usersTable.findFirst({ where: eq(usersTable.id, params.data.id) });
   if (!existing) { res.status(404).json({ error: "User not found" }); return; }
-  if (body.data.slug && body.data.slug !== existing.slug) {
-    const used = await db.query.activityLogTable.findFirst({
-      where: (a, { and, eq }) => and(eq(a.entityType, "rep_slug_visit"), eq(a.entityId, existing.slug ?? "")),
+  if (requiresSlugRetirement(existing.slug, body.data.slug)) {
+    res.status(409).json({
+      error: "Representative slugs must be changed through the retirement endpoint so the old slug remains permanently reserved.",
+      code: "SLUG_RETIREMENT_REQUIRED",
     });
-    if (used) { res.status(409).json({ error: "This slug is locked because it has served traffic." }); return; }
+    return;
+  }
+  if (body.data.slug !== undefined && body.data.slug !== existing.slug) {
+    const activeTarget = await db.query.usersTable.findFirst({
+      where: and(eq(usersTable.slug, body.data.slug), ne(usersTable.id, existing.id)),
+    });
+    if (activeTarget) {
+      res.status(409).json({
+        error: "This slug is already assigned to an active or inactive user.",
+        code: "SLUG_IN_USE",
+      });
+      return;
+    }
+    const retired = await db.query.retiredRepSlugsTable.findFirst({
+      where: eq(retiredRepSlugsTable.slug, body.data.slug),
+    });
+    if (retired) {
+      res.status(409).json({
+        error: "This slug is permanently reserved because it was retired.",
+        code: "SLUG_RETIRED",
+      });
+      return;
+    }
   }
   const [updated] = await db
     .update(usersTable)

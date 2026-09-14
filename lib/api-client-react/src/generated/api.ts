@@ -142,6 +142,8 @@ import type {
   RenewalOpportunity,
   RepDashboard,
   RepPerformance,
+  RetireRepSlugBody,
+  RetireRepSlugRequest,
   RunLenderMatch200,
   SeededDealReassignmentResponse,
   SendTestEmailBody,
@@ -1058,7 +1060,7 @@ export const getGetPublicRepQueryKey = (slug: string,) => {
     }
 
 
-export const getGetPublicRepQueryOptions = <TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<unknown>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetPublicRepQueryOptions = <TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<void>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -1077,14 +1079,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetPublicRepQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicRep>>>
-export type GetPublicRepQueryError = ErrorType<unknown>
+export type GetPublicRepQueryError = ErrorType<void>
 
 
 /**
  * @summary Resolve an active representative for the public application chooser
  */
 
-export function useGetPublicRep<TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<unknown>>(
+export function useGetPublicRep<TData = Awaited<ReturnType<typeof getPublicRep>>, TError = ErrorType<void>>(
  slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRep>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -1178,6 +1180,226 @@ export function useGetPublicRepQrPng<TData = Awaited<ReturnType<typeof getPublic
 
 
 
+
+export const getGetPublicRepQrSvgUrl = (slug: string,) => {
+
+
+
+
+  return `/api/public/reps/${slug}/qr.svg`
+}
+
+/**
+ * @summary Get an SVG QR for an active representative slug
+ */
+export const getPublicRepQrSvg = async (slug: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetPublicRepQrSvgUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicRepQrSvgQueryKey = (slug: string,) => {
+    return [
+    `/api/public/reps/${slug}/qr.svg`
+    ] as const;
+    }
+
+
+export const getGetPublicRepQrSvgQueryOptions = <TData = Awaited<ReturnType<typeof getPublicRepQrSvg>>, TError = ErrorType<void>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrSvg>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicRepQrSvgQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicRepQrSvg>>> = ({ signal }) => getPublicRepQrSvg(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(slug), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrSvg>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicRepQrSvgQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicRepQrSvg>>>
+export type GetPublicRepQrSvgQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get an SVG QR for an active representative slug
+ */
+
+export function useGetPublicRepQrSvg<TData = Awaited<ReturnType<typeof getPublicRepQrSvg>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicRepQrSvg>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicRepQrSvgQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRetireUserSlugUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/users/${id}/retire-slug`
+}
+
+/**
+ * @summary Permanently retire a representative slug and assign its replacement (admin only)
+ */
+export const retireUserSlug = async (id: number,
+    retireRepSlugRequest: RetireRepSlugRequest, options?: RequestInit): Promise<User> => {
+
+  return customFetch<User>(getRetireUserSlugUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      retireRepSlugRequest,)
+  }
+);}
+
+
+
+
+export const getRetireUserSlugMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retireUserSlug>>, TError,{id: number;data: BodyType<RetireRepSlugRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retireUserSlug>>, TError,{id: number;data: BodyType<RetireRepSlugRequest>}, TContext> => {
+
+const mutationKey = ['retireUserSlug'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retireUserSlug>>, {id: number;data: BodyType<RetireRepSlugRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  retireUserSlug(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetireUserSlugMutationResult = NonNullable<Awaited<ReturnType<typeof retireUserSlug>>>
+    export type RetireUserSlugMutationBody = BodyType<RetireRepSlugRequest>
+    export type RetireUserSlugMutationError = ErrorType<void>
+
+    /**
+ * @summary Permanently retire a representative slug and assign its replacement (admin only)
+ */
+export const useRetireUserSlug = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retireUserSlug>>, TError,{id: number;data: BodyType<RetireRepSlugRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof retireUserSlug>>,
+        TError,
+        {id: number;data: BodyType<RetireRepSlugRequest>},
+        TContext
+      > => {
+      return useMutation(getRetireUserSlugMutationOptions(options));
+    }
+
+export const getRetireRepSlugUrl = () => {
+
+
+
+
+  return `/api/admin/rep-slugs/retire`
+}
+
+/**
+ * @summary Permanently retire a representative slug (admin only)
+ */
+export const retireRepSlug = async (retireRepSlugBody: RetireRepSlugBody, options?: RequestInit): Promise<User> => {
+
+  return customFetch<User>(getRetireRepSlugUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      retireRepSlugBody,)
+  }
+);}
+
+
+
+
+export const getRetireRepSlugMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retireRepSlug>>, TError,{data: BodyType<RetireRepSlugBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retireRepSlug>>, TError,{data: BodyType<RetireRepSlugBody>}, TContext> => {
+
+const mutationKey = ['retireRepSlug'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retireRepSlug>>, {data: BodyType<RetireRepSlugBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  retireRepSlug(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetireRepSlugMutationResult = NonNullable<Awaited<ReturnType<typeof retireRepSlug>>>
+    export type RetireRepSlugMutationBody = BodyType<RetireRepSlugBody>
+    export type RetireRepSlugMutationError = ErrorType<void>
+
+    /**
+ * @summary Permanently retire a representative slug (admin only)
+ */
+export const useRetireRepSlug = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retireRepSlug>>, TError,{data: BodyType<RetireRepSlugBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof retireRepSlug>>,
+        TError,
+        {data: BodyType<RetireRepSlugBody>},
+        TContext
+      > => {
+      return useMutation(getRetireRepSlugMutationOptions(options));
+    }
 
 export const getUpdateUserUrl = (id: number,) => {
 

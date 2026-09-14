@@ -210,6 +210,78 @@ export const GetPublicRepQrPngParams = zod.object({
 
 
 /**
+ * @summary Get an SVG QR for an active representative slug
+ */
+export const GetPublicRepQrSvgParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+
+/**
+ * @summary Permanently retire a representative slug and assign its replacement (admin only)
+ */
+export const RetireUserSlugParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const retireUserSlugBodyNewSlugMax = 50;
+
+
+export const retireUserSlugBodyNewSlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)\*$');
+export const retireUserSlugBodyDisplayNameMax = 200;
+
+
+
+export const RetireUserSlugBody = zod.object({
+  "newSlug": zod.string().min(1).max(retireUserSlugBodyNewSlugMax).regex(retireUserSlugBodyNewSlugRegExp),
+  "displayName": zod.string().max(retireUserSlugBodyDisplayNameMax).nullish()
+})
+
+export const RetireUserSlugResponse = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Permanently retire a representative slug (admin only)
+ */
+export const retireRepSlugBodyOneNewSlugMax = 50;
+
+
+export const retireRepSlugBodyOneNewSlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)\*$');
+export const retireRepSlugBodyOneDisplayNameMax = 200;
+
+
+
+export const RetireRepSlugBody = zod.object({
+  "newSlug": zod.string().min(1).max(retireRepSlugBodyOneNewSlugMax).regex(retireRepSlugBodyOneNewSlugRegExp),
+  "displayName": zod.string().max(retireRepSlugBodyOneDisplayNameMax).nullish()
+}).and(zod.object({
+  "userId": zod.number()
+}))
+
+export const RetireRepSlugResponse = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Update user role (admin only)
  */
 export const UpdateUserParams = zod.object({

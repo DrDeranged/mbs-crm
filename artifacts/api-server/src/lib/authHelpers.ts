@@ -13,14 +13,14 @@ type RequireUserOptions = {
 const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
   "calvintuon@gmail.com": "calvin",
   "calvin@my-business-solutions.com": "calvin",
-  "rahmaredavis@gmail.com": "rahmare",
-  "rahmare@my-business-solutions.com": "rahmare",
+  "rahmaredavis@gmail.com": "ray",
+  "ray@my-business-solutions.com": "ray",
   "manny@my-business-solutions.com": "manny",
 };
 
 const RESERVED_REP_SLUG_SET = new Set(Object.values(RESERVED_REP_SLUGS));
 
-function reservedSlugForEmail(email: string): string | undefined {
+export function reservedSlugForEmail(email: string): string | undefined {
   return RESERVED_REP_SLUGS[email.trim().toLowerCase()];
 }
 
@@ -177,10 +177,10 @@ export function getUserDisplayName(
   if (name) return name;
   const email = user?.email?.trim().toLowerCase() ?? "";
   if (
-    user?.slug === "rahmare"
+    user?.slug === "ray"
     || email === "rahmaredavis@gmail.com"
-    || email === "rahmare@my-business-solutions.com"
-  ) return "Rahmare Davis";
+    || email === "ray@my-business-solutions.com"
+  ) return "Ray Davis";
   const localPart = email.split("@")[0]?.trim();
   if (!localPart) return fallback;
   return localPart

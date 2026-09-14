@@ -290,6 +290,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PublicRep"
+        "301":
+          description: Retired slug; the Location header points to the canonical representative URL
+          headers:
+            Location:
+              schema:
+                type: string
 
   /public/reps/{slug}/qr.png:
     get:
@@ -312,6 +318,89 @@ paths:
                 format: binary
         "404":
           description: Representative not found or inactive
+
+  /public/reps/{slug}/qr.svg:
+    get:
+      operationId: getPublicRepQrSvg
+      tags: [users]
+      summary: Get an SVG QR for an active representative slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: QR code SVG encoding the canonical representative route
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+        "404":
+          description: Representative not found or inactive
+
+  /admin/users/{id}/retire-slug:
+    post:
+      operationId: retireUserSlug
+      tags: [admin]
+      summary: Permanently retire a representative slug and assign its replacement (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RetireRepSlugRequest"
+      responses:
+        "200":
+          description: Updated user; repeating the same target slug is idempotent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin access required
+        "409":
+          description: Replacement slug is active or retired
+
+  /admin/rep-slugs/retire:
+    post:
+      operationId: retireRepSlug
+      tags: [admin]
+      summary: Permanently retire a representative slug (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/RetireRepSlugRequest"
+                - type: object
+                  required: [userId]
+                  properties:
+                    userId:
+                      type: integer
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin access required
+        "409":
+          description: Replacement slug is active or retired
 
   /users/{id}:
     put:
@@ -3775,6 +3864,19 @@ components:
           minLength: 1
           maxLength: 50
           pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+
+    RetireRepSlugRequest:
+      type: object
+      required: [newSlug]
+      properties:
+        newSlug:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        displayName:
+          type: ["string", "null"]
+          maxLength: 200
 
     PublicRep:
       type: object

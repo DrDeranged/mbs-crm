@@ -134,6 +134,20 @@ export interface UserUpdate {
   slug?: string;
 }
 
+export interface RetireRepSlugRequest {
+  /**
+     * @minLength 1
+     * @maxLength 50
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  newSlug: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  displayName?: string | null;
+}
+
 export interface PublicRep {
   /** @nullable */
   name: string | null;
@@ -1874,6 +1888,10 @@ export const ListUsersRole = {
   rep: 'rep',
   pending: 'pending',
 } as const;
+
+export type RetireRepSlugBody = RetireRepSlugRequest & {
+  userId: number;
+};
 
 export type UpdateUserPushTokenBody = {
   /** @nullable */

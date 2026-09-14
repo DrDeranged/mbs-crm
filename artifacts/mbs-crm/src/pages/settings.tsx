@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
 import { formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
+import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -150,12 +151,53 @@ export default function Settings() {
     }
   };
 
-  const saveSlug = (userId: number) => {
+  const saveSlug = async (userId: number) => {
     const slug = slugInput.trim().toLowerCase();
+    const existing = users?.find((user) => user.id === userId);
+    if (existing?.slug) {
+      try {
+        const response = await fetch(`${apiBase}/admin/users/${userId}/retire-slug`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(
+            existing.email.trim().toLowerCase() === "rahmaredavis@gmail.com"
+              || existing.email.trim().toLowerCase() === "ray@my-business-solutions.com"
+              ? RAY_IDENTITY_REQUEST
+              : { newSlug: slug },
+          ),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "This link may already be in use.");
+        setEditingSlug(null);
+        queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast({ title: "Rep link updated", description: `/${existing.slug} now redirects permanently.` });
+      } catch (error: any) {
+        toast({ title: "Unable to update link", description: error?.message || "This link may already be in use or retired.", variant: "destructive" });
+      }
+      return;
+    }
     updateUser.mutate({ id: userId, data: { slug } }, {
       onSuccess: () => { setEditingSlug(null); queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() }); toast({ title: "Rep link updated" }); },
       onError: (error: any) => toast({ title: "Unable to update link", description: error?.message || "This link may already be in use or locked.", variant: "destructive" }),
     });
+  };
+
+  const saveRayIdentity = async (userId: number) => {
+    try {
+      const response = await fetch(`${apiBase}/admin/users/${userId}/retire-slug`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(RAY_IDENTITY_REQUEST),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "This slug may already be in use.");
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      toast({ title: "Ray identity updated", description: "The canonical Ray Davis link is now /r/ray." });
+    } catch (error: any) {
+      toast({ title: "Unable to update Ray identity", description: error?.message || "This slug may already be in use.", variant: "destructive" });
+    }
   };
 
   const handleEditMobile = () => {
@@ -744,6 +786,9 @@ export default function Settings() {
                           ) : (
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-xs text-muted-foreground">{user.slug ? `/r/${user.slug}` : "—"}</span>
+                              {(user.email.trim().toLowerCase() === "rahmaredavis@gmail.com" || user.email.trim().toLowerCase() === "ray@my-business-solutions.com") && user.slug !== "ray" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => saveRayIdentity(user.id)}>Set Ray identity</Button>
+                              )}
                               {!user.slug && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setEditingSlug(user.id); setSlugInput(""); }}>Set slug</Button>}
                               {user.slug && <><Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => downloadQr(user.slug!, "png")}>PNG</Button><Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => downloadQr(user.slug!, "svg")}>SVG</Button><Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingSlug(user.id); setSlugInput(user.slug!); }}>Edit</Button></>}
                             </div>
