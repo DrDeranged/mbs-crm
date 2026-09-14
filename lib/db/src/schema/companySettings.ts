@@ -16,6 +16,13 @@ export const companySettingsTable = pgTable("company_settings", {
   includeAdminsInRoundRobin: boolean("include_admins_in_round_robin").notNull().default(false),
   roundRobinCursor: integer("round_robin_cursor").notNull().default(0),
   staleThresholdDays: integer("stale_threshold_days").notNull().default(7),
+  /**
+   * Marketing email delivery is an explicit operational opt-in.  Keeping this
+   * in the database (rather than an environment variable) makes the disabled
+   * default apply consistently to every API process and worker.
+   */
+  emailSendingEnabled: boolean("email_sending_enabled").notNull().default(false),
+  bulkEmailPerMinute: integer("bulk_email_per_minute").notNull().default(60),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

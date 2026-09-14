@@ -1,135 +1,145 @@
 import { Router, type Request, type Response } from "express";
 import { EventWebhook } from "@sendgrid/eventwebhook";
+import { createHash } from "crypto";
 import { db } from "@workspace/db";
-import { emailSendsTable, leadsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import {
+  emailSendsTable,
+  emailWebhookEventsTable,
+  activityLogTable,
+} from "@workspace/db";
+import { and, eq, inArray } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
+import { suppressEmail } from "../lib/emailSafety";
+import { canAdvanceEmailStatus, classifySendGridEvent } from "../lib/emailSafetyPredicates";
 
 const router = Router();
-
 const SENDGRID_WEBHOOK_VERIFICATION_KEY = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
-
 const IS_PROD = process.env["NODE_ENV"] === "production";
 
 function verifySendGridSignature(req: Request): boolean {
-  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) {
-    // In production, fail closed — require the key to be set
-    if (IS_PROD) return false;
-    // In dev, skip verification so local testing works without real keys
-    return true;
-  }
-
+  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) return !IS_PROD;
   const signature = req.headers["x-twilio-email-event-webhook-signature"] as string;
   const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
-
-  if (!signature || !timestamp) return false;
-
   const rawBody: Buffer | undefined = (req as any).rawBody;
-  if (!rawBody) return false;
-
+  if (!signature || !timestamp || !rawBody) return false;
   try {
     const ew = new EventWebhook();
-    const ecPublicKey = ew.convertPublicKeyToECDSA(SENDGRID_WEBHOOK_VERIFICATION_KEY);
-    return ew.verifySignature(ecPublicKey, rawBody, signature, timestamp);
+    const publicKey = ew.convertPublicKeyToECDSA(SENDGRID_WEBHOOK_VERIFICATION_KEY);
+    return ew.verifySignature(publicKey, rawBody, signature, timestamp);
   } catch {
     return false;
   }
 }
 
-// POST /api/sendgrid/webhook — receives SendGrid event payloads
+function normalizeMessageId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const cleaned = value.trim().replace(/^<|>$/g, "");
+  if (!cleaned) return null;
+  // SendGrid webhook IDs may include a filter suffix.
+  return cleaned.split(".")[0].trim() || null;
+}
+
+async function logOnce(send: any, action: string, details: Record<string, unknown>): Promise<void> {
+  if (!send.leadId) return;
+  const existing = await db.query.activityLogTable.findFirst({
+    where: and(
+      eq(activityLogTable.action, action),
+      eq(activityLogTable.entityType, "email_send"),
+      eq(activityLogTable.entityId, String(send.id)),
+    ),
+  });
+  if (existing) return;
+  await logActivity({
+    userId: send.userId,
+    leadId: send.leadId,
+    action,
+    entityType: "email_send",
+    entityId: send.id,
+    details: { subject: send.subject, ...details },
+  });
+}
+
+async function findSend(messageId: string | null): Promise<any | undefined> {
+  if (!messageId) return undefined;
+  const candidates = [messageId, `<${messageId}>`, `${messageId}.filter`, `<${messageId}.filter>`];
+  return db.query.emailSendsTable.findFirst({
+    where: inArray(emailSendsTable.sendgridMessageId, candidates),
+  });
+}
+
 router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
   if (!verifySendGridSignature(req)) {
     return void res.status(403).json({ error: "Invalid webhook signature" });
   }
-
   const events: any[] = Array.isArray(req.body) ? req.body : [req.body];
+  let processed = 0;
+  let ignored = 0;
 
   for (const event of events) {
-    const { event: eventType, sg_message_id, timestamp } = event as {
-      event: string;
-      sg_message_id?: string;
-      timestamp?: number;
-    };
-
-    if (!sg_message_id || !eventType) continue;
-
-    // SendGrid appends a filter ID after a dot — strip it
-    const messageId = sg_message_id.split(".")[0];
-
-    const send = await db.query.emailSendsTable.findFirst({
-      where: eq(emailSendsTable.sendgridMessageId, messageId!),
-    });
-
-    if (!send) continue;
-
-    const eventAt = timestamp ? new Date(timestamp * 1000) : new Date();
-
-    let updates: Record<string, any> = { updatedAt: new Date() };
-    let activityAction: string | null = null;
-
-    switch (eventType) {
-      case "delivered":
-        updates.status = "delivered";
-        activityAction = "email_delivered";
-        break;
-      case "open":
-        // Only upgrade if not already at a higher-engagement state
-        if (send.status !== "clicked") {
-          updates.status = "opened";
-          updates.openedAt = eventAt;
-        }
-        activityAction = "email_opened";
-        break;
-      case "click":
-        updates.status = "clicked";
-        updates.clickedAt = eventAt;
-        activityAction = "email_clicked";
-        break;
-      case "bounce":
-      case "blocked":
-        updates.status = "bounced";
-        activityAction = "email_bounced";
-        break;
-      case "unsubscribe":
-      case "group_unsubscribe":
-        updates.status = "unsubscribed";
-        activityAction = "email_unsubscribed";
-        // Mark lead as unsubscribed
-        if (send.leadId) {
-          await db.update(leadsTable)
-            .set({ isUnsubscribed: true, updatedAt: new Date() })
-            .where(eq(leadsTable.id, send.leadId));
-        }
-        break;
-      case "spamreport":
-        updates.status = "bounced";
-        activityAction = "email_spam_reported";
-        // Also mark lead unsubscribed on spam report
-        if (send.leadId) {
-          await db.update(leadsTable)
-            .set({ isUnsubscribed: true, updatedAt: new Date() })
-            .where(eq(leadsTable.id, send.leadId));
-        }
-        break;
-      default:
-        continue;
+    const eventType = typeof event?.event === "string" ? event.event : "";
+    if (!eventType) {
+      ignored++;
+      continue;
+    }
+    const messageId = normalizeMessageId(event.sg_message_id ?? event["smtp-id"] ?? event.message_id);
+    const eventId = String(
+      event.sg_event_id ??
+      event.event_id ??
+      createHash("sha256").update(JSON.stringify({ eventType, messageId, event })).digest("hex"),
+    );
+    // The unique index makes retries and duplicate entries in one batch safe.
+    const inserted = await db.insert(emailWebhookEventsTable)
+      .values({ eventId, eventType, messageId })
+      .onConflictDoNothing({ target: emailWebhookEventsTable.eventId })
+      .returning({ id: emailWebhookEventsTable.id });
+    if (!inserted.length) {
+      ignored++;
+      continue;
     }
 
-    await db.update(emailSendsTable).set(updates).where(eq(emailSendsTable.id, send.id));
-
-    if (activityAction && send.leadId) {
-      await logActivity({
-        userId: send.userId,
-        leadId: send.leadId,
-        action: activityAction,
-        entityType: "email_send",
-        entityId: send.id,
-        details: { subject: send.subject, event: eventType },
-      });
+    const send = await findSend(messageId);
+    const eventAt = event.timestamp ? new Date(Number(event.timestamp) * 1000) : new Date();
+    const classification = classifySendGridEvent(eventType);
+    const suppressingEvent = classification.suppress;
+    const recipient = typeof event.email === "string" ? event.email : send?.toEmail;
+    if (suppressingEvent && recipient) await suppressEmail(recipient);
+    if (!send) {
+      // Suppression is still applied when message correlation is unavailable.
+      ignored++;
+      continue;
     }
+
+    let nextStatus: string | null = classification.status;
+    let action: string | null = classification.action;
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (!nextStatus || !action) {
+      ignored++;
+      continue;
+    }
+    if (eventType === "open" && !send.openedAt && !["bounced", "unsubscribed", "failed"].includes(send.status)) {
+      updates.openedAt = eventAt;
+    }
+    if (eventType === "click" && !send.clickedAt && !["bounced", "unsubscribed", "failed"].includes(send.status)) {
+      updates.clickedAt = eventAt;
+    }
+
+    if (nextStatus && (canAdvanceEmailStatus(send.status, nextStatus) || updates.openedAt || updates.clickedAt)) {
+      updates.status = canAdvanceEmailStatus(send.status, nextStatus) ? nextStatus : send.status;
+      await db.update(emailSendsTable)
+        .set(updates)
+        .where(and(eq(emailSendsTable.id, send.id), eq(emailSendsTable.status, send.status)));
+    }
+    if (action && (eventType === "open" || eventType === "click")) {
+      // openedAt/clickedAt and the activity key together make provider/custom
+      // tracking idempotent; duplicate provider callbacks do not add logs.
+      const firstEvent = eventType === "open" ? !send.openedAt : !send.clickedAt;
+      if (firstEvent) await logOnce(send, action, { event: eventType, at: eventAt.toISOString() });
+    } else if (action) {
+      await logOnce(send, action, { event: eventType });
+    }
+    processed++;
   }
-
-  res.json({ ok: true });
+  res.json({ ok: true, processed, ignored });
 });
 
 export default router;

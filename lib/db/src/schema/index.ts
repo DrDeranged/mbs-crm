@@ -14,6 +14,8 @@ export * from "./dripSequences";
 export * from "./dripSequenceSteps";
 export * from "./dripEnrollments";
 export * from "./emailSends";
+export * from "./emailWebhookEvents";
+export * from "./emailRateSlots";
 export * from "./lenders";
 export * from "./flyers";
 export * from "./applications";

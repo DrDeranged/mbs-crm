@@ -95,9 +95,9 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
             <Select value={senderMode} onValueChange={setSenderMode}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="template">Use each template's sender</SelectItem>
-                <SelectItem value="default">My Business Solutions default sender</SelectItem>
-                <SelectItem value="assigned_rep">Assigned rep (verified company-domain addresses only)</SelectItem>
+                <SelectItem value="template">Fixed sender + each template's Reply-To preference</SelectItem>
+                <SelectItem value="default">My Business Solutions — funding@my-business-solutions.com</SelectItem>
+                <SelectItem value="assigned_rep">Fixed sender + assigned rep Reply-To (when valid)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Replies go to the assigned rep whenever one is available.</p>

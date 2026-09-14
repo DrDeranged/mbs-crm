@@ -14,7 +14,11 @@ router.get("/settings/company", async (req: Request, res: Response) => {
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
 
   const [settings] = await db.select().from(companySettingsTable).limit(1);
-  res.json(settings ?? {});
+  res.json(settings ? {
+    ...settings,
+    emailSendingEnabled: settings.emailSendingEnabled ?? false,
+    bulkEmailPerMinute: settings.bulkEmailPerMinute ?? 60,
+  } : { emailSendingEnabled: false, bulkEmailPerMinute: 60 });
 });
 
 router.put("/settings/company", async (req: Request, res: Response) => {
@@ -22,7 +26,15 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
 
-  const { companyName, companyEmail, companyPhone, companyWebsite, companyAddress, companyCity, companyState, companyZip } = req.body as Record<string, string | null | undefined>;
+  const {
+    companyName, companyEmail, companyPhone, companyWebsite, companyAddress,
+    companyCity, companyState, companyZip, emailSendingEnabled, bulkEmailPerMinute,
+  } = req.body as Record<string, string | boolean | number | null | undefined>;
+  const bulkEmailRate = typeof bulkEmailPerMinute === "number" ? bulkEmailPerMinute : undefined;
+  if (bulkEmailPerMinute !== undefined && bulkEmailPerMinute !== null &&
+      (bulkEmailRate === undefined || !Number.isInteger(bulkEmailRate) || bulkEmailRate < 1 || bulkEmailRate > 1000)) {
+    return void res.status(400).json({ error: "bulkEmailPerMinute must be an integer between 1 and 1000" });
+  }
 
   const [existing] = await db.select().from(companySettingsTable).limit(1);
 
@@ -30,14 +42,37 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   if (existing) {
     const [updated] = await db
       .update(companySettingsTable)
-      .set({ companyName, companyEmail, companyPhone, companyWebsite, companyAddress, companyCity, companyState, companyZip, updatedAt: new Date() })
+      .set({
+        ...(companyName !== undefined ? { companyName: companyName as string | null } : {}),
+        ...(companyEmail !== undefined ? { companyEmail: companyEmail as string | null } : {}),
+        ...(companyPhone !== undefined ? { companyPhone: companyPhone as string | null } : {}),
+        ...(companyWebsite !== undefined ? { companyWebsite: companyWebsite as string | null } : {}),
+        ...(companyAddress !== undefined ? { companyAddress: companyAddress as string | null } : {}),
+        ...(companyCity !== undefined ? { companyCity: companyCity as string | null } : {}),
+        ...(companyState !== undefined ? { companyState: companyState as string | null } : {}),
+        ...(companyZip !== undefined ? { companyZip: companyZip as string | null } : {}),
+        ...(emailSendingEnabled !== undefined ? { emailSendingEnabled: emailSendingEnabled === true } : {}),
+        ...(bulkEmailRate !== undefined ? { bulkEmailPerMinute: bulkEmailRate } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(companySettingsTable.id, existing.id))
       .returning();
     result = updated;
   } else {
     const [created] = await db
       .insert(companySettingsTable)
-      .values({ companyName, companyEmail, companyPhone, companyWebsite, companyAddress, companyCity, companyState, companyZip })
+      .values({
+        companyName: companyName as string | null | undefined,
+        companyEmail: companyEmail as string | null | undefined,
+        companyPhone: companyPhone as string | null | undefined,
+        companyWebsite: companyWebsite as string | null | undefined,
+        companyAddress: companyAddress as string | null | undefined,
+        companyCity: companyCity as string | null | undefined,
+        companyState: companyState as string | null | undefined,
+        companyZip: companyZip as string | null | undefined,
+        emailSendingEnabled: emailSendingEnabled === true,
+        bulkEmailPerMinute: bulkEmailRate ?? 60,
+      })
       .returning();
     result = created;
   }
@@ -51,6 +86,63 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   });
 
   res.json(result);
+});
+
+router.get("/settings/email-delivery", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+
+  const [settings] = await db.select().from(companySettingsTable).limit(1);
+  res.json({
+    emailSendingEnabled: settings?.emailSendingEnabled ?? false,
+    bulkEmailPerMinute: settings?.bulkEmailPerMinute ?? 60,
+  });
+});
+
+router.put("/settings/email-delivery", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+
+  const body = req.body as { emailSendingEnabled?: unknown; bulkEmailPerMinute?: unknown };
+  if (body.emailSendingEnabled !== undefined && typeof body.emailSendingEnabled !== "boolean") {
+    return void res.status(400).json({ error: "emailSendingEnabled must be a boolean" });
+  }
+  if (body.bulkEmailPerMinute !== undefined &&
+      (!Number.isInteger(body.bulkEmailPerMinute) || (body.bulkEmailPerMinute as number) < 1 || (body.bulkEmailPerMinute as number) > 1000)) {
+    return void res.status(400).json({ error: "bulkEmailPerMinute must be an integer between 1 and 1000" });
+  }
+  if (body.emailSendingEnabled === undefined && body.bulkEmailPerMinute === undefined) {
+    return void res.status(400).json({ error: "At least one setting must be provided" });
+  }
+
+  const [existing] = await db.select().from(companySettingsTable).limit(1);
+  const fields = {
+    ...(body.emailSendingEnabled === undefined ? {} : { emailSendingEnabled: body.emailSendingEnabled }),
+    ...(body.bulkEmailPerMinute === undefined ? {} : { bulkEmailPerMinute: body.bulkEmailPerMinute as number }),
+    updatedAt: new Date(),
+  };
+  let result;
+  if (existing) {
+    [result] = await db.update(companySettingsTable).set(fields).where(eq(companySettingsTable.id, existing.id)).returning();
+  } else {
+    [result] = await db.insert(companySettingsTable).values({
+      emailSendingEnabled: body.emailSendingEnabled === true,
+      bulkEmailPerMinute: body.bulkEmailPerMinute === undefined ? 60 : body.bulkEmailPerMinute as number,
+    }).returning();
+  }
+  await logActivity({
+    userId: user.id,
+    action: "email_delivery_settings_updated",
+    entityType: "company_settings",
+    entityId: result?.id ?? 0,
+    details: { emailSendingEnabled: result?.emailSendingEnabled ?? false, bulkEmailPerMinute: result?.bulkEmailPerMinute ?? 60 },
+  });
+  res.json({
+    emailSendingEnabled: result?.emailSendingEnabled ?? false,
+    bulkEmailPerMinute: result?.bulkEmailPerMinute ?? 60,
+  });
 });
 
 router.get("/settings/lead-distribution", async (req: Request, res: Response) => {

@@ -5,6 +5,7 @@ import { emailTemplatesTable } from "./emailTemplates";
 
 export const EMAIL_SEND_STATUSES = [
   "queued",
+  "failed",
   "sent",
   "delivered",
   "opened",
@@ -24,6 +25,7 @@ export const emailSendsTable = pgTable(
     toEmail: text("to_email").notNull(),
     fromEmail: text("from_email").notNull(),
     status: text("status", { enum: EMAIL_SEND_STATUSES }).notNull().default("queued"),
+    failureReason: text("failure_reason"),
     sendgridMessageId: text("sendgrid_message_id"),
     sentAt: timestamp("sent_at"),
     openedAt: timestamp("opened_at"),

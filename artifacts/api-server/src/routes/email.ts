@@ -9,28 +9,38 @@ import {
   usersTable,
   dripSequencesTable,
   dripSequenceStepsTable,
+  companySettingsTable,
+  activityLogTable,
 } from "@workspace/db";
-import { eq, and, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
+import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
+import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
+const SESSION_SECRET = process.env["SESSION_SECRET"];
+// A dedicated key is preferred, but deployments that already protect sessions
+// need not provision a second secret. Domains below prevent cross-purpose
+// token reuse.
+const EMAIL_SIGNING_SECRET = UNSUB_SECRET || SESSION_SECRET;
 const IS_PROD_EMAIL = process.env["NODE_ENV"] === "production";
 
 function makeUnsubToken(sendId: number, email: string): string {
-  if (!UNSUB_SECRET) {
-    if (IS_PROD_EMAIL) throw new Error("UNSUB_SECRET must be set in production");
-    // Dev-only fallback — clearly labelled, not usable in production
-    return createHmac("sha256", "dev-only-not-for-prod").update(`${sendId}:${email}`).digest("hex");
+  if (!EMAIL_SIGNING_SECRET) {
+    if (IS_PROD_EMAIL) throw new Error("UNSUB_SECRET or SESSION_SECRET must be set in production");
+    return createHmac("sha256", "dev-only-not-for-prod").update(`mbs-email-unsubscribe:v1:${sendId}:${normalizeEmail(email)}`).digest("hex");
   }
-  return createHmac("sha256", UNSUB_SECRET).update(`${sendId}:${email}`).digest("hex");
+  return createHmac("sha256", EMAIL_SIGNING_SECRET)
+    .update(`mbs-email-unsubscribe:v1:${sendId}:${normalizeEmail(email)}`)
+    .digest("hex");
 }
 
 function verifyUnsubToken(sendId: number, email: string, token: string): boolean {
-  if (!UNSUB_SECRET && IS_PROD_EMAIL) return false; // Fail closed in production when unconfigured
+  if (!EMAIL_SIGNING_SECRET && IS_PROD_EMAIL) return false;
   try {
-    const expected = makeUnsubToken(sendId, email);
+    const expected = makeUnsubToken(sendId, normalizeEmail(email));
     // Constant-time compare using timingSafeEqual
     const a = Buffer.from(expected, "hex");
     const b = Buffer.from(token, "hex");
@@ -41,11 +51,77 @@ function verifyUnsubToken(sendId: number, email: string, token: string): boolean
   }
 }
 
+function makeTrackingToken(sendId: number, kind: "open" | "click", destination = ""): string {
+  const payload = `mbs-email-tracking:${kind}:v1:${sendId}:${destination}`;
+  if (!EMAIL_SIGNING_SECRET) {
+    if (IS_PROD_EMAIL) throw new Error("UNSUB_SECRET or SESSION_SECRET must be set in production");
+    return createHmac("sha256", "dev-only-not-for-prod")
+      .update(payload)
+      .digest("hex");
+  }
+  return createHmac("sha256", EMAIL_SIGNING_SECRET)
+    .update(payload)
+    .digest("hex");
+}
+
+function verifyTrackingToken(sendId: number, kind: "open" | "click", destination: string, token: string): boolean {
+  if (!token || (!EMAIL_SIGNING_SECRET && IS_PROD_EMAIL)) return false;
+  try {
+    const expected = makeTrackingToken(sendId, kind, destination);
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(token, "hex");
+    if (a.length !== b.length) return false;
+    return require("crypto").timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+const STATUS_RANK: Record<string, number> = {
+  queued: 0,
+  failed: 1,
+  sent: 2,
+  delivered: 3,
+  opened: 4,
+  clicked: 5,
+  bounced: 100,
+  unsubscribed: 100,
+};
+
+function canAdvanceStatus(current: string, next: string): boolean {
+  if (current === next) return true;
+  // Delivery failures and suppressions are terminal and must not be replaced
+  // by a late provider open/click callback.
+  if (current === "bounced" || current === "unsubscribed" || current === "failed") return false;
+  return (STATUS_RANK[next] ?? 0) > (STATUS_RANK[current] ?? 0);
+}
+
+async function logEmailEngagementOnce(send: any, action: "email_opened" | "email_clicked", details: Record<string, unknown>) {
+  if (!send.leadId) return;
+  const existing = await db.query.activityLogTable.findFirst({
+    where: and(
+      eq(activityLogTable.action, action),
+      eq(activityLogTable.entityType, "email_send"),
+      eq(activityLogTable.entityId, String(send.id)),
+    ),
+  });
+  if (existing) return;
+  await logActivity({
+    userId: send.userId,
+    leadId: send.leadId,
+    action,
+    entityType: "email_send",
+    entityId: send.id,
+    details: { subject: send.subject, ...details },
+  });
+}
+
 const router = Router();
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
-const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "funding@my-business-solutions.com";
-const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "My Business Solutions";
+const FROM_EMAIL = "funding@my-business-solutions.com";
+const FROM_NAME = "My Business Solutions";
+const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -56,6 +132,10 @@ const TRACKING_PIXEL = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
   "base64"
 );
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const SAMPLE_VARS: Record<string, string> = {
   lead_first_name: "Jane",
@@ -103,13 +183,25 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
   const withClicks = bodyHtml.replace(
     /href="([^"#][^"]*)"/gi,
     (_, url) => {
-      const encoded = encodeURIComponent(url);
-      return `href="${baseUrl}/api/email/track/click/${sendId}?url=${encoded}"`;
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        return `href="#"`;
+      }
+      if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || parsed.username || parsed.password) {
+        return `href="#"`;
+      }
+      const destination = parsed.toString();
+      const encoded = encodeURIComponent(destination);
+      const token = makeTrackingToken(sendId, "click", destination);
+      return `href="${baseUrl}/api/email/track/click/${sendId}?url=${encoded}&token=${token}"`;
     }
   );
   // Signed unsubscribe link — token is HMAC-SHA256(secret, sendId:email)
   const token = makeUnsubToken(sendId, toEmail);
-  const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}" width="1" height="1" alt="" style="display:none" />`;
+  const openToken = makeTrackingToken(sendId, "open");
+  const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}?token=${openToken}" width="1" height="1" alt="" style="display:none" />`;
   const unsubLink = `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">
     <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
   </p>`;
@@ -126,15 +218,23 @@ async function doSendEmail(params: {
   baseUrl: string;
   senderMode?: "default" | "assigned_rep";
   rep?: { name?: string | null; email?: string | null } | null;
+  attachments?: Array<{
+    content: string;
+    filename: string;
+    type?: string;
+    disposition?: "attachment" | "inline";
+  }>;
 }): Promise<{ send: any; error?: string }> {
+  const [emailSettings] = await db.select({
+    emailSendingEnabled: companySettingsTable.emailSendingEnabled,
+  }).from(companySettingsTable).limit(1);
+  const emailSendingEnabled = emailSettings?.emailSendingEnabled ?? false;
   const repEmail = params.rep?.email?.trim() || "";
-  const repCanSend = repEmail.toLowerCase().endsWith("@my-business-solutions.com");
-  const useRepSender = params.senderMode === "assigned_rep" && repCanSend;
   const from = {
-    email: useRepSender ? repEmail : FROM_EMAIL,
-    name: useRepSender ? (params.rep?.name?.trim() || FROM_NAME) : FROM_NAME,
+    email: FROM_EMAIL,
+    name: FROM_NAME,
   };
-  const replyTo = repEmail
+  const replyTo = VALID_EMAIL.test(repEmail)
     ? { email: repEmail, name: params.rep?.name?.trim() || repEmail }
     : undefined;
 
@@ -149,16 +249,47 @@ async function doSendEmail(params: {
     status: "queued",
   }).returning();
 
-  const brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
-  const trackedHtml = injectTracking(brandedHtml, placeholder.id, params.baseUrl, params.toEmail);
-
-  if (!SENDGRID_API_KEY) {
-    // Dev mode — mark as sent without actual delivery
-    const [updated] = await db.update(emailSendsTable)
-      .set({ status: "sent", sentAt: new Date(), updatedAt: new Date() })
+  if (await isEmailSuppressed(params.toEmail)) {
+    const reason = "Recipient is suppressed";
+    const [failed] = await db.update(emailSendsTable)
+      .set({ status: "unsubscribed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: updated };
+    return { send: failed, error: reason };
+  }
+
+  // Delivery is an explicit database-backed opt-in.  Persist a failed
+  // attempt so callers and audit views never confuse a blocked send with a
+  // delivered message.
+  if (!emailSendingEnabled) {
+    const reason = "Email sending is disabled in Settings";
+    const [failed] = await db.update(emailSendsTable)
+      .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
+      .where(eq(emailSendsTable.id, placeholder.id))
+      .returning();
+    return { send: failed, error: reason };
+  }
+
+  let trackedHtml: string;
+  try {
+    const brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
+    trackedHtml = injectTracking(brandedHtml, placeholder.id, params.baseUrl, params.toEmail);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Unable to secure email tracking links";
+    const [failed] = await db.update(emailSendsTable)
+      .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
+      .where(eq(emailSendsTable.id, placeholder.id))
+      .returning();
+    return { send: failed, error: reason };
+  }
+
+  if (!SENDGRID_API_KEY) {
+    const reason = "SENDGRID_API_KEY is not configured; email was not sent";
+    const [failed] = await db.update(emailSendsTable)
+      .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
+      .where(eq(emailSendsTable.id, placeholder.id))
+      .returning();
+    return { send: failed, error: reason };
   }
 
   try {
@@ -168,13 +299,21 @@ async function doSendEmail(params: {
       to: params.toEmail,
       subject: params.subject,
       html: trackedHtml,
+      ...(params.attachments?.length ? { attachments: params.attachments } : {}),
       trackingSettings: {
-        clickTracking: { enable: true, enableText: true },
-        openTracking: { enable: true },
+        // Custom signed links/pixel below are the source of truth. Provider
+        // tracking is disabled to prevent duplicate engagement activities.
+        clickTracking: { enable: false, enableText: false },
+        openTracking: { enable: false },
       },
     });
 
-    const messageId = (response.headers?.["x-message-id"] as string) || null;
+    const messageId = (
+      response.headers?.["x-message-id"] ||
+      response.headers?.["X-Message-Id"] ||
+      (response as any).body?.["message_id"] ||
+      null
+    ) as string | null;
 
     const [updated] = await db.update(emailSendsTable)
       .set({
@@ -189,7 +328,7 @@ async function doSendEmail(params: {
     return { send: updated };
   } catch (err: any) {
     await db.update(emailSendsTable)
-      .set({ status: "bounced", updatedAt: new Date() })
+      .set({ status: "failed", failureReason: err?.message || "Send failed", updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id));
     return { send: placeholder, error: err?.message || "Send failed" };
   }
@@ -198,21 +337,19 @@ async function doSendEmail(params: {
 // --- Open tracking pixel (no auth) ---
 router.get("/email/track/open/:sendId", async (req, res) => {
   const sendId = parseInt(req.params["sendId"] as string, 10);
+  const token = (req.query["token"] as string) || "";
+  if (isNaN(sendId) || !verifyTrackingToken(sendId, "open", "", token)) {
+    return void res.status(404).send(TRACKING_PIXEL);
+  }
   if (!isNaN(sendId)) {
     const existing = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
-    if (existing && existing.status !== "clicked") {
-      await db.update(emailSendsTable)
-        .set({ status: "opened", openedAt: new Date(), updatedAt: new Date() })
-        .where(and(eq(emailSendsTable.id, sendId)));
-      if (existing.leadId) {
-        await logActivity({
-          userId: existing.userId,
-          leadId: existing.leadId,
-          action: "email_opened",
-          entityType: "email_send",
-          entityId: sendId,
-          details: { subject: existing.subject },
-        });
+    if (existing && existing.status !== "bounced" && existing.status !== "unsubscribed" && existing.status !== "failed" && !existing.openedAt) {
+      const [markedOpen] = await db.update(emailSendsTable)
+        .set({ status: canAdvanceStatus(existing.status, "opened") ? "opened" : existing.status, openedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(emailSendsTable.id, sendId), eq(emailSendsTable.status, existing.status)))
+        .returning({ id: emailSendsTable.id });
+      if (existing.leadId && !existing.openedAt && markedOpen) {
+        await logEmailEngagementOnce(existing, "email_opened", {});
       }
     }
   }
@@ -231,31 +368,34 @@ router.get("/brand/logo.png", (_req, res) => {
 router.get("/email/track/click/:sendId", async (req, res) => {
   const sendId = parseInt(req.params["sendId"] as string, 10);
   const rawUrl = (req.query["url"] as string) || "";
+  const token = (req.query["token"] as string) || "";
   // Only allow absolute http/https URLs — reject open redirects to other schemes
   let url = "/";
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      url = rawUrl;
+    if ((parsed.protocol === "http:" || parsed.protocol === "https:") && !parsed.username && !parsed.password) {
+      url = parsed.toString();
     }
   } catch {
     // Not a valid URL — fall back to root
   }
-  if (!isNaN(sendId)) {
+  if (!isNaN(sendId) && url !== "/" && verifyTrackingToken(sendId, "click", url, token)) {
     const existing = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
     if (existing) {
-      await db.update(emailSendsTable)
-        .set({ status: "clicked", clickedAt: new Date(), updatedAt: new Date() })
-        .where(eq(emailSendsTable.id, sendId));
-      if (existing.leadId && existing.status !== "clicked") {
-        await logActivity({
-          userId: existing.userId,
-          leadId: existing.leadId,
-          action: "email_clicked",
-          entityType: "email_send",
-          entityId: sendId,
-          details: { url },
-        });
+      const shouldRecord = existing.status !== "bounced" && existing.status !== "unsubscribed" &&
+        existing.status !== "failed" && !existing.clickedAt;
+      if (shouldRecord) {
+        const [markedClick] = await db.update(emailSendsTable)
+          .set({ status: "clicked", clickedAt: existing.clickedAt ?? new Date(), updatedAt: new Date() })
+          .where(and(eq(emailSendsTable.id, sendId), eq(emailSendsTable.status, existing.status)))
+          .returning({ id: emailSendsTable.id });
+        if (!markedClick) {
+          res.redirect(302, url);
+          return;
+        }
+      }
+      if (existing.leadId && shouldRecord) {
+        await logEmailEngagementOnce(existing, "email_clicked", { url });
       }
     }
   }
@@ -286,7 +426,7 @@ router.get("/email/unsubscribe", async (req, res) => {
 
   // Bind to the persisted send record — verify sendId and email match
   const sendRecord = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
-  if (!sendRecord || sendRecord.toEmail !== email) {
+  if (!sendRecord || normalizeEmail(sendRecord.toEmail) !== normalizeEmail(email)) {
     return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
       <h2>Invalid unsubscribe link</h2>
       <p>This unsubscribe link is invalid.</p>
@@ -294,10 +434,11 @@ router.get("/email/unsubscribe", async (req, res) => {
   }
 
   // Unsubscribe by leadId (bound to the specific send record, not email string alone)
-  if (sendRecord.leadId) {
-    await db.update(leadsTable)
-      .set({ isUnsubscribed: true, updatedAt: new Date() })
-      .where(eq(leadsTable.id, sendRecord.leadId));
+  await suppressEmail(sendRecord.toEmail);
+  if (canAdvanceStatus(sendRecord.status, "unsubscribed")) {
+    await db.update(emailSendsTable)
+      .set({ status: "unsubscribed", updatedAt: new Date() })
+      .where(and(eq(emailSendsTable.id, sendRecord.id), eq(emailSendsTable.status, sendRecord.status)));
   }
 
   res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
@@ -324,7 +465,9 @@ router.post("/email/send", async (req: Request, res: Response) => {
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
   if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
   if (!lead.email) return void res.status(400).json({ error: "Lead has no email address" });
-  if (lead.isUnsubscribed) return void res.status(409).json({ error: "Lead is unsubscribed" });
+  if (lead.isUnsubscribed || await isEmailSuppressed(lead.email)) {
+    return void res.status(409).json({ error: "Recipient is suppressed" });
+  }
 
   const rep = lead.assignedRepId
     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
@@ -338,6 +481,7 @@ router.post("/email/send", async (req: Request, res: Response) => {
   if (templateId) {
     const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
     if (!template) return void res.status(404).json({ error: "Template not found" });
+    if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
     finalSubject = renderTemplate(template.subject, vars);
     finalBody = renderTemplate(template.bodyHtml, vars);
     senderMode = template.senderMode as "default" | "assigned_rep";
@@ -387,24 +531,47 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
 
   const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
   if (!template) return void res.status(404).json({ error: "Template not found" });
+  if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
 
   const baseUrl = getPublicBaseUrl();
 
   let sent = 0;
   let failed = 0;
   const skipped: number[] = [];
-
+  const failures: Array<{ leadId: number; error: string }> = [];
+  const [emailSettings] = await db.select({
+    emailSendingEnabled: companySettingsTable.emailSendingEnabled,
+    bulkEmailPerMinute: companySettingsTable.bulkEmailPerMinute,
+  }).from(companySettingsTable).limit(1);
+  const bulkCap = Math.max(1, Math.min(1000, emailSettings?.bulkEmailPerMinute ?? 60));
+  if (emailSettings?.emailSendingEnabled !== true) {
+    return void res.status(409).json({
+      error: "Email sending is disabled in Settings",
+      sent: 0,
+      failed: leadIds.length,
+      skipped: [],
+      failures: leadIds.map((id) => ({ leadId: id, error: "Email sending is disabled in Settings" })),
+      rateLimitPerMinute: bulkCap,
+    });
+  }
   for (const leadId of leadIds) {
     const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
-    if (!lead || !lead.email || lead.isUnsubscribed) {
+    if (!lead || !lead.email || lead.isUnsubscribed || await isEmailSuppressed(lead?.email || "")) {
       if (lead?.isUnsubscribed) skipped.push(leadId);
       failed++;
+      failures.push({ leadId, error: !lead ? "Lead not found" : !lead.email ? "Lead has no email address" : "Lead is unsubscribed" });
       continue;
     }
     const rep = lead.assignedRepId
       ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
       : await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
     const vars = buildVariables(lead, rep);
+    // Reserve against the shared database limiter, not process-local pacing.
+    // The reservation is made before creating the queued send record so a
+    // saturated request cannot strand queued rows.
+    while (!(await reserveEmailRateSlot(bulkCap))) {
+      await wait(EMAIL_RATE_RETRY_MS);
+    }
     const { error } = await doSendEmail({
       leadId: lead.id,
       userId: user.id,
@@ -416,7 +583,10 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
       senderMode: template.senderMode as "default" | "assigned_rep",
       rep,
     });
-    if (error) failed++;
+    if (error) {
+      failed++;
+      failures.push({ leadId, error });
+    }
     else {
       sent++;
       await logActivity({
@@ -430,7 +600,7 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
     }
   }
 
-  res.json({ sent, failed, skipped });
+  res.json({ sent, failed, skipped, failures, rateLimitPerMinute: bulkCap });
 });
 
 // --- List templates ---
@@ -582,6 +752,7 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     where: eq(emailTemplatesTable.id, templateId),
   });
   if (!template) return void res.status(404).json({ error: "Template not found" });
+  if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
 
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
   const recipientName = toEmail.split("@")[0] || "Test";
@@ -899,6 +1070,7 @@ function sendToApi(s: any) {
     toEmail: s.toEmail,
     fromEmail: s.fromEmail,
     status: s.status,
+    failureReason: s.failureReason ?? null,
     sendgridMessageId: s.sendgridMessageId ?? null,
     sentAt: s.sentAt?.toISOString() ?? null,
     openedAt: s.openedAt?.toISOString() ?? null,

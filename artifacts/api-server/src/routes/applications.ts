@@ -3,7 +3,6 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { randomBytes } from "crypto";
 import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
-import sgMail from "@sendgrid/mail";
 import { z } from "zod/v4";
 import { eq, and, or } from "drizzle-orm";
 import { db } from "@workspace/db";
@@ -27,14 +26,7 @@ import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { resolveInboundAssignee } from "../lib/leadDistribution";
-
-const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
-const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
-const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "My Business Solutions";
-
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
+import { doSendEmail } from "./email";
 
 const router = Router();
 
@@ -349,6 +341,15 @@ router.post(
           trackingToken,
         }).returning();
 
+        await tx.insert(activityLogTable).values({
+          userId: null,
+          leadId: txLead.id,
+          action: "lead_created",
+          entityType: "lead",
+          entityId: String(txLead.id),
+          details: { source: attributedRep ? "qr-card" : "website", path: "application" },
+        });
+
          if (attributedRep) {
            await tx.insert(activityLogTable).values({
              userId: null, leadId: txLead.id, action: "attributed",
@@ -529,17 +530,13 @@ router.post(
       }
 
       // ── Send confirmation email with tracking token (non-blocking) ─────────
-      if (SENDGRID_API_KEY && email && lead.trackingToken) {
+      if (email && lead.trackingToken) {
         const baseUrl = getPublicBaseUrl();
         const statusUrl = `${baseUrl}/apply/status`;
         const logoUrl = getBrandLogoUrl(baseUrl);
         const token = lead.trackingToken;
 
-        sgMail.send({
-          to: email,
-          from: { email: FROM_EMAIL, name: FROM_NAME },
-          subject: "Your MBS Application Has Been Received",
-          html: `<!DOCTYPE html>
+        const confirmationHtml = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /></head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif;color:#1e293b;">
@@ -569,7 +566,22 @@ router.post(
     </td></tr>
   </table>
 </body>
-</html>`,
+</html>`;
+        const rep = lead.assignedRepId
+          ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+          : null;
+        void doSendEmail({
+          leadId: lead.id,
+          userId: null,
+          templateId: null,
+          subject: "Your MBS Application Has Been Received",
+          bodyHtml: confirmationHtml,
+          toEmail: lead.email || email,
+          baseUrl,
+          senderMode: "default",
+          rep,
+        }).then(({ error }) => {
+          if (error) console.error("Confirmation email failed:", error);
         }).catch((e: unknown) => console.error("Confirmation email failed:", e));
       }
 

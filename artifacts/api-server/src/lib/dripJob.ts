@@ -7,6 +7,7 @@ import {
   leadsTable,
   usersTable,
   jobRunsTable,
+  companySettingsTable,
 } from "@workspace/db";
 import { captureException } from "./sentry";
 import { eq, and } from "drizzle-orm";
@@ -14,6 +15,7 @@ import { doSendEmail, renderTemplate, buildVariables } from "../routes/email";
 import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 import { getPublicBaseUrl } from "./brand";
+import { isEmailSuppressed } from "./emailSafety";
 
 let running: boolean | undefined;
 
@@ -32,6 +34,13 @@ export async function runDripJob(): Promise<void> {
   try {
     if (process.env["DRIP_AUTOMATION_ENABLED"] !== "true") {
       logger.info("Drip automation is disarmed");
+      return;
+    }
+    const [emailSettings] = await db.select({
+      emailSendingEnabled: companySettingsTable.emailSendingEnabled,
+    }).from(companySettingsTable).limit(1);
+    if (emailSettings?.emailSendingEnabled !== true) {
+      logger.info("Drip automation is disarmed because outbound email is disabled in Settings");
       return;
     }
 
@@ -74,7 +83,7 @@ export async function runDripJob(): Promise<void> {
         }
 
         const lead = enrollment.lead;
-        if (!lead || !lead.email || lead.isUnsubscribed) {
+        if (!lead || !lead.email || lead.isUnsubscribed || (lead.email && await isEmailSuppressed(lead.email))) {
           const skipReason = !lead
             ? "lead_not_found"
             : !lead.email
@@ -100,7 +109,13 @@ export async function runDripJob(): Promise<void> {
         const template = await db.query.emailTemplatesTable.findFirst({
           where: eq(emailTemplatesTable.id, step.templateId),
         });
-        if (!template) continue;
+        if (!template || !template.isActive) {
+          await db.update(dripEnrollmentsTable)
+            .set({ status: "unenrolled", unenrolledAt: new Date() })
+            .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          logger.warn({ enrollmentId: enrollment.id, templateId: step.templateId }, "Drip enrollment stopped because its template is missing or inactive");
+          continue;
+        }
 
         // Load assigned rep
         const rep = lead.assignedRepId
@@ -131,6 +146,11 @@ export async function runDripJob(): Promise<void> {
 
         if (sendError) {
           logger.error({ enrollmentId: enrollment.id, leadId: lead.id, error: sendError }, "Drip step send failed");
+          if (send.status === "unsubscribed") {
+            await db.update(dripEnrollmentsTable)
+              .set({ status: "unenrolled", unenrolledAt: new Date() })
+              .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          }
           continue;
         }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,6 +30,8 @@ export default function Settings() {
   });
   const updateLeadDistribution = useUpdateLeadDistributionSettings();
   const reassignSeededDeals = useReassignSeededDeals();
+  const backfillSlugs = useBackfillSlugs();
+  const seedStarterEmail = useSeedStarterEmail();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -47,22 +49,30 @@ export default function Settings() {
   });
   const [loadingCompany, setLoadingCompany] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
+  const [emailSendingEnabled, setEmailSendingEnabled] = useState(false);
+  const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
+  const [savingEmailSettings, setSavingEmailSettings] = useState(false);
 
   useEffect(() => {
     if (me?.role !== "admin") return;
     setLoadingCompany(true);
     fetch(`${apiBase}/settings/company`, { credentials: "include" })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((data: Record<string, string | null>) => setCompanyForm({
-        companyName: data.companyName ?? "",
-        companyEmail: data.companyEmail ?? "",
-        companyPhone: data.companyPhone ?? "",
-        companyWebsite: data.companyWebsite ?? "",
-        companyAddress: data.companyAddress ?? "",
-        companyCity: data.companyCity ?? "",
-        companyState: data.companyState ?? "",
-        companyZip: data.companyZip ?? "",
-      }))
+      .then((data: Record<string, string | number | boolean | null>) => {
+        const text = (key: string) => typeof data[key] === "string" ? data[key] as string : "";
+        setEmailSendingEnabled(data.emailSendingEnabled === true);
+        setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? 60));
+        return setCompanyForm({
+        companyName: text("companyName"),
+        companyEmail: text("companyEmail"),
+        companyPhone: text("companyPhone"),
+        companyWebsite: text("companyWebsite"),
+        companyAddress: text("companyAddress"),
+        companyCity: text("companyCity"),
+        companyState: text("companyState"),
+        companyZip: text("companyZip"),
+        });
+      })
       .catch(() => {})
       .finally(() => setLoadingCompany(false));
   }, [me]);
@@ -82,6 +92,32 @@ export default function Settings() {
       toast({ title: "Failed to save company settings", variant: "destructive" });
     } finally {
       setSavingCompany(false);
+    }
+  };
+
+  const handleSaveEmailSettings = async () => {
+    const cap = Number(bulkEmailPerMinute);
+    if (!Number.isInteger(cap) || cap < 1 || cap > 1000) {
+      toast({ title: "Invalid bulk cap", description: "Enter a whole number from 1 to 1000 emails per minute.", variant: "destructive" });
+      return;
+    }
+    setSavingEmailSettings(true);
+    try {
+      const res = await fetch(`${apiBase}/settings/email-delivery`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ emailSendingEnabled, bulkEmailPerMinute: cap }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setEmailSendingEnabled(data.emailSendingEnabled === true);
+      setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? cap));
+      toast({ title: "Email delivery settings saved" });
+    } catch {
+      toast({ title: "Failed to save email delivery settings", variant: "destructive" });
+    } finally {
+      setSavingEmailSettings(false);
     }
   };
 
@@ -179,6 +215,32 @@ export default function Settings() {
         description: error?.message || "The required user safety checks failed.",
         variant: "destructive",
       }),
+    });
+  };
+
+  const handleBackfillSlugs = () => {
+    if (!window.confirm("Backfill the three production representative links (Arslan, Arslan duplicate, and Nate) only when the safety checks pass?")) return;
+    backfillSlugs.reset();
+    backfillSlugs.mutate(undefined, {
+      onSuccess: (result) => {
+        toast({
+          title: "Representative links checked",
+          description: `${result.changed} link${result.changed === 1 ? "" : "s"} updated; ${result.unchanged} already matched.`,
+        });
+      },
+    });
+  };
+
+  const handleSeedStarterEmail = () => {
+    if (!window.confirm("Create any missing starter email templates and the inactive New Application Nurture sequence? Existing templates will not be duplicated.")) return;
+    seedStarterEmail.reset();
+    seedStarterEmail.mutate(undefined, {
+      onSuccess: (result) => {
+        toast({
+          title: "Starter email data checked",
+          description: `${result.templatesCreated} template${result.templatesCreated === 1 ? "" : "s"} created; ${result.sequenceCreated ? "nurture sequence created" : "nurture sequence already existed"}.`,
+        });
+      },
     });
   };
 
@@ -293,6 +355,54 @@ export default function Settings() {
         {isAdmin && (
           <Card>
             <CardHeader>
+              <CardTitle>Email Delivery Safety</CardTitle>
+              <CardDescription>
+                Sending is disabled by default. Enable it only after SendGrid credentials and compliance settings are verified.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl">
+                <div>
+                  <div className="font-medium">Allow outbound email</div>
+                  <div className="text-sm text-muted-foreground">
+                    Applies to individual, bulk, drip, and test sends. Disabled sends are recorded as failed and are never delivered.
+                  </div>
+                </div>
+                <Switch
+                  checked={emailSendingEnabled}
+                  disabled={savingEmailSettings}
+                  onCheckedChange={setEmailSendingEnabled}
+                  aria-label="Allow outbound email"
+                />
+              </div>
+              <div className="flex flex-wrap items-end justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Bulk email rate cap</div>
+                  <div className="text-sm text-muted-foreground">Maximum messages per minute for each bulk request (1–1000).</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={bulkEmailPerMinute}
+                    onChange={(event) => setBulkEmailPerMinute(event.target.value)}
+                    className="w-24"
+                    aria-label="Bulk emails per minute"
+                  />
+                  <span className="text-sm text-muted-foreground">per minute</span>
+                </div>
+              </div>
+              <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                {savingEmailSettings ? "Saving…" : "Save Email Safety Settings"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
               <CardTitle>Lead Distribution</CardTitle>
               <CardDescription>
                 New inbound website leads and applications are assigned round-robin across one pool of eligible active users. Admins are excluded unless enabled here.
@@ -356,7 +466,7 @@ export default function Settings() {
                 <Wrench className="h-4 w-4 text-[#1F4E79]" />
                 Data Maintenance
               </CardTitle>
-              <CardDescription>Run narrowly scoped corrections for the seeded deal data.</CardDescription>
+              <CardDescription>Run narrowly scoped, admin-only maintenance actions for seeded CRM data.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl">
@@ -374,6 +484,61 @@ export default function Settings() {
                   {reassignSeededDeals.isPending ? "Correcting…" : "Correct ownership"}
                 </Button>
               </div>
+              {reassignSeededDeals.error && (
+                <p className="mt-2 text-sm text-destructive" role="alert">
+                  {reassignSeededDeals.error.message || "Unable to correct seeded ownership."}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Backfill representative links</div>
+                  <div className="text-sm text-muted-foreground">
+                    Safely applies the three production slugs and stops if a target user or slug check fails.
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleBackfillSlugs}
+                  disabled={backfillSlugs.isPending}
+                >
+                  {backfillSlugs.isPending ? "Backfilling…" : "Run slug backfill"}
+                </Button>
+              </div>
+              {backfillSlugs.error && (
+                <p className="mt-2 text-sm text-destructive" role="alert">
+                  {backfillSlugs.error.message || "Unable to backfill representative links."}
+                </p>
+              )}
+              {backfillSlugs.data && (
+                <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
+                  Link backfill complete: {backfillSlugs.data.changed} updated, {backfillSlugs.data.unchanged} already matched, across {backfillSlugs.data.users.length} production users.
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Seed starter email data</div>
+                  <div className="text-sm text-muted-foreground">
+                    Creates missing starter templates and the inactive New Application Nurture sequence without duplicating existing data.
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleSeedStarterEmail}
+                  disabled={seedStarterEmail.isPending}
+                >
+                  {seedStarterEmail.isPending ? "Seeding…" : "Seed email templates"}
+                </Button>
+              </div>
+              {seedStarterEmail.error && (
+                <p className="mt-2 text-sm text-destructive" role="alert">
+                  {seedStarterEmail.error.message || "Unable to seed starter email data."}
+                </p>
+              )}
+              {seedStarterEmail.data && (
+                <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
+                  Starter email seed complete: {seedStarterEmail.data.templatesCreated} template{seedStarterEmail.data.templatesCreated === 1 ? "" : "s"} created, {seedStarterEmail.data.skippedTemplates} skipped, and the nurture sequence was {seedStarterEmail.data.sequenceCreated ? "created" : "already present"}.
+                </p>
+              )}
             </CardContent>
           </Card>
         )}

@@ -9,6 +9,7 @@ import {
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
+import { isEmailSuppressed } from "../lib/emailSafety";
 
 const router = Router();
 
@@ -230,6 +231,9 @@ router.get("/leads/:id/drip", async (req: Request, res: Response) => {
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
   if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  if (!lead.email || lead.isUnsubscribed || await isEmailSuppressed(lead.email)) {
+    return void res.status(409).json({ error: "Recipient is suppressed and cannot be enrolled" });
+  }
 
   const enrollment = await db.query.dripEnrollmentsTable.findFirst({
     where: and(
@@ -255,6 +259,9 @@ router.post("/leads/:id/drip/enroll", async (req: Request, res: Response) => {
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
   if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  if (!lead.email || lead.isUnsubscribed || await isEmailSuppressed(lead.email)) {
+    return void res.status(409).json({ error: "Recipient is suppressed and cannot be enrolled" });
+  }
 
   const { sequenceId } = req.body as { sequenceId: number };
   if (!sequenceId) return void res.status(400).json({ error: "sequenceId required" });

@@ -9,13 +9,8 @@ import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { renderPdf, renderTemplate } from "../lib/renderPdf";
 import { objectStorageClient } from "../lib/objectStorage";
-import sgMail from "@sendgrid/mail";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
-
-const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
-const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"] || "noreply@mybusinesssolutions.com";
-const FROM_NAME = process.env["SENDGRID_FROM_NAME"] || "MBS CRM";
-if (SENDGRID_API_KEY) sgMail.setApiKey(SENDGRID_API_KEY);
+import { doSendEmail } from "./email";
 
 const router = Router();
 
@@ -208,8 +203,10 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     const gcsFile = bucket.file(flyer.pdfStorageKey);
     const [pdfBuffer] = await gcsFile.download();
 
-    const repUser = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
-    const repName = repUser ? getUserDisplayName(repUser, FROM_NAME) : FROM_NAME;
+    const repUser = await db.query.usersTable.findFirst({
+      where: eq(usersTable.id, leadRow.assignedRepId ?? user.id),
+    });
+    const repName = repUser ? getUserDisplayName(repUser, "My Business Solutions") : "My Business Solutions";
 
     const logoUrl = getBrandLogoUrl(getPublicBaseUrl());
     const emailHtml = `
@@ -233,21 +230,25 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
       </div>
     `;
 
-    if (SENDGRID_API_KEY) {
-      await sgMail.send({
-        to: leadRow.email,
-        from: { email: FROM_EMAIL, name: repName },
-        subject: `${flyerName} from My Business Solutions`,
-        html: emailHtml,
-        attachments: [
-          {
-            filename: `${flyerName}.pdf`,
-            content: pdfBuffer.toString("base64"),
-            type: "application/pdf",
-            disposition: "attachment",
-          },
-        ],
-      });
+    const { send, error: sendError } = await doSendEmail({
+      leadId: leadRow.id,
+      userId: user.id,
+      templateId: null,
+      subject: `${flyerName} from My Business Solutions`,
+      bodyHtml: emailHtml,
+      toEmail: leadRow.email,
+      baseUrl: getPublicBaseUrl(),
+      senderMode: "default",
+      rep: repUser,
+      attachments: [{
+        filename: `${flyerName}.pdf`,
+        content: pdfBuffer.toString("base64"),
+        type: "application/pdf",
+        disposition: "attachment",
+      }],
+    });
+    if (sendError) {
+      return void res.status(502).json({ error: `Flyer email delivery failed: ${sendError}` });
     }
 
     // Log activity
@@ -260,11 +261,11 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
       details: {
         flyerName,
         recipientEmail: leadRow.email,
-        devMode: !SENDGRID_API_KEY,
+        sendId: send.id,
       },
     });
 
-    res.json({ success: true, devMode: !SENDGRID_API_KEY });
+    res.json({ success: true, sendId: send.id });
   } catch (err) {
     req.log.error({ err }, "Failed to email flyer");
     res.status(500).json({ error: "Email failed" });

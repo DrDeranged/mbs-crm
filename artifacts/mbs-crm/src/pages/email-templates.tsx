@@ -153,7 +153,7 @@ function TemplateFormDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="default">My Business Solutions — funding@my-business-solutions.com</SelectItem>
-                <SelectItem value="assigned_rep">Assigned rep (verified company-domain addresses only)</SelectItem>
+                <SelectItem value="assigned_rep">Fixed sender + assigned rep Reply-To (when valid)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Replies go to the assigned rep whenever one is available.</p>
