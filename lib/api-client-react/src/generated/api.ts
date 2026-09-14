@@ -44,7 +44,6 @@ import type {
   BulkUpdateLeadStatusBody,
   CaptureCreditConsent201,
   CaptureCreditConsentBody,
-  CaptureLeadFromElementor400,
   CommActivity,
   Communication,
   CommunicationMetrics,
@@ -70,8 +69,6 @@ import type {
   DripSequenceInput,
   DripSequenceStep,
   DuplicateResponse,
-  ElementorCaptureInput,
-  ElementorCaptureResponse,
   EmailDeliverySettings,
   EmailDeliverySettingsUpdate,
   EmailFlyer200,
@@ -1995,77 +1992,6 @@ export const useCaptureLeadFromWebsite = <TError = ErrorType<DuplicateResponse>,
         TContext
       > => {
       return useMutation(getCaptureLeadFromWebsiteMutationOptions(options));
-    }
-
-export const getCaptureLeadFromElementorUrl = () => {
-
-
-
-
-  return `/api/leads/capture/elementor`
-}
-
-/**
- * @summary Elementor Pro webhook endpoint — maps flexible form fields to a CRM lead with spam filtering (no auth required)
- */
-export const captureLeadFromElementor = async (elementorCaptureInput: ElementorCaptureInput, options?: RequestInit): Promise<ElementorCaptureResponse> => {
-
-  return customFetch<ElementorCaptureResponse>(getCaptureLeadFromElementorUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      elementorCaptureInput,)
-  }
-);}
-
-
-
-
-export const getCaptureLeadFromElementorMutationOptions = <TError = ErrorType<CaptureLeadFromElementor400>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureLeadFromElementor>>, TError,{data: BodyType<ElementorCaptureInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof captureLeadFromElementor>>, TError,{data: BodyType<ElementorCaptureInput>}, TContext> => {
-
-const mutationKey = ['captureLeadFromElementor'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof captureLeadFromElementor>>, {data: BodyType<ElementorCaptureInput>}> = (props) => {
-          const {data} = props ?? {};
-
-          return  captureLeadFromElementor(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CaptureLeadFromElementorMutationResult = NonNullable<Awaited<ReturnType<typeof captureLeadFromElementor>>>
-    export type CaptureLeadFromElementorMutationBody = BodyType<ElementorCaptureInput>
-    export type CaptureLeadFromElementorMutationError = ErrorType<CaptureLeadFromElementor400>
-
-    /**
- * @summary Elementor Pro webhook endpoint — maps flexible form fields to a CRM lead with spam filtering (no auth required)
- */
-export const useCaptureLeadFromElementor = <TError = ErrorType<CaptureLeadFromElementor400>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureLeadFromElementor>>, TError,{data: BodyType<ElementorCaptureInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof captureLeadFromElementor>>,
-        TError,
-        {data: BodyType<ElementorCaptureInput>},
-        TContext
-      > => {
-      return useMutation(getCaptureLeadFromElementorMutationOptions(options));
     }
 
 export const getExportLeadsUrl = (params?: ExportLeadsParams,) => {

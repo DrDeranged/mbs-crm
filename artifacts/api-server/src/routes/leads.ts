@@ -24,7 +24,6 @@ import {
   CaptureLeadFromWebsiteBody,
 } from "@workspace/api-zod";
 import rateLimit from "express-rate-limit";
-import multer from "multer";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
@@ -33,7 +32,6 @@ import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDi
 import { writeCsvRow } from "../lib/csv";
 import { isLeadStale } from "../lib/staleLeadPredicate";
 import { buildStaleLeadCondition } from "../lib/staleLeadCondition";
-import { parseElementorCaptureRequest } from "../lib/elementorCaptureResult";
 import {
   buildLeadHydrationWhere,
   buildLeadPageIdsQuery,
@@ -262,78 +260,6 @@ async function findDuplicate(email?: string, phone?: string, ein?: string) {
   return existing ?? null;
 }
 
-function checkSpam(
-  message: string,
-  email?: string,
-  phone?: string,
-): { spam: boolean; reason: string } {
-  const lower = message.toLowerCase();
-
-  // ── Soft signal: phone with fewer than 10 digits ──────────────────────────
-  // Alone it is not enough to reject; combined with any hard signal it is.
-  const hasShortPhone = !!phone && (() => {
-    const digits = phone.replace(/\D/g, "");
-    return digits.length > 0 && digits.length < 10;
-  })();
-
-  // Helper — when a hard signal fires, fold the short-phone soft signal in.
-  const hit = (reason: string): { spam: boolean; reason: string } =>
-    ({ spam: true, reason: hasShortPhone ? "combo:short_phone" : reason });
-
-  // ── Lookalike-domain rule ─────────────────────────────────────────────────
-  // Genuine merchants never email from a variant of OUR brand name.
-  // Normalise: lowercase, strip hyphens, dots, underscores.
-  if (email) {
-    const domain = (email.split("@")[1] ?? "").toLowerCase();
-    const norm   = domain.replace(/[-_.]/g, "");
-    const isRealDomain = domain === "my-business-solutions.com";
-    if (!isRealDomain && norm.includes("mybusinesssolutions")) {
-      return hit("lookalike_domain");
-    }
-  }
-
-  // ── Hard URL/messaging signals ────────────────────────────────────────────
-  const urls = message.match(/https?:\/\/\S+/gi) ?? [];
-  if (urls.length > 1) return hit("multiple_urls");
-  if (/t\.me\/|wa\.me\/|telegram\.me/.test(lower)) return hit("messaging_app_link");
-  if (/\bskype\b/.test(lower) && urls.length > 0) return hit("skype_link");
-
-  // ── Keyword signals ───────────────────────────────────────────────────────
-  const SPAM_KEYWORDS = [
-    // SEO / traffic
-    "search engine rank", "search engine optimiz", "seo service", "seo package",
-    "google ranking", "google first page", "page one of google",
-    "boost your traffic", "increase your traffic", "drive traffic",
-    "traffic to your website", "i noticed your website",
-    "i visited your website", "your website ranking",
-    "improve your ranking", "free seo audit",
-    "backlink", "link building", "domain authorit",
-    // Bulk messaging / marketing
-    "bulk message", "bulk email", "email blast",
-    "digital marketing agenc", "marketing package",
-    "social media marketing", "content marketing service",
-    // Crypto
-    "cryptocurrency invest", "crypto invest", "bitcoin invest",
-    // Price-bait
-    "$59/", "$49/", "$29/",
-    // Generic spam openers
-    "dear website owner", "dear admin", "dear sir/madam",
-    "i am a professional seo", "we are a seo",
-    // Domain / trademark scam signals
-    "domain registration", "domain expir", "domain renewal",
-    "trademark protect", "brand protection",
-    "domain name notice", "registration notice",
-    "intellectual property protect",
-    "cn domain", "asia domain",
-  ];
-
-  for (const kw of SPAM_KEYWORDS) {
-    if (lower.includes(kw)) return hit(`keyword:${kw.trim()}`);
-  }
-
-  return { spam: false, reason: "" };
-}
-
 router.get("/leads", createListLeadsHandler());
 
 router.post("/leads", async (req: Request, res: Response) => {
@@ -453,143 +379,6 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   const capturePayload: Record<string, unknown> = { success: true, leadId: lead.id };
   void storeIdempotency(idempKey, "leads/capture", `lead:${lead.id}`, capturePayload);
   res.status(201).json(capturePayload);
-});
-
-// multer instance for parsing multipart/form-data (fields only, no file uploads)
-const elementorMulter = multer({ storage: multer.memoryStorage(), limits: { fields: 50, fieldSize: 4096, fileSize: 0 } });
-
-// ── Elementor webhook capture ─────────────────────────────────────────────────
-// POST /leads/capture/elementor — public, rate-limited.
-// Accepts Elementor Pro form payloads (flexible key/value pairs).  Returns 200
-// for every non-error outcome (new lead, duplicate, spam) so the webhook never
-// errors on the WordPress side.
-// Supports all three content-types Elementor may send:
-//   • application/json          (handled by express.json() globally)
-//   • application/x-www-form-urlencoded (handled by express.urlencoded() globally)
-//   • multipart/form-data       (handled by elementorMulter below, this route only)
-router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none(), async (req: Request, res: Response) => {
-  const parsed = parseElementorCaptureRequest(req.body);
-  if (!parsed.ok) {
-    req.log.warn({ error: parsed.body.error }, "elementor webhook — malformed payload");
-    res.status(parsed.status).json(parsed.body);
-    return;
-  }
-  const { firstName, lastName, fullName, email: emailVal, phone: phoneVal, message, company: companyVal } = parsed.data;
-
-  // ── Guard: empty body — valid webhook outcome, but nothing to capture ─────
-  if (!emailVal && !firstName && !lastName && !fullName) {
-    req.log.warn({ body: req.body }, "elementor webhook received body with no usable fields — ignoring");
-    res.status(200).json({ success: true, ignored: "empty_or_unparseable" });
-    return;
-  }
-
-  // ── Basic validation ──────────────────────────────────────────────────────
-  if (!emailVal && !phoneVal) {
-    res.status(200).json({ success: true, ignored: "no_contact_info" });
-    return;
-  }
-  if (firstName.length > 100 || lastName.length > 100) {
-    res.status(400).json({ error: "Name too long" });
-    return;
-  }
-  if (emailVal && emailVal.length > 254) {
-    res.status(400).json({ error: "Email too long" });
-    return;
-  }
-  if (phoneVal && !/^\+?[\d\s\-().]{7,20}$/.test(phoneVal)) {
-    res.status(400).json({ error: "Invalid phone format" });
-    return;
-  }
-
-  // ── Spam filter ───────────────────────────────────────────────────────────
-  if (message) {
-    const spamResult = checkSpam(message, emailVal, phoneVal);
-    if (spamResult.spam) {
-      // Log for admin review — do NOT create a lead
-      await logActivity({
-        userId: null,
-        leadId: null,
-        action: "spam_filtered",
-        entityType: "lead",
-        entityId: 0,
-        details: {
-          reason:  spamResult.reason,
-          email:   emailVal,
-          name:    fullName || `${firstName} ${lastName}`.trim(),
-          message: message.slice(0, 500),
-        },
-      });
-      res.status(200).json({ success: true }); // silent success — webhook must not error
-      return;
-    }
-  }
-
-  // ── Idempotency (5-minute window keyed on email+phone) ────────────────────
-  const timeBucket = Math.floor(Date.now() / (5 * 60 * 1000)).toString();
-  const idempKey   = deriveKey(`leads/capture/elementor|${emailVal}|${phoneVal}|${timeBucket}`);
-  const cached     = await checkIdempotency(idempKey, "leads/capture/elementor");
-  if (cached) {
-    res.status(200).json(cached);
-    return;
-  }
-
-  // ── Duplicate detection — return 200, not 409, so webhook doesn't error ───
-  const dup = await findDuplicate(emailVal || undefined, phoneVal || undefined);
-  if (dup) {
-    const dupPayload: Record<string, unknown> = { success: true, duplicate: true, leadId: dup.id };
-    void storeIdempotency(idempKey, "leads/capture/elementor", `lead:${dup.id}`, dupPayload);
-    res.status(200).json(dupPayload);
-    return;
-  }
-
-  const assignedRepId = await resolveInboundAssignee();
-
-  // ── Create lead ───────────────────────────────────────────────────────────
-  const [lead] = await db.insert(leadsTable).values({
-    firstName:    firstName  || null,
-    lastName:     lastName   || null,
-    email:        emailVal   || null,
-    phone:        phoneVal   || null,
-    companyName:  companyVal || null,
-    applicationType: "working_capital",
-    leadSource:   "website",
-    ...(assignedRepId ? { assignedRepId } : {}),
-  }).returning();
-
-  // Store message in activity details (notes require a non-null userId)
-  await logActivity({
-    userId:     null,
-    leadId:     lead.id,
-    action:     "lead_created",
-    entityType: "lead",
-    entityId:   lead.id,
-    details: {
-      source: "elementor_webhook",
-      ...(message ? { message: message.slice(0, 2000) } : {}),
-    },
-  });
-
-  // ── Notify assigned rep + all managers of new website lead ───────────────
-  const leadName = [firstName, lastName].filter(Boolean).join(" ") || companyVal || "Website lead";
-  notifyAllManagers(
-    "lead_assigned",
-    "New website lead",
-    `${leadName} submitted a contact form`,
-    lead.id,
-  ).catch(() => {});
-  if (assignedRepId) {
-    createNotification({
-      userId: assignedRepId,
-      type: "lead_assigned",
-      title: "New website lead assigned to you",
-      body: leadName,
-      leadId: lead.id,
-    }).catch(() => {});
-  }
-
-  const elementorPayload: Record<string, unknown> = { success: true, leadId: lead.id };
-  void storeIdempotency(idempKey, "leads/capture/elementor", `lead:${lead.id}`, elementorPayload);
-  res.status(200).json(elementorPayload);
 });
 
 function buildLeadsWhere(q: any, userRole: string, userId: number, staleThresholdDays = 7, now = Date.now()) {

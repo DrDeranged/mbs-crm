@@ -222,3 +222,27 @@ test("GET /api/leads?stale=true returns only stale assigned leads for an admin",
     });
   }
 });
+
+test("POST /api/leads/capture/elementor is absent and does not invoke a handler", async () => {
+  process.env.DATABASE_URL ??= "postgresql://integration-test.invalid/test";
+  const { default: leadsRouter } = await import("../routes/leads");
+  const app = express();
+  app.use("/api", leadsRouter);
+
+  const server = createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const address = server.address();
+    assert(address && typeof address !== "string");
+    const response = await fetch(
+      `http://127.0.0.1:${address.port}/api/leads/capture/elementor`,
+      { method: "POST", body: JSON.stringify({ email: "retired@example.com" }) },
+    );
+
+    assert.equal(response.status, 404);
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => error ? reject(error) : resolve());
+    });
+  }
+});
