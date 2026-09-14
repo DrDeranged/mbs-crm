@@ -119,6 +119,37 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/users/backfill-slugs:
+    post:
+      operationId: backfillSlugs
+      tags: [admin]
+      summary: Backfill the production representative slugs (admin only)
+      responses:
+        "200":
+          description: Slug backfill result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlugBackfillResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "409":
+          description: Slug backfill safety check failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+
   /admin/qr-verify:
     get:
       operationId: verifyAdminRepQrRoutes
@@ -305,6 +336,7 @@ paths:
           description: Unauthorized
         "403":
           description: Forbidden
+
     put:
       operationId: updateLeadDistributionSettings
       tags: [admin]
@@ -322,6 +354,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LeadDistributionSettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /settings/email-delivery:
+    get:
+      operationId: getEmailDeliverySettings
+      tags: [admin]
+      summary: Get the database-backed outbound email safety settings (admin only)
+      responses:
+        "200":
+          description: Email delivery settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailDeliverySettings"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    put:
+      operationId: updateEmailDeliverySettings
+      tags: [admin]
+      summary: Enable or disable outbound email and configure the server-side bulk rate cap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailDeliverySettingsUpdate"
+      responses:
+        "200":
+          description: Updated email delivery settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailDeliverySettings"
+        "400":
+          description: Invalid settings
         "401":
           description: Unauthorized
         "403":
@@ -1591,6 +1663,23 @@ paths:
         "401":
           description: Unauthorized
 
+  /analytics/unassigned-inbound-count:
+    get:
+      operationId: getUnassignedInboundCount
+      tags: [analytics]
+      summary: Count unassigned website and QR-card leads older than 24 hours (admin only)
+      responses:
+        "200":
+          description: Current inbound assignment backlog
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnassignedInboundCount"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
   /analytics/pipeline:
     get:
       operationId: getAnalyticsPipeline
@@ -2817,6 +2906,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/BulkEmailResult"
 
+  /email/seed-starter:
+    post:
+      operationId: seedStarterEmail
+      tags: [email]
+      summary: Seed starter email templates and nurture sequence (admin only)
+      responses:
+        "200":
+          description: Starter email seed result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StarterEmailSeedResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+
   /email/track/open/{sendId}:
     get:
       operationId: trackEmailOpen
@@ -2828,6 +2942,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: token
+          in: query
+          required: true
+          description: HMAC signature binding this pixel to the send
+          schema:
+            type: string
       responses:
         "200":
           description: 1x1 transparent GIF
@@ -2853,9 +2973,46 @@ paths:
           required: true
           schema:
             type: string
+        - name: token
+          in: query
+          required: true
+          description: HMAC signature binding this destination URL to the send
+          schema:
+            type: string
       responses:
         "302":
           description: Redirect to original URL
+
+  /email/unsubscribe:
+    get:
+      operationId: unsubscribeEmailRecipient
+      tags: [email]
+      summary: Unsubscribe every lead and queued send for the signed recipient email
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+        - name: token
+          in: query
+          required: true
+          description: HMAC signature binding the recipient and send
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recipient unsubscribed
+        "400":
+          description: Malformed link
+        "403":
+          description: Invalid signature
 
   /leads/{id}/emails:
     get:
@@ -3397,6 +3554,14 @@ components:
         avgFundingTimeDays:
           type: ["number", "null"]
 
+    UnassignedInboundCount:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+          description: Unassigned website or QR-card leads created more than 24 hours ago
+
     AnalyticsPipeline:
       type: object
       required: [stages]
@@ -3578,7 +3743,7 @@ components:
 
     Lead:
       type: object
-      required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle]
+      required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle, needsAssignment]
       properties:
         id:
           type: integer
@@ -3608,7 +3773,7 @@ components:
             - type: "null"
         leadSource:
           type: string
-          enum: [website, referral, import, manual]
+          enum: [website, referral, import, manual, qr-card]
         requestedAmount:
           type: ["integer", "null"]
           description: Amount the lead requested at intake
@@ -3626,6 +3791,14 @@ components:
             - $ref: "#/components/schemas/User"
             - type: "null"
           description: User who performed the most recent activity
+        createdBy:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+          description: User who created the lead, derived from the earliest lead-creation activity
+        needsAssignment:
+          type: boolean
+          description: Whether an unassigned website or QR-card lead is older than 24 hours
         leadScore:
           type: ["integer", "null"]
           description: Automated 0-100 lead quality score
@@ -3729,7 +3902,7 @@ components:
           description: Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user
         leadSource:
           type: string
-          enum: [website, referral, import, manual]
+          enum: [website, referral, import, manual, qr-card]
         company:
           $ref: "#/components/schemas/CompanyInput"
 
@@ -3846,6 +4019,32 @@ components:
           type: integer
           minimum: 1
           maximum: 365
+
+    EmailDeliverySettings:
+      type: object
+      required: [emailSendingEnabled, bulkEmailPerMinute]
+      properties:
+        emailSendingEnabled:
+          type: boolean
+          default: false
+          description: Explicit database-backed opt-in for all outbound email paths
+        bulkEmailPerMinute:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 60
+          description: Maximum messages per minute for one bulk request
+
+    EmailDeliverySettingsUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        emailSendingEnabled:
+          type: boolean
+        bulkEmailPerMinute:
+          type: integer
+          minimum: 1
+          maximum: 1000
 
     DuplicateResponse:
       type: object
@@ -4483,7 +4682,9 @@ components:
           type: string
         status:
           type: string
-          enum: [queued, sent, delivered, opened, clicked, bounced, unsubscribed]
+          enum: [queued, failed, sent, delivered, opened, clicked, bounced, unsubscribed]
+        failureReason:
+          type: ["string", "null"]
         sendgridMessageId:
           type: ["string", "null"]
         sentAt:
@@ -4538,6 +4739,18 @@ components:
           type: array
           items:
             type: integer
+        failures:
+          type: array
+          items:
+            type: object
+            required: [leadId, error]
+            properties:
+              leadId:
+                type: integer
+              error:
+                type: string
+        rateLimitPerMinute:
+          type: integer
 
     DripSequence:
       type: object
@@ -5482,6 +5695,33 @@ components:
         changedDealIds:
           type: array
           items: { type: integer }
+
+    SlugBackfillResponse:
+      type: object
+      required: [changed, unchanged, users]
+      properties:
+        changed: { type: integer }
+        unchanged: { type: integer }
+        users:
+          type: array
+          items:
+            type: object
+            required: [userId, previousSlug, slug, changed, duplicateForReview]
+            properties:
+              userId: { type: integer }
+              previousSlug: { type: ["string", "null"] }
+              slug: { type: string }
+              changed: { type: boolean }
+              duplicateForReview: { type: boolean }
+
+    StarterEmailSeedResponse:
+      type: object
+      required: [templatesCreated, sequenceCreated, skippedTemplates, message]
+      properties:
+        templatesCreated: { type: integer }
+        sequenceCreated: { type: boolean }
+        skippedTemplates: { type: integer }
+        message: { type: string }
 
     AdminMaintenanceError:
       type: object

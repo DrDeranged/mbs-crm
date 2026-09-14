@@ -7,7 +7,9 @@ import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-o
 import { z } from "zod/v4";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
-import { getLatestActivities, logActivity } from "../lib/activityHelper";
+import { getLatestActivities, getLeadCreationActivities, logActivity } from "../lib/activityHelper";
+import { isUnassignedInboundLead } from "../lib/inboundLead";
+import { isEmailSuppressed } from "../lib/emailSafety";
 import {
   ListLeadsQueryParams,
   CreateLeadBody,
@@ -43,6 +45,7 @@ function leadToApi(
   lead: typeof leadsTable.$inferSelect,
   rep?: typeof usersTable.$inferSelect | null,
   latestActivity?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
+  createdBy?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
   staleThresholdDays = 7,
 ) {
   // Staleness is based on the activity log itself, rather than the denormalized
@@ -69,6 +72,8 @@ function leadToApi(
     updatedAt: lead.updatedAt.toISOString(),
     lastActivityAt: latestActivity?.createdAt.toISOString() ?? lead.lastActivityAt?.toISOString() ?? null,
     lastActivityActor: latestActivity?.user ? userToApi(latestActivity.user) : null,
+    createdBy: createdBy?.user ? userToApi(createdBy.user) : null,
+    needsAssignment: isUnassignedInboundLead(lead),
     isStale: lead.assignedRepId != null && daysIdle >= staleThresholdDays,
     daysIdle,
     leadScore: lead.leadScore ?? null,
@@ -102,11 +107,12 @@ async function leadToApiWithCurrentActivity(
   lead: typeof leadsTable.$inferSelect,
   rep?: typeof usersTable.$inferSelect | null,
 ) {
-  const [latestActivities, staleThresholdDays] = await Promise.all([
+  const [latestActivities, creationActivities, staleThresholdDays] = await Promise.all([
     getLatestActivities("lead", [lead.id]),
+    getLeadCreationActivities([lead.id]),
     getStaleThresholdDays(),
   ]);
-  return leadToApi(lead, rep, latestActivities.get(lead.id), staleThresholdDays);
+  return leadToApi(lead, rep, latestActivities.get(lead.id), creationActivities.get(lead.id), staleThresholdDays);
 }
 
 async function findDuplicate(email?: string, phone?: string, ein?: string) {
@@ -266,10 +272,20 @@ router.get("/leads", async (req: Request, res: Response) => {
       .from(leadsTable)
       .where(whereClause as any),
   ]);
-  const latestActivities = await getLatestActivities("lead", leadsRaw.map((lead) => lead.id));
+  const leadIds = leadsRaw.map((lead) => lead.id);
+  const [latestActivities, creationActivities] = await Promise.all([
+    getLatestActivities("lead", leadIds),
+    getLeadCreationActivities(leadIds),
+  ]);
 
   res.json({
-    leads: leadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, latestActivities.get(l.id), staleThresholdDays)),
+    leads: leadsRaw.map((l) => leadToApi(
+      l,
+      (l as any).assignedRep,
+      latestActivities.get(l.id),
+      creationActivities.get(l.id),
+      staleThresholdDays,
+    )),
     total,
     page,
     limit,
@@ -326,7 +342,7 @@ router.post("/leads", async (req: Request, res: Response) => {
     });
   }
 
-  await logActivity({ userId: user.id, leadId: lead.id, action: "created", entityType: "lead", entityId: lead.id });
+  await logActivity({ userId: user.id, leadId: lead.id, action: "lead_created", entityType: "lead", entityId: lead.id });
 
   res.status(201).json(await leadToApiWithCurrentActivity(lead, null));
 });
@@ -389,7 +405,7 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
     ...(assignedRepId ? { assignedRepId } : {}),
   }).returning();
 
-  await logActivity({ userId: null, leadId: lead.id, action: "captured", entityType: "lead", entityId: lead.id });
+  await logActivity({ userId: null, leadId: lead.id, action: "lead_created", entityType: "lead", entityId: lead.id });
 
   const capturePayload: Record<string, unknown> = { success: true, leadId: lead.id };
   void storeIdempotency(idempKey, "leads/capture", `lead:${lead.id}`, capturePayload);
@@ -589,7 +605,7 @@ router.post("/leads/capture/elementor", captureRateLimiter, elementorMulter.none
   await logActivity({
     userId:     null,
     leadId:     lead.id,
-    action:     "captured",
+    action:     "lead_created",
     entityType: "lead",
     entityId:   lead.id,
     details: {
@@ -978,9 +994,16 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
 
   const { company, notes, tasks, documents, activityLog, assignedRep, ...leadFields } = lead as any;
   const latestActivity = activityLog[0] ?? null;
+  const creationActivities = await getLeadCreationActivities([lead.id]);
 
   res.json({
-    ...leadToApi(leadFields, assignedRep, latestActivity, await getStaleThresholdDays()),
+    ...leadToApi(
+      leadFields,
+      assignedRep,
+      latestActivity,
+      creationActivities.get(lead.id),
+      await getStaleThresholdDays(),
+    ),
     company: company ? {
       id: company.id,
       leadId: company.leadId,
@@ -1162,7 +1185,13 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
 
   // Auto-enroll in any active drip sequences triggered by the new status
   try {
-    if (process.env["DRIP_AUTOMATION_ENABLED"] === "true") {
+    const suppressed = !updated.email || updated.isUnsubscribed ||
+      await isEmailSuppressed(updated.email);
+    if (suppressed) {
+      await db.update(dripEnrollmentsTable)
+        .set({ status: "unenrolled", unenrolledAt: new Date() })
+        .where(and(eq(dripEnrollmentsTable.leadId, params.data.id), eq(dripEnrollmentsTable.status, "active")));
+    } else if (process.env["DRIP_AUTOMATION_ENABLED"] === "true") {
       const triggeredSequences = await db.query.dripSequencesTable.findMany({
       where: and(
         eq(dripSequencesTable.triggerStatus, body.data.status as any),

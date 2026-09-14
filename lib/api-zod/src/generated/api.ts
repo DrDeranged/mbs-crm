@@ -76,6 +76,22 @@ export const GetAdminErrorsResponse = zod.object({
 
 
 /**
+ * @summary Backfill the production representative slugs (admin only)
+ */
+export const BackfillSlugsResponse = zod.object({
+  "changed": zod.number(),
+  "unchanged": zod.number(),
+  "users": zod.array(zod.object({
+  "userId": zod.number(),
+  "previousSlug": zod.string().nullable(),
+  "slug": zod.string(),
+  "changed": zod.boolean(),
+  "duplicateForReview": zod.boolean()
+}))
+})
+
+
+/**
  * @summary Verify active representative resolver and QR routes (admin only)
  */
 export const VerifyAdminRepQrRoutesResponse = zod.object({
@@ -250,6 +266,45 @@ export const UpdateLeadDistributionSettingsResponse = zod.object({
 
 
 /**
+ * @summary Get the database-backed outbound email safety settings (admin only)
+ */
+export const getEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
+export const getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
+export const getEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
+
+
+
+export const GetEmailDeliverySettingsResponse = zod.object({
+  "emailSendingEnabled": zod.boolean().default(getEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
+  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+})
+
+
+/**
+ * @summary Enable or disable outbound email and configure the server-side bulk rate cap
+ */
+export const updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax = 1000;
+
+
+
+export const UpdateEmailDeliverySettingsBody = zod.object({
+  "emailSendingEnabled": zod.boolean().optional(),
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional()
+})
+
+export const updateEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
+export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
+export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
+
+
+
+export const UpdateEmailDeliverySettingsResponse = zod.object({
+  "emailSendingEnabled": zod.boolean().default(updateEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+})
+
+
+/**
  * @summary Store or clear push token for own account (own user only)
  */
 export const UpdateUserPushTokenParams = zod.object({
@@ -307,7 +362,7 @@ export const ListLeadsResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -323,6 +378,18 @@ export const ListLeadsResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -361,7 +428,7 @@ export const CreateLeadBody = zod.object({
   "ein": zod.string().optional(),
   "applicationType": zod.enum(['equipment', 'working_capital']).optional(),
   "assignedRepId": zod.number().optional().describe('Optional assignment; only managers\/admins may provide this, and the destination must be an active eligible user'),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']).optional(),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']).optional(),
   "company": zod.object({
   "name": zod.string().optional(),
   "address": zod.string().optional(),
@@ -671,7 +738,7 @@ export const GetLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -687,6 +754,18 @@ export const GetLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -851,7 +930,7 @@ export const UpdateLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -867,6 +946,18 @@ export const UpdateLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -922,7 +1013,7 @@ export const ChangeLeadStatusResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -938,6 +1029,18 @@ export const ChangeLeadStatusResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -992,7 +1095,7 @@ export const AssignLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -1008,6 +1111,18 @@ export const AssignLeadResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1270,7 +1385,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -1286,6 +1401,18 @@ export const GetDashboardSummaryResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1339,7 +1466,7 @@ export const GetRepDashboardResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "leadSource": zod.enum(['website', 'referral', 'import', 'manual']),
+  "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']),
   "requestedAmount": zod.number().nullish().describe('Amount the lead requested at intake'),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
@@ -1355,6 +1482,18 @@ export const GetRepDashboardResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "createdBy": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
+  "needsAssignment": zod.boolean().describe('Whether an unassigned website or QR-card lead is older than 24 hours'),
   "leadScore": zod.number().nullish().describe('Automated 0-100 lead quality score'),
   "leadScoreBreakdown": zod.object({
 
@@ -1905,6 +2044,14 @@ export const GetAnalyticsSummaryResponse = zod.object({
   "totalRevenue": zod.number().optional().describe('Sum of fundedAmount across funded leads in the date range'),
   "conversionRate": zod.number(),
   "avgFundingTimeDays": zod.number().nullish()
+})
+
+
+/**
+ * @summary Count unassigned website and QR-card leads older than 24 hours (admin only)
+ */
+export const GetUnassignedInboundCountResponse = zod.object({
+  "count": zod.number().describe('Unassigned website or QR-card leads created more than 24 hours ago')
 })
 
 
@@ -2940,7 +3087,23 @@ export const SendBulkEmailBody = zod.object({
 export const SendBulkEmailResponse = zod.object({
   "sent": zod.number(),
   "failed": zod.number(),
-  "skipped": zod.array(zod.number()).optional()
+  "skipped": zod.array(zod.number()).optional(),
+  "failures": zod.array(zod.object({
+  "leadId": zod.number(),
+  "error": zod.string()
+})).optional(),
+  "rateLimitPerMinute": zod.number().optional()
+})
+
+
+/**
+ * @summary Seed starter email templates and nurture sequence (admin only)
+ */
+export const SeedStarterEmailResponse = zod.object({
+  "templatesCreated": zod.number(),
+  "sequenceCreated": zod.boolean(),
+  "skippedTemplates": zod.number(),
+  "message": zod.string()
 })
 
 
@@ -2949,6 +3112,10 @@ export const SendBulkEmailResponse = zod.object({
  */
 export const TrackEmailOpenParams = zod.object({
   "sendId": zod.coerce.number()
+})
+
+export const TrackEmailOpenQueryParams = zod.object({
+  "token": zod.coerce.string().describe('HMAC signature binding this pixel to the send')
 })
 
 
@@ -2960,7 +3127,18 @@ export const TrackEmailClickParams = zod.object({
 })
 
 export const TrackEmailClickQueryParams = zod.object({
-  "url": zod.coerce.string()
+  "url": zod.coerce.string(),
+  "token": zod.coerce.string().describe('HMAC signature binding this destination URL to the send')
+})
+
+
+/**
+ * @summary Unsubscribe every lead and queued send for the signed recipient email
+ */
+export const UnsubscribeEmailRecipientQueryParams = zod.object({
+  "id": zod.coerce.number(),
+  "email": zod.coerce.string().email(),
+  "token": zod.coerce.string().describe('HMAC signature binding the recipient and send')
 })
 
 
@@ -2979,7 +3157,8 @@ export const ListLeadEmailsResponseItem = zod.object({
   "subject": zod.string(),
   "toEmail": zod.string(),
   "fromEmail": zod.string(),
-  "status": zod.enum(['queued', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'unsubscribed']),
+  "status": zod.enum(['queued', 'failed', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'unsubscribed']),
+  "failureReason": zod.string().nullish(),
   "sendgridMessageId": zod.string().nullish(),
   "sentAt": zod.coerce.date().nullish(),
   "openedAt": zod.coerce.date().nullish(),

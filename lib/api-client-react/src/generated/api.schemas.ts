@@ -20,6 +20,11 @@ export interface AnalyticsSummary {
   avgFundingTimeDays?: number | null;
 }
 
+export interface UnassignedInboundCount {
+  /** Unassigned website or QR-card leads created more than 24 hours ago */
+  count: number;
+}
+
 export type AnalyticsPipelineStagesItem = {
   status: string;
   count: number;
@@ -181,6 +186,7 @@ export const LeadLeadSource = {
   referral: 'referral',
   import: 'import',
   manual: 'manual',
+  'qr-card': 'qr-card',
 } as const;
 
 /**
@@ -228,6 +234,10 @@ export interface Lead {
   lastActivityAt?: string | null;
   /** User who performed the most recent activity */
   lastActivityActor?: User | null;
+  /** User who created the lead, derived from the earliest lead-creation activity */
+  createdBy?: User | null;
+  /** Whether an unassigned website or QR-card lead is older than 24 hours */
+  needsAssignment: boolean;
   /**
      * Automated 0-100 lead quality score
      * @nullable
@@ -375,6 +385,7 @@ export const LeadInputLeadSource = {
   referral: 'referral',
   import: 'import',
   manual: 'manual',
+  'qr-card': 'qr-card',
 } as const;
 
 export interface CompanyInput {
@@ -491,6 +502,26 @@ export interface LeadDistributionSettingsUpdate {
      * @maximum 365
      */
   staleThresholdDays?: number;
+}
+
+export interface EmailDeliverySettings {
+  /** Explicit database-backed opt-in for all outbound email paths */
+  emailSendingEnabled: boolean;
+  /**
+     * Maximum messages per minute for one bulk request
+     * @minimum 1
+     * @maximum 1000
+     */
+  bulkEmailPerMinute: number;
+}
+
+export interface EmailDeliverySettingsUpdate {
+  emailSendingEnabled?: boolean;
+  /**
+     * @minimum 1
+     * @maximum 1000
+     */
+  bulkEmailPerMinute?: number;
 }
 
 export interface DuplicateResponse {
@@ -817,6 +848,7 @@ export type EmailSendStatus = typeof EmailSendStatus[keyof typeof EmailSendStatu
 
 export const EmailSendStatus = {
   queued: 'queued',
+  failed: 'failed',
   sent: 'sent',
   delivered: 'delivered',
   opened: 'opened',
@@ -837,6 +869,8 @@ export interface EmailSend {
   toEmail: string;
   fromEmail: string;
   status: EmailSendStatus;
+  /** @nullable */
+  failureReason?: string | null;
   /** @nullable */
   sendgridMessageId?: string | null;
   /** @nullable */
@@ -861,10 +895,17 @@ export interface BulkEmailInput {
   templateId: number;
 }
 
+export type BulkEmailResultFailuresItem = {
+  leadId: number;
+  error: string;
+};
+
 export interface BulkEmailResult {
   sent: number;
   failed: number;
   skipped?: number[];
+  failures?: BulkEmailResultFailuresItem[];
+  rateLimitPerMinute?: number;
 }
 
 export type DripSequenceSenderMode = typeof DripSequenceSenderMode[keyof typeof DripSequenceSenderMode];
@@ -1677,6 +1718,28 @@ export interface SeededDealReassignmentResponse {
   changedDealIds: number[];
 }
 
+export type SlugBackfillResponseUsersItem = {
+  userId: number;
+  /** @nullable */
+  previousSlug: string | null;
+  slug: string;
+  changed: boolean;
+  duplicateForReview: boolean;
+};
+
+export interface SlugBackfillResponse {
+  changed: number;
+  unchanged: number;
+  users: SlugBackfillResponseUsersItem[];
+}
+
+export interface StarterEmailSeedResponse {
+  templatesCreated: number;
+  sequenceCreated: boolean;
+  skippedTemplates: number;
+  message: string;
+}
+
 export interface AdminMaintenanceError {
   error: string;
 }
@@ -2284,8 +2347,28 @@ export type SendTestEmailBody = {
   toEmail: string;
 };
 
+export type TrackEmailOpenParams = {
+/**
+ * HMAC signature binding this pixel to the send
+ */
+token: string;
+};
+
 export type TrackEmailClickParams = {
 url: string;
+/**
+ * HMAC signature binding this destination URL to the send
+ */
+token: string;
+};
+
+export type UnsubscribeEmailRecipientParams = {
+id: number;
+email: string;
+/**
+ * HMAC signature binding the recipient and send
+ */
+token: string;
 };
 
 export type EnrollLeadInDripBody = {

@@ -1,6 +1,6 @@
 import { db } from "@workspace/db";
 import { activityLogTable, leadsTable, usersTable } from "@workspace/db";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 
 export async function logActivity(params: {
   userId: number | null;
@@ -59,4 +59,44 @@ export async function getLatestActivities(
     });
   }
   return latest;
+}
+
+/**
+ * Fetch the original lead-creation activity for a page of leads. The
+ * lead_created action is canonical; the legacy actions are retained as a
+ * fallback for records created before that action was introduced.
+ */
+export async function getLeadCreationActivities(ids: number[]) {
+  if (ids.length === 0) return new Map<number, any>();
+
+  const rows = await db
+    .selectDistinctOn([activityLogTable.leadId])
+    .from(activityLogTable)
+    .where(
+      and(
+        inArray(activityLogTable.leadId, ids),
+        eq(activityLogTable.entityType, "lead"),
+        or(
+          eq(activityLogTable.action, "lead_created"),
+          eq(activityLogTable.action, "created"),
+          eq(activityLogTable.action, "captured"),
+          eq(activityLogTable.action, "imported"),
+        ),
+      ),
+    )
+    .orderBy(activityLogTable.leadId, asc(activityLogTable.createdAt), asc(activityLogTable.id));
+
+  const userIds = rows.flatMap((row) => row.userId == null ? [] : [row.userId]);
+  const users = userIds.length > 0
+    ? await db.select().from(usersTable).where(inArray(usersTable.id, userIds))
+    : [];
+  const usersById = new Map(users.map((user) => [user.id, user]));
+  const creation = new Map<number, { createdAt: Date; user: (typeof users)[number] | null }>();
+  for (const row of rows) {
+    if (row.leadId != null) creation.set(row.leadId, {
+      createdAt: row.createdAt,
+      user: row.userId == null ? null : usersById.get(row.userId) ?? null,
+    });
+  }
+  return creation;
 }

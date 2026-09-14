@@ -65,6 +65,16 @@ function LastActivity({ at, actor }: { at?: string | null; actor?: { name?: stri
   );
 }
 
+function CreatedBy({ actor, source }: { actor?: { name?: string | null; email?: string } | null; source?: string }) {
+  const fallback = source === "qr-card" ? "QR-card intake" : source === "website" ? "Website intake" : "System";
+  return (
+    <span className="flex flex-col">
+      <span className="text-xs text-muted-foreground">Created by</span>
+      <span className="text-xs text-muted-foreground/75">{getUserDisplayName(actor, fallback)}</span>
+    </span>
+  );
+}
+
 function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
   const { toast } = useToast();
   const [step, setStep] = useState<ImportStep>("upload");
@@ -797,12 +807,18 @@ export default function Leads() {
                       <div className="font-semibold text-sm truncate">{lead.firstName} {lead.lastName}</div>
                     </div>
                     <div className="text-xs text-muted-foreground truncate">{lead.email}</div>
+                    <CreatedBy actor={lead.createdBy} source={lead.leadSource} />
                   </div>
                   <div className="flex items-center gap-1">
                     <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
                       {formatStatus(lead.status)}
                     </Badge>
                     {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">Stale</Badge>}
+                    {lead.needsAssignment && (
+                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] font-normal text-amber-700">
+                        Inbound — needs assignment
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 {lead.companyName && (
@@ -812,7 +828,10 @@ export default function Leads() {
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
-                  <span className="truncate">{lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic">Unassigned</span>}</span>
+                  <span className="min-w-0 truncate">
+                    <span className="font-semibold text-[#0E2A47]">Assigned Rep: </span>
+                    {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="font-semibold italic text-amber-700">Unassigned</span>}
+                  </span>
                   <span className="flex-shrink-0 ml-2">{format(new Date(lead.updatedAt), "MMM d, yyyy")}</span>
                 </div>
               </div>
@@ -843,7 +862,8 @@ export default function Leads() {
               <TableHead>Stale</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Assigned Rep</TableHead>
+              <TableHead className="font-semibold text-[#0E2A47]">Created by</TableHead>
+              <TableHead className="font-semibold text-[#0E2A47]">Assigned Rep</TableHead>
               <TableHead>
                 <Button variant="ghost" size="sm" className="-ml-3 h-8 px-3 font-medium" onClick={toggleActivitySort}>
                   Last Activity <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
@@ -866,11 +886,12 @@ export default function Leads() {
                   <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                 </TableRow>
               ))
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 10 : 9} className="py-0">
+                <TableCell colSpan={isManagerOrAdmin ? 11 : 10} className="py-0">
                   {hasFilters ? (
                     <Empty className="py-12 border-0">
                       <EmptyMedia variant="icon"><Search className="h-5 w-5" /></EmptyMedia>
@@ -946,6 +967,11 @@ export default function Leads() {
                           {formatStatus(lead.status)}
                         </Badge>
                         {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Stale</Badge>}
+                        {lead.needsAssignment && (
+                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] font-normal text-amber-700">
+                            Inbound — needs assignment
+                          </Badge>
+                        )}
                       </div>
                     </Link>
                   </TableCell>
@@ -982,7 +1008,12 @@ export default function Leads() {
                       {lead.applicationType.replace(/_/g, " ")}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm">
+                    <Link href={`/leads/${lead.id}`} className="block w-full">
+                      <CreatedBy actor={lead.createdBy} source={lead.leadSource} />
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-sm">
                     {isStaleView && isManagerOrAdmin ? (
                       <div onClick={(event) => event.stopPropagation()}>
                         <Select
@@ -1001,8 +1032,9 @@ export default function Leads() {
                         </Select>
                       </div>
                     ) : (
-                      <Link href={`/leads/${lead.id}`} className="block w-full">
-                        {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-xs">Unassigned</span>}
+                      <Link href={`/leads/${lead.id}`} className="block w-full font-semibold text-[#0E2A47]">
+                        <span className="sr-only">Assigned Rep: </span>
+                        {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-amber-700">Unassigned</span>}
                       </Link>
                     )}
                   </TableCell>

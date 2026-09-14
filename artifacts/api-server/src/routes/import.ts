@@ -284,7 +284,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     await logActivity({
       userId: user.id,
       leadId: lead.id,
-      action: "imported",
+      action: "lead_created",
       entityType: "lead",
       entityId: lead.id,
       details: { row: rowNum, source: req.file.originalname.endsWith(".xlsx") || req.file.originalname.endsWith(".xls") ? "xlsx_import" : "csv_import" },

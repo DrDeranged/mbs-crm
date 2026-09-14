@@ -10,6 +10,7 @@ import {
 import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { normalizeFundingTimeDays } from "../lib/analyticsHelpers";
+import { unassignedInboundLeadCondition } from "../lib/inboundLead";
 
 const router: IRouter = Router();
 
@@ -24,6 +25,23 @@ const FUNNEL_ORDER = [
 
 const APPLICATION_STATUSES = ["application_received", "submitted_to_underwriting", "approved", "funded"] as const;
 const APPROVAL_STATUSES = ["approved", "funded"] as const;
+
+// Admin-only operational count. Keep this predicate shared with the lead-list
+// needsAssignment field so the dashboard cannot drift from the row indicator.
+router.get("/analytics/unassigned-inbound-count", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") {
+    return void res.status(403).json({ error: "Forbidden: admins only" });
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(leadsTable)
+    .where(unassignedInboundLeadCondition());
+
+  res.json({ count });
+});
 
 function parseDateRange(req: Request): { startDate?: Date; endDate?: Date; repId?: number } {
   const { start_date, end_date, rep_id } = req.query as Record<string, string | undefined>;

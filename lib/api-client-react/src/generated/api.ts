@@ -72,6 +72,8 @@ import type {
   DuplicateResponse,
   ElementorCaptureInput,
   ElementorCaptureResponse,
+  EmailDeliverySettings,
+  EmailDeliverySettingsUpdate,
   EmailFlyer200,
   EmailFlyerInput,
   EmailSend,
@@ -144,18 +146,23 @@ import type {
   RunLenderMatch200,
   SeededDealReassignmentResponse,
   SendTestEmailBody,
+  SlugBackfillResponse,
   SmsInput,
   SourceAnalytics,
+  StarterEmailSeedResponse,
   StatusChange,
   SubmitApplicationBody,
   Task,
   TaskInput,
   TaskUpdate,
   TrackEmailClickParams,
+  TrackEmailOpenParams,
   TwilioSmsStatus200,
   TwilioTokenResponse,
   TwilioVoiceRecording200,
   TwilioVoiceStatus200,
+  UnassignedInboundCount,
+  UnsubscribeEmailRecipientParams,
   UpdateCommunicationBody,
   UpdateMyMobileBody,
   UpdateMyPushTokenBody,
@@ -497,6 +504,76 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
 
 
+
+export const getBackfillSlugsUrl = () => {
+
+
+
+
+  return `/api/admin/users/backfill-slugs`
+}
+
+/**
+ * @summary Backfill the production representative slugs (admin only)
+ */
+export const backfillSlugs = async ( options?: RequestInit): Promise<SlugBackfillResponse> => {
+
+  return customFetch<SlugBackfillResponse>(getBackfillSlugsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getBackfillSlugsMutationOptions = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof backfillSlugs>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof backfillSlugs>>, TError,void, TContext> => {
+
+const mutationKey = ['backfillSlugs'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof backfillSlugs>>, void> = () => {
+
+
+          return  backfillSlugs(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BackfillSlugsMutationResult = NonNullable<Awaited<ReturnType<typeof backfillSlugs>>>
+
+    export type BackfillSlugsMutationError = ErrorType<AdminMaintenanceError>
+
+    /**
+ * @summary Backfill the production representative slugs (admin only)
+ */
+export const useBackfillSlugs = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof backfillSlugs>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof backfillSlugs>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getBackfillSlugsMutationOptions(options));
+    }
 
 export const getVerifyAdminRepQrRoutesUrl = () => {
 
@@ -1250,6 +1327,154 @@ export const useUpdateLeadDistributionSettings = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateLeadDistributionSettingsMutationOptions(options));
+    }
+
+export const getGetEmailDeliverySettingsUrl = () => {
+
+
+
+
+  return `/api/settings/email-delivery`
+}
+
+/**
+ * @summary Get the database-backed outbound email safety settings (admin only)
+ */
+export const getEmailDeliverySettings = async ( options?: RequestInit): Promise<EmailDeliverySettings> => {
+
+  return customFetch<EmailDeliverySettings>(getGetEmailDeliverySettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailDeliverySettingsQueryKey = () => {
+    return [
+    `/api/settings/email-delivery`
+    ] as const;
+    }
+
+
+export const getGetEmailDeliverySettingsQueryOptions = <TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailDeliverySettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailDeliverySettings>>> = ({ signal }) => getEmailDeliverySettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailDeliverySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailDeliverySettings>>>
+export type GetEmailDeliverySettingsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the database-backed outbound email safety settings (admin only)
+ */
+
+export function useGetEmailDeliverySettings<TData = Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailDeliverySettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailDeliverySettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateEmailDeliverySettingsUrl = () => {
+
+
+
+
+  return `/api/settings/email-delivery`
+}
+
+/**
+ * @summary Enable or disable outbound email and configure the server-side bulk rate cap
+ */
+export const updateEmailDeliverySettings = async (emailDeliverySettingsUpdate: EmailDeliverySettingsUpdate, options?: RequestInit): Promise<EmailDeliverySettings> => {
+
+  return customFetch<EmailDeliverySettings>(getUpdateEmailDeliverySettingsUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailDeliverySettingsUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateEmailDeliverySettingsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailDeliverySettings>>, TError,{data: BodyType<EmailDeliverySettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEmailDeliverySettings>>, TError,{data: BodyType<EmailDeliverySettingsUpdate>}, TContext> => {
+
+const mutationKey = ['updateEmailDeliverySettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEmailDeliverySettings>>, {data: BodyType<EmailDeliverySettingsUpdate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateEmailDeliverySettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEmailDeliverySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateEmailDeliverySettings>>>
+    export type UpdateEmailDeliverySettingsMutationBody = BodyType<EmailDeliverySettingsUpdate>
+    export type UpdateEmailDeliverySettingsMutationError = ErrorType<void>
+
+    /**
+ * @summary Enable or disable outbound email and configure the server-side bulk rate cap
+ */
+export const useUpdateEmailDeliverySettings = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEmailDeliverySettings>>, TError,{data: BodyType<EmailDeliverySettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateEmailDeliverySettings>>,
+        TError,
+        {data: BodyType<EmailDeliverySettingsUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateEmailDeliverySettingsMutationOptions(options));
     }
 
 export const getUpdateUserPushTokenUrl = (id: number,) => {
@@ -4668,6 +4893,83 @@ export function useGetAnalyticsSummary<TData = Awaited<ReturnType<typeof getAnal
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAnalyticsSummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetUnassignedInboundCountUrl = () => {
+
+
+
+
+  return `/api/analytics/unassigned-inbound-count`
+}
+
+/**
+ * @summary Count unassigned website and QR-card leads older than 24 hours (admin only)
+ */
+export const getUnassignedInboundCount = async ( options?: RequestInit): Promise<UnassignedInboundCount> => {
+
+  return customFetch<UnassignedInboundCount>(getGetUnassignedInboundCountUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUnassignedInboundCountQueryKey = () => {
+    return [
+    `/api/analytics/unassigned-inbound-count`
+    ] as const;
+    }
+
+
+export const getGetUnassignedInboundCountQueryOptions = <TData = Awaited<ReturnType<typeof getUnassignedInboundCount>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUnassignedInboundCount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUnassignedInboundCountQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUnassignedInboundCount>>> = ({ signal }) => getUnassignedInboundCount({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUnassignedInboundCount>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUnassignedInboundCountQueryResult = NonNullable<Awaited<ReturnType<typeof getUnassignedInboundCount>>>
+export type GetUnassignedInboundCountQueryError = ErrorType<void>
+
+
+/**
+ * @summary Count unassigned website and QR-card leads older than 24 hours (admin only)
+ */
+
+export function useGetUnassignedInboundCount<TData = Awaited<ReturnType<typeof getUnassignedInboundCount>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUnassignedInboundCount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUnassignedInboundCountQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -8291,20 +8593,99 @@ export const useSendBulkEmail = <TError = ErrorType<unknown>,
       return useMutation(getSendBulkEmailMutationOptions(options));
     }
 
-export const getTrackEmailOpenUrl = (sendId: number,) => {
+export const getSeedStarterEmailUrl = () => {
 
 
 
 
-  return `/api/email/track/open/${sendId}`
+  return `/api/email/seed-starter`
+}
+
+/**
+ * @summary Seed starter email templates and nurture sequence (admin only)
+ */
+export const seedStarterEmail = async ( options?: RequestInit): Promise<StarterEmailSeedResponse> => {
+
+  return customFetch<StarterEmailSeedResponse>(getSeedStarterEmailUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSeedStarterEmailMutationOptions = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedStarterEmail>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof seedStarterEmail>>, TError,void, TContext> => {
+
+const mutationKey = ['seedStarterEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof seedStarterEmail>>, void> = () => {
+
+
+          return  seedStarterEmail(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeedStarterEmailMutationResult = NonNullable<Awaited<ReturnType<typeof seedStarterEmail>>>
+
+    export type SeedStarterEmailMutationError = ErrorType<AdminMaintenanceError>
+
+    /**
+ * @summary Seed starter email templates and nurture sequence (admin only)
+ */
+export const useSeedStarterEmail = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedStarterEmail>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof seedStarterEmail>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSeedStarterEmailMutationOptions(options));
+    }
+
+export const getTrackEmailOpenUrl = (sendId: number,
+    params: TrackEmailOpenParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/email/track/open/${sendId}?${stringifiedParams}` : `/api/email/track/open/${sendId}`
 }
 
 /**
  * @summary Open tracking pixel (no auth required)
  */
-export const trackEmailOpen = async (sendId: number, options?: RequestInit): Promise<Blob> => {
+export const trackEmailOpen = async (sendId: number,
+    params: TrackEmailOpenParams, options?: RequestInit): Promise<Blob> => {
 
-  return customFetch<Blob>(getTrackEmailOpenUrl(sendId),
+  return customFetch<Blob>(getTrackEmailOpenUrl(sendId,params),
   {
     ...options,
     method: 'GET'
@@ -8317,23 +8698,25 @@ export const trackEmailOpen = async (sendId: number, options?: RequestInit): Pro
 
 
 
-export const getTrackEmailOpenQueryKey = (sendId: number,) => {
+export const getTrackEmailOpenQueryKey = (sendId: number,
+    params?: TrackEmailOpenParams,) => {
     return [
-    `/api/email/track/open/${sendId}`
+    `/api/email/track/open/${sendId}`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getTrackEmailOpenQueryOptions = <TData = Awaited<ReturnType<typeof trackEmailOpen>>, TError = ErrorType<unknown>>(sendId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getTrackEmailOpenQueryOptions = <TData = Awaited<ReturnType<typeof trackEmailOpen>>, TError = ErrorType<unknown>>(sendId: number,
+    params: TrackEmailOpenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getTrackEmailOpenQueryKey(sendId);
+  const queryKey =  queryOptions?.queryKey ?? getTrackEmailOpenQueryKey(sendId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof trackEmailOpen>>> = ({ signal }) => trackEmailOpen(sendId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof trackEmailOpen>>> = ({ signal }) => trackEmailOpen(sendId,params, { signal, ...requestOptions });
 
 
 
@@ -8351,11 +8734,12 @@ export type TrackEmailOpenQueryError = ErrorType<unknown>
  */
 
 export function useTrackEmailOpen<TData = Awaited<ReturnType<typeof trackEmailOpen>>, TError = ErrorType<unknown>>(
- sendId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ sendId: number,
+    params: TrackEmailOpenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof trackEmailOpen>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getTrackEmailOpenQueryOptions(sendId,options)
+  const queryOptions = getTrackEmailOpenQueryOptions(sendId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -8445,6 +8829,90 @@ export function useTrackEmailClick<TData = Awaited<ReturnType<typeof trackEmailC
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getTrackEmailClickQueryOptions(sendId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUnsubscribeEmailRecipientUrl = (params: UnsubscribeEmailRecipientParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/email/unsubscribe?${stringifiedParams}` : `/api/email/unsubscribe`
+}
+
+/**
+ * @summary Unsubscribe every lead and queued send for the signed recipient email
+ */
+export const unsubscribeEmailRecipient = async (params: UnsubscribeEmailRecipientParams, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUnsubscribeEmailRecipientUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnsubscribeEmailRecipientQueryKey = (params?: UnsubscribeEmailRecipientParams,) => {
+    return [
+    `/api/email/unsubscribe`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getUnsubscribeEmailRecipientQueryOptions = <TData = Awaited<ReturnType<typeof unsubscribeEmailRecipient>>, TError = ErrorType<void>>(params: UnsubscribeEmailRecipientParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof unsubscribeEmailRecipient>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUnsubscribeEmailRecipientQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof unsubscribeEmailRecipient>>> = ({ signal }) => unsubscribeEmailRecipient(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof unsubscribeEmailRecipient>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type UnsubscribeEmailRecipientQueryResult = NonNullable<Awaited<ReturnType<typeof unsubscribeEmailRecipient>>>
+export type UnsubscribeEmailRecipientQueryError = ErrorType<void>
+
+
+/**
+ * @summary Unsubscribe every lead and queued send for the signed recipient email
+ */
+
+export function useUnsubscribeEmailRecipient<TData = Awaited<ReturnType<typeof unsubscribeEmailRecipient>>, TError = ErrorType<void>>(
+ params: UnsubscribeEmailRecipientParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof unsubscribeEmailRecipient>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getUnsubscribeEmailRecipientQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

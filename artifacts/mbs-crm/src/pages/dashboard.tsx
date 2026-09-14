@@ -14,6 +14,7 @@ import {
   useGetAnalyticsRenewals, getGetAnalyticsRenewalsQueryKey,
   useGeneratePipelineDigest,
   useGetDealsAnalytics, getGetDealsAnalyticsQueryKey,
+  useGetUnassignedInboundCount, getGetUnassignedInboundCountQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -263,7 +264,15 @@ export default function Dashboard() {
   });
 
   const isRep = currentUser?.role === "rep";
+  const isAdmin = currentUser?.role === "admin";
   const effectiveRepId = isRep ? currentUser?.id : selectedRepId;
+
+  const { data: unassignedInbound } = useGetUnassignedInboundCount({
+    query: {
+      queryKey: getGetUnassignedInboundCountQueryKey(),
+      enabled: isAdmin,
+    },
+  });
 
   const dateRange = getPresetRange(preset, customRange);
   const queryParams = {
@@ -351,12 +360,21 @@ export default function Dashboard() {
             {isRep ? "Your performance metrics" : "Team pipeline analytics"}
           </p>
         </div>
-        {!isRep && selectedRepId != null && (
-          <Button variant="outline" size="sm" onClick={() => setSelectedRepId(undefined)}>
-            <X className="h-4 w-4 mr-1" />
-            Clear Rep Filter
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && (
+            <Link href="/leads" aria-label="View inbound leads needing assignment">
+              <Badge variant="outline" className="cursor-pointer border-amber-200 bg-amber-50 px-3 py-1.5 text-amber-800 hover:bg-amber-100">
+                Inbound — needs assignment: {unassignedInbound?.count ?? "…"}
+              </Badge>
+            </Link>
+          )}
+          {!isRep && selectedRepId != null && (
+            <Button variant="outline" size="sm" onClick={() => setSelectedRepId(undefined)}>
+              <X className="h-4 w-4 mr-1" />
+              Clear Rep Filter
+            </Button>
+          )}
+        </div>
       </div>
 
       <DailyBriefingCard />
