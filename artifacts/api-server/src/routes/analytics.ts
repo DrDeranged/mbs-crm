@@ -9,6 +9,7 @@ import {
 } from "@workspace/db";
 import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
+import { normalizeFundingTimeDays } from "../lib/analyticsHelpers";
 
 const router: IRouter = Router();
 
@@ -87,6 +88,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
       .where(
         and(
           eq(leadStatusHistoryTable.toStatus, "funded"),
+          sql`${leadStatusHistoryTable.createdAt} > ${leadsTable.createdAt} + interval '5 minutes'`,
           startDate ? gte(leadsTable.createdAt, startDate) : undefined,
           endDate ? lte(leadsTable.createdAt, endDate) : undefined,
           effectiveRepId ? eq(leadsTable.assignedRepId, effectiveRepId) : undefined,
@@ -115,7 +117,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
   const totalRevenue = revenueRows[0]?.totalRevenue ?? 0;
   const conversionRate = totalLeads > 0 ? Math.round((totalFundings / totalLeads) * 10000) / 100 : 0;
   const avgFundingTimeDays =
-    fundedTimeRows[0]?.avgDays != null ? Math.round(fundedTimeRows[0].avgDays * 10) / 10 : null;
+    normalizeFundingTimeDays(fundedTimeRows[0]?.avgDays != null ? Number(fundedTimeRows[0].avgDays) : null);
 
   res.json({
     totalLeads,

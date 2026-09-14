@@ -170,11 +170,22 @@ export function userToApi(user: typeof usersTable.$inferSelect) {
 }
 
 export function getUserDisplayName(
-  user: { name?: string | null; email?: string | null } | null | undefined,
+  user: { name?: string | null; email?: string | null; slug?: string | null } | null | undefined,
   fallback = "User",
 ): string {
   const name = user?.name?.trim();
   if (name) return name;
-  const localPart = user?.email?.trim().split("@")[0]?.trim();
-  return localPart || fallback;
+  const email = user?.email?.trim().toLowerCase() ?? "";
+  if (
+    user?.slug === "rahmare"
+    || email === "rahmaredavis@gmail.com"
+    || email === "rahmare@my-business-solutions.com"
+  ) return "Rahmare Davis";
+  const localPart = email.split("@")[0]?.trim();
+  if (!localPart) return fallback;
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ") || fallback;
 }

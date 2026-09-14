@@ -1667,6 +1667,20 @@ export interface DealSeedResponse {
   assignedCalvinId: number | null;
 }
 
+export interface SeededDealReassignmentResponse {
+  changed: number;
+  ordinaryChanged: number;
+  ordinaryAtNate: number;
+  calvinCleared: number;
+  calvinReservedUnassigned: number;
+  arslanTotalDeals: number;
+  changedDealIds: number[];
+}
+
+export interface AdminMaintenanceError {
+  error: string;
+}
+
 export interface AdminErrorEntry {
   id?: number;
   requestId?: string;

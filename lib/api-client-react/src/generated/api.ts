@@ -22,6 +22,7 @@ import type {
 import type {
   ActivityEntry,
   AdminErrorsResponse,
+  AdminMaintenanceError,
   AdminQrVerifyResponse,
   AiDraftRequest,
   AiDraftResponse,
@@ -141,6 +142,7 @@ import type {
   RepDashboard,
   RepPerformance,
   RunLenderMatch200,
+  SeededDealReassignmentResponse,
   SendTestEmailBody,
   SmsInput,
   SourceAnalytics,
@@ -4522,6 +4524,76 @@ export const useSeedDeals = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSeedDealsMutationOptions(options));
+    }
+
+export const getReassignSeededDealsUrl = () => {
+
+
+
+
+  return `/api/admin/deals/reassign-seeded`
+}
+
+/**
+ * @summary Move 21 ordinary seeded deals to Nate Ford and clear/repair four reserved Calvin assignments (admin only)
+ */
+export const reassignSeededDeals = async ( options?: RequestInit): Promise<SeededDealReassignmentResponse> => {
+
+  return customFetch<SeededDealReassignmentResponse>(getReassignSeededDealsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReassignSeededDealsMutationOptions = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reassignSeededDeals>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reassignSeededDeals>>, TError,void, TContext> => {
+
+const mutationKey = ['reassignSeededDeals'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reassignSeededDeals>>, void> = () => {
+
+
+          return  reassignSeededDeals(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReassignSeededDealsMutationResult = NonNullable<Awaited<ReturnType<typeof reassignSeededDeals>>>
+
+    export type ReassignSeededDealsMutationError = ErrorType<AdminMaintenanceError>
+
+    /**
+ * @summary Move 21 ordinary seeded deals to Nate Ford and clear/repair four reserved Calvin assignments (admin only)
+ */
+export const useReassignSeededDeals = <TError = ErrorType<AdminMaintenanceError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reassignSeededDeals>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reassignSeededDeals>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getReassignSeededDealsMutationOptions(options));
     }
 
 export const getGetAnalyticsSummaryUrl = (params?: GetAnalyticsSummaryParams,) => {

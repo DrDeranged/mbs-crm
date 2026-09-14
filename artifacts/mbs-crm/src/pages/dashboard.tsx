@@ -110,14 +110,18 @@ function KpiCard({
   value,
   icon,
   loading,
+  title,
+  tooltip,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
   loading?: boolean;
+  title?: string;
+  tooltip?: string;
 }) {
   return (
-    <Card className="shadow-sm border-card-border">
+    <Card className="shadow-sm border-card-border" title={title ?? tooltip}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           {label}
@@ -467,6 +471,7 @@ export default function Dashboard() {
           value={summary?.avgFundingTimeDays != null ? `${summary.avgFundingTimeDays}d` : "—"}
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
+          title={summary?.avgFundingTimeDays == null ? "Needs live funded deals" : undefined}
         />
       </div>
 
@@ -500,6 +505,7 @@ export default function Dashboard() {
             value={dealsAnalytics?.avgFundingTimeDays != null ? `${dealsAnalytics.avgFundingTimeDays}d` : "—"}
             icon={<Clock className="h-4 w-4 text-muted-foreground" />}
             loading={loadingDealsAnalytics}
+            title={dealsAnalytics?.avgFundingTimeDays == null ? "Needs live funded deals" : undefined}
           />
         </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName } from "@/lib/utils";
-import { ShieldAlert, Phone, Building2, Globe } from "lucide-react";
+import { ShieldAlert, Phone, Building2, Globe, Wrench } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
@@ -29,6 +29,7 @@ export default function Settings() {
     },
   });
   const updateLeadDistribution = useUpdateLeadDistributionSettings();
+  const reassignSeededDeals = useReassignSeededDeals();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -160,6 +161,25 @@ export default function Settings() {
         onError: () => toast({ title: "Error", description: "Failed to save staleness threshold.", variant: "destructive" }),
       },
     );
+  };
+
+  const handleReassignSeededDeals = () => {
+    if (!window.confirm("Move 21 ordinary seeded deals to Nate Ford, clear temporary ownership from four Calvin deals while preserving their markers, and verify Arslan has zero deals?")) return;
+    reassignSeededDeals.mutate(undefined, {
+      onSuccess: (result) => {
+        queryClient.invalidateQueries({ queryKey: getListDealsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDealsAnalyticsQueryKey() });
+        toast({
+          title: "Seeded deal ownership corrected",
+          description: `${result.ordinaryChanged} moved this run; ${result.ordinaryAtNate} ordinary deals at Nate Ford. ${result.calvinCleared} Calvin deals cleared this run; ${result.calvinReservedUnassigned} unassigned with markers preserved. Arslan has ${result.arslanTotalDeals} deals.`,
+        });
+      },
+      onError: (error: any) => toast({
+        title: "Unable to correct seeded ownership",
+        description: error?.message || "The required user safety checks failed.",
+        variant: "destructive",
+      }),
+    });
   };
 
   return (
@@ -324,6 +344,35 @@ export default function Settings() {
                     Save
                   </Button>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-[#1F4E79]" />
+                Data Maintenance
+              </CardTitle>
+              <CardDescription>Run narrowly scoped corrections for the seeded deal data.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl">
+                <div>
+                  <div className="font-medium">Correct seeded deal ownership</div>
+                  <div className="text-sm text-muted-foreground">
+                    Moves 21 ordinary seeded deals to Nate Ford, unassigns four Calvin deals while preserving markers, and verifies Arslan has zero.
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleReassignSeededDeals}
+                  disabled={reassignSeededDeals.isPending}
+                >
+                  {reassignSeededDeals.isPending ? "Correcting…" : "Correct ownership"}
+                </Button>
               </div>
             </CardContent>
           </Card>

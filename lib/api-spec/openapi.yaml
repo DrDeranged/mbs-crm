@@ -1530,6 +1530,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/DealSeedResponse"
 
+  /admin/deals/reassign-seeded:
+    post:
+      operationId: reassignSeededDeals
+      tags: [admin]
+      summary: Move 21 ordinary seeded deals to Nate Ford and clear/repair four reserved Calvin assignments (admin only)
+      responses:
+        "200":
+          description: Seeded deal ownership correction result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeededDealReassignmentResponse"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "409":
+          description: Seeded rows, assignments, markers, or postconditions failed the maintenance safety checks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
+
   /analytics/summary:
     get:
       operationId: getAnalyticsSummary
@@ -5437,6 +5468,26 @@ components:
         activitiesAdded: { type: integer }
         primaryAdminId: { type: integer }
         assignedCalvinId: { type: ["integer", "null"] }
+
+    SeededDealReassignmentResponse:
+      type: object
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, changedDealIds]
+      properties:
+        changed: { type: integer }
+        ordinaryChanged: { type: integer }
+        ordinaryAtNate: { type: integer }
+        calvinCleared: { type: integer }
+        calvinReservedUnassigned: { type: integer }
+        arslanTotalDeals: { type: integer }
+        changedDealIds:
+          type: array
+          items: { type: integer }
+
+    AdminMaintenanceError:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
 
     AdminErrorEntry:
       type: object

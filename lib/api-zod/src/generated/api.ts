@@ -1874,6 +1874,20 @@ export const SeedDealsResponse = zod.object({
 
 
 /**
+ * @summary Move 21 ordinary seeded deals to Nate Ford and clear/repair four reserved Calvin assignments (admin only)
+ */
+export const ReassignSeededDealsResponse = zod.object({
+  "changed": zod.number(),
+  "ordinaryChanged": zod.number(),
+  "ordinaryAtNate": zod.number(),
+  "calvinCleared": zod.number(),
+  "calvinReservedUnassigned": zod.number(),
+  "arslanTotalDeals": zod.number(),
+  "changedDealIds": zod.array(zod.number())
+})
+
+
+/**
  * @summary KPI summary — total leads, applications, approvals, fundings, conversion rate, avg funding time
  */
 export const GetAnalyticsSummaryQueryParams = zod.object({
