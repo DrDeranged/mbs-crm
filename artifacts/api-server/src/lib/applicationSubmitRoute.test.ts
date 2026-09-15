@@ -90,6 +90,16 @@ async function requestWithDatabase(database: ReturnType<typeof makeDatabase>) {
     objectStorageClient: {
       bucket: () => ({ file: () => ({ save: async () => {} }) }),
     } as any,
+    extractBankStatement: async () => ({
+      statementMonth: null,
+      statementYear: null,
+      totalDeposits: null,
+      averageDailyBalance: null,
+      nsfCount: 0,
+      negativeBalanceDays: 0,
+      existingPositions: [],
+      rawExtractionJson: {},
+    }),
     calculateLeadScore: async () => ({ score: 0, breakdown: {} as any }),
     notifyAllManagers: async () => {},
     createNotification: async () => {},
@@ -116,6 +126,7 @@ async function requestWithDatabase(database: ReturnType<typeof makeDatabase>) {
     body.set("signatureMethod", "typed");
     body.set("signatureData", "Jamie Applicant");
     body.set("rep", "ray");
+    body.append("bankStatements", new Blob(["statement fixture"], { type: "application/pdf" }), "january.pdf");
     return await fetch(`http://127.0.0.1:${address.port}/applications/submit`, {
       method: "POST",
       body,
@@ -138,8 +149,10 @@ test("application submit attributes a rep-slug lead and records QR-card activity
   assert.ok(activities.some(({ values }) => values.action === "lead_created" && (values.details as any)?.source === "qr-card"));
   assert.ok(activities.some(({ values }) => values.action === "attributed" && (values.details as any)?.source === "qr-card"));
   assert.equal(database.inserted.some((row) => row.table === tasksTable), false);
-  assert.equal(database.inserted.some((row) => row.table === bankStatementExtractionsTable), false);
-  assert.ok(database.inserted.some((row) => row.table === documentsTable));
+  assert.equal(database.inserted.some((row) => row.table === bankStatementExtractionsTable), true);
+  const documentInserts = database.inserted.filter((row) => row.table === documentsTable);
+  assert.ok(documentInserts.some(({ values }) => values.category === "bank_statement"));
+  assert.ok(documentInserts.some(({ values }) => values.category === "signed_application"));
   const applicationInsert = database.inserted.find((row) => row.table === applicationsTable);
   assert.equal(applicationInsert?.values.monthlyRevenueStated, 1_200_000);
   assert.equal(applicationInsert?.values.timeInBusinessMonths, 18);

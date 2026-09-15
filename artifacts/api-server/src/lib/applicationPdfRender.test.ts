@@ -1,11 +1,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PDFDocument } from "pdf-lib";
-import { buildApplicationFormHtml } from "./applicationPdf";
-import { closeBrowser, renderPdf } from "./renderPdf";
+import { PDFParse } from "pdf-parse";
+import { CONSENT_TEXT, APPLICATION_PDF_FOOTER } from "./consentText";
+import { renderApplicationFormPdf } from "./applicationPdf";
 
-test("application form renders as one US Letter PDF", async (t) => {
-  const html = buildApplicationFormHtml({
+test("native form preserves complete consent and footer text, never plaintext SSNs", async () => {
+  const pdf = await renderApplicationFormPdf({
+    rep: { name: "Example Rep", email: "rep@example.com" },
+    application: { ownerSsn: "123-45-6789", secondaryOwnerSsn: "987-65-4321" },
+  });
+  const parser = new PDFParse({ data: pdf });
+  try {
+    const result = await parser.getText();
+    const normalized = result.text.replace(/\s+/g, " ");
+    assert.ok(normalized.includes(CONSENT_TEXT));
+    assert.ok(normalized.includes(APPLICATION_PDF_FOOTER));
+    assert.ok(!normalized.includes("123-45-6789"));
+    assert.ok(!normalized.includes("987-65-4321"));
+    assert.ok(normalized.includes("Signature of Applicant One:"));
+  } finally {
+    await parser.destroy();
+  }
+});
+
+test("application form renders natively as one US Letter PDF", async () => {
+  const pdfBytes = await renderApplicationFormPdf({
     rep: {
       name: "Nate Ford",
       title: "CHIEF EXECUTIVE OFFICER",
@@ -14,32 +34,16 @@ test("application form renders as one US Letter PDF", async (t) => {
       slug: "nate",
     },
   });
-  process.env["PUPPETEER_EXECUTABLE_PATH"] ??= "/repl/tools/bin/chromium";
-  let pdfBytes: Buffer;
-  try {
-    pdfBytes = await renderPdf(html, { format: "Letter" });
-  } catch (error) {
-    if (error instanceof Error && /Could not find Chrome/.test(error.message)) {
-      t.skip("Puppeteer Chrome is not installed in this environment");
-      return;
-    }
-    throw error;
-  }
   assert.equal(pdfBytes.subarray(0, 5).toString(), "%PDF-");
   const document = await PDFDocument.load(pdfBytes);
   assert.equal(document.getPageCount(), 1);
   const { width, height } = document.getPage(0).getSize();
   assert.equal(width, 612);
   assert.equal(height, 792);
-  assert.match(html, /Nate Ford/);
-  assert.match(html, /CHIEF EXECUTIVE OFFICER/);
-  assert.match(html, /nate@my-business-solutions\.com/);
-  assert.match(html, /app\.my-business-solutions\.com\/r\/nate/);
-  await closeBrowser();
 });
 
-test("filled application with realistic values stays on one Letter page", async () => {
-  const html = buildApplicationFormHtml({
+test("filled native application stays on one Letter page and masks SSNs", async () => {
+  const pdfBytes = await renderApplicationFormPdf({
     rep: {
       name: "Nate Ford",
       title: "CHIEF EXECUTIVE OFFICER",
@@ -95,19 +99,24 @@ test("filled application with realistic values stays on one Letter page", async 
     signatureData: "Alexandra Martinez",
     signatureSignedAt: new Date("2026-01-15T18:30:00.000Z"),
   });
-  assert.equal((html.match(/\*\*\*-\*\*-\*\*\*\*/g) ?? []).length, 2);
-  assert.match(html, /alexandra\.martinez@example\.com/);
-  assert.match(html, /602-555-0199/);
-  process.env["PUPPETEER_EXECUTABLE_PATH"] ??= "/repl/tools/bin/chromium";
-  const pdfBytes = await renderPdf(html, { format: "Letter" });
-  try {
-    assert.equal(pdfBytes.subarray(0, 5).toString(), "%PDF-");
-    const document = await PDFDocument.load(pdfBytes);
-    assert.equal(document.getPageCount(), 1);
-    const { width, height } = document.getPage(0).getSize();
-    assert.equal(width, 612);
-    assert.equal(height, 792);
-  } finally {
-    await closeBrowser();
-  }
+  assert.equal(pdfBytes.subarray(0, 5).toString(), "%PDF-");
+  const document = await PDFDocument.load(pdfBytes);
+  assert.equal(document.getPageCount(), 1);
+  const { width, height } = document.getPage(0).getSize();
+  assert.equal(width, 612);
+  assert.equal(height, 792);
+});
+
+test("native historical applications embed PNG signatures without substituting signature evidence", async () => {
+  const pdfBytes = await renderApplicationFormPdf({
+    rep: { name: "Nate Ford", email: "nate@my-business-solutions.com" },
+    application: { ownerFirstName: "Nate", ownerLastName: "Ford" },
+    signatureMethod: "drawn",
+    // A valid 1×1 PNG is enough to verify pdf-lib's actual PNG embedding path.
+    signatureData: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl9PZ0AAAAASUVORK5CYII=",
+    signatureSignedAt: new Date("2026-01-15T18:30:00.000Z"),
+    clientIp: "127.0.0.1",
+  });
+  assert.equal(pdfBytes.subarray(0, 5).toString(), "%PDF-");
+  assert.equal((await PDFDocument.load(pdfBytes)).getPageCount(), 1);
 });

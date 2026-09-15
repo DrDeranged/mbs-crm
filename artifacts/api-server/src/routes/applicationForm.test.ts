@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { mock } from "node:test";
 import { Buffer } from "node:buffer";
 import express from "express";
+import { PDFDocument } from "pdf-lib";
+import puppeteer from "puppeteer";
 import { createApplicationFormRouter } from "./applicationForm";
 import { createPublicApplicationFormRouter } from "./repPublic";
 
@@ -59,6 +61,62 @@ test("application form route enforces authentication and role scope", async () =
   assert.equal(own.status, 200);
   assert.equal(Buffer.from(await own.arrayBuffer()).subarray(0, 5).toString(), "%PDF-");
   assert.equal((await requestWithRouter(authenticatedRouter(user(8, "admin")), "/users/7/application-form.pdf")).status, 200);
+});
+
+test("application form route uses the native renderer when no test renderer is injected", async () => {
+  const router = createApplicationFormRouter({
+    authenticate: async () => user(7, "rep"),
+    database: {
+      query: {
+        usersTable: {
+          findFirst: async () => user(7, "rep"),
+        },
+      },
+    } as any,
+  });
+  const response = await requestWithRouter(router, "/users/7/application-form.pdf");
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.equal(response.status, 200);
+  assert.equal(bytes.subarray(0, 5).toString(), "%PDF-");
+  assert.equal((await PDFDocument.load(bytes)).getPageCount(), 1);
+});
+
+test("public application form uses the native renderer when no test renderer is injected", async () => {
+  const router = createPublicApplicationFormRouter({
+    resolve: async () => ({ user: user(7, "rep"), replacementSlug: null }),
+  });
+  const response = await requestWithRouter(router, "/public/reps/nate/application-form.pdf");
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.equal(response.status, 200);
+  assert.equal(bytes.subarray(0, 5).toString(), "%PDF-");
+  assert.equal((await PDFDocument.load(bytes)).getPageCount(), 1);
+});
+
+test("authenticated and public application forms render while Puppeteer launch throws", async () => {
+  const launcher = mock.method(puppeteer, "launch", async () => {
+    throw new Error("Chromium intentionally unavailable");
+  });
+  try {
+    const authenticated = createApplicationFormRouter({
+      authenticate: async () => user(7, "rep"),
+      database: { query: { usersTable: { findFirst: async () => user(7, "rep") } } } as any,
+    });
+    const publicRouter = createPublicApplicationFormRouter({
+      resolve: async () => ({ user: user(7, "rep"), replacementSlug: null }),
+    });
+    const [authenticatedResponse, publicResponse] = await Promise.all([
+      requestWithRouter(authenticated, "/users/7/application-form.pdf"),
+      requestWithRouter(publicRouter, "/public/reps/nate/application-form.pdf"),
+    ]);
+    for (const response of [authenticatedResponse, publicResponse]) {
+      const bytes = Buffer.from(await response.arrayBuffer());
+      assert.equal(response.status, 200);
+      assert.equal(bytes.subarray(0, 5).toString(), "%PDF-");
+      assert.equal((await PDFDocument.load(bytes)).getPageCount(), 1);
+    }
+  } finally {
+    launcher.mock.restore();
+  }
 });
 
 test("public application form returns PDF and retired slugs redirect canonically", async () => {

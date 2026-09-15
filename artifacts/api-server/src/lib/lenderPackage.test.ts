@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { mock } from "node:test";
+import puppeteer from "puppeteer";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { PDFParse } from "pdf-parse";
 import type { Request, Response } from "express";
@@ -9,9 +10,55 @@ import {
   getDocumentExclusionReason,
   isEligibleBankStatement,
   sanitizeLenderPackageBusinessName,
+  selectLenderPackageDocuments,
+  renderLenderPackageOmissionReportPdf,
 } from "./lenderPackage";
 
 process.env.PUBLIC_APP_URL ??= "http://localhost";
+
+test("lender-package route exposes safe renderer reason and logs the full error", async () => {
+  const database = { query: {
+    leadsTable: { findFirst: async () => baseLead() },
+    applicationsTable: { findFirst: async () => baseApplication() },
+    usersTable: { findFirst: async () => null },
+    documentsTable: { findMany: async () => [] },
+  } } as any;
+  const response = fakeResponse();
+  const logs: any[] = [];
+  await createLenderPackageHandler({
+    database,
+    authenticate: async () => ({ id: 1, role: "admin" } as any),
+    renderPdf: async () => { throw new Error("private renderer diagnostic"); },
+    auditPiiAccess: () => {},
+  })({ params: { id: "42" }, log: { error: (entry: unknown) => logs.push(entry) } } as unknown as Request, response as unknown as Response);
+  assert.equal(response.statusCode, 500);
+  assert.deepEqual(response.body, { error: "Lender package generation failed", reason: "renderer_unavailable" });
+  assert.equal(logs.length, 1);
+  assert.ok(logs[0].stack);
+  assert.match(logs[0].err.cause.message, /private renderer diagnostic/);
+});
+
+test("lender-package route returns the no_application reason without rendering", async () => {
+  const response = fakeResponse();
+  await createLenderPackageHandler({
+    database: { query: {
+      leadsTable: { findFirst: async () => baseLead() },
+      applicationsTable: { findFirst: async () => null },
+    } } as any,
+    authenticate: async () => ({ id: 1, role: "admin" } as any),
+  })({ params: { id: "42" }, log: { error: () => {} } } as unknown as Request, response as unknown as Response);
+  assert.equal(response.statusCode, 404);
+  assert.equal((response.body as { reason: string }).reason, "no_application");
+});
+
+test("omission report paginates instead of failing on many excluded documents", async () => {
+  const exclusions = Array.from({ length: 40 }, (_, i) => ({ filename: `corrupt-${i}.pdf`, reason: "not a readable PDF" }));
+  const result = await renderLenderPackageOmissionReportPdf(exclusions);
+  const pages = await extractPages(result);
+  assert.ok(pages.length >= 3);
+  const text = pages.join("\n");
+  for (const exclusion of exclusions) assert.ok(text.includes(exclusion.filename));
+});
 
 function baseLead(overrides: Record<string, unknown> = {}) {
   return {
@@ -60,6 +107,7 @@ function documentRow(overrides: Record<string, unknown> = {}) {
     filename: "bank-statement-january.pdf",
     fileKey: "leads/42/documents/bankstatement-2025-01-bank-statement-january",
     fileType: "application/pdf",
+    category: "bank_statement",
     fileSize: 100,
     createdAt: new Date("2025-01-01T00:00:00.000Z"),
     ...overrides,
@@ -122,20 +170,23 @@ function fakeResponse() {
   return response;
 }
 
-test("selection uses the trusted upload-key category and PDF metadata, not filenames", () => {
+test("selection uses persisted document categories and orders underwriting documents", () => {
   assert.equal(sanitizeLenderPackageBusinessName(`Acme, "North" Café LLC`), "Acme-North-Caf-LLC");
   const taggedChase = documentRow({
     filename: "Chase_Checking_Statement_Jan.pdf",
-    fileKey: "leads/42/documents/bankstatement-2025-01-Chase_Checking_Statement_Jan",
+    fileKey: "leads/42/documents/rep-upload-1",
+    category: "bank_statement",
   });
   const manualTax = documentRow({
     filename: "Tax_Return_2025.pdf",
     fileKey: "leads/42/documents/manual-tax-return-2025.pdf",
+    category: "other",
   });
   const taggedNonPdf = documentRow({
     filename: "Chase_Checking_Statement_Jan.txt",
-    fileKey: "leads/42/documents/bankstatement-2025-01-Chase_Checking_Statement_Jan.txt",
+    fileKey: "leads/42/documents/rep-upload-2",
     fileType: "text/plain",
+    category: "bank_statement",
   });
   assert.equal(isEligibleBankStatement(taggedChase), true);
   assert.equal(isEligibleBankStatement(manualTax), false);
@@ -146,11 +197,21 @@ test("selection uses the trusted upload-key category and PDF metadata, not filen
   );
   assert.equal(
     getDocumentExclusionReason(manualTax),
-    "upload key is not in the trusted bank statement category",
+    "document category is not selected for lender packages",
   );
   assert.equal(
     getDocumentExclusionReason(taggedNonPdf),
     "not a PDF",
+  );
+  assert.deepEqual(
+    selectLenderPackageDocuments([
+      documentRow({ id: 4, category: "tax_return" }),
+      documentRow({ id: 3, category: "bank_statement" }),
+      documentRow({ id: 2, category: "drivers_license" }),
+      documentRow({ id: 1, category: "invoice_quote" }),
+      documentRow({ id: 5, category: "other" }),
+    ]).map((document) => document.category),
+    ["invoice_quote", "bank_statement", "drivers_license", "tax_return"],
   );
 });
 
@@ -195,7 +256,7 @@ test("baseline application has two pages; exactly two statements append in uploa
     ["COVER page 1", "APPLICATION page 1", "STATEMENT_JANUARY page 1", "STATEMENT_FEBRUARY page 1"],
   );
   packagePages.forEach((page, index) => {
-    assert.match(page, new RegExp(`Prepared by My Business Solutions.*page ${index + 1} of 4`));
+    assert.match(page, new RegExp(`Prepared by MBS.*page ${index + 1} of 4`));
   });
   const signedHtml = renderCalls.find((html) => html.includes("Signature Method"));
   assert.ok(signedHtml);
@@ -209,8 +270,54 @@ test("baseline application has two pages; exactly two statements append in uploa
   assert.match(signedHtml, /Wed, 01 Jan 2025 00:01:00 GMT/);
 });
 
+test("native package includes three rep-uploaded statements and an invoice with Puppeteer unavailable", async () => {
+  const invoice = await markerPdf("INVOICE", 2);
+  const statements = await Promise.all(["JAN", "FEB", "MAR"].map((month) => markerPdf(`STATEMENT_${month}`)));
+  const launcher = mock.method(puppeteer, "launch", async () => {
+    throw new Error("Chromium intentionally unavailable");
+  });
+  try {
+    const result = await buildLenderPackagePdf({
+      lead: baseLead(),
+      application: baseApplication(),
+      assignedRep: { id: 7, name: "Assigned Rep", email: "rep@example.com", mobileNumber: null } as any,
+      documents: [
+        documentRow({
+          id: 1,
+          filename: "equipment-invoice.pdf",
+          fileKey: "leads/42/documents/rep-upload-invoice",
+          category: "invoice_quote",
+        }),
+        ...["JAN", "FEB", "MAR"].map((month, index) => documentRow({
+          id: index + 2,
+          filename: `rep-upload-${month.toLowerCase()}.pdf`,
+          fileKey: `leads/42/documents/rep-upload-${month.toLowerCase()}`,
+          category: "bank_statement",
+          createdAt: new Date(`2025-01-0${index + 2}T00:00:00.000Z`),
+        })),
+      ],
+      downloadDocument: async (document) => {
+        if (document.category === "invoice_quote") return invoice;
+        return statements[document.id - 2]!;
+      },
+    });
+    assert.equal(result.pdf.subarray(0, 5).toString("ascii"), "%PDF-");
+    const pages = await extractPages(result.pdf);
+    assert.equal(pages.length, 7, "cover + application + two invoice pages + three statements");
+    assert.match(pages[2]!, /INVOICE page 1/);
+    assert.match(pages[3]!, /INVOICE page 2/);
+    assert.match(pages[4]!, /STATEMENT_JAN page 1/);
+    assert.match(pages[5]!, /STATEMENT_FEB page 1/);
+    assert.match(pages[6]!, /STATEMENT_MAR page 1/);
+    pages.forEach((page, index) => {
+      assert.match(page, new RegExp(`Prepared by MBS.*page ${index + 1} of 7`));
+    });
+  } finally {
+    launcher.mock.restore();
+  }
+});
+
 test("malformed and excluded files are skipped and every exclusion is named on the final page", async () => {
-  const renderCalls: string[] = [];
   const valid = await markerPdf("STATEMENT_VALID");
   const result = await buildLenderPackagePdf({
     lead: baseLead(),
@@ -221,12 +328,13 @@ test("malformed and excluded files are skipped and every exclusion is named on t
       documentRow({ id: 2, filename: "corrupt-bank-statement.pdf", createdAt: new Date("2025-01-02T00:00:00.000Z") }),
       documentRow({
         id: 3,
-        filename: "Tax_Return_2025.pdf",
-        fileKey: "leads/42/documents/manual-tax-return-2025.pdf",
+        filename: "Tax_Return_2025.txt",
+        fileKey: "leads/42/documents/manual-tax-return-2025.txt",
+        fileType: "text/plain",
+        category: "tax_return",
         createdAt: new Date("2025-01-03T00:00:00.000Z"),
       }),
     ],
-    renderPdf: markerRenderer(renderCalls),
     downloadDocument: async (document) =>
       document.filename.startsWith("corrupt") ? Buffer.from("not a PDF") : valid,
   });
@@ -235,10 +343,10 @@ test("malformed and excluded files are skipped and every exclusion is named on t
   assert.equal(pages.length, 4, "cover, application, valid statement, and exclusion page");
   assert.ok(pages[2].includes("STATEMENT_VALID"));
   assert.ok(pages[3].includes("corrupt-bank-statement.pdf"));
-  assert.ok(pages[3].includes("Tax_Return_2025.pdf"));
+   assert.ok(pages[3].includes("Tax_Return_2025.txt"));
   assert.deepEqual(result.exclusions.map((item) => item.filename), [
     "corrupt-bank-statement.pdf",
-    "Tax_Return_2025.pdf",
+     "Tax_Return_2025.txt",
   ]);
   pages.forEach((page, index) => assert.match(page, new RegExp(`page ${index + 1} of 4`)));
 });

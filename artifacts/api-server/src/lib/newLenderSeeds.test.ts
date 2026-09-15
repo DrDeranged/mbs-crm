@@ -664,7 +664,9 @@ test("prior packet inventory reports only the three unapplied September 15 updat
       id,
       name,
       notes: `legacy notes\n\n${EXISTING_LENDER_UPDATE_MARKER}\nprior packet source`,
-      programEligibilityRules: reorderJsonb(update.structuredPatch.programEligibilityRules),
+      programEligibilityRules: "programEligibilityRules" in update.structuredPatch
+        ? reorderJsonb(update.structuredPatch.programEligibilityRules)
+        : null,
     };
   };
 
