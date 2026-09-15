@@ -1,6 +1,7 @@
 import { db } from "@workspace/db";
 import {
   leadsTable, lendersTable, lenderMatchesTable, companiesTable,
+  applicationsTable,
   activityLogTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -31,12 +32,15 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
   if (!lead) throw new Error(`Lead ${leadId} not found`);
 
   const company = (lead as any).company as typeof companiesTable.$inferSelect | null;
+  const application = await db.query.applicationsTable.findFirst({
+    where: eq(applicationsTable.leadId, leadId),
+  });
   const lenders = await db.select().from(lendersTable).where(eq(lendersTable.isActive, true));
 
   const results: LenderMatchResult[] = [];
 
   for (const lender of lenders) {
-    const evaluation = evaluateLender(lender, lead, company);
+    const evaluation = evaluateLender(lender, lead, company, application);
     if (!evaluation.eligible) continue;
 
     results.push({

@@ -27,6 +27,12 @@ export function normalizeApplicationSubmissionBody(raw: Record<string, unknown>)
   if (typeof body.phone === "string") {
     body.phone = body.phone.trim();
   }
+  if (typeof body.ownerSsn === "string") {
+    body.ownerSsn = body.ownerSsn.replace(/\D/g, "");
+  }
+  if (typeof body.secondaryOwnerSsn === "string") {
+    body.secondaryOwnerSsn = body.secondaryOwnerSsn.replace(/\D/g, "");
+  }
   return body;
 }
 
@@ -34,6 +40,11 @@ const isPositiveAmount = (v: string | undefined) => {
   if (!v) return true;
   const n = Number(v);
   return !isNaN(n) && n > 0;
+};
+const isNonNegativeAmount = (v: string | undefined) => {
+  if (!v) return true;
+  const n = Number(v);
+  return !isNaN(n) && n >= 0;
 };
 
 /** The production multipart application schema. Keep parsing in one place so
@@ -49,6 +60,15 @@ export const submitSchema = z.object({
   businessState: optionalStr(z.string().max(50, "State too long")),
   businessZip: optionalStr(z.string().max(20, "ZIP too long")),
   industry: optionalStr(z.string().max(100, "Industry too long")),
+  businessType: optionalStr(z.enum(["LLC", "Corp", "Sole Prop", "Partnership", "Other"])),
+  annualRevenue: optionalStr(z.string()
+    .refine(isPositiveAmount, "Annual revenue must be a positive number")
+    .refine((v) => !v || Number(v) <= 1_000_000_000, "Annual revenue value out of range")),
+  businessStartDate: optionalStr(z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Business start date must be in MM/YYYY format")),
+  yearsUnderCurrentOwnership: optionalStr(z.string().regex(/^\d+$/, "Years under current ownership must be a whole number")),
+  businessDescription: optionalStr(z.string().max(2000, "Business description must be 2000 characters or fewer")),
+  estCreditScore: optionalStr(z.enum(["below_500", "500_549", "550_599", "600_649", "650_699", "700_plus"])),
+  timelineFundsNeeded: optionalStr(z.string().max(100)),
   useOfFunds: optionalStr(z.string().max(1000, "Use of funds must be 1000 characters or fewer")),
   ownerFirstName: z.string().min(1, "Owner first name is required").max(100, "First name must be 100 characters or fewer"),
   ownerLastName: z.string().min(1, "Owner last name is required").max(100, "Last name must be 100 characters or fewer"),
@@ -60,6 +80,14 @@ export const submitSchema = z.object({
   email: optionalStr(z.string().email("Invalid email address").max(254, "Email too long")),
   phone: optionalStr(z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid phone number — use digits, spaces, dashes, or parentheses")),
   ownerSsn: optionalStr(z.string().regex(/^\d{9}$/, "SSN must be exactly 9 digits (no dashes)")),
+  secondaryOwnerName: optionalStr(z.string().max(200)),
+  secondaryOwnerEmail: optionalStr(z.string().email("Invalid secondary owner email").max(254)),
+  secondaryOwnerAddress: optionalStr(z.string().max(300)),
+  secondaryOwnerSsn: optionalStr(z.string().regex(/^\d{9}$/, "Secondary owner SSN must be exactly 9 digits (no dashes)")),
+  secondaryOwnerDob: optionalStr(z.string().max(20)),
+  secondaryOwnerOwnershipPct: optionalStr(z.string().max(3)),
+  secondaryOwnerCell: optionalStr(z.string().regex(/^\+?[\d\s\-().]{7,20}$/, "Invalid secondary owner cell number")),
+  secondaryOwnerEstCreditScore: optionalStr(z.enum(["below_500", "500_549", "550_599", "600_649", "650_699", "700_plus"])),
   requestedAmount: optionalStr(z.string()
     .refine(isPositiveAmount, "Requested amount must be a positive number")
     .refine((v) => !v || Number(v) <= 10_000_000, "Requested amount cannot exceed $10,000,000")),
@@ -79,6 +107,9 @@ export const submitSchema = z.object({
   timeInBusinessMonths: optionalStr(z.string().max(4)),
   ownershipPct: optionalStr(z.string().max(3)),
   equipmentCondition: optionalStr(z.enum(["new", "used"])),
+  yearMakeModel: optionalStr(z.string().max(200)),
+  trucksInFleet: optionalStr(z.string().regex(/^\d+$/, "Trucks in fleet must be a whole number")),
+  downPaymentAmount: optionalStr(z.string().refine(isNonNegativeAmount, "Down payment amount must be zero or greater")),
 }).superRefine((data, ctx) => {
   for (const issue of validateApplicationRules(data)) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue.error, path: [issue.field] });

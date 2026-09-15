@@ -54,3 +54,27 @@ test("validation response never returns the literal Invalid input", () => {
     "Invalid input",
   );
 });
+
+test("optional Section 1 fields remain optional and SSNs normalize to digits", () => {
+  const result = parseApplicationSubmission(validSubmission({
+    ownerSsn: "123-45-6789",
+    secondaryOwnerSsn: "987-65-4321",
+    businessType: "LLC",
+    businessStartDate: "02/2020",
+    estCreditScore: "650_699",
+    yearMakeModel: "2024 Ford F-250",
+  }));
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.ownerSsn, "123456789");
+    assert.equal(result.data.secondaryOwnerSsn, "987654321");
+  }
+});
+
+test("invalid optional business start date is rejected without making other optional fields required", () => {
+  const result = parseApplicationSubmission(validSubmission({ businessStartDate: "2020-02" }));
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.equal(firstValidationError(result.error.issues).field, "businessStartDate");
+  }
+});

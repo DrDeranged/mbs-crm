@@ -7,6 +7,15 @@ import { leadsTable } from "./leads";
 import { documentsTable } from "./documents";
 
 export const EQUIPMENT_CONDITIONS = ["new", "used"] as const;
+export const BUSINESS_TYPES = ["LLC", "Corp", "Sole Prop", "Partnership", "Other"] as const;
+export const ESTIMATED_CREDIT_SCORE_BANDS = [
+  "below_500",
+  "500_549",
+  "550_599",
+  "600_649",
+  "650_699",
+  "700_plus",
+] as const;
 
 export const applicationsTable = pgTable(
   "applications",
@@ -23,6 +32,13 @@ export const applicationsTable = pgTable(
     businessState: text("business_state"),
     businessZip: text("business_zip"),
     industry: text("industry"),
+    businessType: text("business_type", { enum: BUSINESS_TYPES }),
+    annualRevenue: numeric("annual_revenue", { precision: 15, scale: 2 }),
+    businessStartDate: text("business_start_date"),
+    yearsUnderCurrentOwnership: integer("years_under_current_ownership"),
+    businessDescription: text("business_description"),
+    estCreditScore: text("est_credit_score", { enum: ESTIMATED_CREDIT_SCORE_BANDS }),
+    timelineFundsNeeded: text("timeline_funds_needed"),
     timeInBusinessMonths: integer("time_in_business_months"),
     monthlyRevenueStated: integer("monthly_revenue_stated"),
     requestedAmount: integer("requested_amount"),
@@ -32,6 +48,9 @@ export const applicationsTable = pgTable(
     vendorName: text("vendor_name"),
     vendorQuoteAmount: numeric("vendor_quote_amount"),
     equipmentCondition: text("equipment_condition", { enum: EQUIPMENT_CONDITIONS }),
+    yearMakeModel: text("year_make_model"),
+    trucksInFleet: integer("trucks_in_fleet"),
+    downPaymentAmount: numeric("down_payment_amount", { precision: 15, scale: 2 }),
     // Owner info
     ownerFirstName: text("owner_first_name").notNull(),
     ownerLastName: text("owner_last_name").notNull(),
@@ -42,6 +61,15 @@ export const applicationsTable = pgTable(
     ownerHomeState: text("owner_home_state"),
     ownerHomeZip: text("owner_home_zip"),
     ownershipPct: integer("ownership_pct"),
+    // Secondary owner (optional; SSN is encrypted with the same application key).
+    secondaryOwnerName: text("secondary_owner_name"),
+    secondaryOwnerEmail: text("secondary_owner_email"),
+    secondaryOwnerAddress: text("secondary_owner_address"),
+    secondaryOwnerSsnEncrypted: text("secondary_owner_ssn_encrypted"),
+    secondaryOwnerDob: text("secondary_owner_dob"),
+    secondaryOwnerOwnershipPct: integer("secondary_owner_ownership_pct"),
+    secondaryOwnerCell: text("secondary_owner_cell"),
+    secondaryOwnerEstCreditScore: text("secondary_owner_est_credit_score", { enum: ESTIMATED_CREDIT_SCORE_BANDS }),
     // Consent & signature
     consentCreditPull: boolean("consent_credit_pull").notNull().default(false),
     consentTerms: boolean("consent_terms").notNull().default(false),

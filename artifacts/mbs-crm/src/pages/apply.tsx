@@ -60,6 +60,22 @@ const MONTHLY_REVENUE = [
   { label: "$500,000+", value: "500000" },
 ];
 
+const BUSINESS_TYPES = ["LLC", "Corp", "Sole Prop", "Partnership", "Other"];
+const ESTIMATED_CREDIT_SCORES = [
+  { label: "Below 500", value: "below_500" },
+  { label: "500–549", value: "500_549" },
+  { label: "550–599", value: "550_599" },
+  { label: "600–649", value: "600_649" },
+  { label: "650–699", value: "650_699" },
+  { label: "700+", value: "700_plus" },
+];
+const FUNDING_TIMELINES = [
+  { label: "As soon as possible", value: "as_soon_as_possible" },
+  { label: "Within 30 days", value: "within_30_days" },
+  { label: "1–3 months", value: "one_to_three_months" },
+  { label: "Just exploring", value: "just_exploring" },
+];
+
 const REQUESTED_AMOUNTS = [
   { label: "$5,000 – $15,000", value: "10000" },
   { label: "$15,000 – $50,000", value: "32500" },
@@ -129,6 +145,13 @@ interface FormData {
   businessState: string;
   businessZip: string;
   industry: string;
+  businessType: string;
+  annualRevenue: string;
+  businessStartDate: string;
+  yearsUnderCurrentOwnership: string;
+  businessDescription: string;
+  estCreditScore: string;
+  timelineFundsNeeded: string;
   timeInBusinessMonths: string;
   monthlyRevenueStated: string;
   requestedAmount: string;
@@ -137,6 +160,9 @@ interface FormData {
   vendorName: string;
   vendorQuoteAmount: string;
   equipmentCondition: "new" | "used" | "";
+  yearMakeModel: string;
+  trucksInFleet: string;
+  downPaymentAmount: string;
   email: string;
   phone: string;
   ownerFirstName: string;
@@ -148,6 +174,13 @@ interface FormData {
   ownerHomeState: string;
   ownerHomeZip: string;
   ownershipPct: string;
+  secondaryOwnerName: string;
+  secondaryOwnerEmail: string;
+  secondaryOwnerAddress: string;
+  secondaryOwnerDob: string;
+  secondaryOwnerOwnershipPct: string;
+  secondaryOwnerCell: string;
+  secondaryOwnerEstCreditScore: string;
   consentCreditPull: boolean;
   consentTerms: boolean;
 }
@@ -159,13 +192,19 @@ const emptyForm = (): FormData => ({
   type: "",
   businessName: "", dba: "", ein: "",
   businessAddress: "", businessCity: "", businessState: "", businessZip: "",
-  industry: "", timeInBusinessMonths: "", monthlyRevenueStated: "",
+  industry: "", businessType: "", annualRevenue: "", businessStartDate: "",
+  yearsUnderCurrentOwnership: "", businessDescription: "", estCreditScore: "",
+  timelineFundsNeeded: "", timeInBusinessMonths: "", monthlyRevenueStated: "",
   requestedAmount: "", useOfFunds: "",
   equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "",
+  yearMakeModel: "", trucksInFleet: "", downPaymentAmount: "",
   email: "", phone: "",
   ownerFirstName: "", ownerLastName: "", ownerSsn: "", ownerDob: "",
   ownerHomeAddress: "", ownerHomeCity: "", ownerHomeState: "", ownerHomeZip: "",
   ownershipPct: "100",
+  secondaryOwnerName: "", secondaryOwnerEmail: "", secondaryOwnerAddress: "",
+  secondaryOwnerDob: "", secondaryOwnerOwnershipPct: "", secondaryOwnerCell: "",
+  secondaryOwnerEstCreditScore: "",
   consentCreditPull: false, consentTerms: false,
 });
 
@@ -256,6 +295,7 @@ export default function ApplyPage() {
   const [statementsSkipped, setStatementsSkipped] = useState(false);
   const [skipConfirmation, setSkipConfirmation] = useState(false);
   const [ssnRaw, setSsnRaw] = useState("");
+  const [secondarySsnRaw, setSecondarySsnRaw] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -333,6 +373,7 @@ export default function ApplyPage() {
       });
       if (statementsSkipped) formData.append("statementsSkipped", "true");
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
+      formData.append("secondaryOwnerSsn", secondarySsnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();
       formData.append("signatureMethod", signatureMode === "type" ? "typed" : "drawn");
       formData.append("signatureData", sig);
@@ -534,6 +575,13 @@ export default function ApplyPage() {
                     </Select>
                   </div>
                   <div className="space-y-1">
+                    <Label className="text-xs">Business Type</Label>
+                    <Select value={form.businessType} onValueChange={(v) => set({ businessType: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>{BUSINESS_TYPES.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
                     <Label className="text-xs">Time in Business *</Label>
                     <Select value={form.timeInBusinessMonths} onValueChange={(v) => set({ timeInBusinessMonths: v })}>
                       <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
@@ -546,6 +594,36 @@ export default function ApplyPage() {
                       <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                       <SelectContent>{MONTHLY_REVENUE.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Annual Revenue</Label>
+                    <Input type="number" min="0" value={form.annualRevenue} onChange={(e) => set({ annualRevenue: e.target.value })} placeholder="500000" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Business Start (MM/YYYY)</Label>
+                    <Input value={form.businessStartDate} onChange={(e) => set({ businessStartDate: e.target.value })} placeholder="01/2020" maxLength={7} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Years Under Current Ownership</Label>
+                    <Input type="number" min="0" step="1" value={form.yearsUnderCurrentOwnership} onChange={(e) => set({ yearsUnderCurrentOwnership: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Estimated Credit Score</Label>
+                    <Select value={form.estCreditScore} onValueChange={(v) => set({ estCreditScore: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select a range…" /></SelectTrigger>
+                      <SelectContent>{ESTIMATED_CREDIT_SCORES.map((score) => <SelectItem key={score.value} value={score.value}>{score.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">When are funds needed?</Label>
+                    <Select value={form.timelineFundsNeeded} onValueChange={(v) => set({ timelineFundsNeeded: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>{FUNDING_TIMELINES.map((timeline) => <SelectItem key={timeline.value} value={timeline.value}>{timeline.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <Label className="text-xs">Business Description</Label>
+                    <Textarea rows={2} value={form.businessDescription} onChange={(e) => set({ businessDescription: e.target.value })} placeholder="Tell us about your business…" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Requested Amount *</Label>
@@ -595,6 +673,18 @@ export default function ApplyPage() {
                             <SelectItem value="used">Used</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Year / Make / Model</Label>
+                        <Input value={form.yearMakeModel} onChange={(e) => set({ yearMakeModel: e.target.value })} placeholder="2024 Ford F-250" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Trucks in Fleet</Label>
+                        <Input type="number" min="0" value={form.trucksInFleet} onChange={(e) => set({ trucksInFleet: e.target.value })} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Down Payment Amount ($)</Label>
+                        <Input type="number" min="0" value={form.downPaymentAmount} onChange={(e) => set({ downPaymentAmount: e.target.value })} />
                       </div>
                     </>
                   )}
@@ -675,6 +765,62 @@ export default function ApplyPage() {
                     <Input type="number" min="1" max="100" value={form.ownershipPct} onChange={(e) => set({ ownershipPct: e.target.value })} />
                   </div>
                 </div>
+                <details className="rounded-xl border border-slate-200 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">
+                    Add a secondary owner (optional)
+                  </summary>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-200 px-4 py-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Name</Label>
+                      <Input value={form.secondaryOwnerName} onChange={(e) => set({ secondaryOwnerName: e.target.value })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Email</Label>
+                      <Input type="email" value={form.secondaryOwnerEmail} onChange={(e) => set({ secondaryOwnerEmail: e.target.value })} />
+                    </div>
+                    <div className="sm:col-span-2 space-y-1">
+                      <Label className="text-xs">Address</Label>
+                      <Input value={form.secondaryOwnerAddress} onChange={(e) => set({ secondaryOwnerAddress: e.target.value })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">SSN</Label>
+                      {secondarySsnRaw.length < 9 ? (
+                        <Input
+                          value={formatSsnTyping(secondarySsnRaw)}
+                          onChange={(e) => setSecondarySsnRaw(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                          placeholder="XXX-XX-XXXX"
+                          inputMode="numeric"
+                          autoComplete="off"
+                        />
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input value={`•••-••-${secondarySsnRaw.slice(5)}`} readOnly className="font-mono tracking-widest bg-white" />
+                          <Button type="button" variant="outline" size="sm" onClick={() => setSecondarySsnRaw("")} className="flex-shrink-0 text-xs">Clear</Button>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-gray-400">Encrypted at rest — never stored as plain text</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Date of Birth</Label>
+                      <Input type="date" value={form.secondaryOwnerDob} onChange={(e) => set({ secondaryOwnerDob: e.target.value })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Ownership %</Label>
+                      <Input type="number" min="0" max="100" value={form.secondaryOwnerOwnershipPct} onChange={(e) => set({ secondaryOwnerOwnershipPct: e.target.value })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cell</Label>
+                      <Input type="tel" value={form.secondaryOwnerCell} onChange={(e) => set({ secondaryOwnerCell: e.target.value })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Estimated Credit Score</Label>
+                      <Select value={form.secondaryOwnerEstCreditScore} onValueChange={(v) => set({ secondaryOwnerEstCreditScore: v })}>
+                        <SelectTrigger><SelectValue placeholder="Select a range…" /></SelectTrigger>
+                        <SelectContent>{ESTIMATED_CREDIT_SCORES.map((score) => <SelectItem key={score.value} value={score.value}>{score.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </details>
               </div>
             )}
 

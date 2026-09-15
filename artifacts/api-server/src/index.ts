@@ -54,6 +54,54 @@ async function checkApplicationSignatureColumns(): Promise<void> {
   }
 }
 
+async function checkApplicationOptionalColumns(): Promise<void> {
+  const requiredColumns = [
+    "business_type",
+    "annual_revenue",
+    "business_start_date",
+    "years_under_current_ownership",
+    "business_description",
+    "est_credit_score",
+    "timeline_funds_needed",
+    "year_make_model",
+    "trucks_in_fleet",
+    "down_payment_amount",
+    "secondary_owner_name",
+    "secondary_owner_email",
+    "secondary_owner_address",
+    "secondary_owner_ssn_encrypted",
+    "secondary_owner_dob",
+    "secondary_owner_ownership_pct",
+    "secondary_owner_cell",
+    "secondary_owner_est_credit_score",
+  ];
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN (${sql.join(requiredColumns.map((column) => sql`${column}`), sql`, `)})
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+    );
+    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "014_application_optional_fields.sql" },
+        "Required optional application columns are missing; apply 014_application_optional_fields.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "014_application_optional_fields.sql" },
+      "Could not verify optional application columns for 014_application_optional_fields.sql",
+    );
+  }
+}
+
 const server = app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
@@ -63,6 +111,7 @@ const server = app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
 
   void checkApplicationSignatureColumns();
+  void checkApplicationOptionalColumns();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));

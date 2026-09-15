@@ -81,3 +81,64 @@ test("missing criteria are skipped rather than excluding a lender", () => {
     true,
   );
 });
+
+test("application estimated score band is used only when actual score is absent", () => {
+  const evaluation = evaluateLender(
+    { name: "Test", minCreditScore: 650 },
+    { applicationType: "working_capital", creditScore: null, requestedAmount: null, existingPositions: null },
+    null,
+    { estCreditScore: "650_699" },
+  );
+  assert.equal(evaluation.eligible, true);
+  assert.match(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Credit Score")?.detail ?? "",
+    /estimated band minimum/,
+  );
+});
+
+test("actual lead credit score overrides application estimated score", () => {
+  const evaluation = evaluateLender(
+    { name: "Test", minCreditScore: 650 },
+    { applicationType: "working_capital", creditScore: 600, requestedAmount: null, existingPositions: null },
+    null,
+    { estCreditScore: "700_plus" },
+  );
+  assert.equal(evaluation.eligible, false);
+  assert.match(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Credit Score")?.detail ?? "",
+    /^Score 600 is below minimum 650$/,
+  );
+});
+
+test("application business start month supplies time in business when company data is absent", () => {
+  const start = new Date();
+  start.setUTCMonth(start.getUTCMonth() - 24);
+  const month = String(start.getUTCMonth() + 1).padStart(2, "0");
+  const year = start.getUTCFullYear();
+  const evaluation = evaluateLender(
+    { name: "Test", minTimeInBusinessMonths: 24 },
+    { applicationType: "working_capital", creditScore: null, requestedAmount: null, existingPositions: null },
+    null,
+    { businessStartDate: `${month}/${year}` },
+  );
+  assert.equal(evaluation.eligible, true);
+  assert.equal(evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Time in Business")?.passed, true);
+});
+
+test("company time in business overrides application business start date", () => {
+  const evaluation = evaluateLender(
+    { name: "Test", minTimeInBusinessMonths: 24 },
+    { applicationType: "working_capital", creditScore: null, requestedAmount: null, existingPositions: null },
+    { timeInBusinessMonths: 6 },
+    { businessStartDate: "01/2000" },
+  );
+  assert.equal(evaluation.eligible, false);
+  assert.deepEqual(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Time in Business"),
+    {
+      criterion: "Time in Business",
+      passed: false,
+      detail: "6 months is below minimum 24 months",
+    },
+  );
+});

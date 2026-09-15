@@ -25,6 +25,13 @@ export interface LenderEvaluationLead {
   existingPositions?: number | null;
 }
 
+export interface LenderEvaluationApplication {
+  businessStartDate?: string | null;
+  estCreditScore?: string | null;
+  // yearsUnderCurrentOwnership is intentionally not evaluated: lenders have
+  // no ownership-tenure rule in the current schema.
+}
+
 export interface LenderEvaluationCompany {
   industry?: string | null;
   timeInBusinessMonths?: number | null;
@@ -36,6 +43,29 @@ export interface LenderEvaluation {
   eligible: boolean;
   matchScore: number;
   weightedScore: number;
+}
+
+const ESTIMATED_SCORE_MINIMUMS: Record<string, number> = {
+  below_500: 300,
+  "500_549": 500,
+  "550_599": 550,
+  "600_649": 600,
+  "650_699": 650,
+  "700_plus": 700,
+};
+
+function estimatedScoreMinimum(band: string | null | undefined): number | null {
+  return band && ESTIMATED_SCORE_MINIMUMS[band] != null
+    ? ESTIMATED_SCORE_MINIMUMS[band]
+    : null;
+}
+
+function monthsFromBusinessStartDate(value: string | null | undefined): number | null {
+  if (!value || !/^(0[1-9]|1[0-2])\/\d{4}$/.test(value)) return null;
+  const [month, year] = value.split("/").map(Number);
+  const now = new Date();
+  const months = (now.getUTCFullYear() - year) * 12 + (now.getUTCMonth() + 1 - month);
+  return Math.max(0, months);
 }
 
 /**
@@ -56,6 +86,7 @@ export function evaluateLender(
   lender: LenderEvaluationLender,
   lead: LenderEvaluationLead,
   company?: LenderEvaluationCompany | null,
+  application?: LenderEvaluationApplication | null,
 ): LenderEvaluation {
   const breakdown: EligibilityCriterion[] = [];
   const programTypes = lender.programTypes ?? [];
@@ -86,7 +117,8 @@ export function evaluateLender(
   }
 
   if (lender.minCreditScore != null) {
-    if (lead.creditScore == null) {
+    const creditScore = lead.creditScore ?? estimatedScoreMinimum(application?.estCreditScore);
+    if (creditScore == null) {
       breakdown.push({
         criterion: "Credit Score",
         passed: true,
@@ -94,13 +126,13 @@ export function evaluateLender(
         detail: "Credit score not yet available — criterion skipped",
       });
     } else {
-      const passed = lead.creditScore >= lender.minCreditScore;
+      const passed = creditScore >= lender.minCreditScore;
       breakdown.push({
         criterion: "Credit Score",
         passed,
         detail: passed
-          ? `Score ${lead.creditScore} meets minimum ${lender.minCreditScore}`
-          : `Score ${lead.creditScore} is below minimum ${lender.minCreditScore}`,
+          ? `Score ${creditScore}${lead.creditScore == null ? " (estimated band minimum)" : ""} meets minimum ${lender.minCreditScore}`
+          : `Score ${creditScore}${lead.creditScore == null ? " (estimated band minimum)" : ""} is below minimum ${lender.minCreditScore}`,
       });
     }
   }
@@ -120,14 +152,16 @@ export function evaluateLender(
   }
 
   const minMonths = lender.minTimeInBusinessMonths ?? 0;
-  if (minMonths > 0 && company?.timeInBusinessMonths != null) {
-    const passed = company.timeInBusinessMonths >= minMonths;
+  const timeInBusinessMonths = company?.timeInBusinessMonths
+    ?? monthsFromBusinessStartDate(application?.businessStartDate);
+  if (minMonths > 0 && timeInBusinessMonths != null) {
+    const passed = timeInBusinessMonths >= minMonths;
     breakdown.push({
       criterion: "Time in Business",
       passed,
       detail: passed
-        ? `${company.timeInBusinessMonths} months meets minimum ${minMonths} months`
-        : `${company.timeInBusinessMonths} months is below minimum ${minMonths} months`,
+        ? `${timeInBusinessMonths} months meets minimum ${minMonths} months`
+        : `${timeInBusinessMonths} months is below minimum ${minMonths} months`,
     });
   }
 

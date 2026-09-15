@@ -1,0 +1,18 @@
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "business_type" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "annual_revenue" numeric(15, 2);
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "business_start_date" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "years_under_current_ownership" integer;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "business_description" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "est_credit_score" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "timeline_funds_needed" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "year_make_model" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "trucks_in_fleet" integer;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "down_payment_amount" numeric(15, 2);
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_name" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_email" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_address" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_ssn_encrypted" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_dob" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_ownership_pct" integer;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_cell" text;
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "secondary_owner_est_credit_score" text;

@@ -175,6 +175,12 @@ router.post(
         // Throws if ENCRYPTION_KEY is missing/malformed — do not swallow
         ownerSsnEncrypted = encrypt(rawSsn);
       }
+      const rawSecondaryOwnerSsn: string = (applicationBody.secondaryOwnerSsn ?? "").replace(/\D/g, "");
+      let secondaryOwnerSsnEncrypted: string | null = null;
+      if (rawSecondaryOwnerSsn) {
+        // Use the same AES-256-GCM application encryption as the principal owner SSN.
+        secondaryOwnerSsnEncrypted = encrypt(rawSecondaryOwnerSsn);
+      }
 
        // A QR attribution is advisory: invalid/missing values use normal assignment.
         const attributedRep = applicationBody.rep
@@ -241,6 +247,13 @@ router.post(
           businessState: applicationBody.businessState || null,
           businessZip: applicationBody.businessZip || null,
           industry: applicationBody.industry || null,
+           businessType: applicationBody.businessType || null,
+           annualRevenue: applicationBody.annualRevenue ? String(applicationBody.annualRevenue) : null,
+           businessStartDate: applicationBody.businessStartDate || null,
+           yearsUnderCurrentOwnership: applicationBody.yearsUnderCurrentOwnership ? Number(applicationBody.yearsUnderCurrentOwnership) : null,
+           businessDescription: applicationBody.businessDescription || null,
+           estCreditScore: applicationBody.estCreditScore || null,
+           timelineFundsNeeded: applicationBody.timelineFundsNeeded || null,
           timeInBusinessMonths: applicationBody.timeInBusinessMonths ? Number(applicationBody.timeInBusinessMonths) : null,
           monthlyRevenueStated: applicationBody.monthlyRevenueStated ? Number(applicationBody.monthlyRevenueStated) : null,
           requestedAmount: applicationBody.requestedAmount ? Number(applicationBody.requestedAmount) : null,
@@ -249,6 +262,9 @@ router.post(
           vendorName: applicationBody.vendorName || null,
           vendorQuoteAmount: applicationBody.vendorQuoteAmount ? String(applicationBody.vendorQuoteAmount) : null,
           equipmentCondition: applicationBody.equipmentCondition as "new" | "used" | null || null,
+           yearMakeModel: applicationBody.yearMakeModel || null,
+           trucksInFleet: applicationBody.trucksInFleet ? Number(applicationBody.trucksInFleet) : null,
+           downPaymentAmount: applicationBody.downPaymentAmount ? String(applicationBody.downPaymentAmount) : null,
           ownerFirstName: applicationBody.ownerFirstName,
           ownerLastName: applicationBody.ownerLastName,
           ownerSsnEncrypted,
@@ -258,6 +274,14 @@ router.post(
           ownerHomeState: applicationBody.ownerHomeState || null,
           ownerHomeZip: applicationBody.ownerHomeZip || null,
           ownershipPct: applicationBody.ownershipPct ? Number(applicationBody.ownershipPct) : null,
+           secondaryOwnerName: applicationBody.secondaryOwnerName || null,
+           secondaryOwnerEmail: applicationBody.secondaryOwnerEmail || null,
+           secondaryOwnerAddress: applicationBody.secondaryOwnerAddress || null,
+           secondaryOwnerSsnEncrypted,
+           secondaryOwnerDob: applicationBody.secondaryOwnerDob || null,
+           secondaryOwnerOwnershipPct: applicationBody.secondaryOwnerOwnershipPct ? Number(applicationBody.secondaryOwnerOwnershipPct) : null,
+           secondaryOwnerCell: applicationBody.secondaryOwnerCell || null,
+           secondaryOwnerEstCreditScore: applicationBody.secondaryOwnerEstCreditScore || null,
           consentCreditPull: applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true,
           consentTerms: applicationBody.consentTerms === "true" || applicationBody.consentTerms === true,
            signatureMethod: applicationBody.signatureMethod as "typed" | "drawn",
@@ -488,8 +512,7 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
   if (!app) { res.status(404).json({ error: "No application on file" }); return; }
 
   // Mask SSN — never send plaintext to client
-  const { ownerSsnEncrypted, ...rest } = app;
-  const masked = ownerSsnEncrypted ? maskSsn("000000000") : null;
+  const { ownerSsnEncrypted, secondaryOwnerSsnEncrypted, ...rest } = app;
   // Actually we need to decrypt to get last 4 — use a safe fallback
   let ownerSsnMasked: string | null = null;
   if (ownerSsnEncrypted) {
@@ -501,15 +524,28 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
       ownerSsnMasked = "***-**-****";
     }
   }
+  let secondaryOwnerSsnMasked: string | null = null;
+  if (secondaryOwnerSsnEncrypted) {
+    try {
+      const { decrypt } = await import("../lib/encryption");
+      secondaryOwnerSsnMasked = maskSsn(decrypt(secondaryOwnerSsnEncrypted));
+    } catch {
+      secondaryOwnerSsnMasked = "***-**-****";
+    }
+  }
 
   const signedDocumentUrl = app.signedDocumentKey
     ? `/storage/objects/${app.signedDocumentKey}`
     : null;
 
   logPiiAccess({ userId: user.id, leadId: id, fieldCategory: "application", action: "view", ip: req.ip });
+  if (ownerSsnEncrypted || secondaryOwnerSsnEncrypted) {
+    logPiiAccess({ userId: user.id, leadId: id, fieldCategory: "ssn", action: "view", ip: req.ip });
+  }
   res.json({
     ...rest,
     ownerSsnMasked,
+    secondaryOwnerSsnMasked,
     signatureData: app.signatureData ? "[signature on file]" : null,
     signedDocumentUrl,
   });

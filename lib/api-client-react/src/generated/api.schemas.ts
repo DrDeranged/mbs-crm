@@ -1228,12 +1228,56 @@ export const ApplicationRecordType = {
 /**
  * @nullable
  */
+export type ApplicationRecordBusinessType = typeof ApplicationRecordBusinessType[keyof typeof ApplicationRecordBusinessType] | null;
+
+
+export const ApplicationRecordBusinessType = {
+  LLC: 'LLC',
+  Corp: 'Corp',
+  Sole_Prop: 'Sole Prop',
+  Partnership: 'Partnership',
+  Other: 'Other',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ApplicationRecordEstCreditScore = typeof ApplicationRecordEstCreditScore[keyof typeof ApplicationRecordEstCreditScore] | null;
+
+
+export const ApplicationRecordEstCreditScore = {
+  below_500: 'below_500',
+  '500_549': '500_549',
+  '550_599': '550_599',
+  '600_649': '600_649',
+  '650_699': '650_699',
+  '700_plus': '700_plus',
+} as const;
+
+/**
+ * @nullable
+ */
 export type ApplicationRecordEquipmentCondition = typeof ApplicationRecordEquipmentCondition[keyof typeof ApplicationRecordEquipmentCondition] | null;
 
 
 export const ApplicationRecordEquipmentCondition = {
   new: 'new',
   used: 'used',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ApplicationRecordSecondaryOwnerEstCreditScore = typeof ApplicationRecordSecondaryOwnerEstCreditScore[keyof typeof ApplicationRecordSecondaryOwnerEstCreditScore] | null;
+
+
+export const ApplicationRecordSecondaryOwnerEstCreditScore = {
+  below_500: 'below_500',
+  '500_549': '500_549',
+  '550_599': '550_599',
+  '600_649': '600_649',
+  '650_699': '650_699',
+  '700_plus': '700_plus',
 } as const;
 
 /**
@@ -1267,6 +1311,20 @@ export interface ApplicationRecord {
   /** @nullable */
   industry?: string | null;
   /** @nullable */
+  businessType?: ApplicationRecordBusinessType;
+  /** @nullable */
+  annualRevenue?: number | null;
+  /** @nullable */
+  businessStartDate?: string | null;
+  /** @nullable */
+  yearsUnderCurrentOwnership?: number | null;
+  /** @nullable */
+  businessDescription?: string | null;
+  /** @nullable */
+  estCreditScore?: ApplicationRecordEstCreditScore;
+  /** @nullable */
+  timelineFundsNeeded?: string | null;
+  /** @nullable */
   timeInBusinessMonths?: number | null;
   /** @nullable */
   monthlyRevenueStated?: number | null;
@@ -1282,6 +1340,12 @@ export interface ApplicationRecord {
   vendorQuoteAmount?: string | null;
   /** @nullable */
   equipmentCondition?: ApplicationRecordEquipmentCondition;
+  /** @nullable */
+  yearMakeModel?: string | null;
+  /** @nullable */
+  trucksInFleet?: number | null;
+  /** @nullable */
+  downPaymentAmount?: string | null;
   ownerFirstName: string;
   ownerLastName: string;
   /** @nullable */
@@ -1298,6 +1362,22 @@ export interface ApplicationRecord {
   ownerHomeZip?: string | null;
   /** @nullable */
   ownershipPct?: number | null;
+  /** @nullable */
+  secondaryOwnerName?: string | null;
+  /** @nullable */
+  secondaryOwnerEmail?: string | null;
+  /** @nullable */
+  secondaryOwnerAddress?: string | null;
+  /** @nullable */
+  secondaryOwnerSsnMasked?: string | null;
+  /** @nullable */
+  secondaryOwnerDob?: string | null;
+  /** @nullable */
+  secondaryOwnerOwnershipPct?: number | null;
+  /** @nullable */
+  secondaryOwnerCell?: string | null;
+  /** @nullable */
+  secondaryOwnerEstCreditScore?: ApplicationRecordSecondaryOwnerEstCreditScore;
   consentCreditPull?: boolean;
   consentTerms?: boolean;
   /** @nullable */
@@ -2203,6 +2283,41 @@ export const SubmitApplicationBodyType = {
   working_capital: 'working_capital',
 } as const;
 
+export type SubmitApplicationBodyBusinessType = typeof SubmitApplicationBodyBusinessType[keyof typeof SubmitApplicationBodyBusinessType];
+
+
+export const SubmitApplicationBodyBusinessType = {
+  LLC: 'LLC',
+  Corp: 'Corp',
+  Sole_Prop: 'Sole Prop',
+  Partnership: 'Partnership',
+  Other: 'Other',
+} as const;
+
+export type SubmitApplicationBodyEstCreditScore = typeof SubmitApplicationBodyEstCreditScore[keyof typeof SubmitApplicationBodyEstCreditScore];
+
+
+export const SubmitApplicationBodyEstCreditScore = {
+  below_500: 'below_500',
+  '500_549': '500_549',
+  '550_599': '550_599',
+  '600_649': '600_649',
+  '650_699': '650_699',
+  '700_plus': '700_plus',
+} as const;
+
+export type SubmitApplicationBodySecondaryOwnerEstCreditScore = typeof SubmitApplicationBodySecondaryOwnerEstCreditScore[keyof typeof SubmitApplicationBodySecondaryOwnerEstCreditScore];
+
+
+export const SubmitApplicationBodySecondaryOwnerEstCreditScore = {
+  below_500: 'below_500',
+  '500_549': '500_549',
+  '550_599': '550_599',
+  '600_649': '600_649',
+  '650_699': '650_699',
+  '700_plus': '700_plus',
+} as const;
+
 export type SubmitApplicationBodySignatureMethod = typeof SubmitApplicationBodySignatureMethod[keyof typeof SubmitApplicationBodySignatureMethod];
 
 
@@ -2219,8 +2334,35 @@ export type SubmitApplicationBody = {
   email?: string;
   phone?: string;
   ein?: string;
+  /** Nine digits; encrypted at rest and never returned in plaintext */
   ownerSsn?: string;
   ownerDob?: string;
+  businessType?: SubmitApplicationBodyBusinessType;
+  annualRevenue?: number;
+  /**
+     * Optional business start month and year in MM/YYYY format
+     * @pattern ^(0[1-9]|1[0-2])/[0-9]{4}$
+     */
+  businessStartDate?: string;
+  yearsUnderCurrentOwnership?: number;
+  businessDescription?: string;
+  estCreditScore?: SubmitApplicationBodyEstCreditScore;
+  timelineFundsNeeded?: string;
+  secondaryOwnerName?: string;
+  secondaryOwnerEmail?: string;
+  secondaryOwnerAddress?: string;
+  /** Nine digits; encrypted at rest and never returned in plaintext */
+  secondaryOwnerSsn?: string;
+  secondaryOwnerDob?: string;
+  secondaryOwnerOwnershipPct?: number;
+  secondaryOwnerCell?: string;
+  secondaryOwnerEstCreditScore?: SubmitApplicationBodySecondaryOwnerEstCreditScore;
+  /** Equipment applications only */
+  yearMakeModel?: string;
+  /** Equipment applications only */
+  trucksInFleet?: number;
+  /** Equipment applications only */
+  downPaymentAmount?: number;
   consentCreditPull: boolean;
   consentTerms: boolean;
   signatureMethod: SubmitApplicationBodySignatureMethod;

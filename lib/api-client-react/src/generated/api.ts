@@ -5566,6 +5566,60 @@ if(submitApplicationBody.ownerSsn !== undefined) {
 if(submitApplicationBody.ownerDob !== undefined) {
  formData.append(`ownerDob`, submitApplicationBody.ownerDob);
  }
+if(submitApplicationBody.businessType !== undefined) {
+ formData.append(`businessType`, submitApplicationBody.businessType);
+ }
+if(submitApplicationBody.annualRevenue !== undefined) {
+ formData.append(`annualRevenue`, submitApplicationBody.annualRevenue.toString())
+ }
+if(submitApplicationBody.businessStartDate !== undefined) {
+ formData.append(`businessStartDate`, submitApplicationBody.businessStartDate);
+ }
+if(submitApplicationBody.yearsUnderCurrentOwnership !== undefined) {
+ formData.append(`yearsUnderCurrentOwnership`, submitApplicationBody.yearsUnderCurrentOwnership.toString())
+ }
+if(submitApplicationBody.businessDescription !== undefined) {
+ formData.append(`businessDescription`, submitApplicationBody.businessDescription);
+ }
+if(submitApplicationBody.estCreditScore !== undefined) {
+ formData.append(`estCreditScore`, submitApplicationBody.estCreditScore);
+ }
+if(submitApplicationBody.timelineFundsNeeded !== undefined) {
+ formData.append(`timelineFundsNeeded`, submitApplicationBody.timelineFundsNeeded);
+ }
+if(submitApplicationBody.secondaryOwnerName !== undefined) {
+ formData.append(`secondaryOwnerName`, submitApplicationBody.secondaryOwnerName);
+ }
+if(submitApplicationBody.secondaryOwnerEmail !== undefined) {
+ formData.append(`secondaryOwnerEmail`, submitApplicationBody.secondaryOwnerEmail);
+ }
+if(submitApplicationBody.secondaryOwnerAddress !== undefined) {
+ formData.append(`secondaryOwnerAddress`, submitApplicationBody.secondaryOwnerAddress);
+ }
+if(submitApplicationBody.secondaryOwnerSsn !== undefined) {
+ formData.append(`secondaryOwnerSsn`, submitApplicationBody.secondaryOwnerSsn);
+ }
+if(submitApplicationBody.secondaryOwnerDob !== undefined) {
+ formData.append(`secondaryOwnerDob`, submitApplicationBody.secondaryOwnerDob);
+ }
+if(submitApplicationBody.secondaryOwnerOwnershipPct !== undefined) {
+ formData.append(`secondaryOwnerOwnershipPct`, submitApplicationBody.secondaryOwnerOwnershipPct.toString())
+ }
+if(submitApplicationBody.secondaryOwnerCell !== undefined) {
+ formData.append(`secondaryOwnerCell`, submitApplicationBody.secondaryOwnerCell);
+ }
+if(submitApplicationBody.secondaryOwnerEstCreditScore !== undefined) {
+ formData.append(`secondaryOwnerEstCreditScore`, submitApplicationBody.secondaryOwnerEstCreditScore);
+ }
+if(submitApplicationBody.yearMakeModel !== undefined) {
+ formData.append(`yearMakeModel`, submitApplicationBody.yearMakeModel);
+ }
+if(submitApplicationBody.trucksInFleet !== undefined) {
+ formData.append(`trucksInFleet`, submitApplicationBody.trucksInFleet.toString())
+ }
+if(submitApplicationBody.downPaymentAmount !== undefined) {
+ formData.append(`downPaymentAmount`, submitApplicationBody.downPaymentAmount.toString())
+ }
 formData.append(`consentCreditPull`, submitApplicationBody.consentCreditPull.toString())
 formData.append(`consentTerms`, submitApplicationBody.consentTerms.toString())
 formData.append(`signatureMethod`, submitApplicationBody.signatureMethod);

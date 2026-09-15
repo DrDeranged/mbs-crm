@@ -1917,8 +1917,55 @@ paths:
                   type: string
                 ownerSsn:
                   type: string
+                  description: Nine digits; encrypted at rest and never returned in plaintext
                 ownerDob:
                   type: string
+                businessType:
+                  type: string
+                  enum: [LLC, Corp, Sole Prop, Partnership, Other]
+                annualRevenue:
+                  type: number
+                businessStartDate:
+                  type: string
+                  pattern: '^(0[1-9]|1[0-2])/[0-9]{4}$'
+                  description: Optional business start month and year in MM/YYYY format
+                yearsUnderCurrentOwnership:
+                  type: number
+                businessDescription:
+                  type: string
+                estCreditScore:
+                  type: string
+                  enum: [below_500, 500_549, 550_599, 600_649, 650_699, 700_plus]
+                timelineFundsNeeded:
+                  type: string
+                secondaryOwnerName:
+                  type: string
+                secondaryOwnerEmail:
+                  type: string
+                  format: email
+                secondaryOwnerAddress:
+                  type: string
+                secondaryOwnerSsn:
+                  type: string
+                  description: Nine digits; encrypted at rest and never returned in plaintext
+                secondaryOwnerDob:
+                  type: string
+                secondaryOwnerOwnershipPct:
+                  type: number
+                secondaryOwnerCell:
+                  type: string
+                secondaryOwnerEstCreditScore:
+                  type: string
+                  enum: [below_500, 500_549, 550_599, 600_649, 650_699, 700_plus]
+                yearMakeModel:
+                  type: string
+                  description: Equipment applications only
+                trucksInFleet:
+                  type: integer
+                  description: Equipment applications only
+                downPaymentAmount:
+                  type: number
+                  description: Equipment applications only
                 consentCreditPull:
                   type: boolean
                 consentTerms:
@@ -5372,6 +5419,22 @@ components:
           type: ["string", "null"]
         industry:
           type: ["string", "null"]
+        businessType:
+          type: ["string", "null"]
+          enum: [LLC, Corp, Sole Prop, Partnership, Other, null]
+        annualRevenue:
+          type: ["number", "null"]
+        businessStartDate:
+          type: ["string", "null"]
+        yearsUnderCurrentOwnership:
+          type: ["integer", "null"]
+        businessDescription:
+          type: ["string", "null"]
+        estCreditScore:
+          type: ["string", "null"]
+          enum: [below_500, 500_549, 550_599, 600_649, 650_699, 700_plus, null]
+        timelineFundsNeeded:
+          type: ["string", "null"]
         timeInBusinessMonths:
           type: ["integer", "null"]
         monthlyRevenueStated:
@@ -5389,6 +5452,12 @@ components:
         equipmentCondition:
           type: ["string", "null"]
           enum: [new, used, null]
+        yearMakeModel:
+          type: ["string", "null"]
+        trucksInFleet:
+          type: ["integer", "null"]
+        downPaymentAmount:
+          type: ["string", "null"]
         ownerFirstName:
           type: string
         ownerLastName:
@@ -5407,6 +5476,23 @@ components:
           type: ["string", "null"]
         ownershipPct:
           type: ["integer", "null"]
+        secondaryOwnerName:
+          type: ["string", "null"]
+        secondaryOwnerEmail:
+          type: ["string", "null"]
+        secondaryOwnerAddress:
+          type: ["string", "null"]
+        secondaryOwnerSsnMasked:
+          type: ["string", "null"]
+        secondaryOwnerDob:
+          type: ["string", "null"]
+        secondaryOwnerOwnershipPct:
+          type: ["integer", "null"]
+        secondaryOwnerCell:
+          type: ["string", "null"]
+        secondaryOwnerEstCreditScore:
+          type: ["string", "null"]
+          enum: [below_500, 500_549, 550_599, 600_649, 650_699, 700_plus, null]
         consentCreditPull:
           type: boolean
         consentTerms:
