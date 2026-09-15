@@ -56,6 +56,19 @@
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius));
   --radius-lg: calc(var(--radius) + 2px);
+
+  --z-deal-card-bg: 0;
+  --z-nav-menu: 1;
+  --z-hero-content: 5;
+  --z-deal-card-content: 5;
+  --z-header: 10;
+  --z-sidebar-border: 15;
+  --z-sidebar: 20;
+  --z-notification-backdrop: 29;
+  --z-popover: 30;
+  --z-dialog: 40;
+  --z-dialog-popover: 45;
+  --z-toast: 50;
 }
 
 :root {
