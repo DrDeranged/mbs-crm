@@ -4,6 +4,7 @@ import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { jobRunsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
+import { getPdfHealth } from "../lib/pdfHealth";
 
 const router: IRouter = Router();
 
@@ -70,6 +71,7 @@ router.get("/health/deep", async (_req, res) => {
     status: dbOk ? "ok" : "degraded",
     db: dbOk ? "ok" : "fail",
     integrations,
+    pdf: await getPdfHealth(),
     jobs: jobSummary,
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
