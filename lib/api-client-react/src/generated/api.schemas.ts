@@ -1872,11 +1872,190 @@ export interface StarterEmailSeedResponse {
 
 export interface NewLenderSeedResponse {
   created: number;
+  updated: number;
   unchanged: number;
   createdNames: string[];
+  updatedNames: string[];
   unchangedNames: string[];
+  missingUpdateNames: string[];
   lenders: Lender[];
 }
+
+export interface ProductionCloseoutFailureDetails {
+  error: string;
+}
+
+export interface ProductionCloseoutSkippedDetails {
+  reason: string;
+}
+
+export interface ProductionCloseoutOwnershipDetails {
+  changed: number;
+  ordinaryChanged: number;
+  ordinaryAtNate: number;
+  calvinCleared: number;
+  calvinReservedUnassigned: number;
+  arslanTotalDeals: number;
+}
+
+export type ProductionCloseoutSlugsDetailsUsersItem = {
+  userId: number;
+  /** @nullable */
+  previousSlug: string | null;
+  slug: string;
+  changed: boolean;
+  duplicateForReview: boolean;
+};
+
+export interface ProductionCloseoutSlugsDetails {
+  changed: number;
+  unchanged: number;
+  users: ProductionCloseoutSlugsDetailsUsersItem[];
+}
+
+export interface ProductionCloseoutTemplatesDetails {
+  templatesCreated: number;
+  sequenceCreated: boolean;
+  skippedTemplates: number;
+}
+
+export interface ProductionCloseoutLenderDetails {
+  created: number;
+  updated: number;
+  unchanged: number;
+  createdNames: string[];
+  updatedNames: string[];
+  unchangedNames: string[];
+  missingUpdateNames: string[];
+}
+
+export type ProductionCloseoutOwnershipResultOperation = typeof ProductionCloseoutOwnershipResultOperation[keyof typeof ProductionCloseoutOwnershipResultOperation];
+
+
+export const ProductionCloseoutOwnershipResultOperation = {
+  ownership: 'ownership',
+} as const;
+
+export type ProductionCloseoutOwnershipResultStatus = typeof ProductionCloseoutOwnershipResultStatus[keyof typeof ProductionCloseoutOwnershipResultStatus];
+
+
+export const ProductionCloseoutOwnershipResultStatus = {
+  succeeded: 'succeeded',
+} as const;
+
+export interface ProductionCloseoutOwnershipResult {
+  operation: ProductionCloseoutOwnershipResultOperation;
+  status: ProductionCloseoutOwnershipResultStatus;
+  details: ProductionCloseoutOwnershipDetails;
+}
+
+export type ProductionCloseoutSlugsResultOperation = typeof ProductionCloseoutSlugsResultOperation[keyof typeof ProductionCloseoutSlugsResultOperation];
+
+
+export const ProductionCloseoutSlugsResultOperation = {
+  slugs: 'slugs',
+} as const;
+
+export type ProductionCloseoutSlugsResultStatus = typeof ProductionCloseoutSlugsResultStatus[keyof typeof ProductionCloseoutSlugsResultStatus];
+
+
+export const ProductionCloseoutSlugsResultStatus = {
+  succeeded: 'succeeded',
+} as const;
+
+export interface ProductionCloseoutSlugsResult {
+  operation: ProductionCloseoutSlugsResultOperation;
+  status: ProductionCloseoutSlugsResultStatus;
+  details: ProductionCloseoutSlugsDetails;
+}
+
+export type ProductionCloseoutTemplatesResultOperation = typeof ProductionCloseoutTemplatesResultOperation[keyof typeof ProductionCloseoutTemplatesResultOperation];
+
+
+export const ProductionCloseoutTemplatesResultOperation = {
+  templates: 'templates',
+} as const;
+
+export type ProductionCloseoutTemplatesResultStatus = typeof ProductionCloseoutTemplatesResultStatus[keyof typeof ProductionCloseoutTemplatesResultStatus];
+
+
+export const ProductionCloseoutTemplatesResultStatus = {
+  succeeded: 'succeeded',
+} as const;
+
+export interface ProductionCloseoutTemplatesResult {
+  operation: ProductionCloseoutTemplatesResultOperation;
+  status: ProductionCloseoutTemplatesResultStatus;
+  details: ProductionCloseoutTemplatesDetails;
+}
+
+export type ProductionCloseoutLenderResultOperation = typeof ProductionCloseoutLenderResultOperation[keyof typeof ProductionCloseoutLenderResultOperation];
+
+
+export const ProductionCloseoutLenderResultOperation = {
+  lenders: 'lenders',
+} as const;
+
+export type ProductionCloseoutLenderResultStatus = typeof ProductionCloseoutLenderResultStatus[keyof typeof ProductionCloseoutLenderResultStatus];
+
+
+export const ProductionCloseoutLenderResultStatus = {
+  succeeded: 'succeeded',
+} as const;
+
+export interface ProductionCloseoutLenderResult {
+  operation: ProductionCloseoutLenderResultOperation;
+  status: ProductionCloseoutLenderResultStatus;
+  details: ProductionCloseoutLenderDetails;
+}
+
+export type ProductionCloseoutFailedResultOperation = typeof ProductionCloseoutFailedResultOperation[keyof typeof ProductionCloseoutFailedResultOperation];
+
+
+export const ProductionCloseoutFailedResultOperation = {
+  ownership: 'ownership',
+  slugs: 'slugs',
+  templates: 'templates',
+  lenders: 'lenders',
+} as const;
+
+export type ProductionCloseoutFailedResultStatus = typeof ProductionCloseoutFailedResultStatus[keyof typeof ProductionCloseoutFailedResultStatus];
+
+
+export const ProductionCloseoutFailedResultStatus = {
+  failed: 'failed',
+} as const;
+
+export interface ProductionCloseoutFailedResult {
+  operation: ProductionCloseoutFailedResultOperation;
+  status: ProductionCloseoutFailedResultStatus;
+  details: ProductionCloseoutFailureDetails;
+}
+
+export type ProductionCloseoutSkippedResultOperation = typeof ProductionCloseoutSkippedResultOperation[keyof typeof ProductionCloseoutSkippedResultOperation];
+
+
+export const ProductionCloseoutSkippedResultOperation = {
+  ownership: 'ownership',
+  slugs: 'slugs',
+  templates: 'templates',
+  lenders: 'lenders',
+} as const;
+
+export type ProductionCloseoutSkippedResultStatus = typeof ProductionCloseoutSkippedResultStatus[keyof typeof ProductionCloseoutSkippedResultStatus];
+
+
+export const ProductionCloseoutSkippedResultStatus = {
+  skipped: 'skipped',
+} as const;
+
+export interface ProductionCloseoutSkippedResult {
+  operation: ProductionCloseoutSkippedResultOperation;
+  status: ProductionCloseoutSkippedResultStatus;
+  details: ProductionCloseoutSkippedDetails;
+}
+
+export type ProductionCloseoutResult = ProductionCloseoutOwnershipResult | ProductionCloseoutSlugsResult | ProductionCloseoutTemplatesResult | ProductionCloseoutLenderResult | ProductionCloseoutFailedResult | ProductionCloseoutSkippedResult;
 
 export type ProductionCloseoutResponseStatus = typeof ProductionCloseoutResponseStatus[keyof typeof ProductionCloseoutResponseStatus];
 
@@ -1894,35 +2073,10 @@ export const ProductionCloseoutResponseOverallStatus = {
   failed: 'failed',
 } as const;
 
-export type ProductionCloseoutResponseResultsItemOperation = typeof ProductionCloseoutResponseResultsItemOperation[keyof typeof ProductionCloseoutResponseResultsItemOperation];
-
-
-export const ProductionCloseoutResponseResultsItemOperation = {
-  ownership: 'ownership',
-  slugs: 'slugs',
-  templates: 'templates',
-  lenders: 'lenders',
-} as const;
-
-export type ProductionCloseoutResponseResultsItemStatus = typeof ProductionCloseoutResponseResultsItemStatus[keyof typeof ProductionCloseoutResponseResultsItemStatus];
-
-
-export const ProductionCloseoutResponseResultsItemStatus = {
-  succeeded: 'succeeded',
-  failed: 'failed',
-  skipped: 'skipped',
-} as const;
-
-export type ProductionCloseoutResponseResultsItem = {
-  operation: ProductionCloseoutResponseResultsItemOperation;
-  status: ProductionCloseoutResponseResultsItemStatus;
-  details?: unknown;
-};
-
 export interface ProductionCloseoutResponse {
   status: ProductionCloseoutResponseStatus;
   overallStatus: ProductionCloseoutResponseOverallStatus;
-  results: ProductionCloseoutResponseResultsItem[];
+  results: ProductionCloseoutResult[];
 }
 
 export interface AdminMaintenanceError {

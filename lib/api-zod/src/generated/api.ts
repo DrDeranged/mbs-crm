@@ -92,17 +92,70 @@ export const BackfillSlugsResponse = zod.object({
 
 
 /**
- * Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+ * Runs ownership correction, slug backfill, starter email/template seed, then the lender seed and Section B packet updates in that exact A-then-B order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
  * @summary Run the ordered production data closeout (admin only)
  */
 export const RunProductionCloseoutResponse = zod.object({
   "status": zod.enum(['succeeded', 'failed']),
   "overallStatus": zod.enum(['succeeded', 'failed']),
-  "results": zod.array(zod.object({
-  "operation": zod.enum(['ownership', 'slugs', 'templates', 'lenders']),
-  "status": zod.enum(['succeeded', 'failed', 'skipped']),
-  "details": zod.unknown().optional()
+  "results": zod.array(zod.union([zod.object({
+  "operation": zod.enum(['ownership']),
+  "status": zod.enum(['succeeded']),
+  "details": zod.object({
+  "changed": zod.number(),
+  "ordinaryChanged": zod.number(),
+  "ordinaryAtNate": zod.number(),
+  "calvinCleared": zod.number(),
+  "calvinReservedUnassigned": zod.number(),
+  "arslanTotalDeals": zod.number()
+})
+}),zod.object({
+  "operation": zod.enum(['slugs']),
+  "status": zod.enum(['succeeded']),
+  "details": zod.object({
+  "changed": zod.number(),
+  "unchanged": zod.number(),
+  "users": zod.array(zod.object({
+  "userId": zod.number(),
+  "previousSlug": zod.string().nullable(),
+  "slug": zod.string(),
+  "changed": zod.boolean(),
+  "duplicateForReview": zod.boolean()
 }))
+})
+}),zod.object({
+  "operation": zod.enum(['templates']),
+  "status": zod.enum(['succeeded']),
+  "details": zod.object({
+  "templatesCreated": zod.number(),
+  "sequenceCreated": zod.boolean(),
+  "skippedTemplates": zod.number()
+})
+}),zod.object({
+  "operation": zod.enum(['lenders']),
+  "status": zod.enum(['succeeded']),
+  "details": zod.object({
+  "created": zod.number(),
+  "updated": zod.number(),
+  "unchanged": zod.number(),
+  "createdNames": zod.array(zod.string()),
+  "updatedNames": zod.array(zod.string()),
+  "unchangedNames": zod.array(zod.string()),
+  "missingUpdateNames": zod.array(zod.string())
+})
+}),zod.object({
+  "operation": zod.enum(['ownership', 'slugs', 'templates', 'lenders']),
+  "status": zod.enum(['failed']),
+  "details": zod.object({
+  "error": zod.string()
+})
+}),zod.object({
+  "operation": zod.enum(['ownership', 'slugs', 'templates', 'lenders']),
+  "status": zod.enum(['skipped']),
+  "details": zod.object({
+  "reason": zod.string()
+})
+})]))
 })
 
 
@@ -2922,14 +2975,17 @@ export const CreateLenderBody = zod.object({
 
 
 /**
- * Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
- * @summary Seed the two verified working-capital lenders (admin only)
+ * Creates configured lenders when their exact names are absent, then applies the marked packet updates to exact-name existing lenders. Repeated calls are idempotent; missing packet-update targets are reported separately.
+ * @summary Seed configured lenders and apply packet updates (admin only)
  */
 export const SeedNewLendersResponse = zod.object({
   "created": zod.number(),
+  "updated": zod.number(),
   "unchanged": zod.number(),
   "createdNames": zod.array(zod.string()),
+  "updatedNames": zod.array(zod.string()),
   "unchangedNames": zod.array(zod.string()),
+  "missingUpdateNames": zod.array(zod.string()),
   "lenders": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),

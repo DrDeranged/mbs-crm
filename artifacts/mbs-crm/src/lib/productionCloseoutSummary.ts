@@ -24,6 +24,45 @@ function detailsRecord(details: unknown): Record<string, unknown> {
   return details && typeof details === "object" ? details as Record<string, unknown> : {};
 }
 
+function namesValue(details: Record<string, unknown>, key: string): string {
+  return Array.isArray(details[key]) && details[key].length > 0
+    ? details[key].map(String).join(", ")
+    : "none";
+}
+
+/**
+ * Keep the manual lender fallback and the ordered closeout on the same
+ * status/count/name wording. Missing Section B targets are deliberately
+ * reported separately rather than being counted as unchanged.
+ */
+export function formatLenderSeedSummary(details: unknown): string {
+  const record = detailsRecord(details);
+  const missingNames = Array.isArray(record.missingUpdateNames)
+    ? record.missingUpdateNames
+    : Array.isArray(record.missingNames)
+      ? record.missingNames
+      : record.missingExistingNames;
+  const missing = Array.isArray(missingNames) && missingNames.length > 0
+    ? ` · missing: ${missingNames.map(String).join(", ")}`
+    : "";
+  return [
+    `created ${numberValue(record, "created")}`,
+    `updated ${numberValue(record, "updated")}`,
+    `unchanged ${numberValue(record, "unchanged")}`,
+  ].join(" / ") + [
+    ` · created: ${namesValue(record, "createdNames")}`,
+    ` · updated: ${namesValue(record, "updatedNames")}`,
+    ` · unchanged: ${namesValue(record, "unchangedNames")}`,
+    missing,
+  ].join("");
+}
+
+export function formatLenderSeedError(error: unknown): string {
+  return error && typeof error === "object" && "message" in error && typeof error.message === "string"
+    ? error.message
+    : "Unable to seed or update lenders.";
+}
+
 export function formatProductionCloseoutResults(
   results: readonly ProductionCloseoutSummaryResult[],
 ): ProductionCloseoutSummaryLine[] {
@@ -56,9 +95,7 @@ export function formatProductionCloseoutResults(
     } else if (operation === "templates") {
       summary = `${numberValue(details, "templatesCreated")} created · ${numberValue(details, "skippedTemplates")} skipped · nurture sequence ${details.sequenceCreated === true ? "created" : "already present"}`;
     } else {
-      const createdNames = Array.isArray(details.createdNames) ? details.createdNames.map(String).join(", ") : "none";
-      const unchangedNames = Array.isArray(details.unchangedNames) ? details.unchangedNames.map(String).join(", ") : "none";
-      summary = `${numberValue(details, "created")} created (${createdNames}) · ${numberValue(details, "unchanged")} unchanged (${unchangedNames})`;
+      summary = formatLenderSeedSummary(details);
     }
     return [{ ...result, label: operation, summary }];
   });

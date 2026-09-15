@@ -586,7 +586,7 @@ export const getRunProductionCloseoutUrl = () => {
 }
 
 /**
- * Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+ * Runs ownership correction, slug backfill, starter email/template seed, then the lender seed and Section B packet updates in that exact A-then-B order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
  * @summary Run the ordered production data closeout (admin only)
  */
 export const runProductionCloseout = async ( options?: RequestInit): Promise<ProductionCloseoutResponse> => {
@@ -603,7 +603,7 @@ export const runProductionCloseout = async ( options?: RequestInit): Promise<Pro
 
 
 
-export const getRunProductionCloseoutMutationOptions = <TError = ErrorType<void>,
+export const getRunProductionCloseoutMutationOptions = <TError = ErrorType<void | AdminMaintenanceError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext> => {
 
@@ -632,12 +632,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RunProductionCloseoutMutationResult = NonNullable<Awaited<ReturnType<typeof runProductionCloseout>>>
 
-    export type RunProductionCloseoutMutationError = ErrorType<void>
+    export type RunProductionCloseoutMutationError = ErrorType<void | AdminMaintenanceError>
 
     /**
  * @summary Run the ordered production data closeout (admin only)
  */
-export const useRunProductionCloseout = <TError = ErrorType<void>,
+export const useRunProductionCloseout = <TError = ErrorType<void | AdminMaintenanceError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runProductionCloseout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof runProductionCloseout>>,
@@ -8028,8 +8028,8 @@ export const getSeedNewLendersUrl = () => {
 }
 
 /**
- * Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
- * @summary Seed the two verified working-capital lenders (admin only)
+ * Creates configured lenders when their exact names are absent, then applies the marked packet updates to exact-name existing lenders. Repeated calls are idempotent; missing packet-update targets are reported separately.
+ * @summary Seed configured lenders and apply packet updates (admin only)
  */
 export const seedNewLenders = async ( options?: RequestInit): Promise<NewLenderSeedResponse> => {
 
@@ -8077,7 +8077,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SeedNewLendersMutationError = ErrorType<AdminMaintenanceError>
 
     /**
- * @summary Seed the two verified working-capital lenders (admin only)
+ * @summary Seed configured lenders and apply packet updates (admin only)
  */
 export const useSeedNewLenders = <TError = ErrorType<AdminMaintenanceError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedNewLenders>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}

@@ -8,7 +8,10 @@ import {
 import { eq, desc, sql } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
-import { seedNewLenders } from "../lib/productionMaintenance";
+import {
+  seedNewLenders,
+  type LenderSeedOperationResult,
+} from "../lib/productionMaintenance";
 
 const router: IRouter = Router();
 
@@ -146,28 +149,54 @@ router.delete("/lenders/:id", async (req: Request, res: Response) => {
   res.json(lenderToApi(updated));
 });
 
-// POST /admin/lenders/seed-new — admin-only, idempotent, and intentionally
-// name-matched so an existing lender is never rewritten by this maintenance
-// action.
-router.post("/admin/lenders/seed-new", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  if (user.role !== "admin") return void res.status(403).json({ error: "Admin only" });
+// POST /admin/lenders/seed-new — admin-only, idempotent, and exact-name
+// matched. Configured new seeds are only inserted when absent; Section B
+// packet updates are only applied when their marker is absent.
+export type MaintenanceRouteUser = {
+  id: number;
+  role: string;
+};
 
-  try {
-    const result = await seedNewLenders();
-    res.status(200).json({
-      created: result.created,
-      unchanged: result.unchanged,
-      createdNames: result.createdNames,
-      unchangedNames: result.unchangedNames,
-      lenders: result.lenders.map(lenderToApi),
-    });
-  } catch (error) {
-    console.error("Failed to seed new lenders", error);
-    res.status(500).json({ error: "Unable to seed new lenders" });
-  }
-});
+export type MaintenanceRequireUser = (
+  req: Request,
+  res: Response,
+) => Promise<MaintenanceRouteUser | null>;
+
+export function createSeedNewLendersRouter(dependencies: {
+  requireUser?: MaintenanceRequireUser;
+  seedNewLenders?: () => Promise<LenderSeedOperationResult>;
+} = {}): IRouter {
+  const routeRouter: IRouter = Router();
+  const requireUserForRoute = dependencies.requireUser ?? requireUser;
+  const seedNewLendersForRoute = dependencies.seedNewLenders ?? seedNewLenders;
+
+  routeRouter.post("/admin/lenders/seed-new", async (req: Request, res: Response) => {
+    const user = await requireUserForRoute(req, res);
+    if (!user) return;
+    if (user.role !== "admin") return void res.status(403).json({ error: "Admin only" });
+
+    try {
+      const result = await seedNewLendersForRoute();
+      res.status(200).json({
+        created: result.created,
+        updated: result.updated,
+        unchanged: result.unchanged,
+        createdNames: result.createdNames,
+        updatedNames: result.updatedNames,
+        unchangedNames: result.unchangedNames,
+        missingUpdateNames: result.missingUpdateNames,
+        lenders: result.lenders.map(lenderToApi),
+      });
+    } catch (error) {
+      console.error("Failed to seed new lenders", error);
+      res.status(500).json({ error: "Unable to seed new lenders" });
+    }
+  });
+
+  return routeRouter;
+}
+
+router.use(createSeedNewLendersRouter());
 
 // --- Match endpoints ---
 

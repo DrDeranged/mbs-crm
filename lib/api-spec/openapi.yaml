@@ -155,7 +155,7 @@ paths:
       operationId: runProductionCloseout
       tags: [admin]
       summary: Run the ordered production data closeout (admin only)
-      description: Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
+      description: Runs ownership correction, slug backfill, starter email/template seed, then the lender seed and Section B packet updates in that exact A-then-B order. Each operation has its own transaction; a later failure does not roll back earlier successful operations.
       responses:
         "200":
           description: Ordered closeout operation results
@@ -167,6 +167,12 @@ paths:
           description: Authentication required
         "403":
           description: Admin access required
+        "500":
+          description: Closeout orchestration failed unexpectedly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMaintenanceError"
 
   /admin/qr-verify:
     get:
@@ -2798,8 +2804,8 @@ paths:
     post:
       operationId: seedNewLenders
       tags: [admin]
-      summary: Seed the two verified working-capital lenders (admin only)
-      description: Creates Dexly Finance and Thoro Corp when their exact names are absent. Existing matching names are left unchanged; repeated calls are idempotent.
+      summary: Seed configured lenders and apply packet updates (admin only)
+      description: Creates configured lenders when their exact names are absent, then applies the marked packet updates to exact-name existing lenders. Repeated calls are idempotent; missing packet-update targets are reported separately.
       responses:
         "200":
           description: Seed result with full lender records
@@ -6073,20 +6079,165 @@ components:
 
     NewLenderSeedResponse:
       type: object
-      required: [created, unchanged, createdNames, unchangedNames, lenders]
+      required: [created, updated, unchanged, createdNames, updatedNames, unchangedNames, missingUpdateNames, lenders]
       properties:
         created: { type: integer }
+        updated: { type: integer }
         unchanged: { type: integer }
         createdNames:
           type: array
           items: { type: string }
+        updatedNames:
+          type: array
+          items: { type: string }
         unchangedNames:
+          type: array
+          items: { type: string }
+        missingUpdateNames:
           type: array
           items: { type: string }
         lenders:
           type: array
           items:
             $ref: "#/components/schemas/Lender"
+
+    ProductionCloseoutFailureDetails:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    ProductionCloseoutSkippedDetails:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+
+    ProductionCloseoutOwnershipDetails:
+      type: object
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals]
+      properties:
+        changed: { type: integer }
+        ordinaryChanged: { type: integer }
+        ordinaryAtNate: { type: integer }
+        calvinCleared: { type: integer }
+        calvinReservedUnassigned: { type: integer }
+        arslanTotalDeals: { type: integer }
+
+    ProductionCloseoutSlugsDetails:
+      type: object
+      required: [changed, unchanged, users]
+      properties:
+        changed: { type: integer }
+        unchanged: { type: integer }
+        users:
+          type: array
+          items:
+            type: object
+            required: [userId, previousSlug, slug, changed, duplicateForReview]
+            properties:
+              userId: { type: integer }
+              previousSlug: { type: ["string", "null"] }
+              slug: { type: string }
+              changed: { type: boolean }
+              duplicateForReview: { type: boolean }
+
+    ProductionCloseoutTemplatesDetails:
+      type: object
+      required: [templatesCreated, sequenceCreated, skippedTemplates]
+      properties:
+        templatesCreated: { type: integer }
+        sequenceCreated: { type: boolean }
+        skippedTemplates: { type: integer }
+
+    ProductionCloseoutLenderDetails:
+      type: object
+      required: [created, updated, unchanged, createdNames, updatedNames, unchangedNames, missingUpdateNames]
+      properties:
+        created: { type: integer }
+        updated: { type: integer }
+        unchanged: { type: integer }
+        createdNames:
+          type: array
+          items: { type: string }
+        updatedNames:
+          type: array
+          items: { type: string }
+        unchangedNames:
+          type: array
+          items: { type: string }
+        missingUpdateNames:
+          type: array
+          items: { type: string }
+
+    ProductionCloseoutOwnershipResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation: { type: string, enum: [ownership] }
+        status: { type: string, enum: [succeeded] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutOwnershipDetails"
+
+    ProductionCloseoutSlugsResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation: { type: string, enum: [slugs] }
+        status: { type: string, enum: [succeeded] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutSlugsDetails"
+
+    ProductionCloseoutTemplatesResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation: { type: string, enum: [templates] }
+        status: { type: string, enum: [succeeded] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutTemplatesDetails"
+
+    ProductionCloseoutLenderResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation: { type: string, enum: [lenders] }
+        status: { type: string, enum: [succeeded] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutLenderDetails"
+
+    ProductionCloseoutFailedResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation:
+          type: string
+          enum: [ownership, slugs, templates, lenders]
+        status: { type: string, enum: [failed] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutFailureDetails"
+
+    ProductionCloseoutSkippedResult:
+      type: object
+      required: [operation, status, details]
+      properties:
+        operation:
+          type: string
+          enum: [ownership, slugs, templates, lenders]
+        status: { type: string, enum: [skipped] }
+        details:
+          $ref: "#/components/schemas/ProductionCloseoutSkippedDetails"
+
+    ProductionCloseoutResult:
+      oneOf:
+        - $ref: "#/components/schemas/ProductionCloseoutOwnershipResult"
+        - $ref: "#/components/schemas/ProductionCloseoutSlugsResult"
+        - $ref: "#/components/schemas/ProductionCloseoutTemplatesResult"
+        - $ref: "#/components/schemas/ProductionCloseoutLenderResult"
+        - $ref: "#/components/schemas/ProductionCloseoutFailedResult"
+        - $ref: "#/components/schemas/ProductionCloseoutSkippedResult"
+      discriminator:
+        propertyName: operation
 
     ProductionCloseoutResponse:
       type: object
@@ -6101,16 +6252,7 @@ components:
         results:
           type: array
           items:
-            type: object
-            required: [operation, status]
-            properties:
-              operation:
-                type: string
-                enum: [ownership, slugs, templates, lenders]
-              status:
-                type: string
-                enum: [succeeded, failed, skipped]
-              details: {}
+            $ref: "#/components/schemas/ProductionCloseoutResult"
 
     AdminMaintenanceError:
       type: object

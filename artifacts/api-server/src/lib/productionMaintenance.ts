@@ -240,12 +240,35 @@ export async function backfillProductionSlugs() {
 
 export type LenderSeedTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+export type LenderSeedExistingUpdateResult = {
+  name: string;
+  status: "missing" | "already_applied" | "updated";
+  patch: Record<string, unknown> | null;
+};
+
+export type LenderSeedOperationResult = {
+  created: number;
+  updated: number;
+  unchanged: number;
+  createdNames: string[];
+  updatedNames: string[];
+  unchangedNames: string[];
+  missingUpdateNames: string[];
+  existingLenderUpdates: LenderSeedExistingUpdateResult[];
+  updatedExistingNames: string[];
+  unchangedExistingNames: string[];
+  missingExistingNames: string[];
+  lenders: (typeof lendersTable.$inferSelect)[];
+};
+
 /**
  * Production lender seed/update operation. Keeping this executor separate
  * from the transaction wrapper lets tests exercise the exact operation used
  * in production with a transaction-shaped double.
  */
-export async function executeLenderSeedAndUpdates(tx: LenderSeedTransaction) {
+export async function executeLenderSeedAndUpdates(
+  tx: LenderSeedTransaction,
+): Promise<LenderSeedOperationResult> {
   await tx.execute(sql`SELECT pg_advisory_xact_lock(874240)`);
   const existing = await tx.select().from(lendersTable).where(
     sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
@@ -305,20 +328,28 @@ export async function executeLenderSeedAndUpdates(tx: LenderSeedTransaction) {
   const lenders = await tx.select().from(lendersTable).where(
     sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
   );
-  const updatedExistingNames = existingLenderUpdates
+  const updatedExistingNames: string[] = existingLenderUpdates
     .filter((update) => update.status === "updated")
     .map((update) => update.name);
-  const unchangedExistingNames = existingLenderUpdates
+  const unchangedExistingNames: string[] = existingLenderUpdates
     .filter((update) => update.status === "already_applied")
     .map((update) => update.name);
-  const missingExistingNames = existingLenderUpdates
+  const missingExistingNames: string[] = existingLenderUpdates
     .filter((update) => update.status === "missing")
     .map((update) => update.name);
+  const updatedNames: string[] = updatedExistingNames;
+  // "unchanged" covers both configured new seeds that already existed and
+  // Section B targets whose packet marker is already present. Missing exact
+  // update targets stay separate and are never counted as unchanged.
+  const unchangedNames: string[] = [...plan.unchangedNames, ...unchangedExistingNames];
   return {
     created: plan.toCreate.length,
-    unchanged: plan.unchangedNames.length,
+    updated: updatedNames.length,
+    unchanged: unchangedNames.length,
     createdNames: plan.toCreate.map((seed) => seed.name),
-    unchangedNames: plan.unchangedNames,
+    updatedNames,
+    unchangedNames,
+    missingUpdateNames: missingExistingNames,
     existingLenderUpdates,
     updatedExistingNames,
     unchangedExistingNames,
@@ -327,7 +358,7 @@ export async function executeLenderSeedAndUpdates(tx: LenderSeedTransaction) {
   };
 }
 
-export async function seedNewLenders() {
+export async function seedNewLenders(): Promise<LenderSeedOperationResult> {
   return db.transaction((tx) => executeLenderSeedAndUpdates(tx));
 }
 

@@ -15,7 +15,7 @@ import { ShieldAlert, Phone, Building2, Globe, Wrench } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
-import { formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
+import { formatLenderSeedError, formatLenderSeedSummary, formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
 import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
 
@@ -307,20 +307,27 @@ export default function Settings() {
   };
 
   const handleSeedNewLenders = () => {
-    if (!window.confirm("Create Dexly Finance and Thoro Corp if they are missing? Existing lenders with those exact names will be left unchanged.")) return;
+    if (!window.confirm("Create any missing configured lenders, then apply the pending packet updates to exact-name existing lenders? Repeating this action is safe: marked updates and existing seeds remain unchanged.")) return;
     seedNewLenders.reset();
     seedNewLenders.mutate(undefined, {
       onSuccess: (result) => {
         toast({
-          title: "New lender seed checked",
-          description: `${result.created} created; ${result.unchanged} already matched. Full lender records are available in the lender directory.`,
+          title: "Lender seed/update checked",
+          description: formatLenderSeedSummary(result),
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Lender seed/update failed",
+          description: formatLenderSeedError(error),
+          variant: "destructive",
         });
       },
     });
   };
 
   const handleProductionCloseout = () => {
-    if (!window.confirm("Run production closeout in order: ownership correction, slug backfill, starter email/template seed, then Dexly/Thoro lender seed? Each completed operation remains committed if a later operation fails.")) return;
+    if (!window.confirm("Run production closeout in order: ownership correction, slug backfill, starter email/template seed, then configured lender creation and packet updates? Each completed operation remains committed if a later operation fails.")) return;
     productionCloseout.reset();
     productionCloseout.mutate(undefined, {
       onSuccess: (result) => {
@@ -565,7 +572,7 @@ export default function Settings() {
                   <div>
                     <h3 className="font-medium">Production closeout</h3>
                     <div className="text-sm text-muted-foreground">
-                      Runs ownership correction, slug backfill, starter email/template seed, and lender seed in that exact order. Each operation has its own transaction; a later failure stops the sequence but does not roll back earlier successful operations.
+                       Runs ownership correction, slug backfill, starter email/template seed, and configured lender creation/packet updates in that exact order. Each operation has its own transaction; a later failure stops the sequence but does not roll back earlier successful operations.
                     </div>
                   </div>
                   <Button onClick={handleProductionCloseout} disabled={productionCloseout.isPending} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
@@ -673,7 +680,7 @@ export default function Settings() {
                 <div>
                   <div className="font-medium">Seed verified lenders</div>
                   <div className="text-sm text-muted-foreground">
-                    Adds Dexly Finance and Thoro Corp without changing an existing lender with either exact name.
+                    Creates missing configured lenders and applies the pending packet updates to exact-name existing lenders.
                   </div>
                 </div>
                 <Button
@@ -691,7 +698,7 @@ export default function Settings() {
               )}
               {seedNewLenders.data && (
                 <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
-                  New lender seed complete: {seedNewLenders.data.created} created, {seedNewLenders.data.unchanged} unchanged, and {seedNewLenders.data.lenders.length} full lender records returned.
+                  {formatLenderSeedSummary(seedNewLenders.data)}. Full lender records are available in the lender directory.
                 </p>
               )}
             </CardContent>

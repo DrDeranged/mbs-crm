@@ -412,6 +412,15 @@ test("production executor creates first, then applies Section B updates without 
   const double = makeLenderSeedTransaction([afg, amur, yes]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(first.created, 8);
+  assert.equal(first.updated, 3);
+  assert.equal(first.unchanged, 0);
+  assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
+  assert.deepEqual(first.updatedNames, [
+    "Alliance Funding Group (AFG)",
+    "AMUR Equipment Finance",
+    "Y.E.S. Leasing",
+  ]);
   const firstUpdateIndex = double.events.findIndex((event) => event.kind === "update");
   let lastCreateIndex = -1;
   for (let index = 0; index < double.events.length; index += 1) {
@@ -466,6 +475,45 @@ test("production executor creates first, then applies Section B updates without 
     updatesAfterFirstRun,
     "a marker-bearing second execution must issue zero updates",
   );
+  assert.equal(second.created, 0);
+  assert.equal(second.updated, 0);
+  assert.equal(second.unchanged, 11);
+  assert.deepEqual(second.unchangedNames, [
+    ...NEW_LENDER_SEEDS.map((seed) => seed.name),
+    "Alliance Funding Group (AFG)",
+    "AMUR Equipment Finance",
+    "Y.E.S. Leasing",
+  ]);
+});
+
+test("Section C reports six new creations plus three updates, then all eleven unchanged", async () => {
+  const double = makeLenderSeedTransaction([
+    fakeLender("Dexly Finance", 301),
+    fakeLender("Thoro Corp", 302),
+    fakeLender("Alliance Funding Group (AFG)", 303, { notes: "AFG old" }),
+    fakeLender("AMUR Equipment Finance", 304, { notes: "AMUR old" }),
+    fakeLender("Y.E.S. Leasing", 305, { notes: "YES old" }),
+  ]);
+
+  const first = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(first.created, 6);
+  assert.equal(first.updated, 3);
+  assert.equal(first.unchanged, 2);
+  assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(2).map((seed) => seed.name));
+  assert.deepEqual(first.unchangedNames, ["Dexly Finance", "Thoro Corp"]);
+  assert.deepEqual(first.missingUpdateNames, []);
+
+  const second = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(second.created, 0);
+  assert.equal(second.updated, 0);
+  assert.equal(second.unchanged, 11);
+  assert.deepEqual(second.unchangedNames, [
+    ...NEW_LENDER_SEEDS.map((seed) => seed.name),
+    "Alliance Funding Group (AFG)",
+    "AMUR Equipment Finance",
+    "Y.E.S. Leasing",
+  ]);
+  assert.deepEqual(second.missingUpdateNames, []);
 });
 
 test("production executor uses exact names and does not recreate a missing Section B lender", async () => {
@@ -476,6 +524,10 @@ test("production executor uses exact names and does not recreate a missing Secti
   ]);
 
   const result = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(result.updated, 2);
+  assert.equal(result.unchanged, 0);
+  assert.deepEqual(result.updatedNames, ["Alliance Funding Group (AFG)", "Y.E.S. Leasing"]);
+  assert.deepEqual(result.missingUpdateNames, ["AMUR Equipment Finance"]);
   assert.deepEqual(result.missingExistingNames, ["AMUR Equipment Finance"]);
   assert.equal(double.rows.some((row) => row.name === "AMUR Equipment Finance"), false);
   assert.equal(double.rows.find((row) => row.name === "AMUR Equipment Finance - alias")?.notes, "alias must remain");
