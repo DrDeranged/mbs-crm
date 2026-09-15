@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-// @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { NEW_LENDER_SEEDS, planNewLenderSeeds } from "./newLenderSeeds.ts";
+import {
+  NEW_LENDER_SEEDS,
+  newLenderSeedToInsertValues,
+  planNewLenderSeeds,
+} from "./newLenderSeeds";
 
 const DEXLY_NOTES = `SOURCE STATEMENTS (verbatim):
  - Programs: working capital / MCA
@@ -95,6 +98,7 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
     notes: EXPECTED_DEXLY_NOTES,
     isActive: true,
     acceptedIndustries: [],
+    maxExistingPositions: 5,
   });
   assert.deepEqual({ ...thoro, programTypes: [...thoro.programTypes], acceptedStates: [...thoro.acceptedStates] }, {
     name: "Thoro Corp",
@@ -111,7 +115,84 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.equal("contactName" in dexly, false);
   assert.equal("priorityWeight" in dexly, false);
   assert.equal("maxExistingPositions" in thoro, false);
-  assert.doesNotMatch(JSON.stringify(NEW_LENDER_SEEDS), /Luminar/);
+  assert.equal(NEW_LENDER_SEEDS.length, 8);
+});
+
+test("the six Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
+  const expected = [
+    ["Navitas Credit Corp", ["equipment"], 10_000, 350_000, 660, 24, "myapplications@navitascredit.com"],
+    ["Keystone Equipment Finance Corp (KEF)", ["equipment"], 10_000, 150_000, 550, 0, "jgothers@keystoneefc.com"],
+    ["Channel Partners Capital", ["working_capital", "equipment"], 10_000, 400_000, 600, 12, "newdeals@channelpartnersllc.com"],
+    ["TimePayment Corp", ["equipment"], 500, 1_500_000, null, 0, "brokerdesk@timepayment.com"],
+    ["PEAC Solutions", ["equipment", "working_capital"], 10_000, 250_000, 640, 24, "ezucchi@PEACsolutions.com"],
+    ["Luminar Capital", ["working_capital", "MCA"], 5_000, 150_000, 500, 12, "partners@luminarcapital.com"],
+  ] as const;
+  const states = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI",
+    "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI",
+    "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC",
+    "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT",
+    "VT", "VA", "WA", "WV", "WI", "WY",
+  ];
+
+  for (const [name, programTypes, minAmount, maxAmount, minCreditScore, minTib, contactEmail] of expected) {
+    const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === name);
+    assert.ok(seed, `missing seed ${name}`);
+    assert.deepEqual([...seed.programTypes], programTypes);
+    assert.equal(seed.minAmount, minAmount);
+    assert.equal(seed.maxAmount, maxAmount);
+    assert.equal(seed.minCreditScore, minCreditScore);
+    assert.equal(seed.minTimeInBusinessMonths, minTib);
+    assert.deepEqual([...seed.acceptedStates], name === "Navitas Credit Corp" ? [...states, "DC"] : states);
+    assert.equal(seed.contactEmail, contactEmail);
+    assert.equal(seed.isActive, true);
+    assert.match(seed.notes, /^SOURCE STATEMENTS \(verbatim\):/);
+    assert.match(seed.notes, /SCHEMA MAPPING:/);
+  }
+
+  const navitas = NEW_LENDER_SEEDS.find((seed) => seed.name === "Navitas Credit Corp")!;
+  assert.deepEqual([...navitas.acceptedStates], [...states, "DC"]);
+  assert.match(navitas.notes, /commercial program \$250k–\$500k with financials/);
+  assert.match(navitas.notes, /TRUCKING LONG-DISTANCE/);
+
+  const kef = NEW_LENDER_SEEDS.find((seed) => seed.name === "Keystone Equipment Finance Corp (KEF)")!;
+  assert.equal(kef.contactName, "Jake Gothers");
+  assert.match(kef.notes, /NO: rebuilds\/reconditioned, glider kits, salvaged\/branded titles, working capital/);
+  assert.match(kef.notes, /No working_capital program is mapped/);
+
+  const timePayment = NEW_LENDER_SEEDS.find((seed) => seed.name === "TimePayment Corp")!;
+  assert.equal(timePayment.minCreditScore, null);
+  assert.match(timePayment.notes, /minCreditScore: null/);
+  assert.match(timePayment.notes, /no credit minimum is inferred/);
+
+  const peac = NEW_LENDER_SEEDS.find((seed) => seed.name === "PEAC Solutions")!;
+  assert.equal(peac.contactName, "Elena Zucchi");
+  assert.match(peac.notes, /WC criteria not in the extracted pages/);
+  assert.match(peac.notes, /no WC-specific minimums are set/);
+
+  const luminar = NEW_LENDER_SEEDS.find((seed) => seed.name === "Luminar Capital")!;
+  assert.equal(luminar.contactName, "Misha Mikhaylov");
+  assert.deepEqual([...luminar.programTypes], ["working_capital", "MCA"]);
+  assert.match(luminar.notes, /working_capital \+ MCA/);
+  assert.match(luminar.notes, /\$5K–\$150K; payoffs must net 50%\+/);
+});
+
+test("seed insert mapping carries explicit contacts and position caps without name special cases", () => {
+  const byName = (name: string) => NEW_LENDER_SEEDS.find((seed) => seed.name === name)!;
+  const dexlyInsert = newLenderSeedToInsertValues(byName("Dexly Finance"));
+  const kefInsert = newLenderSeedToInsertValues(byName("Keystone Equipment Finance Corp (KEF)"));
+  const peacInsert = newLenderSeedToInsertValues(byName("PEAC Solutions"));
+  const luminarInsert = newLenderSeedToInsertValues(byName("Luminar Capital"));
+  const thoroInsert = newLenderSeedToInsertValues(byName("Thoro Corp"));
+
+  assert.equal(dexlyInsert.maxExistingPositions, 5);
+  assert.equal(luminarInsert.maxExistingPositions, 4);
+  assert.equal(kefInsert.contactName, "Jake Gothers");
+  assert.equal(peacInsert.contactName, "Elena Zucchi");
+  assert.equal(luminarInsert.contactName, "Misha Mikhaylov");
+  assert.equal("contactName" in dexlyInsert, false);
+  assert.equal("maxExistingPositions" in thoroInsert, false);
+  assert.equal(thoroInsert.contactEmail, null);
 });
 
 test("the pure exact-name planner is idempotent and preserves existing names", () => {
@@ -120,12 +201,15 @@ test("the pure exact-name planner is idempotent and preserves existing names", (
     unchangedNames: [],
   });
   assert.deepEqual(planNewLenderSeeds(["Dexly Finance", "Thoro Corp"]), {
-    toCreate: [],
+    toCreate: NEW_LENDER_SEEDS.slice(2),
     unchangedNames: ["Dexly Finance", "Thoro Corp"],
   });
   const oneExisting = planNewLenderSeeds(["Dexly Finance"]);
-  assert.deepEqual(oneExisting.toCreate.map((seed) => seed.name), ["Thoro Corp"]);
+  assert.deepEqual(oneExisting.toCreate.map((seed) => seed.name), NEW_LENDER_SEEDS.slice(1).map((seed) => seed.name));
   assert.deepEqual(oneExisting.unchangedNames, ["Dexly Finance"]);
+  const allExisting = planNewLenderSeeds(NEW_LENDER_SEEDS.map((seed) => seed.name));
+  assert.deepEqual(allExisting.toCreate, []);
+  assert.deepEqual(allExisting.unchangedNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
 });
 
 test("the original four-lender seed script remains byte-unchanged", () => {

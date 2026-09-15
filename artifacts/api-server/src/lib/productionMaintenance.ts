@@ -15,7 +15,11 @@ import {
   ORDINARY_SEED_DEAL_NAMES as SEEDED_ORDINARY_NAMES,
   validateSeededDealRows,
 } from "./seededDealMaintenance";
-import { NEW_LENDER_SEEDS, planNewLenderSeeds } from "./newLenderSeeds";
+import {
+  NEW_LENDER_SEEDS,
+  newLenderSeedToInsertValues,
+  planNewLenderSeeds,
+} from "./newLenderSeeds";
 export { runProductionCloseout } from "./productionCloseout";
 
 // These are intentionally kept in one place so admin routes can expose the
@@ -240,20 +244,7 @@ export async function seedNewLenders() {
     );
     const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
     for (const seed of plan.toCreate) {
-      await tx.insert(lendersTable).values({
-        name: seed.name,
-        programTypes: [...seed.programTypes],
-        minAmount: seed.minAmount,
-        maxAmount: seed.maxAmount,
-        minCreditScore: seed.minCreditScore,
-        acceptedIndustries: [...seed.acceptedIndustries],
-        minTimeInBusinessMonths: seed.minTimeInBusinessMonths,
-        acceptedStates: [...seed.acceptedStates],
-        ...(seed.name === "Dexly Finance" ? { maxExistingPositions: 5 } : {}),
-        contactEmail: "contactEmail" in seed ? seed.contactEmail : null,
-        notes: seed.notes,
-        isActive: seed.isActive,
-      });
+      await tx.insert(lendersTable).values(newLenderSeedToInsertValues(seed));
     }
     const lenders = await tx.select().from(lendersTable).where(
       sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
