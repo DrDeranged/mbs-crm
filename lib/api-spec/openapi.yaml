@@ -1504,6 +1504,16 @@ paths:
           schema:
             type: string
             enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        - name: stages
+          in: query
+          description: Comma-separated stage values for multi-stage views
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          style: form
+          explode: false
         - name: search
           in: query
           schema: { type: string }
@@ -1578,6 +1588,16 @@ paths:
           schema:
             type: string
             enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+        - name: stages
+          in: query
+          description: Comma-separated stage values for multi-stage views
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          style: form
+          explode: false
         - name: search
           in: query
           schema: { type: string }
@@ -5865,7 +5885,7 @@ components:
 
     Deal:
       type: object
-      required: [id, dealName, stage, createdAt, updatedAt, isArchived]
+      required: [id, dealName, stage, gmSplitPct, createdAt, updatedAt, isArchived]
       properties:
         id: { type: integer }
         leadId: { type: ["integer", "null"] }
@@ -5876,6 +5896,8 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        gmSplitPct: { type: integer, minimum: 0, maximum: 100 }
         assignedTo: { type: ["integer", "null"] }
         assignedUser:
           oneOf:
@@ -5904,6 +5926,8 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        gmSplitPct: { type: integer, minimum: 0, maximum: 100, default: 100 }
         assignedTo: { type: ["integer", "null"] }
 
     DealUpdate:
@@ -5916,6 +5940,8 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        gmSplitPct: { type: integer, minimum: 0, maximum: 100 }
         assignedTo: { type: ["integer", "null"] }
 
     DealListResponse:
@@ -5967,6 +5993,8 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        notes: { type: ["string", "null"] }
+        gmSplitPct: { type: integer, minimum: 0, maximum: 100, default: 100 }
         assignedTo: { type: ["integer", "null"] }
 
     DealsAnalytics:

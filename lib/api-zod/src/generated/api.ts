@@ -1788,6 +1788,7 @@ export const listDealsQuerySortOrderDefault = `desc`;
 
 export const ListDealsQueryParams = zod.object({
   "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -1800,6 +1801,11 @@ export const ListDealsQueryParams = zod.object({
   "sort_order": zod.enum(['asc', 'desc']).default(listDealsQuerySortOrderDefault).describe('Sort direction for the list')
 })
 
+export const listDealsResponseDealsItemGmSplitPctMin = 0;
+export const listDealsResponseDealsItemGmSplitPctMax = 100;
+
+
+
 export const ListDealsResponse = zod.object({
   "deals": zod.array(zod.object({
   "id": zod.number(),
@@ -1809,6 +1815,8 @@ export const ListDealsResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(listDealsResponseDealsItemGmSplitPctMin).max(listDealsResponseDealsItemGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
@@ -1851,6 +1859,10 @@ export const ListDealsResponse = zod.object({
  * @summary Create a deal
  */
 
+export const createDealBodyGmSplitPctDefault = 100;
+export const createDealBodyGmSplitPctMin = 0;
+export const createDealBodyGmSplitPctMax = 100;
+
 
 
 export const CreateDealBody = zod.object({
@@ -1860,6 +1872,8 @@ export const CreateDealBody = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(createDealBodyGmSplitPctMin).max(createDealBodyGmSplitPctMax).default(createDealBodyGmSplitPctDefault),
   "assignedTo": zod.number().nullish()
 })
 
@@ -1873,6 +1887,7 @@ export const exportDealsQuerySortOrderDefault = `desc`;
 
 export const ExportDealsQueryParams = zod.object({
   "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -1891,6 +1906,11 @@ export const GetDealParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const getDealResponseOneGmSplitPctMin = 0;
+export const getDealResponseOneGmSplitPctMax = 100;
+
+
+
 export const GetDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
@@ -1899,6 +1919,8 @@ export const GetDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(getDealResponseOneGmSplitPctMin).max(getDealResponseOneGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
@@ -1964,6 +1986,9 @@ export const UpdateDealParams = zod.object({
 })
 
 
+export const updateDealBodyGmSplitPctMin = 0;
+export const updateDealBodyGmSplitPctMax = 100;
+
 
 
 export const UpdateDealBody = zod.object({
@@ -1972,8 +1997,15 @@ export const UpdateDealBody = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(updateDealBodyGmSplitPctMin).max(updateDealBodyGmSplitPctMax).optional(),
   "assignedTo": zod.number().nullish()
 })
+
+export const updateDealResponseGmSplitPctMin = 0;
+export const updateDealResponseGmSplitPctMax = 100;
+
+
 
 export const UpdateDealResponse = zod.object({
   "id": zod.number(),
@@ -1983,6 +2015,8 @@ export const UpdateDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(updateDealResponseGmSplitPctMin).max(updateDealResponseGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
@@ -2031,6 +2065,11 @@ export const ArchiveDealParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const archiveDealResponseGmSplitPctMin = 0;
+export const archiveDealResponseGmSplitPctMax = 100;
+
+
+
 export const ArchiveDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
@@ -2039,6 +2078,8 @@ export const ArchiveDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(archiveDealResponseGmSplitPctMin).max(archiveDealResponseGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
@@ -2112,6 +2153,10 @@ export const ConvertLeadToDealParams = zod.object({
 })
 
 
+export const convertLeadToDealBodyGmSplitPctDefault = 100;
+export const convertLeadToDealBodyGmSplitPctMin = 0;
+export const convertLeadToDealBodyGmSplitPctMax = 100;
+
 
 
 export const ConvertLeadToDealBody = zod.object({
@@ -2120,6 +2165,8 @@ export const ConvertLeadToDealBody = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(convertLeadToDealBodyGmSplitPctMin).max(convertLeadToDealBodyGmSplitPctMax).default(convertLeadToDealBodyGmSplitPctDefault),
   "assignedTo": zod.number().nullish()
 })
 

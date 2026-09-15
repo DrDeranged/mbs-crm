@@ -36,10 +36,14 @@ async function checkApplicationSignatureColumns(): Promise<void> {
         AND column_name IN ('signature_method', 'signature_signed_at')
     `);
     const presentColumns = new Set(
-      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
     );
     const requiredColumns = ["signature_method", "signature_signed_at"];
-    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
     if (missingColumns.length > 0) {
       logger.error(
         { missingColumns, migration: "012_application_signature.sql" },
@@ -82,12 +86,19 @@ async function checkApplicationOptionalColumns(): Promise<void> {
       WHERE table_schema = current_schema()
         AND table_schema = 'public'
         AND table_name = 'applications'
-        AND column_name IN (${sql.join(requiredColumns.map((column) => sql`${column}`), sql`, `)})
+        AND column_name IN (${sql.join(
+          requiredColumns.map((column) => sql`${column}`),
+          sql`, `,
+        )})
     `);
     const presentColumns = new Set(
-      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
     );
-    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
     if (missingColumns.length > 0) {
       logger.error(
         { missingColumns, migration: "014_application_optional_fields.sql" },
@@ -113,13 +124,20 @@ async function checkApplicationConsentColumns(): Promise<void> {
         AND column_name IN ('consent_text_version')
     `);
     const presentColumns = new Set(
-      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
     );
     const requiredColumns = ["consent_text_version"];
-    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
     if (missingColumns.length > 0) {
       logger.error(
-        { missingColumns, migration: "015_application_consent_text_version.sql" },
+        {
+          missingColumns,
+          migration: "015_application_consent_text_version.sql",
+        },
         "Required application consent columns are missing; apply 015_application_consent_text_version.sql",
       );
     }
@@ -142,7 +160,9 @@ async function checkUserTitleColumn(): Promise<void> {
         AND column_name IN ('title')
     `);
     const presentColumns = new Set(
-      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
     );
     if (!presentColumns.has("title")) {
       logger.error(
@@ -154,6 +174,42 @@ async function checkUserTitleColumn(): Promise<void> {
     logger.error(
       { err, migration: "016_user_titles.sql" },
       "Could not verify user title column for 016_user_titles.sql",
+    );
+  }
+}
+
+async function checkDealColumns(): Promise<void> {
+  const requiredColumns = ["notes", "gm_split_pct"];
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'deals'
+        AND column_name IN (${sql.join(
+          requiredColumns.map((column) => sql`${column}`),
+          sql`, `,
+        )})
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "017_deal_notes_gm_split.sql" },
+        "Required deal columns are missing; apply 017_deal_notes_gm_split.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "017_deal_notes_gm_split.sql" },
+      "Could not verify deal columns for 017_deal_notes_gm_split.sql",
     );
   }
 }
@@ -170,9 +226,12 @@ const server = app.listen(port, (err) => {
   void checkApplicationOptionalColumns();
   void checkApplicationConsentColumns();
   void checkUserTitleColumn();
+  void checkDealColumns();
 
   // Seed default workflow rules (no-op if already seeded)
-  seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));
+  seedDefaultWorkflowRules().catch((err) =>
+    logger.warn({ err }, "Workflow rules seed error"),
+  );
 
   // Drip email background job — runs every 10 minutes
   const DRIP_INTERVAL_MS = 10 * 60 * 1000;
@@ -184,15 +243,21 @@ const server = app.listen(port, (err) => {
 
   // Task reminder push notifications — checks every hour, fires at 9 AM
   const REMINDER_INTERVAL_MS = 60 * 60 * 1000;
-  runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder startup error"));
+  runTaskReminderJob().catch((err) =>
+    logger.error({ err }, "Task reminder startup error"),
+  );
   const reminderInterval = setInterval(() => {
-    runTaskReminderJob().catch((err) => logger.error({ err }, "Task reminder job error"));
+    runTaskReminderJob().catch((err) =>
+      logger.error({ err }, "Task reminder job error"),
+    );
   }, REMINDER_INTERVAL_MS);
   intervals.push(reminderInterval);
 
   // Renewal radar — flags funded leads ready to re-fund; runs at startup then once daily
   const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000;
-  runRenewalJob().catch((err) => logger.error({ err }, "Renewal job startup error"));
+  runRenewalJob().catch((err) =>
+    logger.error({ err }, "Renewal job startup error"),
+  );
   const renewalInterval = setInterval(() => {
     runRenewalJob().catch((err) => logger.error({ err }, "Renewal job error"));
   }, RENEWAL_INTERVAL_MS);
@@ -202,7 +267,9 @@ const server = app.listen(port, (err) => {
   // exists for today, then repeats every 24 hours
   const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
   const backupBootDelay = setTimeout(() => {
-    runBackupJob().catch((err) => logger.error({ err }, "Backup job startup error"));
+    runBackupJob().catch((err) =>
+      logger.error({ err }, "Backup job startup error"),
+    );
   }, 60_000);
   const backupInterval = setInterval(() => {
     runBackupJob().catch((err) => logger.error({ err }, "Backup job error"));
@@ -219,7 +286,9 @@ async function shutdown(signal: string) {
   logger.info({ signal }, "Shutting down gracefully");
   intervals.forEach(clearInterval);
   clearTimeout((intervals as any).__backupBootDelay);
-  await closeBrowser().catch((err) => logger.warn({ err }, "Error closing browser during shutdown"));
+  await closeBrowser().catch((err) =>
+    logger.warn({ err }, "Error closing browser during shutdown"),
+  );
   server.close(() => {
     logger.info("HTTP server closed");
     process.exit(0);

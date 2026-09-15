@@ -21,11 +21,14 @@ export { runProductionCloseout } from "./productionCloseout";
 // These are intentionally kept in one place so admin routes can expose the
 // same safety error without coupling maintenance to an HTTP request.
 export class ProductionMaintenanceError extends Error {
+  readonly details?: Record<string, unknown>;
+
   constructor(
     message: string,
-    readonly details?: Record<string, unknown>,
+    details?: Record<string, unknown>,
   ) {
     super(message);
+    this.details = details;
     this.name = "ProductionMaintenanceError";
   }
 }

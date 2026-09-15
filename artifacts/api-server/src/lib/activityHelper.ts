@@ -2,16 +2,19 @@ import { db } from "@workspace/db";
 import { activityLogTable, leadsTable, usersTable } from "@workspace/db";
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 
-export async function logActivity(params: {
-  userId: number | null;
-  leadId?: number | null;
-  dealId?: number | null;
-  action: string;
-  entityType: string;
-  entityId: string | number;
-  details?: Record<string, unknown>;
-}) {
-  await db.insert(activityLogTable).values({
+export async function logActivity(
+  params: {
+    userId: number | null;
+    leadId?: number | null;
+    dealId?: number | null;
+    action: string;
+    entityType: string;
+    entityId: string | number;
+    details?: Record<string, unknown>;
+  },
+  executor: any = db,
+) {
+  await executor.insert(activityLogTable).values({
     userId: params.userId,
     leadId: params.leadId ?? null,
     dealId: params.dealId ?? null,
@@ -22,7 +25,7 @@ export async function logActivity(params: {
   });
 
   if (params.leadId) {
-    await db
+    await executor
       .update(leadsTable)
       .set({ lastActivityAt: new Date(), updatedAt: new Date() })
       .where(eq(leadsTable.id, params.leadId));

@@ -1,4 +1,12 @@
-import { pgTable, serial, integer, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  boolean,
+  timestamp,
+  index,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -21,14 +29,22 @@ export const dealsTable = pgTable(
   "deals",
   {
     id: serial("id").primaryKey(),
-    leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "set null" }),
+    leadId: integer("lead_id").references(() => leadsTable.id, {
+      onDelete: "set null",
+    }),
     dealName: text("deal_name").notNull(),
-    stage: text("stage", { enum: DEAL_STAGES }).notNull().default("waiting_on_app"),
+    stage: text("stage", { enum: DEAL_STAGES })
+      .notNull()
+      .default("waiting_on_app"),
     amount: integer("amount"),
     approxGm: integer("approx_gm"),
     actualGm: integer("actual_gm"),
-    assignedTo: integer("assigned_to").references(() => usersTable.id, { onDelete: "set null" }),
-     intendedRepSlug: text("intended_rep_slug"),
+    notes: text("notes"),
+    gmSplitPct: integer("gm_split_pct").notNull().default(100),
+    assignedTo: integer("assigned_to").references(() => usersTable.id, {
+      onDelete: "set null",
+    }),
+    intendedRepSlug: text("intended_rep_slug"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     fundedAt: timestamp("funded_at"),
@@ -43,6 +59,10 @@ export const dealsTable = pgTable(
   ],
 );
 
-export const insertDealSchema = createInsertSchema(dealsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDealSchema = createInsertSchema(dealsTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type Deal = typeof dealsTable.$inferSelect;

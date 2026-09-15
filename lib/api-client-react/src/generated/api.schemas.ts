@@ -1637,6 +1637,13 @@ export interface Deal {
   /** @nullable */
   actualGm?: number | null;
   /** @nullable */
+  notes?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  gmSplitPct: number;
+  /** @nullable */
   assignedTo?: number | null;
   assignedUser?: User | null;
   createdAt: string;
@@ -1679,6 +1686,13 @@ export interface DealInput {
   /** @nullable */
   actualGm?: number | null;
   /** @nullable */
+  notes?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  gmSplitPct?: number;
+  /** @nullable */
   assignedTo?: number | null;
 }
 
@@ -1708,6 +1722,13 @@ export interface DealUpdate {
   approxGm?: number | null;
   /** @nullable */
   actualGm?: number | null;
+  /** @nullable */
+  notes?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  gmSplitPct?: number;
   /** @nullable */
   assignedTo?: number | null;
 }
@@ -1777,6 +1798,13 @@ export interface LeadDealConversion {
   approxGm?: number | null;
   /** @nullable */
   actualGm?: number | null;
+  /** @nullable */
+  notes?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  gmSplitPct?: number;
   /** @nullable */
   assignedTo?: number | null;
 }
@@ -2149,6 +2177,10 @@ export type UploadDocumentBody = {
 
 export type ListDealsParams = {
 stage?: ListDealsStage;
+/**
+ * Comma-separated stage values for multi-stage views
+ */
+stages?: ListDealsStagesItem[];
 search?: string;
 rep_id?: number;
 lead_id?: number;
@@ -2190,6 +2222,22 @@ export const ListDealsStage = {
   hold_on: 'hold_on',
 } as const;
 
+export type ListDealsStagesItem = typeof ListDealsStagesItem[keyof typeof ListDealsStagesItem];
+
+
+export const ListDealsStagesItem = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
 export type ListDealsSortBy = typeof ListDealsSortBy[keyof typeof ListDealsSortBy];
 
 
@@ -2211,6 +2259,10 @@ export const ListDealsSortOrder = {
 
 export type ExportDealsParams = {
 stage?: ExportDealsStage;
+/**
+ * Comma-separated stage values for multi-stage views
+ */
+stages?: ExportDealsStagesItem[];
 search?: string;
 rep_id?: number;
 lead_id?: number;
@@ -2231,6 +2283,22 @@ export type ExportDealsStage = typeof ExportDealsStage[keyof typeof ExportDealsS
 
 
 export const ExportDealsStage = {
+  waiting_on_app: 'waiting_on_app',
+  information_needed: 'information_needed',
+  submitted: 'submitted',
+  approved: 'approved',
+  going_to_funding: 'going_to_funding',
+  in_funding: 'in_funding',
+  funded: 'funded',
+  declined: 'declined',
+  dead: 'dead',
+  hold_on: 'hold_on',
+} as const;
+
+export type ExportDealsStagesItem = typeof ExportDealsStagesItem[keyof typeof ExportDealsStagesItem];
+
+
+export const ExportDealsStagesItem = {
   waiting_on_app: 'waiting_on_app',
   information_needed: 'information_needed',
   submitted: 'submitted',
