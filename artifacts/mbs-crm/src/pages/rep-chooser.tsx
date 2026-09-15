@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { BrandLogo } from "@/components/brand-logo";
-import { canonicalRepSlug, type RepChooserData } from "@/lib/repChooser";
+import { canonicalRepSlug, repChooserApplyHref, repChooserSubtext, type RepChooserData } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
 
 export default function RepChooser() {
@@ -25,15 +25,17 @@ export default function RepChooser() {
   }, [slug]);
   const label = rep.name ? `You're applying with ${rep.name}` : "Apply with My Business Solutions";
   const canonicalSlug = canonicalRepSlug(rep, slug);
+  const subtext = repChooserSubtext(rep);
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-5">
       <section className="w-full max-w-md rounded-2xl bg-white shadow-lg p-7 text-center space-y-6">
         <BrandLogo variant="raw" className="mx-auto" imageClassName="h-10" />
         <div><h1 className="text-2xl font-bold text-[#0E2A47]">{label}</h1>
+          {subtext && <p className="mt-2 text-gray-500">{subtext}</p>}
           {rep.phone && <p className="mt-2 text-gray-500">{rep.phone}</p>}</div>
         <div className="grid gap-3">
-          <Link href={`/apply?type=equipment${rep.name ? `&rep=${encodeURIComponent(canonicalSlug)}` : ""}`} className="rounded-xl bg-[#0E2A47] py-4 text-lg font-semibold text-white">Equipment Financing</Link>
-          <Link href={`/apply?type=working_capital${rep.name ? `&rep=${encodeURIComponent(canonicalSlug)}` : ""}`} className="rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Working Capital</Link>
+          <Link href={repChooserApplyHref(rep, slug, basePath)} className="block w-full rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Continue</Link>
         </div>
         {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-[#0E2A47] underline underline-offset-2">Prefer a paper application? Download PDF</a>}
       </section>

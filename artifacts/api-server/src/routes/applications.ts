@@ -19,13 +19,11 @@ import { encrypt, maskSsn } from "../lib/encryption";
 import { getUserDisplayName } from "../lib/authHelpers";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { extractBankStatement } from "../lib/ocrBankStatement";
-import { objectStorageClient } from "../lib/objectStorage";
 import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { resolveInboundAssignee } from "../lib/leadDistribution";
-import { doSendEmail } from "./email";
 import {
   buildSignedApplicationHtml,
   normalizeSignature,
@@ -58,6 +56,25 @@ const statusRateLimiter = rateLimit({
   message: { error: "Too many requests. Please try again later." },
 });
 
+export type ApplicationSubmitDependencies = {
+  database?: typeof db;
+  resolveInboundAssignee?: typeof resolveInboundAssignee;
+  checkIdempotency?: typeof checkIdempotency;
+  storeIdempotency?: typeof storeIdempotency;
+  objectStorageClient?: {
+    bucket: (bucketId: string) => {
+      file: (fileKey: string) => {
+        save: (body: Buffer, options: { contentType: string }) => Promise<unknown>;
+      };
+    };
+  };
+  extractBankStatement?: typeof extractBankStatement;
+  calculateLeadScore?: typeof calculateLeadScore;
+  notifyAllManagers?: typeof notifyAllManagers;
+  createNotification?: typeof createNotification;
+  doSendEmail?: (params: Record<string, unknown>) => Promise<{ error?: unknown }>;
+};
+
 // GET /applications/consent-text — public, immutable disclosure text
 router.get("/applications/consent-text", (_req: Request, res: Response) => {
   res.json(getPublicApplicationConsentText());
@@ -70,8 +87,8 @@ async function logActivity(params: {
   entityType: string;
   entityId: number;
   details?: Record<string, unknown>;
-}) {
-  await db.insert(activityLogTable).values({
+}, database: typeof db = db) {
+  await database.insert(activityLogTable).values({
     userId: params.userId,
     leadId: params.leadId,
     action: params.action,
@@ -94,7 +111,21 @@ function twoBusinessDaysOut(from = new Date()): string {
 }
 
 // POST /applications/submit — public, rate-limited, multipart
-router.post(
+export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDependencies = {}) {
+  const database = dependencies.database ?? db;
+  const resolveAssignee = dependencies.resolveInboundAssignee ?? resolveInboundAssignee;
+  const checkSubmissionIdempotency = dependencies.checkIdempotency ?? checkIdempotency;
+  const storeSubmissionIdempotency = dependencies.storeIdempotency ?? storeIdempotency;
+  const storageClient = dependencies.objectStorageClient;
+  const extractStatement = dependencies.extractBankStatement ?? extractBankStatement;
+  const scoreLead = dependencies.calculateLeadScore ?? calculateLeadScore;
+  const notifyManagers = dependencies.notifyAllManagers ?? notifyAllManagers;
+  const notifyRep = dependencies.createNotification ?? createNotification;
+  const sendEmail = dependencies.doSendEmail ?? (async (params: Record<string, unknown>) =>
+    (await import("./email")).doSendEmail(params as never));
+
+  const submitRouter = Router();
+  submitRouter.post(
   "/applications/submit",
   submitRateLimiter,
   upload.array("bankStatements", 12),
@@ -135,7 +166,7 @@ router.post(
       // ── Idempotency check (15-minute window keyed on email+ein) ──────────
       const timeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
       const idempKey = deriveKey(`applications/submit|${(email ?? "").toLowerCase()}|${ein ?? ""}|${timeBucket}`);
-      const cachedResult = await checkIdempotency(idempKey, "applications/submit");
+      const cachedResult = await checkSubmissionIdempotency(idempKey, "applications/submit");
       if (cachedResult) {
         res.status(201).json(cachedResult);
         return;
@@ -147,7 +178,7 @@ router.post(
         if (email) conditions.push(eq(leadsTable.email, email));
         if (phone) conditions.push(eq(leadsTable.phone, phone));
         if (ein) conditions.push(eq(leadsTable.ein, ein));
-        const dup = await db.query.leadsTable.findFirst({ where: or(...conditions) });
+        const dup = await database.query.leadsTable.findFirst({ where: or(...conditions) });
         if (dup) {
           res.status(409).json({
             duplicate: true,
@@ -193,7 +224,7 @@ router.post(
 
        // A QR attribution is advisory: invalid/missing values use normal assignment.
         const attributedRep = applicationBody.rep
-          ? await db.query.usersTable.findFirst({
+             ? await database.query.usersTable.findFirst({
             where: and(
               eq(usersTable.slug, String(applicationBody.rep).toLowerCase()),
               eq(usersTable.role, "rep"),
@@ -201,7 +232,7 @@ router.post(
             ),
           })
           : null;
-        const assignedRepId = await resolveInboundAssignee(applicationBody.rep);
+        const assignedRepId = await resolveAssignee(applicationBody.rep);
 
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const signatureSignedAt = new Date();
@@ -209,7 +240,7 @@ router.post(
 
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
-      const { lead, application, docRecords } = await db.transaction(async (tx) => {
+      const { lead, application, docRecords } = await database.transaction(async (tx) => {
         const [txLead] = await tx.insert(leadsTable).values({
           firstName: applicationBody.ownerFirstName,
           lastName: applicationBody.ownerLastName,
@@ -320,7 +351,8 @@ router.post(
 
       // ── Upload bank statements + OCR (after commit — external calls) ────
       const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
-      const bucket = objectStorageClient.bucket(bucketId);
+      const storage = storageClient ?? (await import("../lib/objectStorage")).objectStorageClient;
+      const bucket = storage.bucket(bucketId);
 
       for (const { file, fileKey, id: docId } of docRecords) {
         await bucket.file(fileKey).save(file.buffer, { contentType: file.mimetype });
@@ -328,13 +360,13 @@ router.post(
         // Run OCR (non-blocking: continue if it fails)
         let ocrResult = null;
         try {
-          ocrResult = await extractBankStatement(file.buffer);
+          ocrResult = await extractStatement(file.buffer);
         } catch (err) {
           console.error("OCR failed for", file.originalname, err);
         }
 
         if (ocrResult) {
-          await db.insert(bankStatementExtractionsTable).values({
+           await database.insert(bankStatementExtractionsTable).values({
             leadId: lead.id,
             documentId: docId,
             statementMonth: ocrResult.statementMonth,
@@ -350,7 +382,7 @@ router.post(
       }
 
       // ── Persist OCR aggregates back to lead ───────────────────────────────
-      const allExtractions = await db.query.bankStatementExtractionsTable.findMany({
+      const allExtractions = await database.query.bankStatementExtractionsTable.findMany({
         where: eq(bankStatementExtractionsTable.leadId, lead.id),
       });
       if (allExtractions.length > 0) {
@@ -358,7 +390,7 @@ router.post(
           (sum, e) => sum + ((e.existingPositionsJson as any[])?.length ?? 0),
           0
         );
-        await db.update(leadsTable)
+        await database.update(leadsTable)
           .set({ existingPositions: totalPositions, lastActivityAt: new Date() })
           .where(eq(leadsTable.id, lead.id));
       }
@@ -374,7 +406,7 @@ router.post(
       const htmlBuffer = Buffer.from(signedHtml, "utf-8");
       const signedDocKey = `leads/${lead.id}/documents/signed-application-${Date.now()}.html`;
       await bucket.file(signedDocKey).save(htmlBuffer, { contentType: "text/html; charset=utf-8" });
-      await db.insert(documentsTable).values({
+      await database.insert(documentsTable).values({
         leadId: lead.id,
         userId: null,
         filename: `signed-application-${lead.id}.html`,
@@ -382,7 +414,7 @@ router.post(
         fileType: "text/html",
         fileSize: htmlBuffer.byteLength,
       });
-      await db.update(applicationsTable)
+      await database.update(applicationsTable)
         .set({ signedDocumentKey: signedDocKey })
         .where(eq(applicationsTable.leadId, lead.id));
 
@@ -393,7 +425,7 @@ router.post(
         entityType: "lead",
         entityId: lead.id,
         details: { type: applicationBody.type, filesCount: files.length },
-      });
+      }, database);
 
       if (statementsSkipped) {
         const isWorkingCapital = applicationBody.type === "working_capital";
@@ -407,9 +439,9 @@ router.post(
           entityType: "lead",
           entityId: lead.id,
           details: { message, type: applicationBody.type, filesCount: 0 },
-        });
+        }, database);
         if (isWorkingCapital && assignedRepId) {
-          await db.insert(tasksTable).values({
+          await database.insert(tasksTable).values({
             leadId: lead.id,
             userId: assignedRepId,
             title: "Collect 3–6 months bank statements — applicant chose to send directly",
@@ -419,17 +451,17 @@ router.post(
         }
       }
 
-      calculateLeadScore(lead.id).catch((e) => console.error("Lead scoring error:", e));
+      scoreLead(lead.id).catch((e) => console.error("Lead scoring error:", e));
 
       // ── Notify managers + assigned rep of new application ─────────────────
-      notifyAllManagers(
+      notifyManagers(
         "application_received",
         "New application received",
         `${applicationBody.businessName} submitted a ${applicationBody.type} application`,
         lead.id,
       ).catch(() => {});
       if (assignedRepId) {
-        createNotification({
+        notifyRep({
           userId: assignedRepId,
           type: "application_received",
           title: "New application assigned to you",
@@ -477,9 +509,9 @@ router.post(
 </body>
 </html>`;
         const rep = lead.assignedRepId
-          ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+          ? await database.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
           : null;
-        void doSendEmail({
+        void sendEmail({
           leadId: lead.id,
           userId: null,
           templateId: null,
@@ -495,14 +527,18 @@ router.post(
       }
 
       const successPayload: Record<string, unknown> = { success: true, lead_id: lead.id, tracking_token: lead.trackingToken };
-      void storeIdempotency(idempKey, "applications/submit", `lead:${lead.id}`, successPayload);
+      void storeSubmissionIdempotency(idempKey, "applications/submit", `lead:${lead.id}`, successPayload);
       res.status(201).json(successPayload);
     } catch (err) {
       console.error("Application submit error:", err);
       res.status(500).json({ error: "Submission failed. Please try again." });
     }
   }
-);
+  );
+  return submitRouter;
+}
+
+router.use(createApplicationSubmitRouter());
 
 // GET /leads/:id/application — CRM: view application data (SSN masked)
 router.get("/leads/:id/application", async (req: Request, res: Response) => {

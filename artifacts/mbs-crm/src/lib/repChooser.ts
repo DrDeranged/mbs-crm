@@ -13,6 +13,20 @@ export function canonicalRepSlug(rep: RepChooserData, requestedSlug: string): st
   return rep.slug || requestedSlug;
 }
 
+export function repChooserSubtext(rep: RepChooserData): string | null {
+  const firstName = rep.name?.trim().split(/\s+/)[0];
+  return firstName ? `${firstName} will personally handle your application.` : null;
+}
+
+export function repChooserApplyHref(
+  rep: RepChooserData,
+  requestedSlug: string,
+  basePath: string,
+): string {
+  const base = basePath.replace(/\/$/, "");
+  return `${base}/apply?rep=${encodeURIComponent(canonicalRepSlug(rep, requestedSlug))}`;
+}
+
 export function repChooserAttribution(
   rep: RepChooserData,
   requestedSlug: string,
