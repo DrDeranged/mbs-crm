@@ -64,9 +64,20 @@ export default function NewLead() {
           });
           return;
         }
+
+        if (body?.details && Array.isArray(body.details)) {
+          body.details.forEach((d: any) => {
+            if (d.path && d.path.length > 0) {
+              form.setError(d.path[0] as any, { message: d.message });
+            }
+          });
+          toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });
+          return;
+        }
+
         toast({
           title: "Error",
-          description: "Failed to create lead. " + (error?.message || ""),
+          description: "Failed to create lead. " + (body?.message || error?.message || ""),
           variant: "destructive",
         });
       }
@@ -117,7 +128,7 @@ export default function NewLead() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name <span className="text-destructive">*</span></FormLabel>
+                        <FormLabel>First name <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="John" {...field} />
                         </FormControl>
@@ -130,7 +141,7 @@ export default function NewLead() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name <span className="text-destructive">*</span></FormLabel>
+                        <FormLabel>Last name <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="Doe" {...field} />
                         </FormControl>
@@ -146,7 +157,7 @@ export default function NewLead() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>Email address</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="john@example.com" {...field} />
                         </FormControl>
@@ -159,7 +170,7 @@ export default function NewLead() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Phone number</FormLabel>
                         <FormControl>
                           <Input type="tel" placeholder="(555) 123-4567" {...field} />
                         </FormControl>
@@ -174,7 +185,7 @@ export default function NewLead() {
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Name</FormLabel>
+                      <FormLabel>Company name</FormLabel>
                       <FormControl>
                         <Input placeholder="Acme Corp" {...field} />
                       </FormControl>
@@ -210,7 +221,7 @@ export default function NewLead() {
                     name="leadSource"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Lead Source</FormLabel>
+                        <FormLabel>Lead source</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -234,7 +245,7 @@ export default function NewLead() {
                   <Button type="button" variant="outline" className="mr-2" onClick={() => setLocation("/leads")}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createLead.isPending}>
+                  <Button type="submit" disabled={createLead.isPending || !form.formState.isValid}>
                     {createLead.isPending && <CheckCircle2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Lead
                   </Button>

@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGetLeadQueryKey, getListLeadActivityQueryKey, LeadUpdateApplicationType, useUpdateLead } from "@workspace/api-client-react";
@@ -47,7 +47,19 @@ export function EditLeadDialog() {
         queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(lead.id) });
         queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(lead.id) });
       },
-      onError: () => toast({ title: "Error", description: "Failed to update lead.", variant: "destructive" })
+      onError: (error: any) => {
+        const body = error?.response?.data ?? error?.data ?? null;
+        if (body?.details && Array.isArray(body.details)) {
+          body.details.forEach((d: any) => {
+            if (d.path && d.path.length > 0) {
+              form.setError(d.path[0] as any, { message: d.message });
+            }
+          });
+          toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });
+          return;
+        }
+        toast({ title: "Error", description: "Failed to update lead.", variant: "destructive" });
+      }
     });
   };
 
@@ -65,38 +77,39 @@ export function EditLeadDialog() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="firstName" render={({ field }) => (
-                <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                <FormItem><FormLabel>First name <span className="text-red-500">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
               )} />
               <FormField control={form.control} name="lastName" render={({ field }) => (
-                <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                <FormItem><FormLabel>Last name <span className="text-red-500">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
               )} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl></FormItem>
+                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage/></FormItem>
               )} />
               <FormField control={form.control} name="phone" render={({ field }) => (
-                <FormItem><FormLabel>Phone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl></FormItem>
+                <FormItem><FormLabel>Phone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage/></FormItem>
               )} />
             </div>
             <FormField control={form.control} name="companyName" render={({ field }) => (
-              <FormItem><FormLabel>Company Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+              <FormItem><FormLabel>Company name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
             )} />
             <FormField control={form.control} name="applicationType" render={({ field }) => (
               <FormItem>
-                <FormLabel>Financing Type</FormLabel>
+                <FormLabel>Financing type</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                  <SelectContent>
+                  <SelectContent className="z-[var(--z-dialog-popover)]">
                     <SelectItem value={LeadUpdateApplicationType.working_capital}>Working Capital</SelectItem>
                     <SelectItem value={LeadUpdateApplicationType.equipment}>Equipment Financing</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage/>
               </FormItem>
             )} />
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={updateLead.isPending}>Save Changes</Button>
+              <Button type="submit" disabled={updateLead.isPending || !form.formState.isValid}>Save Changes</Button>
             </div>
           </form>
         </Form>

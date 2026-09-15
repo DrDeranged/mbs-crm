@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Building2, DollarSign, Star, Phone, Mail, Trash2 } from "lucide-react";
 
+import { parseNullableCurrency } from "@/lib/forms";
+
 const PROGRAM_OPTIONS = ["working_capital", "equipment", "sba", "real_estate", "line_of_credit"];
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
@@ -85,8 +87,8 @@ function formToPayload(f: LenderFormData) {
   return {
     name: f.name,
     programTypes: f.programTypes,
-    minAmount: f.minAmount ? parseInt(f.minAmount, 10) : null,
-    maxAmount: f.maxAmount ? parseInt(f.maxAmount, 10) : null,
+    minAmount: parseNullableCurrency(f.minAmount),
+    maxAmount: parseNullableCurrency(f.maxAmount),
     minCreditScore: f.minCreditScore ? parseInt(f.minCreditScore, 10) : null,
     acceptedIndustries: f.acceptedIndustries
       ? f.acceptedIndustries.split(",").map((s) => s.trim()).filter(Boolean)
@@ -125,8 +127,12 @@ function ToggleChip({ value, selected, onChange, label }: { value: string; selec
 
 function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; onSubmit: (d: LenderFormData) => void; loading: boolean }) {
   const [form, setForm] = useState(initial);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (key: keyof LenderFormData, val: any) => setForm((f) => ({ ...f, [key]: val }));
+  const set = (key: keyof LenderFormData, val: any) => {
+    setForm((f) => ({ ...f, [key]: val }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: "" }));
+  };
 
   const toggleProgram = (v: string, s: boolean) =>
     set("programTypes", s ? [...form.programTypes, v] : form.programTypes.filter((p) => p !== v));
@@ -134,15 +140,36 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
   const toggleState = (v: string, s: boolean) =>
     set("acceptedStates", s ? [...form.acceptedStates, v] : form.acceptedStates.filter((p) => p !== v));
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = "Lender name is required";
+    if (form.minAmount && form.maxAmount && Number(form.minAmount) > Number(form.maxAmount)) {
+      newErrors.maxAmount = "Max amount must be greater than min amount";
+    }
+    if (form.minCreditScore && (Number(form.minCreditScore) < 300 || Number(form.minCreditScore) > 850)) {
+      newErrors.minCreditScore = "Score must be 300-850";
+    }
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) {
+      newErrors.contactEmail = "Invalid email format";
+    }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      onSubmit(form);
+    }
+  };
+
   return (
-    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       <div>
-        <Label>Lender Name *</Label>
+        <Label>Lender name <span className="text-red-500">*</span></Label>
         <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. First Capital Funding" className="mt-1" />
+        {errors.name && <p className="text-[13px] text-red-500 mt-1">{errors.name}</p>}
       </div>
 
       <div>
-        <Label>Program Types</Label>
+        <Label>Program types</Label>
         <div className="flex flex-wrap gap-1.5 mt-1.5">
           {PROGRAM_OPTIONS.map((p) => (
             <ToggleChip key={p} value={p} selected={form.programTypes.includes(p)} onChange={toggleProgram}
@@ -153,16 +180,24 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <Label>Min Amount ($)</Label>
-          <Input type="number" value={form.minAmount} onChange={(e) => set("minAmount", e.target.value)} placeholder="5000" className="mt-1" />
+          <Label>Min amount</Label>
+          <div className="relative mt-1.5">
+            <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input type="number" value={form.minAmount} onChange={(e) => set("minAmount", e.target.value)} placeholder="0.00" className="pl-8" />
+          </div>
         </div>
         <div>
-          <Label>Max Amount ($)</Label>
-          <Input type="number" value={form.maxAmount} onChange={(e) => set("maxAmount", e.target.value)} placeholder="500000" className="mt-1" />
+          <Label>Max amount</Label>
+          <div className="relative mt-1.5">
+            <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input type="number" value={form.maxAmount} onChange={(e) => set("maxAmount", e.target.value)} placeholder="0.00" className="pl-8" />
+          </div>
+          {errors.maxAmount && <p className="text-[13px] text-red-500 mt-1">{errors.maxAmount}</p>}
         </div>
         <div>
-          <Label>Min Credit Score</Label>
-          <Input type="number" value={form.minCreditScore} onChange={(e) => set("minCreditScore", e.target.value)} placeholder="580" className="mt-1" />
+          <Label>Min credit score</Label>
+          <Input type="number" value={form.minCreditScore} onChange={(e) => set("minCreditScore", e.target.value)} placeholder="580" className="mt-1.5" />
+          {errors.minCreditScore && <p className="text-[13px] text-red-500 mt-1">{errors.minCreditScore}</p>}
         </div>
       </div>
 
@@ -194,17 +229,20 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
           <p className="text-xs text-muted-foreground mt-0.5">Restricted industries are excluded unless their stated lender exception is met.</p>
         </div>
         <div>
-          <Label>Prohibited Industries (comma-separated)</Label>
+          <Label>Prohibited industries (comma-separated)</Label>
           <Input value={form.prohibitedIndustries} onChange={(e) => set("prohibitedIndustries", e.target.value)} placeholder="Cannabis, gambling" className="mt-1" />
         </div>
         <div>
-          <Label>Minimum Monthly Revenue ($)</Label>
-          <Input type="number" min="0" value={form.minMonthlyRevenue} onChange={(e) => set("minMonthlyRevenue", e.target.value)} placeholder="200000" className="mt-1" />
+          <Label>Minimum monthly revenue</Label>
+          <div className="relative mt-1.5">
+            <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input type="number" min="0" value={form.minMonthlyRevenue} onChange={(e) => set("minMonthlyRevenue", e.target.value)} placeholder="0.00" className="pl-8" />
+          </div>
         </div>
       </div>
 
       <div>
-        <Label>Accepted States</Label>
+        <Label>Accepted states</Label>
         <p className="text-xs text-muted-foreground mb-1.5">Leave all unselected to accept all states</p>
         <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto border rounded-md p-2">
           {US_STATES.map((s) => (
@@ -215,24 +253,25 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Contact Name</Label>
+          <Label>Contact name</Label>
           <Input value={form.contactName} onChange={(e) => set("contactName", e.target.value)} placeholder="Jane Smith" className="mt-1" />
         </div>
         <div>
-          <Label>Contact Email</Label>
+          <Label>Contact email</Label>
           <Input type="email" value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} placeholder="jane@lender.com" className="mt-1" />
+          {errors.contactEmail && <p className="text-[13px] text-red-500 mt-1">{errors.contactEmail}</p>}
         </div>
       </div>
 
       <div>
-        <Label>Internal Notes</Label>
+        <Label>Internal notes</Label>
         <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Any notes about this lender…" className="mt-1 min-h-[60px] resize-none" />
       </div>
 
-      <Button onClick={() => onSubmit(form)} disabled={!form.name.trim() || loading} className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+      <Button type="submit" disabled={!form.name.trim() || Object.keys(errors).some(k => errors[k]) || loading} className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white">
         {loading ? "Saving…" : "Save Lender"}
       </Button>
-    </div>
+    </form>
   );
 }
 
@@ -263,7 +302,7 @@ export default function LenderManagement() {
   const handleCreate = (form: LenderFormData) => {
     createLender.mutate({ data: formToPayload(form) as any }, {
       onSuccess: () => { setCreateOpen(false); invalidate(); toast({ title: "Lender created" }); },
-      onError: () => toast({ title: "Failed to create lender", variant: "destructive" }),
+      onError: (err: any) => toast({ title: "Failed to create lender", description: err.response?.data?.message || err.message, variant: "destructive" }),
     });
   };
 
@@ -271,7 +310,7 @@ export default function LenderManagement() {
     if (!editTarget) return;
     updateLender.mutate({ id: editTarget.id, data: formToPayload(form) as any }, {
       onSuccess: () => { setEditTarget(null); invalidate(); toast({ title: "Lender updated" }); },
-      onError: () => toast({ title: "Failed to update lender", variant: "destructive" }),
+      onError: (err: any) => toast({ title: "Failed to update lender", description: err.response?.data?.message || err.message, variant: "destructive" }),
     });
   };
 

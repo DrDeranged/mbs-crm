@@ -42,7 +42,7 @@ export default function DealDetail() {
 
   const { data: deal, isLoading: dealLoading } = useGetDeal(dealId, { query: { queryKey: getGetDealQueryKey(dealId) } });
   const { data: activities, isLoading: activityLoading } = useListDealActivity(dealId);
-  const { data: users } = useListUsers();
+  const { data: users } = useListUsers({ role: "rep", isActive: true });
 
   const updateDeal = useUpdateDeal();
   const archiveDeal = useArchiveDeal();
@@ -79,9 +79,9 @@ export default function DealDetail() {
       id: dealId, 
       data: {
         dealName: formData.dealName,
-        amount: formData.amount ? Number(formData.amount) : undefined,
-        approxGm: formData.approxGm ? Number(formData.approxGm) : undefined,
-        actualGm: formData.actualGm ? Number(formData.actualGm) : undefined,
+        amount: formData.amount ? Number(formData.amount) : null,
+        approxGm: formData.approxGm ? Number(formData.approxGm) : null,
+        actualGm: formData.actualGm ? Number(formData.actualGm) : null,
         stage: formData.stage as any,
         assignedTo: formData.assignedTo === "unassigned" ? null : Number(formData.assignedTo)
       } 
@@ -91,7 +91,10 @@ export default function DealDetail() {
         setEditMode(false);
         queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(dealId) });
       },
-      onError: () => toast({ title: "Error saving deal", variant: "destructive" })
+      onError: (err: any) => {
+        const msg = err.response?.data?.message || err.message;
+        toast({ title: "Error saving deal", description: msg, variant: "destructive" });
+      }
     });
   };
 
@@ -131,7 +134,7 @@ export default function DealDetail() {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-y-auto">
-      <div className="flex-none px-6 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-10 shadow-sm">
+      <div className="flex-none px-6 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-[var(--z-header)] shadow-sm">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <Link href="/deals" className="shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full text-muted-foreground hover:text-foreground">
@@ -163,7 +166,7 @@ export default function DealDetail() {
           {editMode ? (
             <>
               <Button variant="outline" size="sm" onClick={() => setEditMode(false)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
-              <Button size="sm" onClick={handleSave} disabled={updateDeal.isPending}><Check className="w-4 h-4 mr-1" /> Save</Button>
+              <Button size="sm" onClick={handleSave} disabled={updateDeal.isPending || !formData.dealName}><Check className="w-4 h-4 mr-1" /> Save</Button>
             </>
           ) : (
             <>
@@ -183,11 +186,11 @@ export default function DealDetail() {
             <CardContent className="p-6">
               {editMode ? (
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="col-span-2 space-y-2">
-                    <Label>Deal Name</Label>
+                  <div className="col-span-2 space-y-1.5">
+                    <Label>Deal name <span className="text-red-500">*</span></Label>
                     <Input value={formData.dealName} onChange={e => setFormData(f => ({...f, dealName: e.target.value}))} />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label>Stage</Label>
                     <Select value={formData.stage} onValueChange={v => setFormData(f => ({...f, stage: v}))}>
                       <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
@@ -196,8 +199,8 @@ export default function DealDetail() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Assigned Rep</Label>
+                  <div className="space-y-1.5">
+                    <Label>Assigned rep</Label>
                     <Select value={formData.assignedTo} onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}>
                       <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -206,25 +209,25 @@ export default function DealDetail() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label>Amount</Label>
-                    <div className="relative">
+                    <div className="relative mt-1.5">
                       <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type="number" className="pl-8" value={formData.amount} onChange={e => setFormData(f => ({...f, amount: e.target.value}))} />
+                      <Input type="number" className="pl-8" placeholder="0.00" value={formData.amount} onChange={e => setFormData(f => ({...f, amount: e.target.value}))} />
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label>Expected GM</Label>
-                    <div className="relative">
+                    <div className="relative mt-1.5">
                       <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type="number" className="pl-8" value={formData.approxGm} onChange={e => setFormData(f => ({...f, approxGm: e.target.value}))} />
+                      <Input type="number" className="pl-8" placeholder="0.00" value={formData.approxGm} onChange={e => setFormData(f => ({...f, approxGm: e.target.value}))} />
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label>Actual GM (Funded only)</Label>
-                    <div className="relative">
+                    <div className="relative mt-1.5">
                       <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input type="number" className="pl-8" value={formData.actualGm} onChange={e => setFormData(f => ({...f, actualGm: e.target.value}))} />
+                      <Input type="number" className="pl-8" placeholder="0.00" value={formData.actualGm} onChange={e => setFormData(f => ({...f, actualGm: e.target.value}))} />
                     </div>
                   </div>
                 </div>
@@ -293,7 +296,7 @@ export default function DealDetail() {
                       const newStage = STAGES.find(s => s.id === (activity.details as any)?.newStage)?.label || (activity.details as any)?.newStage;
                       
                       return (
-                        <div key={activity.id} className="relative flex items-start gap-4 z-10 min-w-0">
+                        <div key={activity.id} className="relative flex items-start gap-4 z-[var(--z-header)] min-w-0">
                           <div className={cn("h-8 w-8 rounded-full border-2 border-white flex items-center justify-center shrink-0 shadow-sm", isStageChange ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>
                             {isStageChange ? <ChevronRight className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                           </div>
