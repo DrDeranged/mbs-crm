@@ -160,6 +160,7 @@ export function userToApi(user: typeof usersTable.$inferSelect) {
     id: user.id,
     clerkId: user.clerkId,
     name: user.name,
+    title: user.title ?? null,
     email: user.email,
     slug: user.slug ?? null,
     role: user.role,

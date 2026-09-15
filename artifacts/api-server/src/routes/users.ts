@@ -8,6 +8,7 @@ import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspa
 import { backfillProductionSlugs, ProductionMaintenanceError } from "../lib/productionMaintenance";
 import { retireRepSlug } from "./repPublic";
 import { isSlugRetirementAuthorized, requiresSlugRetirement } from "../lib/repSlugPolicy";
+import applicationFormRouter from "./applicationForm";
 
 const router: IRouter = Router();
 
@@ -117,6 +118,8 @@ router.get("/users", async (req: Request, res: Response) => {
 
   res.json(users.map(userToApi));
 });
+
+router.use(applicationFormRouter);
 
 router.put("/users/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);

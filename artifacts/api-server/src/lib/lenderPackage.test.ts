@@ -19,6 +19,8 @@ function baseLead(overrides: Record<string, unknown> = {}) {
     firstName: "Owner",
     lastName: "Example",
     companyName: "Example Company",
+    email: "owner@example.com",
+    phone: "602-555-0199",
     requestedAmount: null,
     assignedRepId: 7,
     ...overrides,
@@ -39,6 +41,9 @@ function baseApplication(overrides: Record<string, unknown> = {}) {
     signatureSignedAt: new Date("2025-01-01T00:01:00.000Z"),
     signatureIp: "127.0.0.1",
     requestedAmount: 100000,
+    yearMakeModel: "2024 Caterpillar 299D3 XE",
+    trucksInFleet: 14,
+    downPaymentAmount: 85000,
     monthlyRevenueStated: 25000,
     timeInBusinessMonths: 24,
     consentCreditPull: true,
@@ -196,6 +201,11 @@ test("baseline application has two pages; exactly two statements append in uploa
   assert.ok(signedHtml);
   assert.match(signedHtml, /Signature Method<\/td><td>typed/);
   assert.match(signedHtml, /Owner Example/);
+  assert.match(signedHtml, /owner@example\.com/);
+  assert.match(signedHtml, /602-555-0199/);
+  assert.match(signedHtml, /2024 Caterpillar 299D3 XE/);
+  assert.match(signedHtml, /class="field-value">14<\/div>/);
+  assert.match(signedHtml, /\$85,000/);
   assert.match(signedHtml, /Wed, 01 Jan 2025 00:01:00 GMT/);
 });
 

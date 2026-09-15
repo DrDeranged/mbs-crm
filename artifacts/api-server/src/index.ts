@@ -131,6 +131,33 @@ async function checkApplicationConsentColumns(): Promise<void> {
   }
 }
 
+async function checkUserTitleColumn(): Promise<void> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'users'
+        AND column_name IN ('title')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+    );
+    if (!presentColumns.has("title")) {
+      logger.error(
+        { missingColumns: ["title"], migration: "016_user_titles.sql" },
+        "Required user title column is missing; apply 016_user_titles.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "016_user_titles.sql" },
+      "Could not verify user title column for 016_user_titles.sql",
+    );
+  }
+}
+
 const server = app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
@@ -142,6 +169,7 @@ const server = app.listen(port, (err) => {
   void checkApplicationSignatureColumns();
   void checkApplicationOptionalColumns();
   void checkApplicationConsentColumns();
+  void checkUserTitleColumn();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));

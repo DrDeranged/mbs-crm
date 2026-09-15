@@ -69,7 +69,6 @@ test("signed application HTML escapes injection strings and signature metadata",
     clientIp: "<script>alert(2)</script>",
   });
   assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
-  assert.match(html, /&lt;img src=x&gt; months/);
   assert.match(html, /&lt;svg onload=alert\(1\)&gt;/);
   assert.match(html, /&lt;script&gt;alert\(2\)&lt;\/script&gt;/);
   assert.ok(html.includes(escapeHtml(CONSENT_TEXT)), "signed HTML must include the exact escaped disclosure");

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import { BrandLogo } from "@/components/brand-logo";
 import { canonicalRepSlug, type RepChooserData } from "@/lib/repChooser";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
 export default function RepChooser() {
   const [, params] = useRoute("/r/:slug");
   const slug = params?.slug || "";
   const [rep, setRep] = useState<RepChooserData>({ name: null, phone: null });
   useEffect(() => {
-    fetch(`/api/public/reps/${encodeURIComponent(slug)}`)
+    fetch(`${getApiBaseUrl()}/public/reps/${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((data: RepChooserData) => {
         setRep(data);
@@ -34,6 +35,7 @@ export default function RepChooser() {
           <Link href={`/apply?type=equipment${rep.name ? `&rep=${encodeURIComponent(canonicalSlug)}` : ""}`} className="rounded-xl bg-[#0E2A47] py-4 text-lg font-semibold text-white">Equipment Financing</Link>
           <Link href={`/apply?type=working_capital${rep.name ? `&rep=${encodeURIComponent(canonicalSlug)}` : ""}`} className="rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Working Capital</Link>
         </div>
+        {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-[#0E2A47] underline underline-offset-2">Prefer a paper application? Download PDF</a>}
       </section>
     </main>
   );

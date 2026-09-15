@@ -6,6 +6,7 @@ async function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
       headless: true,
+      executablePath: process.env["PUPPETEER_EXECUTABLE_PATH"] || undefined,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -35,13 +36,13 @@ export async function closeBrowser(): Promise<void> {
   }
 }
 
-export async function renderPdf(html: string): Promise<Buffer> {
+export async function renderPdf(html: string, options: { format?: "A4" | "Letter" } = {}): Promise<Buffer> {
   const browser = await getBrowser();
   const page = await browser.newPage();
   try {
     await page.setContent(html, { waitUntil: "load", timeout: 30000 });
     const pdfUint8Array = await page.pdf({
-      format: "A4",
+      format: options.format ?? "A4",
       printBackground: true,
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
     });

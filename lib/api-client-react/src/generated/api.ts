@@ -3913,6 +3913,162 @@ export function useDownloadLenderPackage<TData = Awaited<ReturnType<typeof downl
 
 
 
+export const getDownloadUserApplicationFormUrl = (id: number,) => {
+
+
+
+
+  return `/api/users/${id}/application-form.pdf`
+}
+
+/**
+ * Representatives may download only their own form. Administrators may download any user's form. Other roles are forbidden.
+
+ * @summary Download the representative's blank finance application PDF
+ */
+export const downloadUserApplicationForm = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadUserApplicationFormUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadUserApplicationFormQueryKey = (id: number,) => {
+    return [
+    `/api/users/${id}/application-form.pdf`
+    ] as const;
+    }
+
+
+export const getDownloadUserApplicationFormQueryOptions = <TData = Awaited<ReturnType<typeof downloadUserApplicationForm>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadUserApplicationForm>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadUserApplicationFormQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadUserApplicationForm>>> = ({ signal }) => downloadUserApplicationForm(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadUserApplicationForm>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadUserApplicationFormQueryResult = NonNullable<Awaited<ReturnType<typeof downloadUserApplicationForm>>>
+export type DownloadUserApplicationFormQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download the representative's blank finance application PDF
+ */
+
+export function useDownloadUserApplicationForm<TData = Awaited<ReturnType<typeof downloadUserApplicationForm>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadUserApplicationForm>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadUserApplicationFormQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDownloadPublicRepApplicationFormUrl = (slug: string,) => {
+
+
+
+
+  return `/api/public/reps/${slug}/application-form.pdf`
+}
+
+/**
+ * @summary Download a representative's blank finance application PDF
+ */
+export const downloadPublicRepApplicationForm = async (slug: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadPublicRepApplicationFormUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPublicRepApplicationFormQueryKey = (slug: string,) => {
+    return [
+    `/api/public/reps/${slug}/application-form.pdf`
+    ] as const;
+    }
+
+
+export const getDownloadPublicRepApplicationFormQueryOptions = <TData = Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>, TError = ErrorType<void>>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPublicRepApplicationFormQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>> = ({ signal }) => downloadPublicRepApplicationForm(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(slug), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadPublicRepApplicationFormQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>>
+export type DownloadPublicRepApplicationFormQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download a representative's blank finance application PDF
+ */
+
+export function useDownloadPublicRepApplicationForm<TData = Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>, TError = ErrorType<void>>(
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadPublicRepApplicationForm>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadPublicRepApplicationFormQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListLeadActivityUrl = (id: number,) => {
 
 

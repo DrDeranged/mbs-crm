@@ -17,6 +17,7 @@ import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
 import { formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
 import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -43,9 +44,11 @@ export default function Settings() {
   const [mobileEditing, setMobileEditing] = useState(false);
   const [editingSlug, setEditingSlug] = useState<number | null>(null);
   const [slugInput, setSlugInput] = useState("");
+  const [editingTitle, setEditingTitle] = useState<number | null>(null);
+  const [titleInput, setTitleInput] = useState("");
   const [staleThresholdInput, setStaleThresholdInput] = useState("7");
 
-  const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+  const apiBase = getApiBaseUrl();
 
   const [companyForm, setCompanyForm] = useState({
     companyName: "", companyEmail: "", companyPhone: "", companyWebsite: "",
@@ -181,6 +184,20 @@ export default function Settings() {
       onSuccess: () => { setEditingSlug(null); queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() }); toast({ title: "Rep link updated" }); },
       onError: (error: any) => toast({ title: "Unable to update link", description: error?.message || "This link may already be in use or locked.", variant: "destructive" }),
     });
+  };
+
+  const saveTitle = (userId: number) => {
+    updateUser.mutate(
+      { id: userId, data: { title: titleInput.trim() || null } },
+      {
+        onSuccess: () => {
+          setEditingTitle(null);
+          queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+          toast({ title: "Title updated" });
+        },
+        onError: () => toast({ title: "Unable to update title", variant: "destructive" }),
+      },
+    );
   };
 
   const saveRayIdentity = async (userId: number) => {
@@ -760,6 +777,8 @@ export default function Settings() {
                       <TableHead>Rep link</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Application</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -811,6 +830,38 @@ export default function Settings() {
                               <SelectItem value={UserUpdateRole.pending}>Pending</SelectItem>
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell>
+                          {editingTitle === user.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                className="h-8 w-44 text-xs"
+                                value={titleInput}
+                                maxLength={200}
+                                onChange={(e) => setTitleInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") saveTitle(user.id); if (e.key === "Escape") setEditingTitle(null); }}
+                                autoFocus
+                              />
+                              <Button size="sm" className="h-8 text-xs" onClick={() => saveTitle(user.id)} disabled={updateUser.isPending}>Save</Button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="max-w-44 truncate text-left text-xs text-muted-foreground hover:text-foreground"
+                              title={user.title || "Set title"}
+                              onClick={() => { setEditingTitle(user.id); setTitleInput(user.title ?? ""); }}
+                            >
+                              {user.title || "Set title"}
+                            </button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <a
+                            href={`${apiBase}/users/${user.id}/application-form.pdf`}
+                            className="text-xs font-medium text-[#1F4E79] underline underline-offset-2 whitespace-nowrap"
+                          >
+                            Download blank PDF
+                          </a>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -1,9 +1,4 @@
-import {
-  CONSENT_CHECKBOX_LABEL,
-  CONSENT_TEXT,
-  CONSENT_TEXT_VERSION,
-  CONSENT_TITLE,
-} from "./consentText";
+import { buildApplicationFormHtml, type ApplicationPdfRep } from "./applicationPdf";
 
 export type SignatureMethod = "typed" | "drawn";
 
@@ -83,6 +78,8 @@ export function normalizeSignature(method: unknown, value: unknown): SignatureVa
 export type SignedApplicationHtmlParams = {
   lead: { id: number; firstName: string | null; lastName: string | null };
   body: Record<string, unknown>;
+  rep?: ApplicationPdfRep;
+  logoUrl?: string | null;
   submittedAt: Date;
   signatureSignedAt: Date | null;
   clientIp: string | null;
@@ -90,95 +87,25 @@ export type SignedApplicationHtmlParams = {
 
 /** Generates the archived signed application document. */
 export function buildSignedApplicationHtml(params: SignedApplicationHtmlParams): string {
-  const { lead, body, submittedAt, signatureSignedAt, clientIp } = params;
-  const field = (v: unknown) => escapeHtml(v != null && v !== "" ? v : "—");
-  const bool = (v: unknown) => (v === "true" || v === true) ? "✓ Yes" : "No";
-  const rawSig = typeof body["signatureData"] === "string" ? body["signatureData"] : "";
+  const { body } = params;
   const signatureMethod = body["signatureMethod"] === "typed" || body["signatureMethod"] === "drawn"
     ? body["signatureMethod"]
     : null;
-  const sigData = signatureMethod === "typed"
-    ? `<span style="font-size:22px;font-style:italic;color:#1F4E79;">${escapeHtml(rawSig)}</span>`
-    : signatureMethod === "drawn" && isSafeImageDataUrl(rawSig)
-      ? `<img src="${escapeHtml(rawSig)}" style="max-width:320px;border:1px solid #ccc;border-radius:4px;" />`
-      : signatureMethod === null
-        ? "<em>Signature unavailable</em>"
-        : "<em>Signature image unavailable</em>";
-  const submitted = escapeHtml(submittedAt.toUTCString());
-  const signed = signatureSignedAt ? escapeHtml(signatureSignedAt.toUTCString()) : "Unavailable";
-  const signatureMethodLabel = signatureMethod ?? "Unavailable";
-  const ip = escapeHtml(clientIp ?? "unknown");
-  const timeInBusiness = body["timeInBusinessMonths"]
-    ? `${field(body["timeInBusinessMonths"])} months`
-    : "—";
-  const monthlyRevenue = body["monthlyRevenueStated"]
-    ? `$${field(Number(body["monthlyRevenueStated"]).toLocaleString())}`
-    : "—";
-  const requestedAmount = body["requestedAmount"]
-    ? `$${field(Number(body["requestedAmount"]).toLocaleString())}`
-    : "—";
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><title>MBS Application — ${field(lead.firstName)} ${field(lead.lastName)}</title>
-<style>
-  body{font-family:Arial,sans-serif;color:#222;max-width:860px;margin:40px auto;padding:0 24px;}
-  h1{color:#1F4E79;border-bottom:3px solid #1F4E79;padding-bottom:8px;}
-  h2{color:#1F4E79;font-size:15px;margin-top:28px;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  td{padding:6px 12px;border:1px solid #e5e7eb;vertical-align:top;}
-  td:first-child{font-weight:600;width:38%;background:#f8fafc;color:#374151;}
-  .footer{margin-top:40px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;}
-</style>
-</head>
-<body>
-<h1>My Business Solutions — Financing Application</h1>
-<p style="color:#6b7280;font-size:13px;">Application ID: <strong>${field(lead.id)}</strong> &nbsp;|&nbsp; Submitted: <strong>${submitted}</strong> &nbsp;|&nbsp; IP: <strong>${ip}</strong></p>
-
-<h2>Business Information</h2>
-<table>
-  <tr><td>Business Name</td><td>${field(body["businessName"])}</td></tr>
-  <tr><td>DBA</td><td>${field(body["dba"])}</td></tr>
-  <tr><td>EIN</td><td>${field(body["ein"])}</td></tr>
-  <tr><td>Industry</td><td>${field(body["industry"])}</td></tr>
-  <tr><td>Address</td><td>${field(body["businessAddress"])}, ${field(body["businessCity"])}, ${field(body["businessState"])} ${field(body["businessZip"])}</td></tr>
-  <tr><td>Time in Business</td><td>${timeInBusiness}</td></tr>
-  <tr><td>Monthly Revenue (Stated)</td><td>${monthlyRevenue}</td></tr>
-  <tr><td>Requested Amount</td><td>${requestedAmount}</td></tr>
-  <tr><td>Use of Funds</td><td>${field(body["useOfFunds"])}</td></tr>
-  <tr><td>Application Type</td><td>${field(body["type"])}</td></tr>
-</table>
-
-<h2>Owner Information</h2>
-<table>
-  <tr><td>Name</td><td>${field(body["ownerFirstName"])} ${field(body["ownerLastName"])}</td></tr>
-  <tr><td>Date of Birth</td><td>${field(body["ownerDob"])}</td></tr>
-  <tr><td>SSN</td><td>***-**-**** (encrypted)</td></tr>
-  <tr><td>Home Address</td><td>${field(body["ownerHomeAddress"])}, ${field(body["ownerHomeCity"])}, ${field(body["ownerHomeState"])} ${field(body["ownerHomeZip"])}</td></tr>
-  <tr><td>Ownership %</td><td>${field(body["ownershipPct"])}</td></tr>
-</table>
-
-<h2>Consent &amp; Signature</h2>
-<table>
-  <tr><td>Credit Pull Consent</td><td>${bool(body["consentCreditPull"])}</td></tr>
-  <tr><td>${escapeHtml(CONSENT_TITLE)} Consent</td><td>${bool(body["consentTerms"])}</td></tr>
-  <tr><td>Disclosure Version</td><td>${escapeHtml(CONSENT_TEXT_VERSION)}</td></tr>
-  <tr><td>Signature Method</td><td>${field(signatureMethodLabel)}</td></tr>
-  <tr><td>Signature Signed At</td><td>${signed}</td></tr>
-  <tr><td>Signature IP</td><td>${ip}</td></tr>
-</table>
-<div style="margin-top:16px;padding:12px;border:1px solid #e5e7eb;">
-  <h3 style="color:#1F4E79;font-size:14px;margin:0 0 8px;">${escapeHtml(CONSENT_TITLE)}</h3>
-  <p style="font-size:12px;line-height:1.5;white-space:pre-wrap;margin:0 0 10px;">${escapeHtml(CONSENT_TEXT)}</p>
-  <p style="font-size:12px;margin:0;"><strong>Applicant acknowledgment:</strong> ${escapeHtml(CONSENT_CHECKBOX_LABEL)}</p>
-</div>
-<div style="margin-top:16px;">${sigData}</div>
-
-<div class="footer">
-  This document was generated automatically by My Business Solutions CRM on ${submitted}.
-  It contains a verbatim record of the applicant's submission and electronic signature.
-  SSN is stored separately in encrypted form and is not included here.
-</div>
-</body>
-</html>`;
+  const rawSig = typeof body["signatureData"] === "string" ? body["signatureData"] : null;
+  return buildApplicationFormHtml({
+    rep: {
+      ...(params.rep ?? {
+        name: `${params.lead.firstName ?? ""} ${params.lead.lastName ?? ""}`.trim() || "My Business Solutions",
+        email: null,
+        role: "rep",
+      }),
+    },
+    logoUrl: params.logoUrl,
+    application: body,
+    submittedAt: params.submittedAt,
+    signatureSignedAt: params.signatureSignedAt,
+    signatureMethod,
+    signatureData: rawSig,
+    clientIp: params.clientIp,
+  });
 }

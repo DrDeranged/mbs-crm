@@ -1378,6 +1378,61 @@ paths:
         "500":
           description: Lender package generation failed
 
+  /users/{id}/application-form.pdf:
+    get:
+      operationId: downloadUserApplicationForm
+      tags: [users]
+      summary: Download the representative's blank finance application PDF
+      description: >
+        Representatives may download only their own form. Administrators may
+        download any user's form. Other roles are forbidden.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blank finance application PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid user ID
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: User not found
+
+  /public/reps/{slug}/application-form.pdf:
+    get:
+      operationId: downloadPublicRepApplicationForm
+      tags: [applications]
+      summary: Download a representative's blank finance application PDF
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blank finance application PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "301":
+          description: Retired slug; redirect to the canonical representative slug
+        "404":
+          description: Representative not found
+
   /leads/{id}/activity:
     get:
       operationId: listLeadActivity
@@ -3896,6 +3951,8 @@ components:
           type: string
         name:
           type: ["string", "null"]
+        title:
+          type: ["string", "null"]
         email:
           type: string
         slug:
@@ -3924,6 +3981,9 @@ components:
           minLength: 1
           maxLength: 50
           pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        title:
+          type: ["string", "null"]
+          maxLength: 200
 
     RetireRepSlugRequest:
       type: object

@@ -20,6 +20,7 @@ import {
   Briefcase,
   BookOpen,
   ChevronDown,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -27,6 +28,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { getUserDisplayName } from "@/lib/utils";
+import { getApiBaseUrl } from "@/lib/apiBase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -193,6 +195,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 Rep Quickstart
               </Link>
             </DropdownMenuItem>
+            {(currentUser?.role === "rep" || currentUser?.role === "admin") && currentUser.id && (
+              <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white">
+                <a href={`${getApiBaseUrl()}/users/${currentUser.id}/application-form.pdf`}>
+                  <FileDown className="h-4 w-4 text-[#6EE7C0]" />
+                  Download blank application PDF
+                </a>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuLabel className="text-xs font-normal text-white/45">
               Signed in as {getUserDisplayName(user)}

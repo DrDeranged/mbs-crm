@@ -3,12 +3,16 @@ import { Router, type Request, type Response } from "express";
 import { db, usersTable, activityLogTable, retiredRepSlugsTable } from "@workspace/db";
 import { and, eq, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
-import { getPublicBaseUrl } from "../lib/brand";
+import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { getUserDisplayName } from "../lib/authHelpers";
+import { buildApplicationFormHtml } from "../lib/applicationPdf";
+import { renderPdf } from "../lib/renderPdf";
 
 const router = Router();
 
-type PublicRepUser = Pick<typeof usersTable.$inferSelect, "name" | "email" | "mobileNumber" | "slug">;
+type PublicRepUser = Pick<typeof usersTable.$inferSelect, "name" | "email" | "mobileNumber" | "slug"> & {
+  title?: string | null;
+};
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -111,6 +115,48 @@ export async function getRepQrSvg(slug: string, dependencies: RepQrDependencies 
 export type RepResolverDependencies = {
   resolve?: (slug: string) => Promise<{ user: PublicRepUser | null; replacementSlug: string | null }>;
 };
+
+export type PublicApplicationFormDependencies = {
+  resolve?: (slug: string) => Promise<{ user: PublicRepUser | null; replacementSlug: string | null }>;
+  renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
+};
+
+export function createPublicApplicationFormRouter(dependencies: PublicApplicationFormDependencies = {}) {
+  const publicRouter = Router();
+  publicRouter.get("/public/reps/:slug/application-form.pdf", async (req: Request, res: Response) => {
+    const requestedSlug = String(req.params.slug || "").toLowerCase();
+    const { user, replacementSlug } = await (dependencies.resolve ?? resolvePublicSlug)(requestedSlug);
+    if (replacementSlug) {
+      const canonicalUrl = `${getPublicBaseUrl()}/api/public/reps/${encodeURIComponent(replacementSlug)}/application-form.pdf`;
+      res.setHeader("Location", canonicalUrl);
+      res.setHeader("X-Canonical-URL", canonicalUrl);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.status(301).end();
+      return;
+    }
+    if (!user?.slug) {
+      res.status(404).json({ error: "Representative not found" });
+      return;
+    }
+    const html = buildApplicationFormHtml({
+      rep: {
+        name: user.name,
+        title: user.title,
+        email: user.email,
+        mobileNumber: user.mobileNumber,
+        slug: user.slug,
+      },
+      logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
+    });
+    const pdf = await (dependencies.renderPdf ?? renderPdf)(html, { format: "Letter" });
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="MBS-Finance-Application-${user.slug}.pdf"`);
+    res.setHeader("Content-Length", String(pdf.length));
+    res.send(pdf);
+  });
+  return publicRouter;
+}
 
 export function createPublicRepResolverRouter(dependencies: RepResolverDependencies = {}) {
   const publicRouter = Router();
@@ -272,6 +318,8 @@ export async function retireRepSlug(input: RetireSlugInput, database: RetireSlug
 router.use(createPublicRepResolverRouter());
 
 router.use(createRepQrRouter());
+
+router.use(createPublicApplicationFormRouter());
 
 router.get("/admin/qr-verify", async (req: Request, res: Response) => {
   // Do not use requireUser here: it may reconcile reserved deals as a side

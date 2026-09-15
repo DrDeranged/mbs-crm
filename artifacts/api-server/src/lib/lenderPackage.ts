@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
-import { ensureFlyerBranding, getPublicBaseUrl } from "./brand";
+import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
 import { renderPdf as defaultRenderPdf } from "./renderPdf";
 import { requireUser } from "./authHelpers";
@@ -31,7 +31,7 @@ export type LenderPackageDocumentExclusion = {
 export type LenderPackageDependencies = {
   database?: Database;
   authenticate?: (req: Request, res: Response) => Promise<User | null>;
-  renderPdf?: (html: string) => Promise<Buffer>;
+  renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
   downloadDocument?: (document: Document, maxBytes: number) => Promise<Buffer>;
   auditPiiAccess?: typeof logPiiAccess;
 };
@@ -180,6 +180,7 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
   <div class="section">
     <h2>Assigned representative</h2>
     ${row("Name", repName)}
+    ${row("Title", assignedRep.title)}
     ${row("Email", assignedRep.email)}
     ${row("Phone", assignedRep.mobileNumber)}
   </div>` : ""}
@@ -216,7 +217,7 @@ function buildNotIncludedHtml(exclusions: LenderPackageDocumentExclusion[]): str
 </html>`;
 }
 
-function applicationBody(application: Application): Record<string, unknown> {
+function applicationBody(application: Application, lead: Pick<Lead, "email" | "phone">): Record<string, unknown> {
   // Deliberately omit ownerSsnEncrypted. The signed application helper writes
   // its fixed masked SSN label and never needs the encrypted value.
   return {
@@ -229,9 +230,19 @@ function applicationBody(application: Application): Record<string, unknown> {
     businessState: application.businessState,
     businessZip: application.businessZip,
     industry: application.industry,
+    businessType: application.businessType,
+    annualRevenue: application.annualRevenue,
+    businessStartDate: application.businessStartDate,
+    yearsUnderCurrentOwnership: application.yearsUnderCurrentOwnership,
+    businessDescription: application.businessDescription,
+    estCreditScore: application.estCreditScore,
+    timelineFundsNeeded: application.timelineFundsNeeded,
     timeInBusinessMonths: application.timeInBusinessMonths,
     monthlyRevenueStated: application.monthlyRevenueStated,
     requestedAmount: application.requestedAmount,
+    yearMakeModel: application.yearMakeModel,
+    trucksInFleet: application.trucksInFleet,
+    downPaymentAmount: application.downPaymentAmount,
     useOfFunds: application.useOfFunds,
     equipmentDescription: application.equipmentDescription,
     vendorName: application.vendorName,
@@ -239,12 +250,21 @@ function applicationBody(application: Application): Record<string, unknown> {
     equipmentCondition: application.equipmentCondition,
     ownerFirstName: application.ownerFirstName,
     ownerLastName: application.ownerLastName,
+    email: lead.email,
+    phone: lead.phone,
     ownerDob: application.ownerDob,
     ownerHomeAddress: application.ownerHomeAddress,
     ownerHomeCity: application.ownerHomeCity,
     ownerHomeState: application.ownerHomeState,
     ownerHomeZip: application.ownerHomeZip,
     ownershipPct: application.ownershipPct,
+    secondaryOwnerName: application.secondaryOwnerName,
+    secondaryOwnerEmail: application.secondaryOwnerEmail,
+    secondaryOwnerAddress: application.secondaryOwnerAddress,
+    secondaryOwnerDob: application.secondaryOwnerDob,
+    secondaryOwnerOwnershipPct: application.secondaryOwnerOwnershipPct,
+    secondaryOwnerCell: application.secondaryOwnerCell,
+    secondaryOwnerEstCreditScore: application.secondaryOwnerEstCreditScore,
     consentCreditPull: application.consentCreditPull,
     consentTerms: application.consentTerms,
     signatureMethod: application.signatureMethod,
@@ -349,7 +369,7 @@ async function composePackage(
   included: IncludedStatement[],
   exclusions: LenderPackageDocumentExclusion[],
   repEmail: string | null,
-  render: (html: string) => Promise<Buffer>,
+  render: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>,
 ): Promise<Buffer> {
   const packagePdf = await PDFDocument.create();
   await appendPages(packagePdf, cover);
@@ -367,7 +387,7 @@ async function composePackage(
     }
   }
   if (exclusions.length > 0) {
-    const notIncluded = await render(buildNotIncludedHtml(exclusions));
+    const notIncluded = await render(buildNotIncludedHtml(exclusions), { format: "Letter" });
     const notIncludedPdf = await PDFDocument.load(notIncluded, {
       throwOnInvalidObject: false,
       updateMetadata: false,
@@ -383,7 +403,7 @@ export async function buildLenderPackagePdf(params: {
   application: Application;
   assignedRep: User | null;
   documents: Document[];
-  renderPdf?: (html: string) => Promise<Buffer>;
+  renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
   downloadDocument?: (document: Document, maxBytes: number) => Promise<Buffer>;
   /** Test-only output limit override; production uses the 40 MB constant. */
   maxPackageBytes?: number;
@@ -398,12 +418,26 @@ export async function buildLenderPackagePdf(params: {
       firstName: params.application.ownerFirstName,
       lastName: params.application.ownerLastName,
     },
-    body: applicationBody(params.application),
+    rep: params.assignedRep
+      ? {
+        name: params.assignedRep.name,
+        title: params.assignedRep.title,
+        email: params.assignedRep.email,
+        mobileNumber: params.assignedRep.mobileNumber,
+        slug: params.assignedRep.slug,
+        role: params.assignedRep.role,
+      }
+      : undefined,
+    logoUrl: getBrandLogoUrl(baseUrl),
+    body: applicationBody(params.application, params.lead),
     submittedAt: params.application.submittedAt,
     signatureSignedAt: params.application.signatureSignedAt,
     clientIp: params.application.signatureIp,
   });
-  const [coverBytes, signedBytes] = await Promise.all([render(coverHtml), render(signedHtml)]);
+  const [coverBytes, signedBytes] = await Promise.all([
+    render(coverHtml, { format: "Letter" }),
+    render(signedHtml, { format: "Letter" }),
+  ]);
   const [cover, signedApplication] = await Promise.all([
     PDFDocument.load(coverBytes, { throwOnInvalidObject: false, updateMetadata: false }),
     PDFDocument.load(signedBytes, { throwOnInvalidObject: false, updateMetadata: false }),

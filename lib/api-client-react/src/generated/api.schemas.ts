@@ -103,6 +103,8 @@ export interface User {
   clerkId: string;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  title?: string | null;
   email: string;
   /** @nullable */
   slug: string | null;
@@ -132,6 +134,11 @@ export interface UserUpdate {
      * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
      */
   slug?: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  title?: string | null;
 }
 
 export interface RetireRepSlugRequest {
