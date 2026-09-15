@@ -16,7 +16,9 @@ import {
   validateSeededDealRows,
 } from "./seededDealMaintenance";
 import {
+  EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
+  appendExistingLenderUpdateNotes,
   newLenderSeedToInsertValues,
   planNewLenderSeeds,
 } from "./newLenderSeeds";
@@ -236,27 +238,97 @@ export async function backfillProductionSlugs() {
   });
 }
 
-export async function seedNewLenders() {
-  return db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(874240)`);
-    const existing = await tx.select().from(lendersTable).where(
-      sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
-    );
-    const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
-    for (const seed of plan.toCreate) {
-      await tx.insert(lendersTable).values(newLenderSeedToInsertValues(seed));
+export type LenderSeedTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Production lender seed/update operation. Keeping this executor separate
+ * from the transaction wrapper lets tests exercise the exact operation used
+ * in production with a transaction-shaped double.
+ */
+export async function executeLenderSeedAndUpdates(tx: LenderSeedTransaction) {
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(874240)`);
+  const existing = await tx.select().from(lendersTable).where(
+    sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
+  );
+  const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
+  for (const seed of plan.toCreate) {
+    await tx.insert(lendersTable).values(newLenderSeedToInsertValues(seed));
+  }
+
+  const existingLenderUpdates = [];
+  for (const update of EXISTING_LENDER_UPDATES) {
+    // Keep this lookup exact-name and row-locked. The packet updates are
+    // intentionally not part of NEW_LENDER_SEEDS and must never recreate a
+    // missing lender or touch a same-name variant.
+    const [existing] = await tx
+      .select({
+        id: lendersTable.id,
+        name: lendersTable.name,
+        notes: lendersTable.notes,
+      })
+      .from(lendersTable)
+      .where(eq(lendersTable.name, update.name))
+      .for("update");
+
+    if (!existing) {
+      existingLenderUpdates.push({
+        name: update.name,
+        status: "missing" as const,
+        patch: null,
+      });
+      continue;
     }
-    const lenders = await tx.select().from(lendersTable).where(
-      sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
-    );
-    return {
-      created: plan.toCreate.length,
-      unchanged: plan.unchangedNames.length,
-      createdNames: plan.toCreate.map((seed) => seed.name),
-      unchangedNames: plan.unchangedNames,
-      lenders,
-    };
-  });
+    if (existing.notes?.includes(update.marker)) {
+      existingLenderUpdates.push({
+        name: update.name,
+        status: "already_applied" as const,
+        patch: null,
+      });
+      continue;
+    }
+
+    await tx
+      .update(lendersTable)
+      .set({
+        ...update.structuredPatch,
+        notes: appendExistingLenderUpdateNotes(existing.notes, update.notes),
+        updatedAt: new Date(),
+      })
+      .where(eq(lendersTable.id, existing.id));
+    existingLenderUpdates.push({
+      name: update.name,
+      status: "updated" as const,
+      patch: update.structuredPatch,
+    });
+  }
+
+  const lenders = await tx.select().from(lendersTable).where(
+    sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
+  );
+  const updatedExistingNames = existingLenderUpdates
+    .filter((update) => update.status === "updated")
+    .map((update) => update.name);
+  const unchangedExistingNames = existingLenderUpdates
+    .filter((update) => update.status === "already_applied")
+    .map((update) => update.name);
+  const missingExistingNames = existingLenderUpdates
+    .filter((update) => update.status === "missing")
+    .map((update) => update.name);
+  return {
+    created: plan.toCreate.length,
+    unchanged: plan.unchangedNames.length,
+    createdNames: plan.toCreate.map((seed) => seed.name),
+    unchangedNames: plan.unchangedNames,
+    existingLenderUpdates,
+    updatedExistingNames,
+    unchangedExistingNames,
+    missingExistingNames,
+    lenders,
+  };
+}
+
+export async function seedNewLenders() {
+  return db.transaction((tx) => executeLenderSeedAndUpdates(tx));
 }
 
 export type StarterEmailTemplateSeed = {

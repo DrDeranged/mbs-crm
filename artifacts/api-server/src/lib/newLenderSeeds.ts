@@ -12,6 +12,77 @@ const ALL_US_STATES = Object.freeze([
   "VT", "VA", "WA", "WV", "WI", "WY",
 ] as const);
 
+export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
+
+/**
+ * Targeted updates from the 2026-09-14 packet. These are deliberately kept
+ * separate from NEW_LENDER_SEEDS: an existing lender's contacts and all
+ * unlisted fields must remain untouched when this packet is applied.
+ */
+export const EXISTING_LENDER_UPDATES = Object.freeze([
+  Object.freeze({
+    name: "Alliance Funding Group (AFG)",
+    marker: EXISTING_LENDER_UPDATE_MARKER,
+    notes: `2026-09-14 packet update
+
+SOURCE STATEMENTS (verbatim):
+WORKING CAPITAL (Premium WC, app-only to $300k; up to $3MM with financials): terms 6–15 mo, weekly payback, 2% origination; grades Platinum 720+ FICO/670 PayNet (1.09–1.14), Gold 675+/660+ (1.09–1.18), Silver 650+/650+ (1.15–1.21, max 12 mo); MINIMUM 4 YEARS TIB; 3 months banks showing $20k+ avg monthly deposits; no negative ending-balance days; no prior bankruptcies; no concurrent WC contracts; open positions case by case, must net ≥50% if paying off one loan; principal-only payoff after 14 weeks. Commission 8 pts to $150k, 6 pts $151k+ (Silver up to 20). Restricted (WC): cannabis, law offices, adult, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents/brokers, vape, collections, pawn; transportation cautionary — 5 yrs TIB, 5 trucks, homeownership; online retailers, import/export, accounting, financial services also restricted per WC sheet.
+EQUIPMENT (app-only $50k–$500k, A–C credits): minimum FICO 600, minimum PayNet Master 620, rates 8.25%–23%, 20-pt commission cap, EFA/$1-out/TRL/FMV. Restricted (EF): cannabis, law offices, adult, tow trucks for towing businesses, med lasers/med spa, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents, vape, collections, pawn, motorcoaches, used high-tech, Penske/Ryder dealers. Cautionary: transportation (5 yrs TIB, 5 trucks, homeownership), oil production, brewery/distillation, food trucks, non-essential equipment, passenger cars, firearms.
+Middle market $500k–$50MM+ with full financials.
+Contacts: Tyson Garrett VP (714) 453-3687 TGarrett@afg.com; Atalie Daniel (714) 221-1019 adaniel@afg.com (already on file); Ashley Bradburn, Katie Bates. Payoffs: PayoffRequest@afg.com.
+
+SCHEMA MAPPING:
+→ Schema: set WC minTimeInBusinessMonths 48 and WC minCreditScore 650 (Silver floor) / EF minCreditScore 600 if the schema supports per-program values; otherwise keep 600/48 and put the split in notes. maxAmount stays 500000 (EF app-only); WC app-only 300000 in notes.`,
+    structuredPatch: Object.freeze({
+      minCreditScore: 600,
+      minTimeInBusinessMonths: 48,
+      maxAmount: 500_000,
+    }),
+  }),
+  Object.freeze({
+    name: "AMUR Equipment Finance",
+    marker: EXISTING_LENDER_UPDATE_MARKER,
+    notes: `2026-09-14 packet update
+
+SOURCE STATEMENTS (verbatim):
+Broker program tiers: A — app-only to $350k, 700+ FICO, 660+ PayNet, 66% comparable debt, 5+ yrs TIB, no suits/liens/judgments/BK, from 8.25% buy rate, zero down; B — to $250k, 660+ FICO, 640+ PayNet, 50% comp debt, 2+ yrs TIB, from 10.00%; C — to $125k, 620+ FICO, 620+ PayNet, 50% comp debt, 2+ yrs TIB, from 15.75%; NEW BUSINESS (<2 yrs) — max $60k financed, 700+ FICO AND homeownership for all guarantors, 50% comp debt, 20% down or security deposit, ACH mandatory, from 20% with bank statements. All transactions: minimum 7 years in credit bureau and minimum 7 tradelines. Commission: up to 15 pts under $150k, 8 pts $150k+. Specialty Vehicle and Construction Vendor programs exist (tables are images — not extractable; note as "see program sheets"). Submissions: AEFCreditSubmissions@GoAmur.com; 308.398.4140 / 800.994.0016; Grand Island, NE.
+
+SCHEMA MAPPING:
+→ Schema: minCreditScore stays 620; minTimeInBusinessMonths stays 24 (0 for New Business program in notes); maxAmount 350000 app-only (current 750000 came from an older packet — confirm with Nate before lowering; leave 750000 and note "app-only cap $350k" unless he confirms).`,
+    structuredPatch: Object.freeze({
+      minCreditScore: 620,
+      minTimeInBusinessMonths: 24,
+      maxAmount: 750_000,
+    }),
+  }),
+  Object.freeze({
+    name: "Y.E.S. Leasing",
+    marker: EXISTING_LENDER_UPDATE_MARKER,
+    notes: `2026-09-14 packet update
+
+SOURCE STATEMENTS (verbatim):
+2026 guidelines: NO personal credit requirement (funds sub-500 FICO); $10k–$300k; deposit/down 10–20% (general), 25% all dump trucks, 35–50% of cost for yellow iron $10k–$150k; revenue-to-equipment-cost ratio 30% if under $100k, 50% if $100k+ (qualifies 95%+ when met); non-citizens OK; package = signed app within 30 days + 3 months business banks + invoice. Income Generating General Equipment program: $10k–$150k total, medical $75k max, 24–48 mo terms, no private party sales. Dump Truck program: Class 8 $15k min, $85k new / $55k used, <750k mi, ≤10 yrs; Class 6/7 <200k mi, $50k max. Directional drill package max $300k. Higher-tier program: 650+ FICO, 2+ yrs TIB, $15k–$300k, 24–48 mo, ≥$55k monthly revenue. Contact Bobby Cowan (678) 478-0152, bobby@yesleasing.com; submit apps@yesleasing.com cc bobby@.
+
+SCHEMA MAPPING:
+→ Schema: no changes to amounts; minCreditScore null (confirm current); add the ratio rule and down-payment schedule to notes.`,
+    structuredPatch: Object.freeze({}),
+  }),
+] as const);
+
+export type ExistingLenderUpdate = (typeof EXISTING_LENDER_UPDATES)[number];
+
+/**
+ * Appends a packet update without normalizing or otherwise rewriting the
+ * existing notes. This is intentionally pure so idempotency and preservation
+ * can be tested without a database.
+ */
+export function appendExistingLenderUpdateNotes(
+  existingNotes: string | null,
+  updateNotes: string,
+): string {
+  return existingNotes ? `${existingNotes}\n\n${updateNotes}` : updateNotes;
+}
+
 export const NEW_LENDER_SEEDS = Object.freeze([
   Object.freeze({
     name: "Dexly Finance",
