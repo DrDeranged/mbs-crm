@@ -1,12 +1,24 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, type PDFPage } from "pdf-lib";
 import type { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
-import { renderPdf as defaultRenderPdf } from "./renderPdf";
+import { renderApplicationFormPdf } from "./applicationPdf";
 import { requireUser } from "./authHelpers";
 import { logPiiAccess } from "./piiAccess";
+import { LenderPackageError, safeLenderPackageReason } from "./lenderPackageErrors";
+import {
+  MBS_BORDER,
+  MBS_GREEN,
+  MBS_LIGHT,
+  MBS_NAVY,
+  MBS_SLATE,
+  addPreparedByFooters,
+  createLetterPdf,
+  drawWrappedText,
+  pdfText,
+} from "./nativePdf";
 
 export const LENDER_PACKAGE_MAX_BYTES = 40 * 1024 * 1024;
 export const LENDER_PACKAGE_MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
@@ -14,14 +26,27 @@ export const LENDER_PACKAGE_MAX_SOURCE_BYTES = 100 * 1024 * 1024;
 export const LENDER_PACKAGE_MAX_STATEMENT_PAGES = 100;
 
 const SELECTION_NOTE =
-  "Only PDFs in the trusted upload-key category /documents/bankstatement- are selected as lender-package bank statements.";
-const BANK_STATEMENT_UPLOAD_KEY_PATTERN = /\/documents\/bankstatement-/;
+  "Only PDF documents assigned to an underwriting package category are included. Documents that cannot be read are listed below.";
 
 type Database = typeof db;
 type Lead = typeof leadsTable.$inferSelect;
 type Application = typeof applicationsTable.$inferSelect;
 type Document = typeof documentsTable.$inferSelect;
 type User = typeof usersTable.$inferSelect;
+type PackageDocumentCategory = "bank_statement" | "invoice_quote" | "drivers_license" | "tax_return";
+// `category` remains optional at this boundary so callers compiled before the
+// category migration receive a safe "not selected" result rather than a type
+// or runtime failure.
+type PackageDocument = Omit<Document, "category"> & {
+  category?: PackageDocumentCategory | "signed_application" | "other" | null;
+};
+
+export const LENDER_PACKAGE_DOCUMENT_CATEGORY_ORDER = [
+  "invoice_quote",
+  "bank_statement",
+  "drivers_license",
+  "tax_return",
+] as const satisfies readonly PackageDocumentCategory[];
 
 export type LenderPackageDocumentExclusion = {
   filename: string;
@@ -32,12 +57,12 @@ export type LenderPackageDependencies = {
   database?: Database;
   authenticate?: (req: Request, res: Response) => Promise<User | null>;
   renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
-  downloadDocument?: (document: Document, maxBytes: number) => Promise<Buffer>;
+  downloadDocument?: (document: PackageDocument, maxBytes: number) => Promise<Buffer>;
   auditPiiAccess?: typeof logPiiAccess;
 };
 
 type IncludedStatement = {
-  document: Document;
+  document: PackageDocument;
   pdf: PDFDocument;
   bytes: number;
 };
@@ -87,33 +112,57 @@ function displayMonths(value: number | null | undefined): string | null {
   return value === null || value === undefined || !Number.isFinite(value) ? null : `${value} months`;
 }
 
-function displayDocumentName(document: Document): string {
+function displayDocumentName(document: Pick<PackageDocument, "filename" | "fileKey">): string {
   return document.filename?.trim() || document.fileKey;
 }
 
 /**
- * The bankstatement upload key is the trusted document category. Filenames
- * are display metadata and must not determine whether a document is selected.
+ * Underwriting documents are selected exclusively from the persisted category.
+ * Filename and object key are display/storage metadata, never classification.
  */
-export function isEligibleBankStatement(document: Pick<Document, "filename" | "fileKey" | "fileType">): boolean {
-  const isPdf =
+export function getLenderPackageDocumentCategory(
+  document: Pick<PackageDocument, "category">,
+): PackageDocumentCategory | null {
+  return LENDER_PACKAGE_DOCUMENT_CATEGORY_ORDER.includes(document.category as PackageDocumentCategory)
+    ? document.category as PackageDocumentCategory
+    : null;
+}
+
+function isPdfDocument(document: Pick<PackageDocument, "filename" | "fileKey" | "fileType">): boolean {
+  return (
     document.fileType.toLowerCase().includes("pdf") ||
     document.filename.toLowerCase().endsWith(".pdf") ||
-    document.fileKey.toLowerCase().endsWith(".pdf");
-  return BANK_STATEMENT_UPLOAD_KEY_PATTERN.test(document.fileKey) && isPdf;
+    document.fileKey.toLowerCase().endsWith(".pdf")
+  );
+}
+
+export function isEligibleBankStatement(
+  document: Pick<PackageDocument, "filename" | "fileKey" | "fileType" | "category">,
+): boolean {
+  return getLenderPackageDocumentCategory(document) === "bank_statement" && isPdfDocument(document);
+}
+
+/** Returns package documents in the lender-required category order. */
+export function selectLenderPackageDocuments(documents: PackageDocument[]): PackageDocument[] {
+  const categoryRank = new Map(LENDER_PACKAGE_DOCUMENT_CATEGORY_ORDER.map((category, index) => [category, index]));
+  return documents
+    .filter((document) => getLenderPackageDocumentCategory(document) !== null)
+    .sort((a, b) => {
+      const rankDelta = categoryRank.get(getLenderPackageDocumentCategory(a)!)! -
+        categoryRank.get(getLenderPackageDocumentCategory(b)!)!;
+      if (rankDelta) return rankDelta;
+      const createdDelta = a.createdAt.valueOf() - b.createdAt.valueOf();
+      return createdDelta || a.id - b.id;
+    });
 }
 
 export function getDocumentExclusionReason(
-  document: Pick<Document, "filename" | "fileKey" | "fileType">,
+  document: Pick<PackageDocument, "filename" | "fileKey" | "fileType" | "category">,
 ): string | null {
+  if (getLenderPackageDocumentCategory(document) === null) return "document category is not selected for lender packages";
   const isPdf =
-    document.fileType.toLowerCase().includes("pdf") ||
-    document.filename.toLowerCase().endsWith(".pdf") ||
-    document.fileKey.toLowerCase().endsWith(".pdf");
+    isPdfDocument(document);
   if (!isPdf) return "not a PDF";
-  if (!BANK_STATEMENT_UPLOAD_KEY_PATTERN.test(document.fileKey)) {
-    return "upload key is not in the trusted bank statement category";
-  }
   return null;
 }
 
@@ -217,6 +266,94 @@ function buildNotIncludedHtml(exclusions: LenderPackageDocumentExclusion[]): str
 </html>`;
 }
 
+function nativeCoverValue(value: unknown): string {
+  return value === null || value === undefined || String(value).trim() === "" ? "—" : pdfText(value);
+}
+
+function nativeCoverMoney(value: number | null | undefined): string {
+  return value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : `$${value.toLocaleString("en-US")}`;
+}
+
+function drawCoverField(
+  page: PDFPage,
+  fonts: Awaited<ReturnType<typeof createLetterPdf>>["fonts"],
+  y: number,
+  label: string,
+  value: string,
+): number {
+  page.drawRectangle({ x: 42, y: y - 28, width: 528, height: 28, borderColor: MBS_BORDER, borderWidth: 0.5 });
+  page.drawRectangle({ x: 42.25, y: y - 12, width: 181, height: 11.75, color: MBS_LIGHT });
+  page.drawText(pdfText(label).toUpperCase(), { x: 48, y: y - 8.2, size: 5.5, font: fonts.bold, color: MBS_SLATE });
+  page.drawText(pdfText(value), { x: 229, y: y - 18.8, size: 8, font: fonts.regular, color: MBS_SLATE, maxWidth: 333 });
+  return y - 28;
+}
+
+/** Native lender-package cover; this has no Chromium/Puppeteer dependency. */
+export async function renderLenderPackageCoverPdf(params: {
+  lead: Lead;
+  application: Application;
+  assignedRep: User | null;
+}): Promise<Buffer> {
+  const { pdf, page, fonts } = await createLetterPdf();
+  const application = params.application;
+  const owner = [application.ownerFirstName, application.ownerLastName].filter(isPresent).join(" ");
+  page.drawText("MY BUSINESS", { x: 42, y: 748, size: 15, font: fonts.bold, color: MBS_NAVY });
+  page.drawText("SOLUTIONS", { x: 150, y: 748, size: 15, font: fonts.bold, color: MBS_GREEN });
+  page.drawText("FINANCING APPLICATION PACKAGE", { x: 42, y: 702, size: 19, font: fonts.bold, color: MBS_NAVY });
+  page.drawRectangle({ x: 42, y: 689, width: 528, height: 3, color: MBS_GREEN });
+  page.drawText("APPLICATION SUMMARY", { x: 42, y: 662, size: 8, font: fonts.bold, color: MBS_NAVY });
+
+  let y = 645;
+  y = drawCoverField(page, fonts, y, "Business", nativeCoverValue(application.businessName || params.lead.companyName));
+  y = drawCoverField(page, fonts, y, "Owner", nativeCoverValue(owner));
+  y = drawCoverField(page, fonts, y, "Application type", nativeCoverValue(application.type));
+  y = drawCoverField(page, fonts, y, "Requested amount", nativeCoverMoney(application.requestedAmount ?? params.lead.requestedAmount));
+  y = drawCoverField(page, fonts, y, "Monthly revenue stated", nativeCoverMoney(application.monthlyRevenueStated));
+  y = drawCoverField(page, fonts, y, "Time in business", displayMonths(application.timeInBusinessMonths) ?? "—");
+  y = drawCoverField(page, fonts, y, "Submitted", displayDate(application.submittedAt) ?? "—");
+  if (params.assignedRep) {
+    y -= 20;
+    page.drawText("ASSIGNED REPRESENTATIVE", { x: 42, y, size: 8, font: fonts.bold, color: MBS_NAVY });
+    y -= 17;
+    y = drawCoverField(page, fonts, y, "Name", nativeCoverValue(params.assignedRep.name));
+    y = drawCoverField(page, fonts, y, "Email", nativeCoverValue(params.assignedRep.email));
+    y = drawCoverField(page, fonts, y, "Phone", nativeCoverValue(params.assignedRep.mobileNumber));
+  }
+  page.drawLine({ start: { x: 42, y: 42 }, end: { x: 570, y: 42 }, thickness: 0.6, color: MBS_GREEN });
+  page.drawText("My Business Solutions LLC · Lending package prepared for review", {
+    x: 42, y: 31, size: 6.5, font: fonts.regular, color: MBS_SLATE,
+  });
+  return Buffer.from(await pdf.save());
+}
+
+/** Native final report for documents that were selected but could not be merged. */
+export async function renderLenderPackageOmissionReportPdf(
+  exclusions: LenderPackageDocumentExclusion[],
+): Promise<Buffer> {
+  const { pdf, page: firstPage, fonts } = await createLetterPdf();
+  let page = firstPage;
+  page.drawText("DOCUMENTS NOT INCLUDED", { x: 42, y: 742, size: 19, font: fonts.bold, color: MBS_NAVY });
+  page.drawRectangle({ x: 42, y: 729, width: 528, height: 3, color: MBS_GREEN });
+  let y = drawWrappedText({
+    page, text: SELECTION_NOTE, x: 42, y: 705, maxWidth: 528, font: fonts.regular, size: 8, lineHeight: 10, color: MBS_SLATE,
+  }) - 16;
+  for (const exclusion of exclusions) {
+    if (y < 100) {
+      page = pdf.addPage([612, 792]);
+      page.drawText("DOCUMENTS NOT INCLUDED (CONTINUED)", { x: 42, y: 742, size: 16, font: fonts.bold, color: MBS_NAVY });
+      page.drawRectangle({ x: 42, y: 729, width: 528, height: 3, color: MBS_GREEN });
+      y = 705;
+    }
+    page.drawRectangle({ x: 42, y: y - 34, width: 528, height: 34, borderColor: MBS_BORDER, borderWidth: 0.5 });
+    page.drawText(pdfText(exclusion.filename), { x: 48, y: y - 12, size: 8, font: fonts.bold, color: MBS_SLATE, maxWidth: 516 });
+    page.drawText(pdfText(exclusion.reason), { x: 48, y: y - 25, size: 7, font: fonts.regular, color: MBS_SLATE, maxWidth: 516 });
+    y -= 40;
+  }
+  return Buffer.from(await pdf.save());
+}
+
 function applicationBody(application: Application, lead: Pick<Lead, "email" | "phone">): Record<string, unknown> {
   // Deliberately omit ownerSsnEncrypted. The signed application helper writes
   // its fixed masked SSN label and never needs the encrypted value.
@@ -272,15 +409,8 @@ function applicationBody(application: Application, lead: Pick<Lead, "email" | "p
   };
 }
 
-function sortDocumentsForUploadOrder(documents: Document[]): Document[] {
-  return [...documents].sort((a, b) => {
-    const createdDelta = a.createdAt.valueOf() - b.createdAt.valueOf();
-    return createdDelta || a.id - b.id;
-  });
-}
-
 async function downloadStoredDocument(
-  document: Document,
+  document: Pick<PackageDocument, "fileKey">,
   maxBytes = LENDER_PACKAGE_MAX_DOCUMENT_BYTES,
 ): Promise<Buffer> {
   // Keep object-storage's runtime-only ACL dependencies out of unit-test
@@ -332,53 +462,26 @@ function transferredBytes(error: unknown): number {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
 }
 
-async function appendPages(target: PDFDocument, source: PDFDocument): Promise<void> {
-  const pages = await target.copyPages(source, source.getPageIndices());
-  for (const page of pages) target.addPage(page);
-}
-
-function safeFooterEmail(value: string | null): string {
-  // StandardFonts.Helvetica uses WinAnsi; do not let a user-controlled
-  // Unicode address make the entire package fail during footer generation.
-  return (value ?? "").replace(/[^\x20-\x7E]/g, "");
-}
-
-async function addFooters(pdf: PDFDocument, repEmail: string | null): Promise<void> {
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const pageCount = pdf.getPageCount();
-  const safeEmail = safeFooterEmail(repEmail);
-  const emailSuffix = safeEmail ? ` · ${safeEmail}` : "";
-  for (let index = 0; index < pageCount; index++) {
-    const page = pdf.getPage(index);
-    const { width } = page.getSize();
-    const footer = `Prepared by My Business Solutions${emailSuffix} · page ${index + 1} of ${pageCount}`;
-    page.drawText(footer, {
-      x: 30,
-      y: 16,
-      size: 7.5,
-      font,
-      color: rgb(0.39, 0.45, 0.52),
-      maxWidth: Math.max(100, width - 60),
-    });
-  }
-}
-
 async function composePackage(
   cover: PDFDocument,
   signedApplication: PDFDocument,
   included: IncludedStatement[],
   exclusions: LenderPackageDocumentExclusion[],
   repEmail: string | null,
-  render: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>,
+  renderNotIncluded?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>,
 ): Promise<Buffer> {
   const packagePdf = await PDFDocument.create();
-  await appendPages(packagePdf, cover);
-  await appendPages(packagePdf, signedApplication);
+  const appendPages = async (source: PDFDocument): Promise<void> => {
+    const pages = await packagePdf.copyPages(source, source.getPageIndices());
+    for (const page of pages) packagePdf.addPage(page);
+  };
+  await appendPages(cover);
+  await appendPages(signedApplication);
   for (const statement of included) {
     // Copy pages only. This intentionally does not copy attachments, forms, or
     // hidden document-level data from uploaded PDFs.
     try {
-      await appendPages(packagePdf, statement.pdf);
+      await appendPages(statement.pdf);
     } catch (error) {
       // The caller discards this in-progress PDF and retries without the
       // statement. This prevents a copyPages/addPage failure from leaving
@@ -387,37 +490,44 @@ async function composePackage(
     }
   }
   if (exclusions.length > 0) {
-    const notIncluded = await render(buildNotIncludedHtml(exclusions), { format: "Letter" });
-    const notIncludedPdf = await PDFDocument.load(notIncluded, {
-      throwOnInvalidObject: false,
-      updateMetadata: false,
-    });
-    await appendPages(packagePdf, notIncludedPdf);
+    try {
+      const notIncluded = renderNotIncluded
+        ? await renderNotIncluded(buildNotIncludedHtml(exclusions), { format: "Letter" })
+        : await renderLenderPackageOmissionReportPdf(exclusions);
+      const notIncludedPdf = await PDFDocument.load(notIncluded, {
+        throwOnInvalidObject: false,
+        updateMetadata: false,
+      });
+      await appendPages(notIncludedPdf);
+    } catch (error) {
+      const filename = exclusions[0]?.filename || "omission-report";
+      throw new LenderPackageError(
+        `merge_failed:${filename}`,
+        `Could not produce the final documents-not-included report for ${filename}`,
+        { cause: error },
+      );
+    }
   }
-  await addFooters(packagePdf, repEmail);
-  return Buffer.from(await packagePdf.save());
+  try {
+    await addPreparedByFooters(packagePdf, repEmail);
+    return Buffer.from(await packagePdf.save());
+  } catch (error) {
+    throw new LenderPackageError("merge_failed:package", "Could not finalize lender package pages", { cause: error });
+  }
 }
 
 export async function buildLenderPackagePdf(params: {
   lead: Lead;
   application: Application;
   assignedRep: User | null;
-  documents: Document[];
+  documents: PackageDocument[];
   renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
-  downloadDocument?: (document: Document, maxBytes: number) => Promise<Buffer>;
+  downloadDocument?: (document: PackageDocument, maxBytes: number) => Promise<Buffer>;
   /** Test-only output limit override; production uses the 40 MB constant. */
   maxPackageBytes?: number;
 }): Promise<{ pdf: Buffer; exclusions: LenderPackageDocumentExclusion[] }> {
-  const render = params.renderPdf ?? defaultRenderPdf;
   const download = params.downloadDocument ?? downloadStoredDocument;
-  const baseUrl = getPublicBaseUrl();
-  const coverHtml = ensureFlyerBranding(buildCoverHtml(params.lead, params.application, params.assignedRep), baseUrl);
-  const signedHtml = buildSignedApplicationHtml({
-    lead: {
-      id: params.lead.id,
-      firstName: params.application.ownerFirstName,
-      lastName: params.application.ownerLastName,
-    },
+  const applicationOptions = {
     rep: params.assignedRep
       ? {
         name: params.assignedRep.name,
@@ -427,27 +537,57 @@ export async function buildLenderPackagePdf(params: {
         slug: params.assignedRep.slug,
         role: params.assignedRep.role,
       }
-      : undefined,
-    logoUrl: getBrandLogoUrl(baseUrl),
-    body: applicationBody(params.application, params.lead),
+      : { name: "My Business Solutions", email: null, role: "rep" },
+    application: applicationBody(params.application, params.lead),
     submittedAt: params.application.submittedAt,
     signatureSignedAt: params.application.signatureSignedAt,
+    signatureMethod: params.application.signatureMethod === "typed" || params.application.signatureMethod === "drawn"
+      ? params.application.signatureMethod
+      : null,
+    signatureData: params.application.signatureData,
     clientIp: params.application.signatureIp,
-  });
-  const [coverBytes, signedBytes] = await Promise.all([
-    render(coverHtml, { format: "Letter" }),
-    render(signedHtml, { format: "Letter" }),
-  ]);
-  const [cover, signedApplication] = await Promise.all([
-    PDFDocument.load(coverBytes, { throwOnInvalidObject: false, updateMetadata: false }),
-    PDFDocument.load(signedBytes, { throwOnInvalidObject: false, updateMetadata: false }),
-  ]);
+    includePreparedFooter: false,
+  } as const;
+  let cover: PDFDocument;
+  let signedApplication: PDFDocument;
+  try {
+    const [coverBytes, signedBytes] = params.renderPdf
+      ? await Promise.all([
+        params.renderPdf(
+          ensureFlyerBranding(buildCoverHtml(params.lead, params.application, params.assignedRep), getPublicBaseUrl()),
+          { format: "Letter" },
+        ),
+        params.renderPdf(buildSignedApplicationHtml({
+          lead: { id: params.lead.id, firstName: params.application.ownerFirstName, lastName: params.application.ownerLastName },
+          rep: applicationOptions.rep,
+          logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
+          body: applicationOptions.application,
+          submittedAt: params.application.submittedAt,
+          signatureSignedAt: params.application.signatureSignedAt,
+          clientIp: params.application.signatureIp,
+        }), { format: "Letter" }),
+      ])
+      : await Promise.all([
+        renderLenderPackageCoverPdf(params),
+        renderApplicationFormPdf(applicationOptions),
+      ]);
+    [cover, signedApplication] = await Promise.all([
+      PDFDocument.load(coverBytes, { throwOnInvalidObject: false, updateMetadata: false }),
+      PDFDocument.load(signedBytes, { throwOnInvalidObject: false, updateMetadata: false }),
+    ]);
+  } catch (error) {
+    throw new LenderPackageError(
+      "renderer_unavailable",
+      "Could not render the lender package cover or finance application",
+      { cause: error },
+    );
+  }
 
   const exclusions: LenderPackageDocumentExclusion[] = [];
   const included: IncludedStatement[] = [];
   let downloadedBytes = 0;
 
-  for (const document of sortDocumentsForUploadOrder(params.documents)) {
+  for (const document of selectLenderPackageDocuments(params.documents)) {
     const name = displayDocumentName(document);
     const selectionReason = getDocumentExclusionReason(document);
     if (selectionReason) {
@@ -527,17 +667,20 @@ export async function buildLenderPackagePdf(params: {
         included,
         exclusions,
         params.assignedRep?.email ?? null,
-        render,
+        params.renderPdf,
       );
     } catch (error) {
-      if (!(error instanceof StatementCopyError)) throw error;
-      const failedIndex = included.indexOf(error.statement);
-      if (failedIndex >= 0) included.splice(failedIndex, 1);
-      exclusions.push({
-        filename: displayDocumentName(error.statement.document),
-        reason: "could not be copied into the package",
-      });
-      continue;
+      if (error instanceof StatementCopyError) {
+        const failedIndex = included.indexOf(error.statement);
+        if (failedIndex >= 0) included.splice(failedIndex, 1);
+        exclusions.push({
+          filename: displayDocumentName(error.statement.document),
+          reason: "could not be copied into the package",
+        });
+        continue;
+      }
+      if (error instanceof LenderPackageError) throw error;
+      throw new LenderPackageError("merge_failed:package", "Could not merge lender package PDF pages", { cause: error });
     }
     if (output.length <= maxPackageBytes) return { pdf: output, exclusions };
     if (included.length === 0) {
@@ -556,7 +699,6 @@ export async function buildLenderPackagePdf(params: {
 export function createLenderPackageHandler(overrides: LenderPackageDependencies = {}) {
   const database = overrides.database ?? db;
   const authenticate = overrides.authenticate ?? requireUser;
-  const render = overrides.renderPdf ?? defaultRenderPdf;
   const download = overrides.downloadDocument ?? downloadStoredDocument;
   const audit = overrides.auditPiiAccess ?? logPiiAccess;
 
@@ -570,43 +712,42 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
       return;
     }
 
-    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
-    if (!lead) {
-      res.status(404).json({ error: "Lead not found" });
-      return;
-    }
-    // Match GET /documents/:docId/download exactly: out-of-scope reps are
-    // denied with 403, while administrators/managers may access any lead.
-    if (user.role === "rep" && lead.assignedRepId !== user.id) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
-
-    const application = await database.query.applicationsTable.findFirst({
-      where: eq(applicationsTable.leadId, id),
-    });
-    if (!application) {
-      res.status(404).json({ error: "No application on file" });
-      return;
-    }
-
-    const [assignedRep, documents] = await Promise.all([
-      lead.assignedRepId
-        ? database.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
-        : Promise.resolve(null),
-      database.query.documentsTable.findMany({
-        where: eq(documentsTable.leadId, id),
-        orderBy: (table, { asc: orderAsc }) => [orderAsc(table.createdAt), orderAsc(table.id)],
-      }),
-    ]);
-
     try {
+      const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
+      if (!lead) {
+        res.status(404).json({ error: "Lead not found" });
+        return;
+      }
+      // Match GET /documents/:docId/download exactly: out-of-scope reps are
+      // denied with 403, while administrators/managers may access any lead.
+      if (user.role === "rep" && lead.assignedRepId !== user.id) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      const application = await database.query.applicationsTable.findFirst({
+        where: eq(applicationsTable.leadId, id),
+      });
+      if (!application) {
+        throw new LenderPackageError("no_application", "No application on file");
+      }
+
+      const [assignedRep, documents] = await Promise.all([
+        lead.assignedRepId
+          ? database.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+          : Promise.resolve(null),
+        database.query.documentsTable.findMany({
+          where: eq(documentsTable.leadId, id),
+          orderBy: (table, { asc: orderAsc }) => [orderAsc(table.createdAt), orderAsc(table.id)],
+        }),
+      ]);
+
       const { pdf } = await buildLenderPackagePdf({
         lead,
         application,
         assignedRep: assignedRep ?? null,
         documents,
-        renderPdf: render,
+        renderPdf: overrides.renderPdf,
         downloadDocument: download,
       });
       const filename = `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`;
@@ -626,12 +767,26 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
       res.setHeader("Content-Length", String(pdf.length));
       res.send(pdf);
     } catch (error) {
-      req.log?.error?.({ err: error }, "Failed to build lender package");
-      if (error instanceof PackageSizeError) {
-        res.status(413).json({ error: error.message });
+      const errorDetails = error instanceof Error
+        ? { err: error, message: error.message, stack: error.stack }
+        : { err: error, message: String(error), stack: undefined };
+      if (req.log?.error) {
+        req.log.error(errorDetails, "Failed to build lender package");
+      } else {
+        // Test requests and non-pino Express adapters do not always provide
+        // req.log. Keep the full causal error available at error level.
+        console.error("Failed to build lender package", errorDetails);
+      }
+      const reason = safeLenderPackageReason(error);
+      if (reason === "no_application") {
+        res.status(404).json({ error: "No application on file", reason });
         return;
       }
-      res.status(500).json({ error: "Lender package generation failed" });
+      if (error instanceof PackageSizeError) {
+        res.status(413).json({ error: error.message, reason });
+        return;
+      }
+      res.status(500).json({ error: "Lender package generation failed", reason });
     }
   };
 }

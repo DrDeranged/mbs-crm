@@ -5,6 +5,21 @@ import {
   CONSENT_TEXT_VERSION,
   CONSENT_TITLE,
 } from "./consentText";
+import { rgb, type PDFPage } from "pdf-lib";
+import {
+  LETTER_WIDTH,
+  MBS_BORDER,
+  MBS_GREEN,
+  MBS_LIGHT,
+  MBS_NAVY,
+  MBS_SLATE,
+  addPreparedByFooters,
+  createLetterPdf,
+  drawWrappedText,
+  pdfText,
+  wrapPdfText,
+  type NativePdfFonts,
+} from "./nativePdf";
 
 function escapeHtml(v: unknown): string {
   return String(v ?? "")
@@ -40,6 +55,14 @@ export type ApplicationPdfOptions = {
   signatureMethod?: "typed" | "drawn" | null;
   signatureData?: string | null;
   clientIp?: string | null;
+};
+
+export type NativeApplicationPdfOptions = ApplicationPdfOptions & {
+  /**
+   * Package assembly applies one footer after all source pages are merged, so
+   * it can accurately state the final page count.
+   */
+  includePreparedFooter?: boolean;
 };
 
 function displayTitle(rep: ApplicationPdfRep): string {
@@ -223,4 +246,247 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   </section>
   <footer class="footer">${escapeHtml(APPLICATION_PDF_FOOTER)}</footer>
 </body></html>`;
+}
+
+type Field = {
+  label: string;
+  value: unknown;
+  span: number;
+  masked?: boolean;
+};
+
+function nativeValue(value: unknown): string {
+  if (value === null || value === undefined || String(value).trim() === "") return "";
+  return pdfText(value);
+}
+
+function nativeMoney(value: unknown): string {
+  if (value === null || value === undefined || String(value).trim() === "") return "";
+  const amount = Number(value);
+  return Number.isFinite(amount) ? `$${amount.toLocaleString("en-US")}` : nativeValue(value);
+}
+
+function nativeAddress(application: ApplicationPdfApplication, prefix: string): string {
+  return [
+    application[`${prefix}Address`],
+    application[`${prefix}City`],
+    application[`${prefix}State`],
+    application[`${prefix}Zip`],
+  ].filter((part) => part !== null && part !== undefined && String(part).trim() !== "").map(String).join(", ");
+}
+
+function drawSectionBar(page: PDFPage, y: number, title: string, fonts: NativePdfFonts): number {
+  page.drawRectangle({ x: 22, y: y - 13, width: 568, height: 13, color: MBS_NAVY });
+  page.drawText(pdfText(title).toUpperCase(), {
+    x: 28,
+    y: y - 9.3,
+    size: 6.6,
+    font: fonts.bold,
+    color: rgb(1, 1, 1),
+  });
+  return y - 15;
+}
+
+function drawFieldGrid(params: {
+  page: PDFPage;
+  y: number;
+  columns: number;
+  fields: Field[];
+  fonts: NativePdfFonts;
+}): number {
+  const { page, columns, fonts } = params;
+  const cellWidth = 568 / columns;
+  const rowHeight = 20;
+  let y = params.y;
+  let column = 0;
+  for (const field of params.fields) {
+    const span = Math.min(Math.max(field.span, 1), columns);
+    if (column + span > columns) {
+      y -= rowHeight;
+      column = 0;
+    }
+    const x = 22 + column * cellWidth;
+    const width = cellWidth * span;
+    page.drawRectangle({
+      x,
+      y: y - rowHeight,
+      width,
+      height: rowHeight,
+      borderColor: MBS_BORDER,
+      borderWidth: 0.45,
+    });
+    page.drawRectangle({ x: x + 0.25, y: y - 6.1, width: width - 0.5, height: 5.85, color: MBS_LIGHT });
+    page.drawText(pdfText(field.label).toUpperCase(), {
+      x: x + 3,
+      y: y - 4.45,
+      size: 4.15,
+      font: fonts.bold,
+      color: MBS_SLATE,
+      maxWidth: width - 6,
+    });
+    const fieldValue = field.masked ? "***-**-****" : nativeValue(field.value);
+    const lines = wrapPdfText(fieldValue, fonts.regular, 5.15, width - 6).slice(0, 2);
+    lines.forEach((line, index) => {
+      page.drawText(line, {
+        x: x + 3,
+        y: y - 12.25 - index * 5.45,
+        size: 5.15,
+        font: fonts.regular,
+        color: rgb(0.07, 0.07, 0.07),
+      });
+    });
+    column += span;
+    if (column === columns) {
+      y -= rowHeight;
+      column = 0;
+    }
+  }
+  return column === 0 ? y : y - rowHeight;
+}
+
+function drawnSignaturePng(value: string): Buffer {
+  const match = /^data:image\/png;base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
+  if (!match || match[1].length % 4 === 1) {
+    throw new Error("Drawn application signatures must be a valid PNG data URL");
+  }
+  return Buffer.from(match[1], "base64");
+}
+
+/**
+ * Native equivalent of the client Finance Application in 00ff546. This
+ * renderer deliberately has no browser dependency and keeps SSNs masked even
+ * when callers accidentally provide a plaintext value.
+ */
+export async function renderApplicationFormPdf(options: NativeApplicationPdfOptions): Promise<Buffer> {
+  const { pdf, page, fonts } = await createLetterPdf();
+  const app = options.application ?? {};
+  const rep = options.rep;
+  const repName = nativeValue(rep.name) || "My Business Solutions";
+  const applyUrl = rep.slug?.trim()
+    ? `app.my-business-solutions.com/r/${encodeURIComponent(rep.slug.trim())}`
+    : "app.my-business-solutions.com";
+
+  page.drawText(repName, { x: 22, y: 758, size: 12.5, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
+  if (rep.title?.trim()) {
+    page.drawText(pdfText(rep.title), { x: 22, y: 744, size: 5.8, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
+  }
+  const contact = [rep.mobileNumber, rep.email, "www.my-business-solutions.com"].filter(Boolean).map(pdfText);
+  contact.forEach((line, index) => page.drawText(line, {
+    x: 22, y: 733 - index * 7, size: 5.6, font: fonts.regular, color: MBS_SLATE, maxWidth: 190,
+  }));
+  page.drawText("Finance Application", { x: 242, y: 755, size: 10.5, font: fonts.bold, color: MBS_NAVY });
+  page.drawText(`Apply online: ${applyUrl}`, { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_NAVY });
+  page.drawText("MY BUSINESS", { x: 489, y: 757, size: 8.5, font: fonts.bold, color: MBS_NAVY });
+  page.drawText("SOLUTIONS", { x: 500, y: 747, size: 8.5, font: fonts.bold, color: MBS_GREEN });
+  page.drawRectangle({ x: 22, y: 722, width: 568, height: 3, color: MBS_GREEN });
+
+  let y = 711;
+  y = drawSectionBar(page, y, "Business Information", fonts);
+  y = drawFieldGrid({
+    page, y, columns: 6, fonts,
+    fields: [
+      { label: "Legal business name", value: app.businessName, span: 3 },
+      { label: "Doing business as (DBA)", value: app.dba, span: 3 },
+      { label: "Business type (LLC, Corp, Sole Prop)", value: app.businessType, span: 2 },
+      { label: "Federal tax ID", value: app.ein, span: 2 },
+      { label: "Annual revenue", value: nativeMoney(app.annualRevenue), span: 2 },
+      { label: "Street address", value: app.businessAddress, span: 4 },
+      { label: "Suite / unit", value: app.businessSuite ?? app.businessUnit, span: 2 },
+      { label: "City, state, ZIP", value: [app.businessCity, app.businessState, app.businessZip].filter(Boolean).join(", "), span: 4 },
+      { label: "Business start date (MM/YYYY)", value: app.businessStartDate, span: 2 },
+      { label: "Industry", value: app.industry, span: 3 },
+      { label: "# of years under current ownership", value: app.yearsUnderCurrentOwnership, span: 3 },
+    ],
+  });
+  y = drawSectionBar(page, y - 2, "Owner Information", fonts);
+  page.drawText("Please do not use a P.O. Box — use the business location address if available", {
+    x: 26, y: y - 5, size: 4.6, font: fonts.regular, color: MBS_SLATE,
+  });
+  y -= 9;
+  y = drawFieldGrid({
+    page, y, columns: 5, fonts,
+    fields: [
+      { label: "Principal owner", value: [app.ownerFirstName, app.ownerLastName].filter(Boolean).join(" "), span: 3 },
+      { label: "Email", value: app.email, span: 2 },
+      { label: "Owner full address — street, (unit), city, state, ZIP", value: nativeAddress(app, "ownerHome"), span: 5 },
+      { label: "SSN", value: null, span: 1, masked: options.application != null },
+      { label: "Date of birth", value: app.ownerDob, span: 1 },
+      { label: "Ownership %", value: app.ownershipPct, span: 1 },
+      { label: "Cell", value: app.phone, span: 1 },
+      { label: "Est. credit score", value: app.estCreditScore, span: 1 },
+      { label: "Secondary owner", value: app.secondaryOwnerName, span: 3 },
+      { label: "Email", value: app.secondaryOwnerEmail, span: 2 },
+      { label: "Owner full address — street, (unit), city, state, ZIP", value: app.secondaryOwnerAddress, span: 5 },
+      { label: "SSN", value: null, span: 1, masked: options.application != null },
+      { label: "Date of birth", value: app.secondaryOwnerDob, span: 1 },
+      { label: "Ownership %", value: app.secondaryOwnerOwnershipPct, span: 1 },
+      { label: "Cell", value: app.secondaryOwnerCell, span: 1 },
+      { label: "Est. credit score", value: app.secondaryOwnerEstCreditScore, span: 1 },
+    ],
+  });
+  y = drawSectionBar(page, y - 2, "Financing Request", fonts);
+  y = drawFieldGrid({
+    page, y, columns: 6, fonts,
+    fields: [
+      { label: "Business description", value: app.businessDescription, span: 3 },
+      { label: "Timeline funds are needed", value: app.timelineFundsNeeded, span: 3 },
+      { label: "Amount requested", value: nativeMoney(app.requestedAmount), span: 3 },
+      { label: "Year, make, model (if applicable)", value: app.yearMakeModel, span: 3 },
+      { label: "Equipment financing or working capital?", value: app.type, span: 2 },
+      { label: "# of trucks in fleet (if applicable)", value: app.trucksInFleet, span: 2 },
+      { label: "Down payment amount", value: nativeMoney(app.downPaymentAmount), span: 2 },
+    ],
+  });
+  y = drawSectionBar(page, y - 2, CONSENT_TITLE, fonts);
+  y = drawWrappedText({
+    page, text: CONSENT_TEXT, x: 27, y: y - 5, maxWidth: 558, font: fonts.regular, size: 4.65, lineHeight: 5.5, color: MBS_SLATE,
+  });
+
+  const hasHistoricalSignature = options.application != null &&
+    (options.signatureMethod === "typed" || options.signatureMethod === "drawn") &&
+    Boolean(options.signatureData?.trim());
+  if (hasHistoricalSignature) {
+    y -= 4;
+    page.drawText("Signature of Applicant One:", { x: 27, y, size: 5.4, font: fonts.bold, color: MBS_SLATE });
+    const signatureY = y - 17;
+    page.drawLine({ start: { x: 27, y: signatureY }, end: { x: 292, y: signatureY }, thickness: 0.5, color: MBS_SLATE });
+    if (options.signatureMethod === "typed") {
+      page.drawText(pdfText(options.signatureData), {
+        x: 31, y: signatureY + 3, size: 8, font: fonts.regular, color: MBS_SLATE, maxWidth: 256,
+      });
+    } else {
+      try {
+        const image = await pdf.embedPng(drawnSignaturePng(options.signatureData!));
+        const ratio = Math.min(120 / image.width, 18 / image.height, 1);
+        page.drawImage(image, { x: 31, y: signatureY + 1, width: image.width * ratio, height: image.height * ratio });
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(`Could not embed the application signature PNG: ${detail}`, { cause: error });
+      }
+    }
+    const evidence = [
+      options.signatureSignedAt && !Number.isNaN(options.signatureSignedAt.valueOf())
+        ? `Timestamp: ${options.signatureSignedAt.toUTCString()}`
+        : null,
+      options.clientIp?.trim() ? `IP: ${pdfText(options.clientIp)}` : null,
+    ].filter(Boolean).join("  ·  ");
+    if (evidence) page.drawText(evidence, { x: 307, y: signatureY + 5, size: 4.7, font: fonts.regular, color: MBS_SLATE, maxWidth: 278 });
+  }
+
+  if (!hasHistoricalSignature) {
+    const signatureY = y - 30;
+    page.drawText("Signature of Applicant One:", { x: 27, y: y - 8, size: 5.4, font: fonts.bold, color: MBS_SLATE });
+    page.drawLine({ start: { x: 27, y: signatureY }, end: { x: 292, y: signatureY }, thickness: 0.5, color: MBS_SLATE });
+    page.drawText("Date:", { x: 307, y: y - 8, size: 5.4, font: fonts.bold, color: MBS_SLATE });
+    page.drawLine({ start: { x: 307, y: signatureY }, end: { x: 585, y: signatureY }, thickness: 0.5, color: MBS_SLATE });
+    if (options.application != null) {
+      page.drawText("Historical signature evidence unavailable", { x: 31, y: signatureY + 3, size: 5, font: fonts.regular, color: MBS_SLATE });
+    }
+  }
+  page.drawLine({ start: { x: 22, y: 28 }, end: { x: 590, y: 28 }, thickness: 0.6, color: MBS_GREEN });
+  page.drawText(APPLICATION_PDF_FOOTER, {
+    x: 50, y: 19, size: 4.9, font: fonts.regular, color: MBS_SLATE, maxWidth: 512,
+  });
+  if (options.includePreparedFooter !== false) await addPreparedByFooters(pdf, rep.email);
+  return Buffer.from(await pdf.save());
 }

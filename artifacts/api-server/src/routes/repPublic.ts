@@ -5,8 +5,7 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { getUserDisplayName } from "../lib/authHelpers";
-import { buildApplicationFormHtml } from "../lib/applicationPdf";
-import { renderPdf } from "../lib/renderPdf";
+import { buildApplicationFormHtml, renderApplicationFormPdf } from "../lib/applicationPdf";
 
 const router = Router();
 
@@ -138,7 +137,7 @@ export function createPublicApplicationFormRouter(dependencies: PublicApplicatio
       res.status(404).json({ error: "Representative not found" });
       return;
     }
-    const html = buildApplicationFormHtml({
+    const applicationOptions = {
       rep: {
         name: user.name,
         title: user.title,
@@ -147,8 +146,13 @@ export function createPublicApplicationFormRouter(dependencies: PublicApplicatio
         slug: user.slug,
       },
       logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
-    });
-    const pdf = await (dependencies.renderPdf ?? renderPdf)(html, { format: "Letter" });
+    };
+    // Retain the injected HTML renderer only for existing focused tests.
+    // Public production downloads use the same native renderer as the
+    // authenticated application-form endpoint.
+    const pdf = dependencies.renderPdf
+      ? await dependencies.renderPdf(buildApplicationFormHtml(applicationOptions), { format: "Letter" })
+      : await renderApplicationFormPdf(applicationOptions);
     res.setHeader("Cache-Control", "public, max-age=300");
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="MBS-Finance-Application-${user.slug}.pdf"`);
