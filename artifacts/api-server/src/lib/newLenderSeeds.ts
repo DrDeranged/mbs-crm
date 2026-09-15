@@ -438,6 +438,72 @@ SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 
     isActive: true,
     acceptedIndustries: Object.freeze([]),
   }),
+  Object.freeze({
+    name: "North Mill Equipment Finance (NMEF)",
+    programTypes: Object.freeze(["equipment"]),
+    minAmount: 15_000,
+    maxAmount: 300_000,
+    minCreditScore: 550,
+    minTimeInBusinessMonths: 0,
+    acceptedStates: ALL_US_STATES,
+    contactEmail: "apps@nmef.com",
+    notes: `SOURCE STATEMENTS (verbatim):
+- APPLICATION QUALIFIER / AUTO-DECLINE: FICO min 550; TIB < 2 years requires 640+ FICO; must have 3+ years industry experience; bankruptcy (discharged or dismissed) in last 3 years (5 for startups); charge-off in last 3 years (5 for startups); felony conviction within last 10 years; foreclosure in last 3 years (5 for startups); repossession in last 3 years (5 for startups); NMEF account in collections or poor pay history; no FICO score generated on Experian; tax liens > $5K reviewed case-by-case; ANY late child support payment in last 12 months is an automatic decline.
+- Finance amounts: $15K–$300K app only; $15K–$200K app only for startups; $300K+ requires last 2 years audited/reviewed financials or business tax returns plus interim statements.
+- STANDARD PRICE CARD A (most equipment): tiers A-1 / A-2 / A-3 — EFA/lease 10.00% / 12.50% / 15.00%; loan 11.00% / 13.75% / 16.50%; LTV titled 150/140/130%, non-titled 175/150/150%; max app-only exposure $300K each; down payment 0% / 0% / 5% or first-and-last; industry experience 5+ / 3+ / 3+ yrs; TIB 5+ / 2+ / 2+ yrs; min FICO 720+ / 680+ / 550+; PayNet 650+ / 640+ / 600+; comparable credit > 10 / > 7 / > 3 yrs; min tradelines 8 / 7 / 5; credit depth 5 / 5 / 3 yrs; revolving available > 60% / > 50% / > 40% unless balance < $10K; homeowner rules (deed or mortgage/HELOC ≥ financed amount, on-time 24 mo, 12 mo for A-3; non-homeowner comp debt ≥ 75% / 50% / 50%); child support none/none/>1 yr; tax liens none open (A-3: none open > $5K and < 5 yrs).
+- STANDARD PRICE CARD B (TIB < 2 years): B-1 / B-2 — EFA/lease 12.50% / 16.00%; loan 13.75% / 17.60%; LTV titled 130/120%, non-titled 150/140%; max app-only $200K; DP 5% / 10%; industry experience 3+ yrs; FICO 720+ / 640+; PayNet 650+ / 620+; comp credit > 10 / > 5 yrs; tradelines 8 / 6; credit depth 5 yrs; revolving > 60% / > 40%.
+- SPECIAL PRICE CARD A/B (higher risk / lower performance equipment — sleepers, printing, logging etc.): A-1/A-2/A-3 EFA 16.50% / 21.00% / 24.00% (sleepers 18.15/23.10/26.40; trailers 15.68/19.95/22.80); B-1/B-2 EFA 21.00% / 26.00%; non-homeowners: home ownership required (A-1) or comp debt ≥ 70%; no cash-out on sleepers, printing, logging.
+- CORP ONLY: Tier-1 $350K, TIB 5 yrs, PayNet 670, 5 corp-only tradelines, 15 employees min, hard assets only, EFA 10.00%; Tier-2 $250K, TIB 3 yrs, PayNet 650, 3 corp-only tradelines, EFA 12.50%; disqualified for liens/judgments/BK.
+- COMMISSION SCHEDULE (of financed amount): Standard Tier 1 11% (<$150K) / 9% / 7% / 5% / 4% (to $2.5MM); Tier 2 10/8/6/4/4; Tier 3 9/7/5/4/4; Special Tier 1 8/7/6/4/4; Tier 2 7/6/5/4/4; Tier 3 6/5/4/0/0. "Let's Make a Deal": buy rate −50 bps per −100 bps broker fee, −50 bps per +500 bps down payment, −25 bps per −6 months term; max reduction 200 bps; buy rate never below 8.5%.
+- EQUIPMENT GUIDELINES (age / mileage or hours): Sleepers 4 yrs (2022+) / 350,000 mi (up to 6 yrs & 700k with 3-yr TMW); Day cab & auto carriers 8 yrs / 350k; Class 8 other 8 yrs / 350k; non-Class-8 trucks 8 yrs / 500k; medium duty 8 yrs / 300k; small dump 8 yrs / 350k; large dump 10 yrs / 350k; livery sedan/SUV 5 yrs / 75k, minibus 6–8 yrs, coach 12 yrs / 500k; reefers 6 yrs / 15k hrs; other trailers 8 yrs (ineligible if hauled by pickup); logging light 10 yrs, heavy 15 yrs; construction light 10 yrs, heavy 15 yrs, ag tractors 20 yrs; cranes/crushers/ADT 20 yrs; medical NEW ONLY; printing 5 yrs (10 if digital/inkjet); machine tools 10 yrs; all other 5 yrs case-by-case. Ineligible: Coronado/Columbia post-2010 (glider kits), International ProStar/MaxxForce sleepers, 2013–2016 ProStar MaxxForce daycabs, Cascadia/ProStar dump conversions.
+- UNACCEPTED ASSET CATEGORIES: adult entertainment; gambling equipment; cannabis-related; ammunition/weapons; airplanes; rail car; marine vessels; trains; glider kits; small gooseneck trailers; used medical; pork production; refurbished/reconditioned/rebuilt; assets used outside USA; car carrier truck and trailer.
+- Products: EFA, loan (EFA + 1.1 bps; early buyout after 18 on-time payments), TRAC, $1/$101 buyout, true FMV, reserve lease; Cash Out program (loan against paid-off equipment; not on Special Card assets; inspection required).
+- Perks: startups 640+ FICO & 3 yrs industry experience; owner-operators and sole props; additional collateral; placeholder approvals; private party sales.
+- Contacts: apps@nmef.com (new deals), fasttresubmits@nmef.com, apprfi@nmef.com, fastdocs@nmef.com; main 203-354-6000; broker portal broker.nmef.com; HQ 601 Merritt 7 Suite 5, Norwalk, CT 06851; titling/lienholder North Mill Credit Trust, 9 Executive Circle Suite 230, Irvine, CA 92614.
+
+SCHEMA MAPPING: equipment, $15,000–$300,000, minCreditScore 550, TIB 0, all 50 states, and apps@nmef.com. The startup 640+ FICO and 3-year industry-experience requirements remain in source statements pending structural matcher support.`,
+    isActive: true,
+    acceptedIndustries: Object.freeze([]),
+  }),
+  Object.freeze({
+    name: "CapTech Financial",
+    programTypes: Object.freeze(["equipment"]),
+    minAmount: 250_000,
+    maxAmount: 25_000_000,
+    minCreditScore: null,
+    minTimeInBusinessMonths: null,
+    acceptedStates: ALL_US_STATES,
+    contactEmail: null,
+    notes: `SOURCE STATEMENTS (verbatim):
+- Largest independent mid-to-large-ticket direct lender in the US. Deal size $250K–$25MM+; term 24–60 months; operating and capital leases; no blanket liens; no financial covenants; equipment, software, and soft-cost financing; international funding for US-based companies.
+- Credit requirements: audited or reviewed financial statements (or internals with tax returns); positive cash flow; profitable in two of the last three years; if not profitable, positive EBITDA in most recent YE and YTD, or a compelling turnaround story.
+- Industry and collateral targets: technology equipment; software and software development; FF&E; tenant improvements/remodels; logistics/warehouse management; retail/hospitality; medical devices/services; manufacturing all categories; food production/packaging; energy production all types; construction; agriculture; automation; aviation.
+- Deal package: purpose (new/used equipment, sale-leaseback, or refinancing); project description; last two YE financial statements; current YTD and prior YTD comparable; funding and installation timeframe.
+- Credit approval in 2–10 business days after formal submission; uncapped referral fee on all funded transactions.
+- Address: 1495 South Dixie Dr., St. George, UT 84770.
+
+SCHEMA MAPPING: equipment, $250,000–$25,000,000, minCreditScore null, minTimeInBusinessMonths null, all 50 states, and contactEmail null. Financial-statement requirements remain in source statements pending structural matcher support.`,
+    isActive: true,
+    acceptedIndustries: Object.freeze([]),
+  }),
+  Object.freeze({
+    name: "Ophelia Capital Group",
+    programTypes: Object.freeze(["working_capital", "MCA"]),
+    minAmount: 250_000,
+    maxAmount: null,
+    minCreditScore: null,
+    minTimeInBusinessMonths: 24,
+    acceptedStates: ALL_US_STATES,
+    contactEmail: "subs@opheliacapitalgrp.com",
+    notes: `SOURCE STATEMENTS (verbatim):
+- Direct funding source for MCAs. Funds ALL industries except car dealerships, trucking, and law firms — unless they are a high-volume-in-deposits company ($1MM+).
+- Time in business: 2 years minimum. FICO: any (rarely pull credit). Ownership for funding: 51%. Minimum monthly gross deposits: $1,000,000+. Negative days/NSF: 2–5 days (with overdraft protection only). Minimum funding amount: $250,000. Terms: 60–200 days. Repayment: daily, biweekly, weekly.
+- Same-day commissions. Contact Avi Nisanov, President; +1 (917) 653-8331; subs@opheliacapitalgrp.com; New York.
+
+SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditScore null, TIB 24 months, all 50 states, and subs@opheliacapitalgrp.com. The $1,000,000 monthly-revenue rule and restricted-industry exception remain in source statements pending structural matcher support.`,
+    isActive: true,
+    acceptedIndustries: Object.freeze([]),
+  }),
 ] as const);
 
 export type NewLenderSeed = (typeof NEW_LENDER_SEEDS)[number];
