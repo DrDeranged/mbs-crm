@@ -11,8 +11,25 @@ const ALL_US_STATES = Object.freeze([
   "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT",
   "VT", "VA", "WA", "WV", "WI", "WY",
 ] as const);
+const YES_ACCEPTED_STATES = Object.freeze([
+  "AL", "AR", "AZ", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL",
+  "IN", "IA", "KS", "KY", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT",
+  "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR",
+  "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
+  "WY",
+] as const);
 
 export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
+
+export interface ExistingLenderMatchingBaseline {
+  programTypes: readonly string[];
+  minAmount: number | null;
+  maxAmount: number | null;
+  minCreditScore: number | null;
+  minTimeInBusinessMonths: number | null;
+  acceptedIndustries: readonly string[];
+  acceptedStates: readonly string[];
+}
 
 /**
  * Targeted updates from the 2026-09-14 packet. These are deliberately kept
@@ -38,6 +55,15 @@ SCHEMA MAPPING:
       minTimeInBusinessMonths: 48,
       maxAmount: 500_000,
     }),
+    matchingBaseline: Object.freeze({
+      programTypes: Object.freeze(["working_capital", "equipment"]),
+      minAmount: 10_000,
+      maxAmount: 500_000,
+      minCreditScore: 600,
+      minTimeInBusinessMonths: 48,
+      acceptedIndustries: Object.freeze([]),
+      acceptedStates: Object.freeze([]),
+    }),
   }),
   Object.freeze({
     name: "AMUR Equipment Finance",
@@ -54,6 +80,15 @@ SCHEMA MAPPING:
       minTimeInBusinessMonths: 24,
       maxAmount: 750_000,
     }),
+    matchingBaseline: Object.freeze({
+      programTypes: Object.freeze(["equipment"]),
+      minAmount: 10_000,
+      maxAmount: 750_000,
+      minCreditScore: 620,
+      minTimeInBusinessMonths: 24,
+      acceptedIndustries: Object.freeze([]),
+      acceptedStates: Object.freeze([]),
+    }),
   }),
   Object.freeze({
     name: "Y.E.S. Leasing",
@@ -66,6 +101,15 @@ SOURCE STATEMENTS (verbatim):
 SCHEMA MAPPING:
 → Schema: no changes to amounts; minCreditScore null (confirm current); add the ratio rule and down-payment schedule to notes.`,
     structuredPatch: Object.freeze({}),
+    matchingBaseline: Object.freeze({
+      programTypes: Object.freeze(["equipment"]),
+      minAmount: 10_000,
+      maxAmount: 300_000,
+      minCreditScore: null,
+      minTimeInBusinessMonths: 0,
+      acceptedIndustries: Object.freeze([]),
+      acceptedStates: YES_ACCEPTED_STATES,
+    }),
   }),
 ] as const);
 
@@ -81,6 +125,23 @@ export function appendExistingLenderUpdateNotes(
   updateNotes: string,
 ): string {
   return existingNotes ? `${existingNotes}\n\n${updateNotes}` : updateNotes;
+}
+
+/**
+ * Applies the structured fields and packet notes for an existing lender.
+ * Production maintenance uses this pure helper before persisting its update;
+ * keeping the transformation here also lets fixtures exercise that exact
+ * update path without connecting to a database.
+ */
+export function applyExistingLenderUpdate<Row extends { notes: string | null }>(
+  existing: Row,
+  update: ExistingLenderUpdate,
+): Row {
+  return {
+    ...existing,
+    ...update.structuredPatch,
+    notes: appendExistingLenderUpdateNotes(existing.notes, update.notes),
+  } as Row;
 }
 
 export const NEW_LENDER_SEEDS = Object.freeze([

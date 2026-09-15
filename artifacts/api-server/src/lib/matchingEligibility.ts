@@ -45,6 +45,13 @@ export interface LenderEvaluation {
   weightedScore: number;
 }
 
+/**
+ * generic acceptedIndustries positive allowlisting exists, but packet deny-lists,
+ * trucking fleet/TIB overrides, and no-factoring rules cannot be structurally
+ * represented/enforced.
+ */
+export const PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED = false;
+
 const ESTIMATED_SCORE_MINIMUMS: Record<string, number> = {
   below_500: 300,
   "500_549": 500,

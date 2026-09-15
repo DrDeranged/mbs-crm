@@ -18,7 +18,7 @@ import {
 import {
   EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
-  appendExistingLenderUpdateNotes,
+  applyExistingLenderUpdate,
   newLenderSeedToInsertValues,
   planNewLenderSeeds,
 } from "./newLenderSeeds";
@@ -310,11 +310,12 @@ export async function executeLenderSeedAndUpdates(
       continue;
     }
 
+    const updated = applyExistingLenderUpdate(existing, update);
     await tx
       .update(lendersTable)
       .set({
         ...update.structuredPatch,
-        notes: appendExistingLenderUpdateNotes(existing.notes, update.notes),
+        notes: updated.notes,
         updatedAt: new Date(),
       })
       .where(eq(lendersTable.id, existing.id));

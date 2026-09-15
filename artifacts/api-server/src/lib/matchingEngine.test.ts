@@ -1,9 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-// @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { NEW_LENDER_SEEDS } from "./newLenderSeeds.ts";
-// @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { evaluateLender } from "./matchingEligibility.ts";
+import {
+  EXISTING_LENDER_UPDATES,
+  NEW_LENDER_SEEDS,
+  applyExistingLenderUpdate,
+  newLenderSeedToInsertValues,
+  type ExistingLenderUpdate,
+  type ExistingLenderMatchingBaseline,
+} from "./newLenderSeeds";
+import {
+  evaluateLender,
+  PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED,
+} from "./matchingEligibility";
 
 const dexly = NEW_LENDER_SEEDS.find((seed) => seed.name === "Dexly Finance")!;
 const thoro = NEW_LENDER_SEEDS.find((seed) => seed.name === "Thoro Corp")!;
@@ -140,5 +148,144 @@ test("company time in business overrides application business start date", () =>
       passed: false,
       detail: "6 months is below minimum 24 months",
     },
+  );
+});
+
+test("an equipment trucking lead matches only lenders allowed by structured criteria", () => {
+  const fixture = {
+    applicationType: "equipment",
+    requestedAmount: 60_000,
+    creditScore: 560,
+    existingPositions: null,
+    company: {
+      industry: "trucking",
+      timeInBusinessMonths: 18,
+      state: "NY",
+    },
+  };
+
+  const seedRow = (name: string) => {
+    const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === name);
+    assert.ok(seed, `missing canonical seed ${name}`);
+    return newLenderSeedToInsertValues(seed);
+  };
+
+  // KEF, Navitas, and Channel are production seed rows, not test copies.
+  const kef = seedRow("Keystone Equipment Finance Corp (KEF)");
+  const navitas = seedRow("Navitas Credit Corp");
+  const channel = seedRow("Channel Partners Capital");
+
+  const afgUpdate = EXISTING_LENDER_UPDATES.find(
+    (update) => update.name === "Alliance Funding Group (AFG)",
+  );
+  const yesUpdate = EXISTING_LENDER_UPDATES.find(
+    (update) => update.name === "Y.E.S. Leasing",
+  );
+  assert.ok(afgUpdate);
+  assert.ok(yesUpdate);
+
+  // These two packet targets predate NEW_LENDER_SEEDS. Keep only their
+  // canonical matching fields here, then apply the same pure update helper
+  // production maintenance uses.
+  const matchingRow = (name: string, matchingBaseline: ExistingLenderMatchingBaseline) => ({
+    id: 0,
+    name,
+    ...matchingBaseline,
+    notes: null,
+    isActive: true,
+  });
+  const afg = applyExistingLenderUpdate(
+    matchingRow(afgUpdate.name, afgUpdate.matchingBaseline),
+    afgUpdate,
+  );
+  const yes = applyExistingLenderUpdate(
+    matchingRow(yesUpdate.name, yesUpdate.matchingBaseline),
+    yesUpdate,
+  );
+
+  // This flag documents the schema boundary; notes below are evidence for
+  // human underwriting only and are never parsed for eligibility.
+  assert.equal(PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED, false);
+
+  const lenderRows = [kef, yes, navitas, channel, afg];
+  const matchingCriteria = (lender: (typeof lenderRows)[number]) => ({
+    name: lender.name,
+    programTypes: lender.programTypes,
+    minAmount: lender.minAmount,
+    maxAmount: lender.maxAmount,
+    minCreditScore: lender.minCreditScore,
+    minTimeInBusinessMonths: lender.minTimeInBusinessMonths,
+    acceptedIndustries: lender.acceptedIndustries,
+    acceptedStates: lender.acceptedStates,
+  });
+  assert.deepEqual(matchingCriteria(afg), {
+    name: afgUpdate.name,
+    ...afgUpdate.matchingBaseline,
+  });
+  assert.deepEqual(matchingCriteria(yes), {
+    name: yesUpdate.name,
+    ...yesUpdate.matchingBaseline,
+  });
+  assert.deepEqual(matchingCriteria(kef), {
+    name: kef.name,
+    programTypes: kef.programTypes,
+    minAmount: kef.minAmount,
+    maxAmount: kef.maxAmount,
+    minCreditScore: kef.minCreditScore,
+    minTimeInBusinessMonths: kef.minTimeInBusinessMonths,
+    acceptedIndustries: kef.acceptedIndustries,
+    acceptedStates: kef.acceptedStates,
+  });
+  assert.deepEqual(matchingCriteria(navitas), {
+    name: navitas.name,
+    programTypes: navitas.programTypes,
+    minAmount: navitas.minAmount,
+    maxAmount: navitas.maxAmount,
+    minCreditScore: navitas.minCreditScore,
+    minTimeInBusinessMonths: navitas.minTimeInBusinessMonths,
+    acceptedIndustries: navitas.acceptedIndustries,
+    acceptedStates: navitas.acceptedStates,
+  });
+  assert.deepEqual(matchingCriteria(channel), {
+    name: channel.name,
+    programTypes: channel.programTypes,
+    minAmount: channel.minAmount,
+    maxAmount: channel.maxAmount,
+    minCreditScore: channel.minCreditScore,
+    minTimeInBusinessMonths: channel.minTimeInBusinessMonths,
+    acceptedIndustries: channel.acceptedIndustries,
+    acceptedStates: channel.acceptedStates,
+  });
+  assert.equal(yes.minTimeInBusinessMonths, 0);
+
+  const matchedNames = lenderRows
+    .filter((lender) => evaluateLender(lender, fixture, fixture.company).eligible)
+    .map((lender) => lender.name);
+
+  assert.deepEqual(matchedNames, [
+    "Keystone Equipment Finance Corp (KEF)",
+    "Y.E.S. Leasing",
+  ]);
+  assert.equal(matchedNames.includes("Navitas Credit Corp"), false);
+  assert.equal(matchedNames.includes("Channel Partners Capital"), false);
+  assert.equal(matchedNames.includes("Alliance Funding Group (AFG)"), false);
+
+  // Notes retain packet guidance for human underwriting; they are not parsed
+  // or used as an eligibility shortcut by the evaluator.
+  assert.match(
+    NEW_LENDER_SEEDS.find((lender) => lender.name === "Navitas Credit Corp")!.notes,
+    /TRUCKING LONG-DISTANCE/,
+  );
+  assert.match(
+    NEW_LENDER_SEEDS.find((lender) => lender.name === "Channel Partners Capital")!.notes,
+    /TRANSPORTATION:/,
+  );
+  assert.match(
+    EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!.notes,
+    /transportation cautionary/,
+  );
+  assert.match(
+    NEW_LENDER_SEEDS.find((lender) => lender.name === "Luminar Capital")!.notes,
+    /trucking\/transportation minimum 3 years TIB/,
   );
 });
