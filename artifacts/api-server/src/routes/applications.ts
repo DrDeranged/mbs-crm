@@ -353,6 +353,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
             fileKey,
             fileType: file.mimetype,
             fileSize: file.size,
+            category: "bank_statement",
           }).returning();
           txDocRecords.push({ file, fileKey, id: docRecord.id });
         }
@@ -424,6 +425,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         fileKey: signedDocKey,
         fileType: "text/html",
         fileSize: htmlBuffer.byteLength,
+        category: "signed_application",
       });
       await database.update(applicationsTable)
         .set({ signedDocumentKey: signedDocKey })

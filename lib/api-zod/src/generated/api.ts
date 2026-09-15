@@ -36,6 +36,10 @@ export const GetHealthDeepResponse = zod.object({
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
 }).optional(),
+  "pdf": zod.object({
+  "nativeRenderer": zod.string().describe('Native PDF rendering probe result; ok or unavailable with a safe reason.'),
+  "puppeteer": zod.string().describe('Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.')
+}),
   "jobs": zod.record(zod.string(), zod.unknown()).optional(),
   "uptimeSeconds": zod.number().optional(),
   "timestamp": zod.coerce.date().optional()
@@ -994,6 +998,7 @@ export const GetLeadResponse = zod.object({
   "fileKey": zod.string().optional(),
   "fileType": zod.string(),
   "fileSize": zod.number(),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
   "createdAt": zod.coerce.date()
 })).optional(),
   "recentActivity": zod.array(zod.object({
@@ -1447,6 +1452,7 @@ export const ListDocumentsResponseItem = zod.object({
   "fileKey": zod.string().optional(),
   "fileType": zod.string(),
   "fileSize": zod.number(),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
   "createdAt": zod.coerce.date()
 })
 export const ListDocumentsResponse = zod.array(ListDocumentsResponseItem)
@@ -1460,7 +1466,44 @@ export const UploadDocumentParams = zod.object({
 })
 
 export const UploadDocumentBody = zod.object({
-  "file": zod.instanceof(File)
+  "file": zod.instanceof(File),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other'])
+})
+
+
+/**
+ * @summary Update a document category
+ */
+export const UpdateDocumentCategoryParams = zod.object({
+  "docId": zod.coerce.number()
+})
+
+export const UpdateDocumentCategoryBody = zod.object({
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other'])
+})
+
+export const UpdateDocumentCategoryResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "userId": zod.number(),
+  "uploader": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "filename": zod.string(),
+  "fileKey": zod.string().optional(),
+  "fileType": zod.string(),
+  "fileSize": zod.number(),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "createdAt": zod.coerce.date()
 })
 
 

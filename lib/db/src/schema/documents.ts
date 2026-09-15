@@ -4,6 +4,17 @@ import { z } from "zod/v4";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 
+export const documentCategories = [
+  "bank_statement",
+  "invoice_quote",
+  "drivers_license",
+  "tax_return",
+  "signed_application",
+  "other",
+] as const;
+
+export type DocumentCategory = (typeof documentCategories)[number];
+
 export const documentsTable = pgTable(
   "documents",
   {
@@ -14,6 +25,7 @@ export const documentsTable = pgTable(
     fileKey: text("file_key").notNull(),
     fileType: text("file_type").notNull(),
     fileSize: integer("file_size").notNull(),
+    category: text("category").$type<DocumentCategory>().notNull().default("other"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("documents_lead_idx").on(t.leadId)],

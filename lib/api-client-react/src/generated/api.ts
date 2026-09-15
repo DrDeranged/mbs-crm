@@ -63,6 +63,7 @@ import type {
   DealsAnalytics,
   DeepHealthResponse,
   Document,
+  DocumentCategoryUpdate,
   DownloadUrlResponse,
   DripEnrollment,
   DripSequence,
@@ -130,6 +131,7 @@ import type {
   MarkAllNotificationsRead200,
   MarkNotificationRead200,
   MyTasksSummary,
+  NewDocumentUpload,
   NewLenderSeedResponse,
   Note,
   NoteInput,
@@ -171,7 +173,6 @@ import type {
   UpdateSubmissionBody,
   UpdateUserPushTokenBody,
   UpdateWorkflowRuleBody,
-  UploadDocumentBody,
   UploadUrlRequest,
   UploadUrlResponse,
   UpsertDripSequenceStepsBody,
@@ -3695,9 +3696,10 @@ export const getUploadDocumentUrl = (id: number,) => {
  * @summary Upload a document for a lead
  */
 export const uploadDocument = async (id: number,
-    uploadDocumentBody: UploadDocumentBody, options?: RequestInit): Promise<Document> => {
+    newDocumentUpload: NewDocumentUpload, options?: RequestInit): Promise<Document> => {
     const formData = new FormData();
-formData.append(`file`, uploadDocumentBody.file);
+formData.append(`file`, newDocumentUpload.file);
+formData.append(`category`, newDocumentUpload.category);
 
   return customFetch<Document>(getUploadDocumentUrl(id),
   {
@@ -3713,8 +3715,8 @@ formData.append(`file`, uploadDocumentBody.file);
 
 
 export const getUploadDocumentMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<NewDocumentUpload>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<NewDocumentUpload>}, TContext> => {
 
 const mutationKey = ['uploadDocument'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -3726,7 +3728,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadDocument>>, {id: number;data: BodyType<UploadDocumentBody>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadDocument>>, {id: number;data: BodyType<NewDocumentUpload>}> = (props) => {
           const {id,data} = props ?? {};
 
           return  uploadDocument(id,data,requestOptions)
@@ -3740,21 +3742,93 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UploadDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadDocument>>>
-    export type UploadDocumentMutationBody = BodyType<UploadDocumentBody>
+    export type UploadDocumentMutationBody = BodyType<NewDocumentUpload>
     export type UploadDocumentMutationError = ErrorType<void>
 
     /**
  * @summary Upload a document for a lead
  */
 export const useUploadDocument = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<UploadDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadDocument>>, TError,{id: number;data: BodyType<NewDocumentUpload>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof uploadDocument>>,
         TError,
-        {id: number;data: BodyType<UploadDocumentBody>},
+        {id: number;data: BodyType<NewDocumentUpload>},
         TContext
       > => {
       return useMutation(getUploadDocumentMutationOptions(options));
+    }
+
+export const getUpdateDocumentCategoryUrl = (docId: number,) => {
+
+
+
+
+  return `/api/documents/${docId}`
+}
+
+/**
+ * @summary Update a document category
+ */
+export const updateDocumentCategory = async (docId: number,
+    documentCategoryUpdate: DocumentCategoryUpdate, options?: RequestInit): Promise<Document> => {
+
+  return customFetch<Document>(getUpdateDocumentCategoryUrl(docId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      documentCategoryUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateDocumentCategoryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDocumentCategory>>, TError,{docId: number;data: BodyType<DocumentCategoryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDocumentCategory>>, TError,{docId: number;data: BodyType<DocumentCategoryUpdate>}, TContext> => {
+
+const mutationKey = ['updateDocumentCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDocumentCategory>>, {docId: number;data: BodyType<DocumentCategoryUpdate>}> = (props) => {
+          const {docId,data} = props ?? {};
+
+          return  updateDocumentCategory(docId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDocumentCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateDocumentCategory>>>
+    export type UpdateDocumentCategoryMutationBody = BodyType<DocumentCategoryUpdate>
+    export type UpdateDocumentCategoryMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a document category
+ */
+export const useUpdateDocumentCategory = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDocumentCategory>>, TError,{docId: number;data: BodyType<DocumentCategoryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDocumentCategory>>,
+        TError,
+        {docId: number;data: BodyType<DocumentCategoryUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateDocumentCategoryMutationOptions(options));
     }
 
 export const getDownloadDocumentUrl = (docId: number,) => {

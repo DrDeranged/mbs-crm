@@ -1313,12 +1313,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
+              $ref: "#/components/schemas/NewDocumentUpload"
       responses:
         "201":
           description: Document uploaded
@@ -1328,6 +1323,37 @@ paths:
                 $ref: "#/components/schemas/Document"
         "400":
           description: Invalid file or unsupported type
+
+  /documents/{docId}:
+    patch:
+      operationId: updateDocumentCategory
+      tags: [documents]
+      summary: Update a document category
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentCategoryUpdate"
+      responses:
+        "200":
+          description: Document category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          description: Invalid document ID or category
+        "403":
+          description: Forbidden
+        "404":
+          description: Document or lead not found
 
   /documents/{docId}/download:
     get:
@@ -4662,7 +4688,7 @@ components:
 
     Document:
       type: object
-      required: [id, leadId, userId, filename, fileType, fileSize, createdAt]
+      required: [id, leadId, userId, filename, fileType, fileSize, category, createdAt]
       properties:
         id:
           type: integer
@@ -4682,9 +4708,38 @@ components:
           type: string
         fileSize:
           type: integer
+        category:
+          $ref: "#/components/schemas/DocumentCategory"
         createdAt:
           type: string
           format: date-time
+
+    DocumentCategory:
+      type: string
+      enum:
+        - bank_statement
+        - invoice_quote
+        - drivers_license
+        - tax_return
+        - signed_application
+        - other
+
+    NewDocumentUpload:
+      type: object
+      required: [file, category]
+      properties:
+        file:
+          type: string
+          format: binary
+        category:
+          $ref: "#/components/schemas/DocumentCategory"
+
+    DocumentCategoryUpdate:
+      type: object
+      required: [category]
+      properties:
+        category:
+          $ref: "#/components/schemas/DocumentCategory"
 
     DownloadUrlResponse:
       type: object
@@ -5999,6 +6054,7 @@ components:
 
     DeepHealthResponse:
       type: object
+      required: [pdf]
       properties:
         status:
           type: string
@@ -6017,6 +6073,16 @@ components:
               type: boolean
             anthropic:
               type: boolean
+        pdf:
+          type: object
+          required: [nativeRenderer, puppeteer]
+          properties:
+            nativeRenderer:
+              type: string
+              description: Native PDF rendering probe result; ok or unavailable with a safe reason.
+            puppeteer:
+              type: string
+              description: Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.
         jobs:
           type: object
           additionalProperties: true

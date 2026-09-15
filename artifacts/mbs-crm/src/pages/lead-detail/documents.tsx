@@ -6,35 +6,86 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { File as FileIcon, FileDown, Download, Loader2, UploadCloud } from "lucide-react";
-import { getListDocumentsQueryKey, getListLeadActivityQueryKey, useGetLeadApplication, useListDocuments, useUploadDocument, downloadDocument } from "@workspace/api-client-react";
+import {
+  type DocumentCategory,
+  getListDocumentsQueryKey,
+  getListLeadActivityQueryKey,
+  useGetLeadApplication,
+  useGetMe,
+  useListDocuments,
+  useUpdateDocumentCategory,
+  useUploadDocument,
+  downloadDocument,
+} from "@workspace/api-client-react";
 import { getLenderPackageFilename } from "@/lib/lenderPackageDownload";
 import { useLeadDetail } from "./context";
+import { lenderPackageFailureTitle } from "@/lib/lenderPackageError";
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+
+const documentCategoryOptions: Array<{ value: DocumentCategory; label: string }> = [
+  { value: "bank_statement", label: "Bank statement" },
+  { value: "invoice_quote", label: "Invoice / quote" },
+  { value: "drivers_license", label: "Driver's license" },
+  { value: "tax_return", label: "Tax return" },
+  { value: "signed_application", label: "Signed application" },
+  { value: "other", label: "Other" },
+];
+
+function inferDocumentCategory(filename: string): DocumentCategory {
+  return /bank|statement/i.test(filename) ? "bank_statement" : "other";
+}
+
 // Documents Tab
 export function LeadDocuments() {
   const { id: leadId } = useLeadDetail();
+  const { data: me } = useGetMe();
   const { data: documents, isLoading } = useListDocuments(leadId, { query: { queryKey: getListDocumentsQueryKey(leadId) } });
   const { data: application, isLoading: applicationLoading } = useGetLeadApplication(leadId);
   const uploadDocument = useUploadDocument();
+  const updateDocumentCategory = useUpdateDocumentCategory();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const packageDownloadInFlight = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isGeneratingPackage, setIsGeneratingPackage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("other");
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelectedFile(file);
+    setUploadCategory(inferDocumentCategory(file.name));
+  };
+
+  const handleUpload = () => {
+    if (!selectedFile) return;
     uploadDocument.mutate(
-      { id: leadId, data: { file } },
+      { id: leadId, data: { file: selectedFile, category: uploadCategory } },
       {
         onSuccess: () => {
           toast({ title: "Document Uploaded" });
           queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) });
           queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+          setSelectedFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
         },
         onError: () => toast({ title: "Error", description: "Failed to upload document", variant: "destructive" }),
-        onSettled: () => { if (e.target) e.target.value = ""; },
+      },
+    );
+  };
+
+  const handleCategoryChange = (docId: number, category: DocumentCategory) => {
+    updateDocumentCategory.mutate(
+      { docId, data: { category } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) });
+          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) });
+        },
+        onError: () => toast({ title: "Error", description: "Failed to update document category", variant: "destructive" }),
       },
     );
   };
@@ -53,13 +104,18 @@ export function LeadDocuments() {
 
     packageDownloadInFlight.current = true;
     setIsGeneratingPackage(true);
+    let failureReason: unknown;
     try {
       const response = await fetch(`${apiBase}/leads/${leadId}/lender-package`, {
         method: "GET",
         headers: { Accept: "application/pdf" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        failureReason = body?.reason;
+        throw new Error(`Request failed (${response.status})`);
+      }
 
       const blob = await response.blob();
       if (!blob.size) throw new Error("The lender package was empty");
@@ -78,7 +134,7 @@ export function LeadDocuments() {
       URL.revokeObjectURL(url);
     } catch {
       toast({
-        title: "Lender package failed",
+        title: lenderPackageFailureTitle(me?.role, failureReason),
         description: "Could not generate the lender package. Please try again.",
         variant: "destructive",
       });
@@ -127,16 +183,40 @@ export function LeadDocuments() {
           ) : (
             lenderPackageButton
           )}
-          <div className="relative">
+          <div className="flex items-center gap-2">
+            <div className="relative">
             <Input
+              ref={fileInputRef}
               type="file"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              onChange={handleUpload}
+              onChange={handleFileChange}
               disabled={uploadDocument.isPending}
             />
-            <Button size="sm" variant="outline" disabled={uploadDocument.isPending}>
+              <Button size="sm" variant="outline" disabled={uploadDocument.isPending}>
+                Choose file
+              </Button>
+            </div>
+            <Select
+              value={uploadCategory}
+              onValueChange={(value) => setUploadCategory(value as DocumentCategory)}
+            >
+              <SelectTrigger aria-label="Document category" className="h-9 w-[170px]">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {documentCategoryOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              onClick={handleUpload}
+              disabled={!selectedFile || uploadDocument.isPending}
+            >
               {uploadDocument.isPending ? "Uploading..." : <><UploadCloud className="w-4 h-4 mr-2" /> Upload</>}
             </Button>
+            {selectedFile && <span className="max-w-36 truncate text-xs text-muted-foreground" title={selectedFile.name}>{selectedFile.name}</span>}
           </div>
         </div>
       </div>
@@ -164,6 +244,24 @@ export function LeadDocuments() {
                     </p>
                   </div>
                 </div>
+                <Select
+                  value={doc.category}
+                  onValueChange={(value) => handleCategoryChange(doc.id, value as DocumentCategory)}
+                  disabled={updateDocumentCategory.isPending}
+                >
+                  <SelectTrigger
+                    aria-label={`Category for ${doc.filename}`}
+                    className="h-7 w-[145px] rounded-full border-blue-200 bg-blue-50 px-2 text-xs text-blue-700"
+                    data-testid={`document-category-${doc.id}`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button size="sm" variant="ghost" className="shrink-0" onClick={() => handleDownload(doc.id, doc.filename)}>
                   <Download className="h-4 w-4" />
                 </Button>

@@ -348,6 +348,18 @@ export interface Task {
   createdAt: string;
 }
 
+export type DocumentCategory = typeof DocumentCategory[keyof typeof DocumentCategory];
+
+
+export const DocumentCategory = {
+  bank_statement: 'bank_statement',
+  invoice_quote: 'invoice_quote',
+  drivers_license: 'drivers_license',
+  tax_return: 'tax_return',
+  signed_application: 'signed_application',
+  other: 'other',
+} as const;
+
 export interface Document {
   id: number;
   leadId: number;
@@ -357,6 +369,7 @@ export interface Document {
   fileKey?: string;
   fileType: string;
   fileSize: number;
+  category: DocumentCategory;
   createdAt: string;
 }
 
@@ -655,6 +668,15 @@ export interface TaskUpdate {
   description?: string;
   dueDate?: string;
   isCompleted?: boolean;
+}
+
+export interface NewDocumentUpload {
+  file: Blob;
+  category: DocumentCategory;
+}
+
+export interface DocumentCategoryUpdate {
+  category: DocumentCategory;
 }
 
 export interface DownloadUrlResponse {
@@ -1678,12 +1700,20 @@ export type DeepHealthResponseIntegrations = {
   anthropic?: boolean;
 };
 
+export type DeepHealthResponsePdf = {
+  /** Native PDF rendering probe result; ok or unavailable with a safe reason. */
+  nativeRenderer: string;
+  /** Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout. */
+  puppeteer: string;
+};
+
 export type DeepHealthResponseJobs = { [key: string]: unknown };
 
 export interface DeepHealthResponse {
   status?: DeepHealthResponseStatus;
   db?: DeepHealthResponseDb;
   integrations?: DeepHealthResponseIntegrations;
+  pdf: DeepHealthResponsePdf;
   jobs?: DeepHealthResponseJobs;
   uptimeSeconds?: number;
   timestamp?: string;
@@ -2404,10 +2434,6 @@ export type GenerateLeadBriefing200 = {
   leadId: number;
   briefing: AiBriefing;
   generatedAt: string;
-};
-
-export type UploadDocumentBody = {
-  file: Blob;
 };
 
 export type ListDealsParams = {
