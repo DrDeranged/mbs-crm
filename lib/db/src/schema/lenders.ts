@@ -5,6 +5,25 @@ import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 
 export const SUBMISSION_STATUSES = ["submitted", "pending", "approved", "declined", "withdrawn"] as const;
+export type TruckingRule = {
+  industry: "long_haul" | "local" | "any";
+  prohibited?: boolean;
+  minTrucks?: number;
+  minTimeInBusinessMonths?: number;
+  requiresNoFactoring?: boolean;
+};
+export type IndustryTimeInBusinessOverride = {
+  industry: string;
+  minTimeInBusinessMonths: number;
+};
+export type ProgramEligibilityRule = {
+  programType: string;
+  minMonthlyRevenue?: number;
+  restrictedIndustryMinMonthlyRevenue?: number;
+  restrictedIndustries?: string[];
+  prohibitedIndustries?: string[];
+  truckingRules?: TruckingRule[];
+};
 
 export const lendersTable = pgTable(
   "lenders",
@@ -16,7 +35,21 @@ export const lendersTable = pgTable(
     maxAmount: integer("max_amount"),
     minCreditScore: integer("min_credit_score"),
     acceptedIndustries: text("accepted_industries").array().notNull().default([]),
-    minTimeInBusinessMonths: integer("min_time_in_business_months").notNull().default(0),
+    restrictedIndustries: text("restricted_industries").array().notNull().default([]),
+    prohibitedIndustries: text("prohibited_industries").array().notNull().default([]),
+    minMonthlyRevenue: integer("min_monthly_revenue"),
+    restrictedIndustryMinMonthlyRevenue: integer("restricted_industry_min_monthly_revenue"),
+    startupMinCreditScore: integer("startup_min_credit_score"),
+    startupMaxTimeInBusinessMonths: integer("startup_max_time_in_business_months"),
+    startupMaxAmount: integer("startup_max_amount"),
+    minIndustryExperienceMonths: integer("min_industry_experience_months"),
+    requiresFinancialStatements: boolean("requires_financial_statements").notNull().default(false),
+    truckingRules: jsonb("trucking_rules").$type<TruckingRule[] | null>(),
+    industryTimeInBusinessOverrides: jsonb("industry_time_in_business_overrides")
+      .$type<IndustryTimeInBusinessOverride[] | null>(),
+    programEligibilityRules: jsonb("program_eligibility_rules")
+      .$type<ProgramEligibilityRule[] | null>(),
+    minTimeInBusinessMonths: integer("min_time_in_business_months"),
     acceptedStates: text("accepted_states").array().notNull().default([]),
     maxExistingPositions: integer("max_existing_positions").notNull().default(10),
     priorityWeight: integer("priority_weight").notNull().default(5),

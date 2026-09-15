@@ -2395,6 +2395,11 @@ export const SubmitApplicationBody = zod.object({
   "ownerDob": zod.string().optional(),
   "businessType": zod.enum(['LLC', 'Corp', 'Sole Prop', 'Partnership', 'Other']).optional(),
   "annualRevenue": zod.number().optional(),
+  "industry": zod.string().optional(),
+  "industryDetail": zod.string().optional(),
+  "monthlyRevenueStated": zod.number().optional().describe('Exact stated monthly revenue; do not submit a bucket ceiling.'),
+  "timeInBusinessMonths": zod.number().optional(),
+  "industryExperienceMonths": zod.number().optional(),
   "businessStartDate": zod.string().regex(submitApplicationBodyBusinessStartDateRegExp).optional().describe('Optional business start month and year in MM\/YYYY format'),
   "yearsUnderCurrentOwnership": zod.number().optional(),
   "businessDescription": zod.string().optional(),
@@ -2411,6 +2416,8 @@ export const SubmitApplicationBody = zod.object({
   "yearMakeModel": zod.string().optional().describe('Equipment applications only'),
   "trucksInFleet": zod.number().optional().describe('Equipment applications only'),
   "downPaymentAmount": zod.number().optional().describe('Equipment applications only'),
+  "hasFinancialStatements": zod.boolean().optional(),
+  "hasFactoring": zod.boolean().optional(),
   "consentCreditPull": zod.boolean(),
   "consentTerms": zod.boolean(),
   "signatureMethod": zod.enum(['typed', 'drawn']),
@@ -2478,6 +2485,9 @@ export const GetLeadApplicationResponse = zod.object({
   "yearMakeModel": zod.string().nullish(),
   "trucksInFleet": zod.number().nullish(),
   "downPaymentAmount": zod.string().nullish(),
+  "hasFinancialStatements": zod.boolean().nullish(),
+  "hasFactoring": zod.boolean().nullish(),
+  "industryExperienceMonths": zod.number().nullish(),
   "ownerFirstName": zod.string(),
   "ownerLastName": zod.string(),
   "ownerSsnMasked": zod.string().nullish(),
@@ -2935,7 +2945,41 @@ export const ListLendersResponseItem = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -2963,7 +3007,41 @@ export const CreateLenderBody = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()).optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean().optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
   "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullish(),
   "acceptedStates": zod.array(zod.string()).optional(),
   "maxExistingPositions": zod.number().optional(),
   "priorityWeight": zod.number().min(1).max(createLenderBodyPriorityWeightMax).optional(),
@@ -2994,7 +3072,41 @@ export const SeedNewLendersResponse = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3026,7 +3138,41 @@ export const UpdateLenderBody = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()).optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean().optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
   "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullish(),
   "acceptedStates": zod.array(zod.string()).optional(),
   "maxExistingPositions": zod.number().optional(),
   "priorityWeight": zod.number().min(1).max(updateLenderBodyPriorityWeightMax).optional(),
@@ -3044,7 +3190,41 @@ export const UpdateLenderResponse = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3072,7 +3252,41 @@ export const DeactivateLenderResponse = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3106,7 +3320,41 @@ export const RunLenderMatchResponse = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3148,7 +3396,41 @@ export const GetLenderMatchesResponseItem = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3190,7 +3472,41 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),
@@ -3251,7 +3567,41 @@ export const UpdateSubmissionResponse = zod.object({
   "maxAmount": zod.number().nullish(),
   "minCreditScore": zod.number().nullish(),
   "acceptedIndustries": zod.array(zod.string()),
-  "minTimeInBusinessMonths": zod.number(),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
   "acceptedStates": zod.array(zod.string()),
   "maxExistingPositions": zod.number(),
   "priorityWeight": zod.number(),

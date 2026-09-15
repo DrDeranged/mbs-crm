@@ -37,7 +37,9 @@ const lead = (
 
 test("an 8-month working-capital lead includes Thoro and excludes Dexly on TIB", () => {
   const fixture = lead(8, 250_000);
-  const dexlyEvaluation = evaluateLender(dexly, fixture, fixture.company);
+  const dexlyEvaluation = evaluateLender(dexly, fixture, fixture.company, {
+    monthlyRevenueStated: 250_000,
+  });
   const thoroEvaluation = evaluateLender(thoro, fixture, fixture.company);
 
   assert.equal(thoroEvaluation.eligible, true);
@@ -61,7 +63,9 @@ test("an 8-month working-capital lead includes Thoro and excludes Dexly on TIB",
 
 test("a 24-month, $250,000 working-capital lead includes Dexly", () => {
   const fixture = lead(24, 250_000, 250_000);
-  const evaluation = evaluateLender(dexly, fixture, fixture.company);
+  const evaluation = evaluateLender(dexly, fixture, fixture.company, {
+    monthlyRevenueStated: 250_000,
+  });
 
   assert.equal(evaluation.eligible, true);
   assert.equal(
@@ -75,7 +79,7 @@ test("a 24-month, $250,000 working-capital lead includes Dexly", () => {
   );
 });
 
-test("missing criteria are skipped rather than excluding a lender", () => {
+test("missing required criteria exclude a lender", () => {
   const fixture = {
     applicationType: "working_capital",
     requestedAmount: 250_000,
@@ -83,10 +87,31 @@ test("missing criteria are skipped rather than excluding a lender", () => {
     existingPositions: null,
   };
   const evaluation = evaluateLender(thoro, fixture, null);
-  assert.equal(evaluation.eligible, true);
+  assert.equal(evaluation.eligible, false);
   assert.equal(
-    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Credit Score")?.skipped,
-    true,
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Credit Score")?.passed,
+    false,
+  );
+});
+
+test("missing amount, TIB, state, and generic Other industry cannot clear structured gates", () => {
+  const evaluation = evaluateLender(
+    {
+      name: "Strict packet lender",
+      minAmount: 10_000,
+      minCreditScore: 650,
+      minTimeInBusinessMonths: 24,
+      acceptedStates: ["CA"],
+      restrictedIndustries: ["law firms"],
+    },
+    { applicationType: "working_capital", requestedAmount: null, creditScore: null, existingPositions: null },
+    null,
+    { industry: "Other" },
+  );
+  assert.equal(evaluation.eligible, false);
+  assert.deepEqual(
+    evaluation.criteriaBreakdown.filter((criterion) => !criterion.passed).map((criterion) => criterion.criterion),
+    ["Requested Amount", "Credit Score", "Industry Classification", "Time in Business", "State"],
   );
 });
 
@@ -203,9 +228,7 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
     yesUpdate,
   );
 
-  // This flag documents the schema boundary; notes below are evidence for
-  // human underwriting only and are never parsed for eligibility.
-  assert.equal(PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED, false);
+  assert.equal(PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED, true);
 
   const lenderRows = [kef, yes, navitas, channel, afg];
   const matchingCriteria = (lender: (typeof lenderRows)[number]) => ({
@@ -288,4 +311,170 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
     NEW_LENDER_SEEDS.find((lender) => lender.name === "Luminar Capital")!.notes,
     /trucking\/transportation minimum 3 years TIB/,
   );
+});
+
+test("batch 2 startup, monthly revenue, industry, and financial-statement gates use structured criteria", () => {
+  const seedRow = (name: string) => {
+    const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === name);
+    assert.ok(seed, `missing canonical seed ${name}`);
+    return newLenderSeedToInsertValues(seed);
+  };
+  const application = {
+    industry: "trucking",
+    timeInBusinessMonths: 18,
+    monthlyRevenueStated: 100_000,
+    trucksInFleet: 1,
+    hasFinancialStatements: false,
+    hasFactoring: false,
+    industryExperienceMonths: 36,
+  };
+  const truckLead = {
+    applicationType: "equipment",
+    requestedAmount: 60_000,
+    creditScore: 560,
+    existingPositions: null,
+    businessState: "CA",
+  };
+
+  assert.equal(evaluateLender(seedRow("North Mill Equipment Finance (NMEF)"), truckLead, null, application).eligible, false);
+  assert.equal(evaluateLender(
+    seedRow("North Mill Equipment Finance (NMEF)"),
+    { ...truckLead, creditScore: 660 },
+    null,
+    application,
+  ).eligible, true);
+  assert.equal(evaluateLender(
+    seedRow("North Mill Equipment Finance (NMEF)"),
+    { ...truckLead, creditScore: 660, requestedAmount: 250_000 },
+    null,
+    application,
+  ).eligible, false);
+  assert.equal(evaluateLender(
+    seedRow("North Mill Equipment Finance (NMEF)"),
+    { ...truckLead, creditScore: 660 },
+    null,
+    { ...application, industryExperienceMonths: null },
+  ).eligible, false);
+  assert.equal(evaluateLender(seedRow("Navitas Credit Corp"), truckLead, null, application).eligible, false);
+  assert.equal(evaluateLender(seedRow("Channel Partners Capital"), truckLead, null, application).eligible, false);
+
+  const lowRevenueLead = {
+    applicationType: "working_capital",
+    requestedAmount: 50_000,
+    creditScore: 520,
+    existingPositions: null,
+    businessState: "CA",
+  };
+  const lowRevenueApplication = {
+    industry: "retail",
+    timeInBusinessMonths: 14,
+    monthlyRevenueStated: 12_000,
+    hasFinancialStatements: false,
+    hasFactoring: false,
+  };
+  const lowRevenueMatches = NEW_LENDER_SEEDS
+    .filter((lender) => evaluateLender(
+      newLenderSeedToInsertValues(lender),
+      lowRevenueLead,
+      null,
+      lowRevenueApplication,
+    ).eligible)
+    .map((lender) => lender.name);
+  assert.deepEqual(lowRevenueMatches, ["Luminar Capital"]);
+
+  const highRevenueLead = {
+    applicationType: "working_capital",
+    requestedAmount: 250_000,
+    creditScore: 700,
+    existingPositions: null,
+    businessState: "CA",
+  };
+  const highRevenueApplication = {
+    industry: "law firm",
+    timeInBusinessMonths: 30,
+    monthlyRevenueStated: 1_200_000,
+    hasFinancialStatements: false,
+    hasFactoring: false,
+  };
+  assert.equal(evaluateLender(seedRow("Ophelia Capital Group"), highRevenueLead, null, highRevenueApplication).eligible, true);
+  assert.equal(evaluateLender(seedRow("Dexly Finance"), highRevenueLead, null, highRevenueApplication).eligible, true);
+  assert.equal(evaluateLender(seedRow("Luminar Capital"), highRevenueLead, null, highRevenueApplication).eligible, false);
+
+  const capTechLead = {
+    applicationType: "equipment",
+    requestedAmount: 400_000,
+    creditScore: 700,
+    existingPositions: null,
+    businessState: "CA",
+  };
+  assert.equal(evaluateLender(
+    seedRow("CapTech Financial"),
+    capTechLead,
+    null,
+    { ...application, hasFinancialStatements: true },
+  ).eligible, true);
+  assert.equal(evaluateLender(
+    seedRow("CapTech Financial"),
+    capTechLead,
+    null,
+    application,
+  ).eligible, false);
+});
+
+test("product-scoped revenue gates and all-program industry restrictions apply correctly", () => {
+  const seedRow = (name: string) => newLenderSeedToInsertValues(
+    NEW_LENDER_SEEDS.find((candidate) => candidate.name === name)!,
+  );
+  const equipmentLead = {
+    applicationType: "equipment",
+    requestedAmount: 60_000,
+    creditScore: 700,
+    existingPositions: null,
+    businessState: "CA",
+  };
+  const channelEquipment = {
+    industry: "gambling",
+    timeInBusinessMonths: 48,
+    monthlyRevenueStated: 100_000,
+  };
+  assert.equal(evaluateLender(seedRow("Channel Partners Capital"), equipmentLead, null, channelEquipment).eligible, false);
+  assert.equal(evaluateLender(
+    seedRow("Channel Partners Capital"),
+    { ...equipmentLead, applicationType: "working_capital" },
+    null,
+    channelEquipment,
+  ).eligible, false);
+
+  const afgUpdate = EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!;
+  const afg = {
+    name: afgUpdate.name,
+    ...afgUpdate.matchingBaseline,
+    ...afgUpdate.structuredPatch,
+  };
+  const afgApplication = {
+    industry: "law offices",
+    timeInBusinessMonths: 60,
+    monthlyRevenueStated: 100_000,
+  };
+  assert.equal(evaluateLender(afg, equipmentLead, null, afgApplication).eligible, false);
+  assert.equal(evaluateLender(
+    afg,
+    { ...equipmentLead, applicationType: "working_capital" },
+    null,
+    afgApplication,
+  ).eligible, false);
+
+  const navitasLead = { ...equipmentLead, requestedAmount: 20_000, creditScore: 660 };
+  assert.equal(evaluateLender(
+    seedRow("Navitas Credit Corp"),
+    navitasLead,
+    null,
+    { industry: "trucking", timeInBusinessMonths: 24 },
+  ).eligible, true);
+  assert.equal(evaluateLender(
+    seedRow("Navitas Credit Corp"),
+    navitasLead,
+    null,
+    { industry: "Long-Haul Trucking", timeInBusinessMonths: 24 },
+  ).eligible, false);
 });

@@ -1006,6 +1006,37 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
+export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
+
+
+export const TruckingRuleIndustry = {
+  long_haul: 'long_haul',
+  local: 'local',
+  any: 'any',
+} as const;
+
+export interface TruckingRule {
+  industry: TruckingRuleIndustry;
+  prohibited?: boolean;
+  minTrucks?: number;
+  minTimeInBusinessMonths?: number;
+  requiresNoFactoring?: boolean;
+}
+
+export interface IndustryTimeInBusinessOverride {
+  industry: string;
+  minTimeInBusinessMonths: number;
+}
+
+export interface ProgramEligibilityRule {
+  programType: string;
+  minMonthlyRevenue?: number;
+  restrictedIndustryMinMonthlyRevenue?: number;
+  restrictedIndustries?: string[];
+  prohibitedIndustries?: string[];
+  truckingRules?: TruckingRule[];
+}
+
 export interface Lender {
   id: number;
   name: string;
@@ -1017,7 +1048,29 @@ export interface Lender {
   /** @nullable */
   minCreditScore?: number | null;
   acceptedIndustries: string[];
-  minTimeInBusinessMonths: number;
+  restrictedIndustries: string[];
+  prohibitedIndustries: string[];
+  /** @nullable */
+  minMonthlyRevenue?: number | null;
+  /** @nullable */
+  restrictedIndustryMinMonthlyRevenue?: number | null;
+  /** @nullable */
+  startupMinCreditScore?: number | null;
+  /** @nullable */
+  startupMaxTimeInBusinessMonths?: number | null;
+  /** @nullable */
+  startupMaxAmount?: number | null;
+  /** @nullable */
+  minIndustryExperienceMonths?: number | null;
+  requiresFinancialStatements: boolean;
+  /** @nullable */
+  truckingRules?: TruckingRule[] | null;
+  /** @nullable */
+  industryTimeInBusinessOverrides?: IndustryTimeInBusinessOverride[] | null;
+  /** @nullable */
+  programEligibilityRules?: ProgramEligibilityRule[] | null;
+  /** @nullable */
+  minTimeInBusinessMonths: number | null;
   acceptedStates: string[];
   maxExistingPositions: number;
   priorityWeight: number;
@@ -1042,7 +1095,29 @@ export interface LenderInput {
   /** @nullable */
   minCreditScore?: number | null;
   acceptedIndustries?: string[];
-  minTimeInBusinessMonths?: number;
+  restrictedIndustries?: string[];
+  prohibitedIndustries?: string[];
+  /** @nullable */
+  minMonthlyRevenue?: number | null;
+  /** @nullable */
+  restrictedIndustryMinMonthlyRevenue?: number | null;
+  /** @nullable */
+  startupMinCreditScore?: number | null;
+  /** @nullable */
+  startupMaxTimeInBusinessMonths?: number | null;
+  /** @nullable */
+  startupMaxAmount?: number | null;
+  /** @nullable */
+  minIndustryExperienceMonths?: number | null;
+  requiresFinancialStatements?: boolean;
+  /** @nullable */
+  truckingRules?: TruckingRule[] | null;
+  /** @nullable */
+  industryTimeInBusinessOverrides?: IndustryTimeInBusinessOverride[] | null;
+  /** @nullable */
+  programEligibilityRules?: ProgramEligibilityRule[] | null;
+  /** @nullable */
+  minTimeInBusinessMonths?: number | null;
   acceptedStates?: string[];
   maxExistingPositions?: number;
   /**
@@ -1360,6 +1435,12 @@ export interface ApplicationRecord {
   trucksInFleet?: number | null;
   /** @nullable */
   downPaymentAmount?: string | null;
+  /** @nullable */
+  hasFinancialStatements?: boolean | null;
+  /** @nullable */
+  hasFactoring?: boolean | null;
+  /** @nullable */
+  industryExperienceMonths?: number | null;
   ownerFirstName: string;
   ownerLastName: string;
   /** @nullable */
@@ -2577,6 +2658,12 @@ export type SubmitApplicationBody = {
   ownerDob?: string;
   businessType?: SubmitApplicationBodyBusinessType;
   annualRevenue?: number;
+  industry?: string;
+  industryDetail?: string;
+  /** Exact stated monthly revenue; do not submit a bucket ceiling. */
+  monthlyRevenueStated?: number;
+  timeInBusinessMonths?: number;
+  industryExperienceMonths?: number;
   /**
      * Optional business start month and year in MM/YYYY format
      * @pattern ^(0[1-9]|1[0-2])/[0-9]{4}$
@@ -2601,6 +2688,8 @@ export type SubmitApplicationBody = {
   trucksInFleet?: number;
   /** Equipment applications only */
   downPaymentAmount?: number;
+  hasFinancialStatements?: boolean;
+  hasFactoring?: boolean;
   consentCreditPull: boolean;
   consentTerms: boolean;
   signatureMethod: SubmitApplicationBodySignatureMethod;

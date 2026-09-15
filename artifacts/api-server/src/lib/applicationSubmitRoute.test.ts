@@ -106,6 +106,11 @@ async function requestWithDatabase(database: ReturnType<typeof makeDatabase>) {
     body.set("ownerFirstName", "Jamie");
     body.set("ownerLastName", "Applicant");
     body.set("equipmentDescription", "A delivery van");
+    body.set("monthlyRevenueStated", "1200000");
+    body.set("timeInBusinessMonths", "18");
+    body.set("industryExperienceMonths", "36");
+    body.set("hasFinancialStatements", "true");
+    body.set("hasFactoring", "false");
     body.set("consentCreditPull", "true");
     body.set("consentTerms", "true");
     body.set("signatureMethod", "typed");
@@ -135,4 +140,10 @@ test("application submit attributes a rep-slug lead and records QR-card activity
   assert.equal(database.inserted.some((row) => row.table === tasksTable), false);
   assert.equal(database.inserted.some((row) => row.table === bankStatementExtractionsTable), false);
   assert.ok(database.inserted.some((row) => row.table === documentsTable));
+  const applicationInsert = database.inserted.find((row) => row.table === applicationsTable);
+  assert.equal(applicationInsert?.values.monthlyRevenueStated, 1_200_000);
+  assert.equal(applicationInsert?.values.timeInBusinessMonths, 18);
+  assert.equal(applicationInsert?.values.industryExperienceMonths, 36);
+  assert.equal(applicationInsert?.values.hasFinancialStatements, true);
+  assert.equal(applicationInsert?.values.hasFactoring, false);
 });

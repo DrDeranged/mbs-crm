@@ -38,7 +38,8 @@ const TOTAL_STEPS = 6;
 
 const INDUSTRIES = [
   "Retail", "Restaurant / Food Service", "Construction", "Healthcare",
-  "Transportation / Trucking", "Auto Repair", "Beauty / Salon",
+  "Transportation / Trucking", "Long-Haul Trucking", "Local Trucking / Delivery",
+  "Law Firm / Legal Services", "Auto Repair", "Beauty / Salon",
   "Professional Services", "Manufacturing", "Real Estate",
   "Technology", "Wholesale / Distribution", "Other",
 ];
@@ -50,15 +51,6 @@ const TIME_IN_BUSINESS = [
   { label: "3 years", value: "36" },
   { label: "4+ years", value: "48" },
   { label: "10+ years", value: "120" },
-];
-
-const MONTHLY_REVENUE = [
-  { label: "$10,000 – $25,000", value: "17500" },
-  { label: "$25,000 – $50,000", value: "37500" },
-  { label: "$50,000 – $100,000", value: "75000" },
-  { label: "$100,000 – $250,000", value: "175000" },
-  { label: "$250,000 – $500,000", value: "375000" },
-  { label: "$500,000+", value: "500000" },
 ];
 
 const BUSINESS_TYPES = ["LLC", "Corp", "Sole Prop", "Partnership", "Other"];
@@ -146,6 +138,7 @@ interface FormData {
   businessState: string;
   businessZip: string;
   industry: string;
+  industryDetail: string;
   businessType: string;
   annualRevenue: string;
   businessStartDate: string;
@@ -164,6 +157,9 @@ interface FormData {
   yearMakeModel: string;
   trucksInFleet: string;
   downPaymentAmount: string;
+  hasFinancialStatements: boolean | null;
+  hasFactoring: boolean | null;
+  industryExperienceMonths: string;
   email: string;
   phone: string;
   ownerFirstName: string;
@@ -193,12 +189,13 @@ const emptyForm = (): FormData => ({
   type: "",
   businessName: "", dba: "", ein: "",
   businessAddress: "", businessCity: "", businessState: "", businessZip: "",
-  industry: "", businessType: "", annualRevenue: "", businessStartDate: "",
+  industry: "", industryDetail: "", businessType: "", annualRevenue: "", businessStartDate: "",
   yearsUnderCurrentOwnership: "", businessDescription: "", estCreditScore: "",
   timelineFundsNeeded: "", timeInBusinessMonths: "", monthlyRevenueStated: "",
   requestedAmount: "", useOfFunds: "",
   equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "",
   yearMakeModel: "", trucksInFleet: "", downPaymentAmount: "",
+  hasFinancialStatements: null, hasFactoring: null, industryExperienceMonths: "",
   email: "", phone: "",
   ownerFirstName: "", ownerLastName: "", ownerSsn: "", ownerDob: "",
   ownerHomeAddress: "", ownerHomeCity: "", ownerHomeState: "", ownerHomeZip: "",
@@ -580,6 +577,12 @@ export default function ApplyPage() {
                       <SelectContent>{INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
+                  {form.industry === "Other" && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">Specify Industry *</Label>
+                      <Input value={form.industryDetail} onChange={(e) => set({ industryDetail: e.target.value })} placeholder="Describe the business industry" />
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <Label className="text-xs">Business Type</Label>
                     <Select value={form.businessType} onValueChange={(v) => set({ businessType: v })}>
@@ -595,11 +598,8 @@ export default function ApplyPage() {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Monthly Revenue *</Label>
-                    <Select value={form.monthlyRevenueStated} onValueChange={(v) => set({ monthlyRevenueStated: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                      <SelectContent>{MONTHLY_REVENUE.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <Label className="text-xs">Exact Monthly Revenue *</Label>
+                    <Input type="number" min="0" value={form.monthlyRevenueStated} onChange={(e) => set({ monthlyRevenueStated: e.target.value })} placeholder="1000000" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Annual Revenue</Label>
@@ -612,6 +612,10 @@ export default function ApplyPage() {
                   <div className="space-y-1">
                     <Label className="text-xs">Years Under Current Ownership</Label>
                     <Input type="number" min="0" step="1" value={form.yearsUnderCurrentOwnership} onChange={(e) => set({ yearsUnderCurrentOwnership: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Industry Experience (months)</Label>
+                    <Input type="number" min="0" step="1" value={form.industryExperienceMonths} onChange={(e) => set({ industryExperienceMonths: e.target.value })} placeholder="36" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Estimated Credit Score</Label>
@@ -692,8 +696,24 @@ export default function ApplyPage() {
                         <Label className="text-xs">Down Payment Amount ($)</Label>
                         <Input type="number" min="0" value={form.downPaymentAmount} onChange={(e) => set({ downPaymentAmount: e.target.value })} />
                       </div>
+                      <label className="sm:col-span-2 flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                        <input type="checkbox" checked={form.hasFinancialStatements === true} onChange={(e) => set({ hasFinancialStatements: e.target.checked })} className="mt-0.5 rounded" />
+                        I have two years of year-end financial statements available.
+                      </label>
                     </>
                   )}
+                  <div className="sm:col-span-2 space-y-1">
+                    <Label className="text-xs">Does this business currently use factoring?</Label>
+                    <select
+                      value={form.hasFactoring === null ? "" : form.hasFactoring ? "true" : "false"}
+                      onChange={(e) => set({ hasFactoring: e.target.value === "" ? null : e.target.value === "true" })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">I don't know / not provided</option>
+                      <option value="false">No</option>
+                      <option value="true">Yes</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

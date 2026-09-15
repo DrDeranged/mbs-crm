@@ -51,6 +51,9 @@ export const applicationsTable = pgTable(
     yearMakeModel: text("year_make_model"),
     trucksInFleet: integer("trucks_in_fleet"),
     downPaymentAmount: numeric("down_payment_amount", { precision: 15, scale: 2 }),
+    hasFinancialStatements: boolean("has_financial_statements"),
+    hasFactoring: boolean("has_factoring"),
+    industryExperienceMonths: integer("industry_experience_months"),
     // Owner info
     ownerFirstName: text("owner_first_name").notNull(),
     ownerLastName: text("owner_last_name").notNull(),

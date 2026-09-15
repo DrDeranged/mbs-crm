@@ -5806,6 +5806,21 @@ if(submitApplicationBody.businessType !== undefined) {
 if(submitApplicationBody.annualRevenue !== undefined) {
  formData.append(`annualRevenue`, submitApplicationBody.annualRevenue.toString())
  }
+if(submitApplicationBody.industry !== undefined) {
+ formData.append(`industry`, submitApplicationBody.industry);
+ }
+if(submitApplicationBody.industryDetail !== undefined) {
+ formData.append(`industryDetail`, submitApplicationBody.industryDetail);
+ }
+if(submitApplicationBody.monthlyRevenueStated !== undefined) {
+ formData.append(`monthlyRevenueStated`, submitApplicationBody.monthlyRevenueStated.toString())
+ }
+if(submitApplicationBody.timeInBusinessMonths !== undefined) {
+ formData.append(`timeInBusinessMonths`, submitApplicationBody.timeInBusinessMonths.toString())
+ }
+if(submitApplicationBody.industryExperienceMonths !== undefined) {
+ formData.append(`industryExperienceMonths`, submitApplicationBody.industryExperienceMonths.toString())
+ }
 if(submitApplicationBody.businessStartDate !== undefined) {
  formData.append(`businessStartDate`, submitApplicationBody.businessStartDate);
  }
@@ -5853,6 +5868,12 @@ if(submitApplicationBody.trucksInFleet !== undefined) {
  }
 if(submitApplicationBody.downPaymentAmount !== undefined) {
  formData.append(`downPaymentAmount`, submitApplicationBody.downPaymentAmount.toString())
+ }
+if(submitApplicationBody.hasFinancialStatements !== undefined) {
+ formData.append(`hasFinancialStatements`, submitApplicationBody.hasFinancialStatements.toString())
+ }
+if(submitApplicationBody.hasFactoring !== undefined) {
+ formData.append(`hasFactoring`, submitApplicationBody.hasFactoring.toString())
  }
 formData.append(`consentCreditPull`, submitApplicationBody.consentCreditPull.toString())
 formData.append(`consentTerms`, submitApplicationBody.consentTerms.toString())

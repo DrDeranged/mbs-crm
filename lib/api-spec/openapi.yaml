@@ -2019,6 +2019,17 @@ paths:
                   enum: [LLC, Corp, Sole Prop, Partnership, Other]
                 annualRevenue:
                   type: number
+                industry:
+                  type: string
+                industryDetail:
+                  type: string
+                monthlyRevenueStated:
+                  type: integer
+                  description: Exact stated monthly revenue; do not submit a bucket ceiling.
+                timeInBusinessMonths:
+                  type: integer
+                industryExperienceMonths:
+                  type: integer
                 businessStartDate:
                   type: string
                   pattern: '^(0[1-9]|1[0-2])/[0-9]{4}$'
@@ -2060,6 +2071,10 @@ paths:
                 downPaymentAmount:
                   type: number
                   description: Equipment applications only
+                hasFinancialStatements:
+                  type: boolean
+                hasFactoring:
+                  type: boolean
                 consentCreditPull:
                   type: boolean
                 consentTerms:
@@ -5176,7 +5191,7 @@ components:
 
     Lender:
       type: object
-      required: [id, name, programTypes, acceptedIndustries, acceptedStates, minTimeInBusinessMonths, maxExistingPositions, priorityWeight, isActive, createdAt, updatedAt]
+      required: [id, name, programTypes, acceptedIndustries, restrictedIndustries, prohibitedIndustries, acceptedStates, minTimeInBusinessMonths, maxExistingPositions, priorityWeight, requiresFinancialStatements, isActive, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5196,8 +5211,42 @@ components:
           type: array
           items:
             type: string
+        restrictedIndustries:
+          type: array
+          items:
+            type: string
+        prohibitedIndustries:
+          type: array
+          items:
+            type: string
+        minMonthlyRevenue:
+          type: ["integer", "null"]
+        restrictedIndustryMinMonthlyRevenue:
+          type: ["integer", "null"]
+        startupMinCreditScore:
+          type: ["integer", "null"]
+        startupMaxTimeInBusinessMonths:
+          type: ["integer", "null"]
+        startupMaxAmount:
+          type: ["integer", "null"]
+        minIndustryExperienceMonths:
+          type: ["integer", "null"]
+        requiresFinancialStatements:
+          type: boolean
+        truckingRules:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/TruckingRule"
+        industryTimeInBusinessOverrides:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/IndustryTimeInBusinessOverride"
+        programEligibilityRules:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/ProgramEligibilityRule"
         minTimeInBusinessMonths:
-          type: integer
+          type: ["integer", "null"]
         acceptedStates:
           type: array
           items:
@@ -5241,8 +5290,42 @@ components:
           type: array
           items:
             type: string
+        restrictedIndustries:
+          type: array
+          items:
+            type: string
+        prohibitedIndustries:
+          type: array
+          items:
+            type: string
+        minMonthlyRevenue:
+          type: ["integer", "null"]
+        restrictedIndustryMinMonthlyRevenue:
+          type: ["integer", "null"]
+        startupMinCreditScore:
+          type: ["integer", "null"]
+        startupMaxTimeInBusinessMonths:
+          type: ["integer", "null"]
+        startupMaxAmount:
+          type: ["integer", "null"]
+        minIndustryExperienceMonths:
+          type: ["integer", "null"]
+        requiresFinancialStatements:
+          type: boolean
+        truckingRules:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/TruckingRule"
+        industryTimeInBusinessOverrides:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/IndustryTimeInBusinessOverride"
+        programEligibilityRules:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/ProgramEligibilityRule"
         minTimeInBusinessMonths:
-          type: integer
+          type: ["integer", "null"]
         acceptedStates:
           type: array
           items:
@@ -5261,6 +5344,54 @@ components:
           type: ["string", "null"]
         isActive:
           type: boolean
+
+    TruckingRule:
+      type: object
+      required: [industry]
+      properties:
+        industry:
+          type: string
+          enum: [long_haul, local, any]
+        prohibited:
+          type: boolean
+        minTrucks:
+          type: integer
+        minTimeInBusinessMonths:
+          type: integer
+        requiresNoFactoring:
+          type: boolean
+
+    IndustryTimeInBusinessOverride:
+      type: object
+      required: [industry, minTimeInBusinessMonths]
+      properties:
+        industry:
+          type: string
+        minTimeInBusinessMonths:
+          type: integer
+
+    ProgramEligibilityRule:
+      type: object
+      required: [programType]
+      properties:
+        programType:
+          type: string
+        minMonthlyRevenue:
+          type: integer
+        restrictedIndustryMinMonthlyRevenue:
+          type: integer
+        restrictedIndustries:
+          type: array
+          items:
+            type: string
+        prohibitedIndustries:
+          type: array
+          items:
+            type: string
+        truckingRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/TruckingRule"
 
     LenderMatch:
       type: object
@@ -5570,6 +5701,12 @@ components:
           type: ["integer", "null"]
         downPaymentAmount:
           type: ["string", "null"]
+        hasFinancialStatements:
+          type: ["boolean", "null"]
+        hasFactoring:
+          type: ["boolean", "null"]
+        industryExperienceMonths:
+          type: ["integer", "null"]
         ownerFirstName:
           type: string
         ownerLastName:

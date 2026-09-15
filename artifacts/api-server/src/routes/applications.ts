@@ -286,7 +286,9 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           businessCity: applicationBody.businessCity || null,
           businessState: applicationBody.businessState || null,
           businessZip: applicationBody.businessZip || null,
-          industry: applicationBody.industry || null,
+          industry: applicationBody.industry === "Other"
+            ? applicationBody.industryDetail || null
+            : applicationBody.industry || null,
            businessType: applicationBody.businessType || null,
            annualRevenue: applicationBody.annualRevenue ? String(applicationBody.annualRevenue) : null,
            businessStartDate: applicationBody.businessStartDate || null,
@@ -305,6 +307,15 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
            yearMakeModel: applicationBody.yearMakeModel || null,
            trucksInFleet: applicationBody.trucksInFleet ? Number(applicationBody.trucksInFleet) : null,
            downPaymentAmount: applicationBody.downPaymentAmount ? String(applicationBody.downPaymentAmount) : null,
+           hasFinancialStatements: applicationBody.hasFinancialStatements === undefined
+             ? null
+             : applicationBody.hasFinancialStatements === "true" || applicationBody.hasFinancialStatements === true,
+           hasFactoring: applicationBody.hasFactoring === undefined
+             ? null
+             : applicationBody.hasFactoring === "true" || applicationBody.hasFactoring === true,
+           industryExperienceMonths: applicationBody.industryExperienceMonths
+             ? Number(applicationBody.industryExperienceMonths)
+             : null,
           ownerFirstName: applicationBody.ownerFirstName,
           ownerLastName: applicationBody.ownerLastName,
           ownerSsnEncrypted,

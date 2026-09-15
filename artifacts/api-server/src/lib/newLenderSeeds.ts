@@ -21,6 +21,7 @@ const YES_ACCEPTED_STATES = Object.freeze([
 
 export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
 export const BATCH_2_LENDER_UPDATE_MARKER = "2026-09-15 packet update";
+export const STRUCTURED_GATE_BACKFILL_MARKER = "2026-09-16 structured matcher gate backfill";
 
 export interface ExistingLenderMatchingBaseline {
   programTypes: readonly string[];
@@ -41,6 +42,7 @@ export const EXISTING_LENDER_UPDATES = Object.freeze([
   Object.freeze({
     name: "Alliance Funding Group (AFG)",
     marker: EXISTING_LENDER_UPDATE_MARKER,
+    gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
     notes: `2026-09-14 packet update
 
 SOURCE STATEMENTS (verbatim):
@@ -55,6 +57,33 @@ SCHEMA MAPPING:
       minCreditScore: 600,
       minTimeInBusinessMonths: 48,
       maxAmount: 500_000,
+      programEligibilityRules: Object.freeze([
+        Object.freeze({
+          programType: "working_capital",
+          minMonthlyRevenue: 20_000,
+          restrictedIndustries: Object.freeze([
+            "cannabis", "law offices", "adult", "vending", "gaming", "staffing",
+            "non-franchise used car dealers", "MSBs", "real estate agents/brokers",
+            "vape", "collections", "pawn", "transportation", "online retailers",
+            "import/export", "accounting", "financial services",
+          ]),
+          truckingRules: Object.freeze([
+            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+          ]),
+        }),
+        Object.freeze({
+          programType: "equipment",
+          restrictedIndustries: Object.freeze([
+            "cannabis", "law offices", "adult", "tow trucks for towing businesses",
+            "med lasers/med spa", "vending", "gaming", "staffing",
+            "non-franchise used car dealers", "MSBs", "real estate agents", "vape",
+            "collections", "pawn", "motorcoaches", "used high-tech", "Penske/Ryder dealers",
+          ]),
+          truckingRules: Object.freeze([
+            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+          ]),
+        }),
+      ]),
     }),
     matchingBaseline: Object.freeze({
       programTypes: Object.freeze(["working_capital", "equipment"]),
@@ -115,6 +144,7 @@ SCHEMA MAPPING:
   Object.freeze({
     name: "Dexly Finance",
     marker: BATCH_2_LENDER_UPDATE_MARKER,
+    gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
     notes: `2026-09-15 packet update
 
 SOURCE STATEMENTS (verbatim):
@@ -125,8 +155,22 @@ SOURCE STATEMENTS (verbatim):
 - Submissions to underwriting@dexlyfinance.com cc Relations Manager; all communication in the original thread. Stipulations: application, 3 recent bank statements, accounts receivable, tax return, merchant DL/VC, credit card statement.
 - (September 2026 bonus structure PNG is a promotional commission bonus, not criteria — not recorded.)
 
-SCHEMA MAPPING: amounts and TIB are unchanged. Positions are no limit in source statements; the existing schema value is preserved because this is a notes-only update.`,
-    structuredPatch: Object.freeze({}),
+SCHEMA MAPPING: amounts and TIB are unchanged. Positions are no limit in source statements; structured matcher fields enforce the stated monthly-revenue and industry rules.`,
+    structuredPatch: Object.freeze({
+  restrictedIndustries: Object.freeze([
+    "auto dealership (new)", "construction", "consulting", "energy/oil & gas",
+    "hospitality — vacation rentals", "IT — software development", "law firm",
+    "real estate — development/property management", "services — staffing",
+    "transportation — passenger/trucking", "wholesale — food distribution/goods",
+  ]),
+  prohibitedIndustries: Object.freeze([
+    "auto dealership (used)", "bail bonds", "cannabis", "cash exchange",
+    "collection agency/credit repair", "financial services", "logistics/import & export",
+    "freight brokers", "real estate — brokerage", "religious services", "services — travel agency",
+  ]),
+  minMonthlyRevenue: 200_000,
+  restrictedIndustryMinMonthlyRevenue: 1_000_000,
+    }),
     matchingBaseline: Object.freeze({
       programTypes: Object.freeze(["working_capital", "MCA"]),
       minAmount: 75_000,
@@ -140,6 +184,7 @@ SCHEMA MAPPING: amounts and TIB are unchanged. Positions are no limit in source 
   Object.freeze({
     name: "TimePayment Corp",
     marker: BATCH_2_LENDER_UPDATE_MARKER,
+    gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
     notes: `2026-09-15 packet update
 
 SOURCE STATEMENTS (verbatim):
@@ -149,9 +194,14 @@ SOURCE STATEMENTS (verbatim):
 - $1 buyout states (2026): AL, AZ, CO, DE, HI, IN, LA, MD, ME, MO, NC, OH, OK, PA, SD, UT, WI, WY (TX, MA, SC dropped vs earlier guide).
 - Contacts: Caitlin Keefe 855-259-1034 caitlin.keefe@timepayment.com; Ian Mayer 866-994-7162 ian.mayer@timepayment.com; brokerdesk@timepayment.com 866-994-7260.
 
-SCHEMA MAPPING: maxAmount is $150,000 because the credit chart caps every tier at $150K total funding; minAmount remains $500. All other criteria remain in source statements.`,
+SCHEMA MAPPING: maxAmount is $150,000 because the credit chart caps every tier at $150K total funding; minAmount remains $500. Structured matcher fields enforce the stated restricted industries; other criteria remain in source statements.`,
     structuredPatch: Object.freeze({
       maxAmount: 150_000,
+      restrictedIndustries: Object.freeze([
+        "consumer", "private party sales", "sale leasebacks", "working capital",
+        "permanent fixtures", "ATM", "POS/bankcard", "cannabis",
+        "computers and 100% software", "copiers", "security & monitoring", "water quality products",
+      ]),
     }),
     matchingBaseline: Object.freeze({
       programTypes: Object.freeze(["equipment"]),
@@ -259,15 +309,29 @@ SCHEMA MAPPING:
 - Mapped: working_capital and MCA programs, $75,000–$5,000,000 amount range,
   12-month minimum TIB, 1–5 position maximum, all 50 US states and Puerto
   Rico, and the stated underwriting email.
-- Unsupported by the existing lender schema and retained above: terms and
-  repayment cadence, monthly revenue, no-bankruptcy and NSF rules, paper
-  grade, Texas first-position rule, Canadian enhanced-review rule,
-  restricted industries and revenue exception, pricing and commission tiers,
+- Structured matcher fields now enforce the stated monthly-revenue minimum,
+  restricted/prohibited industries, and restricted-industry revenue exception.
+  Unsupported and retained above: terms and repayment cadence, no-bankruptcy
+  and NSF rules, paper grade, Texas first-position rule, Canadian enhanced-review rule,
+  pricing and commission tiers,
   documentation/stips, ISO Relations Manager CC rule, original-thread rule,
   and the approval/funding model.`,
   isActive: true,
   acceptedIndustries: Object.freeze([]),
   maxExistingPositions: 5,
+    restrictedIndustries: Object.freeze([
+      "auto dealership (new)", "construction", "consulting", "energy/oil & gas",
+      "hospitality — vacation rentals", "IT — software development", "law firm",
+      "real estate — development/property management", "services — staffing",
+      "transportation — passenger/trucking", "wholesale — food distribution/goods",
+    ]),
+    prohibitedIndustries: Object.freeze([
+      "auto dealership (used)", "bail bonds", "cannabis", "cash exchange",
+      "collection agency/credit repair", "financial services", "logistics/import & export",
+      "freight brokers", "real estate — brokerage", "religious services", "services — travel agency",
+    ]),
+    minMonthlyRevenue: 200_000,
+    restrictedIndustryMinMonthlyRevenue: 1_000_000,
 }),
   Object.freeze({
     name: "Thoro Corp",
@@ -342,9 +406,18 @@ SCHEMA MAPPING:
 - Mapped: equipment, $10,000–$350,000, minCreditScore 660, TIB 24, all 50 states + DC, and myapplications@navitascredit.com.
 - contactName was not stated; no name is inferred.
 - minCreditScore 660 is the Bronze tier floor; minTimeInBusinessMonths 24 is the Bronze/Silver minimum. The higher-tier, commercial, Start-Up, Medical, and Corp-only values remain in SOURCE STATEMENTS because they do not map to one lender-level value.
-- Unsupported and retained above: app-only/commercial/call amount distinctions, tier rules, comparable business credit, CompLight, rates, fees, commissions, bank-statement and mortgage rules, Start-Up Business Program, Medical Program, Corp-only rules, restricted industries, restricted equipment, UCC/site-inspection/Second Glance rules, and address/phone/credit-department/portal details.`,
+- Structured matcher fields enforce the stated prohibited industries and long-haul trucking decline. Unsupported and retained above: app-only/commercial/call amount distinctions, tier rules, comparable business credit, CompLight, rates, fees, commissions, bank-statement and mortgage rules, Start-Up Business Program, Medical Program, Corp-only rules, restricted equipment, UCC/site-inspection/Second Glance rules, and address/phone/credit-department/portal details.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    prohibitedIndustries: Object.freeze([
+      "adult entertainment", "agriculture", "cannabis", "consultants/financial advisors",
+      "forestry/lumber/logging", "gaming/gambling", "mining", "oil & gas",
+      "real estate/mortgage", "security/commodity brokers", "spas/medi spas", "tanning",
+      "trucking long-distance", "vendor route operators",
+    ]),
+    truckingRules: Object.freeze([
+      Object.freeze({ industry: "long_haul", prohibited: true }),
+    ]),
   }),
   Object.freeze({
     name: "Keystone Equipment Finance Corp (KEF)",
@@ -412,9 +485,30 @@ SCHEMA MAPPING:
 - contactName was not stated; no name is inferred.
 - EF minAmount is $15,000 and EF tier exposure is $250k–$300k; the lender-level amount mapping uses the WC $10,000–$400,000 range.
 - EF tiers 24–84 months TIB and all other program-specific values remain in SOURCE STATEMENTS because the schema has one lender-level credit, TIB, and amount value.
-- Unsupported and retained above: terms, revenue, credit-recovery rules, tax-lien rules, fees, commissions, submission/funding documents, payoff rules, EF tiers, transportation rules, asset ages, restricted industries/equipment, address/phone, and portal.`,
+- Structured matcher fields enforce the WC monthly-revenue floor and WC restricted industries, while EF trucking rules remain product-scoped. Unsupported and retained above: terms, credit-recovery rules, tax-lien rules, fees, commissions, submission/funding documents, payoff rules, EF tiers beyond trucking, asset ages, restricted equipment, address/phone, and portal.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    restrictedIndustries: Object.freeze([
+      "adult", "credit service/collection/repo", "day trading", "financial services",
+      "firearms", "gambling", "government", "insurance", "legal services", "marijuana/CBD",
+      "marinas", "mining", "money service", "mobile home dealers", "MLM", "non-profit",
+      "oil", "political orgs", "precious metals", "religious", "tanning", "tattoo/massage",
+      "tax prep", "vape",
+    ]),
+    programEligibilityRules: Object.freeze([
+      Object.freeze({
+        programType: "working_capital",
+        minMonthlyRevenue: 14_583,
+      }),
+      Object.freeze({
+        programType: "equipment",
+        truckingRules: Object.freeze([
+          Object.freeze({ industry: "any", minTrucks: 2, minTimeInBusinessMonths: 48 }),
+          Object.freeze({ industry: "long_haul", minTrucks: 10, minTimeInBusinessMonths: 72 }),
+          Object.freeze({ industry: "local", minTrucks: 2, minTimeInBusinessMonths: 48 }),
+        ]),
+      }),
+    ]),
   }),
   Object.freeze({
     name: "TimePayment Corp",
@@ -447,6 +541,11 @@ SCHEMA MAPPING:
 - Unsupported and retained above: lease/product types, score tiers, terms, account/company history, commission treatment, fees, inspection/direct-debit/security-deposit rules, excluded industries, portal/phone, and the seeded-deal statement.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    restrictedIndustries: Object.freeze([
+      "consumer", "private party sales", "sale leasebacks", "working capital",
+      "permanent fixtures", "ATM", "POS/bankcard", "cannabis",
+      "computers and 100% software", "copiers", "security & monitoring", "water quality products",
+    ]),
   }),
   Object.freeze({
     name: "PEAC Solutions",
@@ -506,9 +605,24 @@ SCHEMA MAPPING:
 - Renewals: eligible at 50% repaid with good payment history; considered as early as 40% repaid with very good payment history.
 - Contact: Misha Mikhaylov, CEO, 25 SE 2nd Ave Ste 550-789, Miami, FL 33131; (305) 307-0190; partners@luminarcapital.com. ISO compensation paid within 5 business days of funding; clawback if 2 of first 5 debits return, or default/insolvency/3+ returns within 30 days.
 
-SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 500, TIB 12, positions 1–4, contact email. Unsupported and retained above: paper tiers, term ranges, remit/negative-day/ADB/deposit-count rules, auto-decline list, restricted industries, risk classification, TIB overrides, pricing, fees, renewal rules.`,
+SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 500, TIB 12, positions 1–4, contact email, stated monthly-revenue minimum, auto-decline industries, trucking no-factoring/TIB, and industry TIB overrides. Unsupported and retained above: paper tiers, term ranges, remit/negative-day/ADB/deposit-count rules, risk classification, pricing, fees, renewal rules.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    prohibitedIndustries: Object.freeze([
+      "adult entertainment", "all-cash businesses", "auction", "bail bonds",
+      "check cashing and money wiring", "commodity-based (precious metals)", "cryptocurrencies",
+      "debt collection and bankruptcy lawyer", "drug paraphernalia", "helicopter tours",
+      "international businesses", "lending or financing firm (equipment finance)",
+      "lottery and gambling", "multi-level marketing", "non-profit and religious", "solar",
+    ]),
+    minMonthlyRevenue: 10_000,
+    truckingRules: Object.freeze([
+      Object.freeze({ industry: "any", minTimeInBusinessMonths: 36, requiresNoFactoring: true }),
+    ]),
+    industryTimeInBusinessOverrides: Object.freeze([
+      Object.freeze({ industry: "law offices", minTimeInBusinessMonths: 60 }),
+      Object.freeze({ industry: "construction/general contractor", minTimeInBusinessMonths: 24 }),
+    ]),
   }),
   Object.freeze({
     name: "North Mill Equipment Finance (NMEF)",
@@ -533,9 +647,13 @@ SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 
 - Perks: startups 640+ FICO & 3 yrs industry experience; owner-operators and sole props; additional collateral; placeholder approvals; private party sales.
 - Contacts: apps@nmef.com (new deals), fasttresubmits@nmef.com, apprfi@nmef.com, fastdocs@nmef.com; main 203-354-6000; broker portal broker.nmef.com; HQ 601 Merritt 7 Suite 5, Norwalk, CT 06851; titling/lienholder North Mill Credit Trust, 9 Executive Circle Suite 230, Irvine, CA 92614.
 
-SCHEMA MAPPING: equipment, $15,000–$300,000, minCreditScore 550, TIB 0, all 50 states, and apps@nmef.com. The startup 640+ FICO and 3-year industry-experience requirements remain in source statements pending structural matcher support.`,
+SCHEMA MAPPING: equipment, $15,000–$300,000, minCreditScore 550, TIB 0, all 50 states, and apps@nmef.com. The startup $200,000 cap, startup 640+ FICO, and 3-year industry-experience requirements are structurally enforced; remaining price-card criteria stay in source statements.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    startupMinCreditScore: 640,
+    startupMaxTimeInBusinessMonths: 24,
+    startupMaxAmount: 200_000,
+    minIndustryExperienceMonths: 36,
   }),
   Object.freeze({
     name: "CapTech Financial",
@@ -554,9 +672,10 @@ SCHEMA MAPPING: equipment, $15,000–$300,000, minCreditScore 550, TIB 0, all 50
 - Credit approval in 2–10 business days after formal submission; uncapped referral fee on all funded transactions.
 - Address: 1495 South Dixie Dr., St. George, UT 84770.
 
-SCHEMA MAPPING: equipment, $250,000–$25,000,000, minCreditScore null, minTimeInBusinessMonths null, all 50 states, and contactEmail null. Financial-statement requirements remain in source statements pending structural matcher support.`,
+SCHEMA MAPPING: equipment, $250,000–$25,000,000, minCreditScore null, minTimeInBusinessMonths null, all 50 states, and contactEmail null. Required financial-statement availability is structurally enforced; remaining financial quality requirements stay in source statements.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    requiresFinancialStatements: true,
   }),
   Object.freeze({
     name: "Ophelia Capital Group",
@@ -572,9 +691,12 @@ SCHEMA MAPPING: equipment, $250,000–$25,000,000, minCreditScore null, minTimeI
 - Time in business: 2 years minimum. FICO: any (rarely pull credit). Ownership for funding: 51%. Minimum monthly gross deposits: $1,000,000+. Negative days/NSF: 2–5 days (with overdraft protection only). Minimum funding amount: $250,000. Terms: 60–200 days. Repayment: daily, biweekly, weekly.
 - Same-day commissions. Contact Avi Nisanov, President; +1 (917) 653-8331; subs@opheliacapitalgrp.com; New York.
 
-SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditScore null, TIB 24 months, all 50 states, and subs@opheliacapitalgrp.com. The $1,000,000 monthly-revenue rule and restricted-industry exception remain in source statements pending structural matcher support.`,
+SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditScore null, TIB 24 months, all 50 states, and subs@opheliacapitalgrp.com. The $1,000,000 monthly-revenue rule and restricted-industry exception are structurally enforced; remaining source facts stay above.`,
     isActive: true,
     acceptedIndustries: Object.freeze([]),
+    restrictedIndustries: Object.freeze(["car dealerships", "trucking", "law firms"]),
+    minMonthlyRevenue: 1_000_000,
+    restrictedIndustryMinMonthlyRevenue: 1_000_000,
   }),
 ] as const);
 
@@ -588,6 +710,30 @@ export function newLenderSeedToInsertValues(seed: NewLenderSeed) {
     maxAmount: seed.maxAmount,
     minCreditScore: seed.minCreditScore,
     acceptedIndustries: [...seed.acceptedIndustries],
+    restrictedIndustries: "restrictedIndustries" in seed ? [...seed.restrictedIndustries] : [],
+    prohibitedIndustries: "prohibitedIndustries" in seed ? [...seed.prohibitedIndustries] : [],
+    minMonthlyRevenue: "minMonthlyRevenue" in seed ? seed.minMonthlyRevenue : null,
+    restrictedIndustryMinMonthlyRevenue: "restrictedIndustryMinMonthlyRevenue" in seed
+      ? seed.restrictedIndustryMinMonthlyRevenue
+      : null,
+    startupMinCreditScore: "startupMinCreditScore" in seed ? seed.startupMinCreditScore : null,
+    startupMaxTimeInBusinessMonths: "startupMaxTimeInBusinessMonths" in seed
+      ? seed.startupMaxTimeInBusinessMonths
+      : null,
+    startupMaxAmount: "startupMaxAmount" in seed ? seed.startupMaxAmount : null,
+    minIndustryExperienceMonths: "minIndustryExperienceMonths" in seed
+      ? seed.minIndustryExperienceMonths
+      : null,
+    requiresFinancialStatements: "requiresFinancialStatements" in seed
+      ? seed.requiresFinancialStatements
+      : false,
+    truckingRules: "truckingRules" in seed ? [...seed.truckingRules] : null,
+    industryTimeInBusinessOverrides: "industryTimeInBusinessOverrides" in seed
+      ? [...seed.industryTimeInBusinessOverrides]
+      : null,
+    programEligibilityRules: "programEligibilityRules" in seed
+      ? JSON.parse(JSON.stringify(seed.programEligibilityRules))
+      : null,
     minTimeInBusinessMonths: seed.minTimeInBusinessMonths,
     acceptedStates: [...seed.acceptedStates],
     ...("maxExistingPositions" in seed ? { maxExistingPositions: seed.maxExistingPositions } : {}),

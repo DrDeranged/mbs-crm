@@ -110,9 +110,16 @@ export const submitSchema = z.object({
   yearMakeModel: optionalStr(z.string().max(200)),
   trucksInFleet: optionalStr(z.string().regex(/^\d+$/, "Trucks in fleet must be a whole number")),
   downPaymentAmount: optionalStr(z.string().refine(isNonNegativeAmount, "Down payment amount must be zero or greater")),
+  hasFinancialStatements: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
+  hasFactoring: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
+  industryExperienceMonths: optionalStr(z.string().regex(/^\d+$/, "Industry experience must be a whole number of months")),
+  industryDetail: optionalStr(z.string().max(200)),
 }).superRefine((data, ctx) => {
   for (const issue of validateApplicationRules(data)) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue.error, path: [issue.field] });
+  }
+  if (data.industry === "Other" && !data.industryDetail) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please specify the business industry", path: ["industryDetail"] });
   }
   const signature = normalizeSignature(data.signatureMethod, data.signatureData);
   if (!signature.success) {

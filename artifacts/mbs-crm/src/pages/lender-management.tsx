@@ -26,6 +26,9 @@ interface LenderFormData {
   maxAmount: string;
   minCreditScore: string;
   acceptedIndustries: string;
+  restrictedIndustries: string;
+  prohibitedIndustries: string;
+  minMonthlyRevenue: string;
   minTimeInBusinessMonths: string;
   acceptedStates: string[];
   maxExistingPositions: string;
@@ -43,7 +46,10 @@ const emptyForm = (): LenderFormData => ({
   maxAmount: "",
   minCreditScore: "",
   acceptedIndustries: "",
-  minTimeInBusinessMonths: "0",
+  restrictedIndustries: "",
+  prohibitedIndustries: "",
+  minMonthlyRevenue: "",
+  minTimeInBusinessMonths: "",
   acceptedStates: [],
   maxExistingPositions: "10",
   priorityWeight: "5",
@@ -61,6 +67,9 @@ function lenderToForm(l: any): LenderFormData {
     maxAmount: l.maxAmount != null ? String(l.maxAmount) : "",
     minCreditScore: l.minCreditScore != null ? String(l.minCreditScore) : "",
     acceptedIndustries: (l.acceptedIndustries ?? []).join(", "),
+    restrictedIndustries: (l.restrictedIndustries ?? []).join(", "),
+    prohibitedIndustries: (l.prohibitedIndustries ?? []).join(", "),
+    minMonthlyRevenue: l.minMonthlyRevenue != null ? String(l.minMonthlyRevenue) : "",
     minTimeInBusinessMonths: String(l.minTimeInBusinessMonths ?? 0),
     acceptedStates: l.acceptedStates ?? [],
     maxExistingPositions: String(l.maxExistingPositions ?? 10),
@@ -82,7 +91,14 @@ function formToPayload(f: LenderFormData) {
     acceptedIndustries: f.acceptedIndustries
       ? f.acceptedIndustries.split(",").map((s) => s.trim()).filter(Boolean)
       : [],
-    minTimeInBusinessMonths: parseInt(f.minTimeInBusinessMonths, 10) || 0,
+    restrictedIndustries: f.restrictedIndustries
+      ? f.restrictedIndustries.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    prohibitedIndustries: f.prohibitedIndustries
+      ? f.prohibitedIndustries.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    minMonthlyRevenue: f.minMonthlyRevenue ? parseInt(f.minMonthlyRevenue, 10) : null,
+    minTimeInBusinessMonths: f.minTimeInBusinessMonths ? parseInt(f.minTimeInBusinessMonths, 10) : null,
     acceptedStates: f.acceptedStates,
     maxExistingPositions: parseInt(f.maxExistingPositions, 10) || 10,
     priorityWeight: Math.max(1, Math.min(10, parseInt(f.priorityWeight, 10) || 5)),
@@ -169,6 +185,22 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
         <Label>Accepted Industries (comma-separated)</Label>
         <Input value={form.acceptedIndustries} onChange={(e) => set("acceptedIndustries", e.target.value)} placeholder="Retail, Restaurant, Healthcare" className="mt-1" />
         <p className="text-xs text-muted-foreground mt-0.5">Leave blank to accept all industries</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        <div>
+          <Label>Restricted Industries (comma-separated)</Label>
+          <Input value={form.restrictedIndustries} onChange={(e) => set("restrictedIndustries", e.target.value)} placeholder="Construction, trucking" className="mt-1" />
+          <p className="text-xs text-muted-foreground mt-0.5">Restricted industries are excluded unless their stated lender exception is met.</p>
+        </div>
+        <div>
+          <Label>Prohibited Industries (comma-separated)</Label>
+          <Input value={form.prohibitedIndustries} onChange={(e) => set("prohibitedIndustries", e.target.value)} placeholder="Cannabis, gambling" className="mt-1" />
+        </div>
+        <div>
+          <Label>Minimum Monthly Revenue ($)</Label>
+          <Input type="number" min="0" value={form.minMonthlyRevenue} onChange={(e) => set("minMonthlyRevenue", e.target.value)} placeholder="200000" className="mt-1" />
+        </div>
       </div>
 
       <div>
