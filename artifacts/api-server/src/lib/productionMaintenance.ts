@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { and, asc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import {
   activityLogTable,
@@ -275,7 +276,7 @@ export async function executeLenderSeedAndUpdates(
   );
   const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
   for (const seed of plan.toCreate) {
-    await tx.insert(lendersTable).values(newLenderSeedToInsertValues(seed));
+    await tx.insert(lendersTable).values(newLenderSeedToInsertValues(seed) as any);
   }
 
   const existingLenderUpdates = [];
@@ -288,6 +289,14 @@ export async function executeLenderSeedAndUpdates(
         id: lendersTable.id,
         name: lendersTable.name,
         notes: lendersTable.notes,
+        minCreditScore: lendersTable.minCreditScore,
+        minTimeInBusinessMonths: lendersTable.minTimeInBusinessMonths,
+        maxAmount: lendersTable.maxAmount,
+        restrictedIndustries: lendersTable.restrictedIndustries,
+        prohibitedIndustries: lendersTable.prohibitedIndustries,
+        minMonthlyRevenue: lendersTable.minMonthlyRevenue,
+        restrictedIndustryMinMonthlyRevenue: lendersTable.restrictedIndustryMinMonthlyRevenue,
+        programEligibilityRules: lendersTable.programEligibilityRules,
       })
       .from(lendersTable)
       .where(eq(lendersTable.name, update.name))
@@ -301,7 +310,15 @@ export async function executeLenderSeedAndUpdates(
       });
       continue;
     }
-    if (existing.notes?.includes(update.marker)) {
+    const packetAlreadyApplied = existing.notes?.includes(update.marker) ?? false;
+    const gateBackfillMarker = "gateBackfillMarker" in update ? update.gateBackfillMarker : null;
+    const structuredFieldsDiffer = Object.entries(update.structuredPatch).some(([key, value]) =>
+      !isDeepStrictEqual((existing as Record<string, unknown>)[key] ?? null, value ?? null),
+    );
+    const gateBackfillNeeded = gateBackfillMarker != null
+      && !existing.notes?.includes(gateBackfillMarker)
+      && structuredFieldsDiffer;
+    if (packetAlreadyApplied && !gateBackfillNeeded) {
       existingLenderUpdates.push({
         name: update.name,
         status: "already_applied" as const,
@@ -310,14 +327,23 @@ export async function executeLenderSeedAndUpdates(
       continue;
     }
 
-    const updated = applyExistingLenderUpdate(existing, update);
+    const updateNotes = `${gateBackfillMarker}\nSCHEMA MAPPING CLARIFICATION: structured matcher fields were backfilled from the preserved packet source statements.`;
+    const baseUpdated = packetAlreadyApplied
+      ? {
+        ...existing,
+        notes: `${existing.notes}\n\n${updateNotes}`,
+      }
+      : applyExistingLenderUpdate(existing, update);
+    const updated = gateBackfillMarker != null && !(baseUpdated.notes ?? "").includes(gateBackfillMarker)
+      ? { ...baseUpdated, notes: `${baseUpdated.notes ?? ""}\n\n${updateNotes}` }
+      : baseUpdated;
     await tx
       .update(lendersTable)
       .set({
-        ...update.structuredPatch,
+        ...(update.structuredPatch as Record<string, unknown>),
         notes: updated.notes,
         updatedAt: new Date(),
-      })
+      } as any)
       .where(eq(lendersTable.id, existing.id));
     existingLenderUpdates.push({
       name: update.name,
@@ -338,16 +364,26 @@ export async function executeLenderSeedAndUpdates(
   const missingExistingNames: string[] = existingLenderUpdates
     .filter((update) => update.status === "missing")
     .map((update) => update.name);
-  const updatedNames: string[] = updatedExistingNames;
+  const createdNames: string[] = plan.toCreate.map((seed) => seed.name);
+  // A newly inserted canonical seed can receive a packet update in the same
+  // transaction. It is still reported as created (its final row includes the
+  // patch), keeping the public created/updated/unchanged buckets exclusive.
+  const updatedNames: string[] = updatedExistingNames.filter((name) => !createdNames.includes(name));
   // "unchanged" covers both configured new seeds that already existed and
   // Section B targets whose packet marker is already present. Missing exact
   // update targets stay separate and are never counted as unchanged.
-  const unchangedNames: string[] = [...plan.unchangedNames, ...unchangedExistingNames];
+  // A seed name can also be an already-applied packet-update target. Report
+  // each unchanged lender once so the displayed inventory is an actual unique
+  // set, while retaining the detailed existingLenderUpdates list for audit.
+  const unchangedNames: string[] = [...new Set([
+    ...plan.unchangedNames,
+    ...unchangedExistingNames,
+  ])].filter((name) => !createdNames.includes(name) && !updatedNames.includes(name));
   return {
-    created: plan.toCreate.length,
+    created: createdNames.length,
     updated: updatedNames.length,
     unchanged: unchangedNames.length,
-    createdNames: plan.toCreate.map((seed) => seed.name),
+    createdNames,
     updatedNames,
     unchangedNames,
     missingUpdateNames: missingExistingNames,

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
+  BATCH_2_LENDER_UPDATE_MARKER,
   EXISTING_LENDER_UPDATE_MARKER,
   EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
@@ -204,20 +205,27 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.ok(dexly);
   assert.ok(thoro);
 
-  assert.deepEqual({ ...dexly, programTypes: [...dexly.programTypes], acceptedStates: [...dexly.acceptedStates] }, {
-    name: "Dexly Finance",
-    programTypes: ["working_capital", "MCA"],
-    minAmount: 75_000,
-    maxAmount: 5_000_000,
-    minCreditScore: null,
-    minTimeInBusinessMonths: 12,
-    acceptedStates: STATE_LIST,
-    contactEmail: "underwriting@dexlyfinance.com",
-    notes: EXPECTED_DEXLY_NOTES,
-    isActive: true,
-    acceptedIndustries: [],
-    maxExistingPositions: 5,
+  assert.deepEqual({
+    name: dexly.name,
+    programTypes: [...dexly.programTypes],
+    minAmount: dexly.minAmount,
+    maxAmount: dexly.maxAmount,
+    minCreditScore: dexly.minCreditScore,
+    minTimeInBusinessMonths: dexly.minTimeInBusinessMonths,
+    acceptedStates: [...dexly.acceptedStates],
+    contactEmail: dexly.contactEmail,
+    isActive: dexly.isActive,
+    acceptedIndustries: dexly.acceptedIndustries,
+    maxExistingPositions: dexly.maxExistingPositions,
+  }, {
+    name: "Dexly Finance", programTypes: ["working_capital", "MCA"], minAmount: 75_000,
+    maxAmount: 5_000_000, minCreditScore: null, minTimeInBusinessMonths: 12,
+    acceptedStates: STATE_LIST, contactEmail: "underwriting@dexlyfinance.com",
+    isActive: true, acceptedIndustries: [], maxExistingPositions: 5,
   });
+  assert.match(dexly.notes, /Structured matcher fields now enforce/);
+  assert.equal(dexly.minMonthlyRevenue, 200_000);
+  assert.equal(dexly.restrictedIndustryMinMonthlyRevenue, 1_000_000);
   assert.deepEqual({ ...thoro, programTypes: [...thoro.programTypes], acceptedStates: [...thoro.acceptedStates] }, {
     name: "Thoro Corp",
     programTypes: ["working_capital", "MCA"],
@@ -233,7 +241,7 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.equal("contactName" in dexly, false);
   assert.equal("priorityWeight" in dexly, false);
   assert.equal("maxExistingPositions" in thoro, false);
-  assert.equal(NEW_LENDER_SEEDS.length, 8);
+  assert.equal(NEW_LENDER_SEEDS.length, 11);
 });
 
 test("the six Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
@@ -335,21 +343,22 @@ test("Section B update literals preserve the exact marker, source statements, an
     "Alliance Funding Group (AFG)",
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
+    "Dexly Finance",
+    "TimePayment Corp",
+    "Keystone Equipment Finance Corp (KEF)",
   ]);
-  for (const update of EXISTING_LENDER_UPDATES) {
-    assert.equal(update.marker, EXISTING_LENDER_UPDATE_MARKER);
-    assert.match(update.notes, /^2026-09-14 packet update\n\nSOURCE STATEMENTS \(verbatim\):/);
+  for (const [index, update] of EXISTING_LENDER_UPDATES.entries()) {
+    assert.equal(update.marker, index < 3 ? EXISTING_LENDER_UPDATE_MARKER : "2026-09-15 packet update");
+    assert.match(update.notes, /^2026-09-(14|15) packet update\n\nSOURCE STATEMENTS \(verbatim\):/);
     assert.match(update.notes, /SCHEMA MAPPING:/);
   }
 
   const afg = EXISTING_LENDER_UPDATES[0];
   assert.match(afg.notes, /WORKING CAPITAL \(Premium WC, app-only to \$300k; up to \$3MM with financials\)/);
   assert.match(afg.notes, /maxAmount stays 500000 \(EF app-only\); WC app-only 300000 in notes\./);
-  assert.deepEqual(afg.structuredPatch, {
-    minCreditScore: 600,
-    minTimeInBusinessMonths: 48,
-    maxAmount: 500_000,
-  });
+  assert.equal(afg.structuredPatch.minCreditScore, 600);
+  assert.equal(afg.structuredPatch.minTimeInBusinessMonths, 48);
+  assert.equal(afg.structuredPatch.maxAmount, 500_000);
 
   const amur = EXISTING_LENDER_UPDATES[1];
   assert.match(amur.notes, /Broker program tiers: A — app-only to \$350k/);
@@ -364,6 +373,14 @@ test("Section B update literals preserve the exact marker, source statements, an
   assert.match(yes.notes, /2026 guidelines: NO personal credit requirement/);
   assert.match(yes.notes, /no changes to amounts; minCreditScore null/);
   assert.deepEqual(yes.structuredPatch, {});
+
+  const dexly = EXISTING_LENDER_UPDATES[3];
+  assert.match(dexly.notes, /Paper types: B to D/);
+  assert.equal(dexly.structuredPatch.minMonthlyRevenue, 200_000);
+  const timePayment = EXISTING_LENDER_UPDATES[4];
+  assert.deepEqual(timePayment.structuredPatch.maxAmount, 150_000);
+  const kef = EXISTING_LENDER_UPDATES[5];
+  assert.match(kef.notes, /DEAL BREAKERS: under 500 scores/);
 });
 
 test("Section B appends preserve old notes and contacts while restricting structured patches", () => {
@@ -374,7 +391,12 @@ test("Section B appends preserve old notes and contacts while restricting struct
   assert.match(appended, /2026-09-14 packet update/);
   assert.match(appended, /contact Bobby at bobby@yesleasing.com/);
 
-  const allowedFields = new Set(["minAmount", "maxAmount", "minCreditScore", "minTimeInBusinessMonths"]);
+  const allowedFields = new Set([
+    "minAmount", "maxAmount", "minCreditScore", "minTimeInBusinessMonths",
+    "restrictedIndustries", "prohibitedIndustries", "minMonthlyRevenue",
+    "restrictedIndustryMinMonthlyRevenue", "truckingRules",
+    "programEligibilityRules",
+  ]);
   for (const update of EXISTING_LENDER_UPDATES) {
     for (const field of Object.keys(update.structuredPatch)) {
       assert.equal(allowedFields.has(field), true, `${update.name} has an unapproved field: ${field}`);
@@ -412,7 +434,7 @@ test("production executor creates first, then applies Section B updates without 
   const double = makeLenderSeedTransaction([afg, amur, yes]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 8);
+  assert.equal(first.created, 11);
   assert.equal(first.updated, 3);
   assert.equal(first.unchanged, 0);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
@@ -432,6 +454,9 @@ test("production executor creates first, then applies Section B updates without 
     "Alliance Funding Group (AFG)",
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
+    "Dexly Finance",
+    "TimePayment Corp",
+    "Keystone Equipment Finance Corp (KEF)",
   ]);
 
   assert.match(String(double.rows.find((row) => row.name === afg.name)?.notes), /^AFG legacy notes\n\n2026-09-14 packet update/);
@@ -459,7 +484,12 @@ test("production executor creates first, then applies Section B updates without 
   const afgValues = updateEvents.find((event) => event.name === afg.name)?.values as Record<string, unknown>;
   assert.deepEqual(
     Object.fromEntries(Object.entries(afgValues).filter(([key]) => key !== "notes" && key !== "updatedAt")),
-    { minCreditScore: 600, minTimeInBusinessMonths: 48, maxAmount: 500_000 },
+    {
+      minCreditScore: 600,
+      minTimeInBusinessMonths: 48,
+      maxAmount: 500_000,
+      programEligibilityRules: EXISTING_LENDER_UPDATES[0].structuredPatch.programEligibilityRules,
+    },
   );
 
   const updatesAfterFirstRun = double.events.filter((event) => event.kind === "update").length;
@@ -469,6 +499,9 @@ test("production executor creates first, then applies Section B updates without 
     "Alliance Funding Group (AFG)",
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
+    "Dexly Finance",
+    "TimePayment Corp",
+    "Keystone Equipment Finance Corp (KEF)",
   ]);
   assert.equal(
     double.events.filter((event) => event.kind === "update").length,
@@ -477,7 +510,7 @@ test("production executor creates first, then applies Section B updates without 
   );
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 11);
+  assert.equal(second.unchanged, 14);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -486,7 +519,7 @@ test("production executor creates first, then applies Section B updates without 
   ]);
 });
 
-test("Section C reports six new creations plus three updates, then all eleven unchanged", async () => {
+test("seed operation reports the unique configured lender inventory and updates", async () => {
   const double = makeLenderSeedTransaction([
     fakeLender("Dexly Finance", 301),
     fakeLender("Thoro Corp", 302),
@@ -496,17 +529,17 @@ test("Section C reports six new creations plus three updates, then all eleven un
   ]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 6);
-  assert.equal(first.updated, 3);
-  assert.equal(first.unchanged, 2);
+  assert.equal(first.created, 9);
+  assert.equal(first.updated, 4);
+  assert.equal(first.unchanged, 1);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(2).map((seed) => seed.name));
-  assert.deepEqual(first.unchangedNames, ["Dexly Finance", "Thoro Corp"]);
+  assert.deepEqual(first.unchangedNames, ["Thoro Corp"]);
   assert.deepEqual(first.missingUpdateNames, []);
 
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 11);
+  assert.equal(second.unchanged, 14);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -526,19 +559,156 @@ test("production executor uses exact names and does not recreate a missing Secti
   const result = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(result.updated, 2);
   assert.equal(result.unchanged, 0);
-  assert.deepEqual(result.updatedNames, ["Alliance Funding Group (AFG)", "Y.E.S. Leasing"]);
+  assert.deepEqual(result.updatedNames, [
+    "Alliance Funding Group (AFG)",
+    "Y.E.S. Leasing",
+  ]);
   assert.deepEqual(result.missingUpdateNames, ["AMUR Equipment Finance"]);
   assert.deepEqual(result.missingExistingNames, ["AMUR Equipment Finance"]);
   assert.equal(double.rows.some((row) => row.name === "AMUR Equipment Finance"), false);
   assert.equal(double.rows.find((row) => row.name === "AMUR Equipment Finance - alias")?.notes, "alias must remain");
   assert.deepEqual(
     double.events.filter((event) => event.kind === "lookup").map((event) => event.name),
-    ["Alliance Funding Group (AFG)", "AMUR Equipment Finance", "Y.E.S. Leasing"],
+    [
+      "Alliance Funding Group (AFG)",
+      "AMUR Equipment Finance",
+      "Y.E.S. Leasing",
+      "Dexly Finance",
+      "TimePayment Corp",
+      "Keystone Equipment Finance Corp (KEF)",
+    ],
   );
   assert.equal(
     double.events.some((event) => event.kind === "update" && event.name === "AMUR Equipment Finance"),
     false,
   );
+});
+
+test("structured gates backfill after an earlier packet marker and remain idempotent", async () => {
+  const priorPacketNotes = `legacy note\n\n${EXISTING_LENDER_UPDATE_MARKER}\nprior packet source`;
+  const double = makeLenderSeedTransaction([
+    fakeLender("Alliance Funding Group (AFG)", 401, { notes: priorPacketNotes }),
+  ]);
+
+  const first = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(first.updatedNames.includes("Alliance Funding Group (AFG)"), true);
+  const backfill = double.events.find((event) => event.kind === "update" && event.name === "Alliance Funding Group (AFG)");
+  assert.ok(backfill);
+  assert.ok((backfill.values as Record<string, unknown>).programEligibilityRules);
+  assert.match(
+    String(double.rows.find((row) => row.name === "Alliance Funding Group (AFG)")?.notes),
+    /2026-09-16 structured matcher gate backfill/,
+  );
+
+  const updatesAfterFirst = double.events.filter((event) => event.kind === "update").length;
+  const second = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(second.updatedNames.includes("Alliance Funding Group (AFG)"), false);
+  assert.equal(double.events.filter((event) => event.kind === "update").length, updatesAfterFirst);
+});
+
+test("a prior packet marker with migration-equivalent gates is unchanged", async () => {
+  const afgUpdate = EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!;
+  // jsonb does not preserve JS insertion order, including nested rule objects.
+  const reorderKeys = (value: unknown): unknown =>
+    Array.isArray(value) ? value.map(reorderKeys) :
+    value !== null && typeof value === "object"
+      ? Object.fromEntries(Object.entries(value).reverse().map(([key, item]) => [key, reorderKeys(item)]))
+      : value;
+  const databasePatch = reorderKeys(afgUpdate.structuredPatch) as Partial<FakeLenderRow>;
+  assert.notEqual(JSON.stringify(databasePatch), JSON.stringify(afgUpdate.structuredPatch));
+  const double = makeLenderSeedTransaction([
+    fakeLender("Alliance Funding Group (AFG)", 402, {
+      notes: `legacy note\n\n${EXISTING_LENDER_UPDATE_MARKER}\nprior packet source`,
+      ...databasePatch,
+    }),
+  ]);
+
+  const result = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(result.updatedNames.includes("Alliance Funding Group (AFG)"), false);
+  assert.equal(
+    double.events.some((event) => event.kind === "update" && event.name === "Alliance Funding Group (AFG)"),
+    false,
+  );
+});
+
+test("prior packet inventory reports only the three unapplied September 15 updates", async () => {
+  const reorderJsonb = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(reorderJsonb);
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+          .reverse()
+          .map(([key, nested]) => [key, reorderJsonb(nested)]),
+      );
+    }
+    return value;
+  };
+  const migrationEquivalentSeed = (seedName: string, id: number): FakeLenderRow => {
+    const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === seedName)!;
+    const canonical = newLenderSeedToInsertValues(seed) as unknown as FakeLenderRow;
+    return {
+      ...fakeLender(seedName, id),
+      ...canonical,
+      id,
+      name: seedName,
+      notes: canonical.notes?.replaceAll(BATCH_2_LENDER_UPDATE_MARKER, "prior source packet") ?? null,
+      programEligibilityRules: reorderJsonb(canonical.programEligibilityRules),
+    };
+  };
+  const priorExisting = (name: string, id: number): FakeLenderRow => {
+    const update = EXISTING_LENDER_UPDATES.find((candidate) => candidate.name === name)!;
+    return {
+      ...fakeLender(name, id),
+      ...(update.matchingBaseline as Partial<FakeLenderRow>),
+      ...(update.structuredPatch as Partial<FakeLenderRow>),
+      id,
+      name,
+      notes: `legacy notes\n\n${EXISTING_LENDER_UPDATE_MARKER}\nprior packet source`,
+      programEligibilityRules: reorderJsonb(update.structuredPatch.programEligibilityRules),
+    };
+  };
+
+  const oldSeedNames = NEW_LENDER_SEEDS.slice(0, 8).map((seed) => seed.name);
+  const initialRows = [
+    ...oldSeedNames.map((name, index) => migrationEquivalentSeed(name, index + 1)),
+    priorExisting("Alliance Funding Group (AFG)", 101),
+    priorExisting("AMUR Equipment Finance", 102),
+    priorExisting("Y.E.S. Leasing", 103),
+  ];
+  assert.equal(initialRows.every((row) => !row.notes?.includes(BATCH_2_LENDER_UPDATE_MARKER)), true);
+  assert.equal(
+    initialRows.find((row) => row.name === "TimePayment Corp")?.maxAmount,
+    1_500_000,
+  );
+
+  const double = makeLenderSeedTransaction(initialRows);
+  const first = await executeLenderSeedAndUpdates(double.tx);
+  const expectedInventory = [
+    ...NEW_LENDER_SEEDS.map((seed) => seed.name),
+    "Alliance Funding Group (AFG)",
+    "AMUR Equipment Finance",
+    "Y.E.S. Leasing",
+  ].sort();
+  assert.equal(first.created, 3);
+  assert.equal(first.updated, 3);
+  assert.equal(first.unchanged, 8);
+  assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(8).map((seed) => seed.name));
+  assert.deepEqual(first.updatedNames, [
+    "Dexly Finance",
+    "TimePayment Corp",
+    "Keystone Equipment Finance Corp (KEF)",
+  ]);
+  assert.deepEqual(
+    [...first.createdNames, ...first.updatedNames, ...first.unchangedNames].sort(),
+    expectedInventory,
+  );
+  assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 14);
+
+  const second = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(second.created, 0);
+  assert.equal(second.updated, 0);
+  assert.equal(second.unchanged, 14);
+  assert.deepEqual(second.unchangedNames.sort(), expectedInventory);
 });
 
 test("the original four-lender seed script remains byte-unchanged", () => {

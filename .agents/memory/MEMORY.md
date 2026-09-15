@@ -22,3 +22,4 @@
 - [Deployment API root health](deployment-api-root-health.md) — monitoring probes the API mount root, so keep GET /api healthy alongside /api/healthz.
 - [Drizzle relational alias rewriting](drizzle-relational-alias-rewriting.md) — correlated SQL inside relational findMany can rewrite inner aliases; select IDs with the core builder, then hydrate relations.
 - [Lender package safety](lender-package-safety.md) — prefer omission over uncertain statement selection; never infer legacy signature evidence.
+- [Lender packet provenance and matching](lender-packet-provenance.md) — map packet rules structurally only when lead data supports them; keep unsupported source facts verbatim in notes and report unique seed outcomes.
