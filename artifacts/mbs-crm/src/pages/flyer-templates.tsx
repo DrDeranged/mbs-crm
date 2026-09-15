@@ -90,7 +90,7 @@ function VariableFieldEditor({
               <Label className="text-[10px] text-muted-foreground">Field Type</Label>
               <Select value={f.type} onValueChange={(v) => updateField(i, { type: v as VariableField["type"], options: v === "select" ? (f.options ?? []) : undefined })}>
                 <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[var(--z-dialog-popover)]">
                   <SelectItem value="text">Text</SelectItem>
                   <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="select">Dropdown</SelectItem>
@@ -193,7 +193,7 @@ function TemplateDialog({
               <Label>Program Type</Label>
               <Select value={form.programType} onValueChange={(v) => set({ programType: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[var(--z-dialog-popover)]">
                   <SelectItem value="working_capital">Working Capital</SelectItem>
                   <SelectItem value="equipment">Equipment Financing</SelectItem>
                   <SelectItem value="general">General</SelectItem>

@@ -230,7 +230,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-screen w-full bg-background">
       <CommandPalette />
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)]">
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)]">
         <SidebarContent />
       </aside>
 
@@ -259,7 +259,7 @@ export function AppShell({ children }: AppShellProps) {
           <NotificationBell onDark={false} />
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto pb-24 md:pb-6">
           {children}
         </div>
       </main>

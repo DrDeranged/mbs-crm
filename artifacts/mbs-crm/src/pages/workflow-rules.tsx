@@ -325,7 +325,7 @@ export default function WorkflowRules() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[var(--z-dialog-popover)]">
                     {LEAD_STATUSES.map((s) => (
                       <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                     ))}
@@ -338,7 +338,7 @@ export default function WorkflowRules() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[var(--z-dialog-popover)]">
                     {ACTION_TYPES.map((a) => (
                       <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
                     ))}

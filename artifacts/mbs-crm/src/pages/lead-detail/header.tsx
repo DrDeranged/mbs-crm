@@ -78,7 +78,7 @@ export function HeaderCard() {
 
   return (
     <>
-      <div className="border-b bg-white shadow-sm sticky top-0 z-10">
+      <div className="border-b bg-white shadow-sm sticky top-0 z-[var(--z-header)]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="mb-3">
           <Link href="/leads" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">

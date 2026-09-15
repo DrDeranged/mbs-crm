@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import {
   Phone,
@@ -57,9 +58,7 @@ export function SoftphoneWidget() {
   const [device, setDevice] = useState<Device | null>(null);
   const [activeCall, setActiveCall] = useState<Call | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceRef = useRef<Device | null>(null);
   const autoCallPending = useRef(false);
@@ -369,29 +368,6 @@ export function SoftphoneWidget() {
 
   const dialPad = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"] as const;
 
-  const handleDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragStart.current = { mx: e.clientX, my: e.clientY, px: position.x, py: position.y };
-    setDragging(true);
-  };
-
-  useEffect(() => {
-    if (!dragging) return;
-    const onMove = (e: MouseEvent) => {
-      if (!dragStart.current) return;
-      const dx = e.clientX - dragStart.current.mx;
-      const dy = e.clientY - dragStart.current.my;
-      setPosition({ x: dragStart.current.px + dx, y: dragStart.current.py + dy });
-    };
-    const onUp = () => setDragging(false);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, [dragging]);
-
   const isActive = state === "active";
   const isCalling = state === "calling";
   const isIncoming = state === "incoming";
@@ -420,7 +396,7 @@ export function SoftphoneWidget() {
                 <SelectTrigger>
                   <SelectValue placeholder="Select outcome…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[var(--z-dialog-popover)]">
                   {(Object.entries(OUTCOME_LABELS) as [CallOutcome, string][]).map(([val, label]) => (
                     <SelectItem key={val} value={val}>{label}</SelectItem>
                   ))}
@@ -495,19 +471,12 @@ export function SoftphoneWidget() {
         </DialogContent>
       </Dialog>
 
-      {/* Softphone widget */}
-      <div
-        className="fixed z-50"
-        style={{
-          bottom: `${24 - position.y}px`,
-          right: `${24 - position.x}px`,
-          cursor: dragging ? "grabbing" : "auto",
-        }}
-      >
-        {minimized ? (
+      {/* Softphone widget trigger */}
+      {!isIncoming && minimized && (
+        <div className="fixed bottom-6 right-6 z-[var(--z-popover)] pointer-events-none">
           <button
             onClick={() => setMinimized(false)}
-            className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"
+            className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"
             title="Open softphone"
           >
             <Phone className="h-6 w-6" />
@@ -517,70 +486,72 @@ export function SoftphoneWidget() {
               </span>
             )}
           </button>
-        ) : (
-          <div className="w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-            {/* Header — drag handle */}
-            <div
-              className="flex items-center justify-between bg-[#1F4E79] px-4 py-3 cursor-grab select-none"
-              onMouseDown={handleDragStart}
-            >
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-white" />
-                <span className="text-sm font-semibold text-white">Softphone</span>
-                {isBusy && (
-                  <Badge className="bg-green-500 text-white text-xs px-1.5 py-0 h-5">
-                    {isIncoming ? "Incoming" : isCalling ? "Calling…" : formatTime(callSeconds)}
-                  </Badge>
-                )}
-              </div>
-              <button
-                onClick={() => setMinimized(true)}
-                className="text-white/70 hover:text-white transition-colors"
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                <Minimize2 className="h-4 w-4" />
-              </button>
+        </div>
+      )}
+
+      {/* Open Softphone Sheet */}
+      <Sheet open={!minimized || isIncoming} onOpenChange={(open) => {
+        if (!open && !isIncoming) setMinimized(true);
+      }}>
+        <SheetContent side="right" showClose={false} className="w-[320px] sm:w-[400px] p-0 border-l border-border bg-white flex flex-col z-[var(--z-dialog)] shadow-2xl">
+          <SheetHeader className="bg-[#1F4E79] px-4 py-3 shrink-0 flex flex-row items-center justify-between border-b-0 space-y-0">
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-white" />
+              <SheetTitle className="text-sm font-semibold text-white mt-0">Softphone</SheetTitle>
+              {isBusy && (
+                <Badge className="bg-green-500 text-white text-xs px-1.5 py-0 h-5 border-0">
+                  {isIncoming ? "Incoming" : isCalling ? "Calling…" : formatTime(callSeconds)}
+                </Badge>
+              )}
             </div>
+            <button
+              onClick={() => setMinimized(true)}
+              className="text-white/70 hover:text-white transition-colors p-1"
+            >
+              <Minimize2 className="h-4 w-4" />
+            </button>
+          </SheetHeader>
+          <SheetDescription className="sr-only">Softphone dialer and active call controls.</SheetDescription>
 
-            <div className="p-4 space-y-3">
-              {error && (
-                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                  {error}
+          <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+            {error && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                {error}
+              </div>
+            )}
+
+            {/* Incoming call alert */}
+            {isIncoming && incomingInfo && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <PhoneIncoming className="h-4 w-4 animate-pulse" />
+                  <span className="text-sm font-medium">Incoming call</span>
                 </div>
-              )}
-
-              {/* Incoming call alert */}
-              {isIncoming && incomingInfo && (
-                <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-blue-800">
-                    <PhoneIncoming className="h-4 w-4 animate-pulse" />
-                    <span className="text-sm font-medium">Incoming call</span>
-                  </div>
-                  <p className="text-xs text-blue-700 font-mono">{incomingInfo.from}</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-700 text-white h-8 text-xs">
-                      Accept
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={handleDecline} className="flex-1 h-8 text-xs">
-                      Decline
-                    </Button>
-                  </div>
+                <p className="text-sm text-blue-700 font-mono">{incomingInfo.from}</p>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+                    Accept
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={handleDecline} className="flex-1">
+                    Decline
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!isIncoming && (
-                <>
-                  {/* Number input */}
-                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                    <input
-                      type="tel"
-                      value={dialInput}
-                      onChange={(e) => setDialInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
-                      placeholder="+1 (555) 000-0000"
-                      className="flex-1 bg-transparent text-sm font-mono text-slate-900 outline-none placeholder:text-slate-400"
-                      disabled={isBusy}
-                    />
+            {!isIncoming && (
+              <>
+                {/* Number input */}
+                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                  <input
+                    type="tel"
+                    value={dialInput}
+                    onChange={(e) => setDialInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
+                    placeholder="+1 (555) 000-0000"
+                    className="flex-1 bg-transparent text-base font-mono text-slate-900 outline-none placeholder:text-slate-400"
+                    disabled={isBusy}
+                  />
                     {dialInput && !isBusy && (
                       <button
                         onClick={() => setDialInput((v) => v.slice(0, -1))}
@@ -681,9 +652,8 @@ export function SoftphoneWidget() {
                 </>
               )}
             </div>
-          </div>
-        )}
-      </div>
+          </SheetContent>
+        </Sheet>
     </>
   );
 }

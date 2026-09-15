@@ -207,7 +207,7 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
                       <TableCell>
                         <Select value={mapping[h] ?? "__skip__"} onValueChange={(v) => setMapping((m) => ({ ...m, [h]: v }))}>
                           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="z-[var(--z-dialog-popover)]">
                             {LEAD_FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
                           </SelectContent>
                         </Select>
@@ -1086,7 +1086,7 @@ export default function Leads() {
 
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-gray-200 shadow-xl rounded-xl px-5 py-3">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-white border border-gray-200 shadow-xl rounded-xl px-5 py-3">
           <span className="text-sm font-semibold text-[#1F4E79] whitespace-nowrap">
             {selectAllMatching ? data?.total ?? selectedIds.size : selectedIds.size} selected
           </span>

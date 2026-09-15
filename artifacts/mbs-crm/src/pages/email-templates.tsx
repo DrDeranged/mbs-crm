@@ -134,7 +134,7 @@ function TemplateFormDialog({
               <Label>Program Type</Label>
               <Select value={programType} onValueChange={setProgramType}>
                 <SelectTrigger><SelectValue placeholder="All programs" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[var(--z-dialog-popover)]">
                   <SelectItem value="none">All programs</SelectItem>
                   {PROGRAM_TYPES.map((p) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
@@ -151,7 +151,7 @@ function TemplateFormDialog({
             <Label>Sender</Label>
             <Select value={senderMode} onValueChange={setSenderMode}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[var(--z-dialog-popover)]">
                 <SelectItem value="default">My Business Solutions — funding@my-business-solutions.com</SelectItem>
                 <SelectItem value="assigned_rep">Fixed sender + assigned rep Reply-To (when valid)</SelectItem>
               </SelectContent>
@@ -286,7 +286,7 @@ function BulkSendDialog({ template }: { template: any }) {
               <SelectTrigger className="text-sm">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[var(--z-dialog-popover)]">
                 <SelectItem value="all">All statuses</SelectItem>
                 {LEAD_STATUSES.map((s) => (
                   <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>

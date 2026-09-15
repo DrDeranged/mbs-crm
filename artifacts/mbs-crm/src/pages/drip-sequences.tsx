@@ -78,7 +78,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
             <Label>Trigger Status *</Label>
             <Select value={triggerStatus} onValueChange={setTriggerStatus}>
               <SelectTrigger><SelectValue placeholder="When lead moves to…" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[var(--z-dialog-popover)]">
                 {LEAD_STATUSES.map((s) => (
                   <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                 ))}
@@ -94,7 +94,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
             <Label>Sender</Label>
             <Select value={senderMode} onValueChange={setSenderMode}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[var(--z-dialog-popover)]">
                 <SelectItem value="template">Fixed sender + each template's Reply-To preference</SelectItem>
                 <SelectItem value="default">My Business Solutions — funding@my-business-solutions.com</SelectItem>
                 <SelectItem value="assigned_rep">Fixed sender + assigned rep Reply-To (when valid)</SelectItem>
@@ -204,7 +204,7 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
                   <SelectTrigger className="flex-1 min-w-[160px] h-8 text-xs">
                     <SelectValue placeholder="Select template…" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[var(--z-dialog-popover)]">
                     {activeTemplates.map((t: any) => (
                       <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
                     ))}

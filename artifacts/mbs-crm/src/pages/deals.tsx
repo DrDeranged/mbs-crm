@@ -518,9 +518,9 @@ export default function DealsPage() {
                           >
                             <Link
                               href={`/deals/${deal.id}`}
-                              className="absolute inset-0 z-0"
+                              className="absolute inset-0 z-[var(--z-deal-card-bg)]"
                             />
-                            <div className="relative z-10 pointer-events-none">
+                            <div className="relative z-[var(--z-deal-card-content)] pointer-events-none">
                               <h4 className="font-semibold text-sm text-[#0E2A47] truncate">
                                 {deal.dealName}
                               </h4>

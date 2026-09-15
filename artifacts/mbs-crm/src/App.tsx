@@ -183,7 +183,7 @@ function SignInPage() {
         <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/5 pointer-events-none" />
         <div className="absolute top-1/3 -right-4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
-        <div className="max-w-xs text-center space-y-5 relative z-10">
+        <div className="max-w-xs text-center space-y-5 relative z-[var(--z-hero-content)]">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-white tracking-tight leading-tight">
               My Business Solutions

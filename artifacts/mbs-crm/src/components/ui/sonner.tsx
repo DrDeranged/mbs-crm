@@ -24,6 +24,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         },
       }}
       {...props}
+      style={{ ...props.style, zIndex: "var(--z-toast)" }}
     />
   )
 }
