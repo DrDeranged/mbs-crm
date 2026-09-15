@@ -1201,6 +1201,13 @@ export interface ApplicationSubmitResponse {
   tracking_token?: string | null;
 }
 
+export interface ApplicationConsentText {
+  title: string;
+  text: string;
+  version: string;
+  checkboxLabel: string;
+}
+
 export type ApplicationStatusResponseStatusHistoryItem = {
   toStatus: string;
   createdAt: string;
@@ -1380,6 +1387,8 @@ export interface ApplicationRecord {
   secondaryOwnerEstCreditScore?: ApplicationRecordSecondaryOwnerEstCreditScore;
   consentCreditPull?: boolean;
   consentTerms?: boolean;
+  /** @nullable */
+  consentTextVersion?: string | null;
   /** @nullable */
   signatureData?: string | null;
   /** @nullable */

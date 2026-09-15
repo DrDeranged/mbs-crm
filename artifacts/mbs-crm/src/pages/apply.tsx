@@ -21,6 +21,7 @@ import {
   parseApplicationResponse,
   sanitizeApplicationError,
 } from "@/lib/applicationValidation";
+import { useGetApplicationConsentText } from "@workspace/api-client-react";
 import {
   CheckCircle2,
   Building2,
@@ -306,6 +307,11 @@ export default function ApplyPage() {
   const [typedName, setTypedName] = useState("");
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const {
+    data: consentText,
+    isLoading: consentTextLoading,
+    isError: consentTextError,
+  } = useGetApplicationConsentText();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -899,15 +905,33 @@ export default function ApplyPage() {
                   {submitAttempted && !form.consentCreditPull && (
                     <p className="text-xs text-red-600">Credit pull consent is required.</p>
                   )}
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    {consentText ? (
+                      <>
+                        <h3 className="text-sm font-semibold text-gray-800">{consentText.title}</h3>
+                        <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-gray-600">{consentText.text}</p>
+                        <p className="mt-2 text-[11px] text-gray-400">Disclosure version: {consentText.version}</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        {consentTextLoading
+                          ? "Loading the authorization and disclosure…"
+                          : consentTextError
+                            ? "The authorization and disclosure could not be loaded. Please try again."
+                            : "The authorization and disclosure is unavailable."}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex gap-3 items-start">
                     <Checkbox
                       id="consent_terms"
                       checked={form.consentTerms}
+                      disabled={!consentText}
                       onCheckedChange={(v) => set({ consentTerms: !!v })}
                       className="mt-0.5"
                     />
                     <Label htmlFor="consent_terms" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
-                      I confirm that all information provided is accurate and complete. I agree to MBS&apos;s Terms of Service and Privacy Policy.
+                      {consentText?.checkboxLabel}
                     </Label>
                   </div>
                   {submitAttempted && !form.consentTerms && (

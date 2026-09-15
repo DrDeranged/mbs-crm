@@ -34,6 +34,10 @@ import {
   firstValidationError,
   parseApplicationSubmission,
 } from "../lib/applicationValidation";
+import {
+  getPublicApplicationConsentText,
+  getServerOwnedApplicationConsent,
+} from "../lib/applicationConsent";
 
 const router = Router();
 
@@ -52,6 +56,11 @@ const statusRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests. Please try again later." },
+});
+
+// GET /applications/consent-text — public, immutable disclosure text
+router.get("/applications/consent-text", (_req: Request, res: Response) => {
+  res.json(getPublicApplicationConsentText());
 });
 
 async function logActivity(params: {
@@ -284,6 +293,7 @@ router.post(
            secondaryOwnerEstCreditScore: applicationBody.secondaryOwnerEstCreditScore || null,
           consentCreditPull: applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true,
           consentTerms: applicationBody.consentTerms === "true" || applicationBody.consentTerms === true,
+           ...getServerOwnedApplicationConsent(),
            signatureMethod: applicationBody.signatureMethod as "typed" | "drawn",
            signatureData: applicationBody.signatureData,
            signatureIp: clientIp,

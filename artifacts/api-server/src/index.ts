@@ -102,6 +102,35 @@ async function checkApplicationOptionalColumns(): Promise<void> {
   }
 }
 
+async function checkApplicationConsentColumns(): Promise<void> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN ('consent_text_version')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) => String((row as Record<string, unknown>)["column_name"])),
+    );
+    const requiredColumns = ["consent_text_version"];
+    const missingColumns = requiredColumns.filter((column) => !presentColumns.has(column));
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "015_application_consent_text_version.sql" },
+        "Required application consent columns are missing; apply 015_application_consent_text_version.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "015_application_consent_text_version.sql" },
+      "Could not verify application consent columns for 015_application_consent_text_version.sql",
+    );
+  }
+}
+
 const server = app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
@@ -112,6 +141,7 @@ const server = app.listen(port, (err) => {
 
   void checkApplicationSignatureColumns();
   void checkApplicationOptionalColumns();
+  void checkApplicationConsentColumns();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) => logger.warn({ err }, "Workflow rules seed error"));

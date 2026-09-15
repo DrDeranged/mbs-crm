@@ -73,6 +73,7 @@ export const applicationsTable = pgTable(
     // Consent & signature
     consentCreditPull: boolean("consent_credit_pull").notNull().default(false),
     consentTerms: boolean("consent_terms").notNull().default(false),
+    consentTextVersion: text("consent_text_version"),
     signatureMethod: text("signature_method", { enum: ["typed", "drawn"] }),
     signatureData: text("signature_data"),
     signatureIp: text("signature_ip"),

@@ -1,0 +1,1 @@
+ALTER TABLE "applications" ADD COLUMN IF NOT EXISTS "consent_text_version" text;

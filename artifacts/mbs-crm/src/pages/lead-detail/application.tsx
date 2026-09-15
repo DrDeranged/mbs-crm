@@ -164,7 +164,10 @@ export function LeadApplication() {
               {app.consentTerms
                 ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
                 : <XCircle className="h-3.5 w-3.5 text-red-400 flex-shrink-0" />}
-              <span className={app.consentTerms ? "text-gray-700" : "text-gray-400"}>Terms & Privacy agreed</span>
+                <span className={app.consentTerms ? "text-gray-700" : "text-gray-400"}>
+                  Commercial Financing Authorization &amp; Disclosure agreed
+                  {app.consentTextVersion ? ` · v${app.consentTextVersion}` : ""}
+                </span>
             </div>
             <div className="flex items-center gap-2 text-xs mt-2">
               {app.signatureData === "[signature on file]"

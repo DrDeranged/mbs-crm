@@ -1,7 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-// @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { buildSignedApplicationHtml, normalizeSignature, validateApplicationRules } from "./applicationSignature.ts";
+import {
+  buildSignedApplicationHtml,
+  escapeHtml,
+  normalizeSignature,
+  validateApplicationRules,
+} from "./applicationSignature";
+import {
+  CONSENT_CHECKBOX_LABEL,
+  CONSENT_TEXT,
+  CONSENT_TEXT_VERSION,
+} from "./consentText";
 
 test("typed signature accepts two trimmed characters", () => {
   assert.deepEqual(normalizeSignature("typed", " AB "), {
@@ -63,6 +72,9 @@ test("signed application HTML escapes injection strings and signature metadata",
   assert.match(html, /&lt;img src=x&gt; months/);
   assert.match(html, /&lt;svg onload=alert\(1\)&gt;/);
   assert.match(html, /&lt;script&gt;alert\(2\)&lt;\/script&gt;/);
+  assert.ok(html.includes(escapeHtml(CONSENT_TEXT)), "signed HTML must include the exact escaped disclosure");
+  assert.ok(html.includes(escapeHtml(CONSENT_TEXT_VERSION)), "signed HTML must include the disclosure version");
+  assert.ok(html.includes(escapeHtml(CONSENT_CHECKBOX_LABEL)), "signed HTML must include the checkbox label");
   assert.doesNotMatch(html, /<script>alert/);
 });
 

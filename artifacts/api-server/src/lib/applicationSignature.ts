@@ -1,3 +1,10 @@
+import {
+  CONSENT_CHECKBOX_LABEL,
+  CONSENT_TEXT,
+  CONSENT_TEXT_VERSION,
+  CONSENT_TITLE,
+} from "./consentText";
+
 export type SignatureMethod = "typed" | "drawn";
 
 export type SignatureValidation =
@@ -154,11 +161,17 @@ export function buildSignedApplicationHtml(params: SignedApplicationHtmlParams):
 <h2>Consent &amp; Signature</h2>
 <table>
   <tr><td>Credit Pull Consent</td><td>${bool(body["consentCreditPull"])}</td></tr>
-  <tr><td>Terms Consent</td><td>${bool(body["consentTerms"])}</td></tr>
+  <tr><td>${escapeHtml(CONSENT_TITLE)} Consent</td><td>${bool(body["consentTerms"])}</td></tr>
+  <tr><td>Disclosure Version</td><td>${escapeHtml(CONSENT_TEXT_VERSION)}</td></tr>
   <tr><td>Signature Method</td><td>${field(signatureMethodLabel)}</td></tr>
   <tr><td>Signature Signed At</td><td>${signed}</td></tr>
   <tr><td>Signature IP</td><td>${ip}</td></tr>
 </table>
+<div style="margin-top:16px;padding:12px;border:1px solid #e5e7eb;">
+  <h3 style="color:#1F4E79;font-size:14px;margin:0 0 8px;">${escapeHtml(CONSENT_TITLE)}</h3>
+  <p style="font-size:12px;line-height:1.5;white-space:pre-wrap;margin:0 0 10px;">${escapeHtml(CONSENT_TEXT)}</p>
+  <p style="font-size:12px;margin:0;"><strong>Applicant acknowledgment:</strong> ${escapeHtml(CONSENT_CHECKBOX_LABEL)}</p>
+</div>
 <div style="margin-top:16px;">${sigData}</div>
 
 <div class="footer">

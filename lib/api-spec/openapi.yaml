@@ -1887,6 +1887,19 @@ paths:
         "401":
           description: Unauthorized
 
+  /applications/consent-text:
+    get:
+      operationId: getApplicationConsentText
+      tags: [applications]
+      summary: Get the immutable public commercial financing authorization disclosure
+      responses:
+        "200":
+          description: Current application authorization disclosure and checkbox label
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationConsentText"
+
   /applications/submit:
     post:
       operationId: submitApplication
@@ -5365,6 +5378,19 @@ components:
         tracking_token:
           type: ["string", "null"]
 
+    ApplicationConsentText:
+      type: object
+      required: [title, text, version, checkboxLabel]
+      properties:
+        title:
+          type: string
+        text:
+          type: string
+        version:
+          type: string
+        checkboxLabel:
+          type: string
+
     ApplicationStatusResponse:
       type: object
       required: [status, applicationType, submittedAt, statusHistory]
@@ -5497,6 +5523,8 @@ components:
           type: boolean
         consentTerms:
           type: boolean
+        consentTextVersion:
+          type: ["string", "null"]
         signatureData:
           type: ["string", "null"]
         signatureMethod:

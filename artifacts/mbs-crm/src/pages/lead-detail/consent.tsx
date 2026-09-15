@@ -127,7 +127,9 @@ export function LeadConsent() {
               />
               <ConsentIndicator
                 ok={status.applicationConsent.consentTerms}
-                label={status.applicationConsent.consentTerms ? "Terms & conditions consent on file" : "Terms consent not on file"}
+                label={status.applicationConsent.consentTerms
+                  ? "Application authorization disclosure consent on file"
+                  : "Application authorization disclosure consent not on file"}
               />
             </CardContent>
           </Card>

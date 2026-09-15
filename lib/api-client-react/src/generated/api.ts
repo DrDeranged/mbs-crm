@@ -30,6 +30,7 @@ import type {
   AiPipelineDigest,
   AnalyticsPipeline,
   AnalyticsSummary,
+  ApplicationConsentText,
   ApplicationRecord,
   ApplicationStatusResponse,
   ApplicationSubmitResponse,
@@ -5522,6 +5523,83 @@ export function useGetAnalyticsSources<TData = Awaited<ReturnType<typeof getAnal
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAnalyticsSourcesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetApplicationConsentTextUrl = () => {
+
+
+
+
+  return `/api/applications/consent-text`
+}
+
+/**
+ * @summary Get the immutable public commercial financing authorization disclosure
+ */
+export const getApplicationConsentText = async ( options?: RequestInit): Promise<ApplicationConsentText> => {
+
+  return customFetch<ApplicationConsentText>(getGetApplicationConsentTextUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetApplicationConsentTextQueryKey = () => {
+    return [
+    `/api/applications/consent-text`
+    ] as const;
+    }
+
+
+export const getGetApplicationConsentTextQueryOptions = <TData = Awaited<ReturnType<typeof getApplicationConsentText>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApplicationConsentText>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApplicationConsentTextQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApplicationConsentText>>> = ({ signal }) => getApplicationConsentText({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApplicationConsentText>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetApplicationConsentTextQueryResult = NonNullable<Awaited<ReturnType<typeof getApplicationConsentText>>>
+export type GetApplicationConsentTextQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the immutable public commercial financing authorization disclosure
+ */
+
+export function useGetApplicationConsentText<TData = Awaited<ReturnType<typeof getApplicationConsentText>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApplicationConsentText>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetApplicationConsentTextQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

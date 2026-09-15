@@ -2193,6 +2193,17 @@ export const GetAnalyticsSourcesResponse = zod.array(GetAnalyticsSourcesResponse
 
 
 /**
+ * @summary Get the immutable public commercial financing authorization disclosure
+ */
+export const GetApplicationConsentTextResponse = zod.object({
+  "title": zod.string(),
+  "text": zod.string(),
+  "version": zod.string(),
+  "checkboxLabel": zod.string()
+})
+
+
+/**
  * @summary Public application submit (no auth, multipart, rate-limited)
  */
 export const submitApplicationBodyBusinessStartDateRegExp = new RegExp('^(0[1-9]|1[0-2])\/[0-9]{4}$');
@@ -2314,6 +2325,7 @@ export const GetLeadApplicationResponse = zod.object({
   "secondaryOwnerEstCreditScore": zod.union([zod.literal('below_500'),zod.literal('500_549'),zod.literal('550_599'),zod.literal('600_649'),zod.literal('650_699'),zod.literal('700_plus'),zod.literal(null)]).nullish(),
   "consentCreditPull": zod.boolean().optional(),
   "consentTerms": zod.boolean().optional(),
+  "consentTextVersion": zod.string().nullish(),
   "signatureData": zod.string().nullish(),
   "signatureMethod": zod.union([zod.literal('typed'),zod.literal('drawn'),zod.literal(null)]).nullish(),
   "signatureSignedAt": zod.coerce.date().nullish(),
