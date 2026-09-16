@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { jobRunsTable } from "@workspace/db";
+import { getMigrationStatus } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth } from "../lib/integrationHealth";
@@ -27,6 +28,24 @@ router.get("/health/deep", async (_req, res) => {
     dbOk = true;
   } catch {
     // DB unreachable
+  }
+
+  let schema: { applied: number; pending: string[] } = { applied: 0, pending: [] };
+  if (dbOk) {
+    try {
+      const migrationStatus = await getMigrationStatus({ db });
+      schema = {
+        applied: migrationStatus.migrations.filter((migration) => migration.status === "applied").length,
+        pending: [
+          ...migrationStatus.pending,
+          ...migrationStatus.mismatches.map(({ name }) => `${name} (checksum mismatch)`),
+        ],
+      };
+    } catch {
+      schema = { applied: 0, pending: ["unable to inspect migrations"] };
+    }
+  } else {
+    schema = { applied: 0, pending: ["database unavailable"] };
   }
 
   // 2. Integration presence (booleans only, no secret values)
@@ -72,8 +91,9 @@ router.get("/health/deep", async (_req, res) => {
   }
 
   res.json({
-    status: dbOk ? "ok" : "degraded",
+    status: dbOk && schema.pending.length === 0 ? "ok" : "degraded",
     db: dbOk ? "ok" : "fail",
+    schema,
     integrations,
     pdf: await getPdfHealth(),
     jobs: jobSummary,
