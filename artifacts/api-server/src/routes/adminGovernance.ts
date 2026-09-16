@@ -11,7 +11,7 @@ import {
   tasksTable,
   documentsTable,
 } from "@workspace/db";
-import { eq, and, lt, inArray, count, sql, not, exists } from "drizzle-orm";
+import { eq, and, lt, inArray, count, sql, not, exists, desc } from "drizzle-orm";
 import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -53,6 +53,7 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
 
   const app = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
 
   const hasCreditPulls = await db
@@ -290,6 +291,7 @@ router.delete("/leads/:id/pii", async (req: Request, res: Response) => {
   // Scrub PII on application if it exists
   const app = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
   if (app) {
     await db.update(applicationsTable).set({
@@ -368,7 +370,10 @@ router.delete("/leads/:id/pii/force", async (req: Request, res: Response) => {
     consentCreditPullAt: null,
   }).where(eq(leadsTable.id, leadId));
 
-  const app = await db.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, leadId) });
+  const app = await db.query.applicationsTable.findFirst({
+    where: eq(applicationsTable.leadId, leadId),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
+  });
   if (app) {
     await db.update(applicationsTable).set({
       ownerFirstName: "[scrubbed]",

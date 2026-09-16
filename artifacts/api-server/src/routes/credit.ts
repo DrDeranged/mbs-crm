@@ -256,7 +256,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
 
   const application = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
-    orderBy: [desc(applicationsTable.submittedAt)],
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
 
   if (!application?.ownerSsnEncrypted) {

@@ -4,7 +4,7 @@ import {
   applicationsTable,
   activityLogTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { evaluateLender } from "./matchingEligibility";
 
 export { evaluateLender, isEligibleFromCriteria } from "./matchingEligibility";
@@ -34,6 +34,7 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
   const company = (lead as any).company as typeof companiesTable.$inferSelect | null;
   const application = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
   const lenders = await db.select().from(lendersTable).where(eq(lendersTable.isActive, true));
 

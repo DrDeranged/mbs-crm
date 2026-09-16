@@ -505,7 +505,7 @@ export function createSubmissionHandler(
 
     const application = await routeDb.query.applicationsTable.findFirst({
       where: eq(applicationsTable.leadId, leadId),
-      orderBy: (table: any, { desc: orderDesc }: { desc: any }) => [orderDesc(table.submittedAt)],
+      orderBy: (table: any, { desc: orderDesc }: { desc: any }) => [orderDesc(table.submittedAt), orderDesc(table.id)],
     });
     if (!application || !application.signatureSignedAt ||
         !["typed", "drawn"].includes(application.signatureMethod ?? "") ||

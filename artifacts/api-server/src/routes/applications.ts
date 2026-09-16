@@ -3,7 +3,7 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { randomBytes } from "crypto";
 import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   leadsTable,
@@ -55,6 +55,13 @@ const statusRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Too many requests. Please try again later." },
 });
+
+class ConflictingApplicantIdentitiesError extends Error {
+  constructor() {
+    super("The submitted email and phone belong to different existing leads.");
+    this.name = "ConflictingApplicantIdentitiesError";
+  }
+}
 
 export type ApplicationSubmitDependencies = {
   database?: typeof db;
@@ -162,31 +169,19 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       const email = applicationBody.email?.trim() || null;
       const phone = applicationBody.phone?.trim() || null;
       const ein = applicationBody.ein?.trim() || null;
+      const normalizedEmail = email?.toLowerCase() ?? null;
+      const normalizedPhone = phone?.replace(/\D/g, "") || null;
 
       // ── Idempotency check (15-minute window keyed on email+ein) ──────────
       const timeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
       const idempKey = deriveKey(`applications/submit|${(email ?? "").toLowerCase()}|${ein ?? ""}|${timeBucket}`);
       const cachedResult = await checkSubmissionIdempotency(idempKey, "applications/submit");
       if (cachedResult) {
-        res.status(201).json(cachedResult);
+        // This endpoint is public. Never return a tracking credential stored
+        // for an existing applicant merely because a later request shares an
+        // idempotency bucket.
+        res.status(201).json({ ...cachedResult, tracking_token: null });
         return;
-      }
-
-      // ── Duplicate check ───────────────────────────────────────────────────
-      if (email || phone || ein) {
-        const conditions = [];
-        if (email) conditions.push(eq(leadsTable.email, email));
-        if (phone) conditions.push(eq(leadsTable.phone, phone));
-        if (ein) conditions.push(eq(leadsTable.ein, ein));
-        const dup = await database.query.leadsTable.findFirst({ where: or(...conditions) });
-        if (dup) {
-          res.status(409).json({
-            duplicate: true,
-            existing_lead_id: dup.id,
-            message: "A lead with this email, phone, or EIN already exists.",
-          });
-          return;
-        }
       }
 
       // Equipment financing has an optional statement step. A direct API caller
@@ -232,7 +227,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
             ),
           })
           : null;
-        const assignedRepId = await resolveAssignee(applicationBody.rep);
+        const inboundSource = attributedRep ? "qr-card" : "website";
 
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const signatureSignedAt = new Date();
@@ -240,41 +235,86 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
 
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
-      const { lead, application, docRecords } = await database.transaction(async (tx) => {
-        const [txLead] = await tx.insert(leadsTable).values({
-          firstName: applicationBody.ownerFirstName,
-          lastName: applicationBody.ownerLastName,
-          email,
-          phone,
-          companyName: applicationBody.businessName,
-          ein,
-          applicationType: applicationBody.type as "equipment" | "working_capital",
-          status: "application_received",
-           leadSource: attributedRep ? "qr-card" : "website",
-          requestedAmount: applicationBody.requestedAmount ? Number(applicationBody.requestedAmount) : null,
-          assignedRepId,
-          consentCreditPullAt: consentGiven ? new Date() : null,
-          consentIp: clientIp,
-          lastActivityAt: new Date(),
-          trackingToken,
-        }).returning();
+      const { lead, application, docRecords, isReapplication } = await database.transaction(async (tx) => {
+        // No unique email/phone constraint exists, so serialize lookups and
+        // inserts for each supplied identity. Locking in a stable order avoids
+        // cross-request deadlocks where two applications share identities.
+        const identityKeys = [
+          ...(normalizedEmail ? [`application-email:${normalizedEmail}`] : []),
+          ...(normalizedPhone ? [`application-phone:${normalizedPhone}`] : []),
+        ].sort();
+        for (const identityKey of identityKeys) {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${identityKey}))`);
+        }
 
-        await tx.insert(activityLogTable).values({
-          userId: null,
-          leadId: txLead.id,
-          action: "lead_created",
-          entityType: "lead",
-          entityId: String(txLead.id),
-          details: { source: attributedRep ? "qr-card" : "website", path: "application" },
-        });
+        // Resolve each identifier independently. An OR query could select one
+        // arbitrary row when an email and phone identify different people.
+        const emailLead = normalizedEmail
+          ? await tx.query.leadsTable.findFirst({
+            where: sql`lower(${leadsTable.email}) = ${normalizedEmail}`,
+          })
+          : null;
+        const phoneLead = normalizedPhone
+          ? await tx.query.leadsTable.findFirst({
+            where: sql`regexp_replace(${leadsTable.phone}, '[^0-9]', '', 'g') = ${normalizedPhone}`,
+          })
+          : null;
+        if (emailLead && phoneLead && emailLead.id !== phoneLead.id) {
+          throw new ConflictingApplicantIdentitiesError();
+        }
+        const existingLead = emailLead ?? phoneLead;
 
-         if (attributedRep) {
-           await tx.insert(activityLogTable).values({
-             userId: null, leadId: txLead.id, action: "attributed",
-             entityType: "rep_slug", entityId: attributedRep.slug ?? "",
-             details: { slug: attributedRep.slug, source: "qr-card" },
-           });
-         }
+        let txLead: typeof leadsTable.$inferSelect;
+        if (existingLead) {
+          txLead = existingLead;
+          await tx.update(leadsTable)
+            .set({ lastActivityAt: new Date() })
+            .where(eq(leadsTable.id, txLead.id));
+          await tx.insert(activityLogTable).values({
+            userId: null,
+            leadId: txLead.id,
+            action: "Re-application submitted",
+            entityType: "lead",
+            entityId: String(txLead.id),
+            details: { type: applicationBody.type, filesCount: files.length },
+          });
+        } else {
+          const assignedRepId = await resolveAssignee(applicationBody.rep, inboundSource);
+          [txLead] = await tx.insert(leadsTable).values({
+            firstName: applicationBody.ownerFirstName,
+            lastName: applicationBody.ownerLastName,
+            email,
+            phone,
+            companyName: applicationBody.businessName,
+            ein,
+            applicationType: applicationBody.type as "equipment" | "working_capital",
+            status: "application_received",
+            leadSource: inboundSource,
+            requestedAmount: applicationBody.requestedAmount ? Number(applicationBody.requestedAmount) : null,
+            assignedRepId,
+            consentCreditPullAt: consentGiven ? new Date() : null,
+            consentIp: clientIp,
+            lastActivityAt: new Date(),
+            trackingToken,
+          }).returning();
+
+          await tx.insert(activityLogTable).values({
+            userId: null,
+            leadId: txLead.id,
+            action: "lead_created",
+            entityType: "lead",
+            entityId: String(txLead.id),
+            details: { source: attributedRep ? "qr-card" : "website", path: "application" },
+          });
+
+           if (attributedRep) {
+             await tx.insert(activityLogTable).values({
+               userId: null, leadId: txLead.id, action: "attributed",
+               entityType: "rep_slug", entityId: attributedRep.slug ?? "",
+               details: { slug: attributedRep.slug, source: "qr-card" },
+             });
+           }
+        }
 
         const [txApplication] = await tx.insert(applicationsTable).values({
           leadId: txLead.id,
@@ -358,7 +398,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           txDocRecords.push({ file, fileKey, id: docRecord.id });
         }
 
-        return { lead: txLead, application: txApplication, docRecords: txDocRecords };
+        return { lead: txLead, application: txApplication, docRecords: txDocRecords, isReapplication: !!existingLead };
       });
 
       // ── Upload bank statements + OCR (after commit — external calls) ────
@@ -416,7 +456,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         clientIp,
       });
       const htmlBuffer = Buffer.from(signedHtml, "utf-8");
-      const signedDocKey = `leads/${lead.id}/documents/signed-application-${Date.now()}.html`;
+      const signedDocKey = `leads/${lead.id}/documents/signed-application-${application.id}-${Date.now()}.html`;
       await bucket.file(signedDocKey).save(htmlBuffer, { contentType: "text/html; charset=utf-8" });
       await database.insert(documentsTable).values({
         leadId: lead.id,
@@ -429,7 +469,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       });
       await database.update(applicationsTable)
         .set({ signedDocumentKey: signedDocKey })
-        .where(eq(applicationsTable.leadId, lead.id));
+        .where(eq(applicationsTable.id, application.id));
 
       await logActivity({
         userId: null,
@@ -453,10 +493,10 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           entityId: lead.id,
           details: { message, type: applicationBody.type, filesCount: 0 },
         }, database);
-        if (isWorkingCapital && assignedRepId) {
+        if (isWorkingCapital && lead.assignedRepId) {
           await database.insert(tasksTable).values({
             leadId: lead.id,
-            userId: assignedRepId,
+            userId: lead.assignedRepId,
             title: "Collect 3–6 months bank statements — applicant chose to send directly",
             description: "Applicant chose to send statements directly to their representative. Collect the last 3–6 months of business bank statements.",
             dueDate: twoBusinessDaysOut(),
@@ -469,22 +509,26 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       // ── Notify managers + assigned rep of new application ─────────────────
       notifyManagers(
         "application_received",
-        "New application received",
+        isReapplication ? "Re-application received" : "New application received",
         `${applicationBody.businessName} submitted a ${applicationBody.type} application`,
         lead.id,
       ).catch(() => {});
-      if (assignedRepId) {
+      if (lead.assignedRepId) {
         notifyRep({
-          userId: assignedRepId,
+          userId: lead.assignedRepId,
           type: "application_received",
-          title: "New application assigned to you",
+          title: isReapplication ? "Re-application received" : "New application assigned to you",
           body: `${applicationBody.businessName} — ${applicationBody.type}`,
           leadId: lead.id,
         }).catch(() => {});
       }
 
       // ── Send confirmation email with tracking token (non-blocking) ─────────
-      if (email && lead.trackingToken) {
+      // For a phone-only re-application, the submitted email has not been
+      // verified as belonging to the pre-existing lead. Confirmation goes
+      // only to the stored address, and no mail is sent when it is absent.
+      const confirmationRecipient = isReapplication ? lead.email : email;
+      if (confirmationRecipient && lead.trackingToken) {
         const baseUrl = getPublicBaseUrl();
         const statusUrl = `${baseUrl}/apply/status`;
         const logoUrl = getBrandLogoUrl(baseUrl);
@@ -530,7 +574,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           templateId: null,
           subject: "Your MBS Application Has Been Received",
           bodyHtml: confirmationHtml,
-          toEmail: lead.email || email,
+          toEmail: confirmationRecipient,
           baseUrl,
           senderMode: "default",
           rep,
@@ -539,10 +583,18 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         }).catch((e: unknown) => console.error("Confirmation email failed:", e));
       }
 
-      const successPayload: Record<string, unknown> = { success: true, lead_id: lead.id, tracking_token: lead.trackingToken };
+      const successPayload: Record<string, unknown> = {
+        success: true,
+        lead_id: lead.id,
+        tracking_token: isReapplication ? null : lead.trackingToken,
+      };
       void storeSubmissionIdempotency(idempKey, "applications/submit", `lead:${lead.id}`, successPayload);
       res.status(201).json(successPayload);
     } catch (err) {
+      if (err instanceof ConflictingApplicantIdentitiesError) {
+        res.status(400).json({ error: err.message, field: "email" });
+        return;
+      }
       console.error("Application submit error:", err);
       res.status(500).json({ error: "Submission failed. Please try again." });
     }
@@ -567,7 +619,10 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
     res.status(403).json({ error: "Forbidden" }); return;
   }
 
-  const app = await db.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, id) });
+  const app = await db.query.applicationsTable.findFirst({
+    where: eq(applicationsTable.leadId, id),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
+  });
   if (!app) { res.status(404).json({ error: "No application on file" }); return; }
 
   // Mask SSN — never send plaintext to client

@@ -1,6 +1,6 @@
 import { PDFDocument, type PDFPage } from "pdf-lib";
 import type { Request, Response } from "express";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
@@ -825,6 +825,7 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
 
       const application = await database.query.applicationsTable.findFirst({
         where: eq(applicationsTable.leadId, id),
+        orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
       });
       if (!application) {
         throw new LenderPackageError("no_application", "No application on file");
@@ -956,7 +957,10 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
     if (!lead) return void res.status(404).json({ error: "Lead not found" });
     if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
     const [application, assignedRep, documents] = await Promise.all([
-      database.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, id) }),
+      database.query.applicationsTable.findFirst({
+        where: eq(applicationsTable.leadId, id),
+        orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
+      }),
       lead.assignedRepId ? database.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) }) : Promise.resolve(null),
       database.query.documentsTable.findMany({ where: eq(documentsTable.leadId, id) }),
     ]);
