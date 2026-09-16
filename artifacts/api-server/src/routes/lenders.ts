@@ -1,16 +1,19 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db } from "@workspace/db";
+import { createHash } from "crypto";
+import { db, pool } from "@workspace/db";
 import {
-  lendersTable, lenderMatchesTable, lenderSubmissionsTable,
+  lendersTable, lenderMatchesTable, lenderSubmissionsTable, lenderSubmissionDeliveriesTable,
   leadsTable, usersTable, activityLogTable, dealsTable, applicationsTable, documentsTable, emailTemplatesTable,
   insertLenderSchema,
 } from "@workspace/db";
-import { eq, desc, asc, and, gte, sql } from "drizzle-orm";
+import { eq, desc, asc, and, gte, sql, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
-import { buildLenderPackagePdf, sanitizeLenderPackageBusinessName } from "../lib/lenderPackage";
+import { buildLenderPackagePdf, parseLenderPackageConfig, sanitizeLenderPackageBusinessName } from "../lib/lenderPackage";
 import { safeLenderPackageReason } from "../lib/lenderPackageErrors";
+import { decrypt } from "../lib/encryption";
+import { logPiiAccess } from "../lib/piiAccess";
 import { doSendEmail, renderTemplate, buildVariables } from "./email";
 import { getPublicBaseUrl } from "../lib/brand";
 import {
@@ -88,6 +91,8 @@ function submissionToApi(
     sentAt: sub.sentAt.toISOString(),
     dealId: sub.dealId ?? null,
     messageId: sub.messageId ?? null,
+    packageConfigSnapshot: sub.packageConfigSnapshot ?? null,
+    hasExactPackage: Boolean(sub.exactPackageKey && sub.exactPackageSha256),
     updatedAt: sub.updatedAt.toISOString(),
   };
 }
@@ -300,6 +305,15 @@ function apiApplicationType(value: unknown): string {
   return value === "equipment" ? "Equipment Financing" : value === "working_capital" ? "Working Capital" : "—";
 }
 
+function piiPackageMetadata(packageConfig: any): Record<string, unknown> {
+  return {
+    sections: packageConfig?.sections ?? null,
+    documentIds: packageConfig?.documentIds ?? null,
+    options: packageConfig?.options ?? null,
+    ssnUnmasked: packageConfig?.options?.maskSsn === false,
+  };
+}
+
 async function canAccessSubmissionLead(database: any, user: { id: number; role: string }, leadId: number) {
   const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return { lead: null, allowed: false };
@@ -313,7 +327,90 @@ export type LenderSubmissionRouteDependencies = {
   sendEmail?: typeof doSendEmail;
   getBaseUrl?: typeof getPublicBaseUrl;
   recordActivity?: typeof logActivity;
+  storeExactPackage?: (key: string, bytes: Buffer) => Promise<void>;
+  downloadExactPackage?: (key: string) => Promise<Buffer>;
+  acquireSubmissionLock?: (leadId: number, lenderId: number) => Promise<(() => Promise<void>) | null>;
+  auditPiiAccess?: typeof logPiiAccess;
+  deliveryReceipt?: {
+    reserve: (input: DeliveryReceiptInput) => Promise<{ id: number } | null>;
+    markSent: (id: number, messageId: string | null) => Promise<void>;
+    markSubmitted: (id: number) => Promise<void>;
+    markFailed: (id: number, message: string) => Promise<void>;
+    markUncertain: (id: number, message: string) => Promise<void>;
+  };
 };
+
+type DeliveryReceiptInput = {
+  leadId: number; lenderId: number; sentBy: number; packageConfig: unknown;
+  exactPackageKey: string; exactPackageSha256: string; exactPackageBytes: number;
+};
+
+function createDeliveryReceiptStore(routeDb: any): NonNullable<LenderSubmissionRouteDependencies["deliveryReceipt"]> {
+  const activeStates = ["pending", "sent", "uncertain"] as const;
+  return {
+    async reserve(input) {
+      const existing = await routeDb.query.lenderSubmissionDeliveriesTable.findFirst({
+        where: and(eq(lenderSubmissionDeliveriesTable.leadId, input.leadId), eq(lenderSubmissionDeliveriesTable.lenderId, input.lenderId), inArray(lenderSubmissionDeliveriesTable.state, activeStates)),
+      });
+      if (existing) return null;
+      const [created] = await routeDb.insert(lenderSubmissionDeliveriesTable).values({
+        ...input, packageConfigSnapshot: input.packageConfig, state: "pending",
+      }).onConflictDoNothing().returning();
+      return created ? { id: created.id } : null;
+    },
+    async markSent(id, messageId) {
+      await routeDb.update(lenderSubmissionDeliveriesTable).set({ state: "sent", messageId, updatedAt: new Date() }).where(eq(lenderSubmissionDeliveriesTable.id, id));
+    },
+    async markSubmitted(id) {
+      await routeDb.update(lenderSubmissionDeliveriesTable).set({ state: "submitted", updatedAt: new Date() }).where(eq(lenderSubmissionDeliveriesTable.id, id));
+    },
+    async markFailed(id, message) {
+      await routeDb.update(lenderSubmissionDeliveriesTable).set({ state: "failed", failureMessage: message, updatedAt: new Date() }).where(eq(lenderSubmissionDeliveriesTable.id, id));
+    },
+    async markUncertain(id, message) {
+      await routeDb.update(lenderSubmissionDeliveriesTable).set({ state: "uncertain", failureMessage: message, updatedAt: new Date() }).where(eq(lenderSubmissionDeliveriesTable.id, id));
+    },
+  };
+}
+
+/** A dedicated session lock prevents two API instances from sending the same lead/lender package at once. */
+export async function acquireSubmissionLock(leadId: number, lenderId: number): Promise<(() => Promise<void>) | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query<{ acquired: boolean }>("SELECT pg_try_advisory_lock($1, $2) AS acquired", [leadId, lenderId]);
+    if (!result.rows[0]?.acquired) {
+      client.release();
+      return null;
+    }
+  } catch (error) {
+    client.release();
+    throw error;
+  }
+  return async () => {
+    try {
+      await client.query("SELECT pg_advisory_unlock($1, $2)", [leadId, lenderId]);
+    } finally {
+      client.release();
+    }
+  };
+}
+
+async function storeSubmissionPackage(key: string, bytes: Buffer): Promise<void> {
+  const { ObjectStorageService, objectStorageClient } = await import("../lib/objectStorage");
+  const privateDir = new ObjectStorageService().getPrivateObjectDir().replace(/\/+$/, "");
+  if (!key.startsWith("/objects/")) throw new Error("Submission package key must be a private object entity path");
+  const [bucketName, ...objectParts] = `${privateDir}/${key.slice("/objects/".length)}`.replace(/^\//, "").split("/");
+  if (!bucketName || objectParts.length === 0) throw new Error("PRIVATE_OBJECT_DIR must identify a bucket and private prefix");
+  await objectStorageClient.bucket(bucketName).file(objectParts.join("/")).save(bytes, {
+    contentType: "application/pdf", resumable: false, metadata: { cacheControl: "private, no-store" },
+  });
+}
+
+async function downloadSubmissionPackage(key: string): Promise<Buffer> {
+  const { ObjectStorageService } = await import("../lib/objectStorage");
+  const [bytes] = await new ObjectStorageService().getObjectEntityFile(key).then((file) => file.download());
+  return Buffer.from(bytes);
+}
 
 export function createSubmissionHandler(
   dependencies: LenderSubmissionRouteDependencies = {},
@@ -324,6 +421,10 @@ export function createSubmissionHandler(
   const sendEmail = dependencies.sendEmail ?? doSendEmail;
   const getBaseUrl = dependencies.getBaseUrl ?? getPublicBaseUrl;
   const recordActivity = dependencies.recordActivity ?? logActivity;
+  const storeExactPackage = dependencies.storeExactPackage ?? storeSubmissionPackage;
+  const acquireLock = dependencies.acquireSubmissionLock ?? acquireSubmissionLock;
+  const auditPiiAccess = dependencies.auditPiiAccess ?? logPiiAccess;
+  const deliveryReceipt = dependencies.deliveryReceipt ?? createDeliveryReceiptStore(routeDb);
 
   return async function createSubmission(req: Request, res: Response): Promise<void> {
     const user = await authenticate(req, res);
@@ -352,6 +453,17 @@ export function createSubmissionHandler(
     if (adminOverride && user.role !== "admin") {
       return void res.status(403).json({ error: "Only administrators may override the 24-hour submission limit" });
     }
+    let releaseLock: (() => Promise<void>) | null;
+    try {
+      releaseLock = await acquireLock(leadId, lenderId);
+    } catch (error) {
+      req.log?.error({ err: error }, "Could not acquire lender submission lock");
+      return void res.status(503).json({ error: "Lender submission is temporarily unavailable", reason: "submission_lock_unavailable" });
+    }
+    if (!releaseLock) {
+      return void res.status(409).json({ error: "A submission to this lender is already in progress", reason: "submission_in_progress" });
+    }
+    try {
     if (!adminOverride) {
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const recent = await routeDb.query.lenderSubmissionsTable.findFirst({
@@ -394,9 +506,27 @@ export function createSubmissionHandler(
       where: eq(documentsTable.leadId, leadId),
       orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.createdAt), orderAsc(table.id)],
     });
-    let packagePdf: Buffer;
+      const rawPackageConfig = req.body?.package_config ?? req.body?.packageConfig;
+      const packageConfig = rawPackageConfig === undefined ? null : parseLenderPackageConfig(rawPackageConfig);
+      if (rawPackageConfig !== undefined && !packageConfig) {
+        return void res.status(400).json({ error: "Invalid package selection" });
+      }
+      if (packageConfig?.options?.maskSsn === false && user.role !== "admin") {
+        return void res.status(403).json({ error: "Only administrators may disable SSN masking" });
+      }
+      if ((packageConfig?.documentIds ?? []).some((documentId) => !documents.some((document: any) => document.id === documentId))) {
+        return void res.status(400).json({ error: "Every selected document must belong to this lead" });
+      }
+      let unmaskedSsn: { ownerSsn: string | null; secondaryOwnerSsn: string | null } | undefined;
+      let packagePdf: Buffer;
     try {
-      packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents })).pdf;
+        unmaskedSsn = packageConfig?.options?.maskSsn === false
+          ? {
+            ownerSsn: application.ownerSsnEncrypted ? decrypt(application.ownerSsnEncrypted) : null,
+            secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
+          }
+          : undefined;
+        packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents, selection: packageConfig ?? undefined, unmaskedSsn })).pdf;
     } catch (error) {
       return void res.status(500).json({
         error: "Lender package generation failed",
@@ -419,7 +549,28 @@ export function createSubmissionHandler(
     const amount = apiAmount(application.requestedAmount ?? lead.requestedAmount);
     const type = apiApplicationType(application.type);
     const subject = `MBS Submission – ${application.businessName || lead.companyName} – ${amount} – ${type}`;
-    const sendResult = await sendEmail({
+      const filename = `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`;
+      const packageHash = createHash("sha256").update(packagePdf).digest("hex");
+      const exactPackageKey = `/objects/lender-submissions/${leadId}/${Date.now()}-${packageHash}.pdf`;
+      try {
+        await storeExactPackage(exactPackageKey, packagePdf);
+      } catch (error) {
+        req.log?.error({ err: error }, "Failed to store immutable lender package");
+        return void res.status(500).json({ error: "Lender package could not be stored for submission" });
+      }
+      const receipt = await deliveryReceipt.reserve({
+        leadId, lenderId, sentBy: user.id, packageConfig,
+        exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
+      });
+      if (!receipt) {
+        return void res.status(409).json({
+          error: "A lender delivery receipt is already pending recovery",
+          reason: "submission_delivery_pending",
+        });
+      }
+    let sendResult: Awaited<ReturnType<typeof doSendEmail>>;
+    try {
+      sendResult = await sendEmail({
       leadId,
       userId: user.id,
       templateId: template.id,
@@ -431,14 +582,37 @@ export function createSubmissionHandler(
       rep,
       attachments: [{
         content: packagePdf.toString("base64"),
-        filename: `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`,
+        filename,
         type: "application/pdf",
         disposition: "attachment",
       }],
-    });
-    if (sendResult.error) return void res.status(502).json({ error: "Lender email delivery failed", reason: sendResult.configurationReason ?? "send_failed" });
+      });
+    } catch (error) {
+      // A throw (including a transport timeout) cannot prove the provider did
+      // not accept the message. Preserve an active recovery barrier.
+      await deliveryReceipt.markUncertain(receipt.id, "The provider outcome could not be confirmed after a transport error.");
+      return void res.status(502).json({ error: "Lender email delivery outcome is uncertain; do not retry", reason: "send_outcome_uncertain" });
+    }
+    if (sendResult.error) {
+      if (sendResult.deliveryOutcome === "definite_failure") {
+        await deliveryReceipt.markFailed(receipt.id, sendResult.configurationReason ?? sendResult.error);
+        return void res.status(502).json({ error: "Lender email delivery failed", reason: sendResult.configurationReason ?? "send_failed" });
+      }
+      await deliveryReceipt.markUncertain(receipt.id, sendResult.error);
+      return void res.status(502).json({ error: "Lender email delivery outcome is uncertain; do not retry", reason: "send_outcome_uncertain" });
+    }
+    try {
+      await deliveryReceipt.markSent(receipt.id, sendResult.send?.sendgridMessageId ?? null);
+    } catch (error) {
+      // The existing pending receipt is deliberately retained: a provider
+      // success without this update is uncertain and must never be retried.
+      req.log?.error({ err: error, receiptId: receipt.id }, "Could not confirm lender delivery receipt");
+      return void res.status(500).json({ error: "Lender package was sent but is pending recovery; do not retry" });
+    }
 
-    const [sub] = await routeDb.transaction(async (tx: any) => {
+    let sub: any;
+    try {
+      [sub] = await routeDb.transaction(async (tx: any) => {
       const submissionDeal = deal ?? (await tx.insert(dealsTable).values({
         leadId,
         dealName: application.businessName || lead.companyName ||
@@ -451,19 +625,46 @@ export function createSubmissionHandler(
       const [created] = await tx.insert(lenderSubmissionsTable).values({
         leadId, dealId: submissionDeal.id, lenderId, sentBy: user.id,
         messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
+        packageConfigSnapshot: packageConfig,
+        exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       }).returning();
       if (deal) {
         await tx.update(dealsTable).set({ stage: "submitted", updatedAt: new Date() }).where(eq(dealsTable.id, deal.id));
       }
+      // Keep the lead preference and the submitted immutable snapshot aligned
+      // in the final application transaction; the client also persists before
+      // Send so it is never dependent on its debounce timer.
+      if (packageConfig) {
+        await tx.update(leadsTable).set({ packageConfig, updatedAt: new Date() }).where(eq(leadsTable.id, leadId));
+      }
       await recordActivity({
         userId: user.id, leadId, dealId: submissionDeal.id,
         action: "lender_submitted", entityType: "lender_submission", entityId: created.id,
-        details: { lenderName: lender.name, lenderId: lender.id, dealId: submissionDeal.id },
+        details: {
+          lenderName: lender.name, lenderId: lender.id, dealId: submissionDeal.id,
+          packageSections: packageConfig?.sections ?? null,
+          packageDocumentIds: packageConfig?.documentIds ?? null,
+          ssnUnmasked: packageConfig?.options?.maskSsn === false,
+        },
       }, tx);
       return [created] as const;
-    });
+      });
+    } catch (error) {
+      // `sent` is a durable provider receipt and remains a retry barrier.
+      req.log?.error({ err: error, receiptId: receipt.id }, "Lender delivery sent but submission finalization failed");
+      return void res.status(500).json({ error: "Lender package was sent but finalization is pending recovery; do not retry" });
+    }
+    try {
+      await deliveryReceipt.markSubmitted(receipt.id);
+    } catch (error) {
+      req.log?.error({ err: error, receiptId: receipt.id }, "Could not mark lender delivery receipt submitted");
+    }
+    auditPiiAccess({ userId: user.id, leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(packageConfig) });
     const submitter = await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
     res.status(201).json(submissionToApi(sub, lender, submitter));
+    } finally {
+      await releaseLock();
+    }
   };
 }
 
@@ -559,6 +760,58 @@ export function createUpdateSubmissionHandler(
 
 router.put("/submissions/:id", createUpdateSubmissionHandler());
 router.patch("/submissions/:id", createUpdateSubmissionHandler());
+
+export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmissionRouteDependencies = {}) {
+  const routeDb = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const downloadExactPackage = dependencies.downloadExactPackage ?? downloadSubmissionPackage;
+  const recordActivity = dependencies.recordActivity ?? logActivity;
+  const auditPiiAccess = dependencies.auditPiiAccess ?? logPiiAccess;
+  return async function downloadSubmissionPackage(req: Request, res: Response): Promise<void> {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    const id = Number(req.params["id"]);
+    if (!Number.isSafeInteger(id) || id <= 0) return void res.status(400).json({ error: "Invalid ID" });
+    const submission = await routeDb.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
+    if (!submission) return void res.status(404).json({ error: "Submission not found" });
+    const access = await canAccessSubmissionLead(routeDb, user, submission.leadId);
+    if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
+    if (!submission.exactPackageKey || !submission.exactPackageSha256) {
+      return void res.status(404).json({ error: "The exact sent package is unavailable" });
+    }
+    if ((submission.packageConfigSnapshot as any)?.options?.maskSsn === false && user.role !== "admin") {
+      return void res.status(403).json({ error: "Only administrators may download an unmasked package" });
+    }
+    try {
+      const bytes = await downloadExactPackage(submission.exactPackageKey);
+      const hash = createHash("sha256").update(bytes).digest("hex");
+      if (hash !== submission.exactPackageSha256 || (submission.exactPackageBytes != null && bytes.length !== submission.exactPackageBytes)) {
+        req.log?.error({ submissionId: id }, "Stored lender package integrity check failed");
+        return void res.status(409).json({ error: "The stored package failed its integrity check" });
+      }
+      await recordActivity({
+        userId: user.id, leadId: submission.leadId, dealId: submission.dealId,
+        action: "lender_package_downloaded", entityType: "lender_submission", entityId: submission.id,
+        details: {
+          packageSections: (submission.packageConfigSnapshot as any)?.sections ?? null,
+          packageDocumentIds: (submission.packageConfigSnapshot as any)?.documentIds ?? null,
+          ssnUnmasked: (submission.packageConfigSnapshot as any)?.options?.maskSsn === false,
+        },
+      });
+      auditPiiAccess({ userId: user.id, leadId: submission.leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(submission.packageConfigSnapshot) });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Cache-Control", "private, no-store");
+      res.setHeader("Content-Disposition", `attachment; filename="MBS-Submission-${id}.pdf"`);
+      res.setHeader("Content-Length", String(bytes.length));
+      res.send(bytes);
+    } catch (error) {
+      req.log?.error({ err: error, submissionId: id }, "Failed to retrieve lender submission package");
+      res.status(500).json({ error: "Could not retrieve the exact sent package" });
+    }
+  };
+}
+
+router.get("/submissions/:id/package", createDownloadSubmissionPackageHandler());
 
 router.get("/deals/:id/submissions", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);

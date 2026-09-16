@@ -89,6 +89,10 @@ export const lenderSubmissionsTable = pgTable(
     lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
     sentBy: integer("sent_by").references(() => usersTable.id, { onDelete: "set null" }),
     messageId: text("message_id"),
+    packageConfigSnapshot: jsonb("package_config_snapshot"),
+    exactPackageKey: text("exact_package_key"),
+    exactPackageSha256: text("exact_package_sha256"),
+    exactPackageBytes: integer("exact_package_bytes"),
     status: text("status", { enum: SUBMISSION_STATUSES }).notNull().default("submitted"),
     notes: text("notes"),
     sentAt: timestamp("sent_at").notNull().defaultNow(),
@@ -99,6 +103,30 @@ export const lenderSubmissionsTable = pgTable(
     index("lender_submissions_deal_idx").on(t.dealId),
     index("lender_submissions_lender_idx").on(t.lenderId),
     index("lender_submissions_sent_at_idx").on(t.sentAt),
+  ],
+);
+
+/** Provider-delivery receipt; intentionally separate from lender submission business statuses. */
+export const lenderSubmissionDeliveriesTable = pgTable(
+  "lender_submission_deliveries",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
+    lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
+    sentBy: integer("sent_by").references(() => usersTable.id, { onDelete: "set null" }),
+    packageConfigSnapshot: jsonb("package_config_snapshot"),
+    exactPackageKey: text("exact_package_key").notNull(),
+    exactPackageSha256: text("exact_package_sha256").notNull(),
+    exactPackageBytes: integer("exact_package_bytes").notNull(),
+    state: text("state", { enum: ["pending", "sent", "submitted", "failed", "uncertain"] as const }).notNull(),
+    messageId: text("message_id"),
+    failureMessage: text("failure_message"),
+    windowStartedAt: timestamp("window_started_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("lender_submission_deliveries_lead_lender_idx").on(t.leadId, t.lenderId),
   ],
 );
 

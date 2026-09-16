@@ -3747,9 +3747,7 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "includeFooter": zod.boolean().optional()
 }).optional()
 }),zod.null()]).optional(),
-  "exactPackageKey": zod.string().nullish(),
-  "exactPackageSha256": zod.string().nullish(),
-  "exactPackageBytes": zod.number().nullish(),
+  "hasExactPackage": zod.boolean().optional(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3863,9 +3861,7 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "includeFooter": zod.boolean().optional()
 }).optional()
 }),zod.null()]).optional(),
-  "exactPackageKey": zod.string().nullish(),
-  "exactPackageSha256": zod.string().nullish(),
-  "exactPackageBytes": zod.number().nullish(),
+  "hasExactPackage": zod.boolean().optional(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3960,9 +3956,7 @@ export const UpdateSubmissionResponse = zod.object({
   "includeFooter": zod.boolean().optional()
 }).optional()
 }),zod.null()]).optional(),
-  "exactPackageKey": zod.string().nullish(),
-  "exactPackageSha256": zod.string().nullish(),
-  "exactPackageBytes": zod.number().nullish(),
+  "hasExactPackage": zod.boolean().optional(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -4056,9 +4050,7 @@ export const PatchSubmissionResponse = zod.object({
   "includeFooter": zod.boolean().optional()
 }).optional()
 }),zod.null()]).optional(),
-  "exactPackageKey": zod.string().nullish(),
-  "exactPackageSha256": zod.string().nullish(),
-  "exactPackageBytes": zod.number().nullish(),
+  "hasExactPackage": zod.boolean().optional(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

@@ -5707,12 +5707,8 @@ components:
           oneOf:
             - $ref: "#/components/schemas/LenderPackageConfig"
             - type: "null"
-        exactPackageKey:
-          type: ["string", "null"]
-        exactPackageSha256:
-          type: ["string", "null"]
-        exactPackageBytes:
-          type: ["integer", "null"]
+        hasExactPackage:
+          type: boolean
         sentAt:
           type: string
           format: date-time

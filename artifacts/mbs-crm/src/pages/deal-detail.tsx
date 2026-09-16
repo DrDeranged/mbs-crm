@@ -10,7 +10,8 @@ import {
   useArchiveDeal,
   useGetDealSubmissions,
   getGetDealSubmissionsQueryKey,
-  useUpdateSubmission
+  useUpdateSubmission,
+  downloadExactSubmissionPackage
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck } from "lucide-react";
+import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
@@ -136,6 +137,11 @@ function SubmissionRow({ submission, dealId }: { submission: any; dealId: number
           </div>
         )}
       </div>
+      {submission.hasExactPackage && (
+        <Button variant="link" className="h-auto w-fit px-1 text-xs" onClick={() => downloadExactSubmissionPackage(submission.id).then((blob) => { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `MBS-Submission-${submission.id}.pdf`; link.click(); URL.revokeObjectURL(url); }).catch(() => toast({ title: "Download failed", variant: "destructive" }))}>
+          <Download className="mr-1 h-3 w-3" /> Re-download the exact package sent
+        </Button>
+      )}
     </div>
   );
 }

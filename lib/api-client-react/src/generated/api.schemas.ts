@@ -1232,12 +1232,7 @@ export interface LenderSubmission {
   /** @nullable */
   messageId?: string | null;
   packageConfigSnapshot?: LenderPackageConfig | null;
-  /** @nullable */
-  exactPackageKey?: string | null;
-  /** @nullable */
-  exactPackageSha256?: string | null;
-  /** @nullable */
-  exactPackageBytes?: number | null;
+  hasExactPackage?: boolean;
   sentAt: string;
   updatedAt: string;
 }

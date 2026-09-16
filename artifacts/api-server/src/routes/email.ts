@@ -228,7 +228,7 @@ async function doSendEmail(params: {
     type?: string;
     disposition?: "attachment" | "inline";
   }>;
-}): Promise<{ send: any; error?: string; configurationReason?: string }> {
+}): Promise<{ send: any; error?: string; configurationReason?: string; deliveryOutcome?: "definite_failure" | "uncertain" }> {
   const [emailSettings] = await db.select({
     emailSendingEnabled: companySettingsTable.emailSendingEnabled,
   }).from(companySettingsTable).limit(1);
@@ -259,7 +259,7 @@ async function doSendEmail(params: {
       .set({ status: "unsubscribed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason };
+    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
   }
 
   // Delivery is an explicit database-backed opt-in.  Persist a failed
@@ -271,7 +271,7 @@ async function doSendEmail(params: {
       .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason };
+    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
   }
 
   let trackedHtml: string;
@@ -284,7 +284,7 @@ async function doSendEmail(params: {
       .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason };
+    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
   }
 
   if (!SENDGRID_API_KEY) {
@@ -297,6 +297,7 @@ async function doSendEmail(params: {
       send: failed,
       error: reason,
       configurationReason: "missing:SENDGRID_API_KEY",
+      deliveryOutcome: "definite_failure",
     };
   }
 
@@ -339,7 +340,16 @@ async function doSendEmail(params: {
     await db.update(emailSendsTable)
       .set({ status: "failed", failureReason: err?.message || "Send failed", updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id));
-    return { send: placeholder, error: err?.message || "Send failed" };
+    // SendGrid may time out after accepting the message. Only a confirmed
+    // provider 4xx rejection is safe to classify as retryable.
+    const statusCode = Number(err?.response?.statusCode ?? err?.code);
+    return {
+      send: placeholder,
+      error: err?.message || "Send failed",
+      deliveryOutcome: Number.isInteger(statusCode) && statusCode >= 400 && statusCode < 500
+        ? "definite_failure"
+        : "uncertain",
+    };
   }
 }
 
