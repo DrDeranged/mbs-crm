@@ -113,6 +113,10 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PATCH | `/api/documents/:docId` | `routes/documents.ts:154` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/documents/:docId/download` | `routes/documents.ts:138` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts:6` | `L` | handler checks `lead.assignedRepId === user.id` for reps (`lib/lenderPackage.ts:556-585`) |
+| POST | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts` | `L` | selected document IDs are verified against the lead; assigned reps only |
+| GET | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
+| PUT | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
+| DELETE | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
 | GET | `/api/dashboard/summary` | `routes/dashboard.ts:57` | `M` | reps rejected |
 | GET | `/api/dashboard/rep` | `routes/dashboard.ts:99` | `L` | rep path forces requested rep id to `user.id` |
 | GET | `/api/dashboard/my-tasks` | `routes/dashboard.ts:146` | `L` | reps filter returned task leads by `lead.assignedRepId === user.id`; managers/admins use `tasksTable.userId === user.id` |
@@ -134,6 +138,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/leads/:id/submissions` | `routes/lenders.ts:326` | `L` | `lead.assignedRepId === user.id` for reps |
 | PUT | `/api/submissions/:id` | `routes/lenders.ts:354` | `L` | submission lead's `assignedRepId === user.id` for reps |
 | PATCH | `/api/submissions/:id` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps |
+| GET | `/api/submissions/:id/package` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; immutable object integrity checked |
 | GET | `/api/deals/:id/submissions` | `routes/lenders.ts` | `D` | deal's `assignedTo === user.id` for reps |
 | GET | `/api/flyer-templates` | `routes/flyer-templates.ts:212` | `U` | N/A (template list; not a lead/deal record) |
 | GET | `/api/flyer-templates/:id` | `routes/flyer-templates.ts:230` | `U` | N/A (template detail; not a lead/deal record) |
