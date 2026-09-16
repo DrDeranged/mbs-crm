@@ -75,6 +75,25 @@ function leadDateWhere(startDate?: Date, endDate?: Date, repId?: number) {
   return clauses.length ? and(...clauses) : undefined;
 }
 
+/**
+ * Same-lead funding transitions faster than a day are test/repair artifacts,
+ * not representative funding cycles. Keep this condition named and exported
+ * so the analytics endpoint's calculation has a direct behavioral pin.
+ */
+export function fundingTimeEligibilityWhere(
+  startDate?: Date,
+  endDate?: Date,
+  repId?: number,
+) {
+  return and(
+    eq(leadStatusHistoryTable.toStatus, "funded"),
+    sql`${leadStatusHistoryTable.createdAt} >= ${leadsTable.createdAt} + interval '24 hours'`,
+    startDate ? gte(leadsTable.createdAt, startDate) : undefined,
+    endDate ? lte(leadsTable.createdAt, endDate) : undefined,
+    repId ? eq(leadsTable.assignedRepId, repId) : undefined,
+  );
+}
+
 // GET /analytics/summary
 router.get("/analytics/summary", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -119,15 +138,7 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
       })
       .from(leadStatusHistoryTable)
       .innerJoin(leadsTable, eq(leadStatusHistoryTable.leadId, leadsTable.id))
-      .where(
-        and(
-          eq(leadStatusHistoryTable.toStatus, "funded"),
-          sql`${leadStatusHistoryTable.createdAt} > ${leadsTable.createdAt} + interval '5 minutes'`,
-          startDate ? gte(leadsTable.createdAt, startDate) : undefined,
-          endDate ? lte(leadsTable.createdAt, endDate) : undefined,
-          effectiveRepId ? eq(leadsTable.assignedRepId, effectiveRepId) : undefined,
-        ),
-      ),
+      .where(fundingTimeEligibilityWhere(startDate, endDate, effectiveRepId)),
 
     // Total revenue from funded leads in range
     db

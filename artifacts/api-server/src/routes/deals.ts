@@ -165,10 +165,33 @@ function dateConditions(q: DealListQuery, table = dealsTable) {
   return clauses;
 }
 
+/**
+ * Shared ownership scope for the list and CSV export. In particular, query
+ * parameters must never let a representative widen beyond their assignments.
+ */
+export function exportDealScopeConditions(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  query: DealListQuery,
+): any[] {
+  const conditions: any[] = [];
+  if (query.include_archived !== "true") {
+    conditions.push(eq(dealsTable.isArchived, false));
+  }
+  if (user.role === "rep") {
+    conditions.push(eq(dealsTable.assignedTo, user.id));
+  } else if (query.rep_id) {
+    conditions.push(eq(dealsTable.assignedTo, Number(query.rep_id)));
+  }
+  if (query.lead_id) {
+    conditions.push(eq(dealsTable.leadId, Number(query.lead_id)));
+  }
+  return conditions;
+}
+
 // Register this static path before the dynamic /deals/:id route below. Keeping
 // it as a named handler makes the precedence explicit without special-casing
 // "export" in the ID parser.
-router.get("/deals/export", exportDeals);
+router.get("/deals/export", createExportDealsHandler());
 
 router.get("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
@@ -265,21 +288,23 @@ router.get("/deals", async (req, res): Promise<void> => {
   });
 });
 
-async function exportDeals(req: Request, res: Response): Promise<void> {
-  const user = await requireUser(req, res);
+export function createExportDealsHandler(dependencies: {
+  database?: Pick<typeof db, "transaction">;
+  authenticate?: typeof requireUser;
+  recordActivity?: typeof logActivity;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const recordActivity = dependencies.recordActivity ?? logActivity;
+  return async function exportDeals(req: Request, res: Response): Promise<void> {
+  const user = await authenticate(req, res);
   if (!user) return;
 
   const q = parseDealListQuery(req, res);
   if (!q) return;
-  const conditions: any[] = [];
-  if (q.include_archived !== "true")
-    conditions.push(eq(dealsTable.isArchived, false));
-  // Reps are always restricted to their own assignments. A rep_id supplied by
-  // a client can narrow that set, but can never widen it.
-  if (user.role === "rep") conditions.push(eq(dealsTable.assignedTo, user.id));
-  else if (q.rep_id)
-    conditions.push(eq(dealsTable.assignedTo, Number(q.rep_id)));
-  if (q.lead_id) conditions.push(eq(dealsTable.leadId, Number(q.lead_id)));
+  // This helper retains the representative restriction even when the request
+  // carries another rep_id.
+  const conditions = exportDealScopeConditions(user, q);
   if (q.stages || q.stage) {
     const stages = parseStages(q.stages ?? q.stage);
     if (!stages || stages.length === 0) {
@@ -318,7 +343,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
   let exported = 0;
   const batchSize = 1000;
   const latestActivityRequested = sortField === "lastActivityAt";
-  await db.transaction(async (tx) => {
+  await database.transaction(async (tx) => {
     // A repeatable-read snapshot prevents mutable deal/activity rows from
     // moving between batches and being duplicated or skipped.
     await tx.execute(sql`set transaction isolation level repeatable read`);
@@ -380,7 +405,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     }
   });
   res.end();
-  await logActivity({
+  await recordActivity({
     userId: user.id,
     dealId: null,
     leadId: null,
@@ -389,6 +414,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     entityId: 0,
     details: { count: exported },
   });
+  };
 }
 
 router.post("/deals", async (req, res): Promise<void> => {
