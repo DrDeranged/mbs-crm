@@ -642,6 +642,7 @@ export function createSubmissionHandler(
         action: "lender_submitted", entityType: "lender_submission", entityId: created.id,
         details: {
           lenderName: lender.name, lenderId: lender.id, dealId: submissionDeal.id,
+          adminOverride,
           packageSections: packageConfig?.sections ?? null,
           packageDocumentIds: packageConfig?.documentIds ?? null,
           ssnUnmasked: packageConfig?.options?.maskSsn === false,
