@@ -21,7 +21,7 @@ import { applicationsTable, bankStatementExtractionsTable } from "./applications
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
 import { retiredRepSlugsTable } from "./retiredRepSlugs";
-import { usfaIntakeLogTable, usfaIntakePrefillTable } from "./usfaIntake";
+import { usfaApplicationEmailLogTable, usfaIntakeLogTable, usfaIntakePrefillTable } from "./usfaIntake";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -45,6 +45,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   lenderSubmissions: many(lenderSubmissionsTable),
   usfaIntakeLogs: many(usfaIntakeLogTable),
   usfaIntakePrefill: one(usfaIntakePrefillTable),
+  usfaApplicationEmailLogs: many(usfaApplicationEmailLogTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -83,6 +84,10 @@ export const usfaIntakeLogRelations = relations(usfaIntakeLogTable, ({ one }) =>
 
 export const usfaIntakePrefillRelations = relations(usfaIntakePrefillTable, ({ one }) => ({
   lead: one(leadsTable, { fields: [usfaIntakePrefillTable.leadId], references: [leadsTable.id] }),
+}));
+
+export const usfaApplicationEmailLogRelations = relations(usfaApplicationEmailLogTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [usfaApplicationEmailLogTable.leadId], references: [leadsTable.id] }),
 }));
 
 export const notesRelations = relations(notesTable, ({ one }) => ({

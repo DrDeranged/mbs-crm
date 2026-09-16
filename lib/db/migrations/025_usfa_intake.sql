@@ -24,3 +24,22 @@ CREATE INDEX IF NOT EXISTS "usfa_intake_prefill_lead_idx" ON "usfa_intake_prefil
 
 ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_id" text;
 ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_tab" text NOT NULL DEFAULT 'Sheet1';
+
+-- Gmail is read-only and this receipt is the idempotency key for each message.
+CREATE TABLE IF NOT EXISTS "usfa_application_email_log" (
+  "id" serial PRIMARY KEY,
+  "gmail_message_id" text NOT NULL UNIQUE,
+  "lead_id" integer REFERENCES "leads"("id") ON DELETE SET NULL,
+  "status" text NOT NULL CHECK ("status" IN ('attached', 'pending', 'expired', 'error')),
+  "received_at" timestamp,
+  "attempted_at" timestamp NOT NULL DEFAULT now(),
+  "expires_at" timestamp NOT NULL,
+  "error" text,
+  "metadata" jsonb
+);
+CREATE INDEX IF NOT EXISTS "usfa_application_email_status_idx"
+  ON "usfa_application_email_log" ("status");
+CREATE INDEX IF NOT EXISTS "usfa_application_email_expires_idx"
+  ON "usfa_application_email_log" ("expires_at");
+
+ALTER TABLE "documents" ADD COLUMN IF NOT EXISTS "label" text;

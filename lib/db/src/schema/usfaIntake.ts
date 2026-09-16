@@ -47,3 +47,23 @@ export type UsfaIntakeLog = typeof usfaIntakeLogTable.$inferSelect;
 export const insertUsfaIntakePrefillSchema = createInsertSchema(usfaIntakePrefillTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertUsfaIntakePrefill = z.infer<typeof insertUsfaIntakePrefillSchema>;
 export type UsfaIntakePrefill = typeof usfaIntakePrefillTable.$inferSelect;
+
+export const USFA_APPLICATION_EMAIL_STATUSES = ["attached", "pending", "expired", "error"] as const;
+export const usfaApplicationEmailLogTable = pgTable(
+  "usfa_application_email_log",
+  {
+    id: serial("id").primaryKey(),
+    gmailMessageId: text("gmail_message_id").notNull().unique(),
+    leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "set null" }),
+    status: text("status", { enum: USFA_APPLICATION_EMAIL_STATUSES }).notNull(),
+    receivedAt: timestamp("received_at"),
+    attemptedAt: timestamp("attempted_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+    error: text("error"),
+    metadata: jsonb("metadata"),
+  },
+  (t) => [index("usfa_application_email_status_idx").on(t.status), index("usfa_application_email_expires_idx").on(t.expiresAt)],
+);
+export const insertUsfaApplicationEmailLogSchema = createInsertSchema(usfaApplicationEmailLogTable).omit({ id: true, attemptedAt: true });
+export type InsertUsfaApplicationEmailLog = z.infer<typeof insertUsfaApplicationEmailLogSchema>;
+export type UsfaApplicationEmailLog = typeof usfaApplicationEmailLogTable.$inferSelect;

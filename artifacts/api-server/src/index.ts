@@ -11,6 +11,7 @@ import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 import { closeBrowser } from "./lib/renderPdf";
 import { installProcessErrorHandlers } from "./lib/processHandlers";
 import { startUsfaPoller } from "./lib/intake/usfaPoller";
+import { startUsfaApplicationPoller } from "./lib/intake/usfaApplicationPoller";
 
 // Install these before validating startup configuration so module-level
 // startup failures are logged as fatal errors rather than disappearing as an
@@ -100,6 +101,7 @@ const server = app.listen(port, (err) => {
   }, REMINDER_INTERVAL_MS);
   intervals.push(reminderInterval);
   intervals.push(startUsfaPoller());
+  intervals.push(startUsfaApplicationPoller());
 
   // Renewal radar — flags funded leads ready to re-fund; runs at startup then once daily
   const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000;

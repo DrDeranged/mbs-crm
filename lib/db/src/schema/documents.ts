@@ -26,6 +26,7 @@ export const documentsTable = pgTable(
     fileType: text("file_type").notNull(),
     fileSize: integer("file_size").notNull(),
     category: text("category").$type<DocumentCategory>().notNull().default("other"),
+    label: text("label"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("documents_lead_idx").on(t.leadId)],
