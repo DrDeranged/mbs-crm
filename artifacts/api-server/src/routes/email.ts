@@ -14,7 +14,11 @@ import {
   activityLogTable,
 } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
-import { canAccessCreatorOwnedRecord, requireUser } from "../lib/authHelpers";
+import {
+  canManageMarketingResource,
+  canReadMarketingResource,
+  requireUser,
+} from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
@@ -527,9 +531,12 @@ router.post("/email/send", async (req: Request, res: Response) => {
   let senderMode: "default" | "assigned_rep" = "default";
 
   if (templateId) {
-    const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
+    const template = await db.query.emailTemplatesTable.findFirst({
+      where: eq(emailTemplatesTable.id, templateId),
+      with: { owner: true },
+    });
     if (!template) return void res.status(404).json({ error: "Template not found" });
-    if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+    if (!canReadMarketingResource(user, template.owner)) {
       return void res.status(403).json({ error: "Forbidden" });
     }
     if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
@@ -664,12 +671,13 @@ router.get("/email/templates", async (req: Request, res: Response) => {
   if (!user) return;
 
   const templates = await db.query.emailTemplatesTable.findMany({
-    where: user.role === "rep" ? eq(emailTemplatesTable.createdBy, user.id) : undefined,
-    with: { creator: true },
+    with: { creator: true, owner: true },
     orderBy: (t, { desc }) => [desc(t.updatedAt)],
   });
 
-  res.json(templates.map(templateToApi));
+  res.json(templates
+    .filter((template) => canReadMarketingResource(user, template.owner))
+    .map(templateToApi));
 });
 
 // --- Get single template ---
@@ -681,10 +689,10 @@ router.get("/email/templates/:id", async (req: Request, res: Response) => {
   if (!id.success) return invalidInput(res, id);
   const template = await db.query.emailTemplatesTable.findFirst({
     where: eq(emailTemplatesTable.id, id.data),
-    with: { creator: true },
+    with: { creator: true, owner: true },
   });
   if (!template) return void res.status(404).json({ error: "Not found" });
-  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+  if (!canReadMarketingResource(user, template.owner)) {
     return void res.status(403).json({ error: "Forbidden" });
   }
   res.json(templateToApi(template));
@@ -725,7 +733,7 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
 
   const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id.data) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
-  if (user.role === "rep" && existing.createdBy !== user.id) {
+  if (!canManageMarketingResource(user, existing.ownerId)) {
     return void res.status(403).json({ error: "You can only edit templates you created" });
   }
 
@@ -755,7 +763,7 @@ router.delete("/email/templates/:id", async (req: Request, res: Response) => {
 
   const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
-  if (user.role === "rep" && existing.createdBy !== user.id) {
+  if (!canManageMarketingResource(user, existing.ownerId)) {
     return void res.status(403).json({ error: "You can only delete templates you created" });
   }
 
@@ -782,9 +790,12 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   if (!body.success) return invalidInput(res, body);
   const { leadId } = body.data;
 
-  const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id.data) });
+  const template = await db.query.emailTemplatesTable.findFirst({
+    where: eq(emailTemplatesTable.id, id.data),
+    with: { owner: true },
+  });
   if (!template) return void res.status(404).json({ error: "Not found" });
-  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+  if (!canReadMarketingResource(user, template.owner)) {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
@@ -804,6 +815,7 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   res.json({
     subject: renderTemplate(template.subject, vars),
     bodyHtml: ensureBrandEmailHeader(renderTemplate(template.bodyHtml, vars), getPublicBaseUrl()),
+    ownerId: user.id,
   });
 });
 
@@ -1041,6 +1053,7 @@ export async function seedStarterEmail(actorId: number) {
 </ul>
 <p>Funding amounts range from $4,000 to $20,000,000, and we work with companies of all sizes and industries.</p>
 <p>What makes MBS different:</p>
+    ownerId: t.ownerId ?? null,
 <ul>
 <li>✔ Same Day Approvals</li>
 <li>✔ Same Day Funding for Working Capital</li>

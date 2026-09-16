@@ -467,14 +467,19 @@ export const UpdateUserResponse = zod.object({
  * @summary Get inbound lead distribution settings (admin only)
  */
 export const getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const getLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
-export const getLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+export const getLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
+export const getLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
+export const getLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
 
-
+export const getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
 
 export const GetLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "staleThresholdDays": zod.number().min(1).max(getLeadDistributionSettingsResponseStaleThresholdDaysMax).default(getLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).default(getLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
+  "staleDays": zod.number().min(1).max(getLeadDistributionSettingsResponseRoutingStaleDaysMax).default(getLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
+  "autoReassignStale": zod.boolean().default(getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
+})
 })
 
 
@@ -4073,6 +4078,7 @@ export const ListEmailTemplatesResponseItem = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4113,6 +4119,7 @@ export const GetEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4148,6 +4155,7 @@ export const UpdateEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4369,6 +4377,7 @@ export const ListDripSequencesResponseItem = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4406,6 +4415,7 @@ export const GetDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4452,6 +4462,7 @@ export const UpdateDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),

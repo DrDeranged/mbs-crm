@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserRole, UserUpdateRole } from "@workspace/api-client-react";
+import { UserRole, UserUpdateRole, type RoutingSettingsMode } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,9 @@ export default function Settings() {
   const [slugInput, setSlugInput] = useState("");
   const [editingTitle, setEditingTitle] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
-  const [staleThresholdInput, setStaleThresholdInput] = useState("7");
+  const [routingStaleDaysInput, setRoutingStaleDaysInput] = useState("7");
+  const [routingMode, setRoutingMode] = useState<RoutingSettingsMode>("manual");
+  const [autoReassignStale, setAutoReassignStale] = useState(false);
 
   const apiBase = getApiBaseUrl();
 
@@ -284,26 +286,28 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    if (leadDistribution?.staleThresholdDays != null) {
-      setStaleThresholdInput(String(leadDistribution.staleThresholdDays));
+    if (leadDistribution?.routing) {
+      setRoutingMode(leadDistribution.routing.mode);
+      setRoutingStaleDaysInput(String(leadDistribution.routing.staleDays));
+      setAutoReassignStale(leadDistribution.routing.autoReassignStale);
     }
-  }, [leadDistribution?.staleThresholdDays]);
+  }, [leadDistribution?.routing]);
 
-  const handleSaveStaleThreshold = () => {
-    const staleThresholdDays = Number(staleThresholdInput);
-    if (!Number.isInteger(staleThresholdDays) || staleThresholdDays < 1 || staleThresholdDays > 365) {
+  const handleSaveRouting = () => {
+    const staleDays = Number(routingStaleDaysInput);
+    if (!Number.isInteger(staleDays) || staleDays < 1 || staleDays > 365) {
       toast({ title: "Invalid threshold", description: "Enter a whole number from 1 to 365 days.", variant: "destructive" });
       return;
     }
     updateLeadDistribution.mutate(
-      { data: { staleThresholdDays } },
+      { data: { routing: { mode: routingMode, staleDays, autoReassignStale } } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetLeadDistributionSettingsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          toast({ title: "Staleness threshold saved" });
+          toast({ title: "Routing settings saved" });
         },
-        onError: () => toast({ title: "Error", description: "Failed to save staleness threshold.", variant: "destructive" }),
+        onError: () => toast({ title: "Error", description: "Failed to save routing settings.", variant: "destructive" }),
       },
     );
   };
@@ -550,7 +554,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>Lead Distribution</CardTitle>
               <CardDescription>
-                New inbound website leads and applications are assigned round-robin across one pool of eligible active users. Admins are excluded unless enabled here.
+                Choose manual assignment or round-robin for ordinary inbound website leads. QR-card and prospect-list leads are never round-robin assigned.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -581,7 +585,7 @@ export default function Settings() {
                 <div>
                   <div className="font-medium">Stale lead threshold</div>
                   <div className="text-sm text-muted-foreground">
-                    Assigned leads with no activity for this many days are marked stale. Unassigned leads are never stale.
+                    Assigned leads with no activity for this many days are shown in the stale queue. Unassigned leads are never stale.
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -589,15 +593,12 @@ export default function Settings() {
                     type="number"
                     min={1}
                     max={365}
-                    value={staleThresholdInput}
-                    onChange={(event) => setStaleThresholdInput(event.target.value)}
+                    value={routingStaleDaysInput}
+                    onChange={(event) => setRoutingStaleDaysInput(event.target.value)}
                     className="w-24"
                     aria-label="Stale lead threshold in days"
                   />
                   <span className="text-sm text-muted-foreground">days</span>
-                  <Button size="sm" onClick={handleSaveStaleThreshold} disabled={updateLeadDistribution.isPending}>
-                    Save
-                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -627,6 +628,21 @@ export default function Settings() {
                   </Button>
                 </div>
                 {migrationError && (
+                <div>
+                  <div className="font-medium">Assignment mode</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manual leaves new ordinary inbound leads unassigned. Round-robin assigns them across eligible active users.
+                  </div>
+                </div>
+                <Select value={routingMode} onValueChange={(value) => setRoutingMode(value as RoutingSettingsMode)}>
+                  <SelectTrigger className="w-44" data-testid="select-routing-mode"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="round_robin">Round robin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
                   <p className="mt-3 text-sm text-destructive" role="alert">{migrationError}</p>
                 )}
                 {migrationStatus && (
@@ -647,6 +663,7 @@ export default function Settings() {
                   <div>
                     <h3 className="font-medium">Production closeout</h3>
                     <div className="text-sm text-muted-foreground">
+                  data-testid="switch-include-admins-round-robin"
                        Runs ownership correction, slug backfill, starter email/template seed, and configured lender creation/packet updates in that exact order. Each operation has its own transaction; a later failure stops the sequence but does not roll back earlier successful operations.
                     </div>
                   </div>
@@ -665,6 +682,7 @@ export default function Settings() {
                       Ordered closeout summary — {productionCloseout.data.overallStatus}
                     </div>
                     {formatProductionCloseoutResults(productionCloseout.data.results).map((line) => (
+                    data-testid="input-routing-stale-days"
                       <div key={line.operation} className="flex flex-wrap gap-2 text-sm">
                         <span className="font-medium capitalize">{line.label}</span>
                         <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
@@ -672,6 +690,24 @@ export default function Settings() {
                         </span>
                         <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
                           — {line.summary}
+              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Automatically reassign stale inbound leads</div>
+                  <div className="text-sm text-muted-foreground">
+                    Requires round-robin mode. Every automated reassignment records the former and new representative.
+                  </div>
+                </div>
+                <Switch
+                  checked={autoReassignStale}
+                  onCheckedChange={setAutoReassignStale}
+                  disabled={routingMode !== "round_robin" || updateLeadDistribution.isPending}
+                  aria-label="Automatically reassign stale inbound leads"
+                  data-testid="switch-auto-reassign-stale"
+                />
+              </div>
+              <Button className="mt-6" onClick={handleSaveRouting} disabled={updateLeadDistribution.isPending} data-testid="button-save-routing-settings">
+                Save routing settings
+              </Button>
                         </span>
                       </div>
                     ))}

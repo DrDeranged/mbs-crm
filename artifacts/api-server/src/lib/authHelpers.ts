@@ -35,6 +35,27 @@ export function canAccessCreatorOwnedRecord(
   return user.role !== "rep" || createdBy === user.id;
 }
 
+type MarketingOwner = Pick<typeof usersTable.$inferSelect, "id" | "role"> | null | undefined;
+
+/**
+ * Marketing resources have an explicit owner. Representatives can modify only
+ * their own resources, but can read administrator-owned resources so approved
+ * company campaigns remain available to their assigned leads.
+ */
+export function canReadMarketingResource(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  owner: MarketingOwner,
+): boolean {
+  return user.role !== "rep" || owner?.id === user.id || owner?.role === "admin";
+}
+
+export function canManageMarketingResource(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  ownerId: number | null,
+): boolean {
+  return user.role !== "rep" || ownerId === user.id;
+}
+
 /**
  * Move deals carrying an intended-rep marker to the matching signed-in user.
  *

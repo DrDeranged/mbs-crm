@@ -69,26 +69,26 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/brand/logo.png` | `routes/email.ts:361` | `P` | public static brand image |
 | GET | `/api/email/track/click/:sendId` | `routes/email.ts:369` | `H` | signed tracking token and safe HTTP(S) destination |
 | GET | `/api/email/unsubscribe` | `routes/email.ts:407` | `H` | HMAC token plus persisted send/email equality |
-| POST | `/api/email/send` | `routes/email.ts:452` | `L` | reps require `lead.assignedRepId === user.id`; selected template requires `template.createdBy === user.id` |
+| POST | `/api/email/send` | `routes/email.ts:565` | `L` | reps require `lead.assignedRepId === user.id`; selected template must be owned by that rep or an admin |
 | POST | `/api/email/bulk` | `routes/email.ts:527` | `M` | reps rejected |
-| GET | `/api/email/templates` | `routes/email.ts:611` | `U` | reps query only `emailTemplatesTable.createdBy === user.id` |
-| GET | `/api/email/templates/:id` | `routes/email.ts:625` | `U` | reps require `template.createdBy === user.id` |
-| POST | `/api/email/templates` | `routes/email.ts:642` | `U` | rep-created template is bound to `createdBy: user.id` |
-| PUT | `/api/email/templates/:id` | `routes/email.ts:663` | `U` | reps require `existing.createdBy === user.id` |
-| DELETE | `/api/email/templates/:id` | `routes/email.ts:693` | `U` | reps require `existing.createdBy === user.id` |
-| POST | `/api/email/templates/:id/preview` | `routes/email.ts:719` | `U` | reps require `template.createdBy === user.id` and, if lead supplied, `lead.assignedRepId === user.id` |
+| GET | `/api/email/templates` | `routes/email.ts:736` | `U` | reps may read templates they own or templates whose `ownerId` is an admin |
+| GET | `/api/email/templates/:id` | `routes/email.ts:751` | `U` | reps may read their own or admin-owned templates |
+| POST | `/api/email/templates` | `routes/email.ts:769` | `U` | rep-created template is bound to `createdBy` and `ownerId: user.id` |
+| PUT | `/api/email/templates/:id` | `routes/email.ts:792` | `U` | reps may modify only `ownerId === user.id` |
+| DELETE | `/api/email/templates/:id` | `routes/email.ts:825` | `U` | reps may delete only `ownerId === user.id` |
+| POST | `/api/email/templates/:id/preview` | `routes/email.ts:851` | `U` | reps may preview their own or admin-owned templates and, if a lead is supplied, require `lead.assignedRepId === user.id` |
 | POST | `/api/email/test-send` | `routes/email.ts:752` | `A` | reps rejected |
 | GET | `/api/leads/:id/emails` | `routes/email.ts:819` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/email/seed-starter` | `routes/email.ts:1005` | `A` | reps rejected |
-| GET | `/api/drip/sequences` | `routes/drip.ts:72` | `U` | reps query only `dripSequencesTable.createdBy === user.id` |
-| POST | `/api/drip/sequences` | `routes/drip.ts:86` | `U` | persisted `createdBy: user.id` |
-| GET | `/api/drip/sequences/:id` | `routes/drip.ts:112` | `U` | reps require `seq.createdBy === user.id` |
-| PUT | `/api/drip/sequences/:id` | `routes/drip.ts:139` | `U` | reps require `existing.createdBy === user.id` |
-| DELETE | `/api/drip/sequences/:id` | `routes/drip.ts:178` | `U` | reps require `existing.createdBy === user.id` |
-| PUT | `/api/drip/sequences/:id/steps` | `routes/drip.ts:195` | `U` | reps require `seq.createdBy === user.id` |
-| GET | `/api/leads/:id/drip` | `routes/drip.ts:228` | `L` | `lead.assignedRepId === user.id` for reps |
-| POST | `/api/leads/:id/drip/enroll` | `routes/drip.ts:256` | `L` | reps require `lead.assignedRepId === user.id` and `seq.createdBy === user.id` |
-| POST | `/api/leads/:id/drip/unenroll` | `routes/drip.ts:298` | `L` | `lead.assignedRepId === user.id` for reps |
+| GET | `/api/drip/sequences` | `routes/drip.ts:103` | `U` | reps may read sequences they own or sequences whose `ownerId` is an admin |
+| POST | `/api/drip/sequences` | `routes/drip.ts:120` | `U` | persisted `createdBy` and `ownerId: user.id` |
+| GET | `/api/drip/sequences/:id` | `routes/drip.ts:147` | `U` | reps may read their own/admin-owned sequences only when every embedded template is also own/admin-owned |
+| PUT | `/api/drip/sequences/:id` | `routes/drip.ts:182` | `U` | reps may modify only `ownerId === user.id` |
+| DELETE | `/api/drip/sequences/:id` | `routes/drip.ts:220` | `U` | reps may delete only `ownerId === user.id` |
+| PUT | `/api/drip/sequences/:id/steps` | `routes/drip.ts:237` | `U` | reps may modify only own sequences and may use only own/admin-owned templates |
+| GET | `/api/leads/:id/drip` | `routes/drip.ts:273` | `L` | reps require `lead.assignedRepId === user.id` and may read only own/admin-owned enrollment sequences |
+| POST | `/api/leads/:id/drip/enroll` | `routes/drip.ts:315` | `L` | reps require `lead.assignedRepId === user.id`, an own/admin-owned sequence, and own/admin-owned templates in every step |
+| POST | `/api/leads/:id/drip/unenroll` | `routes/drip.ts:364` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/sendgrid/webhook` | `routes/sendgrid.ts:72` | `G` | signed provider callback |
 | GET | `/api/leads` | `routes/leads.ts:263` | `L` | SQL adds `eq(leadsTable.assignedRepId, user.id)` |
 | POST | `/api/leads` | `routes/leads.ts:265` | `U` | only admin/manager may supply `assignedRepId` |
@@ -221,7 +221,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PASS | Twilio callbacks verify Twilio signatures. | All six callback paths use `T`; token minting is authenticated and is not a callback. |
 | PASS | Clerk webhooks. | No Clerk webhook registration exists in `artifacts/api-server/src/routes` (0 to verify). Clerk user authentication is established by `clerkMiddleware` in `app.ts:95-102`; the API mutation gate uses Clerk `getAuth(req).userId`. |
 | PASS | Reps cannot self-assign leads. | `/leads/:id/assign` is manager/admin-only (`leads.ts:1039-1043`); `createAssignLeadHandler` makes that behavior directly testable. |
-| FIXED | Rep-owned email templates and drip sequences were readable across reps. | Template list/detail/preview and template-backed email send now require `createdBy === user.id` for reps (`email.ts:482-489,611-635,719-742`). Drip list/detail and enrollment sequence selection now apply the same predicate (`drip.ts:72-135,256-291`). |
+| FIXED | Rep-owned email templates and drip sequences were readable across reps. | Marketing ownership uses `ownerId`: reps may read their own or admin-owned resources and may CRUD only their own. Template-backed sends and drip enrollment enforce the same rule for every referenced template (`email.ts:531-802`; `drip.ts:103-346`). |
 | PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 161 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned SendGrid and Twilio callback denial. |
 | PASS | Router-walk test isolation. | `flyer-templates.ts:202-209` honors the test-only `DISABLE_FLYER_TEMPLATE_SEED=true` guard used before the composed router is imported, so route inspection cannot trigger its legacy module-load seed write. |
 

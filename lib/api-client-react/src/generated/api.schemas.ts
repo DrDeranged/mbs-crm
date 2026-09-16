@@ -493,24 +493,57 @@ export interface LeadCaptureResponse {
   leadId: number;
 }
 
-export interface LeadDistributionSettings {
-  /** Include active admins after active reps and managers in inbound round-robin assignment */
-  includeAdminsInRoundRobin: boolean;
+/**
+ * Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.
+ */
+export type RoutingSettingsMode = typeof RoutingSettingsMode[keyof typeof RoutingSettingsMode];
+
+
+export const RoutingSettingsMode = {
+  manual: 'manual',
+  round_robin: 'round_robin',
+} as const;
+
+export interface RoutingSettings {
+  /** Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only. */
+  mode: RoutingSettingsMode;
   /**
-     * Number of idle days before an assigned lead is considered stale
+     * Number of idle days before an assigned lead is considered stale.
      * @minimum 1
      * @maximum 365
      */
-  staleThresholdDays: number;
+  staleDays: number;
+  /** Automatically reassign stale ordinary inbound leads only when mode is round_robin. */
+  autoReassignStale: boolean;
+}
+
+export interface LeadDistributionSettings {
+  /** Include active admins after active reps and managers in inbound round-robin assignment */
+  includeAdminsInRoundRobin: boolean;
+  routing: RoutingSettings;
+}
+
+export type RoutingSettingsUpdateMode = typeof RoutingSettingsUpdateMode[keyof typeof RoutingSettingsUpdateMode];
+
+
+export const RoutingSettingsUpdateMode = {
+  manual: 'manual',
+  round_robin: 'round_robin',
+} as const;
+
+export interface RoutingSettingsUpdate {
+  mode?: RoutingSettingsUpdateMode;
+  /**
+     * @minimum 1
+     * @maximum 365
+     */
+  staleDays?: number;
+  autoReassignStale?: boolean;
 }
 
 export interface LeadDistributionSettingsUpdate {
   includeAdminsInRoundRobin?: boolean;
-  /**
-     * @minimum 1
-     * @maximum 365
-     */
-  staleThresholdDays?: number;
+  routing?: RoutingSettingsUpdate;
 }
 
 export interface EmailDeliverySettings {
@@ -838,6 +871,8 @@ export interface EmailTemplate {
   isActive: boolean;
   /** @nullable */
   createdBy?: number | null;
+  /** @nullable */
+  ownerId?: number | null;
   creator?: EmailTemplateCreator;
   createdAt: string;
   updatedAt: string;
@@ -951,6 +986,8 @@ export interface DripSequence {
   stepCount: number;
   /** @nullable */
   createdBy: number | null;
+  /** @nullable */
+  ownerId: number | null;
   creator?: DripSequenceCreator;
   createdAt: string;
   updatedAt: string;

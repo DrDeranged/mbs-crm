@@ -4507,18 +4507,14 @@ components:
 
     LeadDistributionSettings:
       type: object
-      required: [includeAdminsInRoundRobin, staleThresholdDays]
+      required: [includeAdminsInRoundRobin, routing]
       properties:
         includeAdminsInRoundRobin:
           type: boolean
           default: false
           description: Include active admins after active reps and managers in inbound round-robin assignment
-        staleThresholdDays:
-          type: integer
-          minimum: 1
-          maximum: 365
-          default: 7
-          description: Number of idle days before an assigned lead is considered stale
+        routing:
+          $ref: "#/components/schemas/RoutingSettings"
 
     LeadDistributionSettingsUpdate:
       type: object
@@ -4526,10 +4522,41 @@ components:
       properties:
         includeAdminsInRoundRobin:
           type: boolean
-        staleThresholdDays:
+        routing:
+          $ref: "#/components/schemas/RoutingSettingsUpdate"
+
+    RoutingSettings:
+      type: object
+      required: [mode, staleDays, autoReassignStale]
+      properties:
+        mode:
+          type: string
+          enum: [manual, round_robin]
+          default: manual
+          description: Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.
+        staleDays:
           type: integer
           minimum: 1
           maximum: 365
+          default: 7
+          description: Number of idle days before an assigned lead is considered stale.
+        autoReassignStale:
+          type: boolean
+          default: false
+          description: Automatically reassign stale ordinary inbound leads only when mode is round_robin.
+
+    RoutingSettingsUpdate:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [manual, round_robin]
+        staleDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        autoReassignStale:
+          type: boolean
 
     EmailDeliverySettings:
       type: object
@@ -5166,6 +5193,8 @@ components:
           type: boolean
         createdBy:
           type: ["integer", "null"]
+        ownerId:
+          type: ["integer", "null"]
         creator:
           oneOf:
             - type: object
@@ -5294,7 +5323,7 @@ components:
 
     DripSequence:
       type: object
-      required: [id, name, triggerStatus, isActive, stepCount, createdBy, createdAt, updatedAt]
+      required: [id, name, triggerStatus, isActive, stepCount, createdBy, ownerId, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5310,6 +5339,8 @@ components:
         stepCount:
           type: integer
         createdBy:
+          type: ["integer", "null"]
+        ownerId:
           type: ["integer", "null"]
         creator:
           oneOf:

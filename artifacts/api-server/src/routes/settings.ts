@@ -4,10 +4,28 @@ import { db } from "@workspace/db";
 import { companySettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
-import { UpdateLeadDistributionSettingsBody } from "@workspace/api-zod";
+import { z } from "zod/v4";
+import { DEFAULT_ROUTING_SETTINGS } from "../lib/leadRouting";
 
 const router: IRouter = Router();
 
+const RoutingSettingsBody = z.object({
+  routing: z.object({
+    mode: z.enum(["manual", "round_robin"]).optional(),
+    staleDays: z.number().int().min(1).max(365).optional(),
+    autoReassignStale: z.boolean().optional(),
+  }).optional(),
+  // Retained temporarily so existing clients continue to receive a clear
+  // validation result while moving to the nested routing contract.
+  includeAdminsInRoundRobin: z.boolean().optional(),
+}).strict();
+
+function routingToApi(settings: typeof companySettingsTable.$inferSelect | undefined) {
+  return {
+    mode: settings?.routingMode ?? DEFAULT_ROUTING_SETTINGS.mode,
+    staleDays: settings?.routingStaleDays ?? settings?.staleThresholdDays ?? DEFAULT_ROUTING_SETTINGS.staleDays,
+    autoReassignStale: settings?.routingAutoReassignStale ?? DEFAULT_ROUTING_SETTINGS.autoReassignStale,
+  };
 router.get("/settings/company", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -153,7 +171,7 @@ router.get("/settings/lead-distribution", async (req: Request, res: Response) =>
   const [settings] = await db.select().from(companySettingsTable).limit(1);
   res.json({
     includeAdminsInRoundRobin: settings?.includeAdminsInRoundRobin ?? false,
-    staleThresholdDays: settings?.staleThresholdDays ?? 7,
+    routing: routingToApi(settings),
   });
 });
 
@@ -162,13 +180,13 @@ router.put("/settings/lead-distribution", async (req: Request, res: Response) =>
   if (!user) return;
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
 
-  const body = UpdateLeadDistributionSettingsBody.safeParse(req.body);
+  const body = RoutingSettingsBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid body", details: body.error.issues });
     return;
   }
 
-  if (body.data.includeAdminsInRoundRobin === undefined && body.data.staleThresholdDays === undefined) {
+  if (body.data.includeAdminsInRoundRobin === undefined && !body.data.routing) {
     res.status(400).json({ error: "At least one setting must be provided" });
     return;
   }
@@ -176,7 +194,9 @@ router.put("/settings/lead-distribution", async (req: Request, res: Response) =>
   const [existing] = await db.select().from(companySettingsTable).limit(1);
   const updateFields = {
     ...(body.data.includeAdminsInRoundRobin === undefined ? {} : { includeAdminsInRoundRobin: body.data.includeAdminsInRoundRobin }),
-    ...(body.data.staleThresholdDays === undefined ? {} : { staleThresholdDays: body.data.staleThresholdDays }),
+    ...(body.data.routing?.mode === undefined ? {} : { routingMode: body.data.routing.mode }),
+    ...(body.data.routing?.staleDays === undefined ? {} : { routingStaleDays: body.data.routing.staleDays }),
+    ...(body.data.routing?.autoReassignStale === undefined ? {} : { routingAutoReassignStale: body.data.routing.autoReassignStale }),
     updatedAt: new Date(),
   };
   let result;
@@ -191,7 +211,9 @@ router.put("/settings/lead-distribution", async (req: Request, res: Response) =>
       .insert(companySettingsTable)
       .values({
         includeAdminsInRoundRobin: body.data.includeAdminsInRoundRobin ?? false,
-        staleThresholdDays: body.data.staleThresholdDays ?? 7,
+        routingMode: body.data.routing?.mode ?? DEFAULT_ROUTING_SETTINGS.mode,
+        routingStaleDays: body.data.routing?.staleDays ?? DEFAULT_ROUTING_SETTINGS.staleDays,
+        routingAutoReassignStale: body.data.routing?.autoReassignStale ?? DEFAULT_ROUTING_SETTINGS.autoReassignStale,
       })
       .returning();
   }
@@ -206,7 +228,7 @@ router.put("/settings/lead-distribution", async (req: Request, res: Response) =>
 
   res.json({
     includeAdminsInRoundRobin: result?.includeAdminsInRoundRobin ?? false,
-    staleThresholdDays: result?.staleThresholdDays ?? 7,
+    routing: routingToApi(result),
   });
 });
 

@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { db, pool, formatSchemaBootLine, getMigrationStatus } from "@workspace/db";
 import { runSchemaBoot } from "./lib/schemaBoot";
 import { runDripJob } from "./lib/dripJob";
+import { runStaleLeadAutoReassignment } from "./lib/staleLeadReassignment";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
 import { runBackupJob } from "./lib/backupJob";
@@ -77,6 +78,14 @@ const server = app.listen(port, (err) => {
     runDripJob().catch((err) => logger.error({ err }, "Drip job error"));
   }, DRIP_INTERVAL_MS);
   intervals.push(dripInterval);
+
+  // This is intentionally a separate guarded job: it is a no-op unless an
+  // administrator enables both round-robin and stale automatic reassignment.
+  runStaleLeadAutoReassignment().catch((err) => logger.error({ err }, "Stale lead reassignment startup error"));
+  const staleReassignmentInterval = setInterval(() => {
+    runStaleLeadAutoReassignment().catch((err) => logger.error({ err }, "Stale lead reassignment error"));
+  }, DRIP_INTERVAL_MS);
+  intervals.push(staleReassignmentInterval);
 
   // Task reminder push notifications — checks every hour, fires at 9 AM
   const REMINDER_INTERVAL_MS = 60 * 60 * 1000;

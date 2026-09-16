@@ -5,7 +5,12 @@ import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotenc
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
 import { z } from "zod/v4";
-import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
+import {
+  canReadMarketingResource,
+  getUserDisplayName,
+  requireUser,
+  userToApi,
+} from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
 import { getLatestActivities, getLeadCreationActivities, logActivity } from "../lib/activityHelper";
 import { isUnassignedInboundLead } from "../lib/inboundLead";
@@ -28,7 +33,12 @@ import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
-import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDistribution";
+import {
+  getRoutingSettings,
+  findActiveRepBySlug,
+  isEligibleInboundAssignee,
+  resolveInboundAssignee,
+} from "../lib/leadDistribution";
 import { writeCsvRow } from "../lib/csv";
 import { isLeadStale } from "../lib/staleLeadPredicate";
 import { buildStaleLeadCondition } from "../lib/staleLeadCondition";
@@ -125,8 +135,7 @@ function leadToApi(
 }
 
 async function getStaleThresholdDays() {
-  const settings = await db.query.companySettingsTable.findFirst();
-  return settings?.staleThresholdDays ?? 7;
+  return (await getRoutingSettings()).staleDays;
 }
 
 async function leadToApiWithCurrentActivity(
@@ -396,11 +405,13 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   }
 
   const { rep: repSlug, ...captureData } = body.data;
-  const assignedRepId = await resolveInboundAssignee(repSlug);
+  const attributedRep = await findActiveRepBySlug(repSlug);
+  const leadSource = attributedRep ? "qr-card" : "website";
+  const assignedRepId = attributedRep?.id ?? await resolveInboundAssignee(undefined, leadSource);
   const [lead] = await db.insert(leadsTable).values({
     ...captureData,
     applicationType: (captureData.applicationType as any) ?? "working_capital",
-    leadSource: "website",
+    leadSource,
     ...(assignedRepId ? { assignedRepId } : {}),
   }).returning();
 
@@ -690,7 +701,11 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
         action: "assigned",
         entityType: "lead",
         entityId: String(lead.id),
-        details: { message },
+        details: {
+          message,
+          fromRepId: lead.assignedRepId,
+          toRepId: body.data.repId,
+        },
       })));
     }
     return candidates;
@@ -990,9 +1005,13 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
         eq(dripSequencesTable.triggerStatus, body.data.status as any),
         eq(dripSequencesTable.isActive, true)
       ),
-      with: { steps: true },
+       with: { steps: { with: { template: { with: { owner: true } } } }, owner: true },
       });
-      for (const seq of triggeredSequences) {
+       for (const seq of triggeredSequences) {
+         if (
+           !canReadMarketingResource(user, seq.owner) ||
+           seq.steps.some((step) => step.template && !canReadMarketingResource(user, step.template.owner))
+         ) continue;
         if (!seq.steps || seq.steps.length === 0) continue;
         const existingEnrollment = await db.query.dripEnrollmentsTable.findFirst({
           where: and(
@@ -1130,7 +1149,11 @@ export function createAssignLeadHandler(dependencies: AssignLeadDependencies = {
       action: "assigned",
       entityType: "lead",
       entityId: String(params.data.id),
-      details: { message },
+      details: {
+        message,
+        fromRepId: existing.assignedRepId,
+        toRepId: body.data.repId,
+      },
     });
 
     return u;

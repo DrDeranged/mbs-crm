@@ -16,6 +16,9 @@ export const companySettingsTable = pgTable("company_settings", {
   includeAdminsInRoundRobin: boolean("include_admins_in_round_robin").notNull().default(false),
   roundRobinCursor: integer("round_robin_cursor").notNull().default(0),
   staleThresholdDays: integer("stale_threshold_days").notNull().default(7),
+  routingMode: text("routing_mode", { enum: ["manual", "round_robin"] }).notNull().default("manual"),
+  routingStaleDays: integer("routing_stale_days").notNull().default(7),
+  routingAutoReassignStale: boolean("routing_auto_reassign_stale").notNull().default(false),
   /**
    * Marketing email delivery is an explicit operational opt-in.  Keeping this
    * in the database (rather than an environment variable) makes the disabled

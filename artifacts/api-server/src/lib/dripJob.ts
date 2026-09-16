@@ -16,6 +16,7 @@ import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 import { getPublicBaseUrl } from "./brand";
 import { isEmailSuppressed } from "./emailSafety";
+import { canReadMarketingResource } from "./authHelpers";
 
 let running: boolean | undefined;
 
@@ -108,19 +109,27 @@ export async function runDripJob(): Promise<void> {
         // Load template
         const template = await db.query.emailTemplatesTable.findFirst({
           where: eq(emailTemplatesTable.id, step.templateId),
+          with: { owner: true },
         });
-        if (!template || !template.isActive) {
-          await db.update(dripEnrollmentsTable)
-            .set({ status: "unenrolled", unenrolledAt: new Date() })
-            .where(eq(dripEnrollmentsTable.id, enrollment.id));
-          logger.warn({ enrollmentId: enrollment.id, templateId: step.templateId }, "Drip enrollment stopped because its template is missing or inactive");
-          continue;
-        }
-
-        // Load assigned rep
+        // Revalidate step-template access at send time. Sequences may outlive
+        // ownership changes, so a rep's enrollment must never send a private
+        // template owned by another rep.
         const rep = lead.assignedRepId
           ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
           : null;
+        if (
+          !template ||
+          !template.isActive ||
+          (rep
+            ? !canReadMarketingResource(rep, template.owner)
+            : template.owner?.role !== "admin")
+        ) {
+          await db.update(dripEnrollmentsTable)
+            .set({ status: "unenrolled", unenrolledAt: new Date() })
+            .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          logger.warn({ enrollmentId: enrollment.id, templateId: step.templateId }, "Drip enrollment stopped because its template is unavailable or inaccessible");
+          continue;
+        }
 
         const vars = buildVariables(lead, rep);
         const subject = renderTemplate(template.subject, vars);
