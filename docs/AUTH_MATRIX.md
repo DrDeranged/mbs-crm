@@ -133,6 +133,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/leads/:id/submissions` | `routes/lenders.ts:287` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/submissions` | `routes/lenders.ts:326` | `L` | `lead.assignedRepId === user.id` for reps |
 | PUT | `/api/submissions/:id` | `routes/lenders.ts:354` | `L` | submission lead's `assignedRepId === user.id` for reps |
+| PATCH | `/api/submissions/:id` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps |
+| GET | `/api/deals/:id/submissions` | `routes/lenders.ts` | `D` | deal's `assignedTo === user.id` for reps |
 | GET | `/api/flyer-templates` | `routes/flyer-templates.ts:212` | `U` | N/A (template list; not a lead/deal record) |
 | GET | `/api/flyer-templates/:id` | `routes/flyer-templates.ts:230` | `U` | N/A (template detail; not a lead/deal record) |
 | POST | `/api/flyer-templates` | `routes/flyer-templates.ts:243` | `A` | reps rejected |

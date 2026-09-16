@@ -300,154 +300,174 @@ function apiApplicationType(value: unknown): string {
   return value === "equipment" ? "Equipment Financing" : value === "working_capital" ? "Working Capital" : "—";
 }
 
-async function canAccessSubmissionLead(user: { id: number; role: string }, leadId: number) {
-  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+async function canAccessSubmissionLead(database: any, user: { id: number; role: string }, leadId: number) {
+  const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return { lead: null, allowed: false };
   return { lead, allowed: user.role === "admin" || (user.role === "rep" && lead.assignedRepId === user.id) };
 }
 
-async function createSubmission(req: Request, res: Response) {
-  const user = await requireUser(req, res);
-  if (!user) return;
+export type LenderSubmissionRouteDependencies = {
+  database?: any;
+  authenticate?: typeof requireUser;
+  buildPackage?: typeof buildLenderPackagePdf;
+  sendEmail?: typeof doSendEmail;
+  getBaseUrl?: typeof getPublicBaseUrl;
+  recordActivity?: typeof logActivity;
+};
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+export function createSubmissionHandler(
+  dependencies: LenderSubmissionRouteDependencies = {},
+) {
+  const routeDb = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const buildPackage = dependencies.buildPackage ?? buildLenderPackagePdf;
+  const sendEmail = dependencies.sendEmail ?? doSendEmail;
+  const getBaseUrl = dependencies.getBaseUrl ?? getPublicBaseUrl;
+  const recordActivity = dependencies.recordActivity ?? logActivity;
 
-  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
-  if (!lead) return void res.status(404).json({ error: "Lead not found" });
-  if (user.role !== "admin" && !(user.role === "rep" && lead.assignedRepId === user.id)) {
-    return void res.status(403).json({ error: "Forbidden" });
-  }
+  return async function createSubmission(req: Request, res: Response): Promise<void> {
+    const user = await authenticate(req, res);
+    if (!user) return;
 
-  const lenderId = Number(req.body?.lender_id);
-  if (!lenderId || isNaN(lenderId)) return void res.status(400).json({ error: "lender_id is required" });
+    const leadId = parseInt(req.params["id"] as string, 10);
+    if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
 
-  const lender = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, lenderId) });
-  if (!lender) return void res.status(404).json({ error: "Lender not found" });
-  if (!lender.isActive) return void res.status(409).json({ error: "Selected lender is inactive" });
-  if (!lender.contactEmail || !VALID_EMAIL.test(lender.contactEmail.trim())) {
-    return void res.status(409).json({ error: "Selected lender has no valid contact email" });
-  }
+    const lead = await routeDb.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+    if (!lead) return void res.status(404).json({ error: "Lead not found" });
+    if (user.role !== "admin" && !(user.role === "rep" && lead.assignedRepId === user.id)) {
+      return void res.status(403).json({ error: "Forbidden" });
+    }
 
-  const adminOverride = Boolean(req.body?.admin_override ?? req.body?.adminOverride);
-  if (adminOverride && user.role !== "admin") {
-    return void res.status(403).json({ error: "Only administrators may override the 24-hour submission limit" });
-  }
-  if (!adminOverride) {
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recent = await db.query.lenderSubmissionsTable.findFirst({
-      where: and(
-        eq(lenderSubmissionsTable.leadId, leadId),
-        eq(lenderSubmissionsTable.lenderId, lenderId),
-        gte(lenderSubmissionsTable.sentAt, cutoff),
-      ),
+    const lenderId = Number(req.body?.lender_id);
+    if (!lenderId || isNaN(lenderId)) return void res.status(400).json({ error: "lender_id is required" });
+
+    const lender = await routeDb.query.lendersTable.findFirst({ where: eq(lendersTable.id, lenderId) });
+    if (!lender) return void res.status(404).json({ error: "Lender not found" });
+    if (!lender.isActive) return void res.status(409).json({ error: "Selected lender is inactive" });
+    if (!lender.contactEmail || !VALID_EMAIL.test(lender.contactEmail.trim())) {
+      return void res.status(409).json({ error: "Selected lender has no valid contact email" });
+    }
+
+    const adminOverride = Boolean(req.body?.admin_override ?? req.body?.adminOverride);
+    if (adminOverride && user.role !== "admin") {
+      return void res.status(403).json({ error: "Only administrators may override the 24-hour submission limit" });
+    }
+    if (!adminOverride) {
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const recent = await routeDb.query.lenderSubmissionsTable.findFirst({
+        where: and(
+          eq(lenderSubmissionsTable.leadId, leadId),
+          eq(lenderSubmissionsTable.lenderId, lenderId),
+          gte(lenderSubmissionsTable.sentAt, cutoff),
+        ),
+      });
+      if (recent) {
+        return void res.status(409).json({
+          error: "This lead was already submitted to this lender within the last 24 hours",
+          reason: "duplicate_24h",
+        });
+      }
+    }
+
+    const application = await routeDb.query.applicationsTable.findFirst({
+      where: eq(applicationsTable.leadId, leadId),
+      orderBy: (table: any, { desc: orderDesc }: { desc: any }) => [orderDesc(table.submittedAt)],
     });
-    if (recent) {
-      return void res.status(409).json({
-        error: "This lead was already submitted to this lender within the last 24 hours",
-        reason: "duplicate_24h",
+    if (!application || !application.signatureSignedAt ||
+        !["typed", "drawn"].includes(application.signatureMethod ?? "") ||
+        !application.signatureData) {
+      return void res.status(409).json({ error: "A signed application is required before submitting to a lender", reason: "missing_signed_application" });
+    }
+
+    // Existing deal conventions allow one lead to have historical/archived
+    // deals. Choose the earliest active deal by id, deterministically; this
+    // avoids silently attaching a submission to an arbitrary deal.
+    const deal = (await routeDb.query.dealsTable.findMany({
+      where: and(eq(dealsTable.leadId, leadId), eq(dealsTable.isArchived, false)),
+      orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.id)],
+      limit: 1,
+    }))[0] ?? null;
+    const assignedRep = lead.assignedRepId
+      ? await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
+      : null;
+    const documents = await routeDb.query.documentsTable.findMany({
+      where: eq(documentsTable.leadId, leadId),
+      orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.createdAt), orderAsc(table.id)],
+    });
+    let packagePdf: Buffer;
+    try {
+      packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents })).pdf;
+    } catch (error) {
+      return void res.status(500).json({
+        error: "Lender package generation failed",
+        reason: safeLenderPackageReason(error),
       });
     }
-  }
 
-  const application = await db.query.applicationsTable.findFirst({
-    where: eq(applicationsTable.leadId, leadId),
-    orderBy: (table, { desc: orderDesc }) => [orderDesc(table.submittedAt)],
-  });
-  if (!application || !application.signatureSignedAt ||
-      !["typed", "drawn"].includes(application.signatureMethod ?? "") ||
-      !application.signatureData) {
-    return void res.status(409).json({ error: "A signed application is required before submitting to a lender", reason: "missing_signed_application" });
-  }
-
-  // Existing deal conventions allow one lead to have historical/archived
-  // deals. Choose the earliest active deal by id, deterministically; this
-  // avoids silently attaching a submission to an arbitrary deal.
-  const deal = (await db.query.dealsTable.findMany({
-    where: and(eq(dealsTable.leadId, leadId), eq(dealsTable.isArchived, false)),
-    orderBy: (table, { asc: orderAsc }) => [orderAsc(table.id)],
-    limit: 1,
-  }))[0] ?? null;
-  const assignedRep = lead.assignedRepId
-    ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
-    : null;
-  const documents = await db.query.documentsTable.findMany({
-    where: eq(documentsTable.leadId, leadId),
-    orderBy: (table, { asc: orderAsc }) => [orderAsc(table.createdAt), orderAsc(table.id)],
-  });
-  let packagePdf: Buffer;
-  try {
-    packagePdf = (await buildLenderPackagePdf({ lead, application, assignedRep: assignedRep ?? null, documents })).pdf;
-  } catch (error) {
-    return void res.status(500).json({
-      error: "Lender package generation failed",
-      reason: safeLenderPackageReason(error),
+    const rep = assignedRep ?? (user.role === "rep" ? await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) }) : null);
+    const vars = buildVariables(lead, rep, {
+      lender_name: lender.name,
+      requested_amount: apiAmount(application.requestedAmount ?? lead.requestedAmount),
+      application_type: apiApplicationType(application.type),
     });
-  }
-
-  const rep = assignedRep ?? (user.role === "rep" ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) }) : null);
-  const vars = buildVariables(lead, rep, {
-    lender_name: lender.name,
-    requested_amount: apiAmount(application.requestedAmount ?? lead.requestedAmount),
-    application_type: apiApplicationType(application.type),
-  });
-  const template = await db.query.emailTemplatesTable.findFirst({
-    where: eq(emailTemplatesTable.name, "Lender Submission"),
-  });
-  if (!template || !template.isActive) {
-    return void res.status(500).json({ error: "Lender Submission email template is unavailable" });
-  }
-  const amount = apiAmount(application.requestedAmount ?? lead.requestedAmount);
-  const type = apiApplicationType(application.type);
-  const subject = `MBS Submission – ${application.businessName || lead.companyName} – ${amount} – ${type}`;
-  const sendResult = await doSendEmail({
-    leadId,
-    userId: user.id,
-    templateId: template.id,
-    subject,
-    bodyHtml: renderTemplate(template.bodyHtml, vars),
-    toEmail: lender.contactEmail.trim(),
-    ccEmail: rep?.email ?? null,
-    baseUrl: getPublicBaseUrl(),
-    rep,
-    attachments: [{
-      content: packagePdf.toString("base64"),
-      filename: `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`,
-      type: "application/pdf",
-      disposition: "attachment",
-    }],
-  });
-  if (sendResult.error) return void res.status(502).json({ error: "Lender email delivery failed", reason: sendResult.configurationReason ?? "send_failed" });
-
-  const [sub] = await db.transaction(async (tx) => {
-    const submissionDeal = deal ?? (await tx.insert(dealsTable).values({
-      leadId,
-      dealName: application.businessName || lead.companyName ||
-        [lead.firstName, lead.lastName].filter(Boolean).join(" ") ||
-        `Lead ${lead.id}`,
-      stage: "submitted",
-      amount: application.requestedAmount ?? lead.requestedAmount,
-      assignedTo: lead.assignedRepId,
-    }).returning())[0];
-    const [created] = await tx.insert(lenderSubmissionsTable).values({
-      leadId, dealId: submissionDeal.id, lenderId, sentBy: user.id,
-      messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
-    }).returning();
-    if (deal) {
-      await tx.update(dealsTable).set({ stage: "submitted", updatedAt: new Date() }).where(eq(dealsTable.id, deal.id));
+    const template = await routeDb.query.emailTemplatesTable.findFirst({
+      where: eq(emailTemplatesTable.name, "Lender Submission"),
+    });
+    if (!template || !template.isActive) {
+      return void res.status(500).json({ error: "Lender Submission email template is unavailable" });
     }
-    await logActivity({
-      userId: user.id, leadId, dealId: submissionDeal.id,
-      action: "lender_submitted", entityType: "lender_submission", entityId: created.id,
-      details: { lenderName: lender.name, lenderId: lender.id, dealId: submissionDeal.id },
-    }, tx);
-    return [created] as const;
-  });
-  const submitter = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
-  res.status(201).json(submissionToApi(sub, lender, submitter));
+    const amount = apiAmount(application.requestedAmount ?? lead.requestedAmount);
+    const type = apiApplicationType(application.type);
+    const subject = `MBS Submission – ${application.businessName || lead.companyName} – ${amount} – ${type}`;
+    const sendResult = await sendEmail({
+      leadId,
+      userId: user.id,
+      templateId: template.id,
+      subject,
+      bodyHtml: renderTemplate(template.bodyHtml, vars),
+      toEmail: lender.contactEmail.trim(),
+      ccEmail: rep?.email ?? null,
+      baseUrl: getBaseUrl(),
+      rep,
+      attachments: [{
+        content: packagePdf.toString("base64"),
+        filename: `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`,
+        type: "application/pdf",
+        disposition: "attachment",
+      }],
+    });
+    if (sendResult.error) return void res.status(502).json({ error: "Lender email delivery failed", reason: sendResult.configurationReason ?? "send_failed" });
+
+    const [sub] = await routeDb.transaction(async (tx: any) => {
+      const submissionDeal = deal ?? (await tx.insert(dealsTable).values({
+        leadId,
+        dealName: application.businessName || lead.companyName ||
+          [lead.firstName, lead.lastName].filter(Boolean).join(" ") ||
+          `Lead ${lead.id}`,
+        stage: "submitted",
+        amount: application.requestedAmount ?? lead.requestedAmount,
+        assignedTo: lead.assignedRepId,
+      }).returning())[0];
+      const [created] = await tx.insert(lenderSubmissionsTable).values({
+        leadId, dealId: submissionDeal.id, lenderId, sentBy: user.id,
+        messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
+      }).returning();
+      if (deal) {
+        await tx.update(dealsTable).set({ stage: "submitted", updatedAt: new Date() }).where(eq(dealsTable.id, deal.id));
+      }
+      await recordActivity({
+        userId: user.id, leadId, dealId: submissionDeal.id,
+        action: "lender_submitted", entityType: "lender_submission", entityId: created.id,
+        details: { lenderName: lender.name, lenderId: lender.id, dealId: submissionDeal.id },
+      }, tx);
+      return [created] as const;
+    });
+    const submitter = await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
+    res.status(201).json(submissionToApi(sub, lender, submitter));
+  };
 }
 
-router.post("/leads/:id/submissions", createSubmission);
+router.post("/leads/:id/submissions", createSubmissionHandler());
 
 router.get("/leads/:id/submissions", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
@@ -477,56 +497,68 @@ router.get("/leads/:id/submissions", async (req: Request, res: Response) => {
    res.json(subs.map((s) => submissionToApi(s, lenderMap[s.lenderId], s.sentBy ? userMap[s.sentBy] : null)));
 });
 
-async function updateSubmission(req: Request, res: Response) {
-  const user = await requireUser(req, res);
-  if (!user) return;
+export function createUpdateSubmissionHandler(
+  dependencies: LenderSubmissionRouteDependencies = {},
+) {
+  const routeDb = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const recordActivity = dependencies.recordActivity ?? logActivity;
 
-  const id = parseInt(req.params["id"] as string, 10);
-  if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
+  return async function updateSubmission(req: Request, res: Response): Promise<void> {
+    const user = await authenticate(req, res);
+    if (!user) return;
 
-   const { status, notes, response_notes } = req.body as { status?: string; notes?: string | null; response_notes?: string | null };
-   if (status !== undefined && !VALID_SUBMISSION_STATUSES.includes(status as any)) {
-    return void res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_SUBMISSION_STATUSES.join(", ")}` });
-  }
+    const id = parseInt(req.params["id"] as string, 10);
+    if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
 
-   const existing = await db.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
-   if (!existing) return void res.status(404).json({ error: "Submission not found" });
-   const access = await canAccessSubmissionLead(user, existing.leadId);
-   if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
-   const updates: Record<string, unknown> = { updatedAt: new Date() };
-  if (status !== undefined) updates["status"] = status;
-   if (notes !== undefined || response_notes !== undefined) updates["notes"] = notes ?? response_notes;
+    const { status, notes, response_notes } = req.body as {
+      status?: string;
+      notes?: string | null;
+      response_notes?: string | null;
+    };
+    if (status !== undefined && !VALID_SUBMISSION_STATUSES.includes(status as any)) {
+      return void res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_SUBMISSION_STATUSES.join(", ")}` });
+    }
 
-   const [updated] = await db.transaction(async (tx) => {
-     const [row] = await tx.update(lenderSubmissionsTable).set(updates as any).where(eq(lenderSubmissionsTable.id, id)).returning();
-     if (status !== undefined && status !== existing.status) {
-       await logActivity({
-         userId: user.id, leadId: existing.leadId, dealId: existing.dealId,
-         action: "lender_submission_status_changed", entityType: "lender_submission", entityId: id,
-         details: { from: existing.status, to: status },
-       }, tx);
-     }
-     if ((notes !== undefined || response_notes !== undefined) && (notes ?? response_notes) !== existing.notes) {
-       await logActivity({
-         userId: user.id, leadId: existing.leadId, dealId: existing.dealId,
-         action: "lender_submission_notes_updated", entityType: "lender_submission", entityId: id,
-       }, tx);
-     }
-     return [row] as const;
-   });
+    const existing = await routeDb.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
+    if (!existing) return void res.status(404).json({ error: "Submission not found" });
+    const access = await canAccessSubmissionLead(routeDb, user, existing.leadId);
+    if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (status !== undefined) updates["status"] = status;
+    if (notes !== undefined || response_notes !== undefined) updates["notes"] = notes ?? response_notes;
 
-  const lender = updated.lenderId
-    ? await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, updated.lenderId) })
-    : null;
-   const submitter = updated.sentBy
-     ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, updated.sentBy) })
-    : null;
+    const [updated] = await routeDb.transaction(async (tx: any) => {
+      const [row] = await tx.update(lenderSubmissionsTable).set(updates as any).where(eq(lenderSubmissionsTable.id, id)).returning();
+      if (status !== undefined && status !== existing.status) {
+        await recordActivity({
+          userId: user.id, leadId: existing.leadId, dealId: existing.dealId,
+          action: "lender_submission_status_changed", entityType: "lender_submission", entityId: id,
+          details: { from: existing.status, to: status },
+        }, tx);
+      }
+      if ((notes !== undefined || response_notes !== undefined) && (notes ?? response_notes) !== existing.notes) {
+        await recordActivity({
+          userId: user.id, leadId: existing.leadId, dealId: existing.dealId,
+          action: "lender_submission_notes_updated", entityType: "lender_submission", entityId: id,
+        }, tx);
+      }
+      return [row] as const;
+    });
 
-  res.json(submissionToApi(updated, lender, submitter));
+    const lender = updated.lenderId
+      ? await routeDb.query.lendersTable.findFirst({ where: eq(lendersTable.id, updated.lenderId) })
+      : null;
+    const submitter = updated.sentBy
+      ? await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, updated.sentBy) })
+      : null;
+
+    res.json(submissionToApi(updated, lender, submitter));
+  };
 }
 
-router.put("/submissions/:id", updateSubmission);
-router.patch("/submissions/:id", updateSubmission);
+router.put("/submissions/:id", createUpdateSubmissionHandler());
+router.patch("/submissions/:id", createUpdateSubmissionHandler());
 
 router.get("/deals/:id/submissions", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
