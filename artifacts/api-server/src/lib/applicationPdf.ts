@@ -13,13 +13,19 @@ import {
   MBS_LIGHT,
   MBS_NAVY,
   MBS_SLATE,
+  PREPARED_BY_FOOTER_BASELINE as NATIVE_PREPARED_BY_FOOTER_BASELINE,
   addPreparedByFooters,
   createLetterPdf,
   drawWrappedText,
   pdfText,
+  pdfTextForFont,
   wrapPdfText,
+  embedMbsLogo,
   type NativePdfFonts,
 } from "./nativePdf";
+
+export const APPLICATION_FORM_FOOTER_BASELINE = 30;
+export const PREPARED_BY_FOOTER_BASELINE = NATIVE_PREPARED_BY_FOOTER_BASELINE;
 
 function escapeHtml(v: unknown): string {
   return String(v ?? "")
@@ -69,6 +75,21 @@ function displayTitle(rep: ApplicationPdfRep): string {
   return rep.title?.trim() || "";
 }
 
+function formatEasternDate(value: Date | null | undefined): string {
+  if (!(value instanceof Date) || Number.isNaN(value.valueOf())) return "";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(value);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("month")} ${get("day")}, ${get("year")}, ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+}
+
 function value(input: unknown): string {
   if (input === null || input === undefined || String(input).trim() === "") return "";
   return escapeHtml(String(input));
@@ -113,9 +134,7 @@ function signatureLine(label: string, data: ApplicationPdfOptions): string {
     : method === "drawn" && data.signatureData && isSafeImageDataUrl(data.signatureData)
       ? "Electronically signed"
       : "<em>Signature unavailable</em>";
-  const date = data.signatureSignedAt && !Number.isNaN(data.signatureSignedAt.valueOf())
-    ? value(data.signatureSignedAt.toLocaleDateString("en-US", { timeZone: "UTC" }))
-    : "";
+  const date = formatEasternDate(data.signatureSignedAt);
   return `<div class="signature"><div class="signature-label">${escapeHtml(label)}</div><div class="signature-value">${signature}</div><div class="signature-date-label">Date:</div><div class="signature-date">${date}</div></div>`;
 }
 
@@ -134,9 +153,11 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   const applyUrl = slug ? `app.my-business-solutions.com/r/${encodeURIComponent(slug)}` : "app.my-business-solutions.com";
   const ownerAddress = address(app, "ownerHome");
   const secondaryAddress = value(app.secondaryOwnerAddress);
+  const hasSecondaryOwner = Object.entries(app).some(([key, field]) =>
+    key.startsWith("secondaryOwner") && key !== "secondaryOwnerSsn" && field !== null && field !== undefined && String(field).trim() !== "");
   const signatureMetadata = options.application == null
     ? `<table class="metadata" aria-hidden="true"><tr><td>Signature Method</td><td></td></tr><tr><td>Signature Signed At</td><td></td></tr><tr><td>Signature IP</td><td></td></tr></table>`
-    : `<table class="metadata" aria-hidden="true"><tr><td>Signature Method</td><td>${value(options.signatureMethod ?? "Unavailable")}</td></tr><tr><td>Signature Signed At</td><td>${options.signatureSignedAt ? value(options.signatureSignedAt.toUTCString()) : "Unavailable"}</td></tr><tr><td>Signature IP</td><td>${value(options.clientIp ?? "unknown")}</td></tr></table>`;
+    : `<table class="metadata" aria-hidden="true"><tr><td>Signature Method</td><td>${value(options.signatureMethod ?? "Unavailable")}</td></tr><tr><td>Signature Signed At</td><td>${value(formatEasternDate(options.signatureSignedAt) || "Unavailable")}</td></tr><tr><td>Signature IP</td><td>${value(options.clientIp ?? "unknown")}</td></tr></table>`;
 
   return `<!doctype html>
 <html lang="en">
@@ -183,7 +204,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   <header class="rep-header">
     <div class="rep-info"><div class="rep-name">${value(repName)}</div>
       <div class="rep-title">${value(displayTitle(options.rep))}</div>
-      <div class="rep-contact">${value(options.rep.mobileNumber)}<br />${value(options.rep.email)}<br />www.my-business-solutions.com</div>
+       <div class="rep-contact">${value(options.rep.mobileNumber ?? "—")}<br />${value(options.rep.email)}<br />www.my-business-solutions.com</div>
     </div>
     <div class="application-heading">
       <div class="header-title">Finance Application</div>
@@ -213,7 +234,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Principal owner", [app.ownerFirstName, app.ownerLastName].filter(Boolean).join(" "), "span-3"),
       cell("Email", app.email, "span-2"),
       cell("Owner full address — street, (unit), city, state, ZIP", ownerAddress, "span-5"),
-      cell("SSN", null, "", { masked: options.application != null }),
+       cell("SSN", null, "", { masked: options.application != null }),
       cell("Date of birth", app.ownerDob),
       cell("Ownership %", app.ownershipPct),
       cell("Cell", app.phone),
@@ -221,11 +242,11 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Secondary owner", app.secondaryOwnerName, "span-3"),
       cell("Email", app.secondaryOwnerEmail, "span-2"),
       cell("Owner full address — street, (unit), city, state, ZIP", secondaryAddress, "span-5"),
-      cell("SSN", null, "", { masked: options.application != null }),
-      cell("Date of birth", app.secondaryOwnerDob),
-      cell("Ownership %", app.secondaryOwnerOwnershipPct),
-      cell("Cell", app.secondaryOwnerCell),
-      cell("Est. credit score", app.secondaryOwnerEstCreditScore),
+       cell("SSN", null, "", { masked: options.application != null && hasSecondaryOwner }),
+       cell("Date of birth", hasSecondaryOwner ? app.secondaryOwnerDob : null),
+       cell("Ownership %", hasSecondaryOwner ? app.secondaryOwnerOwnershipPct : null),
+       cell("Cell", hasSecondaryOwner ? app.secondaryOwnerCell : null),
+       cell("Est. credit score", hasSecondaryOwner ? app.secondaryOwnerEstCreditScore : null),
     ], "owner-grid")}
   </section>
   <section class="section"><div class="section-header">Financing Request</div>
@@ -234,7 +255,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Timeline funds are needed", app.timelineFundsNeeded, "span-3"),
       cell("Amount requested", money(app.requestedAmount), "span-3"),
       cell("Year, make, model (if applicable)", app.yearMakeModel, "span-3"),
-      cell("Equipment financing or working capital?", app.type, "span-2"),
+       cell("Equipment financing or working capital?", app.type === "equipment" ? "Equipment Financing" : app.type === "working_capital" ? "Working Capital" : app.type, "span-2"),
       cell("# of trucks in fleet (if applicable)", app.trucksInFleet, "span-2"),
       cell("Down payment amount", money(app.downPaymentAmount), "span-2"),
     ], "financing-grid")}
@@ -277,7 +298,7 @@ function nativeAddress(application: ApplicationPdfApplication, prefix: string): 
 
 function drawSectionBar(page: PDFPage, y: number, title: string, fonts: NativePdfFonts): number {
   page.drawRectangle({ x: 22, y: y - 13, width: 568, height: 13, color: MBS_NAVY });
-  page.drawText(pdfText(title).toUpperCase(), {
+  page.drawText(pdfTextForFont(title, fonts.bold).toUpperCase(), {
     x: 28,
     y: y - 9.3,
     size: 6.6,
@@ -316,7 +337,7 @@ function drawFieldGrid(params: {
       borderWidth: 0.45,
     });
     page.drawRectangle({ x: x + 0.25, y: y - 6.1, width: width - 0.5, height: 5.85, color: MBS_LIGHT });
-    page.drawText(pdfText(field.label).toUpperCase(), {
+    page.drawText(pdfTextForFont(field.label, fonts.bold).toUpperCase(), {
       x: x + 3,
       y: y - 4.45,
       size: 4.15,
@@ -359,25 +380,30 @@ function drawnSignaturePng(value: string): Buffer {
  */
 export async function renderApplicationFormPdf(options: NativeApplicationPdfOptions): Promise<Buffer> {
   const { pdf, page, fonts } = await createLetterPdf();
+  const logo = await embedMbsLogo(pdf);
   const app = options.application ?? {};
+  const hasSecondaryOwner = Object.entries(app).some(([key, field]) =>
+    key.startsWith("secondaryOwner") && key !== "secondaryOwnerSsn" && field !== null && field !== undefined && String(field).trim() !== "");
   const rep = options.rep;
   const repName = nativeValue(rep.name) || "My Business Solutions";
   const applyUrl = rep.slug?.trim()
     ? `app.my-business-solutions.com/r/${encodeURIComponent(rep.slug.trim())}`
     : "app.my-business-solutions.com";
 
-  page.drawText(repName, { x: 22, y: 758, size: 12.5, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
+  page.drawText(pdfTextForFont(repName, fonts.bold), { x: 22, y: 758, size: 12.5, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
   if (rep.title?.trim()) {
-    page.drawText(pdfText(rep.title), { x: 22, y: 744, size: 5.8, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
+    page.drawText(pdfTextForFont(rep.title, fonts.bold), { x: 22, y: 744, size: 5.8, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
   }
-  const contact = [rep.mobileNumber, rep.email, "www.my-business-solutions.com"].filter(Boolean).map(pdfText);
+  const contact = [rep.mobileNumber ?? "—", rep.email, "www.my-business-solutions.com"].filter(Boolean).map((line) => pdfTextForFont(line, fonts.regular));
   contact.forEach((line, index) => page.drawText(line, {
     x: 22, y: 733 - index * 7, size: 5.6, font: fonts.regular, color: MBS_SLATE, maxWidth: 190,
   }));
   page.drawText("Finance Application", { x: 242, y: 755, size: 10.5, font: fonts.bold, color: MBS_NAVY });
-  page.drawText(`Apply online: ${applyUrl}`, { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_NAVY });
-  page.drawText("MY BUSINESS", { x: 489, y: 757, size: 8.5, font: fonts.bold, color: MBS_NAVY });
-  page.drawText("SOLUTIONS", { x: 500, y: 747, size: 8.5, font: fonts.bold, color: MBS_GREEN });
+  page.drawText(pdfTextForFont(`Apply online: ${applyUrl}`, fonts.regular), { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_NAVY });
+  if (logo) {
+    const ratio = Math.min(100 / logo.width, 40 / logo.height, 1);
+    page.drawImage(logo, { x: 490, y: 732, width: logo.width * ratio, height: logo.height * ratio });
+  }
   page.drawRectangle({ x: 22, y: 722, width: 568, height: 3, color: MBS_GREEN });
 
   let y = 711;
@@ -399,7 +425,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
     ],
   });
   y = drawSectionBar(page, y - 2, "Owner Information", fonts);
-  page.drawText("Please do not use a P.O. Box — use the business location address if available", {
+  page.drawText(pdfTextForFont("Please do not use a P.O. Box — use the business location address if available", fonts.regular), {
     x: 26, y: y - 5, size: 4.6, font: fonts.regular, color: MBS_SLATE,
   });
   y -= 9;
@@ -414,14 +440,14 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       { label: "Ownership %", value: app.ownershipPct, span: 1 },
       { label: "Cell", value: app.phone, span: 1 },
       { label: "Est. credit score", value: app.estCreditScore, span: 1 },
-      { label: "Secondary owner", value: app.secondaryOwnerName, span: 3 },
-      { label: "Email", value: app.secondaryOwnerEmail, span: 2 },
-      { label: "Owner full address — street, (unit), city, state, ZIP", value: app.secondaryOwnerAddress, span: 5 },
-      { label: "SSN", value: null, span: 1, masked: options.application != null },
-      { label: "Date of birth", value: app.secondaryOwnerDob, span: 1 },
-      { label: "Ownership %", value: app.secondaryOwnerOwnershipPct, span: 1 },
-      { label: "Cell", value: app.secondaryOwnerCell, span: 1 },
-      { label: "Est. credit score", value: app.secondaryOwnerEstCreditScore, span: 1 },
+      { label: "Secondary owner", value: hasSecondaryOwner ? app.secondaryOwnerName : null, span: 3 },
+      { label: "Email", value: hasSecondaryOwner ? app.secondaryOwnerEmail : null, span: 2 },
+      { label: "Owner full address — street, (unit), city, state, ZIP", value: hasSecondaryOwner ? app.secondaryOwnerAddress : null, span: 5 },
+      { label: "SSN", value: null, span: 1, masked: options.application != null && hasSecondaryOwner },
+      { label: "Date of birth", value: hasSecondaryOwner ? app.secondaryOwnerDob : null, span: 1 },
+      { label: "Ownership %", value: hasSecondaryOwner ? app.secondaryOwnerOwnershipPct : null, span: 1 },
+      { label: "Cell", value: hasSecondaryOwner ? app.secondaryOwnerCell : null, span: 1 },
+      { label: "Est. credit score", value: hasSecondaryOwner ? app.secondaryOwnerEstCreditScore : null, span: 1 },
     ],
   });
   y = drawSectionBar(page, y - 2, "Financing Request", fonts);
@@ -432,7 +458,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       { label: "Timeline funds are needed", value: app.timelineFundsNeeded, span: 3 },
       { label: "Amount requested", value: nativeMoney(app.requestedAmount), span: 3 },
       { label: "Year, make, model (if applicable)", value: app.yearMakeModel, span: 3 },
-      { label: "Equipment financing or working capital?", value: app.type, span: 2 },
+      { label: "Equipment financing or working capital?", value: app.type === "equipment" ? "Equipment Financing" : app.type === "working_capital" ? "Working Capital" : app.type, span: 2 },
       { label: "# of trucks in fleet (if applicable)", value: app.trucksInFleet, span: 2 },
       { label: "Down payment amount", value: nativeMoney(app.downPaymentAmount), span: 2 },
     ],
@@ -451,7 +477,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
     const signatureY = y - 17;
     page.drawLine({ start: { x: 27, y: signatureY }, end: { x: 292, y: signatureY }, thickness: 0.5, color: MBS_SLATE });
     if (options.signatureMethod === "typed") {
-      page.drawText(pdfText(options.signatureData), {
+      page.drawText(pdfTextForFont(options.signatureData, fonts.regular), {
         x: 31, y: signatureY + 3, size: 8, font: fonts.regular, color: MBS_SLATE, maxWidth: 256,
       });
     } else {
@@ -466,9 +492,9 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
     }
     const evidence = [
       options.signatureSignedAt && !Number.isNaN(options.signatureSignedAt.valueOf())
-        ? `Timestamp: ${options.signatureSignedAt.toUTCString()}`
+        ? `Timestamp: ${formatEasternDate(options.signatureSignedAt)}`
         : null,
-      options.clientIp?.trim() ? `IP: ${pdfText(options.clientIp)}` : null,
+      options.clientIp?.trim() ? `IP: ${pdfTextForFont(options.clientIp, fonts.regular)}` : null,
     ].filter(Boolean).join("  ·  ");
     if (evidence) page.drawText(evidence, { x: 307, y: signatureY + 5, size: 4.7, font: fonts.regular, color: MBS_SLATE, maxWidth: 278 });
   }
@@ -483,9 +509,9 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       page.drawText("Historical signature evidence unavailable", { x: 31, y: signatureY + 3, size: 5, font: fonts.regular, color: MBS_SLATE });
     }
   }
-  page.drawLine({ start: { x: 22, y: 28 }, end: { x: 590, y: 28 }, thickness: 0.6, color: MBS_GREEN });
+  page.drawLine({ start: { x: 22, y: 42 }, end: { x: 590, y: 42 }, thickness: 0.6, color: MBS_GREEN });
   page.drawText(APPLICATION_PDF_FOOTER, {
-    x: 50, y: 19, size: 4.9, font: fonts.regular, color: MBS_SLATE, maxWidth: 512,
+    x: 50, y: APPLICATION_FORM_FOOTER_BASELINE, size: 4.9, font: fonts.regular, color: MBS_SLATE, maxWidth: 512,
   });
   if (options.includePreparedFooter !== false) await addPreparedByFooters(pdf, rep.email);
   return Buffer.from(await pdf.save());

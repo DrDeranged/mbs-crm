@@ -8,7 +8,9 @@ import {
   buildLenderPackagePdf,
   createLenderPackageHandler,
   getDocumentExclusionReason,
+  getLenderRepEmail,
   isEligibleBankStatement,
+  renderLenderPackageCoverPdf,
   sanitizeLenderPackageBusinessName,
   selectLenderPackageDocuments,
   renderLenderPackageOmissionReportPdf,
@@ -58,6 +60,38 @@ test("omission report paginates instead of failing on many excluded documents", 
   assert.ok(pages.length >= 3);
   const text = pages.join("\n");
   for (const exclusion of exclusions) assert.ok(text.includes(exclusion.filename));
+});
+
+test("native cover uses branded rep email and polished cover values", async () => {
+  const rep = {
+    id: 7,
+    name: "Assigned Rep",
+    title: "Senior Funding Advisor",
+    email: "primary@example.com",
+    alternateEmail: "assigned@my-business-solutions.com",
+    mobileNumber: null,
+  } as any;
+  assert.equal(getLenderRepEmail(rep), "assigned@my-business-solutions.com");
+
+  const cover = await renderLenderPackageCoverPdf({
+    lead: baseLead(),
+    application: baseApplication({
+      type: "working_capital",
+      submittedAt: new Date("2026-09-15T21:12:00.000Z"),
+    }),
+    assignedRep: rep,
+  });
+  const [page] = await extractPages(cover);
+  assert.match(page!, /Senior Funding Advisor/);
+  assert.match(page!, /assigned@my-business-solutions\.com/);
+  assert.match(page!, /Working Capital/);
+  assert.match(page!, /Sep 15, 2026, 5:12 PM ET/);
+  assert.match(page!, /—/);
+  assert.ok(!page!.includes("?"), "cover must not contain substituted question-mark glyphs");
+
+  const document = await PDFDocument.load(cover);
+  const resources = document.getPage(0).node.Resources();
+  assert.ok(resources, "cover must have resources for the embedded MBS logo");
 });
 
 function baseLead(overrides: Record<string, unknown> = {}) {
@@ -267,7 +301,7 @@ test("baseline application has two pages; exactly two statements append in uploa
   assert.match(signedHtml, /2024 Caterpillar 299D3 XE/);
   assert.match(signedHtml, /class="field-value">14<\/div>/);
   assert.match(signedHtml, /\$85,000/);
-  assert.match(signedHtml, /Wed, 01 Jan 2025 00:01:00 GMT/);
+  assert.match(signedHtml, /Dec 31, 2024, 7:01 PM ET/);
 });
 
 test("native package includes three rep-uploaded statements and an invoice with Puppeteer unavailable", async () => {

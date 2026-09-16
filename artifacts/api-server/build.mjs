@@ -126,6 +126,13 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     path.resolve(distDir, "migrations"),
     { recursive: true },
   );
+  // Native lender PDFs load these at runtime; keep the source assets beside
+  // the bundled server while retaining the source-path fallback for tests.
+  await cp(
+    path.resolve(artifactDir, "src/assets"),
+    path.resolve(distDir, "assets"),
+    { recursive: true },
+  );
 }
 
 buildAll().catch((err) => {

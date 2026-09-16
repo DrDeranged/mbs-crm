@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFDict, PDFName } from "pdf-lib";
 import { PDFParse } from "pdf-parse";
 import { CONSENT_TEXT, APPLICATION_PDF_FOOTER } from "./consentText";
-import { renderApplicationFormPdf } from "./applicationPdf";
+import {
+  APPLICATION_FORM_FOOTER_BASELINE,
+  PREPARED_BY_FOOTER_BASELINE,
+  renderApplicationFormPdf,
+} from "./applicationPdf";
 
 test("native form preserves complete consent and footer text, never plaintext SSNs", async () => {
   const pdf = await renderApplicationFormPdf({
@@ -19,9 +23,58 @@ test("native form preserves complete consent and footer text, never plaintext SS
     assert.ok(!normalized.includes("123-45-6789"));
     assert.ok(!normalized.includes("987-65-4321"));
     assert.ok(normalized.includes("Signature of Applicant One:"));
+    assert.equal(
+      normalized.match(/\*\*\*-\*\*-\*\*\*\*/g)?.length,
+      1,
+      "an absent secondary owner must not render a second masked SSN",
+    );
   } finally {
     await parser.destroy();
   }
+});
+
+test("native form embeds Unicode Inter text, logo, ET dates, and mapped application type", async () => {
+  const pdfBytes = await renderApplicationFormPdf({
+    rep: {
+      name: "Example Rep",
+      title: "Senior Funding Advisor",
+      email: "rep@my-business-solutions.com",
+      mobileNumber: null,
+    },
+    application: {
+      type: "equipment",
+      businessDescription: "Eligibility ≥ $25,000 · expedited review — complete",
+    },
+    signatureMethod: "typed",
+    signatureData: "Example Owner",
+    signatureSignedAt: new Date("2026-09-15T21:12:00.000Z"),
+  });
+  const parser = new PDFParse({ data: pdfBytes });
+  try {
+    const text = (await parser.getText()).text.replace(/\s+/g, " ");
+    assert.match(text, /Eligibility ≥ \$25,000 · expedited review — complete/);
+    assert.ok(!text.includes("Eligibility ?"), "Unicode glyphs must not be substituted with question marks");
+    assert.match(text, /Equipment Financing/);
+    assert.match(text, /Sep 15, 2026, 5:12 PM ET/);
+    assert.match(text, /Senior Funding Advisor/);
+    assert.match(text, /—/);
+  } finally {
+    await parser.destroy();
+  }
+
+  const document = await PDFDocument.load(pdfBytes);
+  const resources = document.getPage(0).node.Resources();
+  const xObjects = resources?.lookupMaybe(PDFName.of("XObject"), PDFDict);
+  assert.ok(xObjects && xObjects.keys().length > 0, "application page must contain the MBS logo image");
+});
+
+test("application and prepared-by footer baselines are separated inside the bottom margin", () => {
+  assert.ok(APPLICATION_FORM_FOOTER_BASELINE > 0);
+  assert.ok(PREPARED_BY_FOOTER_BASELINE > 0);
+  assert.ok(
+    APPLICATION_FORM_FOOTER_BASELINE - PREPARED_BY_FOOTER_BASELINE >= 8,
+    "footer baselines must differ by at least 8pt",
+  );
 });
 
 test("application form renders natively as one US Letter PDF", async () => {
