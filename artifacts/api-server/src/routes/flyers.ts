@@ -5,6 +5,7 @@ import {
   leadsTable, usersTable, activityLogTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { z } from "zod/v4";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { renderPdf, renderTemplate } from "../lib/renderPdf";
@@ -13,6 +14,18 @@ import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "../lib/b
 import { doSendEmail } from "./email";
 
 const router = Router();
+const positiveId = z.coerce.number().int().positive();
+const generateFlyerBody = z.object({
+  templateId: positiveId,
+  fieldValues: z.record(z.string(), z.string()),
+  leadId: positiveId.optional(),
+}).strict();
+const emailFlyerBody = z.object({ leadId: positiveId }).strict();
+
+function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
 
 /** Returns false and sends 403 if the user cannot access this flyer. */
 async function assertFlyerAccess(
@@ -37,14 +50,12 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const { templateId, fieldValues, leadId } = req.body;
-  if (!templateId || typeof fieldValues !== "object") {
-    res.status(400).json({ error: "templateId and fieldValues required" });
-    return;
-  }
+  const body = generateFlyerBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { templateId, fieldValues, leadId } = body.data;
 
   const tmpl = await db.query.flyerTemplatesTable.findFirst({
-    where: eq(flyerTemplatesTable.id, Number(templateId)),
+    where: eq(flyerTemplatesTable.id, templateId),
   });
   if (!tmpl || !tmpl.isActive) {
     res.status(404).json({ error: "Template not found or inactive" });
@@ -66,7 +77,7 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
     // Render HTML and generate PDF
     const baseUrl = getPublicBaseUrl();
     const renderedHtml = renderTemplate(tmpl.htmlTemplate, {
-      ...(fieldValues as Record<string, string>),
+      ...fieldValues,
       brand_logo_url: getBrandLogoUrl(baseUrl),
     });
     const pdfBuffer = await renderPdf(ensureFlyerBranding(renderedHtml, baseUrl));
@@ -162,18 +173,19 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string, 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  const { leadId } = req.body;
-  if (!leadId) { res.status(400).json({ error: "leadId required" }); return; }
+  const body = emailFlyerBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { leadId } = body.data;
 
   const [flyer, leadRow] = await Promise.all([
     db.query.generatedFlyersTable.findFirst({ where: eq(generatedFlyersTable.id, id) }),
-    db.query.leadsTable.findFirst({ where: eq(leadsTable.id, Number(leadId)) }),
+    db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) }),
   ]);
 
   if (!flyer || !flyer.pdfStorageKey) { res.status(404).json({ error: "Flyer not found" }); return; }
 
   // Verify the provided leadId is consistent with the flyer's stored leadId
-  if (flyer.leadId !== null && flyer.leadId !== Number(leadId)) {
+  if (flyer.leadId !== null && flyer.leadId !== leadId) {
     res.status(403).json({ error: "leadId does not match flyer context" }); return;
   }
 
@@ -254,7 +266,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     // Log activity
     await logActivity({
       userId: user.id,
-      leadId: Number(leadId),
+      leadId,
       action: "flyer_emailed",
       entityType: "flyer",
       entityId: flyer.id,

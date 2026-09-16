@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { EventWebhook } from "@sendgrid/eventwebhook";
 import { createHash } from "crypto";
+import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import {
   emailSendsTable,
@@ -13,6 +14,17 @@ import { suppressEmail } from "../lib/emailSafety";
 import { canAdvanceEmailStatus, classifySendGridEvent } from "../lib/emailSafetyPredicates";
 
 const router = Router();
+const sendGridEvent = z.object({
+  event: z.string().optional(),
+  sg_message_id: z.unknown().optional(),
+  "smtp-id": z.unknown().optional(),
+  message_id: z.unknown().optional(),
+  sg_event_id: z.unknown().optional(),
+  event_id: z.unknown().optional(),
+  timestamp: z.union([z.number().finite(), z.string().regex(/^\d+(?:\.\d+)?$/)]).optional(),
+  email: z.string().email().optional(),
+}).passthrough();
+const sendGridWebhookBody = z.union([sendGridEvent, z.array(sendGridEvent).min(1)]);
 
 function verifySendGridSignature(req: Request): boolean {
   // A webhook without the public verification key cannot be authenticated.
@@ -73,7 +85,12 @@ router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
   if (!verifySendGridSignature(req)) {
     return void res.status(403).json({ error: "Invalid webhook signature" });
   }
-  const events: any[] = Array.isArray(req.body) ? req.body : [req.body];
+  const body = sendGridWebhookBody.safeParse(req.body);
+  if (!body.success) {
+    const field = body.error.issues[0]?.path.join(".") || "body";
+    return void res.status(400).json({ error: `Invalid ${field}` });
+  }
+  const events = Array.isArray(body.data) ? body.data : [body.data];
   let processed = 0;
   let ignored = 0;
 

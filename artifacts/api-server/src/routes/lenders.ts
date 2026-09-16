@@ -1,5 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { createHash } from "crypto";
+import { z } from "zod/v4";
 import { db, pool } from "@workspace/db";
 import {
   lendersTable, lenderMatchesTable, lenderSubmissionsTable, lenderSubmissionDeliveriesTable,
@@ -10,7 +11,7 @@ import { eq, desc, asc, and, gte, sql, inArray } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
-import { buildLenderPackagePdf, parseLenderPackageConfig, sanitizeLenderPackageBusinessName } from "../lib/lenderPackage";
+import { buildLenderPackagePdf, parseLenderPackageConfig, sanitizeLenderPackageBusinessName, type LenderPackageConfig } from "../lib/lenderPackage";
 import { safeLenderPackageReason } from "../lib/lenderPackageErrors";
 import { decrypt } from "../lib/encryption";
 import { logPiiAccess } from "../lib/piiAccess";
@@ -22,6 +23,27 @@ import {
 } from "../lib/productionMaintenance";
 
 const router: IRouter = Router();
+const requestIdSchema = z.coerce.number().int().positive();
+const submissionRequestSchema = z.object({
+  lender_id: requestIdSchema,
+  admin_override: z.boolean().optional(),
+  adminOverride: z.boolean().optional(),
+  package_config: z.unknown().optional(),
+  packageConfig: z.unknown().optional(),
+}).strict();
+const submissionUpdateSchema = z.object({
+  status: z.enum(["submitted", "approved", "declined", "funded"]).optional(),
+  notes: z.string().nullable().optional(),
+  response_notes: z.string().nullable().optional(),
+}).strict().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one submission field is required" },
+);
+
+function inputError(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
 
 function lenderToApi(lender: typeof lendersTable.$inferSelect) {
   return {
@@ -294,7 +316,6 @@ router.get("/leads/:id/matches", async (req: Request, res: Response) => {
 
 // --- Submission endpoints ---
 
-const VALID_SUBMISSION_STATUSES = ["submitted", "approved", "declined", "funded"] as const;
 const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function apiAmount(value: number | null | undefined): string {
@@ -305,7 +326,7 @@ function apiApplicationType(value: unknown): string {
   return value === "equipment" ? "Equipment Financing" : value === "working_capital" ? "Working Capital" : "—";
 }
 
-function piiPackageMetadata(packageConfig: any): Record<string, unknown> {
+function piiPackageMetadata(packageConfig: LenderPackageConfig | null): Record<string, unknown> {
   return {
     sections: packageConfig?.sections ?? null,
     documentIds: packageConfig?.documentIds ?? null,
@@ -439,8 +460,9 @@ export function createSubmissionHandler(
       return void res.status(403).json({ error: "Forbidden" });
     }
 
-    const lenderId = Number(req.body?.lender_id);
-    if (!lenderId || isNaN(lenderId)) return void res.status(400).json({ error: "lender_id is required" });
+    const body = submissionRequestSchema.safeParse(req.body);
+    if (!body.success) return inputError(res, body);
+    const lenderId = body.data.lender_id;
 
     const lender = await routeDb.query.lendersTable.findFirst({ where: eq(lendersTable.id, lenderId) });
     if (!lender) return void res.status(404).json({ error: "Lender not found" });
@@ -449,7 +471,7 @@ export function createSubmissionHandler(
       return void res.status(409).json({ error: "Selected lender has no valid contact email" });
     }
 
-    const adminOverride = Boolean(req.body?.admin_override ?? req.body?.adminOverride);
+    const adminOverride = body.data.admin_override ?? body.data.adminOverride ?? false;
     if (adminOverride && user.role !== "admin") {
       return void res.status(403).json({ error: "Only administrators may override the 24-hour submission limit" });
     }
@@ -506,7 +528,7 @@ export function createSubmissionHandler(
       where: eq(documentsTable.leadId, leadId),
       orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.createdAt), orderAsc(table.id)],
     });
-      const rawPackageConfig = req.body?.package_config ?? req.body?.packageConfig;
+      const rawPackageConfig = body.data.package_config ?? body.data.packageConfig;
       const packageConfig = rawPackageConfig === undefined ? null : parseLenderPackageConfig(rawPackageConfig);
       if (rawPackageConfig !== undefined && !packageConfig) {
         return void res.status(400).json({ error: "Invalid package selection" });
@@ -713,14 +735,9 @@ export function createUpdateSubmissionHandler(
     const id = parseInt(req.params["id"] as string, 10);
     if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
 
-    const { status, notes, response_notes } = req.body as {
-      status?: string;
-      notes?: string | null;
-      response_notes?: string | null;
-    };
-    if (status !== undefined && !VALID_SUBMISSION_STATUSES.includes(status as any)) {
-      return void res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_SUBMISSION_STATUSES.join(", ")}` });
-    }
+    const body = submissionUpdateSchema.safeParse(req.body);
+    if (!body.success) return inputError(res, body);
+    const { status, notes, response_notes } = body.data;
 
     const existing = await routeDb.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
     if (!existing) return void res.status(404).json({ error: "Submission not found" });
@@ -777,10 +794,11 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
     if (!submission) return void res.status(404).json({ error: "Submission not found" });
     const access = await canAccessSubmissionLead(routeDb, user, submission.leadId);
     if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
+    const packageConfig = parseLenderPackageConfig(submission.packageConfigSnapshot);
     if (!submission.exactPackageKey || !submission.exactPackageSha256) {
       return void res.status(404).json({ error: "The exact sent package is unavailable" });
     }
-    if ((submission.packageConfigSnapshot as any)?.options?.maskSsn === false && user.role !== "admin") {
+    if (packageConfig?.options?.maskSsn === false && user.role !== "admin") {
       return void res.status(403).json({ error: "Only administrators may download an unmasked package" });
     }
     try {
@@ -794,12 +812,12 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
         userId: user.id, leadId: submission.leadId, dealId: submission.dealId,
         action: "lender_package_downloaded", entityType: "lender_submission", entityId: submission.id,
         details: {
-          packageSections: (submission.packageConfigSnapshot as any)?.sections ?? null,
-          packageDocumentIds: (submission.packageConfigSnapshot as any)?.documentIds ?? null,
-          ssnUnmasked: (submission.packageConfigSnapshot as any)?.options?.maskSsn === false,
+          packageSections: packageConfig?.sections ?? null,
+          packageDocumentIds: packageConfig?.documentIds ?? null,
+          ssnUnmasked: packageConfig?.options?.maskSsn === false,
         },
       });
-      auditPiiAccess({ userId: user.id, leadId: submission.leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(submission.packageConfigSnapshot) });
+      auditPiiAccess({ userId: user.id, leadId: submission.leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(packageConfig) });
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `attachment; filename="MBS-Submission-${id}.pdf"`);

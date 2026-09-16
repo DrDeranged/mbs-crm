@@ -40,6 +40,14 @@ test("production parser reports malformed EIN with its field and format message"
   }
 });
 
+test("production parser turns a malformed non-object body into a named validation error", () => {
+  const result = parseApplicationSubmission(null);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.equal(firstValidationError(result.error.issues).field, "type");
+  }
+});
+
 test("production parser accepts a punctuated phone after trimming only", () => {
   const result = parseApplicationSubmission(validSubmission({
     phone: "  (603) 803-1010  ",

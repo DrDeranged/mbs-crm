@@ -12,10 +12,28 @@ import {
   documentsTable,
 } from "@workspace/db";
 import { eq, and, lt, inArray, count, sql, not, exists } from "drizzle-orm";
+import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 
 const router = Router();
+const positiveId = z.coerce.number().int().positive();
+export const purgeBody = z.object({ confirm: z.literal(true) }).strict();
+export const optionalAcknowledgementBody = z.object({ acknowledgeHold: z.boolean().optional() }).strict();
+
+function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
+
+function parseLeadId(req: Request, res: Response): number | null {
+  const parsed = positiveId.safeParse(req.params["id"]);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return null;
+  }
+  return parsed.data;
+}
 
 // ─── GET /api/leads/:id/compliance-status ────────────────────────────────────
 
@@ -27,8 +45,8 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
     return void res.status(403).json({ error: "Manager or admin only" });
   }
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -144,12 +162,8 @@ router.post("/admin/data-governance/purge", async (req: Request, res: Response) 
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const { confirm } = req.body as { confirm?: boolean };
-  if (!confirm) {
-    return void res.status(400).json({
-      error: "Must pass { confirm: true } to execute purge. Call retention-preview first to see eligible records.",
-    });
-  }
+  const body = purgeBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
 
   const settings = await db.query.companySettingsTable.findFirst();
   const retentionMonths = settings?.retentionMonths ?? 36;
@@ -217,8 +231,8 @@ router.delete("/leads/:id/pii", async (req: Request, res: Response) => {
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -253,7 +267,9 @@ router.delete("/leads/:id/pii", async (req: Request, res: Response) => {
   }
 
   // No compliance holds — full delete path
-  const { acknowledgeHold } = req.body as { acknowledgeHold?: boolean };
+  const acknowledged = optionalAcknowledgementBody.safeParse(req.body);
+  if (!acknowledged.success) return invalidInput(res, acknowledged);
+  const { acknowledgeHold } = acknowledged.data;
   if (hasComplianceHold && !acknowledgeHold) {
     // Safety: already returned 409 above if hasComplianceHold — this block is unreachable
     return void res.status(409).json({ error: "Must acknowledge compliance hold" });
@@ -324,8 +340,8 @@ router.delete("/leads/:id/pii/force", async (req: Request, res: Response) => {
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });

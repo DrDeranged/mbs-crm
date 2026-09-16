@@ -16,8 +16,10 @@ export function optionalStr<T extends z.ZodTypeAny>(
 }
 
 /** Normalize fields that are formatted by the public multipart application form. */
-export function normalizeApplicationSubmissionBody(raw: Record<string, unknown>): Record<string, unknown> {
-  const body = { ...raw };
+export function normalizeApplicationSubmissionBody(raw: unknown): Record<string, unknown> {
+  const body = raw !== null && typeof raw === "object" && !Array.isArray(raw)
+    ? { ...(raw as Record<string, unknown>) }
+    : {};
   if (typeof body.ein === "string") {
     const digits = body.ein.replace(/\D/g, "");
     body.ein = digits.length === 9
@@ -127,7 +129,7 @@ export const submitSchema = z.object({
   }
 });
 
-export function parseApplicationSubmission(raw: Record<string, unknown>) {
+export function parseApplicationSubmission(raw: unknown) {
   return submitSchema.safeParse(normalizeApplicationSubmissionBody(raw));
 }
 

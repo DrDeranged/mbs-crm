@@ -47,6 +47,30 @@ const dealInputSchema = CreateDealBody;
 const dealUpdateSchema = UpdateDealBody;
 const conversionSchema = ConvertLeadToDealBody;
 const idSchema = z.coerce.number().int().positive();
+export const dealListQuery = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  include_archived: z.enum(["true", "false"]).optional(),
+  rep_id: z.coerce.number().int().positive().optional(),
+  lead_id: z.coerce.number().int().positive().optional(),
+  stage: z.union([z.string(), z.array(z.string())]).optional(),
+  stages: z.union([z.string(), z.array(z.string())]).optional(),
+  search: z.string().trim().min(1).max(200).optional(),
+  start_date: z.iso.date().optional(),
+  end_date: z.iso.date().optional(),
+  sort_by: z.enum(["createdAt", "updatedAt", "dealName", "stage", "lastActivityAt"]).optional(),
+  sort_order: z.enum(["asc", "desc"]).optional(),
+}).strict();
+type DealListQuery = z.infer<typeof dealListQuery>;
+
+function parseDealListQuery(req: Request, res: Response): DealListQuery | null {
+  const parsed = dealListQuery.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
+    return null;
+  }
+  return parsed.data;
+}
 function validGmSplitPct(value: number | undefined): boolean {
   return (
     value === undefined ||
@@ -133,8 +157,7 @@ async function findDeal(id: number) {
   });
 }
 
-function dateConditions(req: Request, table = dealsTable) {
-  const q = req.query as Record<string, string | undefined>;
+function dateConditions(q: DealListQuery, table = dealsTable) {
   const clauses: any[] = [];
   if (q.start_date) clauses.push(gte(table.createdAt, new Date(q.start_date)));
   if (q.end_date)
@@ -150,9 +173,10 @@ router.get("/deals/export", exportDeals);
 router.get("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = req.query as Record<string, string | undefined>;
-  const page = Math.max(Number(q.page ?? 1), 1);
-  const limit = Math.min(Math.max(Number(q.limit ?? 25), 1), 100);
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
+  const page = q.page ?? 1;
+  const limit = q.limit ?? 25;
   const conditions: any[] = [];
   if (q.include_archived !== "true")
     conditions.push(eq(dealsTable.isArchived, false));
@@ -172,7 +196,7 @@ router.get("/deals", async (req, res): Promise<void> => {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -245,7 +269,8 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const q = req.query as Record<string, string | undefined>;
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
   const conditions: any[] = [];
   if (q.include_archived !== "true")
     conditions.push(eq(dealsTable.isArchived, false));
@@ -267,7 +292,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -739,13 +764,14 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
 router.get("/deals/analytics", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = req.query as Record<string, string | undefined>;
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
   const conditions: any[] = [eq(dealsTable.isArchived, false)];
   const effectiveRepId =
     user.role === "rep" ? user.id : q.rep_id ? Number(q.rep_id) : undefined;
   if (effectiveRepId)
     conditions.push(eq(dealsTable.assignedTo, effectiveRepId));
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const activeWhere = and(where, activeDealStageCondition());
   const [

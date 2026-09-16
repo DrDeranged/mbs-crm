@@ -3,8 +3,27 @@ import { db } from "@workspace/db";
 import { piiAccessLogTable, usersTable } from "@workspace/db";
 import { desc, eq, and, gte, lte, count } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
+import { z } from "zod/v4";
 
 const router = Router();
+export const piiLogQuery = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  startDate: z.iso.date().optional(),
+  endDate: z.iso.date().optional(),
+  userId: z.coerce.number().int().positive().optional(),
+  leadId: z.coerce.number().int().positive().optional(),
+  category: z.enum(["ssn", "credit", "application"]).optional(),
+}).strict();
+
+function parsePiiLogQuery(req: Request, res: Response) {
+  const parsed = piiLogQuery.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
+    return null;
+  }
+  return parsed.data;
+}
 
 // ─── GET /api/pii-access-log ─────────────────────────────────────────────────
 
@@ -16,15 +35,17 @@ router.get("/pii-access-log", async (req: Request, res: Response) => {
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const page = Math.max(1, parseInt(String(req.query["page"] ?? "1"), 10));
-  const limit = Math.min(100, Math.max(1, parseInt(String(req.query["limit"] ?? "25"), 10)));
+  const query = parsePiiLogQuery(req, res);
+  if (!query) return;
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
-  const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
-  const filterUserId = req.query["userId"] ? parseInt(String(req.query["userId"]), 10) : null;
-  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
-  const category = req.query["category"] as string | undefined;
+  const startDate = query.startDate ? new Date(query.startDate) : null;
+  const endDate = query.endDate ? new Date(query.endDate) : null;
+  const filterUserId = query.userId ?? null;
+  const filterLeadId = query.leadId ?? null;
+  const category = query.category;
 
   const conditions: ReturnType<typeof eq>[] = [];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(piiAccessLogTable.createdAt, startDate) as any);
@@ -35,9 +56,7 @@ router.get("/pii-access-log", async (req: Request, res: Response) => {
   }
   if (filterUserId && !isNaN(filterUserId)) conditions.push(eq(piiAccessLogTable.userId, filterUserId) as any);
   if (filterLeadId && !isNaN(filterLeadId)) conditions.push(eq(piiAccessLogTable.leadId, filterLeadId) as any);
-  if (category && ["ssn", "credit", "application"].includes(category)) {
-    conditions.push(eq(piiAccessLogTable.fieldCategory, category as any) as any);
-  }
+  if (category) conditions.push(eq(piiAccessLogTable.fieldCategory, category) as any);
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -82,10 +101,12 @@ router.get("/pii-access-log/export", async (req: Request, res: Response) => {
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
-  const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
-  const filterUserId = req.query["userId"] ? parseInt(String(req.query["userId"]), 10) : null;
-  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
+  const query = parsePiiLogQuery(req, res);
+  if (!query) return;
+  const startDate = query.startDate ? new Date(query.startDate) : null;
+  const endDate = query.endDate ? new Date(query.endDate) : null;
+  const filterUserId = query.userId ?? null;
+  const filterLeadId = query.leadId ?? null;
 
   const conditions: ReturnType<typeof eq>[] = [];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(piiAccessLogTable.createdAt, startDate) as any);

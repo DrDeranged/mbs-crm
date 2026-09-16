@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import sgMail from "@sendgrid/mail";
 import { createHmac } from "crypto";
+import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import {
   emailTemplatesTable,
@@ -28,6 +29,39 @@ const SESSION_SECRET = process.env["SESSION_SECRET"];
 // token reuse.
 const EMAIL_SIGNING_SECRET = UNSUB_SECRET || SESSION_SECRET;
 const IS_PROD_EMAIL = process.env["NODE_ENV"] === "production";
+const positiveId = z.coerce.number().int().positive();
+const templateBody = z.object({
+  name: z.string().trim().min(1),
+  subject: z.string().trim().min(1),
+  bodyHtml: z.string().trim().min(1),
+  programType: z.enum(["equipment", "working_capital"]).nullable().optional(),
+  senderMode: z.enum(["default", "assigned_rep"]).optional(),
+  isActive: z.boolean().optional(),
+});
+const templateUpdateBody = templateBody.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one template field is required" },
+);
+const singleEmailBody = z.object({
+  leadId: positiveId,
+  templateId: positiveId.optional(),
+  subject: z.string().optional(),
+  bodyHtml: z.string().optional(),
+});
+const bulkEmailBody = z.object({
+  leadIds: z.array(positiveId).min(1),
+  templateId: positiveId,
+});
+const previewTemplateBody = z.object({ leadId: positiveId.optional() });
+const testSendBody = z.object({
+  templateId: positiveId,
+  toEmail: z.string().trim().email(),
+});
+
+function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
 
 function makeUnsubToken(sendId: number, email: string): string {
   if (!EMAIL_SIGNING_SECRET) {
@@ -471,14 +505,9 @@ router.post("/email/send", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const { leadId, templateId, subject, bodyHtml } = req.body as {
-    leadId: number;
-    templateId?: number;
-    subject?: string;
-    bodyHtml?: string;
-  };
-
-  if (!leadId) return void res.status(400).json({ error: "leadId is required" });
+  const body = singleEmailBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { leadId, templateId, subject, bodyHtml } = body.data;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -551,9 +580,9 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
-  const { leadIds, templateId } = req.body as { leadIds: number[]; templateId: number };
-  if (!Array.isArray(leadIds) || leadIds.length === 0) return void res.status(400).json({ error: "leadIds required" });
-  if (!templateId) return void res.status(400).json({ error: "templateId required" });
+  const body = bulkEmailBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { leadIds, templateId } = body.data;
 
   const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
   if (!template) return void res.status(404).json({ error: "Template not found" });
@@ -648,9 +677,10 @@ router.get("/email/templates/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = parseInt(req.params["id"] as string, 10);
+  const id = positiveId.safeParse(req.params["id"]);
+  if (!id.success) return invalidInput(res, id);
   const template = await db.query.emailTemplatesTable.findFirst({
-    where: eq(emailTemplatesTable.id, id),
+    where: eq(emailTemplatesTable.id, id.data),
     with: { creator: true },
   });
   if (!template) return void res.status(404).json({ error: "Not found" });
@@ -665,8 +695,9 @@ router.post("/email/templates", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
-  if (!name || !subject || !bodyHtml) return void res.status(400).json({ error: "name, subject, bodyHtml required" });
+  const body = templateBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = body.data;
 
   const [template] = await db.insert(emailTemplatesTable).values({
     name,
@@ -686,10 +717,13 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = parseInt(req.params["id"] as string, 10);
-  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
+  const id = positiveId.safeParse(req.params["id"]);
+  if (!id.success) return invalidInput(res, id);
+  const body = templateUpdateBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = body.data;
 
-  const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
+  const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id.data) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
   if (user.role === "rep" && existing.createdBy !== user.id) {
     return void res.status(403).json({ error: "You can only edit templates you created" });
@@ -705,7 +739,7 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
       isActive: isActive ?? existing.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(emailTemplatesTable.id, id))
+    .where(eq(emailTemplatesTable.id, id.data))
     .returning();
 
   res.json(updated);
@@ -742,10 +776,13 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = parseInt(req.params["id"] as string, 10);
-  const { leadId } = req.body as { leadId?: number };
+  const id = positiveId.safeParse(req.params["id"]);
+  if (!id.success) return invalidInput(res, id);
+  const body = previewTemplateBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { leadId } = body.data;
 
-  const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
+  const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id.data) });
   if (!template) return void res.status(404).json({ error: "Not found" });
   if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
     return void res.status(403).json({ error: "Forbidden" });
@@ -776,10 +813,9 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Admins only" });
 
-  const { templateId, toEmail } = req.body as { templateId?: number; toEmail?: string };
-  if (!templateId || !toEmail?.trim()) {
-    return void res.status(400).json({ error: "templateId and toEmail are required" });
-  }
+  const body = testSendBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { templateId, toEmail } = body.data;
 
   const template = await db.query.emailTemplatesTable.findFirst({
     where: eq(emailTemplatesTable.id, templateId),

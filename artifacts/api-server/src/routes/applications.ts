@@ -131,7 +131,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
   upload.array("bankStatements", 12),
   async (req: Request, res: Response) => {
     try {
-      const validation = parseApplicationSubmission(req.body as Record<string, unknown>);
+      const validation = parseApplicationSubmission(req.body);
       if (!validation.success) {
         const validationError = firstValidationError(validation.error.issues);
         res.status(400).json({ error: validationError.message, field: validationError.field });
