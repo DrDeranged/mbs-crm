@@ -13,6 +13,8 @@ import {
 } from "@workspace/db";
 import { encrypt } from "../encryption";
 import { logger } from "../logger";
+import { notifyAllAdmins } from "../notify";
+import { selectNextInboundAssigneeInTransaction } from "../leadDistribution";
 import { mapUsfaRow, USFA_HEADERS, type UsfaRow } from "./usfa";
 
 export type UsfaRunResult = {
@@ -68,11 +70,12 @@ async function ingestUsfaRow(row: UsfaRow, rowNumber: number): Promise<"ok" | "d
       return "dup";
     }
 
+    const assignment = await selectNextInboundAssigneeInTransaction(tx);
     const [lead] = await tx.insert(leadsTable).values({
       ...mapped.lead,
       createdAt: mapped.lead.createdAt ?? new Date(),
       status: "new_lead",
-      assignedRepId: null,
+      assignedRepId: assignment?.repId ?? null,
     }).returning();
     await tx.insert(companiesTable).values({
       leadId: lead.id,
@@ -104,6 +107,12 @@ async function ingestUsfaRow(row: UsfaRow, rowNumber: number): Promise<"ok" | "d
       externalId: mapped.externalId, rowNumber, leadId: lead.id, status: "ok",
       metadata: mapped.metadata,
     });
+    await notifyAllAdmins(
+      "application_received",
+      "New USFA lead received",
+      `${mapped.lead.companyName ?? "A USFA lead"} was added from the USFA intake sheet.`,
+      lead.id,
+    );
     return "ok";
   });
 }

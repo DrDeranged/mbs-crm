@@ -24,6 +24,7 @@ CREATE INDEX IF NOT EXISTS "usfa_intake_prefill_lead_idx" ON "usfa_intake_prefil
 
 ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_id" text;
 ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_tab" text NOT NULL DEFAULT 'Sheet1';
+ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_consent_confirmed" boolean NOT NULL DEFAULT false;
 
 -- Gmail is read-only and this receipt is the idempotency key for each message.
 CREATE TABLE IF NOT EXISTS "usfa_application_email_log" (

@@ -4166,10 +4166,11 @@ components:
       properties:
         settings:
           type: object
-          required: [usfaSheetId, usfaSheetTab]
+          required: [usfaSheetId, usfaSheetTab, usfaConsentConfirmed]
           properties:
             usfaSheetId: { type: ["string", "null"] }
             usfaSheetTab: { type: string }
+            usfaConsentConfirmed: { type: boolean }
         counts:
           type: object
           required: [total, ok, dup, error, lastRun]

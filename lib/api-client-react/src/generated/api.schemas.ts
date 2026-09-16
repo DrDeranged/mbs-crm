@@ -48,6 +48,7 @@ export type AdminUsfaIntakeResponseSettings = {
   /** @nullable */
   usfaSheetId: string | null;
   usfaSheetTab: string;
+  usfaConsentConfirmed: boolean;
 };
 
 export type AdminUsfaIntakeResponseCounts = {

@@ -30,6 +30,7 @@ export const companySettingsTable = pgTable("company_settings", {
    bulkEmailPerDay: integer("bulk_email_per_day").notNull().default(75),
   usfaSheetId: text("usfa_sheet_id"),
   usfaSheetTab: text("usfa_sheet_tab").notNull().default("Sheet1"),
+  usfaConsentConfirmed: boolean("usfa_consent_confirmed").notNull().default(false),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

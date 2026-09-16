@@ -32,7 +32,11 @@ router.get("/admin/usfa-intake", async (req, res): Promise<void> => {
     lastRun: sql<Date | null>`max(${usfaIntakeLogTable.ingestedAt})`,
   }).from(usfaIntakeLogTable);
   res.json({
-    settings: { usfaSheetId: settings?.usfaSheetId ?? null, usfaSheetTab: settings?.usfaSheetTab ?? "Sheet1" },
+    settings: {
+      usfaSheetId: settings?.usfaSheetId ?? null,
+      usfaSheetTab: settings?.usfaSheetTab ?? "Sheet1",
+      usfaConsentConfirmed: settings?.usfaConsentConfirmed ?? false,
+    },
     counts: {
       total: Number(counts?.total ?? 0), ok: Number(counts?.ok ?? 0),
       dup: Number(counts?.dup ?? 0), error: Number(counts?.error ?? 0),

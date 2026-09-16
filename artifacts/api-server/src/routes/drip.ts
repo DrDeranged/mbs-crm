@@ -16,6 +16,7 @@ import {
   requireUser,
 } from "../lib/authHelpers";
 import { isEmailSuppressed } from "../lib/emailSafety";
+import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 
 const sequenceCreateBody = z.object({
   name: z.string().trim().min(1),
@@ -299,6 +300,9 @@ router.get("/leads/:id/drip", async (req: Request, res: Response) => {
   const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
   if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  if (await isUsfaMarketingBlocked(database, lead.leadSource)) {
+    return void res.status(409).json({ error: "USFA consent must be confirmed before drip enrollment" });
+  }
   if (!lead.email || lead.isUnsubscribed || await emailIsSuppressed(lead.email)) {
     return void res.status(409).json({ error: "Recipient is suppressed and cannot be enrolled" });
   }
@@ -330,6 +334,9 @@ router.post("/leads/:id/drip/enroll", async (req: Request, res: Response) => {
   const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
   if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  if (await isUsfaMarketingBlocked(database, lead.leadSource)) {
+    return void res.status(409).json({ error: "USFA consent must be confirmed before drip enrollment" });
+  }
   if (!lead.email || lead.isUnsubscribed || await emailIsSuppressed(lead.email)) {
     return void res.status(409).json({ error: "Recipient is suppressed and cannot be enrolled" });
   }

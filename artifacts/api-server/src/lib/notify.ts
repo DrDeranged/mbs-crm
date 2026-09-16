@@ -58,3 +58,18 @@ export async function notifyAllManagers(
     await createNotification({ userId: m.id, type, title, body, leadId });
   }
 }
+
+/** Notify administrators about an integration event requiring review. */
+export async function notifyAllAdmins(
+  type: NotificationType,
+  title: string,
+  body: string,
+  leadId?: number | null,
+): Promise<void> {
+  const admins = await db.query.usersTable.findMany({
+    where: eq(usersTable.role, "admin"),
+  });
+  for (const admin of admins) {
+    await createNotification({ userId: admin.id, type, title, body, leadId });
+  }
+}

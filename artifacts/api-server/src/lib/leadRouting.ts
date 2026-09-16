@@ -18,7 +18,7 @@ export const DEFAULT_ROUTING_SETTINGS: Readonly<RoutingSettings> = {
  * inbound records may enter the rotation.
  */
 export function isRoundRobinEligibleInboundSource(source: string): boolean {
-  return source === "website";
+  return source === "website" || source === "usfundadvisor";
 }
 
 export function shouldRoundRobinAssign(

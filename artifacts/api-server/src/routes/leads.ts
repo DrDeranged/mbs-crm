@@ -15,6 +15,7 @@ import { sanitizeLikeInput } from "../lib/sanitize";
 import { getLatestActivities, getLeadCreationActivities, logActivity } from "../lib/activityHelper";
 import { isUnassignedInboundLead } from "../lib/inboundLead";
 import { isEmailSuppressed } from "../lib/emailSafety";
+import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 import {
   ListLeadsQueryParams,
   CreateLeadBody,
@@ -995,7 +996,8 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   try {
     const suppressed = !updated.email || updated.isUnsubscribed ||
       await isEmailSuppressed(updated.email);
-    if (suppressed) {
+    const usfaBlocked = await isUsfaMarketingBlocked(db, updated.leadSource);
+    if (suppressed || usfaBlocked) {
       await db.update(dripEnrollmentsTable)
         .set({ status: "unenrolled", unenrolledAt: new Date() })
         .where(and(eq(dripEnrollmentsTable.leadId, params.data.id), eq(dripEnrollmentsTable.status, "active")));

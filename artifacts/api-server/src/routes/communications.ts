@@ -6,6 +6,7 @@ import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
+import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -143,6 +144,12 @@ router.post("/leads/:id/sms", async (req, res) => {
     return void res.status(422).json({
       error: "consent_required",
       message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
+    });
+  }
+  if (await isUsfaMarketingBlocked(db, lead.leadSource)) {
+    return void res.status(422).json({
+      error: "consent_required",
+      message: "Cannot send SMS: USFA lead SMS consent has not been confirmed by an administrator.",
     });
   }
 

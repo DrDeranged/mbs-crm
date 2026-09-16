@@ -17,6 +17,7 @@ import { logger } from "./logger";
 import { getPublicBaseUrl } from "./brand";
 import { isEmailSuppressed } from "./emailSafety";
 import { canReadMarketingResource } from "./authHelpers";
+import { isUsfaMarketingBlocked } from "./intake/usfaCompliance";
 
 let running: boolean | undefined;
 
@@ -84,6 +85,20 @@ export async function runDripJob(): Promise<void> {
         }
 
         const lead = enrollment.lead;
+        if (lead && await isUsfaMarketingBlocked(db, lead.leadSource)) {
+          await logActivity({
+            userId: null,
+            leadId: lead.id,
+            action: "drip_consent_skip",
+            entityType: "drip_enrollment",
+            entityId: enrollment.id,
+            details: { skipReason: "usfa_consent_not_confirmed", sequenceId: enrollment.sequenceId, step: enrollment.currentStep + 1 },
+          });
+          await db.update(dripEnrollmentsTable)
+            .set({ status: "unenrolled", unenrolledAt: new Date() })
+            .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          continue;
+        }
         if (!lead || !lead.email || lead.isUnsubscribed || (lead.email && await isEmailSuppressed(lead.email))) {
           const skipReason = !lead
             ? "lead_not_found"

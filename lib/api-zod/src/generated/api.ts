@@ -120,7 +120,8 @@ export const GetAdminUsfaIntakeQueryParams = zod.object({
 export const GetAdminUsfaIntakeResponse = zod.object({
   "settings": zod.object({
   "usfaSheetId": zod.string().nullable(),
-  "usfaSheetTab": zod.string()
+  "usfaSheetTab": zod.string(),
+  "usfaConsentConfirmed": zod.boolean()
 }),
   "counts": zod.object({
   "total": zod.number(),
