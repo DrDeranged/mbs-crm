@@ -867,7 +867,7 @@ export default function Dashboard() {
               <Skeleton className="h-52 w-full" />
             ) : !(communications ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
-                No communication data for this period.
+                {DASHBOARD_EMPTY_STATES.leadActivity}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -949,7 +949,7 @@ export default function Dashboard() {
             {loadingReps ? (
               <Skeleton className="h-40 w-full" />
             ) : !sortedReps.length ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No rep data available.</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{DASHBOARD_EMPTY_STATES.repActivity}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

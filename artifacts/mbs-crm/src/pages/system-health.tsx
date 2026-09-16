@@ -258,8 +258,8 @@ export default function SystemHealth() {
                             {err.message ?? "—"}
                           </p>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">
-                          {err.requestId ? `${err.requestId.slice(0, 8)}…` : "—"}
+                        <TableCell className="hidden lg:table-cell max-w-56 break-all font-mono text-xs text-muted-foreground">
+                          {err.requestId ?? "—"}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
                           {err.userId ?? "—"}

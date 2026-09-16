@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import {
   flyerTemplatesTable, generatedFlyersTable, documentsTable,
@@ -8,7 +8,8 @@ import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { renderPdf, renderTemplate } from "../lib/renderPdf";
+import { renderTemplate } from "../lib/renderPdf";
+import { renderFlyerPdf } from "../lib/flyerPdfRenderer";
 import { objectStorageClient } from "../lib/objectStorage";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { doSendEmail } from "./email";
@@ -46,7 +47,7 @@ async function assertFlyerAccess(
 }
 
 // POST /flyers/generate
-router.post("/flyers/generate", async (req: Request, res: Response) => {
+router.post("/flyers/generate", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -80,7 +81,7 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
       ...fieldValues,
       brand_logo_url: getBrandLogoUrl(baseUrl),
     });
-    const pdfBuffer = await renderPdf(ensureFlyerBranding(renderedHtml, baseUrl));
+    const pdfBuffer = await renderFlyerPdf(ensureFlyerBranding(renderedHtml, baseUrl));
 
     // Upload PDF to GCS
     const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
@@ -124,13 +125,12 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
       downloadUrl: `/api/flyers/${flyer.id}/download`,
     });
   } catch (err) {
-    req.log.error({ err }, "Failed to generate flyer");
-    res.status(500).json({ error: "PDF generation failed" });
+    next(err);
   }
 });
 
 // GET /flyers/:id/download
-router.get("/flyers/:id/download", async (req: Request, res: Response) => {
+router.get("/flyers/:id/download", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -160,13 +160,12 @@ router.get("/flyers/:id/download", async (req: Request, res: Response) => {
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     gcsFile.createReadStream().pipe(res);
   } catch (err) {
-    req.log.error({ err }, "Failed to download flyer");
-    res.status(500).json({ error: "Download failed" });
+    next(err);
   }
 });
 
 // POST /flyers/:id/email
-router.post("/flyers/:id/email", async (req: Request, res: Response) => {
+router.post("/flyers/:id/email", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -279,8 +278,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
 
     res.json({ success: true, sendId: send.id });
   } catch (err) {
-    req.log.error({ err }, "Failed to email flyer");
-    res.status(500).json({ error: "Email failed" });
+    next(err);
   }
 });
 
