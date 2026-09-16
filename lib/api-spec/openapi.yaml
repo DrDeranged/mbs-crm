@@ -3041,12 +3041,16 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [lender_id]
-              properties:
-                lender_id:
-                  type: integer
+             schema:
+               type: object
+               required: [lender_id]
+               properties:
+                 lender_id:
+                   type: integer
+                 admin_override:
+                   type: boolean
+                   default: false
+                   description: Administrators may bypass the rolling 24-hour duplicate limit
       responses:
         "201":
           description: Submission created
@@ -3055,11 +3059,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/LenderSubmission"
 
+  /deals/{id}/submissions:
+    get:
+      operationId: getDealSubmissions
+      tags: [lenders]
+      summary: List lender submissions for a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submissions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LenderSubmission"
+
   /submissions/{id}:
     put:
       operationId: updateSubmission
       tags: [lenders]
-      summary: Update submission status / notes (managers/admins only)
+      summary: Update submission status / notes (administrator or assigned representative)
       parameters:
         - name: id
           in: path
@@ -3075,9 +3100,32 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [submitted, pending, approved, declined, withdrawn]
-                response_notes:
+                  enum: [submitted, approved, declined, funded]
+                notes:
                   type: ["string", "null"]
+      responses:
+        "200":
+          description: Submission updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LenderSubmission"
+    patch:
+      operationId: patchSubmission
+      tags: [lenders]
+      summary: Partially update submission status / notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderSubmissionUpdate"
       responses:
         "200":
           description: Submission updated
@@ -5527,7 +5575,7 @@ components:
 
     LenderSubmission:
       type: object
-      required: [id, leadId, lenderId, status, submittedAt, updatedAt]
+      required: [id, leadId, lenderId, status, sentAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5539,9 +5587,11 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Lender"
             - type: "null"
-        submittedBy:
+        dealId:
           type: ["integer", "null"]
-        submittedByUser:
+        sentBy:
+          type: ["integer", "null"]
+        sentByUser:
           oneOf:
             - type: object
               properties:
@@ -5554,15 +5604,26 @@ components:
             - type: "null"
         status:
           type: string
-          enum: [submitted, pending, approved, declined, withdrawn]
-        responseNotes:
+          enum: [submitted, approved, declined, funded]
+        notes:
           type: ["string", "null"]
-        submittedAt:
+        messageId:
+          type: ["string", "null"]
+        sentAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    LenderSubmissionUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [submitted, approved, declined, funded]
+        notes:
+          type: ["string", "null"]
 
     VariableField:
       type: object

@@ -121,6 +121,7 @@ import type {
   LenderInput,
   LenderMatch,
   LenderSubmission,
+  LenderSubmissionUpdate,
   ListDealsParams,
   ListEmailTemplatesParams,
   ListFlyerTemplatesParams,
@@ -8772,6 +8773,83 @@ export const useCreateLeadSubmission = <TError = ErrorType<unknown>,
       return useMutation(getCreateLeadSubmissionMutationOptions(options));
     }
 
+export const getGetDealSubmissionsUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/submissions`
+}
+
+/**
+ * @summary List lender submissions for a deal
+ */
+export const getDealSubmissions = async (id: number, options?: RequestInit): Promise<LenderSubmission[]> => {
+
+  return customFetch<LenderSubmission[]>(getGetDealSubmissionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDealSubmissionsQueryKey = (id: number,) => {
+    return [
+    `/api/deals/${id}/submissions`
+    ] as const;
+    }
+
+
+export const getGetDealSubmissionsQueryOptions = <TData = Awaited<ReturnType<typeof getDealSubmissions>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealSubmissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDealSubmissionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDealSubmissions>>> = ({ signal }) => getDealSubmissions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDealSubmissions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDealSubmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof getDealSubmissions>>>
+export type GetDealSubmissionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List lender submissions for a deal
+ */
+
+export function useGetDealSubmissions<TData = Awaited<ReturnType<typeof getDealSubmissions>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealSubmissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDealSubmissionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getUpdateSubmissionUrl = (id: number,) => {
 
 
@@ -8781,7 +8859,7 @@ export const getUpdateSubmissionUrl = (id: number,) => {
 }
 
 /**
- * @summary Update submission status / notes (managers/admins only)
+ * @summary Update submission status / notes (administrator or assigned representative)
  */
 export const updateSubmission = async (id: number,
     updateSubmissionBody: UpdateSubmissionBody, options?: RequestInit): Promise<LenderSubmission> => {
@@ -8831,7 +8909,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateSubmissionMutationError = ErrorType<unknown>
 
     /**
- * @summary Update submission status / notes (managers/admins only)
+ * @summary Update submission status / notes (administrator or assigned representative)
  */
 export const useUpdateSubmission = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSubmission>>, TError,{id: number;data: BodyType<UpdateSubmissionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -8842,6 +8920,78 @@ export const useUpdateSubmission = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateSubmissionMutationOptions(options));
+    }
+
+export const getPatchSubmissionUrl = (id: number,) => {
+
+
+
+
+  return `/api/submissions/${id}`
+}
+
+/**
+ * @summary Partially update submission status / notes
+ */
+export const patchSubmission = async (id: number,
+    lenderSubmissionUpdate: LenderSubmissionUpdate, options?: RequestInit): Promise<LenderSubmission> => {
+
+  return customFetch<LenderSubmission>(getPatchSubmissionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderSubmissionUpdate,)
+  }
+);}
+
+
+
+
+export const getPatchSubmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchSubmission>>, TError,{id: number;data: BodyType<LenderSubmissionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof patchSubmission>>, TError,{id: number;data: BodyType<LenderSubmissionUpdate>}, TContext> => {
+
+const mutationKey = ['patchSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchSubmission>>, {id: number;data: BodyType<LenderSubmissionUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  patchSubmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof patchSubmission>>>
+    export type PatchSubmissionMutationBody = BodyType<LenderSubmissionUpdate>
+    export type PatchSubmissionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Partially update submission status / notes
+ */
+export const usePatchSubmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchSubmission>>, TError,{id: number;data: BodyType<LenderSubmissionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof patchSubmission>>,
+        TError,
+        {id: number;data: BodyType<LenderSubmissionUpdate>},
+        TContext
+      > => {
+      return useMutation(getPatchSubmissionMutationOptions(options));
     }
 
 export const getListEmailTemplatesUrl = (params?: ListEmailTemplatesParams,) => {

@@ -1173,7 +1173,7 @@ export interface LenderMatch {
   matchedAt: string;
 }
 
-export type LenderSubmissionSubmittedByUser = {
+export type LenderSubmissionSentByUser = {
   id?: number;
   /** @nullable */
   name?: string | null;
@@ -1186,10 +1186,9 @@ export type LenderSubmissionStatus = typeof LenderSubmissionStatus[keyof typeof 
 
 export const LenderSubmissionStatus = {
   submitted: 'submitted',
-  pending: 'pending',
   approved: 'approved',
   declined: 'declined',
-  withdrawn: 'withdrawn',
+  funded: 'funded',
 } as const;
 
 export interface LenderSubmission {
@@ -1198,13 +1197,33 @@ export interface LenderSubmission {
   lenderId: number;
   lender?: Lender | null;
   /** @nullable */
-  submittedBy?: number | null;
-  submittedByUser?: LenderSubmissionSubmittedByUser;
+  dealId?: number | null;
+  /** @nullable */
+  sentBy?: number | null;
+  sentByUser?: LenderSubmissionSentByUser;
   status: LenderSubmissionStatus;
   /** @nullable */
-  responseNotes?: string | null;
-  submittedAt: string;
+  notes?: string | null;
+  /** @nullable */
+  messageId?: string | null;
+  sentAt: string;
   updatedAt: string;
+}
+
+export type LenderSubmissionUpdateStatus = typeof LenderSubmissionUpdateStatus[keyof typeof LenderSubmissionUpdateStatus];
+
+
+export const LenderSubmissionUpdateStatus = {
+  submitted: 'submitted',
+  approved: 'approved',
+  declined: 'declined',
+  funded: 'funded',
+} as const;
+
+export interface LenderSubmissionUpdate {
+  status?: LenderSubmissionUpdateStatus;
+  /** @nullable */
+  notes?: string | null;
 }
 
 export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];
@@ -2977,6 +2996,8 @@ export type RunLenderMatch200 = {
 
 export type CreateLeadSubmissionBody = {
   lender_id: number;
+  /** Administrators may bypass the rolling 24-hour duplicate limit */
+  admin_override?: boolean;
 };
 
 export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof typeof UpdateSubmissionBodyStatus];
@@ -2984,16 +3005,15 @@ export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof
 
 export const UpdateSubmissionBodyStatus = {
   submitted: 'submitted',
-  pending: 'pending',
   approved: 'approved',
   declined: 'declined',
-  withdrawn: 'withdrawn',
+  funded: 'funded',
 } as const;
 
 export type UpdateSubmissionBody = {
   status?: UpdateSubmissionBodyStatus;
   /** @nullable */
-  response_notes?: string | null;
+  notes?: string | null;
 };
 
 export type ListEmailTemplatesParams = {

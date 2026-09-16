@@ -3,8 +3,9 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
+import { dealsTable } from "./deals";
 
-export const SUBMISSION_STATUSES = ["submitted", "pending", "approved", "declined", "withdrawn"] as const;
+export const SUBMISSION_STATUSES = ["submitted", "approved", "declined", "funded"] as const;
 export type TruckingRule = {
   industry: "long_haul" | "local" | "any";
   prohibited?: boolean;
@@ -84,16 +85,20 @@ export const lenderSubmissionsTable = pgTable(
   {
     id: serial("id").primaryKey(),
     leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
+    dealId: integer("deal_id").references(() => dealsTable.id, { onDelete: "set null" }),
     lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
-    submittedBy: integer("submitted_by").references(() => usersTable.id, { onDelete: "set null" }),
+    sentBy: integer("sent_by").references(() => usersTable.id, { onDelete: "set null" }),
+    messageId: text("message_id"),
     status: text("status", { enum: SUBMISSION_STATUSES }).notNull().default("submitted"),
-    responseNotes: text("response_notes"),
-    submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+    notes: text("notes"),
+    sentAt: timestamp("sent_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("lender_submissions_lead_idx").on(t.leadId),
+    index("lender_submissions_deal_idx").on(t.dealId),
     index("lender_submissions_lender_idx").on(t.lenderId),
+    index("lender_submissions_sent_at_idx").on(t.sentAt),
   ],
 );
 

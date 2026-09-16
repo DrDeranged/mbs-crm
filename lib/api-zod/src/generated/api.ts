@@ -3644,15 +3644,17 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "submittedBy": zod.number().nullish(),
-  "submittedByUser": zod.union([zod.object({
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
-  "responseNotes": zod.string().nullish(),
-  "submittedAt": zod.coerce.date(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
 export const GetLeadSubmissionsResponse = zod.array(GetLeadSubmissionsResponseItem)
@@ -3665,21 +3667,104 @@ export const CreateLeadSubmissionParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const createLeadSubmissionBodyAdminOverrideDefault = false;
+
 export const CreateLeadSubmissionBody = zod.object({
-  "lender_id": zod.number()
+  "lender_id": zod.number(),
+  "admin_override": zod.boolean().default(createLeadSubmissionBodyAdminOverrideDefault).describe('Administrators may bypass the rolling 24-hour duplicate limit')
 })
 
 
 /**
- * @summary Update submission status / notes (managers/admins only)
+ * @summary List lender submissions for a deal
+ */
+export const GetDealSubmissionsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDealSubmissionsResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "sentAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const GetDealSubmissionsResponse = zod.array(GetDealSubmissionsResponseItem)
+
+
+/**
+ * @summary Update submission status / notes (administrator or assigned representative)
  */
 export const UpdateSubmissionParams = zod.object({
   "id": zod.coerce.number()
 })
 
 export const UpdateSubmissionBody = zod.object({
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']).optional(),
-  "response_notes": zod.string().nullish()
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']).optional(),
+  "notes": zod.string().nullish()
 })
 
 export const UpdateSubmissionResponse = zod.object({
@@ -3739,15 +3824,101 @@ export const UpdateSubmissionResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "submittedBy": zod.number().nullish(),
-  "submittedByUser": zod.union([zod.object({
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
-  "responseNotes": zod.string().nullish(),
-  "submittedAt": zod.coerce.date(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "sentAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Partially update submission status / notes
+ */
+export const PatchSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PatchSubmissionBody = zod.object({
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']).optional(),
+  "notes": zod.string().nullish()
+})
+
+export const PatchSubmissionResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
 
