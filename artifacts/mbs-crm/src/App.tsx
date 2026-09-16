@@ -31,6 +31,7 @@ const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
 const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
 const SystemHealth = lazy(() => import("@/pages/system-health"));
 const Governance = lazy(() => import("@/pages/governance"));
+const UsfaIntake = lazy(() => import("@/pages/admin-usfa-intake"));
 const RepQuickstart = lazy(() => import("@/pages/rep-quickstart"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -342,6 +343,9 @@ function AppRoutes() {
             </Route>
             <Route path="/governance">
               <ProtectedRoute component={Governance} />
+            </Route>
+            <Route path="/admin/usfa-intake">
+              <ProtectedRoute component={UsfaIntake} />
             </Route>
             <Route path="/help/rep-quickstart">
               <ProtectedRoute component={RepQuickstart} />

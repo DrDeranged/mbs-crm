@@ -103,6 +103,79 @@ export const GetAdminErrorsResponse = zod.object({
 
 
 /**
+ * @summary Read USFA sheet intake status and row log (admin only)
+ */
+export const getAdminUsfaIntakeQueryPageDefault = 1;
+
+export const getAdminUsfaIntakeQueryLimitDefault = 50;
+export const getAdminUsfaIntakeQueryLimitMax = 100;
+
+
+
+export const GetAdminUsfaIntakeQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(getAdminUsfaIntakeQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(getAdminUsfaIntakeQueryLimitMax).default(getAdminUsfaIntakeQueryLimitDefault)
+})
+
+export const GetAdminUsfaIntakeResponse = zod.object({
+  "settings": zod.object({
+  "usfaSheetId": zod.string().nullable(),
+  "usfaSheetTab": zod.string()
+}),
+  "counts": zod.object({
+  "total": zod.number(),
+  "ok": zod.number(),
+  "dup": zod.number(),
+  "error": zod.number(),
+  "lastRun": zod.coerce.date().nullable()
+}),
+  "logs": zod.array(zod.object({
+  "id": zod.number(),
+  "externalId": zod.string(),
+  "rowNumber": zod.number(),
+  "ingestedAt": zod.coerce.date(),
+  "leadId": zod.number().nullish(),
+  "status": zod.enum(['ok', 'dup', 'error']),
+  "error": zod.string().nullish()
+})),
+  "page": zod.number(),
+  "limit": zod.number()
+})
+
+
+/**
+ * @summary Run one read-only USFA Sheet poll (admin only)
+ */
+export const RunAdminUsfaIntakeResponse = zod.object({
+  "status": zod.enum(['ok', 'skipped']),
+  "reason": zod.string().optional(),
+  "processed": zod.number(),
+  "skipped": zod.number(),
+  "duplicates": zod.number(),
+  "errors": zod.number(),
+  "headerValid": zod.boolean()
+})
+
+
+/**
+ * @summary Reprocess an errored USFA row (admin only)
+ */
+export const ReprocessAdminUsfaIntakeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReprocessAdminUsfaIntakeResponse = zod.object({
+  "status": zod.enum(['ok', 'skipped']),
+  "reason": zod.string().optional(),
+  "processed": zod.number(),
+  "skipped": zod.number(),
+  "duplicates": zod.number(),
+  "errors": zod.number(),
+  "headerValid": zod.boolean()
+})
+
+
+/**
  * @summary List discovered schema migrations and their checksums (admin only)
  */
 export const GetAdminMigrationStatusResponse = zod.object({

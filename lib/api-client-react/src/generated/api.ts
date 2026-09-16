@@ -24,6 +24,7 @@ import type {
   AdminErrorsResponse,
   AdminMaintenanceError,
   AdminQrVerifyResponse,
+  AdminUsfaIntakeResponse,
   AiDraftRequest,
   AiDraftResponse,
   AiNextBestAction,
@@ -92,6 +93,7 @@ import type {
   GenerateLeadBriefing200,
   GeneratedFlyer,
   GetAdminErrorsParams,
+  GetAdminUsfaIntakeParams,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
   GetAnalyticsRenewalsParams,
@@ -185,6 +187,7 @@ import type {
   UpsertDripSequenceStepsBody,
   User,
   UserUpdate,
+  UsfaPollResult,
   WorkflowRule
 } from './api.schemas';
 
@@ -514,6 +517,230 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
 
 
+
+export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/usfa-intake?${stringifiedParams}` : `/api/admin/usfa-intake`
+}
+
+/**
+ * @summary Read USFA sheet intake status and row log (admin only)
+ */
+export const getAdminUsfaIntake = async (params?: GetAdminUsfaIntakeParams, options?: RequestInit): Promise<AdminUsfaIntakeResponse> => {
+
+  return customFetch<AdminUsfaIntakeResponse>(getGetAdminUsfaIntakeUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminUsfaIntakeQueryKey = (params?: GetAdminUsfaIntakeParams,) => {
+    return [
+    `/api/admin/usfa-intake`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAdminUsfaIntakeQueryOptions = <TData = Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError = ErrorType<void>>(params?: GetAdminUsfaIntakeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminUsfaIntakeQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminUsfaIntake>>> = ({ signal }) => getAdminUsfaIntake(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminUsfaIntakeQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminUsfaIntake>>>
+export type GetAdminUsfaIntakeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read USFA sheet intake status and row log (admin only)
+ */
+
+export function useGetAdminUsfaIntake<TData = Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError = ErrorType<void>>(
+ params?: GetAdminUsfaIntakeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminUsfaIntakeQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunAdminUsfaIntakeUrl = () => {
+
+
+
+
+  return `/api/admin/usfa-intake/run`
+}
+
+/**
+ * @summary Run one read-only USFA Sheet poll (admin only)
+ */
+export const runAdminUsfaIntake = async ( options?: RequestInit): Promise<UsfaPollResult> => {
+
+  return customFetch<UsfaPollResult>(getRunAdminUsfaIntakeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRunAdminUsfaIntakeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext> => {
+
+const mutationKey = ['runAdminUsfaIntake'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runAdminUsfaIntake>>, void> = () => {
+
+
+          return  runAdminUsfaIntake(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunAdminUsfaIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof runAdminUsfaIntake>>>
+
+    export type RunAdminUsfaIntakeMutationError = ErrorType<void>
+
+    /**
+ * @summary Run one read-only USFA Sheet poll (admin only)
+ */
+export const useRunAdminUsfaIntake = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runAdminUsfaIntake>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRunAdminUsfaIntakeMutationOptions(options));
+    }
+
+export const getReprocessAdminUsfaIntakeUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/usfa-intake/${id}/reprocess`
+}
+
+/**
+ * @summary Reprocess an errored USFA row (admin only)
+ */
+export const reprocessAdminUsfaIntake = async (id: number, options?: RequestInit): Promise<UsfaPollResult> => {
+
+  return customFetch<UsfaPollResult>(getReprocessAdminUsfaIntakeUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReprocessAdminUsfaIntakeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['reprocessAdminUsfaIntake'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reprocessAdminUsfaIntake(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReprocessAdminUsfaIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>>
+
+    export type ReprocessAdminUsfaIntakeMutationError = ErrorType<void>
+
+    /**
+ * @summary Reprocess an errored USFA row (admin only)
+ */
+export const useReprocessAdminUsfaIntake = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getReprocessAdminUsfaIntakeMutationOptions(options));
+    }
 
 export const getGetAdminMigrationStatusUrl = () => {
 

@@ -38,6 +38,8 @@ export const CompanySettingsBody = z.object({
   emailSendingEnabled: z.boolean().optional(),
   bulkEmailPerMinute: z.number().int().min(1).max(1000).nullable().optional(),
   bulkEmailPerDay: z.number().int().min(1).max(100000).nullable().optional(),
+  usfaSheetId: z.string().trim().min(1).nullable().optional(),
+  usfaSheetTab: z.string().trim().min(1).optional(),
 }).refine((body) => Object.keys(body).length > 0, {
   message: "At least one setting must be provided",
 });
@@ -77,6 +79,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   const {
     companyName, companyEmail, companyPhone, companyWebsite, companyAddress,
     companyCity, companyState, companyZip, emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay,
+    usfaSheetId, usfaSheetTab,
   } = parsed.data;
   const bulkEmailRate = typeof bulkEmailPerMinute === "number" ? bulkEmailPerMinute : undefined;
   const bulkEmailDailyLimit = typeof bulkEmailPerDay === "number" ? bulkEmailPerDay : undefined;
@@ -107,6 +110,8 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         ...(emailSendingEnabled !== undefined ? { emailSendingEnabled: emailSendingEnabled === true } : {}),
         ...(bulkEmailRate !== undefined ? { bulkEmailPerMinute: bulkEmailRate } : {}),
         ...(bulkEmailDailyLimit !== undefined ? { bulkEmailPerDay: bulkEmailDailyLimit } : {}),
+        ...(usfaSheetId !== undefined ? { usfaSheetId } : {}),
+        ...(usfaSheetTab !== undefined ? { usfaSheetTab } : {}),
         updatedAt: new Date(),
       })
       .where(eq(companySettingsTable.id, existing.id))
@@ -127,6 +132,8 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         emailSendingEnabled: emailSendingEnabled === true,
         bulkEmailPerMinute: bulkEmailRate ?? 60,
         bulkEmailPerDay: bulkEmailDailyLimit ?? 75,
+        usfaSheetId: usfaSheetId ?? null,
+        usfaSheetTab: usfaSheetTab ?? "Sheet1",
       })
       .returning();
     result = created;

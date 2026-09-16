@@ -21,6 +21,7 @@ import {
   BookOpen,
   ChevronDown,
   FileDown,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -145,6 +146,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {isAdmin && navLink("/governance", "Data Governance", ShieldCheck)}
               {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
               {navLink("/system-health", "System Health", Activity)}
+              {navLink("/admin/usfa-intake", "USFA Intake", ClipboardList)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
             </>
           )}

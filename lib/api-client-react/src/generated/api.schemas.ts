@@ -5,6 +5,68 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
+export type UsfaIntakeLogStatus = typeof UsfaIntakeLogStatus[keyof typeof UsfaIntakeLogStatus];
+
+
+export const UsfaIntakeLogStatus = {
+  ok: 'ok',
+  dup: 'dup',
+  error: 'error',
+} as const;
+
+export interface UsfaIntakeLog {
+  id: number;
+  externalId: string;
+  rowNumber: number;
+  ingestedAt: string;
+  /** @nullable */
+  leadId?: number | null;
+  status: UsfaIntakeLogStatus;
+  /** @nullable */
+  error?: string | null;
+}
+
+export type UsfaPollResultStatus = typeof UsfaPollResultStatus[keyof typeof UsfaPollResultStatus];
+
+
+export const UsfaPollResultStatus = {
+  ok: 'ok',
+  skipped: 'skipped',
+} as const;
+
+export interface UsfaPollResult {
+  status: UsfaPollResultStatus;
+  reason?: string;
+  processed: number;
+  skipped: number;
+  duplicates: number;
+  errors: number;
+  headerValid: boolean;
+}
+
+export type AdminUsfaIntakeResponseSettings = {
+  /** @nullable */
+  usfaSheetId: string | null;
+  usfaSheetTab: string;
+};
+
+export type AdminUsfaIntakeResponseCounts = {
+  total: number;
+  ok: number;
+  dup: number;
+  error: number;
+  /** @nullable */
+  lastRun: string | null;
+};
+
+export interface AdminUsfaIntakeResponse {
+  settings: AdminUsfaIntakeResponseSettings;
+  counts: AdminUsfaIntakeResponseCounts;
+  logs: UsfaIntakeLog[];
+  page: number;
+  limit: number;
+}
+
 export interface AnalyticsSummary {
   /** Total leads created in the selected date range, regardless of lead source or status */
   totalLeads: number;
@@ -2453,6 +2515,18 @@ export interface LenderPackageConfigResponse {
 
 export type GetAdminErrorsParams = {
 page?: number;
+};
+
+export type GetAdminUsfaIntakeParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
 };
 
 export type UpdateMyPushTokenBody = {

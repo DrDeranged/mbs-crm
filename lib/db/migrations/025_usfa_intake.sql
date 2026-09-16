@@ -21,3 +21,6 @@ CREATE TABLE IF NOT EXISTS "usfa_intake_prefill" (
   "updated_at" timestamp NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS "usfa_intake_prefill_lead_idx" ON "usfa_intake_prefill" ("lead_id");
+
+ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_id" text;
+ALTER TABLE "company_settings" ADD COLUMN IF NOT EXISTS "usfa_sheet_tab" text NOT NULL DEFAULT 'Sheet1';
