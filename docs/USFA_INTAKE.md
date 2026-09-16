@@ -1,3 +1,27 @@
+# USFA lead intake
+
+## Webhook (dormant)
+
+The optional `POST /api/intake/usfa` endpoint is disabled by default with the
+database setting `usfa_webhook_enabled = false`. An administrator may enable it
+from the USFA Intake page only after the vendor secret and payload contract are
+confirmed.
+
+USFA must send the exact UTF-8 JSON request bytes with
+`X-USFA-Signature: sha256=<lowercase-or-uppercase-hex-HMAC>` where the HMAC is
+SHA-256 keyed by `USFA_WEBHOOK_SECRET`. The signature is computed over the raw
+body, before JSON parsing; the server captures that body with Express's existing
+`verify` hook and never reconstructs JSON for verification. Missing, malformed,
+or mismatched signatures return `401`. A valid signature with an invalid payload
+returns `400` and identifies the first field. A valid enabled request returns
+`200 { "leadId": number|null, "status": "ok"|"dup" }`.
+
+The webhook maps the vendor payload through the same pure mapper and persistence
+path as the Sheet poller. `revenue` is a required monthly number. Statement
+links are metadata only and are never fetched. The endpoint is listed as a
+public mutation only because its HMAC is its authentication boundary; it is
+dormant until the admin setting and secret are both configured.
+
 # USFA intake operations
 
 The USFA application-mail poller is deliberately read-only against Gmail. It

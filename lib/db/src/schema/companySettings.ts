@@ -31,6 +31,7 @@ export const companySettingsTable = pgTable("company_settings", {
   usfaSheetId: text("usfa_sheet_id"),
   usfaSheetTab: text("usfa_sheet_tab").notNull().default("Sheet1"),
   usfaConsentConfirmed: boolean("usfa_consent_confirmed").notNull().default(false),
+  usfaWebhookEnabled: boolean("usfa_webhook_enabled").notNull().default(false),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

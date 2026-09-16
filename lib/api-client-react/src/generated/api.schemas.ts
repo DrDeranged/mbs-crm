@@ -26,6 +26,73 @@ export interface UsfaIntakeLog {
   error?: string | null;
 }
 
+export interface UsfaWebhookPayload {
+  /** @minLength 1 */
+  id: string;
+  /** @nullable */
+  company?: string | null;
+  /** @nullable */
+  creditScore?: string | number | null;
+  /** @nullable */
+  industry?: string | null;
+  /** @nullable */
+  ownerName?: string | null;
+  /** @nullable */
+  firstName?: string | null;
+  /** @nullable */
+  lastName?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone1?: string | null;
+  /** @nullable */
+  phone2?: string | null;
+  /** @nullable */
+  ein?: string | null;
+  /** @nullable */
+  startDate?: string | null;
+  /** @nullable */
+  ssn?: string | null;
+  /** @nullable */
+  street?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  zip?: string | number | null;
+  /** @nullable */
+  dob?: string | null;
+  /** @minimum 0 */
+  revenue: number;
+  /** @nullable */
+  amountRequested?: number | null;
+  /** @nullable */
+  createdAt?: string | null;
+  /** @nullable */
+  statement1?: string | null;
+  /** @nullable */
+  statement2?: string | null;
+  /** @nullable */
+  statement3?: string | null;
+  /** @nullable */
+  statement4?: string | null;
+}
+
+export type UsfaWebhookResponseStatus = typeof UsfaWebhookResponseStatus[keyof typeof UsfaWebhookResponseStatus];
+
+
+export const UsfaWebhookResponseStatus = {
+  ok: 'ok',
+  dup: 'dup',
+} as const;
+
+export interface UsfaWebhookResponse {
+  /** @nullable */
+  leadId: number | null;
+  status: UsfaWebhookResponseStatus;
+}
+
 export type UsfaPollResultStatus = typeof UsfaPollResultStatus[keyof typeof UsfaPollResultStatus];
 
 
@@ -49,6 +116,7 @@ export type AdminUsfaIntakeResponseSettings = {
   usfaSheetId: string | null;
   usfaSheetTab: string;
   usfaConsentConfirmed: boolean;
+  usfaWebhookEnabled: boolean;
 };
 
 export type AdminUsfaIntakeResponseCounts = {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Intake = {
-  settings: { usfaSheetId: string | null; usfaSheetTab: string; usfaConsentConfirmed: boolean };
+  settings: { usfaSheetId: string | null; usfaSheetTab: string; usfaConsentConfirmed: boolean; usfaWebhookEnabled: boolean };
   counts: { total: number; ok: number; dup: number; error: number; lastRun: string | null };
   logs: Array<{ id: number; externalId: string; rowNumber: number; ingestedAt: string; leadId: number | null; status: string; error: string | null }>;
 };
@@ -45,6 +45,17 @@ export default function AdminUsfaIntake() {
       await load();
     } finally { setBusy(false); }
   };
+  const setWebhook = async (enabled: boolean) => {
+    setBusy(true); setMessage("");
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/settings/company`, {
+        method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usfaWebhookEnabled: enabled }),
+      });
+      setMessage(response.ok ? (enabled ? "USFA webhook enabled." : "USFA webhook disabled.") : "Unable to update USFA webhook setting.");
+      await load();
+    } finally { setBusy(false); }
+  };
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -60,6 +71,12 @@ export default function AdminUsfaIntake() {
         <p className="text-muted-foreground">USFA has not confirmed SMS consent. Until an administrator explicitly confirms it, all USFA SMS sends and drip enrollment/automation remain blocked. Email and calls are still allowed.</p>
         <Button variant={data?.settings.usfaConsentConfirmed ? "default" : "outline"} onClick={() => void setConsent(!data?.settings.usfaConsentConfirmed)} disabled={busy}>
           {data?.settings.usfaConsentConfirmed ? "Consent confirmed — disable guard" : "Confirm USFA consent and enable SMS/drip"}
+        </Button>
+      </CardContent></Card>
+      <Card><CardHeader><CardTitle>Dormant vendor webhook</CardTitle></CardHeader><CardContent className="space-y-3 text-sm">
+        <p className="text-muted-foreground">The webhook accepts only HMAC-authenticated USFA payloads. Keep it disabled until the vendor secret and payload contract are confirmed.</p>
+        <Button variant={data?.settings.usfaWebhookEnabled ? "default" : "outline"} onClick={() => void setWebhook(!data?.settings.usfaWebhookEnabled)} disabled={busy}>
+          {data?.settings.usfaWebhookEnabled ? "Webhook enabled — disable" : "Enable USFA webhook"}
         </Button>
       </CardContent></Card>
       <Card><CardHeader><CardTitle>Row log</CardTitle></CardHeader><CardContent className="overflow-x-auto p-0"><table className="w-full text-left text-sm"><thead className="border-b bg-muted/30"><tr><th className="p-3">External ID</th><th className="p-3">Row</th><th className="p-3">Status</th><th className="p-3">Lead</th><th className="p-3">Received</th><th className="p-3" /></tr></thead><tbody>{data?.logs.map((log) => <tr key={log.id} className="border-b last:border-0"><td className="p-3 font-mono">{log.externalId}</td><td className="p-3">{log.rowNumber}</td><td className="p-3">{log.status}</td><td className="p-3">{log.leadId ?? "—"}</td><td className="p-3">{new Date(log.ingestedAt).toLocaleString()}</td><td className="p-3">{log.status === "error" && <Button size="sm" variant="outline" onClick={() => void run(`/admin/usfa-intake/${log.id}/reprocess`)} disabled={busy}><RotateCcw className="mr-1 h-3 w-3" />Reprocess</Button>}</td></tr>)}</tbody></table>{!data?.logs.length && <div className="p-8 text-center text-muted-foreground">No USFA rows have been received.</div>}</CardContent></Card>

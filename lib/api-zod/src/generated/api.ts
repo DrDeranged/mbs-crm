@@ -121,7 +121,8 @@ export const GetAdminUsfaIntakeResponse = zod.object({
   "settings": zod.object({
   "usfaSheetId": zod.string().nullable(),
   "usfaSheetTab": zod.string(),
-  "usfaConsentConfirmed": zod.boolean()
+  "usfaConsentConfirmed": zod.boolean(),
+  "usfaWebhookEnabled": zod.boolean()
 }),
   "counts": zod.object({
   "total": zod.number(),
@@ -141,6 +142,48 @@ export const GetAdminUsfaIntakeResponse = zod.object({
 })),
   "page": zod.number(),
   "limit": zod.number()
+})
+
+
+/**
+ * @summary Receive a dormant HMAC-authenticated USFA lead webhook
+ */
+
+export const receiveUsfaWebhookBodyRevenueMin = 0;
+
+
+
+export const ReceiveUsfaWebhookBody = zod.object({
+  "id": zod.string().min(1),
+  "company": zod.string().nullish(),
+  "creditScore": zod.union([zod.string(),zod.number()]).nullish(),
+  "industry": zod.string().nullish(),
+  "ownerName": zod.string().nullish(),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone1": zod.string().nullish(),
+  "phone2": zod.string().nullish(),
+  "ein": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "ssn": zod.string().nullish(),
+  "street": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "zip": zod.union([zod.string(),zod.number()]).nullish(),
+  "dob": zod.string().nullish(),
+  "revenue": zod.number().min(receiveUsfaWebhookBodyRevenueMin),
+  "amountRequested": zod.number().nullish(),
+  "createdAt": zod.string().nullish(),
+  "statement1": zod.string().nullish(),
+  "statement2": zod.string().nullish(),
+  "statement3": zod.string().nullish(),
+  "statement4": zod.string().nullish()
+})
+
+export const ReceiveUsfaWebhookResponse = zod.object({
+  "leadId": zod.number().nullable(),
+  "status": zod.enum(['ok', 'dup'])
 })
 
 

@@ -48,13 +48,13 @@ function rowObject(headers: string[], values: unknown[]): UsfaRow {
   return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? null]));
 }
 
-async function ingestUsfaRow(row: UsfaRow, rowNumber: number): Promise<"ok" | "dup"> {
+export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ status: "ok" | "dup"; leadId: number | null }> {
   const mapped = mapUsfaRow(row);
   return db.transaction(async (tx) => {
     const prior = await tx.query.usfaIntakeLogTable.findFirst({
       where: eq(usfaIntakeLogTable.externalId, mapped.externalId),
     });
-    if (prior) return prior.status === "error" ? "ok" : "dup";
+    if (prior) return { status: prior.status === "error" ? "ok" : "dup", leadId: prior.leadId };
 
     const conditions = [];
     if (mapped.dedupePlan.allowEmailMatch && mapped.lead.email) conditions.push(eq(leadsTable.email, mapped.lead.email));
@@ -67,7 +67,7 @@ async function ingestUsfaRow(row: UsfaRow, rowNumber: number): Promise<"ok" | "d
         externalId: mapped.externalId, rowNumber, leadId: existing.id, status: "dup",
         metadata: { reason: "reapplication", emailMatchAllowed: mapped.dedupePlan.allowEmailMatch },
       });
-      return "dup";
+      return { status: "dup", leadId: existing.id };
     }
 
     const assignment = await selectNextInboundAssigneeInTransaction(tx);
@@ -113,7 +113,7 @@ async function ingestUsfaRow(row: UsfaRow, rowNumber: number): Promise<"ok" | "d
       `${mapped.lead.companyName ?? "A USFA lead"} was added from the USFA intake sheet.`,
       lead.id,
     );
-    return "ok";
+    return { status: "ok", leadId: lead.id };
   });
 }
 
@@ -143,7 +143,7 @@ export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {
     if (prior) { result.skipped++; continue; }
     try {
       const outcome = await ingestUsfaRow(rowObject(headers, values[index] ?? []), rowNumber);
-      if (outcome === "dup") result.duplicates++; else result.processed++;
+       if (outcome.status === "dup") result.duplicates++; else result.processed++;
     } catch (error) {
       result.errors++;
       await db.insert(usfaIntakeLogTable).values({ externalId, rowNumber, status: "error", error: error instanceof Error ? error.message : "Unknown ingestion error" }).onConflictDoNothing();

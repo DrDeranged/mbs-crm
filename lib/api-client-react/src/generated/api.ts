@@ -188,6 +188,8 @@ import type {
   User,
   UserUpdate,
   UsfaPollResult,
+  UsfaWebhookPayload,
+  UsfaWebhookResponse,
   WorkflowRule
 } from './api.schemas';
 
@@ -601,6 +603,77 @@ export function useGetAdminUsfaIntake<TData = Awaited<ReturnType<typeof getAdmin
 
 
 
+
+export const getReceiveUsfaWebhookUrl = () => {
+
+
+
+
+  return `/api/intake/usfa`
+}
+
+/**
+ * @summary Receive a dormant HMAC-authenticated USFA lead webhook
+ */
+export const receiveUsfaWebhook = async (usfaWebhookPayload: UsfaWebhookPayload, options?: RequestInit): Promise<UsfaWebhookResponse> => {
+
+  return customFetch<UsfaWebhookResponse>(getReceiveUsfaWebhookUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      usfaWebhookPayload,)
+  }
+);}
+
+
+
+
+export const getReceiveUsfaWebhookMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext> => {
+
+const mutationKey = ['receiveUsfaWebhook'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveUsfaWebhook>>, {data: BodyType<UsfaWebhookPayload>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  receiveUsfaWebhook(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveUsfaWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveUsfaWebhook>>>
+    export type ReceiveUsfaWebhookMutationBody = BodyType<UsfaWebhookPayload>
+    export type ReceiveUsfaWebhookMutationError = ErrorType<void>
+
+    /**
+ * @summary Receive a dormant HMAC-authenticated USFA lead webhook
+ */
+export const useReceiveUsfaWebhook = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof receiveUsfaWebhook>>,
+        TError,
+        {data: BodyType<UsfaWebhookPayload>},
+        TContext
+      > => {
+      return useMutation(getReceiveUsfaWebhookMutationOptions(options));
+    }
 
 export const getRunAdminUsfaIntakeUrl = () => {
 

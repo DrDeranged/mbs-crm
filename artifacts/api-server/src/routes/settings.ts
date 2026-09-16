@@ -41,6 +41,7 @@ export const CompanySettingsBody = z.object({
   usfaSheetId: z.string().trim().min(1).nullable().optional(),
   usfaSheetTab: z.string().trim().min(1).optional(),
   usfaConsentConfirmed: z.boolean().optional(),
+  usfaWebhookEnabled: z.boolean().optional(),
 }).refine((body) => Object.keys(body).length > 0, {
   message: "At least one setting must be provided",
 });
@@ -82,6 +83,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
     companyCity, companyState, companyZip, emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay,
     usfaSheetId, usfaSheetTab,
     usfaConsentConfirmed,
+    usfaWebhookEnabled,
   } = parsed.data;
   const bulkEmailRate = typeof bulkEmailPerMinute === "number" ? bulkEmailPerMinute : undefined;
   const bulkEmailDailyLimit = typeof bulkEmailPerDay === "number" ? bulkEmailPerDay : undefined;
@@ -115,6 +117,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         ...(usfaSheetId !== undefined ? { usfaSheetId } : {}),
         ...(usfaSheetTab !== undefined ? { usfaSheetTab } : {}),
         ...(usfaConsentConfirmed !== undefined ? { usfaConsentConfirmed } : {}),
+        ...(usfaWebhookEnabled !== undefined ? { usfaWebhookEnabled } : {}),
         updatedAt: new Date(),
       })
       .where(eq(companySettingsTable.id, existing.id))
@@ -138,6 +141,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         usfaSheetId: usfaSheetId ?? null,
         usfaSheetTab: usfaSheetTab ?? "Sheet1",
         usfaConsentConfirmed: usfaConsentConfirmed === true,
+        usfaWebhookEnabled: usfaWebhookEnabled === true,
       })
       .returning();
     result = created;
