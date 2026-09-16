@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucide-react";
 import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useGetMe, useRunLenderMatch, useUpdateSubmission, getGetDealQueryKey, getListDealActivityQueryKey } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
+import { LenderPackageBuilderDialog } from "./lender-package-builder";
 
 function apiErrorDetails(error: any, fallback: string) {
   const data = error?.data;
@@ -35,6 +36,7 @@ export function LeadLenderMatch() {
   const [submissionError, setSubmissionError] = useState<{ msg: string; isConflict: boolean } | null>(null);
   // Expandable criteria state — track which match cards are expanded
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
 
   const toggleExpanded = (matchId: number) => {
     setExpandedIds((prev) => {
@@ -107,6 +109,7 @@ export function LeadLenderMatch() {
 
   return (
     <div className="space-y-5 mt-4">
+      <LenderPackageBuilderDialog leadId={leadId} open={packageBuilderOpen} onOpenChange={setPackageBuilderOpen} submitMode />
       {/* Confirm submission dialog */}
       <Dialog open={!!pendingLender} onOpenChange={(open) => {
         if (!open) { setPendingLender(null); setSubmissionError(null); }
@@ -208,7 +211,7 @@ export function LeadLenderMatch() {
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs shrink-0 ml-2"
-                      onClick={() => setPendingLender({ id: m.lenderId, name: lenderName })}
+                      onClick={() => setPackageBuilderOpen(true)}
                     >
                        <Send className="h-3 w-3 mr-1" /> {isSubmitted ? "Resubmit" : "Submit"}
                     </Button>
