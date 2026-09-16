@@ -44,17 +44,62 @@ export function validateUsfaHeaders(row: unknown[]): boolean {
   return USFA_HEADERS.every((header) => headers.has(header));
 }
 
+type UsfaTaskTransaction = {
+  select: (...args: any[]) => any;
+  insert: (...args: any[]) => any;
+};
+
+export async function createUsfaStatementTasks(
+  tx: UsfaTaskTransaction,
+  leadId: number,
+  assignedRepId: number | null,
+  taskPlan: NonNullable<ReturnType<typeof mapUsfaRow>["taskPlan"]>,
+): Promise<number> {
+  const values = {
+    leadId,
+    title: taskPlan.title,
+    description: `${taskPlan.statementCount} statement link(s) require download from the USFA dashboard.`,
+    isCompleted: false,
+  };
+  if (assignedRepId != null) {
+    await tx.insert(tasksTable).values({ ...values, userId: assignedRepId });
+    return 1;
+  }
+  const admins = await tx.select({ id: usersTable.id }).from(usersTable)
+    .where(and(eq(usersTable.role, "admin"), eq(usersTable.isActive, true)));
+  if (admins.length > 0) {
+    for (const admin of admins) {
+      await tx.insert(tasksTable).values({ ...values, userId: admin.id });
+    }
+    return admins.length;
+  }
+  // user_id is nullable for the administrator queue until an admin exists.
+  await tx.insert(tasksTable).values({ ...values, userId: null });
+  return 1;
+}
+
 function rowObject(headers: string[], values: unknown[]): UsfaRow {
   return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? null]));
 }
 
 export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ status: "ok" | "dup"; leadId: number | null }> {
   const mapped = mapUsfaRow(row);
-  return db.transaction(async (tx) => {
+  const outcome: {
+    status: "ok" | "dup";
+    leadId: number | null;
+    notification?: { title: string; body: string };
+  } = await db.transaction(async (tx): Promise<{
+    status: "ok" | "dup";
+    leadId: number | null;
+    notification?: { title: string; body: string };
+  }> => {
     const prior = await tx.query.usfaIntakeLogTable.findFirst({
       where: eq(usfaIntakeLogTable.externalId, mapped.externalId),
     });
-    if (prior) return { status: prior.status === "error" ? "ok" : "dup", leadId: prior.leadId };
+    if (prior && prior.status !== "error") return { status: "dup", leadId: prior.leadId };
+    if (prior?.status === "error") {
+      await tx.delete(usfaIntakeLogTable).where(eq(usfaIntakeLogTable.id, prior.id));
+    }
 
     const conditions = [];
     if (mapped.dedupePlan.allowEmailMatch && mapped.lead.email) conditions.push(eq(leadsTable.email, mapped.lead.email));
@@ -63,9 +108,59 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
       ? await tx.query.leadsTable.findFirst({ where: or(...conditions) })
       : undefined;
     if (existing) {
+      const companyValues = {
+        ...(mapped.company.name ? { name: mapped.company.name } : {}),
+        ...(mapped.company.address ? { address: mapped.company.address } : {}),
+        ...(mapped.company.city ? { city: mapped.company.city } : {}),
+        ...(mapped.company.state ? { state: mapped.company.state } : {}),
+        ...(mapped.company.zip ? { zip: mapped.company.zip } : {}),
+        ...(mapped.company.industry ? { industry: mapped.company.industry } : {}),
+        ...(mapped.company.timeInBusinessMonths != null ? { timeInBusinessMonths: mapped.company.timeInBusinessMonths } : {}),
+        ...(mapped.company.annualRevenue != null ? { annualRevenue: String(mapped.company.annualRevenue) } : {}),
+      };
+      const [company] = await tx.query.companiesTable.findMany({
+        where: eq(companiesTable.leadId, existing.id),
+        limit: 1,
+      });
+      if (company) {
+        if (Object.keys(companyValues).length > 0) {
+          await tx.update(companiesTable).set({ ...companyValues, updatedAt: new Date() })
+            .where(eq(companiesTable.id, company.id));
+        }
+      } else {
+        await tx.insert(companiesTable).values({
+          leadId: existing.id,
+          ...mapped.company,
+          annualRevenue: mapped.company.annualRevenue == null ? null : String(mapped.company.annualRevenue),
+        });
+      }
+      if (mapped.intakePrefill) {
+        await tx.insert(usfaIntakePrefillTable).values({
+          leadId: existing.id,
+          externalId: mapped.externalId,
+          encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)),
+        });
+      }
+      await tx.insert(activityLogTable).values({
+        userId: null, leadId: existing.id, action: "usfa_note", entityType: "lead",
+        entityId: String(existing.id), details: {
+          comments: mapped.metadata.comments,
+          source: "usfundadvisor",
+          reapplication: true,
+          externalId: mapped.externalId,
+          statementLinks: mapped.metadata.statementLinks,
+        },
+      });
+      if (mapped.taskPlan) {
+        await createUsfaStatementTasks(tx, existing.id, existing.assignedRepId, mapped.taskPlan);
+      }
       await tx.insert(usfaIntakeLogTable).values({
         externalId: mapped.externalId, rowNumber, leadId: existing.id, status: "dup",
-        metadata: { reason: "reapplication", emailMatchAllowed: mapped.dedupePlan.allowEmailMatch },
+        metadata: {
+          ...mapped.metadata,
+          reason: "reapplication",
+          emailMatchAllowed: mapped.dedupePlan.allowEmailMatch,
+        },
       });
       return { status: "dup", leadId: existing.id };
     }
@@ -85,6 +180,7 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
     if (mapped.intakePrefill) {
       await tx.insert(usfaIntakePrefillTable).values({
         leadId: lead.id,
+        externalId: mapped.externalId,
         encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)),
       });
     }
@@ -93,28 +189,26 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
       entityId: String(lead.id), details: { comments: mapped.metadata.comments, source: "usfundadvisor" },
     });
     if (mapped.taskPlan) {
-      const [admin] = await tx.select({ id: usersTable.id }).from(usersTable)
-        .where(and(eq(usersTable.role, "admin"), eq(usersTable.isActive, true))).limit(1);
-      if (admin) {
-        await tx.insert(tasksTable).values({
-          leadId: lead.id, userId: admin.id, title: mapped.taskPlan.title,
-          description: `${mapped.taskPlan.statementCount} statement link(s) require download from the USFA dashboard.`,
-          isCompleted: false,
-        });
-      }
+      await createUsfaStatementTasks(tx, lead.id, lead.assignedRepId, mapped.taskPlan);
     }
     await tx.insert(usfaIntakeLogTable).values({
       externalId: mapped.externalId, rowNumber, leadId: lead.id, status: "ok",
       metadata: mapped.metadata,
     });
-    await notifyAllAdmins(
-      "application_received",
-      "New USFA lead received",
-      `${mapped.lead.companyName ?? "A USFA lead"} was added from the USFA intake sheet.`,
-      lead.id,
-    );
-    return { status: "ok", leadId: lead.id };
+    return {
+      status: "ok",
+      leadId: lead.id,
+      notification: {
+        title: "New USFA lead received",
+        body: `${mapped.lead.companyName ?? "A USFA lead"} was added from the USFA intake sheet.`,
+      },
+    };
   });
+  const notification = outcome.notification;
+  if (outcome.status === "ok" && notification) {
+    await notifyAllAdmins("application_received", notification.title, notification.body, outcome.leadId);
+  }
+  return { status: outcome.status, leadId: outcome.leadId };
 }
 
 export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {

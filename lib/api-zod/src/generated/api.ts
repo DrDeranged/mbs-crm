@@ -1181,7 +1181,7 @@ export const GetLeadResponse = zod.object({
   "tasks": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1346,6 +1346,28 @@ export const UpdateLeadResponse = zod.object({
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
   "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
   "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
+})
+
+
+/**
+ * @summary Create a short-lived USFA application prefill link
+ */
+export const CreateUsfaApplicationLinkParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Read a one-time USFA application prefill by opaque link token
+ */
+export const GetUsfaPrefillParams = zod.object({
+  "slug": zod.coerce.string(),
+  "token": zod.coerce.string()
+})
+
+export const GetUsfaPrefillResponse = zod.object({
+  "ownerSsn": zod.string().optional(),
+  "ownerDob": zod.string().optional()
 })
 
 
@@ -1571,7 +1593,7 @@ export const ListTasksParams = zod.object({
 export const ListTasksResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1626,7 +1648,7 @@ export const UpdateTaskBody = zod.object({
 export const UpdateTaskResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2053,7 +2075,7 @@ export const GetRepDashboardResponse = zod.object({
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2108,7 +2130,7 @@ export const GetMyTasksResponse = zod.object({
   "dueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2131,7 +2153,7 @@ export const GetMyTasksResponse = zod.object({
   "dueThisWeek": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2154,7 +2176,7 @@ export const GetMyTasksResponse = zod.object({
   "overdue": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),

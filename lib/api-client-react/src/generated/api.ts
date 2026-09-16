@@ -187,7 +187,9 @@ import type {
   UpsertDripSequenceStepsBody,
   User,
   UserUpdate,
+  UsfaApplicationLink,
   UsfaPollResult,
+  UsfaPrefill,
   UsfaWebhookPayload,
   UsfaWebhookResponse,
   WorkflowRule
@@ -3546,6 +3548,158 @@ export const useUpdateLead = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getUpdateLeadMutationOptions(options));
     }
+
+export const getCreateUsfaApplicationLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/usfa-application-link`
+}
+
+/**
+ * @summary Create a short-lived USFA application prefill link
+ */
+export const createUsfaApplicationLink = async (id: number, options?: RequestInit): Promise<UsfaApplicationLink> => {
+
+  return customFetch<UsfaApplicationLink>(getCreateUsfaApplicationLinkUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateUsfaApplicationLinkMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['createUsfaApplicationLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createUsfaApplicationLink>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  createUsfaApplicationLink(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateUsfaApplicationLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createUsfaApplicationLink>>>
+
+    export type CreateUsfaApplicationLinkMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a short-lived USFA application prefill link
+ */
+export const useCreateUsfaApplicationLink = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createUsfaApplicationLink>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCreateUsfaApplicationLinkMutationOptions(options));
+    }
+
+export const getGetUsfaPrefillUrl = (slug: string,
+    token: string,) => {
+
+
+
+
+  return `/api/public/reps/${slug}/usfa-prefill/${token}`
+}
+
+/**
+ * @summary Read a one-time USFA application prefill by opaque link token
+ */
+export const getUsfaPrefill = async (slug: string,
+    token: string, options?: RequestInit): Promise<UsfaPrefill> => {
+
+  return customFetch<UsfaPrefill>(getGetUsfaPrefillUrl(slug,token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUsfaPrefillQueryKey = (slug: string,
+    token: string,) => {
+    return [
+    `/api/public/reps/${slug}/usfa-prefill/${token}`
+    ] as const;
+    }
+
+
+export const getGetUsfaPrefillQueryOptions = <TData = Awaited<ReturnType<typeof getUsfaPrefill>>, TError = ErrorType<void>>(slug: string,
+    token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUsfaPrefillQueryKey(slug,token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsfaPrefill>>> = ({ signal }) => getUsfaPrefill(slug,token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(slug && token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUsfaPrefillQueryResult = NonNullable<Awaited<ReturnType<typeof getUsfaPrefill>>>
+export type GetUsfaPrefillQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read a one-time USFA application prefill by opaque link token
+ */
+
+export function useGetUsfaPrefill<TData = Awaited<ReturnType<typeof getUsfaPrefill>>, TError = ErrorType<void>>(
+ slug: string,
+    token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUsfaPrefillQueryOptions(slug,token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getChangeLeadStatusUrl = (id: number,) => {
 

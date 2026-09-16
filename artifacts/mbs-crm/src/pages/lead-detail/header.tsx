@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, Mail, User } from "lucide-react";
-import { getGetLeadQueryKey, getListLeadActivityQueryKey, useAssignLead, useGetMe, useListUsers } from "@workspace/api-client-react";
+import { ArrowLeft, Building2, Mail, User, Link2 } from "lucide-react";
+import { getGetLeadQueryKey, getListLeadActivityQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
 import { PhoneLink } from "@/components/phone-link";
 import { useLeadDetail } from "./context";
 import { ConvertToDealDialog } from "./deals";
@@ -75,6 +75,24 @@ export function HeaderCard() {
     setFundedAmountInput,
     handleConfirmFunded,
   } = useLeadDetail();
+  const { data: currentUser } = useGetMe();
+  const createUsfaLink = useCreateUsfaApplicationLink();
+  const { toast } = useToast();
+  const canCreateUsfaLink = lead.leadSource === "usfundadvisor"
+    && (currentUser?.role === "admin" || (currentUser?.role === "rep" && currentUser.id === lead.assignedRepId));
+  const handleCreateUsfaLink = () => {
+    createUsfaLink.mutate({ id: lead.id }, {
+      onSuccess: async ({ url }) => {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast({ title: "Secure USFA link copied" });
+        } catch {
+          toast({ title: "Secure USFA link created", description: url });
+        }
+      },
+      onError: () => toast({ title: "Could not create USFA link", variant: "destructive" }),
+    });
+  };
 
   return (
     <>
@@ -118,6 +136,11 @@ export function HeaderCard() {
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <LeadAssignmentPicker />
+            {canCreateUsfaLink && (
+              <Button variant="outline" size="sm" onClick={handleCreateUsfaLink} disabled={createUsfaLink.isPending}>
+                <Link2 className="mr-1.5 h-4 w-4" /> Secure application link
+              </Button>
+            )}
             <Select 
               value={lead.status}
               onValueChange={handleStatusChange}

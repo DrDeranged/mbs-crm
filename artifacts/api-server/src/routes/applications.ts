@@ -36,6 +36,7 @@ import {
   getPublicApplicationConsentText,
   getServerOwnedApplicationConsent,
 } from "../lib/applicationConsent";
+import { findUsfaInvite, claimUsfaInvite } from "./usfaPrefill";
 
 const router = Router();
 
@@ -60,6 +61,13 @@ class ConflictingApplicantIdentitiesError extends Error {
   constructor() {
     super("The submitted email and phone belong to different existing leads.");
     this.name = "ConflictingApplicantIdentitiesError";
+  }
+}
+
+class UsfaInviteClaimError extends Error {
+  constructor() {
+    super("This representative application link is no longer valid.");
+    this.name = "UsfaInviteClaimError";
   }
 }
 
@@ -171,6 +179,26 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       const ein = applicationBody.ein?.trim() || null;
       const normalizedEmail = email?.toLowerCase() ?? null;
       const normalizedPhone = phone?.replace(/\D/g, "") || null;
+      const usfaInviteToken = typeof req.body.usfaInviteToken === "string" ? req.body.usfaInviteToken : null;
+      const usfaInviteSlug = typeof applicationBody.rep === "string" ? applicationBody.rep.toLowerCase() : "";
+      const usfaInvite = usfaInviteToken && usfaInviteSlug
+        ? await findUsfaInvite(usfaInviteToken, usfaInviteSlug)
+        : null;
+      if (usfaInviteToken) {
+        if (!usfaInvite) {
+          res.status(400).json({ error: "This representative application link is expired or invalid.", field: "usfaInviteToken" });
+          return;
+        }
+        const invitedLead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, usfaInvite.leadId) });
+        const identityMatches = Boolean(invitedLead && (
+          (normalizedEmail && invitedLead.email?.toLowerCase() === normalizedEmail)
+          || (normalizedPhone && invitedLead.phone?.replace(/\D/g, "") === normalizedPhone)
+        ));
+        if (!identityMatches) {
+          res.status(400).json({ error: "This application link is bound to a different applicant.", field: "usfaInviteToken" });
+          return;
+        }
+      }
 
       // ── Idempotency check (15-minute window keyed on email+ein) ──────────
       const timeBucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString();
@@ -236,6 +264,9 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
       const { lead, application, docRecords, isReapplication } = await database.transaction(async (tx) => {
+        if (usfaInvite && !(await claimUsfaInvite(tx, usfaInviteToken!, usfaInviteSlug, usfaInvite.leadId))) {
+          throw new UsfaInviteClaimError();
+        }
         // No unique email/phone constraint exists, so serialize lookups and
         // inserts for each supplied identity. Locking in a stable order avoids
         // cross-request deadlocks where two applications share identities.
@@ -400,7 +431,6 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
 
         return { lead: txLead, application: txApplication, docRecords: txDocRecords, isReapplication: !!existingLead };
       });
-
       // ── Upload bank statements + OCR (after commit — external calls) ────
       const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
       const storage = storageClient ?? (await import("../lib/objectStorage")).objectStorageClient;
@@ -593,6 +623,10 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
     } catch (err) {
       if (err instanceof ConflictingApplicantIdentitiesError) {
         res.status(400).json({ error: err.message, field: "email" });
+        return;
+      }
+      if (err instanceof UsfaInviteClaimError) {
+        res.status(400).json({ error: err.message, field: "usfaInviteToken" });
         return;
       }
       console.error("Application submit error:", err);

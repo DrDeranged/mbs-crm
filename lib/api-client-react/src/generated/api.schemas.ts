@@ -308,6 +308,16 @@ export interface AdminQrVerifyResponse {
   results: QrVerifyResult[];
 }
 
+export interface UsfaApplicationLink {
+  url: string;
+  expiresAt: string;
+}
+
+export interface UsfaPrefill {
+  ownerSsn?: string;
+  ownerDob?: string;
+}
+
 export type LeadApplicationType = typeof LeadApplicationType[keyof typeof LeadApplicationType];
 
 
@@ -466,7 +476,8 @@ export interface Note {
 export interface Task {
   id: number;
   leadId: number;
-  userId: number;
+  /** @nullable */
+  userId?: number | null;
   assignedUser?: User | null;
   title: string;
   /** @nullable */

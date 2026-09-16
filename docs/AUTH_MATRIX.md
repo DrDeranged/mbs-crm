@@ -2,9 +2,9 @@
 
 **Section A audit date:** 2026-09-15  
 **Audited revision:** `4bd0fde0478f25847f9eb8e5ef5ee93ffc673364` plus the
-Section A fixes listed below.  The effective API mount is `/api`; paths in
-this matrix include it.  The router contains **161 method registrations**
-(`get`, `post`, `put`, and `delete`), not the previously reported 155.
+Section A fixes listed below plus subsequent registered features. The effective
+API mount is `/api`; paths in this matrix include it. The router contains
+**178 method registrations** (`get`, `post`, `put`, and `delete`).
 `router.use` mounts are not counted as registrations; factory registrations
 are counted at their declaration line.
 
@@ -29,6 +29,7 @@ are counted at their declaration line.
 | `H` | Public signed email action. Tracking and unsubscribe actions require their HMAC token; unsubscribe additionally binds the token email to the persisted send (`email.ts:339-357,369-404,407-443`). |
 | `K` | Public, rate-limited application-status lookup authorized by its opaque status token (`applications.ts:694-739`). |
 | `O` | Authenticated endpoint whose response is not a lead/deal list, detail, export, or download. The route-specific role check shown in its source governs the operation. |
+| `W` | Public USFA webhook. It requires `X-USFA-Signature`, an HMAC-SHA256 over the exact raw body using `USFA_WEBHOOK_SECRET`, strict payload validation, and the database enable flag before intake. |
 
 For `L` and `D`, a client-provided `repId` can only narrow results: it never
 replaces the ownership predicate. `N/A` below means the route has no
@@ -41,6 +42,12 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/` | `routes/health.ts:10` | `P` | N/A |
 | GET | `/api/healthz` | `routes/health.ts:15` | `P` | N/A |
 | GET | `/api/health/deep` | `routes/health.ts:20` | `P` | N/A |
+| POST | `/api/intake/usfa` | `routes/usfaIntake.ts:46` | `W` | provider callback; mapper and dedupe rules determine the target lead |
+| GET | `/api/public/reps/:slug/usfa-prefill/:token` | `routes/usfaPrefill.ts:76` | `P` | opaque slug-bound token; returns only initial SSN/DOB prefill with no-store and synchronous PII audit |
+| GET | `/api/admin/usfa-intake` | `routes/adminUsfaIntake.ts:19` | `A` | admin-only intake status and receipt log |
+| POST | `/api/admin/usfa-intake/run` | `routes/adminUsfaIntake.ts:52` | `A` | admin-only read of the configured Sheet |
+| POST | `/api/admin/usfa-intake/:id/reprocess` | `routes/adminUsfaIntake.ts:58` | `A` | admin-only retry of one intake receipt |
+| POST | `/api/leads/:id/usfa-application-link` | `routes/usfaPrefill.ts:66` | `L` | assigned reps only; admins may mint for any USFA lead |
 | GET | `/api/me` | `routes/me.ts:9` | `S` | caller only; pending allowed by `requireUser(..., {allowPending:true})` |
 | PUT | `/api/me/mobile` | `routes/me.ts:16` | `S` | `usersTable.id === user.id`; pending allowed |
 | PUT | `/api/me/push-token` | `routes/me.ts:32` | `S` | `usersTable.id === user.id`; pending allowed |
@@ -215,7 +222,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 
 | Status | Finding | Evidence / disposition |
 | --- | --- | --- |
-| PASS | All `/admin` registrations require the exact admin role. | The 14 `/admin` rows above map to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
+| PASS | All `/admin` registrations require the exact admin role. | Every `/admin` row above maps to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
 | FIXED | SendGrid accepted unsigned callbacks outside production when its verification key was absent. | `sendgrid.ts:20` previously returned `!IS_PROD`. It now fails closed when no key exists, and the route returns 403 before any write (`sendgrid.ts:17-34,72-74`). |
 | FIXED | There was no router-wide regression barrier for newly registered mutations. | `routes/index.ts:64-85` now installs a Clerk-session mutation gate before every child router. The only exceptions are the explicit public form-intake and provider-callback paths in `PUBLIC_MUTATION_PATHS`. |
 | FIXED | The public rep-card `GET` had a first-view activity-log insert. | `repPublic.ts:163-185` now resolves and returns the public card without a database write; public QR/form reads remain read-only. |
@@ -223,10 +230,10 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PASS | Clerk webhooks. | No Clerk webhook registration exists in `artifacts/api-server/src/routes` (0 to verify). Clerk user authentication is established by `clerkMiddleware` in `app.ts:95-102`; the API mutation gate uses Clerk `getAuth(req).userId`. |
 | PASS | Reps cannot self-assign leads. | `/leads/:id/assign` is manager/admin-only (`leads.ts:1039-1043`); `createAssignLeadHandler` makes that behavior directly testable. |
 | FIXED | Rep-owned email templates and drip sequences were readable across reps. | Marketing ownership uses `ownerId`: reps may read their own or admin-owned resources and may CRUD only their own. Template-backed sends and drip enrollment enforce the same rule for every referenced template (`email.ts:531-802`; `drip.ts:103-346`). |
-| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 161 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned SendGrid and Twilio callback denial. |
+| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 176 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned provider callback denial. |
 | PASS | Router-walk test isolation. | `flyer-templates.ts:202-209` honors the test-only `DISABLE_FLYER_TEMPLATE_SEED=true` guard used before the composed router is imported, so route inspection cannot trigger its legacy module-load seed write. |
 
-**Re-enumeration result:** 161 registrations and 161 matrix rows. This
+**Re-enumeration result:** 178 registrations and 178 matrix rows. This
 reconciliation is route-inventory evidence, not exhaustive authorization proof.
 Runtime suite/typecheck status must be recorded from their actual command
 results; no unresolved Section A source-audit finding is currently listed here.

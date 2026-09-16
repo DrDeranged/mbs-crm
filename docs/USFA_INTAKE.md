@@ -31,6 +31,12 @@ stores them in the existing private object store as a lead document with
 category `other`. It never sends, labels, archives, deletes, or modifies Gmail
 messages.
 
+The Gmail worker does not allowlist a sender: the vendor did not confirm a
+sender address, so sender authentication is unavailable. Gmail activation is
+blocked until the vendor confirms the trusted sender/domain. Until then it
+relies only on the delegated mailbox, recipient search, subject, identity
+matching, and the existing admin review workflow.
+
 ## Google Workspace administrator setup
 
 1. In Google Cloud Console, create or select the project that owns the service
@@ -52,7 +58,12 @@ messages.
    bucket. If the service-account secret, delegation subject, or bucket is
    absent, the worker remains disarmed and makes no Gmail or storage call.
 
-The worker runs every five minutes after API startup. Messages without a
+The worker runs every five minutes after API startup. Gmail listing is paginated
+in read-only pages of 100 until `nextPageToken` is exhausted. Each message is
+reserved under a PostgreSQL advisory transaction lock; the deterministic object
+key plus the per-message PostgreSQL advisory lock and receipt transaction make
+retries safe after a crash between object upload and database commit; no global
+document-key uniqueness is required. Messages without a
 matching USFA external ID or matching company plus email are held in
 `usfa_application_email_log` and retried until 24 hours after receipt, then
 marked expired. Gmail message IDs make processing idempotent. The corresponding

@@ -7,6 +7,7 @@ import { getApiBaseUrl } from "@/lib/apiBase";
 export default function RepChooser() {
   const [, params] = useRoute("/r/:slug");
   const slug = params?.slug || "";
+  const invite = new URLSearchParams(window.location.search).get("invite");
   const [rep, setRep] = useState<RepChooserData>({ name: null, phone: null });
   useEffect(() => {
     fetch(`${getApiBaseUrl()}/public/reps/${encodeURIComponent(slug)}`)
@@ -18,7 +19,7 @@ export default function RepChooser() {
         // This is client-side only; direct navigation still relies on the web
         // host's SPA fallback to render this chooser route.
         if (data.slug && data.slug !== slug) {
-          window.history.replaceState({}, "", `/r/${encodeURIComponent(data.slug)}`);
+          window.history.replaceState({}, "", `/r/${encodeURIComponent(data.slug)}${invite ? `?invite=${encodeURIComponent(invite)}` : ""}`);
         }
       })
       .catch(() => {});
@@ -35,7 +36,7 @@ export default function RepChooser() {
           {subtext && <p className="mt-2 text-gray-500">{subtext}</p>}
           {rep.phone && <p className="mt-2 text-gray-500">{rep.phone}</p>}</div>
         <div className="grid gap-3">
-          <Link href={repChooserApplyHref(rep, slug, basePath)} className="block w-full rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Continue</Link>
+          <Link href={repChooserApplyHref(rep, slug, basePath, invite)} className="block w-full rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Continue</Link>
         </div>
         {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-[#0E2A47] underline underline-offset-2">Prefer a paper application? Download PDF</a>}
       </section>

@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, documentsTable, leadsTable, usfaApplicationEmailLogTable, usfaIntakeLogTable } from "@workspace/db";
 import { objectStorageClient } from "../objectStorage";
 import { logger } from "../logger";
@@ -23,7 +23,7 @@ type GmailMessage = {
 type GmailClient = {
   users: {
     messages: {
-      list: (params: Record<string, unknown>) => Promise<{ data: { messages?: Array<{ id?: string | null }> } }>;
+      list: (params: Record<string, unknown>) => Promise<{ data: { messages?: Array<{ id?: string | null }>; nextPageToken?: string | null } }>;
       get: (params: Record<string, unknown>) => Promise<{ data: GmailMessage }>;
       attachments: { get: (params: Record<string, unknown>) => Promise<{ data: { data?: string | null } }> };
     };
@@ -77,6 +77,73 @@ async function fetchUsfaPdf(client: GmailClient, messageId: string, message: Gma
   });
   if (!response.data.data) return null;
   return { filename: part.filename, data: decodeGmailBase64(response.data.data) };
+}
+
+export async function listAllMessages(client: GmailClient, query: string): Promise<Array<{ id?: string | null }>> {
+  const messages: Array<{ id?: string | null }> = [];
+  let pageToken: string | undefined;
+  do {
+    const response = await client.users.messages.list({
+      userId: "me",
+      q: query,
+      maxResults: 100,
+      ...(pageToken ? { pageToken } : {}),
+    });
+    messages.push(...(response.data.messages || []));
+    pageToken = response.data.nextPageToken || undefined;
+  } while (pageToken);
+  return messages;
+}
+
+export function usfaDocumentFileKey(leadId: number, messageId: string): string {
+  return `leads/${leadId}/documents/usfa-application-${messageId}.pdf`;
+}
+
+const PROCESSING_LEASE_MS = 10 * 60 * 1000;
+
+async function claimMessage(messageId: string, receivedAt: Date, expiresAtValue: Date, metadata: Record<string, unknown>): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"usfa-gmail:" + messageId}))`);
+    const [prior] = await tx.select().from(usfaApplicationEmailLogTable)
+      .where(eq(usfaApplicationEmailLogTable.gmailMessageId, messageId)).limit(1);
+    if (prior?.status === "attached" || prior?.status === "expired") return false;
+    if (prior?.status === "processing" && Date.now() - prior.attemptedAt.getTime() < PROCESSING_LEASE_MS) return false;
+    await tx.insert(usfaApplicationEmailLogTable).values({
+      gmailMessageId: messageId, status: "processing", receivedAt, expiresAt: expiresAtValue, metadata,
+    }).onConflictDoUpdate({
+      target: usfaApplicationEmailLogTable.gmailMessageId,
+      set: { status: "processing", attemptedAt: new Date(), receivedAt, expiresAt: expiresAtValue, metadata, error: null },
+    });
+    return true;
+  });
+}
+
+async function markMessageAttached(
+  messageId: string,
+  leadId: number,
+  receivedAt: Date,
+  expiresAtValue: Date,
+  identity: Record<string, unknown>,
+  document: { filename: string; fileKey: string; fileSize: number },
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"usfa-gmail:" + messageId}))`);
+    const [prior] = await tx.select().from(usfaApplicationEmailLogTable)
+      .where(eq(usfaApplicationEmailLogTable.gmailMessageId, messageId)).limit(1);
+    if (prior?.status === "attached") return false;
+    await tx.insert(documentsTable).values({
+      leadId, userId: null, filename: document.filename, fileKey: document.fileKey,
+      fileType: "application/pdf", fileSize: document.fileSize, category: "other", label: "USFA application",
+    }).onConflictDoNothing();
+    await tx.insert(usfaApplicationEmailLogTable).values({
+      gmailMessageId: messageId, leadId, status: "attached", receivedAt,
+      expiresAt: expiresAtValue, metadata: { ...identity, label: "USFA application" },
+    }).onConflictDoUpdate({
+      target: usfaApplicationEmailLogTable.gmailMessageId,
+      set: { leadId, status: "attached", attemptedAt: new Date(), metadata: { ...identity, label: "USFA application" }, error: null },
+    });
+    return true;
+  });
 }
 
 function textBody(message: GmailMessage): string {
@@ -134,19 +201,18 @@ export async function runUsfaApplicationPoll(options: { gmail?: GmailClient } = 
   const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
   if (!bucketId) return { status: "skipped", reason: "Object Storage is not configured", listed: 0, attached: 0, pending: 0, expired: 0, errors: 0 };
   const query = `to:${fundingAddress()} subject:"Lead Application" newer_than:2d`;
-  const listed = await client.users.messages.list({ userId: "me", q: query, maxResults: 100 });
-  const result: UsfaApplicationRunResult = { status: "ok", listed: listed.data.messages?.length || 0, attached: 0, pending: 0, expired: 0, errors: 0 };
+  const listedMessages = await listAllMessages(client, query);
+  const result: UsfaApplicationRunResult = { status: "ok", listed: listedMessages.length, attached: 0, pending: 0, expired: 0, errors: 0 };
 
-  for (const listedMessage of listed.data.messages || []) {
+  for (const listedMessage of listedMessages) {
     const messageId = listedMessage.id;
     if (!messageId) continue;
-    const prior = await db.query.usfaApplicationEmailLogTable.findFirst({ where: eq(usfaApplicationEmailLogTable.gmailMessageId, messageId) });
-    if (prior?.status === "attached" || prior?.status === "expired") continue;
     try {
       const message = (await client.users.messages.get({ userId: "me", id: messageId, format: "full" })).data;
       const receivedAt = new Date(Number(message.internalDate || Date.now()));
       const expires = expiresAt(message);
       const identity = extractUsfaEmailIdentity(message);
+      if (!(await claimMessage(messageId, receivedAt, expires, identity))) continue;
       let lead: typeof leadsTable.$inferSelect | undefined;
       if (identity.externalId) {
         const row = await db.query.usfaIntakeLogTable.findFirst({
@@ -174,24 +240,25 @@ export async function runUsfaApplicationPoll(options: { gmail?: GmailClient } = 
       }
       const attachment = await fetchUsfaPdf(client, messageId, message);
       if (!attachment) throw new Error("No PDF attachment found");
-      const fileKey = `leads/${lead.id}/documents/usfa-application-${messageId}.pdf`;
+       const fileKey = usfaDocumentFileKey(lead.id, messageId);
       await objectStorageClient.bucket(bucketId).file(fileKey).save(attachment.data, { contentType: "application/pdf", resumable: false });
-      await db.insert(documentsTable).values({
-        leadId: lead.id, userId: null, filename: attachment.filename, fileKey,
-        fileType: "application/pdf", fileSize: attachment.data.length, category: "other", label: "USFA application",
-      });
-      await db.insert(usfaApplicationEmailLogTable).values({
-        gmailMessageId: messageId, leadId: lead.id, status: "attached", receivedAt,
-        expiresAt: expires, metadata: { ...identity, label: "USFA application" },
-      }).onConflictDoUpdate({ target: usfaApplicationEmailLogTable.gmailMessageId, set: { leadId: lead.id, status: "attached", attemptedAt: new Date(), metadata: { ...identity, label: "USFA application" } } });
-      result.attached++;
+      if (await markMessageAttached(messageId, lead.id, receivedAt, expires, identity, { filename: attachment.filename, fileKey, fileSize: attachment.data.length })) {
+        result.attached++;
+      }
     } catch (error) {
       result.errors++;
       logger.error({ err: error, messageId }, "USFA application email processing failed");
       await db.insert(usfaApplicationEmailLogTable).values({
         gmailMessageId: messageId, status: "error", receivedAt: new Date(), expiresAt: new Date(Date.now() + RETRY_WINDOW_MS),
         error: error instanceof Error ? error.message : "Unknown Gmail processing error",
-      }).onConflictDoNothing();
+      }).onConflictDoUpdate({
+        target: usfaApplicationEmailLogTable.gmailMessageId,
+        set: {
+          status: "error",
+          attemptedAt: new Date(),
+          error: error instanceof Error ? error.message : "Unknown Gmail processing error",
+        },
+      });
     }
   }
   return result;

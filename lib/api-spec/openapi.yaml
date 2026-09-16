@@ -1227,6 +1227,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lead"
 
+  /leads/{id}/usfa-application-link:
+    post:
+      operationId: createUsfaApplicationLink
+      tags: [leads]
+      summary: Create a short-lived USFA application prefill link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Secure application link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsfaApplicationLink"
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: USFA lead not found }
+        "409": { description: No active representative slug }
+
+  /public/reps/{slug}/usfa-prefill/{token}:
+    get:
+      operationId: getUsfaPrefill
+      tags: [applications]
+      summary: Read a one-time USFA application prefill by opaque link token
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: USFA owner prefill (never cached)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsfaPrefill"
+        "404": { description: "Invalid, expired, revoked, or used token" }
+
   /leads/{id}/status:
     put:
       operationId: changeLeadStatus
@@ -4473,6 +4518,24 @@ components:
           items:
             $ref: "#/components/schemas/QrVerifyResult"
 
+    UsfaApplicationLink:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    UsfaPrefill:
+      type: object
+      properties:
+        ownerSsn:
+          type: string
+        ownerDob:
+          type: string
+
     Lead:
       type: object
       required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle, needsAssignment]
@@ -5050,14 +5113,14 @@ components:
 
     Task:
       type: object
-      required: [id, leadId, userId, title, isCompleted, createdAt]
+      required: [id, leadId, title, isCompleted, createdAt]
       properties:
         id:
           type: integer
         leadId:
           type: integer
         userId:
-          type: integer
+          type: ["integer", "null"]
         assignedUser:
           oneOf:
             - $ref: "#/components/schemas/User"
