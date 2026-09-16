@@ -1021,8 +1021,17 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   res.json(await leadToApiWithCurrentActivity(updated, rep));
 });
 
-router.put("/leads/:id/assign", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+type AssignLeadDependencies = {
+  database?: typeof db;
+  authenticate?: typeof requireUser;
+};
+
+export function createAssignLeadHandler(dependencies: AssignLeadDependencies = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+
+  return async (req: Request, res: Response) => {
+  const user = await authenticate(req, res);
   if (!user) return;
   if (user.role !== "admin" && user.role !== "manager") {
     res.status(403).json({ error: "Forbidden: managers and admins only" });
@@ -1041,7 +1050,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
-  const destinationRep = await db.query.usersTable.findFirst({
+  const destinationRep = await database.query.usersTable.findFirst({
     where: and(
       eq(usersTable.id, body.data.repId),
       eq(usersTable.role, "rep"),
@@ -1053,7 +1062,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
     return;
   }
 
-  const existing = await db.query.leadsTable.findFirst({
+  const existing = await database.query.leadsTable.findFirst({
     where: eq(leadsTable.id, params.data.id),
   });
   if (!existing) {
@@ -1069,7 +1078,7 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   const actorName = getUserDisplayName(user);
   const destinationName = getUserDisplayName(destinationRep);
   const message = `Assigned to ${destinationName} by ${actorName}`;
-  const updated = await db.transaction(async (tx) => {
+  const updated = await database.transaction(async (tx) => {
     const changedAt = new Date();
     const [u] = await tx
       .update(leadsTable)
@@ -1106,7 +1115,10 @@ router.put("/leads/:id/assign", async (req: Request, res: Response) => {
   });
 
   res.json(await leadToApiWithCurrentActivity(updated, destinationRep));
-});
+  };
+}
+
+router.put("/leads/:id/assign", createAssignLeadHandler());
 
 export { leadToApi };
 export default router;

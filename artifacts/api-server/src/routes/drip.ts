@@ -8,7 +8,7 @@ import {
   emailTemplatesTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireUser } from "../lib/authHelpers";
+import { canAccessCreatorOwnedRecord, requireUser } from "../lib/authHelpers";
 import { isEmailSuppressed } from "../lib/emailSafety";
 
 const router = Router();
@@ -74,6 +74,7 @@ router.get("/drip/sequences", async (req: Request, res: Response) => {
   if (!user) return;
 
   const sequences = await db.query.dripSequencesTable.findMany({
+    where: user.role === "rep" ? eq(dripSequencesTable.createdBy, user.id) : undefined,
     with: { steps: true, creator: true },
     orderBy: (t, { desc }) => [desc(t.createdAt)],
   });
@@ -124,6 +125,9 @@ router.get("/drip/sequences/:id", async (req: Request, res: Response) => {
     },
   });
   if (!seq) return void res.status(404).json({ error: "Not found" });
+  if (!canAccessCreatorOwnedRecord(user, seq.createdBy)) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
 
   res.json({
     ...sequenceToApi(seq),
@@ -195,7 +199,7 @@ router.put("/drip/sequences/:id/steps", async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string, 10);
   const seq = await db.query.dripSequencesTable.findFirst({ where: eq(dripSequencesTable.id, id) });
   if (!seq) return void res.status(404).json({ error: "Sequence not found" });
-  if (user.role === "rep" && seq.createdBy !== user.id) {
+  if (!canAccessCreatorOwnedRecord(user, seq.createdBy)) {
     return void res.status(403).json({ error: "You can only edit sequences you created" });
   }
 
@@ -271,6 +275,9 @@ router.post("/leads/:id/drip/enroll", async (req: Request, res: Response) => {
     with: { steps: true },
   });
   if (!seq) return void res.status(404).json({ error: "Sequence not found" });
+  if (user.role === "rep" && seq.createdBy !== user.id) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
 
   // Unenroll any active enrollment first
   await db.update(dripEnrollmentsTable)

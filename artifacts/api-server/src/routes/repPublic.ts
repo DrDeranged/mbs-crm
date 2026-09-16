@@ -1,6 +1,6 @@
 import { getAuth } from "@clerk/express";
 import { Router, type Request, type Response } from "express";
-import { db, usersTable, activityLogTable, retiredRepSlugsTable } from "@workspace/db";
+import { db, usersTable, retiredRepSlugsTable } from "@workspace/db";
 import { and, eq, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
@@ -179,24 +179,6 @@ export function createPublicRepResolverRouter(dependencies: RepResolverDependenc
         slug: user?.slug ?? replacementSlug,
       });
       return;
-    }
-    if (user?.slug) {
-      const existingLock = await db.query.activityLogTable.findFirst({
-        where: and(
-          eq(activityLogTable.entityType, "rep_slug_visit"),
-          eq(activityLogTable.entityId, user.slug),
-        ),
-      });
-      if (!existingLock) {
-        await db.insert(activityLogTable).values({
-          userId: null,
-          leadId: null,
-          action: "served",
-          entityType: "rep_slug_visit",
-          entityId: user.slug,
-          details: {},
-        });
-      }
     }
     res.setHeader("Cache-Control", "public, max-age=60");
     res.json(user

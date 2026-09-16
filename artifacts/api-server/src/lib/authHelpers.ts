@@ -25,6 +25,17 @@ export function reservedSlugForEmail(email: string): string | undefined {
 }
 
 /**
+ * Creator-owned resources (email templates and drip sequences) are private to
+ * reps. Managers and admins retain their existing team-wide access.
+ */
+export function canAccessCreatorOwnedRecord(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  createdBy: number | null,
+): boolean {
+  return user.role !== "rep" || createdBy === user.id;
+}
+
+/**
  * Move deals carrying an intended-rep marker to the matching signed-in user.
  *
  * The conditional update is important for idempotency and concurrent sign-ins:

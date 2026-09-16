@@ -26,3 +26,26 @@ export async function resolve(specifier, context, nextResolve) {
     throw error;
   }
 }
+
+/**
+ * Node's experimental type-stripper deliberately rejects TypeScript enums.
+ * The production TypeScript build handles the empty ACL enum; tests only need
+ * its type position, so erase that unsupported declaration before the built-in
+ * stripper evaluates the workspace source.
+ */
+export async function load(url, context, nextLoad) {
+  const loaded = await nextLoad(url, context);
+  if (!url.endsWith("/src/lib/objectAcl.ts") || loaded.source == null) {
+    return loaded;
+  }
+  const source = typeof loaded.source === "string"
+    ? loaded.source
+    : Buffer.from(loaded.source).toString("utf8");
+  return {
+    ...loaded,
+    source: source.replace(
+      "export enum ObjectAccessGroupType {}",
+      "export type ObjectAccessGroupType = never;",
+    ),
+  };
+}

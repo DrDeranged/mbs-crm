@@ -13,7 +13,7 @@ import {
   activityLogTable,
 } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireUser } from "../lib/authHelpers";
+import { canAccessCreatorOwnedRecord, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
@@ -482,6 +482,9 @@ router.post("/email/send", async (req: Request, res: Response) => {
   if (templateId) {
     const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
     if (!template) return void res.status(404).json({ error: "Template not found" });
+    if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+      return void res.status(403).json({ error: "Forbidden" });
+    }
     if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
     finalSubject = renderTemplate(template.subject, vars);
     finalBody = renderTemplate(template.bodyHtml, vars);
@@ -610,6 +613,7 @@ router.get("/email/templates", async (req: Request, res: Response) => {
   if (!user) return;
 
   const templates = await db.query.emailTemplatesTable.findMany({
+    where: user.role === "rep" ? eq(emailTemplatesTable.createdBy, user.id) : undefined,
     with: { creator: true },
     orderBy: (t, { desc }) => [desc(t.updatedAt)],
   });
@@ -628,6 +632,9 @@ router.get("/email/templates/:id", async (req: Request, res: Response) => {
     with: { creator: true },
   });
   if (!template) return void res.status(404).json({ error: "Not found" });
+  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
   res.json(templateToApi(template));
 });
 
@@ -718,6 +725,9 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
 
   const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!template) return void res.status(404).json({ error: "Not found" });
+  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
+    return void res.status(403).json({ error: "Forbidden" });
+  }
 
   let vars = SAMPLE_VARS;
   if (leadId) {

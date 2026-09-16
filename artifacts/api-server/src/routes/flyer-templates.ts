@@ -199,10 +199,14 @@ async function seedStarterTemplates() {
   }
 }
 
-// Seed on module load (fire-and-forget, isolated error)
-seedStarterTemplates().catch((err) =>
-  console.warn("[flyers] Seed failed:", err?.message ?? err)
-);
+// Seed on module load (fire-and-forget, isolated error). Router-composition
+// tests explicitly disable this startup write so inspecting the real router
+// cannot touch any database.
+if (process.env["DISABLE_FLYER_TEMPLATE_SEED"] !== "true") {
+  seedStarterTemplates().catch((err) =>
+    console.warn("[flyers] Seed failed:", err?.message ?? err)
+  );
+}
 
 // GET /flyer-templates
 router.get("/flyer-templates", async (req: Request, res: Response) => {

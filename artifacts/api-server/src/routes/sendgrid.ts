@@ -13,18 +13,20 @@ import { suppressEmail } from "../lib/emailSafety";
 import { canAdvanceEmailStatus, classifySendGridEvent } from "../lib/emailSafetyPredicates";
 
 const router = Router();
-const SENDGRID_WEBHOOK_VERIFICATION_KEY = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
-const IS_PROD = process.env["NODE_ENV"] === "production";
 
 function verifySendGridSignature(req: Request): boolean {
-  if (!SENDGRID_WEBHOOK_VERIFICATION_KEY) return !IS_PROD;
+  // A webhook without the public verification key cannot be authenticated.
+  // Fail closed in every environment so a staging/test configuration can
+  // never normalize an unsigned request as a valid provider callback.
+  const verificationKey = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
+  if (!verificationKey) return false;
   const signature = req.headers["x-twilio-email-event-webhook-signature"] as string;
   const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
   const rawBody: Buffer | undefined = (req as any).rawBody;
   if (!signature || !timestamp || !rawBody) return false;
   try {
     const ew = new EventWebhook();
-    const publicKey = ew.convertPublicKeyToECDSA(SENDGRID_WEBHOOK_VERIFICATION_KEY);
+    const publicKey = ew.convertPublicKeyToECDSA(verificationKey);
     return ew.verifySignature(publicKey, rawBody, signature, timestamp);
   } catch {
     return false;
