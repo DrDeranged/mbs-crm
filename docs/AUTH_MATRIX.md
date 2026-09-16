@@ -71,6 +71,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/email/unsubscribe` | `routes/email.ts:407` | `H` | HMAC token plus persisted send/email equality |
 | POST | `/api/email/send` | `routes/email.ts:565` | `L` | reps require `lead.assignedRepId === user.id`; selected template must be owned by that rep or an admin |
 | POST | `/api/email/bulk` | `routes/email.ts:527` | `M` | reps rejected |
+| GET | `/api/email/bulk-capacity` | `routes/email.ts:671` | `M` | reps rejected; reports only the shared daily aggregate |
 | GET | `/api/email/templates` | `routes/email.ts:736` | `U` | reps may read templates they own or templates whose `ownerId` is an admin |
 | GET | `/api/email/templates/:id` | `routes/email.ts:751` | `U` | reps may read their own or admin-owned templates |
 | POST | `/api/email/templates` | `routes/email.ts:769` | `U` | rep-created template is bound to `createdBy` and `ownerId: user.id` |

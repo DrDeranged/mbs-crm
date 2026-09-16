@@ -38,3 +38,12 @@ export function classifySendGridEvent(event: string): {
     default: return { status: null, action: null, suppress: false };
   }
 }
+
+/** The terminal effects the authenticated webhook route must apply per event. */
+export function webhookSuppressionEffects(event: "bounce" | "dropped" | "spamreport" | "unsubscribe") {
+  const result = classifySendGridEvent(event);
+  if (!result.status || !result.action || !result.suppress) {
+    throw new Error(`Unsupported suppressing SendGrid event: ${event}`);
+  }
+  return result;
+}

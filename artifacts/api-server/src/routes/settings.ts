@@ -19,6 +19,28 @@ const RoutingSettingsBody = z.object({
   // validation result while moving to the nested routing contract.
   includeAdminsInRoundRobin: z.boolean().optional(),
 }).strict();
+export const EmailDeliverySettingsBody = z.object({
+  emailSendingEnabled: z.boolean().optional(),
+  bulkEmailPerMinute: z.number().int().min(1).max(1000).optional(),
+  bulkEmailPerDay: z.number().int().min(1).max(100000).optional(),
+}).strict().refine((body) => Object.keys(body).length > 0, {
+  message: "At least one setting must be provided",
+});
+export const CompanySettingsBody = z.object({
+  companyName: z.string().nullable().optional(),
+  companyEmail: z.string().nullable().optional(),
+  companyPhone: z.string().nullable().optional(),
+  companyWebsite: z.string().nullable().optional(),
+  companyAddress: z.string().nullable().optional(),
+  companyCity: z.string().nullable().optional(),
+  companyState: z.string().nullable().optional(),
+  companyZip: z.string().nullable().optional(),
+  emailSendingEnabled: z.boolean().optional(),
+  bulkEmailPerMinute: z.number().int().min(1).max(1000).nullable().optional(),
+  bulkEmailPerDay: z.number().int().min(1).max(100000).nullable().optional(),
+}).refine((body) => Object.keys(body).length > 0, {
+  message: "At least one setting must be provided",
+});
 
 function routingToApi(settings: typeof companySettingsTable.$inferSelect | undefined) {
   return {
@@ -26,6 +48,8 @@ function routingToApi(settings: typeof companySettingsTable.$inferSelect | undef
     staleDays: settings?.routingStaleDays ?? settings?.staleThresholdDays ?? DEFAULT_ROUTING_SETTINGS.staleDays,
     autoReassignStale: settings?.routingAutoReassignStale ?? DEFAULT_ROUTING_SETTINGS.autoReassignStale,
   };
+}
+
 router.get("/settings/company", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -36,7 +60,8 @@ router.get("/settings/company", async (req: Request, res: Response) => {
     ...settings,
     emailSendingEnabled: settings.emailSendingEnabled ?? false,
     bulkEmailPerMinute: settings.bulkEmailPerMinute ?? 60,
-  } : { emailSendingEnabled: false, bulkEmailPerMinute: 60 });
+    bulkEmailPerDay: settings.bulkEmailPerDay ?? 75,
+  } : { emailSendingEnabled: false, bulkEmailPerMinute: 60, bulkEmailPerDay: 75 });
 });
 
 router.put("/settings/company", async (req: Request, res: Response) => {
@@ -44,14 +69,24 @@ router.put("/settings/company", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
 
+  const parsed = CompanySettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path.join(".") || "body";
+    return void res.status(400).json({ error: `Invalid ${field}`, field });
+  }
   const {
     companyName, companyEmail, companyPhone, companyWebsite, companyAddress,
-    companyCity, companyState, companyZip, emailSendingEnabled, bulkEmailPerMinute,
-  } = req.body as Record<string, string | boolean | number | null | undefined>;
+    companyCity, companyState, companyZip, emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay,
+  } = parsed.data;
   const bulkEmailRate = typeof bulkEmailPerMinute === "number" ? bulkEmailPerMinute : undefined;
+  const bulkEmailDailyLimit = typeof bulkEmailPerDay === "number" ? bulkEmailPerDay : undefined;
   if (bulkEmailPerMinute !== undefined && bulkEmailPerMinute !== null &&
       (bulkEmailRate === undefined || !Number.isInteger(bulkEmailRate) || bulkEmailRate < 1 || bulkEmailRate > 1000)) {
     return void res.status(400).json({ error: "bulkEmailPerMinute must be an integer between 1 and 1000" });
+  }
+  if (bulkEmailPerDay !== undefined && bulkEmailPerDay !== null &&
+      (bulkEmailDailyLimit === undefined || !Number.isInteger(bulkEmailDailyLimit) || bulkEmailDailyLimit < 1 || bulkEmailDailyLimit > 100000)) {
+    return void res.status(400).json({ error: "bulkEmailPerDay must be an integer between 1 and 100000" });
   }
 
   const [existing] = await db.select().from(companySettingsTable).limit(1);
@@ -71,6 +106,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         ...(companyZip !== undefined ? { companyZip: companyZip as string | null } : {}),
         ...(emailSendingEnabled !== undefined ? { emailSendingEnabled: emailSendingEnabled === true } : {}),
         ...(bulkEmailRate !== undefined ? { bulkEmailPerMinute: bulkEmailRate } : {}),
+        ...(bulkEmailDailyLimit !== undefined ? { bulkEmailPerDay: bulkEmailDailyLimit } : {}),
         updatedAt: new Date(),
       })
       .where(eq(companySettingsTable.id, existing.id))
@@ -90,6 +126,7 @@ router.put("/settings/company", async (req: Request, res: Response) => {
         companyZip: companyZip as string | null | undefined,
         emailSendingEnabled: emailSendingEnabled === true,
         bulkEmailPerMinute: bulkEmailRate ?? 60,
+        bulkEmailPerDay: bulkEmailDailyLimit ?? 75,
       })
       .returning();
     result = created;
@@ -115,6 +152,7 @@ router.get("/settings/email-delivery", async (req: Request, res: Response) => {
   res.json({
     emailSendingEnabled: settings?.emailSendingEnabled ?? false,
     bulkEmailPerMinute: settings?.bulkEmailPerMinute ?? 60,
+    bulkEmailPerDay: settings?.bulkEmailPerDay ?? 75,
   });
 });
 
@@ -123,22 +161,18 @@ router.put("/settings/email-delivery", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
 
-  const body = req.body as { emailSendingEnabled?: unknown; bulkEmailPerMinute?: unknown };
-  if (body.emailSendingEnabled !== undefined && typeof body.emailSendingEnabled !== "boolean") {
-    return void res.status(400).json({ error: "emailSendingEnabled must be a boolean" });
+  const parsed = EmailDeliverySettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path.join(".") || "body";
+    return void res.status(400).json({ error: `Invalid ${field}` });
   }
-  if (body.bulkEmailPerMinute !== undefined &&
-      (!Number.isInteger(body.bulkEmailPerMinute) || (body.bulkEmailPerMinute as number) < 1 || (body.bulkEmailPerMinute as number) > 1000)) {
-    return void res.status(400).json({ error: "bulkEmailPerMinute must be an integer between 1 and 1000" });
-  }
-  if (body.emailSendingEnabled === undefined && body.bulkEmailPerMinute === undefined) {
-    return void res.status(400).json({ error: "At least one setting must be provided" });
-  }
+  const body = parsed.data;
 
   const [existing] = await db.select().from(companySettingsTable).limit(1);
   const fields = {
     ...(body.emailSendingEnabled === undefined ? {} : { emailSendingEnabled: body.emailSendingEnabled }),
-    ...(body.bulkEmailPerMinute === undefined ? {} : { bulkEmailPerMinute: body.bulkEmailPerMinute as number }),
+    ...(body.bulkEmailPerMinute === undefined ? {} : { bulkEmailPerMinute: body.bulkEmailPerMinute }),
+    ...(body.bulkEmailPerDay === undefined ? {} : { bulkEmailPerDay: body.bulkEmailPerDay }),
     updatedAt: new Date(),
   };
   let result;
@@ -147,7 +181,8 @@ router.put("/settings/email-delivery", async (req: Request, res: Response) => {
   } else {
     [result] = await db.insert(companySettingsTable).values({
       emailSendingEnabled: body.emailSendingEnabled === true,
-      bulkEmailPerMinute: body.bulkEmailPerMinute === undefined ? 60 : body.bulkEmailPerMinute as number,
+      bulkEmailPerMinute: body.bulkEmailPerMinute ?? 60,
+      bulkEmailPerDay: body.bulkEmailPerDay ?? 75,
     }).returning();
   }
   await logActivity({
@@ -155,11 +190,12 @@ router.put("/settings/email-delivery", async (req: Request, res: Response) => {
     action: "email_delivery_settings_updated",
     entityType: "company_settings",
     entityId: result?.id ?? 0,
-    details: { emailSendingEnabled: result?.emailSendingEnabled ?? false, bulkEmailPerMinute: result?.bulkEmailPerMinute ?? 60 },
+    details: { emailSendingEnabled: result?.emailSendingEnabled ?? false, bulkEmailPerMinute: result?.bulkEmailPerMinute ?? 60, bulkEmailPerDay: result?.bulkEmailPerDay ?? 75 },
   });
   res.json({
     emailSendingEnabled: result?.emailSendingEnabled ?? false,
     bulkEmailPerMinute: result?.bulkEmailPerMinute ?? 60,
+    bulkEmailPerDay: result?.bulkEmailPerDay ?? 75,
   });
 });
 

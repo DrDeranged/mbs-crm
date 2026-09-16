@@ -26,6 +26,9 @@ export const emailSendsTable = pgTable(
     fromEmail: text("from_email").notNull(),
     status: text("status", { enum: EMAIL_SEND_STATUSES }).notNull().default("queued"),
     failureReason: text("failure_reason"),
+    deliveryKind: text("delivery_kind", { enum: ["direct", "bulk", "drip", "test"] })
+      .notNull()
+      .default("direct"),
     sendgridMessageId: text("sendgrid_message_id"),
     sentAt: timestamp("sent_at"),
     openedAt: timestamp("opened_at"),

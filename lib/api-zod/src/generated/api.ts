@@ -42,14 +42,11 @@ export const GetHealthDeepResponse = zod.object({
   "voiceToken": zod.string().describe('Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.')
 }).optional(),
   "sendgrid": zod.object({
-  "apiKey": zod.boolean(),
-  "fromEmail": zod.boolean(),
-  "fromName": zod.boolean(),
-  "webhookKey": zod.boolean(),
-  "openTracking": zod.boolean(),
-  "clickTracking": zod.boolean(),
-  "providerOpenTracking": zod.boolean(),
-  "providerClickTracking": zod.boolean()
+  "configured": zod.boolean().describe('Whether a SendGrid API key is configured.'),
+  "fromEmail": zod.string().describe('Fixed From address for all MBS email delivery.'),
+  "lastWebhookAt": zod.coerce.date().nullable(),
+  "lastSendAt": zod.coerce.date().nullable(),
+  "tracking": zod.enum(['custom']).describe('Signed custom click\/open tracking; no provider tracking settings lookup occurs.')
 }).optional(),
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
@@ -486,24 +483,33 @@ export const GetLeadDistributionSettingsResponse = zod.object({
 /**
  * @summary Update inbound lead distribution settings (admin only)
  */
-export const updateLeadDistributionSettingsBodyStaleThresholdDaysMax = 365;
+export const updateLeadDistributionSettingsBodyRoutingStaleDaysMax = 365;
 
 
 
 export const UpdateLeadDistributionSettingsBody = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().optional(),
-  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyStaleThresholdDaysMax).optional()
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).optional(),
+  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyRoutingStaleDaysMax).optional(),
+  "autoReassignStale": zod.boolean().optional()
+}).optional()
 })
 
 export const updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const updateLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
-export const updateLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+export const updateLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
+export const updateLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
+export const updateLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
 
-
+export const updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
 
 export const UpdateLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseStaleThresholdDaysMax).default(updateLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).default(updateLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
+  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseRoutingStaleDaysMax).default(updateLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
+  "autoReassignStale": zod.boolean().default(updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
+})
 })
 
 
@@ -514,11 +520,15 @@ export const getEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
+export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const getEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
+
 
 
 export const GetEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(getEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
+  "bulkEmailPerDay": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerDayMax).default(getEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
 })
 
 
@@ -527,22 +537,29 @@ export const GetEmailDeliverySettingsResponse = zod.object({
  */
 export const updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax = 1000;
 
+export const updateEmailDeliverySettingsBodyBulkEmailPerDayMax = 100000;
+
 
 
 export const UpdateEmailDeliverySettingsBody = zod.object({
   "emailSendingEnabled": zod.boolean().optional(),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional()
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional(),
+  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerDayMax).optional()
 })
 
 export const updateEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
+export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const updateEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
+
 
 
 export const UpdateEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(updateEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
+  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerDayMax).default(updateEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
 })
 
 
@@ -4206,7 +4223,7 @@ export const SendEmailBody = zod.object({
  * @summary Send and log an admin-only test email without associating it with a lead
  */
 export const SendTestEmailBody = zod.object({
-  "templateId": zod.number(),
+  "templateId": zod.number().optional().describe('Optional template override; omitted sends the fixed CEO delivery-test template.'),
   "toEmail": zod.string().email()
 })
 
@@ -4228,6 +4245,16 @@ export const SendBulkEmailResponse = zod.object({
   "error": zod.string()
 })).optional(),
   "rateLimitPerMinute": zod.number().optional()
+})
+
+
+/**
+ * @summary Get the shared bulk and drip daily email allowance
+ */
+export const GetBulkEmailCapacityResponse = zod.object({
+  "limit": zod.number(),
+  "used": zod.number(),
+  "remaining": zod.number()
 })
 
 

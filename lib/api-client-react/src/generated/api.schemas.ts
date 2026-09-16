@@ -555,6 +555,12 @@ export interface EmailDeliverySettings {
      * @maximum 1000
      */
   bulkEmailPerMinute: number;
+  /**
+     * Shared daily maximum for bulk and drip delivery attempts
+     * @minimum 1
+     * @maximum 100000
+     */
+  bulkEmailPerDay: number;
 }
 
 export interface EmailDeliverySettingsUpdate {
@@ -564,6 +570,17 @@ export interface EmailDeliverySettingsUpdate {
      * @maximum 1000
      */
   bulkEmailPerMinute?: number;
+  /**
+     * @minimum 1
+     * @maximum 100000
+     */
+  bulkEmailPerDay?: number;
+}
+
+export interface BulkEmailCapacity {
+  limit: number;
+  used: number;
+  remaining: number;
 }
 
 export interface DuplicateResponse {
@@ -1796,15 +1813,27 @@ export type DeepHealthResponseIntegrationsTwilio = {
   voiceToken: string;
 };
 
+/**
+ * Signed custom click/open tracking; no provider tracking settings lookup occurs.
+ */
+export type DeepHealthResponseIntegrationsSendgridTracking = typeof DeepHealthResponseIntegrationsSendgridTracking[keyof typeof DeepHealthResponseIntegrationsSendgridTracking];
+
+
+export const DeepHealthResponseIntegrationsSendgridTracking = {
+  custom: 'custom',
+} as const;
+
 export type DeepHealthResponseIntegrationsSendgrid = {
-  apiKey: boolean;
-  fromEmail: boolean;
-  fromName: boolean;
-  webhookKey: boolean;
-  openTracking: boolean;
-  clickTracking: boolean;
-  providerOpenTracking: boolean;
-  providerClickTracking: boolean;
+  /** Whether a SendGrid API key is configured. */
+  configured: boolean;
+  /** Fixed From address for all MBS email delivery. */
+  fromEmail: string;
+  /** @nullable */
+  lastWebhookAt: string | null;
+  /** @nullable */
+  lastSendAt: string | null;
+  /** Signed custom click/open tracking; no provider tracking settings lookup occurs. */
+  tracking: DeepHealthResponseIntegrationsSendgridTracking;
 };
 
 export type DeepHealthResponseIntegrations = {
@@ -3100,9 +3129,18 @@ export type PreviewEmailTemplate200 = {
 };
 
 export type SendTestEmailBody = {
-  templateId: number;
+  /** Optional template override; omitted sends the fixed CEO delivery-test template. */
+  templateId?: number;
   toEmail: string;
 };
+
+export type SendTestEmail201 = EmailSend & ({
+  /**
+     * SendGrid message identifier returned after provider acceptance.
+     * @nullable
+     */
+  messageId: string | null;
+});
 
 export type TrackEmailOpenParams = {
 /**

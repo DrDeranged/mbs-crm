@@ -38,6 +38,7 @@ import type {
   BulkAssignLeads200,
   BulkDeleteLeads200,
   BulkDeleteLeadsBody,
+  BulkEmailCapacity,
   BulkEmailInput,
   BulkEmailResult,
   BulkLeadAssignment,
@@ -154,6 +155,7 @@ import type {
   RetireRepSlugRequest,
   RunLenderMatch200,
   SeededDealReassignmentResponse,
+  SendTestEmail201,
   SendTestEmailBody,
   SlugBackfillResponse,
   SmsInput,
@@ -9892,9 +9894,9 @@ export const getSendTestEmailUrl = () => {
 /**
  * @summary Send and log an admin-only test email without associating it with a lead
  */
-export const sendTestEmail = async (sendTestEmailBody: SendTestEmailBody, options?: RequestInit): Promise<EmailSend> => {
+export const sendTestEmail = async (sendTestEmailBody: SendTestEmailBody, options?: RequestInit): Promise<SendTestEmail201> => {
 
-  return customFetch<EmailSend>(getSendTestEmailUrl(),
+  return customFetch<SendTestEmail201>(getSendTestEmailUrl(),
   {
     ...options,
     method: 'POST',
@@ -10022,6 +10024,83 @@ export const useSendBulkEmail = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getSendBulkEmailMutationOptions(options));
     }
+
+export const getGetBulkEmailCapacityUrl = () => {
+
+
+
+
+  return `/api/email/bulk-capacity`
+}
+
+/**
+ * @summary Get the shared bulk and drip daily email allowance
+ */
+export const getBulkEmailCapacity = async ( options?: RequestInit): Promise<BulkEmailCapacity> => {
+
+  return customFetch<BulkEmailCapacity>(getGetBulkEmailCapacityUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBulkEmailCapacityQueryKey = () => {
+    return [
+    `/api/email/bulk-capacity`
+    ] as const;
+    }
+
+
+export const getGetBulkEmailCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBulkEmailCapacityQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBulkEmailCapacity>>> = ({ signal }) => getBulkEmailCapacity({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBulkEmailCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getBulkEmailCapacity>>>
+export type GetBulkEmailCapacityQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the shared bulk and drip daily email allowance
+ */
+
+export function useGetBulkEmailCapacity<TData = Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBulkEmailCapacityQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getSeedStarterEmailUrl = () => {
 

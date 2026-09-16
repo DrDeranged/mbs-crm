@@ -3391,10 +3391,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [templateId, toEmail]
+              required: [toEmail]
               properties:
                 templateId:
                   type: integer
+                  description: Optional template override; omitted sends the fixed CEO delivery-test template.
                 toEmail:
                   type: string
                   format: email
@@ -3404,9 +3405,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EmailSend"
+                allOf:
+                  - $ref: "#/components/schemas/EmailSend"
+                  - type: object
+                    required: [messageId]
+                    properties:
+                      messageId:
+                        type: [string, "null"]
+                        description: SendGrid message identifier returned after provider acceptance.
         "400":
-          description: Missing template ID or recipient email
+          description: Invalid recipient email
         "403":
           description: Admin access required
         "404":
@@ -3434,6 +3442,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkEmailResult"
+
+  /email/bulk-capacity:
+    get:
+      operationId: getBulkEmailCapacity
+      tags: [email]
+      summary: Get the shared bulk and drip daily email allowance
+      responses:
+        "200":
+          description: Current daily marketing email capacity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkEmailCapacity"
+        "403":
+          description: Representatives cannot send bulk email
 
   /email/seed-starter:
     post:
@@ -4560,7 +4583,7 @@ components:
 
     EmailDeliverySettings:
       type: object
-      required: [emailSendingEnabled, bulkEmailPerMinute]
+      required: [emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay]
       properties:
         emailSendingEnabled:
           type: boolean
@@ -4572,6 +4595,12 @@ components:
           maximum: 1000
           default: 60
           description: Maximum messages per minute for one bulk request
+        bulkEmailPerDay:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 75
+          description: Shared daily maximum for bulk and drip delivery attempts
 
     EmailDeliverySettingsUpdate:
       type: object
@@ -4583,6 +4612,21 @@ components:
           type: integer
           minimum: 1
           maximum: 1000
+        bulkEmailPerDay:
+          type: integer
+          minimum: 1
+          maximum: 100000
+
+    BulkEmailCapacity:
+      type: object
+      required: [limit, used, remaining]
+      properties:
+        limit:
+          type: integer
+        used:
+          type: integer
+        remaining:
+          type: integer
 
     DuplicateResponse:
       type: object
@@ -6319,16 +6363,24 @@ components:
                   description: Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.
             sendgrid:
               type: object
-              required: [apiKey, fromEmail, fromName, webhookKey, openTracking, clickTracking, providerOpenTracking, providerClickTracking]
+              required: [configured, fromEmail, lastWebhookAt, lastSendAt, tracking]
               properties:
-                apiKey: { type: boolean }
-                fromEmail: { type: boolean }
-                fromName: { type: boolean }
-                webhookKey: { type: boolean }
-                openTracking: { type: boolean }
-                clickTracking: { type: boolean }
-                providerOpenTracking: { type: boolean }
-                providerClickTracking: { type: boolean }
+                configured:
+                  type: boolean
+                  description: Whether a SendGrid API key is configured.
+                fromEmail:
+                  type: string
+                  description: Fixed From address for all MBS email delivery.
+                lastWebhookAt:
+                  type: [string, "null"]
+                  format: date-time
+                lastSendAt:
+                  type: [string, "null"]
+                  format: date-time
+                tracking:
+                  type: string
+                  enum: [custom]
+                  description: Signed custom click/open tracking; no provider tracking settings lookup occurs.
             experian:
               type: boolean
             anthropic:

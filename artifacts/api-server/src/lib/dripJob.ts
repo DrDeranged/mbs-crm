@@ -151,11 +151,12 @@ export async function runDripJob(): Promise<void> {
               : enrollment.sequence.senderMode
           ) as "default" | "assigned_rep",
           rep,
+          deliveryKind: "drip",
         });
 
         if (sendError) {
           logger.error({ enrollmentId: enrollment.id, leadId: lead.id, error: sendError }, "Drip step send failed");
-          if (send.status === "unsubscribed") {
+          if (send?.status === "unsubscribed") {
             await db.update(dripEnrollmentsTable)
               .set({ status: "unenrolled", unenrolledAt: new Date() })
               .where(eq(dripEnrollmentsTable.id, enrollment.id));

@@ -26,6 +26,8 @@ export const companySettingsTable = pgTable("company_settings", {
    */
   emailSendingEnabled: boolean("email_sending_enabled").notNull().default(false),
   bulkEmailPerMinute: integer("bulk_email_per_minute").notNull().default(60),
+   /** Shared daily allowance for marketing bulk and drip delivery attempts. */
+   bulkEmailPerDay: integer("bulk_email_per_day").notNull().default(75),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

@@ -13,7 +13,7 @@ import {
   companySettingsTable,
   activityLogTable,
 } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, gte, sql } from "drizzle-orm";
 import {
   canManageMarketingResource,
   canReadMarketingResource,
@@ -58,7 +58,7 @@ const bulkEmailBody = z.object({
 });
 const previewTemplateBody = z.object({ leadId: positiveId.optional() });
 const testSendBody = z.object({
-  templateId: positiveId,
+  templateId: positiveId.optional(),
   toEmail: z.string().trim().email(),
 });
 
@@ -162,6 +162,9 @@ const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = "funding@my-business-solutions.com";
 const FROM_NAME = "My Business Solutions";
 const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_COMPLIANCE_ADDRESS =
+  "My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307";
+export const DAILY_MARKETING_KINDS = ["bulk", "drip"] as const;
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -245,8 +248,95 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
   const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}?token=${openToken}" width="1" height="1" alt="" style="display:none" />`;
   const unsubLink = `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">
     <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
+    <br><span>${EMAIL_COMPLIANCE_ADDRESS}</span>
   </p>`;
   return `${withClicks}${unsubLink}${pixel}`;
+}
+
+function startOfUtcDay(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+}
+
+export async function getDailyMarketingEmailCapacity(): Promise<{
+  limit: number;
+  used: number;
+  remaining: number;
+}> {
+  const [settings] = await db.select({
+    bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
+  }).from(companySettingsTable).limit(1);
+  const limit = Math.max(1, Math.min(100_000, settings?.bulkEmailPerDay ?? 75));
+  const [row] = await db.select({ count: sql<number>`count(*)` })
+    .from(emailSendsTable)
+    .where(and(
+      inArray(emailSendsTable.deliveryKind, DAILY_MARKETING_KINDS),
+      gte(emailSendsTable.createdAt, startOfUtcDay()),
+    ));
+  const used = Number(row?.count ?? 0);
+  return { limit, used, remaining: Math.max(0, limit - used) };
+}
+
+export type DailyMarketingReservationRepository<Context, Created> = {
+  withLock: <T>(work: (context: Context) => Promise<T>) => Promise<T>;
+  getLimit: (context: Context) => Promise<number>;
+  getUsed: (context: Context) => Promise<number>;
+  create: (context: Context) => Promise<Created>;
+};
+
+/** Shared bulk/drip reservation boundary; the repository owns its transaction lock. */
+export async function reserveDailyMarketingEmail<Context, Created>(
+  repository: DailyMarketingReservationRepository<Context, Created>,
+): Promise<Created | null> {
+  return repository.withLock(async (context) => {
+    const limit = Math.max(1, Math.min(100_000, await repository.getLimit(context)));
+    if (await repository.getUsed(context) >= limit) return null;
+    return repository.create(context);
+  });
+}
+
+/** The single provider dispatch sink for all outbound HTML email. */
+export async function sendTrackedEmailToProvider({
+  provider,
+  from,
+  replyTo,
+  toEmail,
+  ccEmail,
+  subject,
+  bodyHtml,
+  sendId,
+  baseUrl,
+  attachments,
+}: {
+  provider: Pick<typeof sgMail, "send">;
+  from: { email: string; name: string };
+  replyTo?: { email: string; name: string };
+  toEmail: string;
+  ccEmail?: string | null;
+  subject: string;
+  bodyHtml: string;
+  sendId: number;
+  baseUrl: string;
+  attachments?: Array<{
+    content: string;
+    filename: string;
+    type?: string;
+    disposition?: "attachment" | "inline";
+  }>;
+}) {
+  const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail);
+  return provider.send({
+    from,
+    ...(replyTo ? { replyTo } : {}),
+    to: toEmail,
+    ...(ccEmail && VALID_EMAIL.test(ccEmail.trim()) ? { cc: ccEmail.trim() } : {}),
+    subject,
+    html,
+    ...(attachments?.length ? { attachments } : {}),
+    trackingSettings: {
+      clickTracking: { enable: false, enableText: false },
+      openTracking: { enable: false },
+    },
+  });
 }
 
 async function doSendEmail(params: {
@@ -258,6 +348,7 @@ async function doSendEmail(params: {
   toEmail: string;
   baseUrl: string;
   senderMode?: "default" | "assigned_rep";
+  deliveryKind?: "direct" | "bulk" | "drip" | "test";
   rep?: { name?: string | null; email?: string | null } | null;
   ccEmail?: string | null;
   attachments?: Array<{
@@ -280,16 +371,54 @@ async function doSendEmail(params: {
     ? { email: repEmail, name: params.rep?.name?.trim() || repEmail }
     : undefined;
 
-  // Create a placeholder record first to get the ID for tracking URLs
-  const [placeholder] = await db.insert(emailSendsTable).values({
+  const deliveryKind = params.deliveryKind ?? "direct";
+  const values = {
     leadId: params.leadId,
     userId: params.userId,
     templateId: params.templateId,
     subject: params.subject,
     toEmail: params.toEmail,
     fromEmail: from.email,
-    status: "queued",
-  }).returning();
+    deliveryKind,
+    status: "queued" as const,
+  };
+  // The count and queued record are created under one cross-process advisory
+  // lock. A failed provider attempt remains counted: otherwise a retry loop
+  // could bypass the daily safety cap.
+  const placeholder = DAILY_MARKETING_KINDS.includes(deliveryKind as typeof DAILY_MARKETING_KINDS[number])
+    ? await reserveDailyMarketingEmail<any, any>({
+      withLock: (work) => db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('mbs-email-daily-marketing-cap'))`);
+        return work(tx);
+      }),
+      getLimit: async (tx) => {
+        const [settings] = await tx.select({
+          bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
+        }).from(companySettingsTable).limit(1);
+        return settings?.bulkEmailPerDay ?? 75;
+      },
+      getUsed: async (tx) => {
+        const [row] = await tx.select({ count: sql<number>`count(*)` })
+          .from(emailSendsTable)
+          .where(and(
+            inArray(emailSendsTable.deliveryKind, DAILY_MARKETING_KINDS),
+            gte(emailSendsTable.createdAt, startOfUtcDay()),
+          ));
+        return Number(row?.count ?? 0);
+      },
+      create: async (tx) => {
+        const [created] = await tx.insert(emailSendsTable).values(values).returning();
+        return created;
+      },
+    })
+    : (await db.insert(emailSendsTable).values(values).returning())[0];
+  if (!placeholder) {
+    return {
+      send: null,
+      error: "Daily bulk and drip email allowance has been reached",
+      deliveryOutcome: "definite_failure",
+    };
+  }
 
   if (await isEmailSuppressed(params.toEmail)) {
     const reason = "Recipient is suppressed";
@@ -312,10 +441,9 @@ async function doSendEmail(params: {
     return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
   }
 
-  let trackedHtml: string;
+  let brandedHtml: string;
   try {
-    const brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
-    trackedHtml = injectTracking(brandedHtml, placeholder.id, params.baseUrl, params.toEmail);
+    brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unable to secure email tracking links";
     const [failed] = await db.update(emailSendsTable)
@@ -340,20 +468,17 @@ async function doSendEmail(params: {
   }
 
   try {
-    const [response] = await sgMail.send({
+    const [response] = await sendTrackedEmailToProvider({
+      provider: sgMail,
       from,
-      ...(replyTo ? { replyTo } : {}),
-      to: params.toEmail,
-      ...(params.ccEmail && VALID_EMAIL.test(params.ccEmail.trim()) ? { cc: params.ccEmail.trim() } : {}),
+      replyTo,
+      toEmail: params.toEmail,
+      ccEmail: params.ccEmail,
       subject: params.subject,
-      html: trackedHtml,
-      ...(params.attachments?.length ? { attachments: params.attachments } : {}),
-      trackingSettings: {
-        // Custom signed links/pixel below are the source of truth. Provider
-        // tracking is disabled to prevent duplicate engagement activities.
-        clickTracking: { enable: false, enableText: false },
-        openTracking: { enable: false },
-      },
+      bodyHtml: brandedHtml,
+      sendId: placeholder.id,
+      baseUrl: params.baseUrl,
+      attachments: params.attachments,
     });
 
     const messageId = (
@@ -644,6 +769,7 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
       baseUrl,
       senderMode: template.senderMode as "default" | "assigned_rep",
       rep,
+      deliveryKind: "bulk",
     });
     if (error) {
       failed++;
@@ -663,6 +789,15 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   }
 
   res.json({ sent, failed, skipped, failures, rateLimitPerMinute: bulkCap });
+});
+
+// This read-only value is shown before a bulk send. It reads exactly the
+// shared bulk-and-drip counter enforced during placeholder creation.
+router.get("/email/bulk-capacity", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
+  res.json(await getDailyMarketingEmailCapacity());
 });
 
 // --- List templates ---
@@ -714,6 +849,7 @@ router.post("/email/templates", async (req: Request, res: Response) => {
     programType: programType || null,
     senderMode: senderMode === "assigned_rep" ? "assigned_rep" : "default",
     createdBy: user.id,
+    ownerId: user.id,
     isActive: isActive ?? true,
   }).returning();
 
@@ -815,27 +951,61 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   res.json({
     subject: renderTemplate(template.subject, vars),
     bodyHtml: ensureBrandEmailHeader(renderTemplate(template.bodyHtml, vars), getPublicBaseUrl()),
-    ownerId: user.id,
   });
 });
 
-// --- Admin-only test send; never associates with or sends to a lead ---
-router.post("/email/test-send", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+type AdminTestSendDependencies = {
+  requireAuthenticatedUser?: (req: Request, res: Response) => Promise<{ id: number; role: string } | undefined>;
+  findTemplate?: (id: number) => Promise<{ id: number; subject: string; bodyHtml: string; senderMode: string; isActive: boolean } | undefined>;
+  findRep?: (id: number) => Promise<{ name?: string | null; email?: string | null } | undefined>;
+  send?: typeof doSendEmail;
+  activity?: (params: {
+    userId: number | null;
+    leadId?: number | null;
+    dealId?: number | null;
+    action: string;
+    entityType: string;
+    entityId: string | number;
+    details?: Record<string, unknown>;
+  }) => Promise<unknown>;
+};
+
+// Exported factory keeps the actual HTTP endpoint testable with a mocked
+// repository/provider; the default dependency set is the production path.
+export function createAdminTestSendHandler(dependencies: AdminTestSendDependencies = {}) {
+  const requireAuthenticatedUser = dependencies.requireAuthenticatedUser ?? requireUser;
+  const findTemplate = dependencies.findTemplate ?? (async (id: number) =>
+    db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) }));
+  const findRep = dependencies.findRep ?? (async (id: number) =>
+    db.query.usersTable.findFirst({ where: eq(usersTable.id, id) }));
+  const sendEmail = dependencies.send ?? doSendEmail;
+  const activity = dependencies.activity ?? logActivity;
+  return async (req: Request, res: Response) => {
+  const user = await requireAuthenticatedUser(req, res);
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Admins only" });
 
   const body = testSendBody.safeParse(req.body);
   if (!body.success) return invalidInput(res, body);
   const { templateId, toEmail } = body.data;
-
-  const template = await db.query.emailTemplatesTable.findFirst({
-    where: eq(emailTemplatesTable.id, templateId),
-  });
+  // A fixed CEO delivery message makes an operational test independent of
+  // mutable marketing templates. The optional ID remains compatible with the
+  // former endpoint for administrators who explicitly want to test one.
+  const CEO_TEST_TEMPLATE = {
+    id: null,
+    name: "CEO delivery test",
+    subject: "My Business Solutions email delivery test",
+    bodyHtml: "<p>This is a delivery test from My Business Solutions CEO.</p>",
+    senderMode: "default",
+    isActive: true,
+  };
+  const template = templateId
+    ? await findTemplate(templateId)
+    : CEO_TEST_TEMPLATE;
   if (!template) return void res.status(404).json({ error: "Template not found" });
   if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
 
-  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
+  const rep = await findRep(user.id);
   const recipientName = toEmail.split("@")[0] || "Test";
   const vars = buildVariables(
     {
@@ -853,7 +1023,7 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     return void res.status(422).json({ error: "Template contains unresolved merge fields" });
   }
 
-  const { send, error: sendError, configurationReason } = await doSendEmail({
+  const { send, error: sendError, configurationReason } = await sendEmail({
     leadId: null,
     userId: user.id,
     templateId: template.id,
@@ -863,6 +1033,7 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     baseUrl: getPublicBaseUrl(),
     senderMode: template.senderMode as "default" | "assigned_rep",
     rep,
+    deliveryKind: "test",
   });
   if (sendError) {
     if (configurationReason) {
@@ -872,7 +1043,7 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
   }
 
-  await logActivity({
+  await activity({
     userId: user.id,
     leadId: null,
     action: "email_test_sent",
@@ -886,8 +1057,12 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     },
   });
 
-  res.status(201).json(sendToApi(send));
-});
+  res.status(201).json({ ...sendToApi(send), messageId: send.sendgridMessageId ?? null });
+  };
+}
+
+// --- Admin-only test send; never associates with or sends to a lead ---
+router.post("/email/test-send", createAdminTestSendHandler());
 
 // --- List emails for a lead ---
 router.get("/leads/:id/emails", async (req: Request, res: Response) => {
@@ -923,6 +1098,7 @@ function templateToApi(t: any) {
     senderMode: t.senderMode ?? "default",
     isActive: t.isActive,
     createdBy: t.createdBy ?? null,
+    ownerId: t.ownerId ?? null,
     creator: t.creator ? { id: t.creator.id, name: t.creator.name, email: t.creator.email } : null,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
@@ -1053,7 +1229,6 @@ export async function seedStarterEmail(actorId: number) {
 </ul>
 <p>Funding amounts range from $4,000 to $20,000,000, and we work with companies of all sizes and industries.</p>
 <p>What makes MBS different:</p>
-    ownerId: t.ownerId ?? null,
 <ul>
 <li>✔ Same Day Approvals</li>
 <li>✔ Same Day Funding for Working Capital</li>
@@ -1119,5 +1294,5 @@ function sendToApi(s: any) {
   };
 }
 
-export { doSendEmail, renderTemplate, buildVariables, sendToApi, FROM_EMAIL, FROM_NAME };
+export { doSendEmail, renderTemplate, buildVariables, sendToApi, injectTracking, FROM_EMAIL, FROM_NAME };
 export default router;
