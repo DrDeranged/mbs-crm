@@ -101,12 +101,15 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
       await tx.delete(usfaIntakeLogTable).where(eq(usfaIntakeLogTable.id, prior.id));
     }
 
+    const externalLead = await tx.query.leadsTable.findFirst({
+      where: eq(leadsTable.externalId, mapped.externalId),
+    });
     const conditions = [];
     if (mapped.dedupePlan.allowEmailMatch && mapped.lead.email) conditions.push(eq(leadsTable.email, mapped.lead.email));
     if (mapped.lead.phone) conditions.push(eq(leadsTable.phone, mapped.lead.phone));
-    const existing = conditions.length
+    const existing = externalLead ?? (conditions.length
       ? await tx.query.leadsTable.findFirst({ where: or(...conditions) })
-      : undefined;
+      : undefined);
     if (existing) {
       const companyValues = {
         ...(mapped.company.name ? { name: mapped.company.name } : {}),
@@ -137,8 +140,10 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
       if (mapped.intakePrefill) {
         await tx.insert(usfaIntakePrefillTable).values({
           leadId: existing.id,
-          externalId: mapped.externalId,
           encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)),
+        }).onConflictDoUpdate({
+          target: usfaIntakePrefillTable.leadId,
+          set: { encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)), updatedAt: new Date() },
         });
       }
       await tx.insert(activityLogTable).values({
@@ -180,8 +185,10 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
     if (mapped.intakePrefill) {
       await tx.insert(usfaIntakePrefillTable).values({
         leadId: lead.id,
-        externalId: mapped.externalId,
         encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)),
+      }).onConflictDoUpdate({
+        target: usfaIntakePrefillTable.leadId,
+        set: { encryptedPayload: encrypt(JSON.stringify(mapped.intakePrefill)), updatedAt: new Date() },
       });
     }
     await tx.insert(activityLogTable).values({

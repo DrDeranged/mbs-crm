@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -48,6 +48,9 @@ export const leadsTable = pgTable(
     estimatedTermMonths: integer("estimated_term_months"),
     renewalFlaggedAt: timestamp("renewal_flagged_at"),
     trackingToken: text("tracking_token").unique(),
+    externalId: text("external_id"),
+    creditScoreBand: text("credit_score_band"),
+    monthlyRevenueBand: text("monthly_revenue_band"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -58,6 +61,7 @@ export const leadsTable = pgTable(
     index("leads_status_idx").on(t.status),
     index("leads_rep_idx").on(t.assignedRepId),
     index("leads_renewal_flagged_idx").on(t.renewalFlaggedAt),
+    uniqueIndex("leads_external_id_unique_idx").on(t.externalId),
   ],
 );
 

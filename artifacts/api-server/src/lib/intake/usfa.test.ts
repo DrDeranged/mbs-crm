@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { mapUsfaRow, USFA_HEADERS, type UsfaRow } from "./usfa";
 
@@ -19,7 +20,8 @@ test("USFA mapper normalizes the exact Doe Street vendor row", () => {
   assert.deepEqual(result.lead, {
     firstName: "Jane", lastName: "Doe", email: "jane.doe@example.com", phone: "2125842202",
     companyName: "Doe Street LLC", ein: "01-2345678", applicationType: "working_capital",
-    leadSource: "usfundadvisor", requestedAmount: 642928747, creditScore: 700,
+    leadSource: "usfundadvisor", externalId: "USFA-DOE-001", requestedAmount: 642928747,
+    creditScore: 700, creditScoreBand: "Over 700", monthlyRevenueBand: "$15,000 - $50,000",
     createdAt: new Date("2024-01-02T03:04:05.000Z"),
   });
   assert.deepEqual(result.company, {
@@ -28,6 +30,9 @@ test("USFA mapper normalizes the exact Doe Street vendor row", () => {
   });
   assert.deepEqual(result.intakePrefill, { ssn: "001234567", dob: "1980-01-02" });
   assert.equal(result.metadata.creditScoreRaw, "Over 700");
+  assert.equal(result.lead.externalId, "USFA-DOE-001");
+  assert.equal(result.lead.creditScoreBand, "Over 700");
+  assert.equal(result.lead.monthlyRevenueBand, "$15,000 - $50,000");
   assert.equal(result.metadata.ownerName, "Jane Doe");
   assert.deepEqual(result.metadata.statementLinks, [
     "https://usfundadvisor.ai/challenge/a", "https://usfundadvisor.ai/challenge/b",
@@ -38,6 +43,17 @@ test("USFA mapper normalizes the exact Doe Street vendor row", () => {
   assert.equal(result.taskPlan?.statementCount, 2);
   assert.ok(!Object.hasOwn(result.lead, "SSN"));
   assert.ok(!Object.hasOwn(result.lead, "DOB"));
+});
+
+test("USFA source migration leaves existing companies and runtime support to later migrations", async () => {
+  const migration = await readFile(new URL("../../../../../lib/db/migrations/025_usfa_intake.sql", import.meta.url), "utf8");
+  assert.match(migration, /ALTER TABLE "leads" ADD COLUMN IF NOT EXISTS "external_id"/);
+  assert.match(migration, /credit_score_band/);
+  assert.match(migration, /monthly_revenue_band/);
+  assert.doesNotMatch(migration, /CREATE TABLE IF NOT EXISTS "companies"/);
+  assert.doesNotMatch(migration, /company_settings|usfa_application_email_log|usfa_prefill_invites|ALTER TABLE "documents"|ALTER TABLE "tasks"/);
+  const runtimeMigration = await readFile(new URL("../../../../../lib/db/migrations/026_usfa_intake_runtime_support.sql", import.meta.url), "utf8");
+  assert.match(runtimeMigration, /company_settings|usfa_application_email_log|usfa_prefill_invites/);
 });
 
 test("mapper preserves the exact 28-header contract and handles score/revenue bands", () => {

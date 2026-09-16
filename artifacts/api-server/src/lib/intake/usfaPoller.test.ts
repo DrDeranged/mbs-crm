@@ -74,8 +74,10 @@ test("USFA ingestion commits before global admin notification and persists dupli
   const notificationCall = source.indexOf('notifyAllAdmins("application_received"', transactionEnd);
   assert.ok(transactionStart >= 0 && transactionEnd > transactionStart);
   assert.ok(notificationCall > transactionEnd);
-  const duplicateBranch = source.slice(source.indexOf("if (existing)"), transactionEnd);
+  const duplicateBranch = source.slice(source.indexOf("externalLead"), transactionEnd);
   assert.match(duplicateBranch, /usfaIntakePrefillTable/);
+  assert.match(duplicateBranch, /leadsTable\.externalId/);
+  assert.match(duplicateBranch, /encryptedPayload: encrypt/);
   assert.match(duplicateBranch, /activityLogTable/);
   assert.match(duplicateBranch, /createUsfaStatementTasks/);
   assert.match(duplicateBranch, /status: "dup"/);

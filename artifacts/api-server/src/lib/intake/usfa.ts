@@ -20,8 +20,11 @@ export type UsfaMappedLead = {
     ein: string | null;
     applicationType: "working_capital";
     leadSource: "usfundadvisor";
+    externalId: string;
     requestedAmount: number | null;
     creditScore: number | null;
+    creditScoreBand: string | null;
+    monthlyRevenueBand: string | null;
     createdAt: Date | null;
   };
   company: {
@@ -186,8 +189,11 @@ export function mapUsfaRow(row: UsfaRow, now = new Date()): UsfaMappedLead {
       ein: einResult.value,
       applicationType: "working_capital",
       leadSource: "usfundadvisor",
+      externalId,
       requestedAmount: numberValue(row["AMOUNT REQUESTED"]),
       creditScore: scoreResult.floor,
+      creditScoreBand: scoreResult.raw,
+      monthlyRevenueBand: revenueResult.raw,
       createdAt: sourceDate(row.CREATEDAT),
     },
     company: {

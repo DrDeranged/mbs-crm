@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -35,12 +35,11 @@ export const usfaIntakePrefillTable = pgTable(
   {
     id: serial("id").primaryKey(),
     leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
-    externalId: text("external_id").notNull(),
     encryptedPayload: text("encrypted_payload").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => [index("usfa_intake_prefill_lead_idx").on(t.leadId), index("usfa_intake_prefill_external_idx").on(t.externalId)],
+  (t) => [uniqueIndex("usfa_intake_prefill_lead_unique").on(t.leadId)],
 );
 
 export const insertUsfaIntakeLogSchema = createInsertSchema(usfaIntakeLogTable).omit({ id: true, ingestedAt: true });
