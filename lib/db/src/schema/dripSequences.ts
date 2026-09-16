@@ -7,7 +7,7 @@ export const dripSequencesTable = pgTable("drip_sequences", {
   name: text("name").notNull(),
   triggerStatus: text("trigger_status", { enum: LEAD_STATUSES }).notNull(),
   senderMode: text("sender_mode").notNull().default("template"),
-  isActive: boolean("is_active").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
   createdBy: integer("created_by").references(() => usersTable.id, { onDelete: "set null" }),
   ownerId: integer("owner_id").references(() => usersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),

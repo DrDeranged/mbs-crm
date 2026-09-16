@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -62,6 +63,7 @@ export const leadsTable = pgTable(
     index("leads_rep_idx").on(t.assignedRepId),
     index("leads_renewal_flagged_idx").on(t.renewalFlaggedAt),
     uniqueIndex("leads_external_id_unique_idx").on(t.externalId),
+    index("leads_normalized_email_idx").on(sql`lower(trim(${t.email}))`),
   ],
 );
 
