@@ -1693,9 +1693,40 @@ export const DeepHealthResponseDb = {
   fail: 'fail',
 } as const;
 
+export type DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat = typeof DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat[keyof typeof DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat];
+
+
+export const DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat = {
+  valid: 'valid',
+  invalid: 'invalid',
+} as const;
+
+export type DeepHealthResponseIntegrationsTwilio = {
+  accountSid: boolean;
+  authToken: boolean;
+  apiKey: boolean;
+  apiSecret: boolean;
+  twimlAppSid: boolean;
+  phoneNumber: boolean;
+  twimlAppSidFormat: DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat;
+  /** Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout. */
+  voiceToken: string;
+};
+
+export type DeepHealthResponseIntegrationsSendgrid = {
+  apiKey: boolean;
+  fromEmail: boolean;
+  fromName: boolean;
+  webhookKey: boolean;
+  openTracking: boolean;
+  clickTracking: boolean;
+  providerOpenTracking: boolean;
+  providerClickTracking: boolean;
+};
+
 export type DeepHealthResponseIntegrations = {
-  twilio?: boolean;
-  sendgrid?: boolean;
+  twilio?: DeepHealthResponseIntegrationsTwilio;
+  sendgrid?: DeepHealthResponseIntegrationsSendgrid;
   experian?: boolean;
   anthropic?: boolean;
 };
@@ -2747,6 +2778,11 @@ export const GetAnalyticsCommunicationsGranularity = {
 
 export type GetAnalyticsRenewalsParams = {
 rep_id?: number;
+};
+
+export type GetTwilioToken503 = {
+  error: string;
+  reason: string;
 };
 
 export type TwilioVoiceStatus200 = {

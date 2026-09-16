@@ -19,6 +19,7 @@ import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../li
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 import { seedStarterEmailData } from "../lib/productionMaintenance";
+import { logger } from "../lib/logger";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
 const SESSION_SECRET = process.env["SESSION_SECRET"];
@@ -225,7 +226,7 @@ async function doSendEmail(params: {
     type?: string;
     disposition?: "attachment" | "inline";
   }>;
-}): Promise<{ send: any; error?: string }> {
+}): Promise<{ send: any; error?: string; configurationReason?: string }> {
   const [emailSettings] = await db.select({
     emailSendingEnabled: companySettingsTable.emailSendingEnabled,
   }).from(companySettingsTable).limit(1);
@@ -290,7 +291,11 @@ async function doSendEmail(params: {
       .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason };
+    return {
+      send: failed,
+      error: reason,
+      configurationReason: "missing:SENDGRID_API_KEY",
+    };
   }
 
   try {
@@ -495,7 +500,7 @@ router.post("/email/send", async (req: Request, res: Response) => {
     return void res.status(400).json({ error: "subject and bodyHtml are required" });
   }
 
-  const { send, error: sendError } = await doSendEmail({
+  const { send, error: sendError, configurationReason } = await doSendEmail({
     leadId: lead.id,
     userId: user.id,
     templateId: templateId ?? null,
@@ -508,6 +513,10 @@ router.post("/email/send", async (req: Request, res: Response) => {
   });
 
   if (sendError) {
+    if (configurationReason) {
+      logger.error({ route: "/api/email/send", reason: configurationReason }, "SendGrid unavailable");
+      return void res.status(503).json({ error: "SendGrid unavailable", reason: configurationReason });
+    }
     return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
   }
 
@@ -783,7 +792,7 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     return void res.status(422).json({ error: "Template contains unresolved merge fields" });
   }
 
-  const { send, error: sendError } = await doSendEmail({
+  const { send, error: sendError, configurationReason } = await doSendEmail({
     leadId: null,
     userId: user.id,
     templateId: template.id,
@@ -795,6 +804,10 @@ router.post("/email/test-send", async (req: Request, res: Response) => {
     rep,
   });
   if (sendError) {
+    if (configurationReason) {
+      logger.error({ route: "/api/email/test-send", reason: configurationReason }, "SendGrid unavailable");
+      return void res.status(503).json({ error: "SendGrid unavailable", reason: configurationReason });
+    }
     return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
   }
 

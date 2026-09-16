@@ -31,8 +31,26 @@ export const GetHealthDeepResponse = zod.object({
   "status": zod.enum(['ok', 'degraded']).optional(),
   "db": zod.enum(['ok', 'fail']).optional(),
   "integrations": zod.object({
-  "twilio": zod.boolean().optional(),
-  "sendgrid": zod.boolean().optional(),
+  "twilio": zod.object({
+  "accountSid": zod.boolean(),
+  "authToken": zod.boolean(),
+  "apiKey": zod.boolean(),
+  "apiSecret": zod.boolean(),
+  "twimlAppSid": zod.boolean(),
+  "phoneNumber": zod.boolean(),
+  "twimlAppSidFormat": zod.enum(['valid', 'invalid']),
+  "voiceToken": zod.string().describe('Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.')
+}).optional(),
+  "sendgrid": zod.object({
+  "apiKey": zod.boolean(),
+  "fromEmail": zod.boolean(),
+  "fromName": zod.boolean(),
+  "webhookKey": zod.boolean(),
+  "openTracking": zod.boolean(),
+  "clickTracking": zod.boolean(),
+  "providerOpenTracking": zod.boolean(),
+  "providerClickTracking": zod.boolean()
+}).optional(),
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
 }).optional(),

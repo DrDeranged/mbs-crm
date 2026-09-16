@@ -5,6 +5,7 @@ import { db } from "@workspace/db";
 import { jobRunsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
+import { getIntegrationHealth } from "../lib/integrationHealth";
 
 const router: IRouter = Router();
 
@@ -29,9 +30,12 @@ router.get("/health/deep", async (_req, res) => {
   }
 
   // 2. Integration presence (booleans only, no secret values)
+  const detailedIntegrations = await getIntegrationHealth() as {
+    twilio: object;
+    sendgrid: object;
+  };
   const integrations = {
-    twilio: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
-    sendgrid: !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL),
+    ...detailedIntegrations,
     experian: !!(process.env.EXPERIAN_CLIENT_ID || process.env.EXPERIAN_CLIENT_SECRET),
     anthropic: !!(
       process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||

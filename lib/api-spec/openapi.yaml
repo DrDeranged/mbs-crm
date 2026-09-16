@@ -2271,6 +2271,16 @@ paths:
           description: Unauthorized
         "503":
           description: Twilio not configured
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, reason]
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
 
   /twilio/voice:
     post:
@@ -6066,9 +6076,33 @@ components:
           type: object
           properties:
             twilio:
-              type: boolean
+              type: object
+              required: [accountSid, authToken, apiKey, apiSecret, twimlAppSid, phoneNumber, twimlAppSidFormat, voiceToken]
+              properties:
+                accountSid: { type: boolean }
+                authToken: { type: boolean }
+                apiKey: { type: boolean }
+                apiSecret: { type: boolean }
+                twimlAppSid: { type: boolean }
+                phoneNumber: { type: boolean }
+                twimlAppSidFormat:
+                  type: string
+                  enum: [valid, invalid]
+                voiceToken:
+                  type: string
+                  description: Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.
             sendgrid:
-              type: boolean
+              type: object
+              required: [apiKey, fromEmail, fromName, webhookKey, openTracking, clickTracking, providerOpenTracking, providerClickTracking]
+              properties:
+                apiKey: { type: boolean }
+                fromEmail: { type: boolean }
+                fromName: { type: boolean }
+                webhookKey: { type: boolean }
+                openTracking: { type: boolean }
+                clickTracking: { type: boolean }
+                providerOpenTracking: { type: boolean }
+                providerClickTracking: { type: boolean }
             experian:
               type: boolean
             anthropic:

@@ -101,6 +101,7 @@ import type {
   GetCreditComplianceLogParams,
   GetDealsAnalyticsParams,
   GetLeadBriefing200,
+  GetTwilioToken503,
   GetUnreadNotificationCount200,
   HealthStatus,
   ImportLeadsBody,
@@ -6445,7 +6446,7 @@ export const getTwilioToken = async ( options?: RequestInit): Promise<TwilioToke
 
 
 
-export const getGetTwilioTokenMutationOptions = <TError = ErrorType<void>,
+export const getGetTwilioTokenMutationOptions = <TError = ErrorType<void | GetTwilioToken503>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext> => {
 
@@ -6474,12 +6475,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type GetTwilioTokenMutationResult = NonNullable<Awaited<ReturnType<typeof getTwilioToken>>>
 
-    export type GetTwilioTokenMutationError = ErrorType<void>
+    export type GetTwilioTokenMutationError = ErrorType<void | GetTwilioToken503>
 
     /**
  * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
  */
-export const useGetTwilioToken = <TError = ErrorType<void>,
+export const useGetTwilioToken = <TError = ErrorType<void | GetTwilioToken503>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof getTwilioToken>>,
