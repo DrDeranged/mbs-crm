@@ -1,0 +1,49 @@
+import { pgTable, serial, integer, text, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod/v4";
+import { leadsTable } from "./leads";
+
+export const USFA_INTAKE_STATUSES = ["ok", "dup", "error"] as const;
+
+/** One durable receipt per vendor row. The external id is the idempotency key. */
+export const usfaIntakeLogTable = pgTable(
+  "usfa_intake_log",
+  {
+    id: serial("id").primaryKey(),
+    externalId: text("external_id").notNull().unique(),
+    rowNumber: integer("row_number").notNull(),
+    ingestedAt: timestamp("ingested_at").notNull().defaultNow(),
+    leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "set null" }),
+    status: text("status", { enum: USFA_INTAKE_STATUSES }).notNull(),
+    error: text("error"),
+    metadata: jsonb("metadata"),
+  },
+  (t) => [
+    index("usfa_intake_log_status_idx").on(t.status),
+    index("usfa_intake_log_ingested_idx").on(t.ingestedAt),
+  ],
+);
+
+/**
+ * SSN/DOB are encrypted before this table is written. Keeping a single JSON
+ * ciphertext allows the mapper to remain pure while the persistence boundary
+ * uses the same AES-256-GCM helper as applications.ownerSsnEncrypted.
+ */
+export const usfaIntakePrefillTable = pgTable(
+  "usfa_intake_prefill",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull().unique().references(() => leadsTable.id, { onDelete: "cascade" }),
+    encryptedPayload: text("encrypted_payload").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("usfa_intake_prefill_lead_idx").on(t.leadId)],
+);
+
+export const insertUsfaIntakeLogSchema = createInsertSchema(usfaIntakeLogTable).omit({ id: true, ingestedAt: true });
+export type InsertUsfaIntakeLog = z.infer<typeof insertUsfaIntakeLogSchema>;
+export type UsfaIntakeLog = typeof usfaIntakeLogTable.$inferSelect;
+export const insertUsfaIntakePrefillSchema = createInsertSchema(usfaIntakePrefillTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertUsfaIntakePrefill = z.infer<typeof insertUsfaIntakePrefillSchema>;
+export type UsfaIntakePrefill = typeof usfaIntakePrefillTable.$inferSelect;
