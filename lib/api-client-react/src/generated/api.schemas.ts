@@ -1738,9 +1738,19 @@ export type DeepHealthResponsePdf = {
   puppeteer: string;
 };
 
+/**
+ * @nullable
+ */
+export type DeepHealthResponseSchemaFailed = {
+  name?: string;
+  error?: string;
+} | null;
+
 export type DeepHealthResponseSchema = {
   applied: number;
   pending: string[];
+  /** @nullable */
+  failed?: DeepHealthResponseSchemaFailed;
 };
 
 export type DeepHealthResponseJobs = { [key: string]: unknown };

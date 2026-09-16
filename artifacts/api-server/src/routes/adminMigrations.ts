@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, getMigrationStatus, runMigrations } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
+import { clearBootSchemaFailure } from "../lib/schemaBoot";
 
 function publicReport(report: Awaited<ReturnType<typeof getMigrationStatus>>) {
   return {
@@ -48,6 +49,9 @@ export function createAdminMigrationsRouter(dependencies: {
 
     try {
       const report = await runMigrationsForRoute({ db });
+      if (!report.failed && report.pending.length === 0 && report.mismatches.length === 0) {
+        clearBootSchemaFailure();
+      }
       res.json(publicReport(report));
     } catch (error) {
       res.status(500).json({

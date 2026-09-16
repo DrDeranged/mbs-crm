@@ -6161,6 +6161,13 @@ components:
               type: array
               items:
                 type: string
+            failed:
+              type: ["object", "null"]
+              properties:
+                name:
+                  type: string
+                error:
+                  type: string
         jobs:
           type: object
           additionalProperties: true

@@ -60,7 +60,11 @@ export const GetHealthDeepResponse = zod.object({
 }),
   "schema": zod.object({
   "applied": zod.number(),
-  "pending": zod.array(zod.string())
+  "pending": zod.array(zod.string()),
+  "failed": zod.object({
+  "name": zod.string().optional(),
+  "error": zod.string().optional()
+}).nullish()
 }),
   "jobs": zod.record(zod.string(), zod.unknown()).optional(),
   "uptimeSeconds": zod.number().optional(),

@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db, formatSchemaBootLine, getMigrationStatus } from "@workspace/db";
+import { db, pool, formatSchemaBootLine, getMigrationStatus } from "@workspace/db";
+import { runSchemaBoot } from "./lib/schemaBoot";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
@@ -44,6 +45,18 @@ export async function validateSchemaOnBoot(): Promise<void> {
   }
 }
 
+const migrateOnBoot =
+  process.env.NODE_ENV === "production" || process.env.MIGRATE_ON_BOOT === "true";
+
+// Schema reconciliation is deliberately completed before opening the HTTP
+// listener. The migration coordinator catches migration failures and records
+// them, so a bad migration never prevents the server from coming up.
+if (migrateOnBoot) {
+  await runSchemaBoot({ pool, logger });
+} else {
+  await validateSchemaOnBoot();
+}
+
 const server = app.listen(port, (err) => {
   if (err) {
     logger.fatal({ err }, "FATAL: Error listening on port; exiting");
@@ -51,8 +64,6 @@ const server = app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
-
-  void validateSchemaOnBoot();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) =>

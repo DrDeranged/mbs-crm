@@ -7,6 +7,7 @@ import { getMigrationStatus } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth } from "../lib/integrationHealth";
+import { getBootSchemaFailure } from "../lib/schemaBoot";
 
 const router: IRouter = Router();
 
@@ -30,7 +31,11 @@ router.get("/health/deep", async (_req, res) => {
     // DB unreachable
   }
 
-  let schema: { applied: number; pending: string[] } = { applied: 0, pending: [] };
+  let schema: {
+    applied: number;
+    pending: string[];
+    failed: ReturnType<typeof getBootSchemaFailure>;
+  } = { applied: 0, pending: [], failed: getBootSchemaFailure() };
   if (dbOk) {
     try {
       const migrationStatus = await getMigrationStatus({ db });
@@ -40,12 +45,21 @@ router.get("/health/deep", async (_req, res) => {
           ...migrationStatus.pending,
           ...migrationStatus.mismatches.map(({ name }) => `${name} (checksum mismatch)`),
         ],
+        failed: getBootSchemaFailure(),
       };
     } catch {
-      schema = { applied: 0, pending: ["unable to inspect migrations"] };
+      schema = {
+        applied: 0,
+        pending: ["unable to inspect migrations"],
+        failed: getBootSchemaFailure(),
+      };
     }
   } else {
-    schema = { applied: 0, pending: ["database unavailable"] };
+    schema = {
+      applied: 0,
+      pending: ["database unavailable"],
+      failed: getBootSchemaFailure(),
+    };
   }
 
   // 2. Integration presence (booleans only, no secret values)
@@ -91,7 +105,7 @@ router.get("/health/deep", async (_req, res) => {
   }
 
   res.json({
-    status: dbOk && schema.pending.length === 0 ? "ok" : "degraded",
+    status: dbOk && schema.pending.length === 0 && !schema.failed ? "ok" : "degraded",
     db: dbOk ? "ok" : "fail",
     schema,
     integrations,

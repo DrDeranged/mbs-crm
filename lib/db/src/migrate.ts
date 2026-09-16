@@ -46,6 +46,15 @@ export function formatSchemaBootLine(report: Pick<MigrationReport, "pending" | "
   return `schema OK (${applied} applied)`;
 }
 
+/**
+ * The boot runner uses a separate line from the admin/status dry-run output:
+ * this describes only what this boot applied, while the total is the number
+ * of numbered migration files discovered in the bundle.
+ */
+export function formatSchemaSuccessLine(report: Pick<MigrationReport, "applied" | "migrations">): string {
+  return `schema OK — applied ${report.applied.length} (${report.applied.join(", ")}), ${report.migrations.length} total`;
+}
+
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
@@ -248,6 +257,11 @@ export async function runMigrations(options: {
   }
   const ledger = await readLedger(database);
 
+  // Do the complete first-boot reconciliation before running any migration.
+  // This matters for databases created before the ledger was introduced: all
+  // durable schema markers must be inspected and seeded before a later
+  // pending migration is allowed to run.
+  const pendingMigrations: MigrationFile[] = [];
   for (const migration of migrations) {
     const ledgerEntry = ledger.get(migration.id);
     if (ledgerEntry) {
@@ -275,24 +289,51 @@ export async function runMigrations(options: {
       continue;
     }
 
-    const detected = await schemaShowsMigrationApplied(database, migration);
+    let detected: boolean;
+    try {
+      detected = await schemaShowsMigrationApplied(database, migration);
+    } catch (error) {
+      report.pending.push(migration.name);
+      report.migrations.push({ ...migration, status: "pending" });
+      report.failed = {
+        name: migration.name,
+        error: error instanceof Error ? error.message : String(error),
+      };
+      break;
+    }
     if (detected) {
       report.detected.push(migration.name);
       report.skipped.push(migration.name);
       report.migrations.push({ ...migration, status: "applied", detectedAsApplied: true });
       if (!options.dryRun) {
-        await database.transaction(async (tx) => {
-          await tx.execute(sql`
-            INSERT INTO schema_migrations (name, checksum)
-            VALUES (${migration.id}, ${migration.checksum})
-          `);
-        });
+        try {
+          await database.transaction(async (tx) => {
+            await tx.execute(sql`
+              INSERT INTO schema_migrations (name, checksum)
+              VALUES (${migration.id}, ${migration.checksum})
+            `);
+          });
+        } catch (error) {
+          report.failed = {
+            name: migration.name,
+            error: error instanceof Error ? error.message : String(error),
+          };
+          break;
+        }
       }
       continue;
     }
 
     report.pending.push(migration.name);
     report.migrations.push({ ...migration, status: "pending" });
+    pendingMigrations.push(migration);
+  }
+
+  // A reconciliation failure must not allow any pending migration collected
+  // before it to run: the first-boot phase is all-or-nothing.
+  if (report.failed) return report;
+
+  for (const migration of pendingMigrations) {
     if (options.dryRun) continue;
 
     try {
@@ -305,9 +346,11 @@ export async function runMigrations(options: {
       });
       report.applied.push(migration.name);
       report.pending = report.pending.filter((name) => name !== migration.name);
-      const status = report.migrations[report.migrations.length - 1];
-      status.status = "applied";
-      status.appliedChecksum = migration.checksum;
+      const status = report.migrations.find((entry) => entry.name === migration.name);
+      if (status) {
+        status.status = "applied";
+        status.appliedChecksum = migration.checksum;
+      }
     } catch (error) {
       report.failed = {
         name: migration.name,
