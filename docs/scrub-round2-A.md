@@ -59,7 +59,7 @@
 
 ## Counts
 
-- PASS: 46
+- PASS: 43 (individual table rows; corrected from the interim reported total of 46)
 - FAIL: 1
 - BLOCKED: 1
 

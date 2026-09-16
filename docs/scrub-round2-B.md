@@ -20,7 +20,7 @@ input return a named `400`; provider callbacks are separately identified.
 | `credit.ts` | `credit.ts:21-38,434,496` validates compliance log pagination, date, rep, and lead filters | PASS |
 | `deals.ts` | `deals.ts:50-73,157,194,292,786` validates all list/export/analytics query values and mutation ids/bodies | PASS |
 | `documents.ts` | `documents.ts:65,113,158,179,204` validates params and category before storage/database work | PASS |
-| `drip.ts` | `drip.ts:90,153,206,270` legacy request `any` | BLOCKED — explicitly owned by the routing/template workstream |
+| `drip.ts` | `artifacts/api-server/src/routes/drip.ts:19-36` strict sequence and nested-step schemas; real malformed-body route tests in `scrub-round2-d.test.ts` | PASS |
 | `email.ts` | `email.ts:30-58,505,584,694,717,776,813` adds Zod body/id validation with named fields | PASS |
 | `flyers.ts` | `flyers.ts:17-30,50,175` validates generation and email payloads | PASS |
 | `flyer-templates.ts` | `flyer-templates.ts:8-25,264,292` validates create/update payloads | PASS |
@@ -33,7 +33,7 @@ input return a named `400`; provider callbacks are separately identified.
 | `piiAccessLog.ts` | `piiAccessLog.ts:8-26,38,103` validates both report endpoints' date/id/category/pagination filters | PASS |
 | `repPublic.ts` | slug normalized from params; no structured request body | PASS |
 | `sendgrid.ts` | `sendgrid.ts:17-30,84-91` verifies signature then validates event payload shape; invalid signed payload is a named 400 | PASS |
-| `settings.ts` | `settings.ts:32,108,165` is assigned to routing/settings workstream | BLOCKED |
+| `settings.ts` | `artifacts/api-server/src/routes/settings.ts:12-43` routing, delivery, and company schemas reject malformed bodies before database access; `scrub-round2-f.test.ts:218-233` pins invalid values | PASS |
 | `twilio.ts` | `twilio.ts:22-43,99,161,251,294,321,366` verifies signature then parses provider payload types; malformed signed values return named 400 | PASS |
 
 ## Focused evidence
@@ -49,8 +49,9 @@ input return a named `400`; provider callbacks are separately identified.
 `rg -n '\bany\b' artifacts/api-server/src/routes artifacts/api-server/src/lib`
 still reports database relation adapters, PDF/SDK payload adapters, tests,
 generic sorting callback types, and string literals/comments.  They are not
-HTTP request-input values.  At this point the only delegated request-path
-work is `drip.ts` and `settings.ts`, owned by D; their final status must be
-recorded after D's changes land. No mutation,
+HTTP request-input values. D and F completed the delegated `drip.ts` and
+`settings.ts` validation, including company settings. Remaining `any` occurrences
+include database transaction/repository adapters and test doubles, not direct
+request-body casts; this is not a claim that every adapter is independently type-safe. No mutation,
 seed, matcher gate, model, consent constant, or migration `001`–`022` was
 changed in this section.
