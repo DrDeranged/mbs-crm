@@ -13,6 +13,8 @@ import * as schema from "@workspace/db/schema";
  * other pool checkout can accidentally run migrations outside the lock.
  */
 export const SCHEMA_MIGRATION_LOCK_KEY = 874242;
+export const SCHEMA_LOCK_TIMEOUT_MS = 15_000;
+export const SCHEMA_STATEMENT_TIMEOUT_MS = 60_000;
 
 export type SchemaBootFailure = {
   name: string;
@@ -58,9 +60,14 @@ export async function runSchemaBoot(options: {
   let client: DedicatedClient | undefined;
   try {
     client = await options.pool.connect();
+    // PostgreSQL advisory locks are connection-scoped and can otherwise wait
+    // forever. Bound both lock acquisition and every migration statement so a
+    // database stall degrades startup instead of creating a prolonged outage.
+    await client.query(`SET statement_timeout = ${SCHEMA_LOCK_TIMEOUT_MS}`);
     // Session-level lock is required here because each migration gets its own
     // transaction. The dedicated client keeps the lock for the whole sequence.
     await client.query("SELECT pg_advisory_lock($1)", [SCHEMA_MIGRATION_LOCK_KEY]);
+    await client.query(`SET statement_timeout = ${SCHEMA_STATEMENT_TIMEOUT_MS}`);
 
     // The narrow client interface above keeps this coordinator easy to test;
     // node-postgres supplies the fuller PoolClient shape at runtime.
@@ -87,6 +94,8 @@ export async function runSchemaBoot(options: {
   } finally {
     if (client) {
       try {
+        // Unlock should not inherit an expired migration statement deadline.
+        await client.query(`SET statement_timeout = ${SCHEMA_LOCK_TIMEOUT_MS}`);
         await client.query("SELECT pg_advisory_unlock($1)", [SCHEMA_MIGRATION_LOCK_KEY]);
       } catch (error) {
         options.logger.warn?.(

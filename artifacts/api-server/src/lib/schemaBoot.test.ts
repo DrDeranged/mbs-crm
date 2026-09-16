@@ -4,7 +4,12 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { runMigrations, type MigrationReport } from "@workspace/db/migrate";
-import { runSchemaBoot, SCHEMA_MIGRATION_LOCK_KEY } from "./schemaBoot";
+import {
+  runSchemaBoot,
+  SCHEMA_LOCK_TIMEOUT_MS,
+  SCHEMA_MIGRATION_LOCK_KEY,
+  SCHEMA_STATEMENT_TIMEOUT_MS,
+} from "./schemaBoot";
 
 function emptyReport(): MigrationReport {
   return {
@@ -144,8 +149,43 @@ test("a failed migration reports prior applied work and boot still releases its 
   assert.equal(result?.failed?.name, "002_second.sql");
   assert.deepEqual(result?.applied, ["001_first.sql"]);
   assert.ok(calls.includes(`error:MIGRATION FAILED: 002_second.sql: synthetic failure`), calls.join("|"));
+  assert.ok(calls.includes(`SET statement_timeout = ${SCHEMA_LOCK_TIMEOUT_MS}`));
   assert.ok(calls.includes(`SELECT pg_advisory_lock($1)`));
+  assert.ok(calls.includes(`SET statement_timeout = ${SCHEMA_STATEMENT_TIMEOUT_MS}`));
   assert.ok(calls.includes(`SELECT pg_advisory_unlock($1)`));
   assert.ok(calls.includes("release"));
   assert.equal(SCHEMA_MIGRATION_LOCK_KEY, 874242);
+});
+
+test("a timed-out advisory lock records degraded startup and releases the client", async () => {
+  const calls: string[] = [];
+  const client = {
+    async query(text: string) {
+      calls.push(text);
+      if (text.includes("pg_advisory_lock")) {
+        throw new Error("canceling statement due to statement timeout");
+      }
+      return {};
+    },
+    release: () => calls.push("release"),
+  };
+
+  const result = await runSchemaBoot({
+    pool: { connect: async () => client },
+    logger: {
+      info: (message) => calls.push(`info:${message}`),
+      error: (message) => calls.push(`error:${message}`),
+      warn: (message) => calls.push(`warn:${message}`),
+    },
+    runMigrations: async () => {
+      throw new Error("migrations must not run without the advisory lock");
+    },
+  });
+
+  assert.equal(result, null);
+  assert.ok(
+    calls.includes("error:MIGRATION FAILED: startup: canceling statement due to statement timeout"),
+    calls.join("|"),
+  );
+  assert.ok(calls.includes("release"));
 });
