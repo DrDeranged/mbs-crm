@@ -129,6 +129,7 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
 }
 
 buildAll().catch((err) => {
-  console.error(err);
+  const error = err instanceof Error ? err : new Error(String(err));
+  console.error(`FATAL: API server build failed\n${error.stack ?? error.message}`);
   process.exit(1);
 });

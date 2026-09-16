@@ -110,6 +110,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/tasks/:taskId` | `routes/tasks.ts:103` | `L` | task lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/documents` | `routes/documents.ts:51` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/documents` | `routes/documents.ts:80` | `L` | `lead.assignedRepId === user.id` for reps |
+| PATCH | `/api/documents/:docId` | `routes/documents.ts:154` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/documents/:docId/download` | `routes/documents.ts:138` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts:6` | `L` | handler checks `lead.assignedRepId === user.id` for reps (`lib/lenderPackage.ts:556-585`) |
 | GET | `/api/dashboard/summary` | `routes/dashboard.ts:57` | `M` | reps rejected |

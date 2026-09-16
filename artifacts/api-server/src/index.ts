@@ -7,6 +7,12 @@ import { runRenewalJob } from "./lib/renewalJob";
 import { runBackupJob } from "./lib/backupJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 import { closeBrowser } from "./lib/renderPdf";
+import { installProcessErrorHandlers } from "./lib/processHandlers";
+
+// Install these before validating startup configuration so module-level
+// startup failures are logged as fatal errors rather than disappearing as an
+// unhandled top-level throw.
+installProcessErrorHandlers();
 
 const rawPort = process.env["PORT"];
 
@@ -18,7 +24,7 @@ if (!rawPort) {
 
 const port = Number(rawPort);
 
-if (Number.isNaN(port) || port <= 0) {
+if (!Number.isFinite(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
@@ -40,7 +46,7 @@ export async function validateSchemaOnBoot(): Promise<void> {
 
 const server = app.listen(port, (err) => {
   if (err) {
-    logger.error({ err }, "Error listening on port");
+    logger.fatal({ err }, "FATAL: Error listening on port; exiting");
     process.exit(1);
   }
 
@@ -114,6 +120,7 @@ async function shutdown(signal: string) {
     process.exit(0);
   });
   setTimeout(() => {
+    logger.fatal("FATAL: Forced exit after 15s");
     process.exit(1);
   }, 15_000).unref();
 }
