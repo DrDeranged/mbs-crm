@@ -58,6 +58,10 @@ export const GetHealthDeepResponse = zod.object({
   "nativeRenderer": zod.string().describe('Native PDF rendering probe result; ok or unavailable with a safe reason.'),
   "puppeteer": zod.string().describe('Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.')
 }),
+  "schema": zod.object({
+  "applied": zod.number(),
+  "pending": zod.array(zod.string())
+}),
   "jobs": zod.record(zod.string(), zod.unknown()).optional(),
   "uptimeSeconds": zod.number().optional(),
   "timestamp": zod.coerce.date().optional()
@@ -94,6 +98,64 @@ export const GetAdminErrorsResponse = zod.object({
   "last7d": zod.number().optional()
 }).optional(),
   "jobs": zod.record(zod.string(), zod.unknown()).optional()
+})
+
+
+/**
+ * @summary List discovered schema migrations and their checksums (admin only)
+ */
+export const GetAdminMigrationStatusResponse = zod.object({
+  "applied": zod.array(zod.string()),
+  "detected": zod.array(zod.string()),
+  "skipped": zod.array(zod.string()),
+  "pending": zod.array(zod.string()),
+  "mismatches": zod.array(zod.object({
+  "name": zod.string(),
+  "expected": zod.string(),
+  "actual": zod.string()
+})),
+  "failed": zod.union([zod.null(),zod.object({
+  "name": zod.string(),
+  "error": zod.string()
+})]),
+  "migrations": zod.array(zod.object({
+  "name": zod.string(),
+  "id": zod.string(),
+  "checksum": zod.string(),
+  "status": zod.enum(['applied', 'pending', 'mismatch']),
+  "appliedAt": zod.coerce.date().nullish(),
+  "appliedChecksum": zod.string().nullish(),
+  "detectedAsApplied": zod.boolean().optional()
+}))
+})
+
+
+/**
+ * @summary Apply pending schema migrations one at a time (admin only)
+ */
+export const ApplyAdminMigrationsResponse = zod.object({
+  "applied": zod.array(zod.string()),
+  "detected": zod.array(zod.string()),
+  "skipped": zod.array(zod.string()),
+  "pending": zod.array(zod.string()),
+  "mismatches": zod.array(zod.object({
+  "name": zod.string(),
+  "expected": zod.string(),
+  "actual": zod.string()
+})),
+  "failed": zod.union([zod.null(),zod.object({
+  "name": zod.string(),
+  "error": zod.string()
+})]),
+  "migrations": zod.array(zod.object({
+  "name": zod.string(),
+  "id": zod.string(),
+  "checksum": zod.string(),
+  "status": zod.enum(['applied', 'pending', 'mismatch']),
+  "appliedAt": zod.coerce.date().nullish(),
+  "appliedChecksum": zod.string().nullish(),
+  "detectedAsApplied": zod.boolean().optional()
+}))
 })
 
 

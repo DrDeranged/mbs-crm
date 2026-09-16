@@ -1738,6 +1738,11 @@ export type DeepHealthResponsePdf = {
   puppeteer: string;
 };
 
+export type DeepHealthResponseSchema = {
+  applied: number;
+  pending: string[];
+};
+
 export type DeepHealthResponseJobs = { [key: string]: unknown };
 
 export interface DeepHealthResponse {
@@ -1745,9 +1750,52 @@ export interface DeepHealthResponse {
   db?: DeepHealthResponseDb;
   integrations?: DeepHealthResponseIntegrations;
   pdf: DeepHealthResponsePdf;
+  schema: DeepHealthResponseSchema;
   jobs?: DeepHealthResponseJobs;
   uptimeSeconds?: number;
   timestamp?: string;
+}
+
+export type MigrationReportMismatchesItem = {
+  name: string;
+  expected: string;
+  actual: string;
+};
+
+export type MigrationReportFailed = null | {
+  name: string;
+  error: string;
+};
+
+export type MigrationReportMigrationsItemStatus = typeof MigrationReportMigrationsItemStatus[keyof typeof MigrationReportMigrationsItemStatus];
+
+
+export const MigrationReportMigrationsItemStatus = {
+  applied: 'applied',
+  pending: 'pending',
+  mismatch: 'mismatch',
+} as const;
+
+export type MigrationReportMigrationsItem = {
+  name: string;
+  id: string;
+  checksum: string;
+  status: MigrationReportMigrationsItemStatus;
+  /** @nullable */
+  appliedAt?: string | null;
+  /** @nullable */
+  appliedChecksum?: string | null;
+  detectedAsApplied?: boolean;
+};
+
+export interface MigrationReport {
+  applied: string[];
+  detected: string[];
+  skipped: string[];
+  pending: string[];
+  mismatches: MigrationReportMismatchesItem[];
+  failed: MigrationReportFailed;
+  migrations: MigrationReportMigrationsItem[];
 }
 
 export type DealStage = typeof DealStage[keyof typeof DealStage];

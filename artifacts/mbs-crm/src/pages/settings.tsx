@@ -59,6 +59,17 @@ export default function Settings() {
   const [emailSendingEnabled, setEmailSendingEnabled] = useState(false);
   const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<{
+    applied: string[];
+    detected: string[];
+    skipped: string[];
+    pending: string[];
+    mismatches: Array<{ name: string; expected: string; actual: string }>;
+    failed: { name: string; error: string } | null;
+    migrations: Array<{ name: string; status: string; detectedAsApplied?: boolean }>;
+  } | null>(null);
+  const [migrationLoading, setMigrationLoading] = useState(false);
+  const [migrationError, setMigrationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (me?.role !== "admin") return;
@@ -83,6 +94,42 @@ export default function Settings() {
       .catch(() => {})
       .finally(() => setLoadingCompany(false));
   }, [me]);
+
+  const loadMigrationStatus = async () => {
+    if (!isAdmin) return;
+    try {
+      const response = await fetch(`${apiBase}/admin/migrations/status`, { credentials: "include" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Unable to read migration status.");
+      setMigrationStatus(payload);
+      setMigrationError(null);
+    } catch (error) {
+      setMigrationError(error instanceof Error ? error.message : "Unable to read migration status.");
+    }
+  };
+
+  useEffect(() => {
+    void loadMigrationStatus();
+  }, [isAdmin]);
+
+  const applyPendingMigrations = async () => {
+    setMigrationLoading(true);
+    setMigrationError(null);
+    try {
+      const response = await fetch(`${apiBase}/admin/migrations/apply`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Unable to apply migrations.");
+      setMigrationStatus(payload);
+    } catch (error) {
+      setMigrationError(error instanceof Error ? error.message : "Unable to apply migrations.");
+    } finally {
+      setMigrationLoading(false);
+    }
+  };
 
   const handleSaveCompany = async () => {
     setSavingCompany(true);
@@ -567,6 +614,34 @@ export default function Settings() {
               <CardDescription>Run narrowly scoped, admin-only maintenance actions for seeded CRM data.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="rounded-md border border-amber-600/30 bg-amber-50/60 p-4 max-w-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">Schema migrations</h3>
+                    <div className="text-sm text-muted-foreground">
+                      Apply numbered, checksum-verified migrations one at a time. Existing schema changes are detected safely and are not replayed.
+                    </div>
+                  </div>
+                  <Button onClick={applyPendingMigrations} disabled={migrationLoading} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                    {migrationLoading ? "Applying migrations…" : "Apply pending migrations"}
+                  </Button>
+                </div>
+                {migrationError && (
+                  <p className="mt-3 text-sm text-destructive" role="alert">{migrationError}</p>
+                )}
+                {migrationStatus && (
+                  <div className="mt-4 space-y-1 border-t pt-3 text-sm" aria-live="polite">
+                    <div className="font-medium">
+                      {migrationStatus.pending.length === 0 ? "Schema is up to date" : `${migrationStatus.pending.length} migration${migrationStatus.pending.length === 1 ? "" : "s"} pending`}
+                    </div>
+                    {migrationStatus.applied.length > 0 && <div className="text-muted-foreground">Applied now: {migrationStatus.applied.join(", ")}</div>}
+                    {migrationStatus.detected.length > 0 && <div className="text-muted-foreground">Detected already applied: {migrationStatus.detected.join(", ")}</div>}
+                    {migrationStatus.pending.length > 0 && <div className="text-amber-700">Pending: {migrationStatus.pending.join(", ")}</div>}
+                    {migrationStatus.mismatches.length > 0 && <div className="text-destructive">Checksum mismatch: {migrationStatus.mismatches.map((item) => item.name).join(", ")}</div>}
+                    {migrationStatus.failed && <div className="text-destructive">Failed: {migrationStatus.failed.name} — {migrationStatus.failed.error}</div>}
+                  </div>
+                )}
+              </div>
               <div className="rounded-md border border-[#1F4E79]/30 bg-[#1F4E79]/5 p-4 max-w-2xl">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
