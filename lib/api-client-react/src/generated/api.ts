@@ -120,6 +120,8 @@ import type {
   Lender,
   LenderInput,
   LenderMatch,
+  LenderPackageConfig,
+  LenderPackageConfigResponse,
   LenderSubmission,
   LenderSubmissionUpdate,
   ListDealsParams,
@@ -4125,6 +4127,374 @@ export function useDownloadLenderPackage<TData = Awaited<ReturnType<typeof downl
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getDownloadLenderPackageQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getBuildSelectedLenderPackageUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/lender-package`
+}
+
+/**
+ * @summary Build a PDF from the selected lender-package sections and documents
+ */
+export const buildSelectedLenderPackage = async (id: number,
+    lenderPackageConfig: LenderPackageConfig, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getBuildSelectedLenderPackageUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderPackageConfig,)
+  }
+);}
+
+
+
+
+export const getBuildSelectedLenderPackageMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof buildSelectedLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof buildSelectedLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext> => {
+
+const mutationKey = ['buildSelectedLenderPackage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof buildSelectedLenderPackage>>, {id: number;data: BodyType<LenderPackageConfig>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  buildSelectedLenderPackage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BuildSelectedLenderPackageMutationResult = NonNullable<Awaited<ReturnType<typeof buildSelectedLenderPackage>>>
+    export type BuildSelectedLenderPackageMutationBody = BodyType<LenderPackageConfig>
+    export type BuildSelectedLenderPackageMutationError = ErrorType<void>
+
+    /**
+ * @summary Build a PDF from the selected lender-package sections and documents
+ */
+export const useBuildSelectedLenderPackage = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof buildSelectedLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof buildSelectedLenderPackage>>,
+        TError,
+        {id: number;data: BodyType<LenderPackageConfig>},
+        TContext
+      > => {
+      return useMutation(getBuildSelectedLenderPackageMutationOptions(options));
+    }
+
+export const getGetLeadPackageConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/package-config`
+}
+
+/**
+ * @summary Get a lead's saved lender-package configuration
+ */
+export const getLeadPackageConfig = async (id: number, options?: RequestInit): Promise<LenderPackageConfigResponse> => {
+
+  return customFetch<LenderPackageConfigResponse>(getGetLeadPackageConfigUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadPackageConfigQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/package-config`
+    ] as const;
+    }
+
+
+export const getGetLeadPackageConfigQueryOptions = <TData = Awaited<ReturnType<typeof getLeadPackageConfig>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadPackageConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadPackageConfigQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadPackageConfig>>> = ({ signal }) => getLeadPackageConfig(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadPackageConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadPackageConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadPackageConfig>>>
+export type GetLeadPackageConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a lead's saved lender-package configuration
+ */
+
+export function useGetLeadPackageConfig<TData = Awaited<ReturnType<typeof getLeadPackageConfig>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadPackageConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadPackageConfigQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveLeadPackageConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/package-config`
+}
+
+/**
+ * @summary Save a lead's lender-package configuration
+ */
+export const saveLeadPackageConfig = async (id: number,
+    lenderPackageConfig: LenderPackageConfig, options?: RequestInit): Promise<LenderPackageConfigResponse> => {
+
+  return customFetch<LenderPackageConfigResponse>(getSaveLeadPackageConfigUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderPackageConfig,)
+  }
+);}
+
+
+
+
+export const getSaveLeadPackageConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveLeadPackageConfig>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveLeadPackageConfig>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext> => {
+
+const mutationKey = ['saveLeadPackageConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveLeadPackageConfig>>, {id: number;data: BodyType<LenderPackageConfig>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveLeadPackageConfig(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveLeadPackageConfigMutationResult = NonNullable<Awaited<ReturnType<typeof saveLeadPackageConfig>>>
+    export type SaveLeadPackageConfigMutationBody = BodyType<LenderPackageConfig>
+    export type SaveLeadPackageConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a lead's lender-package configuration
+ */
+export const useSaveLeadPackageConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveLeadPackageConfig>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveLeadPackageConfig>>,
+        TError,
+        {id: number;data: BodyType<LenderPackageConfig>},
+        TContext
+      > => {
+      return useMutation(getSaveLeadPackageConfigMutationOptions(options));
+    }
+
+export const getResetLeadPackageConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/package-config`
+}
+
+/**
+ * @summary Clear a lead's saved lender-package configuration
+ */
+export const resetLeadPackageConfig = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getResetLeadPackageConfigUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getResetLeadPackageConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetLeadPackageConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetLeadPackageConfig>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['resetLeadPackageConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetLeadPackageConfig>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  resetLeadPackageConfig(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetLeadPackageConfigMutationResult = NonNullable<Awaited<ReturnType<typeof resetLeadPackageConfig>>>
+
+    export type ResetLeadPackageConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear a lead's saved lender-package configuration
+ */
+export const useResetLeadPackageConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetLeadPackageConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resetLeadPackageConfig>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getResetLeadPackageConfigMutationOptions(options));
+    }
+
+export const getDownloadExactSubmissionPackageUrl = (id: number,) => {
+
+
+
+
+  return `/api/submissions/${id}/package`
+}
+
+/**
+ * @summary Download the immutable PDF package sent with a lender submission
+ */
+export const downloadExactSubmissionPackage = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadExactSubmissionPackageUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadExactSubmissionPackageQueryKey = (id: number,) => {
+    return [
+    `/api/submissions/${id}/package`
+    ] as const;
+    }
+
+
+export const getDownloadExactSubmissionPackageQueryOptions = <TData = Awaited<ReturnType<typeof downloadExactSubmissionPackage>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadExactSubmissionPackage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadExactSubmissionPackageQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadExactSubmissionPackage>>> = ({ signal }) => downloadExactSubmissionPackage(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadExactSubmissionPackage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadExactSubmissionPackageQueryResult = NonNullable<Awaited<ReturnType<typeof downloadExactSubmissionPackage>>>
+export type DownloadExactSubmissionPackageQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download the immutable PDF package sent with a lender submission
+ */
+
+export function useDownloadExactSubmissionPackage<TData = Awaited<ReturnType<typeof downloadExactSubmissionPackage>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadExactSubmissionPackage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadExactSubmissionPackageQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

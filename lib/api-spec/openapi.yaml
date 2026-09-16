@@ -1443,6 +1443,98 @@ paths:
           description: Lender package exceeds the maximum PDF size
         "500":
           description: Lender package generation failed
+    post:
+      operationId: buildSelectedLenderPackage
+      tags: [documents]
+      summary: Build a PDF from the selected lender-package sections and documents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderPackageConfig"
+      responses:
+        "200":
+          description: Selected lender package PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "400": { description: Invalid selection or document ownership }
+        "403": { description: Forbidden }
+        "404": { description: Lead or application not found }
+
+  /leads/{id}/package-config:
+    get:
+      operationId: getLeadPackageConfig
+      tags: [documents]
+      summary: Get a lead's saved lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Saved configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
+    put:
+      operationId: saveLeadPackageConfig
+      tags: [documents]
+      summary: Save a lead's lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LenderPackageConfig" }
+      responses:
+        "200":
+          description: Saved configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
+    delete:
+      operationId: resetLeadPackageConfig
+      tags: [documents]
+      summary: Clear a lead's saved lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Configuration cleared }
+
+  /submissions/{id}/package:
+    get:
+      operationId: downloadExactSubmissionPackage
+      tags: [lenders]
+      summary: Download the immutable PDF package sent with a lender submission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Exact sent package PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "403": { description: Forbidden }
+        "404": { description: Submission or package not found }
+        "409": { description: Package integrity validation failed }
 
   /users/{id}/application-form.pdf:
     get:
@@ -3051,6 +3143,8 @@ paths:
                    type: boolean
                    default: false
                    description: Administrators may bypass the rolling 24-hour duplicate limit
+                 package_config:
+                   $ref: "#/components/schemas/LenderPackageConfig"
       responses:
         "201":
           description: Submission created
@@ -5609,6 +5703,16 @@ components:
           type: ["string", "null"]
         messageId:
           type: ["string", "null"]
+        packageConfigSnapshot:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPackageConfig"
+            - type: "null"
+        exactPackageKey:
+          type: ["string", "null"]
+        exactPackageSha256:
+          type: ["string", "null"]
+        exactPackageBytes:
+          type: ["integer", "null"]
         sentAt:
           type: string
           format: date-time
@@ -6728,3 +6832,32 @@ components:
         jobs:
           type: object
           additionalProperties: true
+
+    LenderPackageConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        sections:
+          type: array
+          items:
+            type: string
+            enum: [cover, application, invoice_quote, bank_statement, drivers_license, tax_return, other]
+        documentIds:
+          type: array
+          items: { type: integer }
+        options:
+          type: object
+          additionalProperties: false
+          properties:
+            maskSsn: { type: boolean }
+            includeCoverPage: { type: boolean }
+            includeFooter: { type: boolean }
+
+    LenderPackageConfigResponse:
+      type: object
+      required: [packageConfig]
+      properties:
+        packageConfig:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPackageConfig"
+            - type: "null"

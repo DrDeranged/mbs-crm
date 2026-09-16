@@ -1615,6 +1615,90 @@ export const DownloadLenderPackageParams = zod.object({
 
 
 /**
+ * @summary Build a PDF from the selected lender-package sections and documents
+ */
+export const BuildSelectedLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const BuildSelectedLenderPackageBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+
+/**
+ * @summary Get a lead's saved lender-package configuration
+ */
+export const GetLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadPackageConfigResponse = zod.object({
+  "packageConfig": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Save a lead's lender-package configuration
+ */
+export const SaveLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SaveLeadPackageConfigBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+export const SaveLeadPackageConfigResponse = zod.object({
+  "packageConfig": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Clear a lead's saved lender-package configuration
+ */
+export const ResetLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Download the immutable PDF package sent with a lender submission
+ */
+export const DownloadExactSubmissionPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * Representatives may download only their own form. Administrators may download any user's form. Other roles are forbidden.
 
  * @summary Download the representative's blank finance application PDF
@@ -3654,6 +3738,18 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "exactPackageKey": zod.string().nullish(),
+  "exactPackageSha256": zod.string().nullish(),
+  "exactPackageBytes": zod.number().nullish(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3671,7 +3767,16 @@ export const createLeadSubmissionBodyAdminOverrideDefault = false;
 
 export const CreateLeadSubmissionBody = zod.object({
   "lender_id": zod.number(),
-  "admin_override": zod.boolean().default(createLeadSubmissionBodyAdminOverrideDefault).describe('Administrators may bypass the rolling 24-hour duplicate limit')
+  "admin_override": zod.boolean().default(createLeadSubmissionBodyAdminOverrideDefault).describe('Administrators may bypass the rolling 24-hour duplicate limit'),
+  "package_config": zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}).optional()
 })
 
 
@@ -3749,6 +3854,18 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "exactPackageKey": zod.string().nullish(),
+  "exactPackageSha256": zod.string().nullish(),
+  "exactPackageBytes": zod.number().nullish(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3834,6 +3951,18 @@ export const UpdateSubmissionResponse = zod.object({
   "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "exactPackageKey": zod.string().nullish(),
+  "exactPackageSha256": zod.string().nullish(),
+  "exactPackageBytes": zod.number().nullish(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3918,6 +4047,18 @@ export const PatchSubmissionResponse = zod.object({
   "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "exactPackageKey": zod.string().nullish(),
+  "exactPackageSha256": zod.string().nullish(),
+  "exactPackageBytes": zod.number().nullish(),
   "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

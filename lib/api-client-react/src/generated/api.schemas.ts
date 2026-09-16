@@ -1191,6 +1191,31 @@ export const LenderSubmissionStatus = {
   funded: 'funded',
 } as const;
 
+export type LenderPackageConfigSectionsItem = typeof LenderPackageConfigSectionsItem[keyof typeof LenderPackageConfigSectionsItem];
+
+
+export const LenderPackageConfigSectionsItem = {
+  cover: 'cover',
+  application: 'application',
+  invoice_quote: 'invoice_quote',
+  bank_statement: 'bank_statement',
+  drivers_license: 'drivers_license',
+  tax_return: 'tax_return',
+  other: 'other',
+} as const;
+
+export type LenderPackageConfigOptions = {
+  maskSsn?: boolean;
+  includeCoverPage?: boolean;
+  includeFooter?: boolean;
+};
+
+export interface LenderPackageConfig {
+  sections?: LenderPackageConfigSectionsItem[];
+  documentIds?: number[];
+  options?: LenderPackageConfigOptions;
+}
+
 export interface LenderSubmission {
   id: number;
   leadId: number;
@@ -1206,6 +1231,13 @@ export interface LenderSubmission {
   notes?: string | null;
   /** @nullable */
   messageId?: string | null;
+  packageConfigSnapshot?: LenderPackageConfig | null;
+  /** @nullable */
+  exactPackageKey?: string | null;
+  /** @nullable */
+  exactPackageSha256?: string | null;
+  /** @nullable */
+  exactPackageBytes?: number | null;
   sentAt: string;
   updatedAt: string;
 }
@@ -2354,6 +2386,10 @@ export interface AdminErrorsResponse {
   jobs?: AdminErrorsResponseJobs;
 }
 
+export interface LenderPackageConfigResponse {
+  packageConfig: LenderPackageConfig | null;
+}
+
 export type GetAdminErrorsParams = {
 page?: number;
 };
@@ -2998,6 +3034,7 @@ export type CreateLeadSubmissionBody = {
   lender_id: number;
   /** Administrators may bypass the rolling 24-hour duplicate limit */
   admin_override?: boolean;
+  package_config?: LenderPackageConfig;
 };
 
 export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof typeof UpdateSubmissionBodyStatus];
