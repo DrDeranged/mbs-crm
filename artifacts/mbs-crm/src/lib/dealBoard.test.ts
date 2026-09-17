@@ -1,11 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  DEAL_STAGE_COLUMNS,
   dealMatchesView,
   formatGmDisplay,
   serializeDealViewStages,
   visibleDealTotals,
 } from "./dealBoard.ts";
+
+test("kanban has exactly nine supported deal-stage columns", () => {
+    assert.equal(DEAL_STAGE_COLUMNS.length, 9);
+    assert.deepEqual(
+      DEAL_STAGE_COLUMNS.map((stage) => stage.id),
+      [
+        "waiting_on_app",
+        "information_needed",
+        "submitted",
+        "approved",
+        "in_funding",
+        "funded",
+        "hold_on",
+        "declined",
+        "dead",
+      ],
+    );
+});
 
 test("uses the exact built-in view stage predicates and serialization", () => {
     assert.equal(serializeDealViewStages("all"), undefined);

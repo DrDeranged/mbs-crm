@@ -49,60 +49,14 @@ import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   type DealView,
+  DEAL_STAGE_COLUMNS,
   formatGmDisplay,
   serializeDealViewStages,
   visibleDealTotals,
 } from "@/lib/dealBoard";
 import { createNoteSaveController } from "@/lib/noteSaveController";
 
-const STAGES = [
-  {
-    id: DealStage.waiting_on_app,
-    label: "Waiting on App",
-    color: "bg-gray-100 text-gray-700",
-  },
-  {
-    id: DealStage.information_needed,
-    label: "Info Needed",
-    color: "bg-orange-100 text-orange-700",
-  },
-  {
-    id: DealStage.submitted,
-    label: "Submitted",
-    color: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: DealStage.approved,
-    label: "Approved",
-    color: "bg-green-100 text-green-700",
-  },
-  {
-    id: DealStage.going_to_funding,
-    label: "Going to Funding",
-    color: "bg-teal-100 text-teal-700",
-  },
-  {
-    id: DealStage.in_funding,
-    label: "In Funding",
-    color: "bg-indigo-100 text-indigo-700",
-  },
-  {
-    id: DealStage.funded,
-    label: "Funded",
-    color: "bg-[#17A567]/10 text-[#149258]",
-  },
-  {
-    id: DealStage.hold_on,
-    label: "Hold On",
-    color: "bg-yellow-100 text-yellow-700",
-  },
-  {
-    id: DealStage.declined,
-    label: "Declined",
-    color: "bg-red-100 text-red-700",
-  },
-  { id: DealStage.dead, label: "Dead", color: "bg-slate-100 text-slate-700" },
-];
+const STAGES = DEAL_STAGE_COLUMNS;
 
 function formatCurrency(val?: number | null) {
   if (val == null) return "—";

@@ -1784,7 +1784,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+            enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         - name: stages
           in: query
           description: Comma-separated stage values for multi-stage views
@@ -1792,7 +1792,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+              enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
           style: form
           explode: false
         - name: search
@@ -1868,7 +1868,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+            enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         - name: stages
           in: query
           description: Comma-separated stage values for multi-stage views
@@ -1876,7 +1876,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+              enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
           style: form
           explode: false
         - name: search
@@ -6708,7 +6708,7 @@ components:
         dealName: { type: string }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6738,7 +6738,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6752,7 +6752,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6805,7 +6805,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }

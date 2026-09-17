@@ -28,6 +28,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { DetailLoadError } from "@/components/detail-load-error";
 import { getQueryErrorStatus } from "@/lib/query-error";
+import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
@@ -146,18 +147,7 @@ function SubmissionRow({ submission, dealId }: { submission: any; dealId: number
   );
 }
 
-const STAGES = [
-  { id: DealStage.waiting_on_app, label: "Waiting on App" },
-  { id: DealStage.information_needed, label: "Info Needed" },
-  { id: DealStage.submitted, label: "Submitted" },
-  { id: DealStage.approved, label: "Approved" },
-  { id: DealStage.going_to_funding, label: "Going to Funding" },
-  { id: DealStage.in_funding, label: "In Funding" },
-  { id: DealStage.funded, label: "Funded" },
-  { id: DealStage.hold_on, label: "Hold On" },
-  { id: DealStage.declined, label: "Declined" },
-  { id: DealStage.dead, label: "Dead" },
-];
+const STAGES = DEAL_STAGE_COLUMNS;
 
 export default function DealDetail() {
   const { id } = useParams();

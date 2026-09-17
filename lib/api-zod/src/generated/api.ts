@@ -2212,8 +2212,8 @@ export const listDealsQuerySortByDefault = `updatedAt`;
 export const listDealsQuerySortOrderDefault = `desc`;
 
 export const ListDealsQueryParams = zod.object({
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
-  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -2236,7 +2236,7 @@ export const ListDealsResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2293,7 +2293,7 @@ export const createDealBodyGmSplitPctMax = 100;
 export const CreateDealBody = zod.object({
   "leadId": zod.number().nullish(),
   "dealName": zod.string().min(1),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2311,8 +2311,8 @@ export const exportDealsQuerySortByDefault = `updatedAt`;
 export const exportDealsQuerySortOrderDefault = `desc`;
 
 export const ExportDealsQueryParams = zod.object({
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
-  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -2340,7 +2340,7 @@ export const GetDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2418,7 +2418,7 @@ export const updateDealBodyGmSplitPctMax = 100;
 
 export const UpdateDealBody = zod.object({
   "dealName": zod.string().min(1).optional(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2436,7 +2436,7 @@ export const UpdateDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2499,7 +2499,7 @@ export const ArchiveDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2586,7 +2586,7 @@ export const convertLeadToDealBodyGmSplitPctMax = 100;
 
 export const ConvertLeadToDealBody = zod.object({
   "dealName": zod.string().min(1).optional(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
