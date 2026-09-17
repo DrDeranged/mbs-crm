@@ -512,6 +512,8 @@ export interface Document {
   fileType: string;
   fileSize: number;
   category: DocumentCategory;
+  /** @nullable */
+  label?: string | null;
   createdAt: string;
 }
 
@@ -865,6 +867,7 @@ export interface TaskUpdate {
 export interface NewDocumentUpload {
   file: Blob;
   category: DocumentCategory;
+  label?: string;
 }
 
 export interface DocumentCategoryUpdate {
@@ -2108,6 +2111,61 @@ export interface Deal {
   lastActivityAt?: string | null;
   /** User who performed the most recent activity */
   lastActivityActor?: User | null;
+}
+
+export type DealApprovalContractType = typeof DealApprovalContractType[keyof typeof DealApprovalContractType];
+
+
+export const DealApprovalContractType = {
+  EFA: 'EFA',
+  lease: 'lease',
+  loan: 'loan',
+} as const;
+
+export interface DealApproval {
+  id: number;
+  dealId: number;
+  lenderId: number;
+  lenderName: string;
+  contractType: DealApprovalContractType;
+  advance: number;
+  payment: number;
+  /** @minimum 1 */
+  term: number;
+  downPayment: number;
+  tier: string;
+  expiresOn: string;
+  /** @nullable */
+  approvalDocumentId: number | null;
+  createdAt: string;
+}
+
+export type DealApprovalInputContractType = typeof DealApprovalInputContractType[keyof typeof DealApprovalInputContractType];
+
+
+export const DealApprovalInputContractType = {
+  EFA: 'EFA',
+  lease: 'lease',
+  loan: 'loan',
+} as const;
+
+export interface DealApprovalInput {
+  /** @minimum 1 */
+  lenderId: number;
+  contractType: DealApprovalInputContractType;
+  /** @exclusiveMinimum 0 */
+  advance: number;
+  /** @exclusiveMinimum 0 */
+  payment: number;
+  /** @minimum 1 */
+  term: number;
+  /** @minimum 0 */
+  downPayment: number;
+  /** @minLength 1 */
+  tier: string;
+  expiresOn: string;
+  /** @nullable */
+  approvalDocumentId?: number | null;
 }
 
 export type DealInputStage = typeof DealInputStage[keyof typeof DealInputStage];

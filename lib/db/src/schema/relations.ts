@@ -16,6 +16,7 @@ import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
 import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
+import { dealApprovalsTable } from "./dealApprovals";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
@@ -63,6 +64,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   notifications: many(notificationsTable),
   retiredRepSlugs: many(retiredRepSlugsTable),
   lenderSubmissions: many(lenderSubmissionsTable),
+  approvals: many(dealApprovalsTable),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({
@@ -165,6 +167,14 @@ export const dealsRelations = relations(dealsTable, ({ one, many }) => ({
   }),
   activityLog: many(activityLogTable),
   lenderSubmissions: many(lenderSubmissionsTable),
+  approvals: many(dealApprovalsTable),
+}));
+
+export const dealApprovalsRelations = relations(dealApprovalsTable, ({ one }) => ({
+  deal: one(dealsTable, { fields: [dealApprovalsTable.dealId], references: [dealsTable.id] }),
+  lender: one(lendersTable, { fields: [dealApprovalsTable.lenderId], references: [lendersTable.id] }),
+  document: one(documentsTable, { fields: [dealApprovalsTable.approvalDocumentId], references: [documentsTable.id] }),
+  creator: one(usersTable, { fields: [dealApprovalsTable.createdBy], references: [usersTable.id] }),
 }));
 
 export const communicationsRelations = relations(communicationsTable, ({ one }) => ({

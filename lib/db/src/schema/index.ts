@@ -2,6 +2,7 @@ export * from "./users";
 export * from "./retiredRepSlugs";
 export * from "./leads";
 export * from "./deals";
+export * from "./dealApprovals";
 export * from "./companies";
 export * from "./notes";
 export * from "./tasks";

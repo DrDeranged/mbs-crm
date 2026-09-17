@@ -18,6 +18,9 @@ import {
   leadsTable,
   usersTable,
   DEAL_STAGES,
+  dealApprovalsTable,
+  documentsTable,
+  lendersTable,
 } from "@workspace/db";
 import { db } from "@workspace/db";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
@@ -32,6 +35,7 @@ import {
   CreateDealBody,
   UpdateDealBody,
   ConvertLeadToDealBody,
+  CreateDealApprovalBody,
 } from "@workspace/api-zod";
 import { latestDealActivitySort } from "../lib/latestActivitySort";
 import { activeDealStageCondition } from "../lib/activeDealStages";
@@ -701,6 +705,119 @@ router.get("/deals/:id/activity", async (req, res): Promise<void> => {
       createdAt: entry.createdAt.toISOString(),
     })),
   );
+});
+
+function approvalToApi(approval: any) {
+  return {
+    id: approval.id,
+    dealId: approval.dealId,
+    lenderId: approval.lenderId,
+    lenderName: approval.lender?.name ?? `Lender #${approval.lenderId}`,
+    contractType: approval.contractType,
+    advance: Number(approval.advance),
+    payment: Number(approval.payment),
+    term: approval.term,
+    downPayment: Number(approval.downPayment),
+    tier: approval.tier,
+    expiresOn: approval.expiresOn,
+    approvalDocumentId: approval.approvalDocumentId ?? null,
+    createdAt: approval.createdAt.toISOString(),
+  };
+}
+
+async function findAccessibleDeal(id: number, user: typeof usersTable.$inferSelect) {
+  const deal = await db.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
+  if (!deal || !canAccessDeal(user, deal)) return null;
+  return deal;
+}
+
+router.get("/deals/:id/approvals", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = parseId(req, res);
+  if (!id) return;
+  const deal = await findAccessibleDeal(id, user);
+  if (!deal) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+  const rows = await db.query.dealApprovalsTable.findMany({
+    where: eq(dealApprovalsTable.dealId, id),
+    with: { lender: true },
+    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
+  });
+  res.json(rows.map(approvalToApi));
+});
+
+router.post("/deals/:id/approvals", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = parseId(req, res);
+  if (!id) return;
+  const deal = await findAccessibleDeal(id, user);
+  if (!deal) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+  const parsed = CreateDealApprovalBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid approval", details: parsed.error.issues });
+    return;
+  }
+  const lender = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, parsed.data.lenderId) });
+  if (!lender) {
+    res.status(404).json({ error: "Lender not found" });
+    return;
+  }
+  if (parsed.data.approvalDocumentId != null) {
+    const document = await db.query.documentsTable.findFirst({
+      where: eq(documentsTable.id, parsed.data.approvalDocumentId),
+    });
+    const isPdf = document?.fileType === "application/pdf" || document?.filename.toLowerCase().endsWith(".pdf");
+    if (
+      !document ||
+      document.leadId !== deal.leadId ||
+      document.category !== "other" ||
+      document.label !== "Approval" ||
+      !isPdf
+    ) {
+      res.status(400).json({ error: "Approval document must belong to the deal lead, be a PDF, category other, and have label Approval" });
+      return;
+    }
+  }
+  const [approval] = await db.insert(dealApprovalsTable).values({
+    dealId: id,
+    lenderId: parsed.data.lenderId,
+    contractType: parsed.data.contractType,
+    advance: parsed.data.advance,
+    payment: parsed.data.payment,
+    term: parsed.data.term,
+    downPayment: parsed.data.downPayment,
+    tier: parsed.data.tier,
+    expiresOn: parsed.data.expiresOn.toISOString().slice(0, 10),
+    approvalDocumentId: parsed.data.approvalDocumentId ?? null,
+    createdBy: user.id,
+  }).returning();
+  await logActivity({
+    userId: user.id,
+    leadId: deal.leadId,
+    dealId: id,
+    action: "approval_captured",
+    entityType: "deal_approval",
+    entityId: approval.id,
+    details: {
+      lenderId: approval.lenderId,
+      contractType: approval.contractType,
+      advance: approval.advance,
+      payment: approval.payment,
+      term: approval.term,
+      downPayment: approval.downPayment,
+      tier: approval.tier,
+      expiresOn: approval.expiresOn,
+      approvalDocumentId: approval.approvalDocumentId,
+    },
+  });
+  res.status(201).json(approvalToApi({ ...approval, lender }));
 });
 
 router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {

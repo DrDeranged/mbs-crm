@@ -2013,6 +2013,52 @@ paths:
                 items:
                   $ref: "#/components/schemas/DealActivity"
 
+  /deals/{id}/approvals:
+    get:
+      operationId: listDealApprovals
+      tags: [deals]
+      summary: List historical lender approvals for a deal, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deal approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DealApproval" }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal not found }
+    post:
+      operationId: createDealApproval
+      tags: [deals]
+      summary: Capture a lender approval for a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DealApprovalInput" }
+      responses:
+        "201":
+          description: Captured approval
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DealApproval" }
+        "400": { description: Invalid approval or document reference }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal or lender not found }
+
   /leads/{id}/convert-to-deal:
     post:
       operationId: convertLeadToDeal
@@ -5192,6 +5238,8 @@ components:
           type: integer
         category:
           $ref: "#/components/schemas/DocumentCategory"
+        label:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -5215,6 +5263,8 @@ components:
           format: binary
         category:
           $ref: "#/components/schemas/DocumentCategory"
+        label:
+          type: string
 
     DocumentCategoryUpdate:
       type: object
@@ -6729,6 +6779,38 @@ components:
             - $ref: "#/components/schemas/User"
             - type: "null"
           description: User who performed the most recent activity
+
+    DealApproval:
+      type: object
+      required: [id, dealId, lenderId, lenderName, contractType, advance, payment, term, downPayment, tier, expiresOn, approvalDocumentId, createdAt]
+      properties:
+        id: { type: integer }
+        dealId: { type: integer }
+        lenderId: { type: integer }
+        lenderName: { type: string }
+        contractType: { type: string, enum: [EFA, lease, loan] }
+        advance: { type: number }
+        payment: { type: number }
+        term: { type: integer, minimum: 1 }
+        downPayment: { type: number }
+        tier: { type: string }
+        expiresOn: { type: string, format: date }
+        approvalDocumentId: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    DealApprovalInput:
+      type: object
+      required: [lenderId, contractType, advance, payment, term, downPayment, tier, expiresOn]
+      properties:
+        lenderId: { type: integer, minimum: 1 }
+        contractType: { type: string, enum: [EFA, lease, loan] }
+        advance: { type: number, exclusiveMinimum: 0 }
+        payment: { type: number, exclusiveMinimum: 0 }
+        term: { type: integer, minimum: 1 }
+        downPayment: { type: number, minimum: 0 }
+        tier: { type: string, minLength: 1 }
+        expiresOn: { type: string, format: date }
+        approvalDocumentId: { type: ["integer", "null"] }
 
     DealInput:
       type: object

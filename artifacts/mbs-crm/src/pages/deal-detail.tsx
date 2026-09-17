@@ -11,6 +11,11 @@ import {
   useGetDealSubmissions,
   getGetDealSubmissionsQueryKey,
   useUpdateSubmission,
+  useListDealApprovals,
+  getListDealApprovalsQueryKey,
+  useCreateDealApproval,
+  useListLenders,
+  useUploadDocument,
   downloadExactSubmissionPackage
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
@@ -21,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck, Download } from "lucide-react";
+import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck, Download, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
@@ -29,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { DetailLoadError } from "@/components/detail-load-error";
 import { getQueryErrorStatus } from "@/lib/query-error";
 import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
+import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
@@ -165,7 +171,11 @@ export default function DealDetail() {
   const { data: me } = useGetMe();
 
   const { data: submissions } = useGetDealSubmissions(dealId, { query: { queryKey: getGetDealSubmissionsQueryKey(dealId), enabled: !!dealId } });
+  const { data: approvals } = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
+  const { data: lenders } = useListLenders();
   const updateDeal = useUpdateDeal();
+  const createApproval = useCreateDealApproval();
+  const uploadDocument = useUploadDocument();
   const archiveDeal = useArchiveDeal();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -179,6 +189,29 @@ export default function DealDetail() {
     stage: "",
     assignedTo: ""
   });
+  const [approvalForm, setApprovalForm] = useState({
+    lenderId: "",
+    contractType: "EFA",
+    advance: "",
+    payment: "",
+    term: "",
+    downPayment: "0",
+    tier: "",
+    expiresOn: "",
+  });
+  const [approvalFile, setApprovalFile] = useState<File | null>(null);
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const latest = latestApproval((approvals ?? []) as Array<{
+    id: number;
+    createdAt: string;
+    lenderName: string;
+    contractType: string;
+    advance: number;
+    payment: number;
+    term: number;
+    expiresOn: string;
+  }>);
+  const calculatorPrefill = approvalToCalculatorPrefill(latest);
 
   useEffect(() => {
     if (deal && !editMode) {
@@ -227,6 +260,53 @@ export default function DealDetail() {
         setLocation("/deals");
       }
     });
+  };
+
+  const saveApproval = async () => {
+    const leadId = deal?.leadId;
+    if (!approvalForm.lenderId || !approvalForm.advance || !approvalForm.payment ||
+        !approvalForm.term || !approvalForm.tier || !approvalForm.expiresOn) {
+      toast({ title: "Complete all approval fields", variant: "destructive" });
+      return;
+    }
+    if (approvalFile && !leadId) {
+      toast({
+        title: "Link this deal to a lead first",
+        description: "An approval PDF can only be uploaded for a deal linked to a lead.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      let approvalDocumentId: number | null = null;
+      if (approvalFile) {
+        const uploaded = await uploadDocument.mutateAsync({
+          id: leadId!,
+          data: { file: approvalFile, category: "other", label: "Approval" },
+        });
+        approvalDocumentId = uploaded.id;
+      }
+      await createApproval.mutateAsync({
+        id: dealId,
+        data: {
+          lenderId: Number(approvalForm.lenderId),
+          contractType: approvalForm.contractType as "EFA" | "lease" | "loan",
+          advance: Number(approvalForm.advance),
+          payment: Number(approvalForm.payment),
+          term: Number(approvalForm.term),
+          downPayment: Number(approvalForm.downPayment || 0),
+          tier: approvalForm.tier,
+          expiresOn: approvalForm.expiresOn,
+          approvalDocumentId,
+        },
+      });
+      await queryClient.invalidateQueries({ queryKey: getListDealApprovalsQueryKey(dealId) });
+      setApprovalOpen(false);
+      setApprovalFile(null);
+      toast({ title: "Approval captured" });
+    } catch (error: any) {
+      toast({ title: "Could not capture approval", description: mutationErrorMessage(error, "Please try again"), variant: "destructive" });
+    }
   };
 
   if (dealLoading) {
@@ -399,6 +479,49 @@ export default function DealDetail() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm border-gray-200/60 overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Latest Approval</CardTitle>
+                {latest && <CardDescription className="mt-1">{latest.lenderName} · {latest.contractType}</CardDescription>}
+              </div>
+              <Button size="sm" variant={approvalOpen ? "outline" : "default"} onClick={() => setApprovalOpen((open) => !open)}>
+                {approvalOpen ? <X className="w-4 h-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                {approvalOpen ? "Cancel" : "Add approval"}
+              </Button>
+            </CardHeader>
+            <CardContent className="p-6">
+              {latest && !approvalOpen && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-5">
+                  <div><div className="text-xs text-muted-foreground">Advance</div><div className="font-semibold">${Number(latest.advance).toLocaleString()}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Payment</div><div className="font-semibold">${Number(latest.payment).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><div className="text-xs text-muted-foreground">Term</div><div className="font-semibold">{latest.term} payments</div></div>
+                  <div><div className="text-xs text-muted-foreground">Expiry</div><div className={cn("font-semibold", approvalDaysUntil(latest.expiresOn) < 0 ? "text-red-600" : "text-emerald-600")}>{approvalDaysUntil(latest.expiresOn)} days</div></div>
+                </div>
+              )}
+              {!latest && !approvalOpen && <div className="text-sm text-muted-foreground py-2">No lender approval captured yet.</div>}
+              {latest && !approvalOpen && (
+                <Link href={`/rate-converter?dealId=${dealId}&advance=${encodeURIComponent(calculatorPrefill?.amount ?? "")}&payment=${encodeURIComponent(calculatorPrefill?.payment ?? "")}&term=${encodeURIComponent(calculatorPrefill?.term ?? "")}`}>
+                  <Button variant="outline" size="sm"><FileText className="w-4 h-4 mr-1" />Open calculator with approval</Button>
+                </Link>
+              )}
+              {approvalOpen && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-1.5"><Label>Lender</Label><Select value={approvalForm.lenderId} onValueChange={(value) => setApprovalForm((f) => ({ ...f, lenderId: value }))}><SelectTrigger><SelectValue placeholder="Select lender" /></SelectTrigger><SelectContent>{lenders?.map((lender) => <SelectItem key={lender.id} value={String(lender.id)}>{lender.name}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="space-y-1.5"><Label>Contract type</Label><Select value={approvalForm.contractType} onValueChange={(value) => setApprovalForm((f) => ({ ...f, contractType: value }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="EFA">EFA</SelectItem><SelectItem value="lease">Lease</SelectItem><SelectItem value="loan">Loan</SelectItem></SelectContent></Select></div>
+                  <div className="space-y-1.5"><Label>Tier</Label><Input value={approvalForm.tier} onChange={(e) => setApprovalForm((f) => ({ ...f, tier: e.target.value }))} placeholder="A" /></div>
+                  <div className="space-y-1.5"><Label>Advance</Label><Input type="number" step="0.01" value={approvalForm.advance} onChange={(e) => setApprovalForm((f) => ({ ...f, advance: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>Payment</Label><Input type="number" step="0.01" value={approvalForm.payment} onChange={(e) => setApprovalForm((f) => ({ ...f, payment: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>Term</Label><Input type="number" min="1" value={approvalForm.term} onChange={(e) => setApprovalForm((f) => ({ ...f, term: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>Down payment</Label><Input type="number" step="0.01" value={approvalForm.downPayment} onChange={(e) => setApprovalForm((f) => ({ ...f, downPayment: e.target.value }))} /></div>
+                  <div className="space-y-1.5"><Label>Expiry date</Label><Input type="date" value={approvalForm.expiresOn} onChange={(e) => setApprovalForm((f) => ({ ...f, expiresOn: e.target.value }))} /></div>
+                  <div className="col-span-2 space-y-1.5"><Label>Approval PDF (optional)</Label><Input type="file" accept="application/pdf,.pdf" onChange={(e) => setApprovalFile(e.target.files?.[0] ?? null)} /><p className="text-xs text-muted-foreground">Saved as document category “other” with label “Approval”.</p></div>
+                  <div className="col-span-2 flex justify-end"><Button onClick={saveApproval} disabled={createApproval.isPending || uploadDocument.isPending}>{createApproval.isPending || uploadDocument.isPending ? "Saving…" : "Save approval"}</Button></div>
                 </div>
               )}
             </CardContent>

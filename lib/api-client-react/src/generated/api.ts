@@ -57,6 +57,8 @@ import type {
   DashboardSummary,
   Deal,
   DealActivity,
+  DealApproval,
+  DealApprovalInput,
   DealDetail,
   DealInput,
   DealListResponse,
@@ -4308,6 +4310,9 @@ export const uploadDocument = async (id: number,
     const formData = new FormData();
 formData.append(`file`, newDocumentUpload.file);
 formData.append(`category`, newDocumentUpload.category);
+if(newDocumentUpload.label !== undefined) {
+ formData.append(`label`, newDocumentUpload.label);
+ }
 
   return customFetch<Document>(getUploadDocumentUrl(id),
   {
@@ -6031,6 +6036,155 @@ export function useListDealActivity<TData = Awaited<ReturnType<typeof listDealAc
 
 
 
+
+export const getListDealApprovalsUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/approvals`
+}
+
+/**
+ * @summary List historical lender approvals for a deal, newest first
+ */
+export const listDealApprovals = async (id: number, options?: RequestInit): Promise<DealApproval[]> => {
+
+  return customFetch<DealApproval[]>(getListDealApprovalsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDealApprovalsQueryKey = (id: number,) => {
+    return [
+    `/api/deals/${id}/approvals`
+    ] as const;
+    }
+
+
+export const getListDealApprovalsQueryOptions = <TData = Awaited<ReturnType<typeof listDealApprovals>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDealApprovals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDealApprovalsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDealApprovals>>> = ({ signal }) => listDealApprovals(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDealApprovals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDealApprovalsQueryResult = NonNullable<Awaited<ReturnType<typeof listDealApprovals>>>
+export type ListDealApprovalsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List historical lender approvals for a deal, newest first
+ */
+
+export function useListDealApprovals<TData = Awaited<ReturnType<typeof listDealApprovals>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDealApprovals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDealApprovalsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateDealApprovalUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/approvals`
+}
+
+/**
+ * @summary Capture a lender approval for a deal
+ */
+export const createDealApproval = async (id: number,
+    dealApprovalInput: DealApprovalInput, options?: RequestInit): Promise<DealApproval> => {
+
+  return customFetch<DealApproval>(getCreateDealApprovalUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dealApprovalInput,)
+  }
+);}
+
+
+
+
+export const getCreateDealApprovalMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDealApproval>>, TError,{id: number;data: BodyType<DealApprovalInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDealApproval>>, TError,{id: number;data: BodyType<DealApprovalInput>}, TContext> => {
+
+const mutationKey = ['createDealApproval'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDealApproval>>, {id: number;data: BodyType<DealApprovalInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createDealApproval(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDealApprovalMutationResult = NonNullable<Awaited<ReturnType<typeof createDealApproval>>>
+    export type CreateDealApprovalMutationBody = BodyType<DealApprovalInput>
+    export type CreateDealApprovalMutationError = ErrorType<void>
+
+    /**
+ * @summary Capture a lender approval for a deal
+ */
+export const useCreateDealApproval = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDealApproval>>, TError,{id: number;data: BodyType<DealApprovalInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDealApproval>>,
+        TError,
+        {id: number;data: BodyType<DealApprovalInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDealApprovalMutationOptions(options));
+    }
 
 export const getConvertLeadToDealUrl = (id: number,) => {
 

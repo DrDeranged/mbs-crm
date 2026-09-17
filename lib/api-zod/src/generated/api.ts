@@ -1222,6 +1222,7 @@ export const GetLeadResponse = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })).optional(),
   "recentActivity": zod.array(zod.object({
@@ -1698,6 +1699,7 @@ export const ListDocumentsResponseItem = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListDocumentsResponse = zod.array(ListDocumentsResponseItem)
@@ -1712,7 +1714,8 @@ export const UploadDocumentParams = zod.object({
 
 export const UploadDocumentBody = zod.object({
   "file": zod.instanceof(File),
-  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other'])
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().optional()
 })
 
 
@@ -1748,6 +1751,7 @@ export const UpdateDocumentCategoryResponse = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -2568,6 +2572,65 @@ export const ListDealActivityResponseItem = zod.object({
   "createdAt": zod.coerce.date()
 })
 export const ListDealActivityResponse = zod.array(ListDealActivityResponseItem)
+
+
+/**
+ * @summary List historical lender approvals for a deal, newest first
+ */
+export const ListDealApprovalsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ListDealApprovalsResponseItem = zod.object({
+  "id": zod.number(),
+  "dealId": zod.number(),
+  "lenderId": zod.number(),
+  "lenderName": zod.string(),
+  "contractType": zod.enum(['EFA', 'lease', 'loan']),
+  "advance": zod.number(),
+  "payment": zod.number(),
+  "term": zod.number().min(1),
+  "downPayment": zod.number(),
+  "tier": zod.string(),
+  "expiresOn": zod.coerce.date(),
+  "approvalDocumentId": zod.number().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListDealApprovalsResponse = zod.array(ListDealApprovalsResponseItem)
+
+
+/**
+ * @summary Capture a lender approval for a deal
+ */
+export const CreateDealApprovalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const createDealApprovalBodyAdvanceExclusiveMin = 0;
+
+export const createDealApprovalBodyPaymentExclusiveMin = 0;
+
+
+export const createDealApprovalBodyDownPaymentMin = 0;
+
+
+
+
+export const CreateDealApprovalBody = zod.object({
+  "lenderId": zod.number().min(1),
+  "contractType": zod.enum(['EFA', 'lease', 'loan']),
+  "advance": zod.number().gt(createDealApprovalBodyAdvanceExclusiveMin),
+  "payment": zod.number().gt(createDealApprovalBodyPaymentExclusiveMin),
+  "term": zod.number().min(1),
+  "downPayment": zod.number().min(createDealApprovalBodyDownPaymentMin),
+  "tier": zod.string().min(1),
+  "expiresOn": zod.coerce.date(),
+  "approvalDocumentId": zod.number().nullish()
+})
 
 
 /**

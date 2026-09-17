@@ -4,7 +4,7 @@
 **Audited revision:** `4bd0fde0478f25847f9eb8e5ef5ee93ffc673364` plus the
 Section A fixes listed below plus subsequent registered features. The effective
 API mount is `/api`; paths in this matrix include it. The router contains
-**178 method registrations** (`get`, `post`, `put`, and `delete`).
+**180 method registrations** (`get`, `post`, `put`, and `delete`).
 `router.use` mounts are not counted as registrations; factory registrations
 are counted at their declaration line.
 
@@ -212,6 +212,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/deals/:id/archive` | `routes/deals.ts:573` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
 | DELETE | `/api/deals/:id` | `routes/deals.ts:605` | `A` | reps rejected |
 | GET | `/api/deals/:id/activity` | `routes/deals.ts:625` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
+| GET | `/api/deals/:id/approvals` | `routes/deals.ts` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
+| POST | `/api/deals/:id/approvals` | `routes/deals.ts` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps; referenced approval document must belong to the deal lead |
 | POST | `/api/leads/:id/convert-to-deal` | `routes/deals.ts:655` | `L` | source lead requires `assignedRepId === user.id`; resulting deal assigned to user |
 | GET | `/api/deals/analytics` | `routes/deals.ts:739` | `D` | rep forces `effectiveRepId = user.id`, then `assignedTo === effectiveRepId` |
 | POST | `/api/admin/deals/seed` | `routes/deals.ts:1079` | `A` | reps rejected |
