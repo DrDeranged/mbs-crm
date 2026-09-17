@@ -384,6 +384,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
            hasFactoring: applicationBody.hasFactoring === undefined
              ? null
              : applicationBody.hasFactoring === "true" || applicationBody.hasFactoring === true,
+           hasCollateral: applicationBody.hasCollateral === true || applicationBody.hasCollateral === "true",
            industryExperienceMonths: applicationBody.industryExperienceMonths
              ? Number(applicationBody.industryExperienceMonths)
              : null,

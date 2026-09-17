@@ -115,6 +115,7 @@ export const submitSchema = z.object({
   downPaymentAmount: optionalStr(z.string().refine(isNonNegativeAmount, "Down payment amount must be zero or greater")),
   hasFinancialStatements: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   hasFactoring: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
+  hasCollateral: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   industryExperienceMonths: optionalStr(z.string().regex(/^\d+$/, "Industry experience must be a whole number of months")),
   industryDetail: optionalStr(z.string().max(200)),
 }).superRefine((data, ctx) => {

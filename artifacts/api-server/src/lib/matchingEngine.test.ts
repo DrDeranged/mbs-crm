@@ -478,3 +478,30 @@ test("product-scoped revenue gates and all-program industry restrictions apply c
     { industry: "Long-Haul Trucking", timeInBusinessMonths: 24 },
   ).eligible, false);
 });
+
+test("Maxim uses state/amount/TIB gates, ignores FICO, and requires collateral for WC", () => {
+  const maxim = newLenderSeedToInsertValues(
+    NEW_LENDER_SEEDS.find((seed) => seed.name === "Maxim Commercial Capital")!,
+  );
+  const equipmentLead = {
+    applicationType: "equipment", requestedAmount: 50_000, creditScore: 540,
+    existingPositions: null, businessState: "TX",
+  };
+  const app = { industry: "professional services", timeInBusinessMonths: 6, hasCollateral: false };
+  assert.equal(evaluateLender(maxim, equipmentLead, null, app).eligible, true);
+  for (const lender of [
+    newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((seed) => seed.name === "Navitas Credit Corp")!),
+    newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((seed) => seed.name === "Channel Partners Capital")!),
+    { name: "Alliance Funding Group (AFG)", programTypes: ["equipment"], minAmount: 10_000, maxAmount: 500_000,
+      minCreditScore: 600, minTimeInBusinessMonths: 48, acceptedStates: [], acceptedIndustries: [] },
+  ]) {
+    assert.equal(evaluateLender(lender, equipmentLead, null, app).eligible, false);
+  }
+  assert.equal(evaluateLender(maxim, { ...equipmentLead, businessState: "LA" }, null, app).eligible, false);
+  assert.equal(evaluateLender(
+    maxim, { ...equipmentLead, applicationType: "working_capital" }, null, app,
+  ).eligible, false);
+  assert.equal(evaluateLender(
+    maxim, { ...equipmentLead, applicationType: "working_capital" }, null, { ...app, hasCollateral: true },
+  ).eligible, true);
+});

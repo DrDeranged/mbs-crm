@@ -241,7 +241,7 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.equal("contactName" in dexly, false);
   assert.equal("priorityWeight" in dexly, false);
   assert.equal("maxExistingPositions" in thoro, false);
-  assert.equal(NEW_LENDER_SEEDS.length, 11);
+  assert.equal(NEW_LENDER_SEEDS.length, 12);
 });
 
 test("the six Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
@@ -301,6 +301,24 @@ test("the six Section A seed literals preserve exact mapped fields, contacts, nu
   assert.deepEqual([...luminar.programTypes], ["working_capital", "MCA"]);
   assert.match(luminar.notes, /working_capital \+ MCA/);
   assert.match(luminar.notes, /\$5K–\$150K; payoffs must net 50%\+/);
+
+  const maxim = NEW_LENDER_SEEDS.find((seed) => seed.name === "Maxim Commercial Capital")!;
+  assert.deepEqual([...maxim.programTypes], ["equipment", "working_capital"]);
+  assert.equal(maxim.minAmount, 20_000);
+  assert.equal(maxim.maxAmount, 250_000);
+  assert.equal(maxim.minCreditScore, null);
+  assert.equal(maxim.minTimeInBusinessMonths, 0);
+  assert.equal(maxim.minMonthlyRevenue, null);
+  assert.equal(maxim.contactEmail, "submit@maximcc.com");
+  assert.equal(maxim.acceptedStates.includes("TX"), true);
+  assert.equal(maxim.acceptedStates.includes("AK"), false);
+  assert.equal(maxim.acceptedStates.includes("HI"), false);
+  assert.equal(maxim.acceptedStates.includes("LA"), false);
+  assert.deepEqual(maxim.programEligibilityRules, [
+    { programType: "working_capital", requiresCollateral: true },
+  ]);
+  assert.match(maxim.notes, /CREDIT TIER GRID \(a borrower must meet or beat ALL variables in a column/);
+  assert.match(maxim.notes, /Bankruptcy and tax-lien restrictions are documented above but are not matcher-gated/i);
 });
 
 test("seed insert mapping carries explicit contacts and position caps without name special cases", () => {
@@ -336,6 +354,12 @@ test("the pure exact-name planner is idempotent and preserves existing names", (
   const allExisting = planNewLenderSeeds(NEW_LENDER_SEEDS.map((seed) => seed.name));
   assert.deepEqual(allExisting.toCreate, []);
   assert.deepEqual(allExisting.unchangedNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
+
+  const beforeMaxim = planNewLenderSeeds(
+    NEW_LENDER_SEEDS.filter((seed) => seed.name !== "Maxim Commercial Capital").map((seed) => seed.name),
+  );
+  assert.deepEqual(beforeMaxim.toCreate.map((seed) => seed.name), ["Maxim Commercial Capital"]);
+  assert.equal(beforeMaxim.unchangedNames.includes("Maxim Commercial Capital"), false);
 });
 
 test("Section B update literals preserve the exact marker, source statements, and schema mappings", () => {
@@ -434,7 +458,7 @@ test("production executor creates first, then applies Section B updates without 
   const double = makeLenderSeedTransaction([afg, amur, yes]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 11);
+  assert.equal(first.created, 12);
   assert.equal(first.updated, 3);
   assert.equal(first.unchanged, 0);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
@@ -510,7 +534,7 @@ test("production executor creates first, then applies Section B updates without 
   );
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 14);
+  assert.equal(second.unchanged, 15);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -529,7 +553,7 @@ test("seed operation reports the unique configured lender inventory and updates"
   ]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 9);
+  assert.equal(first.created, 10);
   assert.equal(first.updated, 4);
   assert.equal(first.unchanged, 1);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(2).map((seed) => seed.name));
@@ -539,7 +563,7 @@ test("seed operation reports the unique configured lender inventory and updates"
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 14);
+  assert.equal(second.unchanged, 15);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -691,7 +715,7 @@ test("prior packet inventory reports only the three unapplied September 15 updat
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
   ].sort();
-  assert.equal(first.created, 3);
+  assert.equal(first.created, 4);
   assert.equal(first.updated, 3);
   assert.equal(first.unchanged, 8);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(8).map((seed) => seed.name));
@@ -704,12 +728,12 @@ test("prior packet inventory reports only the three unapplied September 15 updat
     [...first.createdNames, ...first.updatedNames, ...first.unchangedNames].sort(),
     expectedInventory,
   );
-  assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 14);
+  assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 15);
 
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 14);
+  assert.equal(second.unchanged, 15);
   assert.deepEqual(second.unchangedNames.sort(), expectedInventory);
 });
 

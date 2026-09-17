@@ -7153,6 +7153,9 @@ if(submitApplicationBody.hasFinancialStatements !== undefined) {
 if(submitApplicationBody.hasFactoring !== undefined) {
  formData.append(`hasFactoring`, submitApplicationBody.hasFactoring.toString())
  }
+if(submitApplicationBody.hasCollateral !== undefined) {
+ formData.append(`hasCollateral`, submitApplicationBody.hasCollateral.toString())
+ }
 formData.append(`consentCreditPull`, submitApplicationBody.consentCreditPull.toString())
 formData.append(`consentTerms`, submitApplicationBody.consentTerms.toString())
 formData.append(`signatureMethod`, submitApplicationBody.signatureMethod);

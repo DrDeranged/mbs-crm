@@ -53,6 +53,7 @@ export const applicationsTable = pgTable(
     downPaymentAmount: numeric("down_payment_amount", { precision: 15, scale: 2 }),
     hasFinancialStatements: boolean("has_financial_statements"),
     hasFactoring: boolean("has_factoring"),
+     hasCollateral: boolean("has_collateral").notNull().default(false),
     industryExperienceMonths: integer("industry_experience_months"),
     // Owner info
     ownerFirstName: text("owner_first_name").notNull(),

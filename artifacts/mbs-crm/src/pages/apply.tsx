@@ -159,6 +159,7 @@ interface FormData {
   downPaymentAmount: string;
   hasFinancialStatements: boolean | null;
   hasFactoring: boolean | null;
+  hasCollateral: boolean;
   industryExperienceMonths: string;
   email: string;
   phone: string;
@@ -195,7 +196,7 @@ const emptyForm = (): FormData => ({
   requestedAmount: "", useOfFunds: "",
   equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "",
   yearMakeModel: "", trucksInFleet: "", downPaymentAmount: "",
-  hasFinancialStatements: null, hasFactoring: null, industryExperienceMonths: "",
+  hasFinancialStatements: null, hasFactoring: null, hasCollateral: false, industryExperienceMonths: "",
   email: "", phone: "",
   ownerFirstName: "", ownerLastName: "", ownerSsn: "", ownerDob: "",
   ownerHomeAddress: "", ownerHomeCity: "", ownerHomeState: "", ownerHomeZip: "",
@@ -713,6 +714,12 @@ export default function ApplyPage() {
                       </label>
                     </>
                   )}
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                      <input data-testid="checkbox-has-collateral" type="checkbox" checked={form.hasCollateral} onChange={(e) => set({ hasCollateral: e.target.checked })} className="mt-0.5 rounded" />
+                      This application is secured by qualified real-estate or equipment collateral.
+                    </label>
+                  </div>
                   <div className="sm:col-span-2 space-y-1">
                     <Label className="text-xs">Does this business currently use factoring?</Label>
                     <select

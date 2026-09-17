@@ -1707,6 +1707,8 @@ export interface ApplicationRecord {
   /** @nullable */
   hasFactoring?: boolean | null;
   /** @nullable */
+  hasCollateral?: boolean | null;
+  /** @nullable */
   industryExperienceMonths?: number | null;
   ownerFirstName: string;
   ownerLastName: string;
@@ -3202,6 +3204,7 @@ export type SubmitApplicationBody = {
   downPaymentAmount?: number;
   hasFinancialStatements?: boolean;
   hasFactoring?: boolean;
+  hasCollateral?: boolean;
   consentCreditPull: boolean;
   consentTerms: boolean;
   signatureMethod: SubmitApplicationBodySignatureMethod;

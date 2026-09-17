@@ -2422,6 +2422,8 @@ paths:
                   type: boolean
                 hasFactoring:
                   type: boolean
+                hasCollateral:
+                  type: boolean
                 consentCreditPull:
                   type: boolean
                 consentTerms:
@@ -6340,6 +6342,8 @@ components:
         hasFinancialStatements:
           type: ["boolean", "null"]
         hasFactoring:
+          type: ["boolean", "null"]
+        hasCollateral:
           type: ["boolean", "null"]
         industryExperienceMonths:
           type: ["integer", "null"]
