@@ -9,7 +9,7 @@ export const userIdentitiesTable = pgTable("user_identities", {
   clerkId: text("clerk_id").notNull().unique(),
   email: text("email").notNull(),
   provider: text("provider").notNull().default("clerk"),
-  linkedAt: timestamp("linked_at").notNull().defaultNow(),
+  linkedAt: timestamp("linked_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export type UserIdentity = typeof userIdentitiesTable.$inferSelect;

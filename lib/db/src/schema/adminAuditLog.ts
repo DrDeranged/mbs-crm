@@ -8,7 +8,7 @@ export const adminAuditLogTable = pgTable("admin_audit_log", {
   entityType: text("entity_type").notNull(),
   entityId: text("entity_id").notNull(),
   details: jsonb("details"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("admin_audit_entity_idx").on(table.entityType, table.entityId)]);
 
 export type AdminAuditLog = typeof adminAuditLogTable.$inferSelect;

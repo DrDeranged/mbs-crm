@@ -1,6 +1,7 @@
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
-import { index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { check, index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 
@@ -22,6 +23,18 @@ export const collateralTemplatesTable = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
+    check(
+      "collateral_templates_category_check",
+      sql`${table.category} IN ('flyer', 'one_pager', 'application', 'letter', 'other')`,
+    ),
+    check(
+      "collateral_templates_kind_check",
+      sql`${table.kind} IN ('html', 'image_overlay')`,
+    ),
+    check(
+      "collateral_templates_status_check",
+      sql`${table.status} IN ('draft', 'published')`,
+    ),
     index("collateral_templates_status_idx").on(table.status),
     index("collateral_templates_category_idx").on(table.category),
   ],

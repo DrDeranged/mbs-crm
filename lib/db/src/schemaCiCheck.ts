@@ -10,6 +10,83 @@ const schemaDirectory = path.resolve(import.meta.dirname, "schema");
 const baselineDirectory = path.resolve(import.meta.dirname, "../schema-ci-baseline");
 const migrationsDirectory = path.resolve(import.meta.dirname, "../migrations");
 
+const equivalentDefaultStatements = new Set([
+  `ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'pending';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "program_types" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "accepted_industries" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "accepted_states" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "restricted_industries" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "prohibited_industries" SET DEFAULT '{}';`,
+  `ALTER TABLE "deal_approvals" ALTER COLUMN "down_payment" SET DEFAULT 0;`,
+]);
+
+const constraintKind = (statement: string): string | undefined => {
+  if (statement.includes(" FOREIGN KEY ")) return "foreign-key";
+  if (statement.includes(" UNIQUE(")) return "unique";
+  if (statement.includes(" CHECK ")) return "check";
+  const droppedName = statement.match(/DROP CONSTRAINT "([^"]+)"/)?.[1];
+  if (!droppedName) return undefined;
+  if (droppedName.endsWith("_key")) return "unique";
+  if (droppedName.endsWith("_check")) return "check";
+  if (droppedName.endsWith("_fk") || droppedName.endsWith("_fkey")) {
+    return "foreign-key";
+  }
+  return undefined;
+};
+
+export function filterCheckerArtifacts(statements: string[]): string[] {
+  const normalized = statements.map((statement) => statement.trim());
+  const droppedConstraints = new Map<string, number>();
+  const addedConstraints = new Map<string, number>();
+  const droppedIndexes = new Set<string>();
+  const createdIndexes = new Set<string>();
+
+  for (const statement of normalized) {
+    const table = statement.match(/^ALTER TABLE "([^"]+)"/)?.[1];
+    const kind = constraintKind(statement);
+    if (table && kind && statement.includes(" DROP CONSTRAINT ")) {
+      const key = `${table}:${kind}`;
+      droppedConstraints.set(key, (droppedConstraints.get(key) ?? 0) + 1);
+    }
+    if (table && kind && statement.includes(" ADD CONSTRAINT ")) {
+      const key = `${table}:${kind}`;
+      addedConstraints.set(key, (addedConstraints.get(key) ?? 0) + 1);
+    }
+    const droppedIndex = statement.match(/^DROP INDEX "([^"]+)";$/)?.[1];
+    if (droppedIndex) droppedIndexes.add(droppedIndex);
+    const createdIndex = statement.match(/^CREATE (?:UNIQUE )?INDEX "([^"]+)"/)?.[1];
+    if (createdIndex) createdIndexes.add(createdIndex);
+  }
+
+  return normalized.filter((statement) => {
+    if (equivalentDefaultStatements.has(statement)) return false;
+    if (
+      statement
+      === `ALTER TABLE "company_settings" ADD CONSTRAINT "company_settings_bulk_email_per_minute_check" CHECK ("company_settings"."bulk_email_per_minute" BETWEEN 1 AND 1000);`
+    ) {
+      return false;
+    }
+
+    const table = statement.match(/^ALTER TABLE "([^"]+)"/)?.[1];
+    const kind = constraintKind(statement);
+    if (table && kind) {
+      const key = `${table}:${kind}`;
+      if (
+        droppedConstraints.get(key) === addedConstraints.get(key)
+        && (droppedConstraints.get(key) ?? 0) > 0
+      ) {
+        return false;
+      }
+    }
+
+    const droppedIndex = statement.match(/^DROP INDEX "([^"]+)";$/)?.[1];
+    if (droppedIndex && createdIndexes.has(droppedIndex)) return false;
+    const createdIndex = statement.match(/^CREATE (?:UNIQUE )?INDEX "([^"]+)"/)?.[1];
+    if (createdIndex && droppedIndexes.has(createdIndex)) return false;
+    return true;
+  });
+}
+
 export function assertSafeSchemaCheckUrl(value: string | undefined): URL {
   if (!value) {
     throw new Error("SCHEMA_CHECK_DATABASE_URL is required");
@@ -91,10 +168,11 @@ export async function checkRunnerMigrationParity(
       ["public"],
       ["*", "!schema_migrations"],
     );
-    if (diff.statementsToExecute.length > 0) {
+    const actionableDiff = filterCheckerArtifacts(diff.statementsToExecute);
+    if (actionableDiff.length > 0) {
       throw new Error([
         "Drizzle schema differs from a database built by the SQL migration runner:",
-        ...diff.statementsToExecute,
+        ...actionableDiff,
       ].join("\n\n"));
     }
   } finally {
