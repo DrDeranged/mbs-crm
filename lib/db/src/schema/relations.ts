@@ -17,7 +17,7 @@ import { dripSequencesTable } from "./dripSequences";
 import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
-import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
+import { lendersTable, lenderMatchesTable, lenderSubmissionsTable, partnerContactsTable } from "./lenders";
 import { dealApprovalsTable } from "./dealApprovals";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { collateralTemplatesTable, collateralRendersTable } from "./collateral";
@@ -196,6 +196,11 @@ export const dealApprovalsRelations = relations(dealApprovalsTable, ({ one }) =>
   creator: one(usersTable, { fields: [dealApprovalsTable.createdBy], references: [usersTable.id] }),
 }));
 
+export const partnerContactsRelations = relations(partnerContactsTable, ({ one }) => ({
+  partner: one(lendersTable, { fields: [partnerContactsTable.partnerId], references: [lendersTable.id] }),
+  creator: one(usersTable, { fields: [partnerContactsTable.createdBy], references: [usersTable.id] }),
+}));
+
 export const communicationsRelations = relations(communicationsTable, ({ one }) => ({
   lead: one(leadsTable, {
     fields: [communicationsTable.leadId],
@@ -328,6 +333,7 @@ export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) =>
 }));
 
 export const lendersRelations = relations(lendersTable, ({ many }) => ({
+  contacts: many(partnerContactsTable),
   matches: many(lenderMatchesTable),
   submissions: many(lenderSubmissionsTable),
 }));

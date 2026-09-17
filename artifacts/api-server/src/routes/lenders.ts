@@ -84,6 +84,10 @@ function lenderToApi(lender: typeof lendersTable.$inferSelect) {
     contactEmail: lender.contactEmail ?? null,
     notes: lender.notes ?? null,
     isActive: lender.isActive,
+    partnerType: lender.partnerType,
+    referralSplitPct: lender.referralSplitPct == null ? null : Number(lender.referralSplitPct),
+    submissionMethod: lender.submissionMethod,
+    portalUrl: lender.portalUrl ?? null,
     createdAt: lender.createdAt.toISOString(),
     updatedAt: lender.updatedAt.toISOString(),
   };
@@ -218,6 +222,10 @@ router.post("/lenders", async (req: Request, res: Response) => {
     contactEmail: body.data.contactEmail ?? null,
     notes: body.data.notes ?? null,
     isActive: body.data.isActive ?? true,
+    partnerType: body.data.partnerType ?? "direct_lender",
+    referralSplitPct: body.data.referralSplitPct ?? null,
+    submissionMethod: body.data.submissionMethod ?? "email",
+    portalUrl: body.data.portalUrl ?? null,
   } as any).returning();
 
   res.status(201).json(lenderToApi(lender!));

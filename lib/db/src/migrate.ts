@@ -36,6 +36,12 @@ export type MigrationReport = {
   migrations: MigrationStatus[];
 };
 
+const formatMigrationError = (error: unknown): string => {
+  if (!(error instanceof Error)) return String(error);
+  const cause = error.cause;
+  return cause instanceof Error ? `${error.message}: ${cause.message}` : error.message;
+};
+
 export function formatSchemaBootLine(report: Pick<MigrationReport, "pending" | "mismatches" | "migrations">): string {
   const pending = [
     ...report.pending,
@@ -303,7 +309,7 @@ export async function runMigrations(options: {
       report.migrations.push({ ...migration, status: "pending" });
       report.failed = {
         name: migration.name,
-        error: error instanceof Error ? error.message : String(error),
+        error: formatMigrationError(error),
       };
       break;
     }
@@ -322,7 +328,7 @@ export async function runMigrations(options: {
         } catch (error) {
           report.failed = {
             name: migration.name,
-            error: error instanceof Error ? error.message : String(error),
+            error: formatMigrationError(error),
           };
           break;
         }
@@ -360,7 +366,7 @@ export async function runMigrations(options: {
     } catch (error) {
       report.failed = {
         name: migration.name,
-        error: error instanceof Error ? error.message : String(error),
+        error: formatMigrationError(error),
       };
       break;
     }

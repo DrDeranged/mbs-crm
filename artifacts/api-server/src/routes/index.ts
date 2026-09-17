@@ -39,6 +39,7 @@ import adminUsfaIntakeRouter from "./adminUsfaIntake";
 import usfaIntakeRouter from "./usfaIntake";
 import usfaPrefillRouter from "./usfaPrefill";
 import collateralRouter from "./collateral";
+import partnerContactsRouter from "./partnerContacts";
 
 const router: IRouter = Router();
 
@@ -129,5 +130,6 @@ router.use(piiAccessLogRouter);
 router.use(adminGovernanceRouter);
 router.use(storageRouter);
 router.use(collateralRouter);
+router.use(partnerContactsRouter);
 
 export default router;

@@ -3169,6 +3169,86 @@ paths:
         "404":
           description: Not found
 
+  /partners/{partnerId}/contacts:
+    get:
+      operationId: listPartnerContacts
+      tags: [lenders]
+      summary: List contacts for a partner
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Partner contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PartnerContact" }
+    post:
+      operationId: createPartnerContact
+      tags: [lenders]
+      summary: Add a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PartnerContactInput" }
+      responses:
+        "201":
+          description: Created partner contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PartnerContact" }
+
+  /partners/{partnerId}/contacts/{contactId}:
+    patch:
+      operationId: updatePartnerContact
+      tags: [lenders]
+      summary: Update a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PartnerContactUpdate" }
+      responses:
+        "200":
+          description: Updated partner contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PartnerContact" }
+    delete:
+      operationId: deletePartnerContact
+      tags: [lenders]
+      summary: Delete a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deleted }
+
   /lenders:
     get:
       operationId: listLenders
@@ -6045,6 +6125,41 @@ components:
           type: ["string", "null"]
           format: date-time
 
+    PartnerContact:
+      type: object
+      required: [id, partnerId, role, name, isPrimary, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        partnerId: { type: integer }
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+        createdBy: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    PartnerContactInput:
+      type: object
+      required: [name]
+      properties:
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string, minLength: 1 }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+    PartnerContactUpdate:
+      type: object
+      properties:
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string, minLength: 1 }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+
     Lender:
       type: object
       required: [id, name, programTypes, acceptedIndustries, restrictedIndustries, prohibitedIndustries, acceptedStates, minTimeInBusinessMonths, maxExistingPositions, priorityWeight, requiresFinancialStatements, isActive, createdAt, updatedAt]
@@ -6130,6 +6245,19 @@ components:
           type: ["string", "null"]
         isActive:
           type: boolean
+         partnerType:
+           type: string
+           enum: [direct_lender, broker_out, broker_in]
+         referralSplitPct:
+           type: ["number", "null"]
+         submissionMethod:
+           type: string
+           enum: [email, portal, both]
+         portalUrl:
+           type: ["string", "null"]
+         contacts:
+           type: array
+           items: { $ref: "#/components/schemas/PartnerContact" }
         createdAt:
           type: string
           format: date-time
@@ -6143,6 +6271,16 @@ components:
       properties:
         name:
           type: string
+        partnerType:
+          type: string
+          enum: [direct_lender, broker_out, broker_in]
+        referralSplitPct:
+          type: ["number", "null"]
+        submissionMethod:
+          type: string
+          enum: [email, portal, both]
+        portalUrl:
+          type: ["string", "null"]
         programTypes:
           type: array
           items:
