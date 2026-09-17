@@ -19,6 +19,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { latestApproval } from "@/lib/dealApproval";
 import { calculateRatePoints, parseDealRatePointsQuery, reverseFromPoints, type PaymentTiming, type RatePointsMode } from "@/lib/ratePoints";
+import { InlineListError } from "@/components/inline-list-error";
+import { listData } from "@/lib/list-response";
+import { getQueryErrorStatus } from "@/lib/query-error";
 
 const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`;
@@ -27,8 +30,9 @@ export default function RatePointsPage() {
   const query = parseDealRatePointsQuery(typeof window === "undefined" ? "" : window.location.search);
   const dealId = query.dealId;
   const { data: deal } = useGetDeal(dealId ?? 0, { query: { queryKey: getGetDealQueryKey(dealId ?? 0), enabled: !!dealId } });
-  const { data: approvals } = useListDealApprovals(dealId ?? 0, { query: { queryKey: getListDealApprovalsQueryKey(dealId ?? 0), enabled: !!dealId } });
-  const latest = latestApproval(approvals);
+  const approvalsQuery = useListDealApprovals(dealId ?? 0, { query: { queryKey: getListDealApprovalsQueryKey(dealId ?? 0), enabled: !!dealId } });
+  const approvalList = listData<any>(approvalsQuery.data);
+  const latest = latestApproval(approvalList.items);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const save = useSaveDealRatePoints();
@@ -99,6 +103,7 @@ export default function RatePointsPage() {
           {dealId ? <Link href={`/deals/${dealId}`}><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link> : null}
           <div><h1 className="text-2xl font-bold text-[#0E2A47]">Rate &amp; Points</h1><p className="text-sm text-muted-foreground">{deal ? `Calculating for ${deal.dealName}` : "Model a payment stream and commission"}</p></div>
         </div>
+        {(approvalsQuery.isError || approvalList.malformed) && <InlineListError title="Couldn’t load calculator prefill" status={approvalsQuery.isError ? getQueryErrorStatus(approvalsQuery.error) : 200} detail={approvalList.malformed ? "The server returned an unexpected approvals response." : undefined} onRetry={() => void approvalsQuery.refetch()} />}
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5 text-primary" />Payment inputs</CardTitle></CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

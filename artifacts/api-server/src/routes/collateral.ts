@@ -25,6 +25,12 @@ const templateBody = z.object({
   name: z.string().trim().min(1), category: z.enum(["flyer", "one_pager", "application", "letter", "other"]),
   kind: z.enum(["html", "image_overlay"]), sourceKey: z.string().min(1), status: z.enum(["draft", "published"]).optional(),
 });
+const collateralTemplatesQuery = z.object({
+  includeDrafts: z.union([
+    z.boolean(),
+    z.enum(["true", "1", "false", "0"]).transform((value) => value === "true" || value === "1"),
+  ]).optional().default(false),
+});
 const secret = process.env.SESSION_SECRET || "development-collateral-secret";
 const objectStorage = new ObjectStorageService();
 const signed = (value: string) => `${value}.${crypto.createHmac("sha256", secret).update(value).digest("hex")}`;
@@ -124,13 +130,35 @@ async function renderTemplatePdf(t: typeof collateralTemplatesTable.$inferSelect
   return renderCollateral({ kind: "image_overlay", source: source.bytes, sourceFormat: source.format, rep: repFields(rep), format: "pdf" });
 }
 
-router.get("/collateral/templates", async (req, res) => {
-  const u = await user(req, res); if (!u) return;
-  const rows = await db.select().from(collateralTemplatesTable)
-    .where(u.role === "admin" && req.query.includeDrafts === "true" ? undefined : eq(collateralTemplatesTable.status, "published"))
-    .orderBy(desc(collateralTemplatesTable.updatedAt));
-  res.json(rows.map((t) => ({ ...t, thumbnailUrl: t.kind === "image_overlay" ? `/api/collateral/templates/${t.id}/thumbnail` : null })));
-});
+type CollateralTemplateListDeps = {
+  getUser: typeof user;
+  listTemplates: (includeDrafts: boolean) => Promise<Array<typeof collateralTemplatesTable.$inferSelect>>;
+};
+
+export function listCollateralTemplatesHandler(deps: CollateralTemplateListDeps) {
+  return async (req: Request, res: Response): Promise<void> => {
+    const u = await deps.getUser(req, res);
+    if (!u) return;
+    const query = collateralTemplatesQuery.safeParse(req.query);
+    if (!query.success) {
+      res.status(400).json({ error: "Invalid includeDrafts query value" });
+      return;
+    }
+    const includeDrafts = u.role === "admin" && query.data.includeDrafts;
+    const rows = await deps.listTemplates(includeDrafts);
+    res.json(rows.map((t) => ({
+      ...t,
+      thumbnailUrl: t.kind === "image_overlay" ? `/api/collateral/templates/${t.id}/thumbnail` : null,
+    })));
+  };
+}
+
+router.get("/collateral/templates", listCollateralTemplatesHandler({
+  getUser: user,
+  listTemplates: async (includeDrafts) => db.select().from(collateralTemplatesTable)
+    .where(includeDrafts ? undefined : eq(collateralTemplatesTable.status, "published"))
+    .orderBy(desc(collateralTemplatesTable.updatedAt)),
+}));
 
 router.get("/collateral/templates/:id", async (req, res) => {
   const u = await user(req, res); if (!u) return;

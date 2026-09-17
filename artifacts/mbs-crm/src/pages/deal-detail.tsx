@@ -32,6 +32,8 @@ import { getQueryErrorStatus } from "@/lib/query-error";
 import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
 import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
+import { InlineListError } from "@/components/inline-list-error";
+import { listData } from "@/lib/list-response";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
@@ -54,8 +56,12 @@ export default function DealDetail() {
   const { data: users } = useListUsers({ role: "rep", isActive: true });
   const { data: me } = useGetMe();
 
-  const { data: approvals } = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
-  const { data: lenders } = useListLenders();
+  const approvalsQuery = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
+  const approvalsList = listData<any>(approvalsQuery.data);
+  const approvals = approvalsList.items;
+  const lendersQuery = useListLenders();
+  const lendersList = listData<any>(lendersQuery.data);
+  const lenders = lendersList.items;
   const updateDeal = useUpdateDeal();
   const createApproval = useCreateDealApproval();
   const uploadDocument = useUploadDocument();
@@ -84,7 +90,7 @@ export default function DealDetail() {
   });
   const [approvalFile, setApprovalFile] = useState<File | null>(null);
   const [approvalOpen, setApprovalOpen] = useState(false);
-  const latest = latestApproval((approvals ?? []) as Array<{
+  const latest = latestApproval(approvals as Array<{
     id: number;
     createdAt: string;
     lenderName: string;
@@ -281,6 +287,7 @@ export default function DealDetail() {
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deal Details</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
+              {(approvalsQuery.isError || approvalsList.malformed) && <InlineListError title="Couldn’t load approvals" status={approvalsQuery.isError ? getQueryErrorStatus(approvalsQuery.error) : 200} detail={approvalsList.malformed ? "The server returned an unexpected approvals response." : undefined} onRetry={() => void approvalsQuery.refetch()} />}
               {editMode ? (
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2 space-y-1.5">
@@ -395,7 +402,8 @@ export default function DealDetail() {
               )}
               {approvalOpen && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 space-y-1.5"><Label>Lender</Label><Select value={approvalForm.lenderId} onValueChange={(value) => setApprovalForm((f) => ({ ...f, lenderId: value }))}><SelectTrigger><SelectValue placeholder="Select lender" /></SelectTrigger><SelectContent>{lenders?.map((lender) => <SelectItem key={lender.id} value={String(lender.id)}>{lender.name}</SelectItem>)}</SelectContent></Select></div>
+                  {(lendersQuery.isError || lendersList.malformed) && <div className="col-span-2"><InlineListError title="Couldn’t load lenders" status={lendersQuery.isError ? getQueryErrorStatus(lendersQuery.error) : 200} detail={lendersList.malformed ? "The server returned an unexpected lender response." : undefined} onRetry={() => void lendersQuery.refetch()} /></div>}
+                  <div className="col-span-2 space-y-1.5"><Label>Lender</Label><Select value={approvalForm.lenderId} onValueChange={(value) => setApprovalForm((f) => ({ ...f, lenderId: value }))}><SelectTrigger><SelectValue placeholder="Select lender" /></SelectTrigger><SelectContent>{lenders.map((lender) => <SelectItem key={lender.id} value={String(lender.id)}>{lender.name}</SelectItem>)}</SelectContent></Select></div>
                   <div className="space-y-1.5"><Label>Contract type</Label><Select value={approvalForm.contractType} onValueChange={(value) => setApprovalForm((f) => ({ ...f, contractType: value }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="EFA">EFA</SelectItem><SelectItem value="lease">Lease</SelectItem><SelectItem value="loan">Loan</SelectItem></SelectContent></Select></div>
                   <div className="space-y-1.5"><Label>Tier</Label><Input value={approvalForm.tier} onChange={(e) => setApprovalForm((f) => ({ ...f, tier: e.target.value }))} placeholder="A" /></div>
                   <div className="space-y-1.5"><Label>Advance</Label><Input type="number" step="0.01" value={approvalForm.advance} onChange={(e) => setApprovalForm((f) => ({ ...f, advance: e.target.value }))} /></div>

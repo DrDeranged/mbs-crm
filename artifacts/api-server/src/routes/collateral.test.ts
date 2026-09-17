@@ -1,6 +1,32 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { recordCollateralEmailDelivery, sendCollateralEmail } from "./collateral";
+import express from "express";
+import { createServer } from "node:http";
+import { listCollateralTemplatesHandler, recordCollateralEmailDelivery, sendCollateralEmail } from "./collateral";
+
+test("admin can request draft collateral with a true query value", async () => {
+  let includedDrafts = false;
+  const app = express();
+  app.get("/api/collateral/templates", listCollateralTemplatesHandler({
+    getUser: async () => ({ id: 1, role: "admin" }) as any,
+    listTemplates: async (includeDrafts) => {
+      includedDrafts = includeDrafts;
+      return [];
+    },
+  }));
+  const server = createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert(address && typeof address !== "string");
+  try {
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/collateral/templates?includeDrafts=true`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), []);
+    assert.equal(includedDrafts, true);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
 
 test("collateral email sends a PDF attachment through the injected SendGrid client", async () => {
   const calls: unknown[] = [];
