@@ -104,7 +104,7 @@ export default function DealsPage() {
     key: string | null;
     loadedKey: string | null;
     value: boolean;
-  }>({ key: null, loadedKey: null, value: false });
+  }>({ key: null, loadedKey: null, value: true });
   const [isExporting, setIsExporting] = useState(false);
 
   const { data: currentUser } = useGetMe();
@@ -119,7 +119,7 @@ export default function DealsPage() {
 
   useEffect(() => {
     if (!compactPreferenceKey) {
-      setCompactPreference({ key: null, loadedKey: null, value: false });
+      setCompactPreference({ key: null, loadedKey: null, value: true });
       return;
     }
     try {
@@ -133,7 +133,7 @@ export default function DealsPage() {
       setCompactPreference({
         key: compactPreferenceKey,
         loadedKey: compactPreferenceKey,
-        value: false,
+        value: true,
       });
     }
   }, [compactPreferenceKey]);
@@ -543,7 +543,7 @@ export default function DealsPage() {
                       cn(
                         "flex flex-col bg-gray-100/50 rounded-xl border border-gray-200/60 transition-colors h-full",
                         compactKanban
-                          ? "min-w-[132px]"
+                          ? "min-w-[120px]"
                           : "w-72",
                       ),
                       dragOverStage === stage.id

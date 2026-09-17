@@ -5,6 +5,7 @@ import {
   KANBAN_COMPACT_BREAKPOINT,
   KANBAN_COMPACT_COLUMN_MIN_WIDTH,
   KANBAN_COMPACT_GAP,
+  compactKanbanAvailableWidth,
   compactKanbanFits,
   compactKanbanRequiredWidth,
   kanbanCompactPreferenceKey,
@@ -33,16 +34,16 @@ test("kanban has exactly nine supported deal-stage columns", () => {
     );
 });
 
-test("compact Kanban sizing keeps nine columns at least 132px wide", () => {
+test("compact Kanban sizing keeps nine columns at least 120px wide", () => {
     assert.equal(DEAL_STAGE_COLUMNS.length, 9);
-    assert.equal(KANBAN_COMPACT_COLUMN_MIN_WIDTH, 132);
+    assert.equal(KANBAN_COMPACT_COLUMN_MIN_WIDTH, 120);
     assert.equal(KANBAN_COMPACT_GAP, 4);
-    assert.equal(compactKanbanRequiredWidth(), 9 * 132 + 8 * 4);
+    assert.equal(compactKanbanRequiredWidth(), 9 * 120 + 8 * 4);
     assert.equal(compactKanbanFits(1440), true);
     assert.equal(compactKanbanFits(KANBAN_COMPACT_BREAKPOINT), true);
 });
 
-test("compact preference is keyed per user and reads without writing", () => {
+test("compact is the default while explicit per-user preferences still win", () => {
     const values = new Map([
       ["mbs-crm:kanban-compact:41", "true"],
       ["mbs-crm:kanban-compact:42", "false"],
@@ -55,14 +56,15 @@ test("compact preference is keyed per user and reads without writing", () => {
     assert.equal(kanbanCompactPreferenceKey(41), "mbs-crm:kanban-compact:41");
     assert.equal(readKanbanCompactPreference(storage, kanbanCompactPreferenceKey(41)), true);
     assert.equal(readKanbanCompactPreference(storage, kanbanCompactPreferenceKey(42)), false);
-    assert.equal(readKanbanCompactPreference(storage, "missing"), false);
+    assert.equal(readKanbanCompactPreference(storage, "missing"), true);
 });
 
-test("1440px compact Kanban has no horizontal-scroll requirement", () => {
-    const viewportWidth = 1440;
-    const contentWidth = compactKanbanRequiredWidth();
-    assert.ok(contentWidth <= viewportWidth);
-    assert.equal(Math.max(viewportWidth, contentWidth), viewportWidth);
+test("compact Kanban fits the actual board area at 1280px and 1440px", () => {
+    assert.equal(compactKanbanAvailableWidth(1280), 1120);
+    assert.equal(compactKanbanAvailableWidth(1440), 1280);
+    assert.equal(compactKanbanRequiredWidth(), 1112);
+    assert.equal(compactKanbanFits(1280), true);
+    assert.equal(compactKanbanFits(1440), true);
 });
 
 test("uses the exact built-in view stage predicates and serialization", () => {

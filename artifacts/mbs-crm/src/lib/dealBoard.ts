@@ -53,8 +53,11 @@ export const DEAL_STAGE_COLUMNS = [
 }>;
 
 export const KANBAN_COMPACT_BREAKPOINT = 1280;
-export const KANBAN_COMPACT_COLUMN_MIN_WIDTH = 132;
+export const KANBAN_COMPACT_COLUMN_MIN_WIDTH = 120;
 export const KANBAN_COMPACT_GAP = 4;
+export const KANBAN_COMPACT_SIDEBAR_WIDTH = 160;
+export const KANBAN_FULL_SIDEBAR_BREAKPOINT = 1536;
+export const KANBAN_FULL_SIDEBAR_WIDTH = 256;
 
 export function kanbanCompactPreferenceKey(userId: number): string {
   return `mbs-crm:kanban-compact:${userId}`;
@@ -64,7 +67,9 @@ export function readKanbanCompactPreference(
   storage: { getItem(key: string): string | null },
   key: string,
 ): boolean {
-  return storage.getItem(key) === "true";
+  const stored = storage.getItem(key);
+  if (stored === "false") return false;
+  return true;
 }
 
 /** The minimum canvas needed for nine compact columns without horizontal overflow. */
@@ -77,8 +82,18 @@ export function compactKanbanRequiredWidth(
   );
 }
 
+export function compactKanbanAvailableWidth(viewportWidth: number): number {
+  const sidebarWidth =
+    viewportWidth >= KANBAN_FULL_SIDEBAR_BREAKPOINT
+      ? KANBAN_FULL_SIDEBAR_WIDTH
+      : viewportWidth >= KANBAN_COMPACT_BREAKPOINT
+        ? KANBAN_COMPACT_SIDEBAR_WIDTH
+        : KANBAN_FULL_SIDEBAR_WIDTH;
+  return viewportWidth - sidebarWidth;
+}
+
 export function compactKanbanFits(viewportWidth: number): boolean {
-  return viewportWidth >= compactKanbanRequiredWidth();
+  return compactKanbanAvailableWidth(viewportWidth) >= compactKanbanRequiredWidth();
 }
 
 export const DEAL_VIEW_STAGES = {

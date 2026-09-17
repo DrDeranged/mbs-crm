@@ -71,21 +71,21 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         key={href}
         href={href}
         onClick={onNavigate}
-        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+        className={`flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
           isActive
             ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
             : "text-sidebar-foreground/70 hover:bg-white/8 hover:text-white"
         }`}
         style={isActive ? { borderLeft: "3px solid #17A567", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
       >
-        <Icon size={16} className={isActive ? "text-[#17A567]" : ""} />
-        {label}
+        <Icon size={16} className={`shrink-0 ${isActive ? "text-[#17A567]" : ""}`} />
+        <span className="truncate">{label}</span>
       </Link>
     );
   };
 
   const sectionLabel = (text: string) => (
-    <div className="px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
+    <div className="truncate px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
       {text}
     </div>
   );
@@ -233,17 +233,23 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [location] = useLocation();
+  const isDealsBoard = location.split("?")[0] === "/deals";
 
   return (
     <div className="flex min-h-screen w-full bg-background">
       <CommandPalette />
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)]">
+      <aside className={`hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)] ${
+        isDealsBoard ? "xl:w-40 2xl:w-64" : ""
+      }`}>
         <SidebarContent />
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden">
+      <main className={`flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden ${
+        isDealsBoard ? "xl:ml-40 2xl:ml-64" : ""
+      }`}>
         <div className="hidden md:flex h-14 items-center justify-between border-b border-border bg-white px-6 lg:px-8 flex-shrink-0">
           <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[#46586C]">Operations workspace</span>
           <span className="text-sm font-medium text-[#0E2A47]">MBS CRM</span>
