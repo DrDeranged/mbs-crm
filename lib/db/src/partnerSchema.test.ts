@@ -25,3 +25,14 @@ test("partner migration is append-only and contains safe backfill and seed", asy
   assert.doesNotMatch(sql, /\bDROP\s+(TABLE|COLUMN|CONSTRAINT)\b/i);
   assert.doesNotMatch(sql, /\bALTER\s+TABLE\s+lenders\s+(RENAME|DROP)\b/i);
 });
+
+test("partner flow and texting migrations are append-only and separately scoped", async () => {
+  const flowSql = await readFile(new URL("../migrations/037_partner_flows_and_texting.sql", import.meta.url), "utf8");
+  const textingSql = await readFile(new URL("../migrations/038_partner_texting.sql", import.meta.url), "utf8");
+  assert.match(flowSql, /via_broker_id/);
+  assert.match(flowSql, /end_lender_id/);
+  assert.match(flowSql, /referred_by_partner_id/);
+  assert.match(textingSql, /partner_texting_enabled/);
+  assert.match(textingSql, /sms_opted_out/);
+  assert.doesNotMatch(`${flowSql}\n${textingSql}`, /\bDROP\s+(TABLE|COLUMN|CONSTRAINT)\b/i);
+});

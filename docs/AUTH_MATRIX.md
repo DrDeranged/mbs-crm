@@ -141,6 +141,11 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/lenders` | `routes/lenders.ts:99` | `A` | reps rejected |
 | PUT | `/api/lenders/:id` | `routes/lenders.ts:139` | `A` | reps rejected |
 | DELETE | `/api/lenders/:id` | `routes/lenders.ts:159` | `A` | reps rejected |
+| GET | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff |
+| POST | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
+| PATCH | `/api/partners/:partnerId/contacts/:contactId` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
+| DELETE | `/api/partners/:partnerId/contacts/:contactId` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
+| POST | `/api/partners/:partnerId/contacts/:contactId/sms` | `routes/communications.ts` | `U` | authenticated staff; partner texting setting enforced |
 | POST | `/api/admin/lenders/seed-new` | `routes/lenders.ts:197` | `A` | reps rejected |
 | POST | `/api/leads/:id/match` | `routes/lenders.ts:227` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/matches` | `routes/lenders.ts:256` | `L` | `lead.assignedRepId === user.id` for reps |
@@ -189,6 +194,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/settings/email-delivery` | `routes/settings.ts:103` | `A` | reps rejected |
 | GET | `/api/settings/lead-distribution` | `routes/settings.ts:148` | `A` | reps rejected |
 | PUT | `/api/settings/lead-distribution` | `routes/settings.ts:160` | `A` | reps rejected |
+| GET | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
+| PUT | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
 | GET | `/api/admin/errors` | `routes/adminErrors.ts:10` | `A` | reps rejected |
 | GET | `/api/admin/migrations/status` | `routes/adminMigrations.ts:12` | `A` | reps rejected |
 | POST | `/api/admin/migrations/apply` | `routes/adminMigrations.ts:32` | `A` | reps rejected |
