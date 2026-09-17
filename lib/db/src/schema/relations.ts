@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { leadsTable } from "./leads";
 import { dealsTable } from "./deals";
 import { usersTable } from "./users";
+import { userIdentitiesTable } from "./userIdentities";
 import { notificationsTable } from "./notifications";
 import { companiesTable } from "./companies";
 import { notesTable } from "./notes";
@@ -53,6 +54,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
+  identities: many(userIdentitiesTable),
   leads: many(leadsTable),
   deals: many(dealsTable),
   notes: many(notesTable),
@@ -69,6 +71,13 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   approvals: many(dealApprovalsTable),
   collateralTemplates: many(collateralTemplatesTable),
   collateralRenders: many(collateralRendersTable),
+}));
+
+export const userIdentitiesRelations = relations(userIdentitiesTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [userIdentitiesTable.userId],
+    references: [usersTable.id],
+  }),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({

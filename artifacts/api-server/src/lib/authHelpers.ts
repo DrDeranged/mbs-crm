@@ -1,7 +1,12 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response } from "express";
 import { db } from "@workspace/db";
-import { activityLogTable, dealsTable, usersTable } from "@workspace/db";
+import {
+  activityLogTable,
+  dealsTable,
+  userIdentitiesTable,
+  usersTable,
+} from "@workspace/db";
 import { and, eq, isNull, ne, or } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
 import { logger } from "./logger";
@@ -125,7 +130,16 @@ export async function requireUser(
     return null;
   }
 
-  let user = await db.query.usersTable.findFirst({ where: eq(usersTable.clerkId, clerkId) });
+  const identity = await db.query.userIdentitiesTable.findFirst({
+    where: eq(userIdentitiesTable.clerkId, clerkId),
+  });
+  let user = identity
+    ? await db.query.usersTable.findFirst({
+        where: eq(usersTable.id, identity.userId),
+      })
+    : await db.query.usersTable.findFirst({
+        where: eq(usersTable.clerkId, clerkId),
+      });
 
   if (!user) {
     try {
@@ -144,6 +158,15 @@ export async function requireUser(
           .where(eq(usersTable.id, existing.id))
           .returning();
         user = linked;
+        await db
+          .insert(userIdentitiesTable)
+          .values({
+            userId: existing.id,
+            clerkId,
+            email: existing.email,
+            provider: "clerk",
+          })
+          .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
       } else {
         const [created] = await db.insert(usersTable).values({
           clerkId,
@@ -153,10 +176,35 @@ export async function requireUser(
           slug: reservedSlug,
         }).returning();
         user = created;
+        await db
+          .insert(userIdentitiesTable)
+          .values({
+            userId: created.id,
+            clerkId,
+            email,
+            provider: "clerk",
+          })
+          .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
       }
     } catch (e) {
       res.status(500).json({ error: "Failed to resolve user" });
       return null;
+    }
+  } else if (!identity && user.clerkId === clerkId) {
+    // Keep legacy users resolvable while lazily filling any identity row that
+    // was not present when migration 035 was applied.
+    try {
+      await db
+        .insert(userIdentitiesTable)
+        .values({
+          userId: user.id,
+          clerkId,
+          email: user.email,
+          provider: "clerk",
+        })
+        .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
+    } catch (e) {
+      logger.warn({ err: e, userId: user.id }, "Failed to backfill user identity");
     }
   }
 

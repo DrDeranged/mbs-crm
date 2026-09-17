@@ -1,4 +1,5 @@
 export * from "./users";
+export * from "./userIdentities";
 export * from "./retiredRepSlugs";
 export * from "./leads";
 export * from "./deals";
