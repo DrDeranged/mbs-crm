@@ -100,6 +100,7 @@ export const submitSchema = z.object({
     .refine(isPositiveAmount, "Vendor quote amount must be a positive number")),
   consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
   consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
+  smsConsent: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   signatureMethod: z.enum(["typed", "drawn"], { message: "Signature method must be typed or drawn" }),
   signatureData: z.string().max(500_000, "Signature data must be 500,000 characters or fewer"),
   equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),

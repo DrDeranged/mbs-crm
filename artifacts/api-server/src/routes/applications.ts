@@ -36,6 +36,7 @@ import {
   getPublicApplicationConsentText,
   getServerOwnedApplicationConsent,
 } from "../lib/applicationConsent";
+import { applicationSmsConsentFields } from "../lib/smsEligibility";
 import { findUsfaInvite, claimUsfaInvite } from "./usfaPrefill";
 
 const router = Router();
@@ -260,6 +261,8 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const signatureSignedAt = new Date();
       const consentGiven = applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true;
+      const smsConsentGiven = applicationBody.smsConsent === "true" || applicationBody.smsConsent === true;
+      const smsConsentFields = applicationSmsConsentFields(smsConsentGiven, clientIp, signatureSignedAt);
 
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
@@ -407,6 +410,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
            secondaryOwnerEstCreditScore: applicationBody.secondaryOwnerEstCreditScore || null,
           consentCreditPull: applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true,
           consentTerms: applicationBody.consentTerms === "true" || applicationBody.consentTerms === true,
+            ...smsConsentFields,
            ...getServerOwnedApplicationConsent(),
            signatureMethod: applicationBody.signatureMethod as "typed" | "drawn",
            signatureData: applicationBody.signatureData,

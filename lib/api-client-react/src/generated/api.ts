@@ -291,13 +291,6 @@ export function useApiRootHealthCheck<TData = Awaited<ReturnType<typeof apiRootH
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-
-
 export const getHealthCheckUrl = () => {
 
 
@@ -369,12 +362,6 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
-
-
-
-
-
-
 export const getGetHealthDeepUrl = () => {
 
 
@@ -445,12 +432,6 @@ export function useGetHealthDeep<TData = Awaited<ReturnType<typeof getHealthDeep
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-
 
 export const getGetAdminErrorsUrl = (params?: GetAdminErrorsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -529,12 +510,6 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-
 
 export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -7168,6 +7143,9 @@ if(submitApplicationBody.hasCollateral !== undefined) {
  }
 formData.append(`consentCreditPull`, submitApplicationBody.consentCreditPull.toString())
 formData.append(`consentTerms`, submitApplicationBody.consentTerms.toString())
+if(submitApplicationBody.smsConsent !== undefined) {
+ formData.append(`smsConsent`, submitApplicationBody.smsConsent.toString())
+ }
 formData.append(`signatureMethod`, submitApplicationBody.signatureMethod);
 formData.append(`signatureData`, submitApplicationBody.signatureData);
 if(submitApplicationBody.equipmentDescription !== undefined) {

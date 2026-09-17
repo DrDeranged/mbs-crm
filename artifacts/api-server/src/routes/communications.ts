@@ -7,6 +7,7 @@ import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
+import { getLeadSmsEligibility } from "../lib/smsEligibility";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -140,10 +141,17 @@ router.post("/leads/:id/sms", async (req, res) => {
 
   if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
 
-  if (lead.isUnsubscribed) {
+  const smsEligibility = await getLeadSmsEligibility(db, leadId);
+  if (!smsEligibility.eligible && smsEligibility.reason === "unsubscribed") {
     return void res.status(422).json({
       error: "consent_required",
       message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
+    });
+  }
+  if (!smsEligibility.eligible) {
+    return void res.status(422).json({
+      error: "consent_required",
+      message: `Cannot send SMS: ${smsEligibility.reason}.`,
     });
   }
   if (await isUsfaMarketingBlocked(db, lead.leadSource)) {

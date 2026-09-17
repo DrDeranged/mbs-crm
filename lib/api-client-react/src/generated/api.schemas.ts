@@ -1925,6 +1925,11 @@ export interface ApplicationRecord {
   secondaryOwnerEstCreditScore?: ApplicationRecordSecondaryOwnerEstCreditScore;
   consentCreditPull?: boolean;
   consentTerms?: boolean;
+  smsConsent?: boolean;
+  /** @nullable */
+  smsConsentAt?: string | null;
+  /** @nullable */
+  smsConsentIp?: string | null;
   /** @nullable */
   consentTextVersion?: string | null;
   /** @nullable */
@@ -3388,6 +3393,8 @@ export type SubmitApplicationBody = {
   hasCollateral?: boolean;
   consentCreditPull: boolean;
   consentTerms: boolean;
+  /** Optional SMS consent; omitted and false are both opt-out. */
+  smsConsent?: boolean;
   signatureMethod: SubmitApplicationBodySignatureMethod;
   /**
      * Typed legal name or base64 image data URL for a drawn signature

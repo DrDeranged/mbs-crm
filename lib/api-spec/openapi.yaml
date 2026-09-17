@@ -2428,6 +2428,10 @@ paths:
                   type: boolean
                 consentTerms:
                   type: boolean
+                smsConsent:
+                  type: boolean
+                  default: false
+                  description: Optional SMS consent; omitted and false are both opt-out.
                 signatureMethod:
                   type: string
                   enum: [typed, drawn]
@@ -6615,6 +6619,13 @@ components:
           type: boolean
         consentTerms:
           type: boolean
+        smsConsent:
+          type: boolean
+        smsConsentAt:
+          type: ["string", "null"]
+          format: date-time
+        smsConsentIp:
+          type: ["string", "null"]
         consentTextVersion:
           type: ["string", "null"]
         signatureData:

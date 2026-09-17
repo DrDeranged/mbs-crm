@@ -2909,6 +2909,7 @@ export const GetApplicationConsentTextResponse = zod.object({
  * @summary Public application submit (no auth, multipart, rate-limited)
  */
 export const submitApplicationBodyBusinessStartDateRegExp = new RegExp('^(0[1-9]|1[0-2])\/[0-9]{4}$');
+export const submitApplicationBodySmsConsentDefault = false;
 export const submitApplicationBodySignatureDataMax = 500000;
 
 
@@ -2951,6 +2952,7 @@ export const SubmitApplicationBody = zod.object({
   "hasCollateral": zod.boolean().optional(),
   "consentCreditPull": zod.boolean(),
   "consentTerms": zod.boolean(),
+  "smsConsent": zod.boolean().default(submitApplicationBodySmsConsentDefault).describe('Optional SMS consent; omitted and false are both opt-out.'),
   "signatureMethod": zod.enum(['typed', 'drawn']),
   "signatureData": zod.string().max(submitApplicationBodySignatureDataMax).describe('Typed legal name or base64 image data URL for a drawn signature'),
   "equipmentDescription": zod.string().optional(),
@@ -3039,6 +3041,9 @@ export const GetLeadApplicationResponse = zod.object({
   "secondaryOwnerEstCreditScore": zod.union([zod.literal('below_500'),zod.literal('500_549'),zod.literal('550_599'),zod.literal('600_649'),zod.literal('650_699'),zod.literal('700_plus'),zod.literal(null)]).nullish(),
   "consentCreditPull": zod.boolean().optional(),
   "consentTerms": zod.boolean().optional(),
+  "smsConsent": zod.boolean().optional(),
+  "smsConsentAt": zod.coerce.date().nullish(),
+  "smsConsentIp": zod.string().nullish(),
   "consentTextVersion": zod.string().nullish(),
   "signatureData": zod.string().nullish(),
   "signatureMethod": zod.union([zod.literal('typed'),zod.literal('drawn'),zod.literal(null)]).nullish(),

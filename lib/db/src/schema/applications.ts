@@ -1,6 +1,7 @@
 import {
-  pgTable, serial, integer, text, boolean, timestamp, numeric, index, jsonb,
+  pgTable, serial, integer, text, boolean, timestamp, numeric, index, jsonb, check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -77,6 +78,9 @@ export const applicationsTable = pgTable(
     // Consent & signature
     consentCreditPull: boolean("consent_credit_pull").notNull().default(false),
     consentTerms: boolean("consent_terms").notNull().default(false),
+    smsConsent: boolean("sms_consent").notNull().default(false),
+    smsConsentAt: timestamp("sms_consent_at"),
+    smsConsentIp: text("sms_consent_ip"),
     consentTextVersion: text("consent_text_version"),
     signatureMethod: text("signature_method", { enum: ["typed", "drawn"] }),
     signatureData: text("signature_data"),
@@ -85,7 +89,14 @@ export const applicationsTable = pgTable(
     signedDocumentKey: text("signed_document_key"),
     submittedAt: timestamp("submitted_at").notNull().defaultNow(),
   },
-  (t) => [index("applications_lead_idx").on(t.leadId)],
+  (t) => [
+    index("applications_lead_idx").on(t.leadId),
+    check(
+      "applications_sms_consent_evidence_check",
+      sql`(${t.smsConsent} = false AND ${t.smsConsentAt} IS NULL AND ${t.smsConsentIp} IS NULL)
+        OR (${t.smsConsent} = true AND ${t.smsConsentAt} IS NOT NULL AND ${t.smsConsentIp} IS NOT NULL)`,
+    ),
+  ],
 );
 
 export const bankStatementExtractionsTable = pgTable(

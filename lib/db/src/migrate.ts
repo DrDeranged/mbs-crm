@@ -188,6 +188,7 @@ async function schemaShowsMigrationApplied(
       "program_eligibility_rules",
     ]], ["applications", ["has_financial_statements", "has_factoring", "industry_experience_months"]]],
     19: [["documents", ["category"]]],
+    34: [["applications", ["sms_consent", "sms_consent_at", "sms_consent_ip"]]],
   };
   const required = markers[n];
   if (!required) return false;
