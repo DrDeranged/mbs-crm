@@ -99,8 +99,6 @@ const clerkAppearance = {
     identityPreviewEditButton: "text-[#65D5A2]",
     formFieldSuccessText: "text-[#65D5A2]",
     alertText: "text-white",
-    logoBox: "mb-2",
-    logoImage: "h-10",
     socialButtonsBlockButton: {
       style: {
         border: "1px solid rgba(255,255,255,.2)",
@@ -125,7 +123,10 @@ const clerkAppearance = {
 function PageLoader() {
   return (
     <div className="flex flex-1 items-center justify-center min-h-[60vh]">
-      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex flex-col items-center gap-4">
+        <BrandLogo />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
     </div>
   );
 }
@@ -135,9 +136,9 @@ function PendingApprovalGate() {
     <main className="flex min-h-screen items-center justify-center bg-[#0E2A47] px-6">
       <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-white/10 p-8 text-center shadow-2xl backdrop-blur-xl">
         <BrandLogo
-          variant="chip"
-          className="mx-auto mb-6 w-fit px-5 py-3"
-          imageClassName="h-8"
+          variant="reverse"
+          className="mx-auto mb-6 w-[160px]"
+          imageClassName="h-auto w-[160px]"
         />
         <p className="text-lg font-semibold text-white">
           Your account is awaiting approval — contact your administrator
@@ -208,9 +209,9 @@ function SignInPage() {
         <div className="w-full max-w-[440px] space-y-7">
           <div className="flex flex-col items-center gap-3">
             <BrandLogo
-              variant="chip"
-              className="px-5 py-3 shadow-[0_10px_30px_rgba(0,0,0,.2)]"
-              imageClassName="h-8"
+              variant="reverse"
+              className="w-[160px] shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+              imageClassName="h-auto w-[160px]"
             />
             <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
           </div>
@@ -380,7 +381,7 @@ function App() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 text-center">
         <div className="rounded-lg border bg-white p-8 shadow-sm">
-          <BrandLogo variant="raw" className="mb-6" imageClassName="h-8" />
+          <BrandLogo className="mb-6" imageClassName="h-8 w-auto" />
           <h1 className="mb-2 text-xl font-bold text-red-600">Missing Clerk Configuration</h1>
           <p className="text-gray-600">Please set the VITE_CLERK_PUBLISHABLE_KEY environment variable.</p>
         </div>

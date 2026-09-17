@@ -207,7 +207,7 @@ test("Nate and Calvin header regions remain deterministic", async () => {
     { name: "Nate Ford", title: "CHIEF EXECUTIVE OFFICER", email: "nate@my-business-solutions.com", mobileNumber: "602.245.5425", slug: "nate" },
     { name: "Calvin Tuon", title: "FUNDING ADVISOR", email: "calvin@gmail.com", emails: ["calvin@my-business-solutions.com"], mobileNumber: "201-555-0101", officePhone: "201-555-0102", slug: "calvin" },
   ];
-  const expected = ["f3583438876755948499c4193b4ecb39c55ee7ccabaa269fbc9793de8527fa81", "c93369b5ea5c8420b3366a87ee8c12e6d4d884dcd7deb5b6b882c73f3f0686db"];
+  const expected = ["b63fd5cf6d1c31f202b9f17a20cc52b981e35d332370861058f7051ee3181854", "7b9bd37373599b06e84f0a8b243bea2c804f148d97296ef35d085a091593e7f7"];
   for (const [index, rep] of fixtures.entries()) {
     const bytes = await renderApplicationFormPdf({ rep });
     const dir = mkdtempSync(path.join(tmpdir(), "mbs-header-"));

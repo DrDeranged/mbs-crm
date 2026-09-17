@@ -95,7 +95,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0 gap-2">
         <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 flex-1 min-w-0">
-          <BrandLogo variant="chip" alt="MBS dashboard" imageClassName="h-7" />
+          <BrandLogo variant="reverse" className="w-[120px]" imageClassName="h-auto w-[120px]" />
         </Link>
         <NotificationBell />
       </div>
@@ -252,7 +252,7 @@ export function AppShell({ children }: AppShellProps) {
       }`}>
         <div className="hidden md:flex h-14 items-center justify-between border-b border-border bg-white px-6 lg:px-8 flex-shrink-0">
           <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[#46586C]">Operations workspace</span>
-          <span className="text-sm font-medium text-[#0E2A47]">MBS CRM</span>
+          <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
         </div>
         {/* Mobile top bar */}
         <div className="flex md:hidden h-14 items-center border-b border-border bg-white text-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
@@ -268,7 +268,7 @@ export function AppShell({ children }: AppShellProps) {
             </SheetContent>
           </Sheet>
           <div className="flex items-center flex-1 min-w-0">
-            <BrandLogo variant="raw" alt="MBS dashboard" imageClassName="h-6" />
+            <BrandLogo imageClassName="h-7 w-auto" />
           </div>
           <NotificationBell onDark={false} />
         </div>

@@ -18,7 +18,8 @@ export const FINANCE_APPLICATION_SOURCE_KEY = "mbs://finance-application";
 export const COLLATERAL_BRAND = {
   navy: "#0B2948",
   green: "#17B26A",
-  logo: "MBS-Logo.png",
+  logo: "mbs-logo-green-slash.png",
+  logoReverse: "mbs-logo-green-slash-reverse.png",
 } as const;
 export const REP_BAND_HEIGHT = 79.2; // 1.1in at 72 points/inch
 
@@ -110,7 +111,11 @@ export async function renderCollateralHtmlPdf(template: string, rep: CollateralR
     .replace(/<[^>]+>/g, "").replace(/\n{3,}/g, "\n\n").trim();
   const { pdf, fonts } = await createLetterPdf();
   let page = pdf.getPage(0);
-  let y = LETTER_HEIGHT - 42;
+  const logo = await pdf.embedPng(getBrandLogoPng());
+  const logoWidth = 91;
+  const logoHeight = logoWidth * logo.height / logo.width;
+  page.drawImage(logo, { x: 30, y: LETTER_HEIGHT - 30 - logoHeight, width: logoWidth, height: logoHeight });
+  let y = LETTER_HEIGHT - 30 - logoHeight - 24;
   for (const line of merged.split(/\n/)) {
     for (const wrapped of wrapPdfText(line.trim(), fonts.regular, 10, LETTER_WIDTH - 60)) {
       if (y < 52) { y = LETTER_HEIGHT - 42; page = pdf.addPage([LETTER_WIDTH, LETTER_HEIGHT]); }
@@ -132,7 +137,8 @@ async function drawRepBand(page: import("pdf-lib").PDFPage, pdf: PDFDocument, re
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   page.drawRectangle({ x: 0, y: 0, width: LETTER_WIDTH, height: REP_BAND_HEIGHT, color: rgb(1, 1, 1) });
   const logo = await pdf.embedPng(getBrandLogoPng());
-  page.drawImage(logo, { x: 20, y: 14, width: 91, height: 44 });
+  const logoWidth = 91;
+  page.drawImage(logo, { x: 20, y: 14, width: logoWidth, height: logoWidth * logo.height / logo.width });
   const email = preferredRepEmail(rep);
   const lines = [value(rep.name), value(rep.title), value(rep.phone ?? rep.mobileNumber), email].filter(Boolean);
   let y = 58;

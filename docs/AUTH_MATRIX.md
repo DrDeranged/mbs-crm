@@ -75,6 +75,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/communications/:id` | `routes/communications.ts:251` | `U` | reps may update only communication `userId === user.id`; managers/admins allowed |
 | GET | `/api/email/track/open/:sendId` | `routes/email.ts:339` | `H` | signed tracking token |
 | GET | `/api/brand/logo.png` | `routes/email.ts:361` | `P` | public static brand image |
+| GET | `/api/brand/logo-reverse.png` | `routes/email.ts` | `P` | public static reverse brand image |
 | GET | `/api/email/track/click/:sendId` | `routes/email.ts:369` | `H` | signed tracking token and safe HTTP(S) destination |
 | GET | `/api/email/unsubscribe` | `routes/email.ts:407` | `H` | HMAC token plus persisted send/email equality |
 | POST | `/api/email/send` | `routes/email.ts:565` | `L` | reps require `lead.assignedRepId === user.id`; selected template must be owned by that rep or an admin |

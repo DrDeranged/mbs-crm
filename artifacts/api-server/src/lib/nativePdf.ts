@@ -37,10 +37,19 @@ async function readAsset(name: string): Promise<Buffer> {
   throw lastError instanceof Error ? lastError : new Error(`Could not read PDF asset ${name}`);
 }
 
-/** Embeds the supplied MBS logo, returning null when the optional asset is unavailable. */
+/** Embeds the light MBS logo, returning null when the optional asset is unavailable. */
 export async function embedMbsLogo(pdf: PDFDocument): Promise<PDFImage | null> {
   try {
-    return await pdf.embedPng(await readAsset("MBS-Logo.png"));
+    return await pdf.embedPng(await readAsset("mbs-logo-green-slash.png"));
+  } catch {
+    return null;
+  }
+}
+
+/** Embeds the reverse MBS logo for navy/dark surfaces. */
+export async function embedMbsReverseLogo(pdf: PDFDocument): Promise<PDFImage | null> {
+  try {
+    return await pdf.embedPng(await readAsset("mbs-logo-green-slash-reverse.png"));
   } catch {
     return null;
   }

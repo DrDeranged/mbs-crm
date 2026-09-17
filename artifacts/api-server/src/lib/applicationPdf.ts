@@ -210,7 +210,7 @@ function signatureLine(label: string, data: ApplicationPdfOptions): string {
 export function buildApplicationFormHtml(options: ApplicationPdfOptions): string {
   const app = options.application ?? {};
   const logo = options.logoUrl
-    ? `<img src="${escapeHtml(options.logoUrl)}" alt="My Business Solutions" />`
+    ? `<img src="${escapeHtml(options.logoUrl)}" alt="My Business Solutions logo" />`
     : "";
   const slug = options.rep.slug?.trim() || "";
   const repName = options.rep.name?.trim() || "My Business Solutions";
@@ -237,7 +237,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   .rep-contact{font-size:7.2pt;line-height:1.35;color:#293b4f}
   .application-heading{text-align:center;padding-top:10px}
   .logo{width:1.45in;height:.62in;text-align:right;justify-self:end}
-  .logo img{max-width:1.45in;max-height:.62in;object-fit:contain}
+  .logo img{width:78pt;height:auto;max-height:78pt;object-fit:contain}
   .header-title{color:#0e2a47;font-weight:700;font-size:11pt}
   .apply{margin-top:6px;font-size:7pt;color:#0e2a47;white-space:nowrap}
   .green-rule{height:3px;background:#17a567;margin:8px 0 13px}
@@ -274,7 +274,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       <div class="header-title">Finance Application</div>
       <div class="apply">Apply online: ${value(applyUrl)}</div>
     </div>
-    <div class="logo">${logo}</div>
+   <div class="logo">${logo}</div>
   </header>
   <div class="green-rule"></div>
   <section class="section"><div class="section-header">Business Information</div>
@@ -481,7 +481,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
   page.drawText("Finance Application", { x: 242, y: 755, size: 10.5, font: fonts.bold, color: MBS_NAVY });
   page.drawText(pdfTextForFont(`Apply online: ${applyUrl}`, fonts.regular), { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_SLATE });
   if (logo) {
-    const ratio = Math.min(100 / logo.width, 40 / logo.height, 1);
+    const ratio = Math.min(78 / logo.width, 78 / logo.height, 1);
     page.drawImage(logo, { x: 490, y: 732, width: logo.width * ratio, height: logo.height * ratio });
   }
   page.drawRectangle({ x: 22, y: header.ruleY, width: 568, height: header.ruleHeight, color: MBS_GREEN });

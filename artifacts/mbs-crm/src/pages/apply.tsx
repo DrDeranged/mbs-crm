@@ -279,7 +279,7 @@ function ProgressBar({ step }: { step: number }) {
 function MBSHeader() {
   return (
     <div className="flex items-center gap-3 mb-2">
-      <BrandLogo variant="chip" alt="My Business Solutions" imageClassName="h-7" />
+      <BrandLogo variant="reverse" imageClassName="h-7 w-auto" />
       <div>
         <p className="font-semibold text-white text-sm leading-tight">Business Financing Application</p>
         <p className="text-xs text-white/65">My Business Solutions</p>
@@ -457,7 +457,8 @@ export default function ApplyPage() {
   if (step === 6) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center space-y-5">
+          <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center space-y-5">
+          <BrandLogo className="mx-auto" imageClassName="h-7 w-auto" />
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-8 w-8 text-green-600" />

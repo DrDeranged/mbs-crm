@@ -223,7 +223,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response, next: NextF
     const emailHtml = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <div style="background:#fff;padding:20px 32px;border-bottom:1px solid #e2e8f0">
-          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0" />
+          <img src="${logoUrl}" alt="My Business Solutions logo" width="116" style="display:block;width:116px;height:auto;border:0" />
         </div>
         <div style="padding:24px 32px;background:#fff">
           <p style="color:#333">Hi ${leadRow.firstName || leadRow.companyName || "there"},</p>

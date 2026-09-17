@@ -160,7 +160,7 @@ export default function ApplicationStatus() {
       {/* Navy header */}
       <header className="bg-[#1F4E79] text-white py-5 px-6 shadow-md">
         <div className="mx-auto max-w-2xl flex items-center gap-3">
-          <BrandLogo variant="chip" alt="My Business Solutions" imageClassName="h-7" />
+          <BrandLogo variant="reverse" imageClassName="h-7 w-auto" />
           <div>
             <h1 className="text-lg font-bold leading-tight">My Business Solutions</h1>
             <p className="text-xs text-blue-200">Application Status Tracker</p>

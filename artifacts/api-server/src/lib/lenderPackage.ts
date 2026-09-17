@@ -1,9 +1,9 @@
-import { PDFDocument, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, type PDFPage } from "pdf-lib";
 import type { Request, Response } from "express";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
-import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
+import { ensureFlyerBranding, getBrandLogoReverseUrl, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
 import { enrichApplicationPdfRep, renderApplicationFormPdf, selectApplicationPdfEmail } from "./applicationPdf";
 import { requireUser } from "./authHelpers";
@@ -20,7 +20,7 @@ import {
   addPreparedByFooters,
   createLetterPdf,
   drawWrappedText,
-  embedMbsLogo,
+  embedMbsReverseLogo,
   pdfText,
   pdfTextForFont,
 } from "./nativePdf";
@@ -261,7 +261,7 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
   const businessName = application.businessName || lead.companyName;
   const repName = assignedRep?.name ?? null;
   const repEmail = getLenderRepEmail(assignedRep);
-  const logoUrl = getBrandLogoUrl(getPublicBaseUrl());
+  const logoUrl = getBrandLogoReverseUrl(getPublicBaseUrl());
 
   return `<!doctype html>
 <html lang="en">
@@ -271,10 +271,10 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
   * { box-sizing: border-box; }
   @page { size: A4; margin: 0; }
   body { margin: 0; padding: 42px 48px; color: #1f2937; font-family: Arial, sans-serif; }
-  .header { border-bottom: 3px solid #1f4e79; padding-bottom: 20px; }
+  .header { background:#0b2948; color:#fff; border-bottom: 3px solid #17b26a; padding:24px; }
    .logo { min-height: 56px; margin-bottom: 24px; text-align: right; }
-   .logo img { max-width: 150px; max-height: 56px; object-fit: contain; }
-  h1 { color: #1f4e79; font-size: 29px; margin: 0 0 8px; }
+   .logo img { width: 96pt; height:auto; max-height:96pt; object-fit: contain; }
+  h1 { color: #fff; font-size: 29px; margin: 0 0 8px; }
   .subtitle { color: #64748b; font-size: 13px; margin: 0; }
   .section { margin-top: 25px; }
   .section h2 { color: #1f4e79; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #dbe4ee; padding-bottom: 7px; margin: 0 0 3px; }
@@ -286,7 +286,7 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
 </head>
 <body>
   <div class="header">
-     <div class="logo"><img src="${text(logoUrl)}" alt="My Business Solutions" /></div>
+      <div class="logo" data-mbs-flyer-logo="true"><img src="${text(logoUrl)}" alt="My Business Solutions logo" /></div>
     <h1>Financing Application Package</h1>
     ${row("Business", businessName)}
     ${row("Owner", ownerName)}
@@ -371,16 +371,17 @@ export async function renderLenderPackageCoverPdf(params: {
   assignedRep: User | null;
 }): Promise<Buffer> {
   const { pdf, page, fonts } = await createLetterPdf();
-  const logo = await embedMbsLogo(pdf);
+  const logo = await embedMbsReverseLogo(pdf);
   const application = params.application;
   const owner = [application.ownerFirstName, application.ownerLastName].filter(isPresent).join(" ");
+  page.drawRectangle({ x: 0, y: 640, width: 612, height: 152, color: MBS_NAVY });
   if (logo) {
-    const ratio = Math.min(150 / logo.width, 54 / logo.height, 1);
-    page.drawImage(logo, { x: 420, y: 724, width: logo.width * ratio, height: logo.height * ratio });
+    const ratio = Math.min(96 / logo.width, 96 / logo.height, 1);
+    page.drawImage(logo, { x: 470, y: 730, width: logo.width * ratio, height: logo.height * ratio });
   }
-  page.drawText("FINANCING APPLICATION PACKAGE", { x: 42, y: 702, size: 19, font: fonts.bold, color: MBS_NAVY });
+  page.drawText("FINANCING APPLICATION PACKAGE", { x: 42, y: 702, size: 19, font: fonts.bold, color: rgb(1, 1, 1) });
   page.drawRectangle({ x: 42, y: 689, width: 528, height: 3, color: MBS_GREEN });
-  page.drawText("APPLICATION SUMMARY", { x: 42, y: 662, size: 8, font: fonts.bold, color: MBS_NAVY });
+  page.drawText("APPLICATION SUMMARY", { x: 42, y: 662, size: 8, font: fonts.bold, color: rgb(1, 1, 1) });
 
   let y = 645;
   y = drawCoverField(page, fonts, y, "Business", nativeCoverValue(application.businessName || params.lead.companyName));

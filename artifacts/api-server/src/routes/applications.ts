@@ -577,7 +577,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
         <tr><td style="background:#ffffff;padding:20px 32px;border-bottom:1px solid #e2e8f0;">
-          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0;" />
+           <img src="${logoUrl}" alt="My Business Solutions logo" width="116" style="display:block;width:116px;height:auto;border:0;" />
           <p style="margin:8px 0 0;font-size:13px;color:#64748b;">Financing made simple</p>
         </td></tr>
         <tr><td style="padding:32px;">
