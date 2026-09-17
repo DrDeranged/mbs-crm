@@ -8,10 +8,7 @@
     "./schema": "./src/schema/index.ts",
     "./migrate": "./src/migrate.ts"
   },
-  "scripts": {
-    "push": "drizzle-kit push --config ./drizzle.config.ts",
-    "push-force": "drizzle-kit push --force --config ./drizzle.config.ts"
-  },
+  "scripts": {},
   "dependencies": {
     "drizzle-orm": "catalog:",
     "drizzle-zod": "^0.8.3",

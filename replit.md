@@ -219,8 +219,8 @@ Documents and generated flyers are stored in Replit Object Storage (not S3). The
 
 ## Gotchas
 
-**Drizzle-kit push fails non-interactively for unique constraint additions on tables with existing rows.**  
-Use raw SQL instead: `ALTER TABLE t ADD COLUMN IF NOT EXISTS col text` + `CREATE UNIQUE INDEX IF NOT EXISTS idx ON t(col) WHERE col IS NOT NULL`. Never run `drizzle-kit push` in a script expecting silent success when unique indexes are involved.
+**Never run `drizzle-kit push` against any database in this project.**
+The numbered SQL migration runner is the only schema-change path. Drizzle Kit may be used only for non-mutating schema comparison in the isolated `schema_ci` database created by CI.
 
 **Bulk action routes must be registered before `/:id` routes in Express.**  
 `/leads/bulk/status`, `/leads/bulk/assign`, and `/leads/bulk/delete` are all registered before `/leads/:id` in `artifacts/api-server/src/routes/leads.ts`. Adding new bulk routes must follow the same ordering — placing them after `/:id` causes Express to match the path segment as a numeric ID and return a 404.
