@@ -18,6 +18,7 @@ import { emailSendsTable } from "./emailSends";
 import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
 import { dealApprovalsTable } from "./dealApprovals";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
+import { collateralTemplatesTable, collateralRendersTable } from "./collateral";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
@@ -48,6 +49,7 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   usfaIntakePrefill: many(usfaIntakePrefillTable),
   usfaPrefillInvites: many(usfaPrefillInvitesTable),
   usfaApplicationEmailLogs: many(usfaApplicationEmailLogTable),
+  collateralRenders: many(collateralRendersTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -65,6 +67,8 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   retiredRepSlugs: many(retiredRepSlugsTable),
   lenderSubmissions: many(lenderSubmissionsTable),
   approvals: many(dealApprovalsTable),
+  collateralTemplates: many(collateralTemplatesTable),
+  collateralRenders: many(collateralRendersTable),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({
@@ -262,6 +266,20 @@ export const generatedFlyersRelations = relations(generatedFlyersTable, ({ one }
   lead: one(leadsTable, { fields: [generatedFlyersTable.leadId], references: [leadsTable.id] }),
   template: one(flyerTemplatesTable, { fields: [generatedFlyersTable.templateId], references: [flyerTemplatesTable.id] }),
   createdByUser: one(usersTable, { fields: [generatedFlyersTable.createdBy], references: [usersTable.id] }),
+}));
+
+export const collateralTemplatesRelations = relations(collateralTemplatesTable, ({ one, many }) => ({
+  creator: one(usersTable, { fields: [collateralTemplatesTable.createdBy], references: [usersTable.id] }),
+  renders: many(collateralRendersTable),
+}));
+
+export const collateralRendersRelations = relations(collateralRendersTable, ({ one }) => ({
+  template: one(collateralTemplatesTable, {
+    fields: [collateralRendersTable.templateId],
+    references: [collateralTemplatesTable.id],
+  }),
+  user: one(usersTable, { fields: [collateralRendersTable.userId], references: [usersTable.id] }),
+  lead: one(leadsTable, { fields: [collateralRendersTable.leadId], references: [leadsTable.id] }),
 }));
 
 export const applicationsRelations = relations(applicationsTable, ({ one }) => ({

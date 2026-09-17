@@ -20,6 +20,7 @@ export * from "./emailWebhookEvents";
 export * from "./emailRateSlots";
 export * from "./lenders";
 export * from "./flyers";
+export * from "./collateral";
 export * from "./applications";
 export * from "./creditPulls";
 export * from "./workflowRules";
