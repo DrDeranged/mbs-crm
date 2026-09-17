@@ -24,5 +24,5 @@ test("dialog dropdowns portal above dialog content", async () => {
     path.join(srcRoot, "components/lender-submissions-panel.tsx"),
     "utf8",
   );
-  assert.match(submissions, /Log lender submission[\s\S]*<SelectContent>/);
+  assert.match(submissions, /Log partner submission[\s\S]*<SelectContent>/);
 });

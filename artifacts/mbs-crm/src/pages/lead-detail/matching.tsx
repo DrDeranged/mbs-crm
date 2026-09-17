@@ -103,7 +103,7 @@ export function LeadLenderMatch() {
     (matches ?? []).filter((match: any) => match.lender?.isActive !== false),
     submissions ?? [],
     showDeclined,
-  );
+  ).sort((a: any, b: any) => Number(a.matchGroup === "super_broker") - Number(b.matchGroup === "super_broker"));
 
   const statusColor: Record<string, string> = {
     submitted: "bg-blue-50 text-blue-700 border-blue-200",
@@ -196,8 +196,10 @@ export function LeadLenderMatch() {
             const totalCount = (m.criteriaBreakdown ?? []).filter((c: any) => !c.skipped).length;
             const isExpanded = expandedIds.has(m.id);
             const lenderName = m.lender?.name ?? `Lender #${m.lenderId}`;
-            return (
-              <div key={m.id} className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
+             return (
+               <div key={m.id}>
+               {m.matchGroup === "super_broker" && (idx === 0 || (activeMatches[idx - 1] as any)?.matchGroup !== "super_broker") && <div className="pt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Super-broker options</div>}
+               <div className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
                 <div className="flex items-start justify-between">
                   <button
                     className="flex items-center gap-2 text-left flex-1 min-w-0"
@@ -275,7 +277,8 @@ export function LeadLenderMatch() {
                     </button>
                   </>
                 )}
-              </div>
+               </div>
+               </div>
             );
           })}
         </div>

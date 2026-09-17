@@ -46,6 +46,7 @@ import {
   reorderByIds,
 } from "../lib/twoPhaseQueries";
 import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
+import { netGmAfterReferralSplit } from "../lib/partnerFlows";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -100,6 +101,12 @@ function toApi(
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
     actualGm: deal.actualGm ?? null,
+    referredByPartnerId: deal.referredByPartnerId ?? null,
+    referralSplitPct: deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
+    referralGm: netGmAfterReferralSplit(
+      Number(deal.actualGm ?? deal.approxGm ?? 0),
+      deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
+    ),
     notes: deal.notes ?? null,
     gmSplitPct: deal.gmSplitPct ?? 100,
     assignedTo: deal.assignedTo ?? null,

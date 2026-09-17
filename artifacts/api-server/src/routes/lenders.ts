@@ -28,6 +28,8 @@ const router: IRouter = Router();
 const requestIdSchema = z.coerce.number().int().positive();
 const submissionRequestSchema = z.object({
   lender_id: requestIdSchema,
+  via_broker_id: requestIdSchema.optional(),
+  end_lender_id: requestIdSchema.optional(),
   admin_override: z.boolean().optional(),
   adminOverride: z.boolean().optional(),
   package_config: z.unknown().optional(),
@@ -102,6 +104,8 @@ function matchToApi(
     leadId: match.leadId,
     lenderId: match.lenderId,
     lender: lender ? lenderToApi(lender) : null,
+    partnerType: lender?.partnerType ?? "direct_lender",
+    matchGroup: lender?.partnerType === "broker_out" ? "super_broker" : "lender",
     matchScore: match.matchScore,
     criteriaBreakdown: (match.criteriaBreakdown as unknown as object[]) ?? [],
     matchedAt: match.matchedAt.toISOString(),
@@ -118,6 +122,8 @@ function submissionToApi(
     id: sub.id,
     leadId: sub.leadId,
     lenderId: sub.lenderId,
+    viaBrokerId: sub.viaBrokerId ?? null,
+    endLenderId: sub.endLenderId ?? null,
     lender: lender ? lenderToApi(lender) : null,
     sentBy: sub.sentBy ?? null,
     sentByUser: submittedByUser
@@ -706,12 +712,27 @@ export function createSubmissionHandler(
       }).returning())[0];
       const [created] = await tx.insert(lenderSubmissionsTable).values({
         leadId, dealId: submissionDeal.id, lenderId, sentBy: user.id,
+        viaBrokerId: body.data.via_broker_id ?? (lender.partnerType === "broker_out" ? lender.id : null),
+        endLenderId: body.data.end_lender_id ?? null,
         messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
         packageConfigSnapshot: packageConfig,
         exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       }).returning();
       if (deal) {
-        await tx.update(dealsTable).set({ stage: "submitted", updatedAt: new Date() }).where(eq(dealsTable.id, deal.id));
+        await tx.update(dealsTable).set({
+          stage: "submitted",
+          ...(lender.partnerType === "broker_in"
+            ? { referredByPartnerId: lender.id, referralSplitPct: lender.referralSplitPct }
+            : {}),
+          updatedAt: new Date(),
+        }).where(eq(dealsTable.id, deal.id));
+      }
+      if (lender.partnerType === "broker_in") {
+        await tx.update(leadsTable).set({
+          referredByPartnerId: lender.id,
+          referralSplitPct: lender.referralSplitPct,
+          updatedAt: new Date(),
+        }).where(eq(leadsTable.id, leadId));
       }
       // Keep the lead preference and the submitted immutable snapshot aligned
       // in the final application transaction; the client also persists before

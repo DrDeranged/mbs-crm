@@ -345,6 +345,18 @@ export default function DealDetail() {
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Expected GM</div>
                     <div className="text-lg font-semibold text-emerald-600">{deal.approxGm ? `$${deal.approxGm.toLocaleString()}` : "—"}</div>
                   </div>
+                   {(deal as any).referredByPartnerId && (
+                     <div>
+                       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Referral partner</div>
+                       <div className="text-sm font-medium text-[#0E2A47]">Partner #{(deal as any).referredByPartnerId} · {(deal as any).referralSplitPct ?? 0}% split</div>
+                     </div>
+                   )}
+                   {(deal as any).referralGm != null && (
+                     <div>
+                       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Net GM after referral</div>
+                       <div className="text-lg font-semibold text-emerald-600">${Number((deal as any).referralGm).toLocaleString()}</div>
+                     </div>
+                   )}
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Actual GM</div>
                     <div className="text-lg font-semibold text-[#149258]">{deal.actualGm ? `$${deal.actualGm.toLocaleString()}` : "—"}</div>

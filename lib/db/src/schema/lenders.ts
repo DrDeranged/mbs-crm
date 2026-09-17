@@ -125,6 +125,8 @@ export const lenderSubmissionsTable = pgTable(
     leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
     dealId: integer("deal_id").references(() => dealsTable.id, { onDelete: "set null" }),
     lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
+    viaBrokerId: integer("via_broker_id").references(() => lendersTable.id, { onDelete: "set null" }),
+    endLenderId: integer("end_lender_id").references(() => lendersTable.id, { onDelete: "set null" }),
     sentBy: integer("sent_by").references(() => usersTable.id, { onDelete: "set null" }),
     messageId: text("message_id"),
     packageConfigSnapshot: jsonb("package_config_snapshot"),
