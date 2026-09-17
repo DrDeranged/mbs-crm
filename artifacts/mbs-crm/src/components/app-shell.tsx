@@ -57,7 +57,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
     { href: "/deals", label: "Deals", icon: Briefcase },
-    { href: "/deals/rate-converter", label: "Rate Converter", icon: Calculator },
+    { href: "/deals/rate-points", label: "Rate & Points", icon: Calculator },
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {

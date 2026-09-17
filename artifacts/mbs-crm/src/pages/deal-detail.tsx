@@ -506,7 +506,7 @@ export default function DealDetail() {
               )}
               {!latest && !approvalOpen && <div className="text-sm text-muted-foreground py-2">No lender approval captured yet.</div>}
               {latest && !approvalOpen && (
-                <Link href={`/rate-converter?dealId=${dealId}&advance=${encodeURIComponent(calculatorPrefill?.amount ?? "")}&payment=${encodeURIComponent(calculatorPrefill?.payment ?? "")}&term=${encodeURIComponent(calculatorPrefill?.term ?? "")}`}>
+                <Link href={`/deals/rate-points?dealId=${dealId}&advance=${encodeURIComponent(calculatorPrefill?.amount ?? "")}&payment=${encodeURIComponent(calculatorPrefill?.payment ?? "")}&term=${encodeURIComponent(calculatorPrefill?.term ?? "")}`}>
                   <Button variant="outline" size="sm"><FileText className="w-4 h-4 mr-1" />Open calculator with approval</Button>
                 </Link>
               )}

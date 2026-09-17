@@ -2168,6 +2168,83 @@ export interface DealApprovalInput {
   approvalDocumentId?: number | null;
 }
 
+export type DealRatePointsInputTiming = typeof DealRatePointsInputTiming[keyof typeof DealRatePointsInputTiming];
+
+
+export const DealRatePointsInputTiming = {
+  arrears: 'arrears',
+  advance: 'advance',
+} as const;
+
+export type DealRatePointsInputMode = typeof DealRatePointsInputMode[keyof typeof DealRatePointsInputMode];
+
+
+export const DealRatePointsInputMode = {
+  spread: 'spread',
+  reverse: 'reverse',
+} as const;
+
+export interface DealRatePointsInput {
+  /** @exclusiveMinimum 0 */
+  advance: number;
+  /** @exclusiveMinimum 0 */
+  payment: number;
+  /** @minimum 1 */
+  term: number;
+  timing: DealRatePointsInputTiming;
+  /** @minimum 0 */
+  buyNominalRate: number;
+  mode: DealRatePointsInputMode;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  targetPoints?: number | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  sourceApprovalId?: number | null;
+}
+
+export type DealRatePointsResultGmTarget = typeof DealRatePointsResultGmTarget[keyof typeof DealRatePointsResultGmTarget];
+
+
+export const DealRatePointsResultGmTarget = {
+  approxGm: 'approxGm',
+  actualGm: 'actualGm',
+} as const;
+
+export type DealRatePointsResultCalculationTiming = typeof DealRatePointsResultCalculationTiming[keyof typeof DealRatePointsResultCalculationTiming];
+
+
+export const DealRatePointsResultCalculationTiming = {
+  arrears: 'arrears',
+  advance: 'advance',
+} as const;
+
+export type DealRatePointsResultCalculation = {
+  advance: number;
+  payment: number;
+  term: number;
+  timing: DealRatePointsResultCalculationTiming;
+  buyNominalRate: number;
+  nominalRate: number;
+  effectiveRate: number;
+  simpleRate: number;
+  buyPayment: number;
+  totalCommission: number;
+  points: number;
+  /** @nullable */
+  targetPoints?: number | null;
+};
+
+export interface DealRatePointsResult {
+  deal: Deal;
+  gmTarget: DealRatePointsResultGmTarget;
+  calculation: DealRatePointsResultCalculation;
+}
+
 export type DealInputStage = typeof DealInputStage[keyof typeof DealInputStage];
 
 

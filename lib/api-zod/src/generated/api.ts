@@ -2575,6 +2575,101 @@ export const ListDealActivityResponse = zod.array(ListDealActivityResponseItem)
 
 
 /**
+ * @summary Save a rate and points calculation to a deal
+ */
+export const SaveDealRatePointsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const saveDealRatePointsBodyAdvanceExclusiveMin = 0;
+
+export const saveDealRatePointsBodyPaymentExclusiveMin = 0;
+
+
+export const saveDealRatePointsBodyBuyNominalRateMin = 0;
+
+export const saveDealRatePointsBodyTargetPointsMin = 0;
+
+
+
+
+export const SaveDealRatePointsBody = zod.object({
+  "advance": zod.number().gt(saveDealRatePointsBodyAdvanceExclusiveMin),
+  "payment": zod.number().gt(saveDealRatePointsBodyPaymentExclusiveMin),
+  "term": zod.number().min(1),
+  "timing": zod.enum(['arrears', 'advance']),
+  "buyNominalRate": zod.number().min(saveDealRatePointsBodyBuyNominalRateMin),
+  "mode": zod.enum(['spread', 'reverse']),
+  "targetPoints": zod.number().min(saveDealRatePointsBodyTargetPointsMin).nullish(),
+  "sourceApprovalId": zod.number().min(1).nullish()
+})
+
+export const saveDealRatePointsResponseDealGmSplitPctMin = 0;
+export const saveDealRatePointsResponseDealGmSplitPctMax = 100;
+
+
+
+export const SaveDealRatePointsResponse = zod.object({
+  "deal": zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(saveDealRatePointsResponseDealGmSplitPctMin).max(saveDealRatePointsResponseDealGmSplitPctMax),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),
+  "gmTarget": zod.enum(['approxGm', 'actualGm']),
+  "calculation": zod.object({
+  "advance": zod.number(),
+  "payment": zod.number(),
+  "term": zod.number(),
+  "timing": zod.enum(['arrears', 'advance']),
+  "buyNominalRate": zod.number(),
+  "nominalRate": zod.number(),
+  "effectiveRate": zod.number(),
+  "simpleRate": zod.number(),
+  "buyPayment": zod.number(),
+  "totalCommission": zod.number(),
+  "points": zod.number(),
+  "targetPoints": zod.number().nullish()
+})
+})
+
+
+/**
  * @summary List historical lender approvals for a deal, newest first
  */
 export const ListDealApprovalsParams = zod.object({

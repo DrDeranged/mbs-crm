@@ -2013,6 +2013,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/DealActivity"
 
+  /deals/{id}/rate-points:
+    post:
+      operationId: saveDealRatePoints
+      tags: [deals]
+      summary: Save a rate and points calculation to a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DealRatePointsInput" }
+      responses:
+        "200":
+          description: Saved deal and calculation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DealRatePointsResult" }
+        "400": { description: Invalid calculation }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal not found }
+
   /deals/{id}/approvals:
     get:
       operationId: listDealApprovals
@@ -6811,6 +6837,42 @@ components:
         tier: { type: string, minLength: 1 }
         expiresOn: { type: string, format: date }
         approvalDocumentId: { type: ["integer", "null"] }
+
+    DealRatePointsInput:
+      type: object
+      required: [advance, payment, term, timing, buyNominalRate, mode]
+      properties:
+        advance: { type: number, exclusiveMinimum: 0 }
+        payment: { type: number, exclusiveMinimum: 0 }
+        term: { type: integer, minimum: 1 }
+        timing: { type: string, enum: [arrears, advance] }
+        buyNominalRate: { type: number, minimum: 0 }
+        mode: { type: string, enum: [spread, reverse] }
+        targetPoints: { type: ["number", "null"], minimum: 0 }
+        sourceApprovalId: { type: ["integer", "null"], minimum: 1 }
+
+    DealRatePointsResult:
+      type: object
+      required: [deal, calculation, gmTarget]
+      properties:
+        deal: { $ref: "#/components/schemas/Deal" }
+        gmTarget: { type: string, enum: [approxGm, actualGm] }
+        calculation:
+          type: object
+          required: [advance, payment, term, timing, buyNominalRate, nominalRate, effectiveRate, simpleRate, buyPayment, totalCommission, points]
+          properties:
+            advance: { type: number }
+            payment: { type: number }
+            term: { type: integer }
+            timing: { type: string, enum: [arrears, advance] }
+            buyNominalRate: { type: number }
+            nominalRate: { type: number }
+            effectiveRate: { type: number }
+            simpleRate: { type: number }
+            buyPayment: { type: number }
+            totalCommission: { type: number }
+            points: { type: number }
+            targetPoints: { type: ["number", "null"] }
 
     DealInput:
       type: object

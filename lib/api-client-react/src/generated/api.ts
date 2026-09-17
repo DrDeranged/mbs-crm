@@ -62,6 +62,8 @@ import type {
   DealDetail,
   DealInput,
   DealListResponse,
+  DealRatePointsInput,
+  DealRatePointsResult,
   DealSeedResponse,
   DealUpdate,
   DealsAnalytics,
@@ -6036,6 +6038,78 @@ export function useListDealActivity<TData = Awaited<ReturnType<typeof listDealAc
 
 
 
+
+export const getSaveDealRatePointsUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/rate-points`
+}
+
+/**
+ * @summary Save a rate and points calculation to a deal
+ */
+export const saveDealRatePoints = async (id: number,
+    dealRatePointsInput: DealRatePointsInput, options?: RequestInit): Promise<DealRatePointsResult> => {
+
+  return customFetch<DealRatePointsResult>(getSaveDealRatePointsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dealRatePointsInput,)
+  }
+);}
+
+
+
+
+export const getSaveDealRatePointsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDealRatePoints>>, TError,{id: number;data: BodyType<DealRatePointsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveDealRatePoints>>, TError,{id: number;data: BodyType<DealRatePointsInput>}, TContext> => {
+
+const mutationKey = ['saveDealRatePoints'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveDealRatePoints>>, {id: number;data: BodyType<DealRatePointsInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveDealRatePoints(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveDealRatePointsMutationResult = NonNullable<Awaited<ReturnType<typeof saveDealRatePoints>>>
+    export type SaveDealRatePointsMutationBody = BodyType<DealRatePointsInput>
+    export type SaveDealRatePointsMutationError = ErrorType<void>
+
+    /**
+ * @summary Save a rate and points calculation to a deal
+ */
+export const useSaveDealRatePoints = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDealRatePoints>>, TError,{id: number;data: BodyType<DealRatePointsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveDealRatePoints>>,
+        TError,
+        {id: number;data: BodyType<DealRatePointsInput>},
+        TContext
+      > => {
+      return useMutation(getSaveDealRatePointsMutationOptions(options));
+    }
 
 export const getListDealApprovalsUrl = (id: number,) => {
 

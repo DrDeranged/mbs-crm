@@ -36,6 +36,7 @@ import {
   UpdateDealBody,
   ConvertLeadToDealBody,
   CreateDealApprovalBody,
+  SaveDealRatePointsBody,
 } from "@workspace/api-zod";
 import { latestDealActivitySort } from "../lib/latestActivitySort";
 import { activeDealStageCondition } from "../lib/activeDealStages";
@@ -44,6 +45,7 @@ import {
   buildDealPageIdsQuery,
   reorderByIds,
 } from "../lib/twoPhaseQueries";
+import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -706,6 +708,105 @@ router.get("/deals/:id/activity", async (req, res): Promise<void> => {
     })),
   );
 });
+
+export function createSaveDealRatePointsHandler(dependencies: {
+  database?: any;
+  authenticate?: typeof requireUser;
+  recordActivity?: typeof logActivity;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const recordActivity = dependencies.recordActivity;
+  return async (req: Request, res: Response): Promise<void> => {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    const id = parseId(req, res);
+    if (!id) return;
+    const parsed = SaveDealRatePointsBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid rate and points inputs", details: parsed.error.issues });
+      return;
+    }
+    const existing = await database.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
+    if (!existing) {
+      res.status(404).json({ error: "Deal not found" });
+      return;
+    }
+    if (!canAccessDeal(user, existing)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    if (parsed.data.mode === "reverse" && parsed.data.targetPoints == null) {
+      res.status(400).json({ error: "targetPoints is required in reverse mode" });
+      return;
+    }
+    if (parsed.data.sourceApprovalId != null) {
+      const approval = await database.query.dealApprovalsTable.findFirst({
+        where: and(eq(dealApprovalsTable.id, parsed.data.sourceApprovalId), eq(dealApprovalsTable.dealId, id)),
+      });
+      if (!approval) {
+        res.status(400).json({ error: "sourceApprovalId does not belong to this deal" });
+        return;
+      }
+    }
+    const buyPayment = annuityPayment(parsed.data.advance, parsed.data.buyNominalRate, parsed.data.term, parsed.data.timing);
+    if (parsed.data.mode === "reverse" && buyPayment == null) {
+      res.status(400).json({ error: "Unable to calculate the buy-rate payment" });
+      return;
+    }
+    const payment = parsed.data.mode === "reverse"
+      ? buyPayment + (parsed.data.advance * parsed.data.targetPoints! / 100) / parsed.data.term
+      : parsed.data.payment;
+    const calculation = calculateRatePoints({
+      advance: parsed.data.advance,
+      payment,
+      term: parsed.data.term,
+      timing: parsed.data.timing,
+      buyNominalRate: parsed.data.buyNominalRate,
+    });
+    if (!calculation || !Number.isFinite(calculation.totalCommission) || calculation.totalCommission < 0) {
+      res.status(400).json({ error: "Unable to calculate a non-negative commission from these inputs" });
+      return;
+    }
+    const targetField = existing.stage === "funded" ? "actualGm" : "approxGm";
+    const deal = await database.transaction(async (tx: any) => {
+      const [updated] = await tx.update(dealsTable)
+        .set({ [targetField]: calculation.totalCommission, updatedAt: new Date() })
+        .where(eq(dealsTable.id, id))
+        .returning();
+      const activity = {
+        userId: user.id,
+        dealId: id,
+        leadId: updated.leadId,
+        action: "rate_points_saved",
+        entityType: "deal",
+        entityId: id,
+        details: {
+          advance: parsed.data.advance,
+          payment,
+          term: parsed.data.term,
+          timing: parsed.data.timing,
+          buyNominalRate: parsed.data.buyNominalRate,
+          mode: parsed.data.mode,
+          targetPoints: parsed.data.targetPoints ?? null,
+          sourceApprovalId: parsed.data.sourceApprovalId ?? null,
+          nominalRate: calculation.nominalRate,
+          effectiveRate: calculation.effectiveRate,
+          simpleRate: calculation.simpleRate,
+          buyPayment: calculation.buyPayment,
+          totalCommission: calculation.totalCommission,
+          points: calculation.points,
+        },
+      };
+      if (recordActivity) await recordActivity(activity, tx);
+      else await logActivity(activity, tx);
+      return updated;
+    });
+    res.json({ deal: toApi(deal), gmTarget: targetField, calculation });
+  };
+}
+
+router.post("/deals/:id/rate-points", createSaveDealRatePointsHandler());
 
 function approvalToApi(approval: any) {
   return {

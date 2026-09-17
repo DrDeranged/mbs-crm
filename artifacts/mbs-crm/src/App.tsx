@@ -21,6 +21,7 @@ const LeadDetail = lazy(() => import("@/pages/lead-detail"));
 const NewLead = lazy(() => import("@/pages/new-lead"));
 const Settings = lazy(() => import("@/pages/settings"));
 const RateConverter = lazy(() => import("@/pages/rate-converter"));
+const RatePoints = lazy(() => import("@/pages/rate-points"));
 const EmailTemplates = lazy(() => import("@/pages/email-templates"));
 const DripSequences = lazy(() => import("@/pages/drip-sequences"));
 const LenderManagement = lazy(() => import("@/pages/lender-management"));
@@ -311,6 +312,9 @@ function AppRoutes() {
             </Route>
             <Route path="/deals/rate-converter">
               <ProtectedRoute component={RateConverter} />
+            </Route>
+            <Route path="/deals/rate-points">
+              <ProtectedRoute component={RatePoints} />
             </Route>
             <Route path="/deals/:id">
               <ProtectedRoute component={DealDetail} />
