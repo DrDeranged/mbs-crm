@@ -23,6 +23,7 @@ import {
   FileDown,
   ClipboardList,
   Calculator,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -58,6 +59,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/leads", label: "Leads", icon: Users },
     { href: "/deals", label: "Deals", icon: Briefcase },
     { href: "/deals/rate-points", label: "Rate & Points", icon: Calculator },
+    { href: "/documents", label: "Documents", icon: FileText },
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {

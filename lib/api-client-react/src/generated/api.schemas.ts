@@ -5,6 +5,143 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
+export type CollateralTemplateCategory = typeof CollateralTemplateCategory[keyof typeof CollateralTemplateCategory];
+
+
+export const CollateralTemplateCategory = {
+  flyer: 'flyer',
+  one_pager: 'one_pager',
+  application: 'application',
+  letter: 'letter',
+  other: 'other',
+} as const;
+
+export type CollateralTemplateKind = typeof CollateralTemplateKind[keyof typeof CollateralTemplateKind];
+
+
+export const CollateralTemplateKind = {
+  html: 'html',
+  image_overlay: 'image_overlay',
+} as const;
+
+export type CollateralTemplateStatus = typeof CollateralTemplateStatus[keyof typeof CollateralTemplateStatus];
+
+
+export const CollateralTemplateStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface CollateralTemplate {
+  id: number;
+  name: string;
+  category: CollateralTemplateCategory;
+  kind: CollateralTemplateKind;
+  sourceKey: string;
+  status: CollateralTemplateStatus;
+  /** @nullable */
+  thumbnailUrl?: string | null;
+}
+
+export type CollateralTemplateInputCategory = typeof CollateralTemplateInputCategory[keyof typeof CollateralTemplateInputCategory];
+
+
+export const CollateralTemplateInputCategory = {
+  flyer: 'flyer',
+  one_pager: 'one_pager',
+  application: 'application',
+  letter: 'letter',
+  other: 'other',
+} as const;
+
+export type CollateralTemplateInputKind = typeof CollateralTemplateInputKind[keyof typeof CollateralTemplateInputKind];
+
+
+export const CollateralTemplateInputKind = {
+  html: 'html',
+  image_overlay: 'image_overlay',
+} as const;
+
+export type CollateralTemplateInputStatus = typeof CollateralTemplateInputStatus[keyof typeof CollateralTemplateInputStatus];
+
+
+export const CollateralTemplateInputStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface CollateralTemplateInput {
+  /** @minLength 1 */
+  name: string;
+  category: CollateralTemplateInputCategory;
+  kind: CollateralTemplateInputKind;
+  /** @minLength 1 */
+  sourceKey: string;
+  status?: CollateralTemplateInputStatus;
+}
+
+export type CollateralTemplatePatchCategory = typeof CollateralTemplatePatchCategory[keyof typeof CollateralTemplatePatchCategory];
+
+
+export const CollateralTemplatePatchCategory = {
+  flyer: 'flyer',
+  one_pager: 'one_pager',
+  application: 'application',
+  letter: 'letter',
+  other: 'other',
+} as const;
+
+export type CollateralTemplatePatchKind = typeof CollateralTemplatePatchKind[keyof typeof CollateralTemplatePatchKind];
+
+
+export const CollateralTemplatePatchKind = {
+  html: 'html',
+  image_overlay: 'image_overlay',
+} as const;
+
+export type CollateralTemplatePatchStatus = typeof CollateralTemplatePatchStatus[keyof typeof CollateralTemplatePatchStatus];
+
+
+export const CollateralTemplatePatchStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface CollateralTemplatePatch {
+  /** @minLength 1 */
+  name?: string;
+  category?: CollateralTemplatePatchCategory;
+  kind?: CollateralTemplatePatchKind;
+  /** @minLength 1 */
+  sourceKey?: string;
+  status?: CollateralTemplatePatchStatus;
+}
+
+export interface CollateralRender {
+  renderId: number;
+  sha256: string;
+  pdfUrl: string;
+  pngUrl: string;
+  shareUrl: string;
+}
+
+export interface CollateralEmailInput {
+  /** @minimum 1 */
+  leadId: number;
+  subject?: string;
+  /** @minLength 1 */
+  bodyHtml: string;
+}
+
+export interface CollateralEmailResult {
+  sent: boolean;
+}
+
+export interface CollateralLink {
+  url: string;
+  expiresInDays: 7;
+}
+
 export type UsfaIntakeLogStatus = typeof UsfaIntakeLogStatus[keyof typeof UsfaIntakeLogStatus];
 
 
@@ -3498,5 +3635,13 @@ export type MarkAllNotificationsRead200 = {
 
 export type MarkNotificationRead200 = {
   success?: boolean;
+};
+
+export type ListCollateralTemplatesParams = {
+includeDrafts?: boolean;
+};
+
+export type RenderCollateralTemplateParams = {
+repId?: number;
 };
 

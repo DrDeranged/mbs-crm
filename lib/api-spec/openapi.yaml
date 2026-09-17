@@ -4272,13 +4272,165 @@ paths:
                   success:
                     type: boolean
 
+  /collateral/templates:
+    get:
+      operationId: listCollateralTemplates
+      tags: [documents]
+      parameters:
+        - name: includeDrafts
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+      responses:
+        "200": { description: Published collateral templates, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+    post:
+      operationId: createCollateralTemplate
+      tags: [documents]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplateInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}:
+    get:
+      operationId: getCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+    patch:
+      operationId: updateCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplatePatch" } } } }
+      responses: { "200": { description: Updated template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/thumbnail:
+    get:
+      operationId: getCollateralTemplateThumbnail
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Safe SVG preview, content: { image/svg+xml: {} } } }
+  /collateral/templates/{id}/publish:
+    post:
+      operationId: publishCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Published template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/archive:
+    post:
+      operationId: archiveCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Archived template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/render:
+    get:
+      operationId: renderCollateralTemplate
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }, { name: repId, in: query, schema: { type: integer } }]
+      responses: { "200": { description: Personalized cached render, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralRender" } } } } }
+  /collateral/renders/{id}/pdf:
+    get:
+      operationId: downloadCollateralPdf
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: PDF, content: { application/pdf: {} } }, "503": { description: Renderer unavailable } }
+  /collateral/renders/{id}/png:
+    get:
+      operationId: downloadCollateralPng
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "503": { description: sharp is unavailable } }
+  /collateral/renders/{id}/email:
+    post:
+      operationId: emailCollateralRender
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralRenderId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralEmailInput" } } } }
+      responses: { "200": { description: Email sent, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralEmailResult" } } } } }
+  /collateral/renders/{id}/link:
+    get:
+      operationId: createCollateralRenderLink
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralRenderId" }]
+      responses: { "200": { description: Signed seven-day URL, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralLink" } } } } }
+  /collateral/shared/{token}:
+    get:
+      operationId: downloadSharedCollateral
+      tags: [documents]
+      security: []
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: PDF download, content: { application/pdf: {} } }, "403": { description: Invalid or expired link } }
+
 components:
+  parameters:
+    CollateralTemplateId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    CollateralRenderId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    CollateralTemplate:
+      type: object
+      required: [id, name, category, kind, sourceKey, status]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string }
+        status: { type: string, enum: [draft, published] }
+        thumbnailUrl: { type: ["string", "null"] }
+    CollateralTemplateInput:
+      type: object
+      required: [name, category, kind, sourceKey]
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string, minLength: 1 }
+        status: { type: string, enum: [draft, published] }
+    CollateralTemplatePatch:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string, minLength: 1 }
+        status: { type: string, enum: [draft, published] }
+    CollateralRender:
+      type: object
+      required: [renderId, sha256, pdfUrl, pngUrl, shareUrl]
+      properties:
+        renderId: { type: integer }
+        sha256: { type: string }
+        pdfUrl: { type: string }
+        pngUrl: { type: string }
+        shareUrl: { type: string }
+    CollateralEmailInput:
+      type: object
+      required: [leadId, bodyHtml]
+      properties:
+        leadId: { type: integer, minimum: 1 }
+        subject: { type: string }
+        bodyHtml: { type: string, minLength: 1 }
+    CollateralEmailResult:
+      type: object
+      required: [sent]
+      properties:
+        sent: { type: boolean }
+    CollateralLink:
+      type: object
+      required: [url, expiresInDays]
+      properties:
+        url: { type: string, format: uri }
+        expiresInDays: { type: integer, const: 7 }
     UsfaIntakeLog:
       type: object
       required: [id, externalId, rowNumber, ingestedAt, status]

@@ -38,6 +38,7 @@ import adminMigrationsRouter from "./adminMigrations";
 import adminUsfaIntakeRouter from "./adminUsfaIntake";
 import usfaIntakeRouter from "./usfaIntake";
 import usfaPrefillRouter from "./usfaPrefill";
+import collateralRouter from "./collateral";
 
 const router: IRouter = Router();
 
@@ -127,5 +128,6 @@ router.use(adminBackupRouter);
 router.use(piiAccessLogRouter);
 router.use(adminGovernanceRouter);
 router.use(storageRouter);
+router.use(collateralRouter);
 
 export default router;

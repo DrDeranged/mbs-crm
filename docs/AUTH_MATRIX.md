@@ -4,7 +4,7 @@
 **Audited revision:** `4bd0fde0478f25847f9eb8e5ef5ee93ffc673364` plus the
 Section A fixes listed below plus subsequent registered features. The effective
 API mount is `/api`; paths in this matrix include it. The router contains
-**182 method registrations** (`get`, `post`, `put`, and `delete`).
+**194 method registrations** (`get`, `post`, `put`, and `delete`).
 `router.use` mounts are not counted as registrations; factory registrations
 are counted at their declaration line.
 
@@ -220,6 +220,20 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/deals/seed` | `routes/deals.ts:1079` | `A` | reps rejected |
 | POST | `/api/admin/deals/reassign-seeded` | `routes/deals.ts:1195` | `A` | reps rejected |
 | POST | `/api/admin/production-closeout` | `routes/adminProductionCloseout.ts:32` | `A` | reps rejected |
+
+| GET | `/api/collateral/templates` | `routes/collateral.ts` | U | published templates; admins may include drafts |
+| POST | `/api/collateral/templates` | `routes/collateral.ts` | A | admin template creation |
+| GET | `/api/collateral/templates/:id` | `routes/collateral.ts` | U | published templates; admin drafts |
+| GET | `/api/collateral/templates/:id/thumbnail` | `routes/collateral.ts` | U | published templates; admin drafts |
+| PATCH | `/api/collateral/templates/:id` | `routes/collateral.ts` | A | admin template mutation |
+| POST | `/api/collateral/templates/:id/publish` | `routes/collateral.ts` | A | admin template mutation |
+| POST | `/api/collateral/templates/:id/archive` | `routes/collateral.ts` | A | admin template mutation |
+| GET | `/api/collateral/templates/:id/render` | `routes/collateral.ts` | U | caller or admin-selected rep |
+| GET | `/api/collateral/renders/:id/pdf` | `routes/collateral.ts` | U | owning rep or admin |
+| GET | `/api/collateral/renders/:id/png` | `routes/collateral.ts` | U | owning rep or admin |
+| GET | `/api/collateral/renders/:id/link` | `routes/collateral.ts` | U | owning rep or admin |
+| POST | `/api/collateral/renders/:id/email` | `routes/collateral.ts` | U | owning rep or admin |
+| GET | `/api/collateral/shared/:token` | `routes/collateral.ts` | H | seven-day HMAC signed render URL |
 
 ## Findings and verification
 

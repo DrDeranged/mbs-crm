@@ -156,6 +156,13 @@ export class ObjectStorageService {
     return objectFile;
   }
 
+  async saveObjectEntity(objectPath: string, bytes: Buffer, contentType: string): Promise<void> {
+    if (!objectPath.startsWith("/objects/")) throw new ObjectNotFoundError();
+    const dir = this.getPrivateObjectDir();
+    const { bucketName, objectName } = parseObjectPath(`${dir}/${objectPath.slice("/objects/".length)}`);
+    await objectStorageClient.bucket(bucketName).file(objectName).save(bytes, { contentType, resumable: false });
+  }
+
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;

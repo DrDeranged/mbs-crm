@@ -5094,3 +5094,193 @@ export const MarkNotificationReadResponse = zod.object({
 })
 
 
+export const listCollateralTemplatesQueryIncludeDraftsDefault = false;
+
+export const ListCollateralTemplatesQueryParams = zod.object({
+  "includeDrafts": zod.coerce.boolean().default(listCollateralTemplatesQueryIncludeDraftsDefault)
+})
+
+export const ListCollateralTemplatesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+export const ListCollateralTemplatesResponse = zod.array(ListCollateralTemplatesResponseItem)
+
+
+
+
+
+
+export const CreateCollateralTemplateBody = zod.object({
+  "name": zod.string().min(1),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string().min(1),
+  "status": zod.enum(['draft', 'published']).optional()
+})
+
+
+
+
+
+export const GetCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const GetCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const UpdateCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const UpdateCollateralTemplateBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']).optional(),
+  "kind": zod.enum(['html', 'image_overlay']).optional(),
+  "sourceKey": zod.string().min(1).optional(),
+  "status": zod.enum(['draft', 'published']).optional()
+})
+
+export const UpdateCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const GetCollateralTemplateThumbnailParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const PublishCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const PublishCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const ArchiveCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const ArchiveCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+export const RenderCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RenderCollateralTemplateQueryParams = zod.object({
+  "repId": zod.coerce.number().optional()
+})
+
+export const RenderCollateralTemplateResponse = zod.object({
+  "renderId": zod.number(),
+  "sha256": zod.string(),
+  "pdfUrl": zod.string(),
+  "pngUrl": zod.string(),
+  "shareUrl": zod.string()
+})
+
+
+export const DownloadCollateralPdfParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const DownloadCollateralPngParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const EmailCollateralRenderParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const EmailCollateralRenderBody = zod.object({
+  "leadId": zod.number().min(1),
+  "subject": zod.string().optional(),
+  "bodyHtml": zod.string().min(1)
+})
+
+export const EmailCollateralRenderResponse = zod.object({
+  "sent": zod.boolean()
+})
+
+
+
+
+
+export const CreateCollateralRenderLinkParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const CreateCollateralRenderLinkResponse = zod.object({
+  "url": zod.string().url(),
+  "expiresInDays": zod.number()
+})
+
+
+export const DownloadSharedCollateralParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+

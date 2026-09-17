@@ -47,6 +47,13 @@ import type {
   BulkUpdateLeadStatusBody,
   CaptureCreditConsent201,
   CaptureCreditConsentBody,
+  CollateralEmailInput,
+  CollateralEmailResult,
+  CollateralLink,
+  CollateralRender,
+  CollateralTemplate,
+  CollateralTemplateInput,
+  CollateralTemplatePatch,
   CommActivity,
   Communication,
   CommunicationMetrics,
@@ -131,6 +138,7 @@ import type {
   LenderPackageConfigResponse,
   LenderSubmission,
   LenderSubmissionUpdate,
+  ListCollateralTemplatesParams,
   ListDealsParams,
   ListEmailTemplatesParams,
   ListFlyerTemplatesParams,
@@ -154,6 +162,7 @@ import type {
   PublicRep,
   PullCreditReportBody,
   RecalculateLeadScore200,
+  RenderCollateralTemplateParams,
   RenewalOpportunity,
   RepDashboard,
   RepPerformance,
@@ -218,7 +227,6 @@ export const getApiRootHealthCheckUrl = () => {
 
   return `/api/`
 }
-
 /**
  * @summary API root health check for deployment monitoring
  */
@@ -281,13 +289,6 @@ export function useApiRootHealthCheck<TData = Awaited<ReturnType<typeof apiRootH
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-
-
 export const getHealthCheckUrl = () => {
 
 
@@ -358,13 +359,6 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
-
-
 export const getGetHealthDeepUrl = () => {
 
 
@@ -435,11 +429,6 @@ export function useGetHealthDeep<TData = Awaited<ReturnType<typeof getHealthDeep
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
 
 
 export const getGetAdminErrorsUrl = (params?: GetAdminErrorsParams,) => {
@@ -519,11 +508,6 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-
 
 
 export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
@@ -12897,3 +12881,908 @@ export const useMarkNotificationRead = <TError = ErrorType<unknown>,
       return useMutation(getMarkNotificationReadMutationOptions(options));
     }
 
+export const getListCollateralTemplatesUrl = (params?: ListCollateralTemplatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/collateral/templates?${stringifiedParams}` : `/api/collateral/templates`
+}
+
+export const listCollateralTemplates = async (params?: ListCollateralTemplatesParams, options?: RequestInit): Promise<CollateralTemplate[]> => {
+
+  return customFetch<CollateralTemplate[]>(getListCollateralTemplatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCollateralTemplatesQueryKey = (params?: ListCollateralTemplatesParams,) => {
+    return [
+    `/api/collateral/templates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCollateralTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listCollateralTemplates>>, TError = ErrorType<unknown>>(params?: ListCollateralTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCollateralTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCollateralTemplatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCollateralTemplates>>> = ({ signal }) => listCollateralTemplates(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCollateralTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCollateralTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listCollateralTemplates>>>
+export type ListCollateralTemplatesQueryError = ErrorType<unknown>
+
+
+
+export function useListCollateralTemplates<TData = Awaited<ReturnType<typeof listCollateralTemplates>>, TError = ErrorType<unknown>>(
+ params?: ListCollateralTemplatesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCollateralTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCollateralTemplatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCollateralTemplateUrl = () => {
+
+
+
+
+  return `/api/collateral/templates`
+}
+
+export const createCollateralTemplate = async (collateralTemplateInput: CollateralTemplateInput, options?: RequestInit): Promise<CollateralTemplate> => {
+
+  return customFetch<CollateralTemplate>(getCreateCollateralTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      collateralTemplateInput,)
+  }
+);}
+
+
+
+
+export const getCreateCollateralTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCollateralTemplate>>, TError,{data: BodyType<CollateralTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCollateralTemplate>>, TError,{data: BodyType<CollateralTemplateInput>}, TContext> => {
+
+const mutationKey = ['createCollateralTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCollateralTemplate>>, {data: BodyType<CollateralTemplateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCollateralTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCollateralTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createCollateralTemplate>>>
+    export type CreateCollateralTemplateMutationBody = BodyType<CollateralTemplateInput>
+    export type CreateCollateralTemplateMutationError = ErrorType<unknown>
+
+    export const useCreateCollateralTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCollateralTemplate>>, TError,{data: BodyType<CollateralTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCollateralTemplate>>,
+        TError,
+        {data: BodyType<CollateralTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCollateralTemplateMutationOptions(options));
+    }
+
+export const getGetCollateralTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/templates/${id}`
+}
+
+export const getCollateralTemplate = async (id: number, options?: RequestInit): Promise<CollateralTemplate> => {
+
+  return customFetch<CollateralTemplate>(getGetCollateralTemplateUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCollateralTemplateQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/templates/${id}`
+    ] as const;
+    }
+
+
+export const getGetCollateralTemplateQueryOptions = <TData = Awaited<ReturnType<typeof getCollateralTemplate>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCollateralTemplateQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCollateralTemplate>>> = ({ signal }) => getCollateralTemplate(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplate>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCollateralTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof getCollateralTemplate>>>
+export type GetCollateralTemplateQueryError = ErrorType<unknown>
+
+
+
+export function useGetCollateralTemplate<TData = Awaited<ReturnType<typeof getCollateralTemplate>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCollateralTemplateQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCollateralTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/templates/${id}`
+}
+
+export const updateCollateralTemplate = async (id: number,
+    collateralTemplatePatch: CollateralTemplatePatch, options?: RequestInit): Promise<CollateralTemplate> => {
+
+  return customFetch<CollateralTemplate>(getUpdateCollateralTemplateUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      collateralTemplatePatch,)
+  }
+);}
+
+
+
+
+export const getUpdateCollateralTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCollateralTemplate>>, TError,{id: number;data: BodyType<CollateralTemplatePatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCollateralTemplate>>, TError,{id: number;data: BodyType<CollateralTemplatePatch>}, TContext> => {
+
+const mutationKey = ['updateCollateralTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCollateralTemplate>>, {id: number;data: BodyType<CollateralTemplatePatch>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCollateralTemplate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCollateralTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateCollateralTemplate>>>
+    export type UpdateCollateralTemplateMutationBody = BodyType<CollateralTemplatePatch>
+    export type UpdateCollateralTemplateMutationError = ErrorType<unknown>
+
+    export const useUpdateCollateralTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCollateralTemplate>>, TError,{id: number;data: BodyType<CollateralTemplatePatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCollateralTemplate>>,
+        TError,
+        {id: number;data: BodyType<CollateralTemplatePatch>},
+        TContext
+      > => {
+      return useMutation(getUpdateCollateralTemplateMutationOptions(options));
+    }
+
+export const getGetCollateralTemplateThumbnailUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/templates/${id}/thumbnail`
+}
+
+export const getCollateralTemplateThumbnail = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetCollateralTemplateThumbnailUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCollateralTemplateThumbnailQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/templates/${id}/thumbnail`
+    ] as const;
+    }
+
+
+export const getGetCollateralTemplateThumbnailQueryOptions = <TData = Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCollateralTemplateThumbnailQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>> = ({ signal }) => getCollateralTemplateThumbnail(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCollateralTemplateThumbnailQueryResult = NonNullable<Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>>
+export type GetCollateralTemplateThumbnailQueryError = ErrorType<unknown>
+
+
+
+export function useGetCollateralTemplateThumbnail<TData = Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCollateralTemplateThumbnail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCollateralTemplateThumbnailQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getPublishCollateralTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/templates/${id}/publish`
+}
+
+export const publishCollateralTemplate = async (id: number, options?: RequestInit): Promise<CollateralTemplate> => {
+
+  return customFetch<CollateralTemplate>(getPublishCollateralTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getPublishCollateralTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishCollateralTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof publishCollateralTemplate>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['publishCollateralTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publishCollateralTemplate>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  publishCollateralTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublishCollateralTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof publishCollateralTemplate>>>
+
+    export type PublishCollateralTemplateMutationError = ErrorType<unknown>
+
+    export const usePublishCollateralTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishCollateralTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof publishCollateralTemplate>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getPublishCollateralTemplateMutationOptions(options));
+    }
+
+export const getArchiveCollateralTemplateUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/templates/${id}/archive`
+}
+
+export const archiveCollateralTemplate = async (id: number, options?: RequestInit): Promise<CollateralTemplate> => {
+
+  return customFetch<CollateralTemplate>(getArchiveCollateralTemplateUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getArchiveCollateralTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCollateralTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveCollateralTemplate>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['archiveCollateralTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveCollateralTemplate>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  archiveCollateralTemplate(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveCollateralTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof archiveCollateralTemplate>>>
+
+    export type ArchiveCollateralTemplateMutationError = ErrorType<unknown>
+
+    export const useArchiveCollateralTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCollateralTemplate>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof archiveCollateralTemplate>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getArchiveCollateralTemplateMutationOptions(options));
+    }
+
+export const getRenderCollateralTemplateUrl = (id: number,
+    params?: RenderCollateralTemplateParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/collateral/templates/${id}/render?${stringifiedParams}` : `/api/collateral/templates/${id}/render`
+}
+
+export const renderCollateralTemplate = async (id: number,
+    params?: RenderCollateralTemplateParams, options?: RequestInit): Promise<CollateralRender> => {
+
+  return customFetch<CollateralRender>(getRenderCollateralTemplateUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getRenderCollateralTemplateQueryKey = (id: number,
+    params?: RenderCollateralTemplateParams,) => {
+    return [
+    `/api/collateral/templates/${id}/render`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getRenderCollateralTemplateQueryOptions = <TData = Awaited<ReturnType<typeof renderCollateralTemplate>>, TError = ErrorType<unknown>>(id: number,
+    params?: RenderCollateralTemplateParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof renderCollateralTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRenderCollateralTemplateQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof renderCollateralTemplate>>> = ({ signal }) => renderCollateralTemplate(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof renderCollateralTemplate>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type RenderCollateralTemplateQueryResult = NonNullable<Awaited<ReturnType<typeof renderCollateralTemplate>>>
+export type RenderCollateralTemplateQueryError = ErrorType<unknown>
+
+
+
+export function useRenderCollateralTemplate<TData = Awaited<ReturnType<typeof renderCollateralTemplate>>, TError = ErrorType<unknown>>(
+ id: number,
+    params?: RenderCollateralTemplateParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof renderCollateralTemplate>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getRenderCollateralTemplateQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDownloadCollateralPdfUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/renders/${id}/pdf`
+}
+
+export const downloadCollateralPdf = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadCollateralPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadCollateralPdfQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/renders/${id}/pdf`
+    ] as const;
+    }
+
+
+export const getDownloadCollateralPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadCollateralPdf>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadCollateralPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadCollateralPdf>>> = ({ signal }) => downloadCollateralPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPdf>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadCollateralPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadCollateralPdf>>>
+export type DownloadCollateralPdfQueryError = ErrorType<void>
+
+
+
+export function useDownloadCollateralPdf<TData = Awaited<ReturnType<typeof downloadCollateralPdf>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadCollateralPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDownloadCollateralPngUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/renders/${id}/png`
+}
+
+export const downloadCollateralPng = async (id: number, options?: RequestInit): Promise<unknown> => {
+
+  return customFetch<unknown>(getDownloadCollateralPngUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadCollateralPngQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/renders/${id}/png`
+    ] as const;
+    }
+
+
+export const getDownloadCollateralPngQueryOptions = <TData = Awaited<ReturnType<typeof downloadCollateralPng>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPng>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadCollateralPngQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadCollateralPng>>> = ({ signal }) => downloadCollateralPng(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPng>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadCollateralPngQueryResult = NonNullable<Awaited<ReturnType<typeof downloadCollateralPng>>>
+export type DownloadCollateralPngQueryError = ErrorType<void>
+
+
+
+export function useDownloadCollateralPng<TData = Awaited<ReturnType<typeof downloadCollateralPng>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCollateralPng>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadCollateralPngQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEmailCollateralRenderUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/renders/${id}/email`
+}
+
+export const emailCollateralRender = async (id: number,
+    collateralEmailInput: CollateralEmailInput, options?: RequestInit): Promise<CollateralEmailResult> => {
+
+  return customFetch<CollateralEmailResult>(getEmailCollateralRenderUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      collateralEmailInput,)
+  }
+);}
+
+
+
+
+export const getEmailCollateralRenderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailCollateralRender>>, TError,{id: number;data: BodyType<CollateralEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof emailCollateralRender>>, TError,{id: number;data: BodyType<CollateralEmailInput>}, TContext> => {
+
+const mutationKey = ['emailCollateralRender'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof emailCollateralRender>>, {id: number;data: BodyType<CollateralEmailInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  emailCollateralRender(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EmailCollateralRenderMutationResult = NonNullable<Awaited<ReturnType<typeof emailCollateralRender>>>
+    export type EmailCollateralRenderMutationBody = BodyType<CollateralEmailInput>
+    export type EmailCollateralRenderMutationError = ErrorType<unknown>
+
+    export const useEmailCollateralRender = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailCollateralRender>>, TError,{id: number;data: BodyType<CollateralEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof emailCollateralRender>>,
+        TError,
+        {id: number;data: BodyType<CollateralEmailInput>},
+        TContext
+      > => {
+      return useMutation(getEmailCollateralRenderMutationOptions(options));
+    }
+
+export const getCreateCollateralRenderLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/renders/${id}/link`
+}
+
+export const createCollateralRenderLink = async (id: number, options?: RequestInit): Promise<CollateralLink> => {
+
+  return customFetch<CollateralLink>(getCreateCollateralRenderLinkUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateCollateralRenderLinkQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/renders/${id}/link`
+    ] as const;
+    }
+
+
+export const getCreateCollateralRenderLinkQueryOptions = <TData = Awaited<ReturnType<typeof createCollateralRenderLink>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof createCollateralRenderLink>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCreateCollateralRenderLinkQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof createCollateralRenderLink>>> = ({ signal }) => createCollateralRenderLink(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof createCollateralRenderLink>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CreateCollateralRenderLinkQueryResult = NonNullable<Awaited<ReturnType<typeof createCollateralRenderLink>>>
+export type CreateCollateralRenderLinkQueryError = ErrorType<unknown>
+
+
+
+export function useCreateCollateralRenderLink<TData = Awaited<ReturnType<typeof createCollateralRenderLink>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof createCollateralRenderLink>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCreateCollateralRenderLinkQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDownloadSharedCollateralUrl = (token: string,) => {
+
+
+
+
+  return `/api/collateral/shared/${token}`
+}
+
+export const downloadSharedCollateral = async (token: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadSharedCollateralUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadSharedCollateralQueryKey = (token: string,) => {
+    return [
+    `/api/collateral/shared/${token}`
+    ] as const;
+    }
+
+
+export const getDownloadSharedCollateralQueryOptions = <TData = Awaited<ReturnType<typeof downloadSharedCollateral>>, TError = ErrorType<void>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSharedCollateral>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadSharedCollateralQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadSharedCollateral>>> = ({ signal }) => downloadSharedCollateral(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadSharedCollateral>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadSharedCollateralQueryResult = NonNullable<Awaited<ReturnType<typeof downloadSharedCollateral>>>
+export type DownloadSharedCollateralQueryError = ErrorType<void>
+
+
+
+export function useDownloadSharedCollateral<TData = Awaited<ReturnType<typeof downloadSharedCollateral>>, TError = ErrorType<void>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSharedCollateral>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadSharedCollateralQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
