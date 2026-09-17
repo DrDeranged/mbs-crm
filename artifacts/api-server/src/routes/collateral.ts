@@ -12,6 +12,12 @@ import { logActivity } from "../lib/activityHelper";
 import { renderCollateral, renderFinanceApplicationCollateral, FINANCE_APPLICATION_SOURCE_KEY } from "../lib/collateralPersonalization";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { getPublicBaseUrl } from "../lib/brand";
+import {
+  canEmailCollateralToLead,
+  canManageCollateralTemplates,
+  canReadCollateralTemplate,
+  canRenderCollateralForRep,
+} from "../lib/collateralAccess";
 
 const router = Router();
 const templateBody = z.object({
@@ -71,25 +77,25 @@ router.get("/collateral/templates", async (req, res) => {
 router.get("/collateral/templates/:id", async (req, res) => {
   const u = await user(req, res); if (!u) return;
   const t = await db.query.collateralTemplatesTable.findFirst({ where: eq(collateralTemplatesTable.id, Number(req.params.id)) });
-  if (!t || (t.status !== "published" && !isAdmin(u))) return void res.status(404).json({ error: "Template not found" });
+  if (!t || !canReadCollateralTemplate(u, t)) return void res.status(404).json({ error: "Template not found" });
   res.json(t);
 });
 router.get("/collateral/templates/:id/thumbnail", async (req, res) => {
   const u = await user(req, res); if (!u) return;
   const t = await db.query.collateralTemplatesTable.findFirst({ where: eq(collateralTemplatesTable.id, Number(req.params.id)) });
-  if (!t || (t.status !== "published" && !isAdmin(u))) return void res.status(404).json({ error: "Template not found" });
+  if (!t || !canReadCollateralTemplate(u, t)) return void res.status(404).json({ error: "Template not found" });
   const title = t.name.replace(/[<&>"]/g, "");
   res.type("svg").send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#f4f7fa"/><rect x="0" y="0" width="640" height="72" fill="#0B2948"/><rect x="32" y="28" width="120" height="16" rx="8" fill="#17B26A"/><text x="32" y="150" fill="#0B2948" font-family="Arial" font-size="28" font-weight="bold">${title}</text><text x="32" y="190" fill="#64748b" font-family="Arial" font-size="15">Personalized collateral preview</text><rect x="32" y="300" width="576" height="2" fill="#17B26A"/></svg>`);
 });
 
 router.post("/collateral/templates", async (req, res) => {
-  const u = await user(req, res); if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
   const parsed = templateBody.safeParse(req.body); if (!parsed.success) return void res.status(400).json({ error: parsed.error.issues[0]?.message });
   const [row] = await db.insert(collateralTemplatesTable).values({ ...parsed.data, createdBy: u.id }).returning();
   res.status(201).json(row);
 });
 router.patch("/collateral/templates/:id", async (req, res) => {
-  const u = await user(req, res); if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
   const patch = templateBody.partial().safeParse(req.body); if (!patch.success) return void res.status(400).json({ error: "Invalid template" });
   const [row] = await db.update(collateralTemplatesTable).set({ ...patch.data, updatedAt: new Date() })
     .where(eq(collateralTemplatesTable.id, Number(req.params.id))).returning();
@@ -97,12 +103,12 @@ router.patch("/collateral/templates/:id", async (req, res) => {
   res.json(row);
 });
 router.post("/collateral/templates/:id/publish", async (req, res) => {
-  const u = await user(req, res); if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
   const [row] = await db.update(collateralTemplatesTable).set({ status: "published", updatedAt: new Date() }).where(eq(collateralTemplatesTable.id, Number(req.params.id))).returning();
   res.json(row);
 });
 router.post("/collateral/templates/:id/archive", async (req, res) => {
-  const u = await user(req, res); if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
   const [row] = await db.update(collateralTemplatesTable).set({ status: "draft", updatedAt: new Date() }).where(eq(collateralTemplatesTable.id, Number(req.params.id))).returning();
   res.json(row);
 });
@@ -110,9 +116,9 @@ router.post("/collateral/templates/:id/archive", async (req, res) => {
 router.get("/collateral/templates/:id/render", async (req, res) => {
   const viewer = await user(req, res); if (!viewer) return;
   const t = await db.query.collateralTemplatesTable.findFirst({ where: eq(collateralTemplatesTable.id, Number(req.params.id)) });
-  if (!t || (t.status !== "published" && !isAdmin(viewer))) return void res.status(404).json({ error: "Template not found" });
+  if (!t || !canReadCollateralTemplate(viewer, t)) return void res.status(404).json({ error: "Template not found" });
   const repId = Number(req.query.repId) || viewer.id;
-  if (!isAdmin(viewer) && repId !== viewer.id) return void res.status(403).json({ error: "Forbidden" });
+  if (!canRenderCollateralForRep(viewer, repId)) return void res.status(403).json({ error: "Forbidden" });
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, repId) });
   if (!rep) return void res.status(404).json({ error: "Rep not found" });
   const fields = repFields(rep);
@@ -146,6 +152,7 @@ router.post("/collateral/renders/:id/email", async (req, res) => {
   const r = await db.query.collateralRendersTable.findFirst({ where: eq(collateralRendersTable.id, Number(req.params.id)), with: { template: true, user: true } });
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, body.data.leadId) });
   if (!r || !lead?.email || (u.role === "rep" && r.userId !== u.id)) return void res.status(404).json({ error: "Render or lead not found" });
+  if (!canEmailCollateralToLead(u, lead)) return void res.status(403).json({ error: "Forbidden" });
   try {
     const file = await objectStorage.getObjectEntityFile(r.fileKey);
     const [pdf] = await file.download();
