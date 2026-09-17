@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
-import { renderApplicationFormPdf } from "./applicationPdf";
+import { enrichApplicationPdfRep, renderApplicationFormPdf, selectApplicationPdfEmail } from "./applicationPdf";
 import { requireUser } from "./authHelpers";
 import { logPiiAccess } from "./piiAccess";
 import { decrypt } from "./encryption";
@@ -156,8 +156,7 @@ export function getLenderRepEmail(user: User | null | undefined): string | null 
     if (typeof value === "string") candidates.push(value);
     if (Array.isArray(value)) candidates.push(...value.filter((item): item is string => typeof item === "string"));
   }
-  const branded = candidates.find((email) => /@my-business-solutions\.com$/i.test(email.trim()));
-  return (branded ?? candidates.find((email) => email.trim()))?.trim() || null;
+  return selectApplicationPdfEmail({ email: candidates[0], emails: candidates.slice(1) }) || null;
 }
 
 function displayMoney(value: number | null | undefined): string | null {
@@ -620,6 +619,8 @@ export async function buildLenderPackagePdf(params: {
         title: params.assignedRep.title,
          email: getLenderRepEmail(params.assignedRep),
         mobileNumber: params.assignedRep.mobileNumber,
+         officePhone: (params.assignedRep as User & { officePhone?: string | null }).officePhone,
+         emails: (params.assignedRep as User & { emails?: string[] | null }).emails,
         slug: params.assignedRep.slug,
         role: params.assignedRep.role,
       }
@@ -841,10 +842,16 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         }),
       ]);
 
+      const enrichedAssignedRep = overrides.renderPdf || !assignedRep
+        ? assignedRep
+        : await enrichApplicationPdfRep(database, assignedRep.id, {
+          name: assignedRep.name, title: assignedRep.title, email: assignedRep.email,
+          mobileNumber: assignedRep.mobileNumber, slug: assignedRep.slug,
+        }).then((rep) => ({ ...assignedRep, officePhone: rep.officePhone, emails: rep.emails }));
       const { pdf } = await buildLenderPackagePdf({
         lead,
         application,
-        assignedRep: assignedRep ?? null,
+        assignedRep: enrichedAssignedRep ?? null,
         documents,
         renderPdf: overrides.renderPdf,
         downloadDocument: download,
@@ -976,8 +983,14 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
           secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
         }
         : undefined;
+      const enrichedAssignedRep = overrides.renderPdf || !assignedRep
+        ? assignedRep
+        : await enrichApplicationPdfRep(database, assignedRep.id, {
+          name: assignedRep.name, title: assignedRep.title, email: assignedRep.email,
+          mobileNumber: assignedRep.mobileNumber, slug: assignedRep.slug,
+        }).then((rep) => ({ ...assignedRep, officePhone: rep.officePhone, emails: rep.emails }));
       const { pdf } = await buildLenderPackagePdf({
-        lead, application, assignedRep: assignedRep ?? null, documents,
+        lead, application, assignedRep: enrichedAssignedRep ?? null, documents,
         renderPdf: overrides.renderPdf, downloadDocument: download, selection, unmaskedSsn,
       });
       await database.update(leadsTable).set({ packageConfig: selection, updatedAt: new Date() }).where(eq(leadsTable.id, id));

@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { tmpdir } from "node:os";
 import { PDFDocument, PDFDict, PDFName } from "pdf-lib";
 import { PDFParse } from "pdf-parse";
 import { CONSENT_TEXT, APPLICATION_PDF_FOOTER } from "./consentText";
@@ -56,8 +61,7 @@ test("native form embeds Unicode Inter text, logo, ET dates, and mapped applicat
     assert.ok(!text.includes("Eligibility ?"), "Unicode glyphs must not be substituted with question marks");
     assert.match(text, /Equipment Financing/);
     assert.match(text, /Sep 15, 2026, 5:12 PM ET/);
-    assert.match(text, /Senior Funding Advisor/);
-    assert.match(text, /—/);
+    assert.match(text, /SENIOR FUNDING ADVISOR/);
   } finally {
     await parser.destroy();
   }
@@ -172,4 +176,50 @@ test("native historical applications embed PNG signatures without substituting s
   });
   assert.equal(pdfBytes.subarray(0, 5).toString(), "%PDF-");
   assert.equal((await PDFDocument.load(pdfBytes)).getPageCount(), 1);
+});
+
+test("native header uses work email, ordered phones, and required clearance", async () => {
+  const { applicationPdfHeaderLayout, selectApplicationPdfEmail } = await import("./applicationPdf");
+  const rep = {
+    name: "Calvin Tuon", title: "Funding Advisor", mobileNumber: "201-555-0101",
+    officePhone: "201-555-0102", email: "calvin@gmail.com",
+    emails: ["calvin@my-business-solutions.com"], slug: "calvin",
+  };
+  const layout = applicationPdfHeaderLayout(rep);
+  assert.deepEqual(layout.contacts, [
+    "201-555-0101", "201-555-0102", "calvin@my-business-solutions.com", "www.my-business-solutions.com",
+  ]);
+  assert.equal(selectApplicationPdfEmail(rep), "calvin@my-business-solutions.com");
+  assert.equal(layout.title, "FUNDING ADVISOR");
+  assert.equal(layout.contacts.length + 1, 5, "title plus four contacts must produce five left-side lines");
+  assert.ok(layout.contactBaseline - (layout.contacts.length - 1) * layout.contactLeading - (layout.ruleY + layout.ruleHeight) >= 1);
+  assert.ok(layout.ruleY - layout.businessBarTop >= 1);
+  const noTitle = applicationPdfHeaderLayout({ ...rep, title: null });
+  assert.equal(noTitle.title, "");
+  assert.equal(noTitle.contactBaseline, 745.5);
+  assert.ok(![noTitle.title, ...noTitle.contacts].includes("—"), "the header must never render a dash placeholder");
+  assert.equal(selectApplicationPdfEmail({ email: "primary@example.com", emails: ["alias@example.net"] }), "primary@example.com");
+  assert.equal(selectApplicationPdfEmail({ email: null, emails: ["alias@example.net"] }), "");
+});
+
+test("Nate and Calvin header regions remain deterministic", async () => {
+  const fixtures = [
+    { name: "Nate Ford", title: "CHIEF EXECUTIVE OFFICER", email: "nate@my-business-solutions.com", mobileNumber: "602.245.5425", slug: "nate" },
+    { name: "Calvin Tuon", title: "FUNDING ADVISOR", email: "calvin@gmail.com", emails: ["calvin@my-business-solutions.com"], mobileNumber: "201-555-0101", officePhone: "201-555-0102", slug: "calvin" },
+  ];
+  const expected = ["f3583438876755948499c4193b4ecb39c55ee7ccabaa269fbc9793de8527fa81", "c93369b5ea5c8420b3366a87ee8c12e6d4d884dcd7deb5b6b882c73f3f0686db"];
+  for (const [index, rep] of fixtures.entries()) {
+    const bytes = await renderApplicationFormPdf({ rep });
+    const dir = mkdtempSync(path.join(tmpdir(), "mbs-header-"));
+    const pdfPath = path.join(dir, "header.pdf");
+    const prefix = path.join(dir, "header");
+    try {
+      writeFileSync(pdfPath, bytes);
+      execFileSync("pdftoppm", ["-f", "1", "-l", "1", "-r", "144", "-png", "-singlefile", "-x", "0", "-y", "0", "-W", "1224", "-H", "180", pdfPath, prefix]);
+      const hash = createHash("sha256").update(readFileSync(`${prefix}.png`)).digest("hex");
+      assert.equal(hash, expected[index]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
 });

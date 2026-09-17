@@ -10,6 +10,7 @@ import { db } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { renderCollateral, renderFinanceApplicationCollateral, FINANCE_APPLICATION_SOURCE_KEY } from "../lib/collateralPersonalization";
+import { enrichApplicationPdfRep } from "../lib/applicationPdf";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { getPublicBaseUrl } from "../lib/brand";
 import {
@@ -98,7 +99,10 @@ async function sourceBytes(sourceKey: string): Promise<{ bytes: Buffer; format: 
 }
 async function renderTemplatePdf(t: typeof collateralTemplatesTable.$inferSelect, rep: typeof usersTable.$inferSelect): Promise<Buffer> {
   if (t.sourceKey === FINANCE_APPLICATION_SOURCE_KEY) {
-    return renderFinanceApplicationCollateral({ rep: repFields(rep), logoUrl: null });
+    return renderFinanceApplicationCollateral({
+      rep: await enrichApplicationPdfRep(db, rep.id, repFields(rep)),
+      logoUrl: null,
+    });
   }
   if (t.kind === "html") {
     let source = t.sourceKey;
@@ -175,7 +179,9 @@ router.get("/collateral/templates/:id/render", async (req, res) => {
   if (!canRenderCollateralForRep(viewer, repId)) return void res.status(403).json({ error: "Forbidden" });
   const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, repId) });
   if (!rep) return void res.status(404).json({ error: "Rep not found" });
-  const fields = repFields(rep);
+  const fields = t.sourceKey === FINANCE_APPLICATION_SOURCE_KEY
+    ? await enrichApplicationPdfRep(db, rep.id, repFields(rep))
+    : repFields(rep);
   const sha256 = crypto.createHash("sha256").update(JSON.stringify({ template: t, fields })).digest("hex");
   let render = await db.query.collateralRendersTable.findFirst({ where: and(eq(collateralRendersTable.templateId, t.id), eq(collateralRendersTable.userId, rep.id), eq(collateralRendersTable.sha256, sha256)) });
   if (!render) {
