@@ -10,6 +10,7 @@ import {
 import { and, eq, isNull, ne, or } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
 import { logger } from "./logger";
+import { reservedIdentityOwnerId } from "./userIdentityMerge";
 
 type RequireUserOptions = {
   allowPending?: boolean;
@@ -163,6 +164,13 @@ export async function requireUser(
             .for("update");
 
           if (!owner) return null;
+          if (
+            reservedIdentityOwnerId(
+              email,
+              RESERVED_REP_SLUGS,
+              [owner],
+            ) !== owner.id
+          ) return null;
 
           const [insertedIdentity] = await tx
             .insert(userIdentitiesTable)

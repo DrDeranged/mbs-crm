@@ -218,10 +218,13 @@ function clerkAuth(userId: string) {
 async function requestTemplate(owner: { id: number; role: "rep" | "admin" }, method = "GET") {
   const query = db.query as unknown as {
     usersTable: { findFirst: () => unknown };
+    userIdentitiesTable: { findFirst: () => unknown };
     emailTemplatesTable: { findFirst: () => unknown };
   };
   const originalUserFindFirst = query.usersTable.findFirst;
+  const originalIdentityFindFirst = query.userIdentitiesTable.findFirst;
   const originalTemplateFindFirst = query.emailTemplatesTable.findFirst;
+  query.userIdentitiesTable.findFirst = async () => null;
   query.usersTable.findFirst = async () => ({
     id: rep.id, clerkId: "rep-7", email: "rep@example.com", name: "Rep",
     role: "rep", isActive: true, slug: null,
@@ -247,6 +250,7 @@ async function requestTemplate(owner: { id: number; role: "rep" | "admin" }, met
     });
   } finally {
     query.usersTable.findFirst = originalUserFindFirst;
+    query.userIdentitiesTable.findFirst = originalIdentityFindFirst;
     query.emailTemplatesTable.findFirst = originalTemplateFindFirst;
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }

@@ -8,6 +8,7 @@ import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspa
 import { backfillProductionSlugs, ProductionMaintenanceError } from "../lib/productionMaintenance";
 import { retireRepSlug } from "./repPublic";
 import { isSlugRetirementAuthorized, requiresSlugRetirement } from "../lib/repSlugPolicy";
+import { MERGE_USER_REFERENCE_COLUMNS, mergeRequiresConfirmation } from "../lib/userIdentityMerge";
 import applicationFormRouter from "./applicationForm";
 
 const router: IRouter = Router();
@@ -146,21 +147,14 @@ router.post("/admin/users/merge", async (req: Request, res: Response) => {
       if (!target.isActive) throw Object.assign(new Error("Target user must be active"), { status: 409 });
       if (!source.isActive) throw Object.assign(new Error("Source user is already inactive"), { status: 409 });
 
-      const tables = [
-        ["leads", "assigned_rep_id"], ["deals", "assigned_to"], ["notes", "user_id"],
-        ["tasks", "user_id"], ["documents", "user_id"], ["activity_log", "user_id"],
-        ["lender_submissions", "sent_by"], ["lender_submission_deliveries", "sent_by"],
-        ["collateral_renders", "user_id"], ["lead_status_history", "changed_by_user_id"],
-        ["lead_assignment_history", "changed_by_user_id"], ["lead_assignment_history", "from_rep_id"],
-        ["lead_assignment_history", "to_rep_id"],
-      ] as const;
+      const tables = MERGE_USER_REFERENCE_COLUMNS;
       const counts: Record<string, number> = {};
       for (const [table, column] of tables) {
         const rows = await tx.execute(sql.raw(`SELECT count(*)::int AS count FROM ${table} WHERE ${column} = ${sourceId}`));
         counts[`${table}.${column}`] = Number((rows.rows?.[0] as any)?.count ?? 0);
       }
       const totalRecords = Object.values(counts).reduce((sum, count) => sum + count, 0);
-      if (totalRecords > 0 && !confirmReassignment) {
+      if (mergeRequiresConfirmation(counts) && !confirmReassignment) {
         const error = Object.assign(new Error("Reassignment confirmation is required"), { status: 409 });
         (error as any).details = { code: "CONFIRM_REASSIGNMENT_REQUIRED", counts };
         throw error;

@@ -54,6 +54,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/users/:id/retire-slug` | `routes/users.ts:61` | `A` | N/A |
 | POST | `/api/admin/rep-slugs/retire` | `routes/users.ts:72` | `A` | N/A |
 | POST | `/api/admin/users/backfill-slugs` | `routes/users.ts:81` | `A` | N/A |
+| POST | `/api/admin/users/merge` | `routes/users.ts:122` | `A` | N/A |
 | GET | `/api/users` | `routes/users.ts:100` | `M` | reps rejected |
 | GET | `/api/users/:id/application-form.pdf` | `routes/applicationForm.ts:22` | `U` | admin, or `actor.role === "rep" && actor.id === id` |
 | PUT | `/api/users/:id` | `routes/users.ts:124` | `A` | N/A |
