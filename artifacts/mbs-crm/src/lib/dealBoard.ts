@@ -52,6 +52,35 @@ export const DEAL_STAGE_COLUMNS = [
   color: string;
 }>;
 
+export const KANBAN_COMPACT_BREAKPOINT = 1280;
+export const KANBAN_COMPACT_COLUMN_MIN_WIDTH = 132;
+export const KANBAN_COMPACT_GAP = 4;
+
+export function kanbanCompactPreferenceKey(userId: number): string {
+  return `mbs-crm:kanban-compact:${userId}`;
+}
+
+export function readKanbanCompactPreference(
+  storage: { getItem(key: string): string | null },
+  key: string,
+): boolean {
+  return storage.getItem(key) === "true";
+}
+
+/** The minimum canvas needed for nine compact columns without horizontal overflow. */
+export function compactKanbanRequiredWidth(
+  columnCount = DEAL_STAGE_COLUMNS.length,
+): number {
+  return (
+    columnCount * KANBAN_COMPACT_COLUMN_MIN_WIDTH +
+    Math.max(0, columnCount - 1) * KANBAN_COMPACT_GAP
+  );
+}
+
+export function compactKanbanFits(viewportWidth: number): boolean {
+  return viewportWidth >= compactKanbanRequiredWidth();
+}
+
 export const DEAL_VIEW_STAGES = {
   all: undefined,
   fundedAndInFunding: ["funded", "in_funding"] as const,
