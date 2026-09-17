@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import { and, asc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import {
   activityLogTable,
   db,
@@ -43,6 +43,33 @@ export class ProductionMaintenanceError extends Error {
 const SEEDED_ASSIGNMENT_SOURCE_ID = 7;
 const SEEDED_ASSIGNMENT_TARGET_ID = 16;
 
+type SeededOwnershipDeal = Pick<
+  typeof dealsTable.$inferSelect,
+  "id" | "dealName" | "assignedTo" | "intendedRepSlug"
+>;
+
+export function planSeededOwnershipCorrections(
+  deals: readonly SeededOwnershipDeal[],
+  assignedUsers: readonly Pick<typeof usersTable.$inferSelect, "id" | "slug">[],
+) {
+  const ordinaryNames = new Set<string>(SEEDED_ORDINARY_NAMES);
+  const calvinNames = new Set<string>(SEEDED_CALVIN_NAMES);
+  const assignedUsersById = new Map(assignedUsers.map((assignedUser) => [assignedUser.id, assignedUser]));
+  const ordinaryDeals = deals.filter((deal) => ordinaryNames.has(deal.dealName));
+  const calvinDeals = deals.filter((deal) => calvinNames.has(deal.dealName));
+
+  return {
+    ordinaryToNate: ordinaryDeals.filter((deal) => deal.assignedTo === SEEDED_ASSIGNMENT_SOURCE_ID),
+    calvinToClear: calvinDeals.filter((deal) =>
+      deal.assignedTo != null && assignedUsersById.get(deal.assignedTo)?.slug !== "calvin",
+    ),
+    calvinMarkerOnly: calvinDeals.filter((deal) =>
+      (deal.assignedTo == null || assignedUsersById.get(deal.assignedTo)?.slug === "calvin")
+      && deal.intendedRepSlug !== "calvin",
+    ),
+  };
+}
+
 export async function correctSeededDealOwnership(actorId: number) {
   return db.transaction(async (tx) => {
     const sourceAndTarget = await tx
@@ -78,21 +105,20 @@ export async function correctSeededDealOwnership(actorId: number) {
     const validationError = validateSeededDealRows(lockedDeals, assignedUsers);
     if (validationError) throw new ProductionMaintenanceError(validationError);
 
-    const ordinaryNames = new Set<string>(SEEDED_ORDINARY_NAMES);
-    const calvinNames = new Set<string>(SEEDED_CALVIN_NAMES);
-    const ordinaryDeals = lockedDeals.filter((deal) => ordinaryNames.has(deal.dealName));
-    const calvinDeals = lockedDeals.filter((deal) => calvinNames.has(deal.dealName));
-    const ordinaryToNate = ordinaryDeals.filter((deal) => deal.assignedTo === SEEDED_ASSIGNMENT_SOURCE_ID);
-    const calvinToRepair = calvinDeals.filter((deal) =>
-      deal.assignedTo != null || deal.intendedRepSlug !== "calvin",
-    );
+    const { ordinaryToNate, calvinToClear, calvinMarkerOnly } =
+      planSeededOwnershipCorrections(lockedDeals, assignedUsers);
     const updatedAt = new Date();
+    let ordinaryChanged: Array<{ id: number; leadId: number | null }> = [];
     if (ordinaryToNate.length > 0) {
-      await tx
+      ordinaryChanged = await tx
         .update(dealsTable)
         .set({ assignedTo: SEEDED_ASSIGNMENT_TARGET_ID, updatedAt })
-        .where(inArray(dealsTable.id, ordinaryToNate.map((deal) => deal.id)));
-      await tx.insert(activityLogTable).values(ordinaryToNate.map((deal) => ({
+        .where(and(
+          inArray(dealsTable.id, ordinaryToNate.map((deal) => deal.id)),
+          eq(dealsTable.assignedTo, SEEDED_ASSIGNMENT_SOURCE_ID),
+        ))
+        .returning({ id: dealsTable.id, leadId: dealsTable.leadId });
+      await tx.insert(activityLogTable).values(ordinaryChanged.map((deal) => ({
         userId: actorId,
         dealId: deal.id,
         leadId: deal.leadId,
@@ -109,12 +135,18 @@ export async function correctSeededDealOwnership(actorId: number) {
         },
       })));
     }
-    if (calvinToRepair.length > 0) {
-      await tx
+    let calvinCleared: Array<{ id: number; leadId: number | null }> = [];
+    if (calvinToClear.length > 0) {
+      calvinCleared = await tx
         .update(dealsTable)
         .set({ assignedTo: null, intendedRepSlug: "calvin", updatedAt })
-        .where(inArray(dealsTable.id, calvinToRepair.map((deal) => deal.id)));
-      await tx.insert(activityLogTable).values(calvinToRepair.map((deal) => ({
+        .where(and(
+          inArray(dealsTable.id, calvinToClear.map((deal) => deal.id)),
+          isNotNull(dealsTable.assignedTo),
+        ))
+        .returning({ id: dealsTable.id, leadId: dealsTable.leadId });
+      const originalById = new Map(calvinToClear.map((deal) => [deal.id, deal]));
+      await tx.insert(activityLogTable).values(calvinCleared.map((deal) => ({
         userId: actorId,
         dealId: deal.id,
         leadId: deal.leadId,
@@ -123,13 +155,19 @@ export async function correctSeededDealOwnership(actorId: number) {
         entityId: String(deal.id),
         details: {
           message: "Reserved for Calvin; temporary admin ownership cleared",
-          oldAssignedTo: deal.assignedTo,
+          oldAssignedTo: originalById.get(deal.id)?.assignedTo ?? null,
           newAssignedTo: null,
-          oldIntendedRepSlug: deal.intendedRepSlug,
+          oldIntendedRepSlug: originalById.get(deal.id)?.intendedRepSlug ?? null,
           newIntendedRepSlug: "calvin",
           reason: "Preserve Calvin reservation and repair its marker without temporary admin ownership",
         },
       })));
+    }
+    if (calvinMarkerOnly.length > 0) {
+      await tx
+        .update(dealsTable)
+        .set({ intendedRepSlug: "calvin", updatedAt })
+        .where(inArray(dealsTable.id, calvinMarkerOnly.map((deal) => deal.id)));
     }
     const [ordinaryAtNateRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
@@ -147,24 +185,34 @@ export async function correctSeededDealOwnership(actorId: number) {
         eq(dealsTable.intendedRepSlug, "calvin"),
         inArray(dealsTable.dealName, [...SEEDED_CALVIN_NAMES]),
       ));
+    const [calvinOwnershipValidRow] = await tx
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(dealsTable)
+      .leftJoin(usersTable, eq(usersTable.id, dealsTable.assignedTo))
+      .where(and(
+        eq(dealsTable.intendedRepSlug, "calvin"),
+        or(isNull(dealsTable.assignedTo), eq(usersTable.slug, "calvin")),
+        inArray(dealsTable.dealName, [...SEEDED_CALVIN_NAMES]),
+      ));
     const [arslanTotalDealsRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(dealsTable)
       .where(eq(dealsTable.assignedTo, SEEDED_ASSIGNMENT_SOURCE_ID));
     const ordinaryAtNate = ordinaryAtNateRow?.count ?? 0;
     const calvinReservedUnassigned = calvinReservedUnassignedRow?.count ?? 0;
+    const calvinOwnershipValid = calvinOwnershipValidRow?.count ?? 0;
     const arslanTotalDeals = arslanTotalDealsRow?.count ?? 0;
     if (ordinaryAtNate !== SEEDED_ORDINARY_NAMES.length
-      || calvinReservedUnassigned !== SEEDED_CALVIN_NAMES.length
+      || calvinOwnershipValid !== SEEDED_CALVIN_NAMES.length
       || arslanTotalDeals !== 0) {
       throw new ProductionMaintenanceError("Seeded deal ownership postconditions were not satisfied");
     }
-    const changedDealIds = [...ordinaryToNate, ...calvinToRepair].map((deal) => deal.id);
+    const changedDealIds = [...ordinaryChanged, ...calvinCleared, ...calvinMarkerOnly].map((deal) => deal.id);
     return {
-      changed: ordinaryToNate.length,
-      ordinaryChanged: ordinaryToNate.length,
+      changed: changedDealIds.length,
+      ordinaryChanged: ordinaryChanged.length,
       ordinaryAtNate,
-      calvinCleared: calvinToRepair.length,
+      calvinCleared: calvinCleared.length,
       calvinReservedUnassigned,
       arslanTotalDeals,
       changedDealIds,

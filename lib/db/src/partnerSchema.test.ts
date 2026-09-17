@@ -36,3 +36,16 @@ test("partner flow and texting migrations are append-only and separately scoped"
   assert.match(textingSql, /sms_opted_out/);
   assert.doesNotMatch(`${flowSql}\n${textingSql}`, /\bDROP\s+(TABLE|COLUMN|CONSTRAINT)\b/i);
 });
+
+test("Ridgestone profile migration preserves the exact supplied partner data", async () => {
+  const sql = await readFile(new URL("../migrations/039_ridgestone_partner_profile.sql", import.meta.url), "utf8");
+  assert.match(sql, /18565 Jamboree Rd #275, Irvine, CA 92612/);
+  assert.match(sql, /\(877\) 999-4589/);
+  assert.match(sql, /ridgestonecap\.com/);
+  assert.match(sql, /ARRAY\['equipment', 'working_capital'\]/);
+  assert.match(sql, /Super-broker — MBS places deals here when no direct lender fits\./);
+  assert.match(sql, /'Jes Orozco'/);
+  assert.match(sql, /'jorozco@ridgestonecap\.com'/);
+  assert.match(sql, /phone = NULL/);
+  assert.doesNotMatch(sql, /\bDROP\s+(TABLE|COLUMN|CONSTRAINT)\b/i);
+});

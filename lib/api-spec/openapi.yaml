@@ -6326,6 +6326,12 @@ components:
           type: ["string", "null"]
         contactEmail:
           type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
         notes:
           type: ["string", "null"]
         isActive:
@@ -6365,6 +6371,12 @@ components:
           type: string
           enum: [email, portal, both]
         portalUrl:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        website:
           type: ["string", "null"]
         programTypes:
           type: array
