@@ -39,6 +39,18 @@ export type RepMergeFields = {
   brand: typeof COLLATERAL_BRAND;
 };
 
+export type QrEncoderOptions = {
+  errorCorrectionLevel: "L" | "M" | "Q" | "H";
+  margin: number;
+  color: { dark: string; light: string };
+};
+
+export type QrEncoder = (value: string, options: QrEncoderOptions) => Promise<string>;
+
+/** Kept behind a small seam so collateral tests can verify the destination/options
+ * without replacing the QR implementation (and without adding a decoder package). */
+export const defaultQrEncoder: QrEncoder = (value, options) => QRCode.toDataURL(value, options);
+
 function value(v: unknown): string {
   return typeof v === "string" ? v.trim() : v == null ? "" : String(v);
 }
@@ -49,10 +61,10 @@ export function preferredRepEmail(rep: CollateralRep): string {
   return candidates.find((email) => email.toLowerCase().endsWith("@my-business-solutions.com")) ?? candidates[0] ?? "";
 }
 
-export async function createRepMergeFields(rep: CollateralRep): Promise<RepMergeFields> {
+export async function createRepMergeFields(rep: CollateralRep, qrEncoder: QrEncoder = defaultQrEncoder): Promise<RepMergeFields> {
   const slug = value(rep.slug);
   const qrPng = slug
-    ? await QRCode.toDataURL(`https://app.my-business-solutions.com/r/${encodeURIComponent(slug)}`, {
+    ? await qrEncoder(`https://app.my-business-solutions.com/r/${encodeURIComponent(slug)}`, {
         errorCorrectionLevel: "H",
         margin: 4,
         color: { dark: "#0B2948", light: "#FFFFFF" },

@@ -28,6 +28,60 @@ const secret = process.env.SESSION_SECRET || "development-collateral-secret";
 const objectStorage = new ObjectStorageService();
 const signed = (value: string) => `${value}.${crypto.createHmac("sha256", secret).update(value).digest("hex")}`;
 
+export type CollateralMailClient = {
+  setApiKey: (key: string) => void;
+  send: (message: any) => Promise<unknown>;
+};
+
+export async function sendCollateralEmail(client: CollateralMailClient, input: {
+  leadEmail: string;
+  repEmail: string;
+  repName: string | null;
+  subject: string;
+  bodyHtml: string;
+  templateName: string;
+  pdf: Buffer;
+}): Promise<void> {
+  client.setApiKey(process.env.SENDGRID_API_KEY || "");
+  await client.send({
+    to: input.leadEmail,
+    from: { email: "funding@my-business-solutions.com", name: "My Business Solutions" },
+    replyTo: { email: input.repEmail, name: input.repName || input.repEmail },
+    subject: input.subject,
+    html: input.bodyHtml,
+    attachments: [{
+      content: input.pdf.toString("base64"),
+      filename: `${input.templateName}.pdf`,
+      type: "application/pdf",
+      disposition: "attachment",
+    }],
+  });
+}
+
+export async function recordCollateralEmailDelivery(
+  deps: {
+    associateRender: (renderId: number, leadId: number) => Promise<void>;
+    writeActivity: (params: Parameters<typeof logActivity>[0]) => Promise<unknown>;
+  },
+  params: {
+    renderId: number;
+    templateId: number;
+    leadId: number;
+    userId: number;
+    recipientEmail: string;
+  },
+): Promise<void> {
+  await deps.associateRender(params.renderId, params.leadId);
+  await deps.writeActivity({
+    userId: params.userId,
+    leadId: params.leadId,
+    action: "collateral_emailed",
+    entityType: "collateral_render",
+    entityId: params.renderId,
+    details: { templateId: params.templateId, to: params.recipientEmail },
+  });
+}
+
 async function user(req: Request, res: Response) {
   return requireUser(req, res);
 }
@@ -156,10 +210,27 @@ router.post("/collateral/renders/:id/email", async (req, res) => {
   try {
     const file = await objectStorage.getObjectEntityFile(r.fileKey);
     const [pdf] = await file.download();
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY || "");
-    await sgMail.send({ to: lead.email, from: { email: "funding@my-business-solutions.com", name: "My Business Solutions" }, replyTo: { email: r.user.email, name: r.user.name || r.user.email }, subject: body.data.subject, html: body.data.bodyHtml, attachments: [{ content: pdf.toString("base64"), filename: `${r.template.name}.pdf`, type: "application/pdf", disposition: "attachment" }] });
-    await db.update(collateralRendersTable).set({ leadId: lead.id }).where(eq(collateralRendersTable.id, r.id));
-    await logActivity({ userId: u.id, leadId: lead.id, action: "collateral_emailed", entityType: "collateral_render", entityId: r.id, details: { templateId: r.templateId, to: lead.email } });
+    await sendCollateralEmail(sgMail, {
+      leadEmail: lead.email,
+      repEmail: r.user.email,
+      repName: r.user.name,
+      subject: body.data.subject,
+      bodyHtml: body.data.bodyHtml,
+      templateName: r.template.name,
+      pdf,
+    });
+    await recordCollateralEmailDelivery({
+      associateRender: async (renderId, leadId) => {
+        await db.update(collateralRendersTable).set({ leadId }).where(eq(collateralRendersTable.id, renderId));
+      },
+      writeActivity: logActivity,
+    }, {
+      renderId: r.id,
+      templateId: r.templateId,
+      leadId: lead.id,
+      userId: u.id,
+      recipientEmail: lead.email,
+    });
     res.json({ sent: true });
   } catch { res.status(503).json({ error: "Email delivery failed" }); }
 });
