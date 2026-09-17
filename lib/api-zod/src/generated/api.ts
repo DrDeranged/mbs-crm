@@ -3472,6 +3472,12 @@ export const DeleteWorkflowRuleParams = zod.object({
 export const ListLendersResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3599,6 +3605,12 @@ export const SeedNewLendersResponse = zod.object({
   "lenders": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3717,6 +3729,12 @@ export const UpdateLenderBody = zod.object({
 export const UpdateLenderResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3779,6 +3797,12 @@ export const DeactivateLenderParams = zod.object({
 export const DeactivateLenderResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3847,6 +3871,12 @@ export const RunLenderMatchResponse = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3923,6 +3953,12 @@ export const GetLenderMatchesResponseItem = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3999,6 +4035,12 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -4056,7 +4098,11 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
   "packageConfigSnapshot": zod.union([zod.object({
@@ -4100,6 +4146,31 @@ export const CreateLeadSubmissionBody = zod.object({
 
 
 /**
+ * @summary Log a lender submission received outside the CRM
+ */
+export const CreateManualLeadSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateManualLeadSubmissionBody = zod.object({
+  "lender_id": zod.number(),
+  "deal_id": zod.number().optional(),
+  "submitted_at": zod.coerce.date().optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']).optional(),
+  "notes": zod.string().nullish(),
+  "approval_pdf_base64": zod.string().optional()
+})
+
+
+/**
+ * @summary Download a private lender approval attachment
+ */
+export const DownloadSubmissionApprovalAttachmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List lender submissions for a deal
  */
 export const GetDealSubmissionsParams = zod.object({
@@ -4113,6 +4184,12 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -4170,7 +4247,11 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
   "packageConfigSnapshot": zod.union([zod.object({
@@ -4208,6 +4289,12 @@ export const UpdateSubmissionResponse = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -4265,7 +4352,11 @@ export const UpdateSubmissionResponse = zod.object({
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
   "packageConfigSnapshot": zod.union([zod.object({
@@ -4302,6 +4393,12 @@ export const PatchSubmissionResponse = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -4359,7 +4456,11 @@ export const PatchSubmissionResponse = zod.object({
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "messageId": zod.string().nullish(),
   "packageConfigSnapshot": zod.union([zod.object({

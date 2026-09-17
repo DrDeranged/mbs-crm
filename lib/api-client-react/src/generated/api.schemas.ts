@@ -1364,6 +1364,13 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
+export type LenderSubmissionStats = {
+  submitted?: number;
+  approved?: number;
+  declined?: number;
+  approvalRate?: number;
+};
+
 export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
 
 
@@ -1398,6 +1405,7 @@ export interface ProgramEligibilityRule {
 export interface Lender {
   id: number;
   name: string;
+  submissionStats?: LenderSubmissionStats;
   programTypes: string[];
   /** @nullable */
   minAmount?: number | null;
@@ -1525,6 +1533,15 @@ export const LenderSubmissionStatus = {
   approved: 'approved',
   declined: 'declined',
   funded: 'funded',
+  withdrawn: 'withdrawn',
+} as const;
+
+export type LenderSubmissionSource = typeof LenderSubmissionSource[keyof typeof LenderSubmissionSource];
+
+
+export const LenderSubmissionSource = {
+  crm: 'crm',
+  manual: 'manual',
 } as const;
 
 export type LenderPackageConfigSectionsItem = typeof LenderPackageConfigSectionsItem[keyof typeof LenderPackageConfigSectionsItem];
@@ -1563,6 +1580,12 @@ export interface LenderSubmission {
   sentBy?: number | null;
   sentByUser?: LenderSubmissionSentByUser;
   status: LenderSubmissionStatus;
+  source?: LenderSubmissionSource;
+  /** @nullable */
+  decisionDate?: string | null;
+  hasApprovalAttachment?: boolean;
+  /** @nullable */
+  approvalDocumentId?: number | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
@@ -1587,6 +1610,27 @@ export interface LenderSubmissionUpdate {
   status?: LenderSubmissionUpdateStatus;
   /** @nullable */
   notes?: string | null;
+}
+
+export type ManualLenderSubmissionCreateStatus = typeof ManualLenderSubmissionCreateStatus[keyof typeof ManualLenderSubmissionCreateStatus];
+
+
+export const ManualLenderSubmissionCreateStatus = {
+  submitted: 'submitted',
+  approved: 'approved',
+  declined: 'declined',
+  funded: 'funded',
+  withdrawn: 'withdrawn',
+} as const;
+
+export interface ManualLenderSubmissionCreate {
+  lender_id: number;
+  deal_id?: number;
+  submitted_at?: string;
+  status?: ManualLenderSubmissionCreateStatus;
+  /** @nullable */
+  notes?: string | null;
+  approval_pdf_base64?: string;
 }
 
 export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];

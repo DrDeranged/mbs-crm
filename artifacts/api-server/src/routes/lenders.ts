@@ -5,12 +5,14 @@ import { db, pool } from "@workspace/db";
 import {
   lendersTable, lenderMatchesTable, lenderSubmissionsTable, lenderSubmissionDeliveriesTable,
   leadsTable, usersTable, activityLogTable, dealsTable, applicationsTable, documentsTable, emailTemplatesTable,
+  dealApprovalsTable,
   insertLenderSchema,
 } from "@workspace/db";
-import { eq, desc, asc, and, gte, sql, inArray } from "drizzle-orm";
+import { eq, desc, asc, and, gte, sql, inArray, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
+import { recordManualLenderSubmission } from "../lib/manualLenderSubmission";
 import { buildLenderPackagePdf, parseLenderPackageConfig, sanitizeLenderPackageBusinessName, type LenderPackageConfig } from "../lib/lenderPackage";
 import { safeLenderPackageReason } from "../lib/lenderPackageErrors";
 import { decrypt } from "../lib/encryption";
@@ -32,13 +34,21 @@ const submissionRequestSchema = z.object({
   packageConfig: z.unknown().optional(),
 }).strict();
 const submissionUpdateSchema = z.object({
-  status: z.enum(["submitted", "approved", "declined", "funded"]).optional(),
+  status: z.enum(["submitted", "approved", "declined", "funded", "withdrawn"]).optional(),
   notes: z.string().nullable().optional(),
   response_notes: z.string().nullable().optional(),
 }).strict().refine(
   (value) => Object.keys(value).length > 0,
   { message: "At least one submission field is required" },
 );
+const manualSubmissionSchema = z.object({
+  lender_id: requestIdSchema,
+  deal_id: requestIdSchema.optional(),
+  submitted_at: z.string().datetime().optional(),
+  status: z.enum(["submitted", "approved", "declined", "funded", "withdrawn"]).default("submitted"),
+  notes: z.string().nullable().optional(),
+  approval_pdf_base64: z.string().optional(),
+}).strict();
 
 function inputError(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
   const field = parsed.error.issues[0]?.path.join(".") || "body";
@@ -98,6 +108,7 @@ function submissionToApi(
   sub: typeof lenderSubmissionsTable.$inferSelect,
   lender?: typeof lendersTable.$inferSelect | null,
   submittedByUser?: typeof usersTable.$inferSelect | null,
+  approvalDocumentId?: number | null,
 ) {
   return {
     id: sub.id,
@@ -109,7 +120,11 @@ function submissionToApi(
       ? { id: submittedByUser.id, name: submittedByUser.name, email: submittedByUser.email }
       : null,
     status: sub.status,
+    source: sub.source ?? "crm",
     notes: sub.notes ?? null,
+    decisionDate: sub.decisionDate?.toISOString() ?? null,
+    hasApprovalAttachment: Boolean(sub.approvalAttachmentKey || approvalDocumentId),
+    approvalDocumentId: approvalDocumentId ?? null,
     sentAt: sub.sentAt.toISOString(),
     dealId: sub.dealId ?? null,
     messageId: sub.messageId ?? null,
@@ -117,6 +132,31 @@ function submissionToApi(
     hasExactPackage: Boolean(sub.exactPackageKey && sub.exactPackageSha256),
     updatedAt: sub.updatedAt.toISOString(),
   };
+}
+
+async function approvalDocumentsBySubmission(
+  submissions: Array<typeof lenderSubmissionsTable.$inferSelect>,
+): Promise<Map<string, number>> {
+  const dealIds = [...new Set(submissions.flatMap((submission) => submission.dealId ? [submission.dealId] : []))];
+  if (dealIds.length === 0) return new Map();
+  const approvals = await db.select({
+    dealId: dealApprovalsTable.dealId,
+    lenderId: dealApprovalsTable.lenderId,
+    approvalDocumentId: dealApprovalsTable.approvalDocumentId,
+  }).from(dealApprovalsTable)
+    .where(and(
+      inArray(dealApprovalsTable.dealId, dealIds),
+      isNotNull(dealApprovalsTable.approvalDocumentId),
+    ))
+    .orderBy(desc(dealApprovalsTable.createdAt), desc(dealApprovalsTable.id));
+  const result = new Map<string, number>();
+  for (const approval of approvals) {
+    const key = `${approval.dealId}:${approval.lenderId}`;
+    if (!result.has(key) && approval.approvalDocumentId != null) {
+      result.set(key, approval.approvalDocumentId);
+    }
+  }
+  return result;
 }
 
 // --- Lender CRUD ---
@@ -127,7 +167,20 @@ router.get("/lenders", async (req: Request, res: Response) => {
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const lenders = await db.select().from(lendersTable).orderBy(desc(lendersTable.priorityWeight));
-  res.json(lenders.map(lenderToApi));
+  const submissions = await db.select({ lenderId: lenderSubmissionsTable.lenderId, status: lenderSubmissionsTable.status }).from(lenderSubmissionsTable);
+  const stats = new Map<number, { submitted: number; approved: number; declined: number }>();
+  for (const row of submissions) {
+    const current = stats.get(row.lenderId) ?? { submitted: 0, approved: 0, declined: 0 };
+    current.submitted++;
+    if (row.status === "approved") current.approved++;
+    if (row.status === "declined") current.declined++;
+    stats.set(row.lenderId, current);
+  }
+  res.json(lenders.map((lender) => {
+    const stat = stats.get(lender.id) ?? { submitted: 0, approved: 0, declined: 0 };
+    const decisions = stat.approved + stat.declined;
+    return { ...lenderToApi(lender), submissionStats: { ...stat, approvalRate: decisions ? Math.round(stat.approved / decisions * 100) : 0 } };
+  }));
 });
 
 router.post("/lenders", async (req: Request, res: Response) => {
@@ -693,6 +746,59 @@ export function createSubmissionHandler(
 
 router.post("/leads/:id/submissions", createSubmissionHandler());
 
+/** Record a submission received outside the CRM. The attachment is private object storage. */
+router.post("/leads/:id/submissions/manual", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const leadId = Number(req.params.id);
+  const body = manualSubmissionSchema.safeParse(req.body);
+  if (!Number.isSafeInteger(leadId) || !body.success) return void res.status(400).json({ error: "Invalid manual submission" });
+  const access = await canAccessSubmissionLead(db, user, leadId);
+  if (!access.lead) return void res.status(404).json({ error: "Lead not found" });
+  if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
+  const lender = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, body.data.lender_id) });
+  if (!lender) return void res.status(404).json({ error: "Lender not found" });
+  let linkedDeal = null;
+  if (body.data.deal_id) {
+    linkedDeal = await db.query.dealsTable.findFirst({ where: and(eq(dealsTable.id, body.data.deal_id), eq(dealsTable.leadId, leadId)) });
+    if (!linkedDeal) return void res.status(400).json({ error: "Deal does not belong to this lead" });
+    if (user.role === "rep" && linkedDeal.assignedTo !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  } else {
+    linkedDeal = (await db.query.dealsTable.findMany({
+      where: and(eq(dealsTable.leadId, leadId), eq(dealsTable.isArchived, false)),
+      orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.id)],
+      limit: 1,
+    }))[0] ?? null;
+  }
+  let approvalAttachmentKey: string | null = null;
+  if (body.data.approval_pdf_base64) {
+    const bytes = Buffer.from(body.data.approval_pdf_base64, "base64");
+    if (bytes.subarray(0, 4).toString() !== "%PDF") return void res.status(400).json({ error: "Approval attachment must be a PDF" });
+    approvalAttachmentKey = `/objects/lender-approval-attachments/${leadId}/${Date.now()}-${createHash("sha256").update(bytes).digest("hex")}.pdf`;
+    await storeSubmissionPackage(approvalAttachmentKey, bytes);
+  }
+  const sentAt = body.data.submitted_at ? new Date(body.data.submitted_at) : new Date();
+  const submission = await db.transaction(async (tx: any) =>
+    recordManualLenderSubmission({
+      insert: async (values) => {
+        const [row] = await tx.insert(lenderSubmissionsTable).values(values).returning();
+        return row;
+      },
+      logActivity: async (params) => logActivity(params, tx),
+    }, {
+      leadId,
+      dealId: linkedDeal?.id ?? null,
+      lenderId: lender.id,
+      sentBy: user.id,
+      status: body.data.status,
+      notes: body.data.notes ?? null,
+      sentAt,
+      decisionDate: ["approved", "declined"].includes(body.data.status) ? sentAt : null,
+      approvalAttachmentKey,
+    }));
+  res.status(201).json(submissionToApi(submission, lender, user));
+});
+
 router.get("/leads/:id/submissions", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -717,8 +823,14 @@ router.get("/leads/:id/submissions", async (req: Request, res: Response) => {
   const allUsers = await db.select().from(usersTable);
   const userMap: Record<number, typeof usersTable.$inferSelect> = {};
   for (const u of allUsers) userMap[u.id] = u;
+  const approvalDocuments = await approvalDocumentsBySubmission(subs);
 
-   res.json(subs.map((s) => submissionToApi(s, lenderMap[s.lenderId], s.sentBy ? userMap[s.sentBy] : null)));
+   res.json(subs.map((s) => submissionToApi(
+     s,
+     lenderMap[s.lenderId],
+     s.sentBy ? userMap[s.sentBy] : null,
+     s.dealId ? approvalDocuments.get(`${s.dealId}:${s.lenderId}`) : null,
+   )));
 });
 
 export function createUpdateSubmissionHandler(
@@ -745,6 +857,7 @@ export function createUpdateSubmissionHandler(
     if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (status !== undefined) updates["status"] = status;
+    if (status === "approved" || status === "declined") updates["decisionDate"] = new Date();
     if (notes !== undefined || response_notes !== undefined) updates["notes"] = notes ?? response_notes;
 
     const [updated] = await routeDb.transaction(async (tx: any) => {
@@ -832,6 +945,26 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
 
 router.get("/submissions/:id/package", createDownloadSubmissionPackageHandler());
 
+router.get("/submissions/:id/approval-attachment", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = Number(req.params.id);
+  const submission = await db.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
+  if (!submission) return void res.status(404).json({ error: "Submission not found" });
+  const access = await canAccessSubmissionLead(db, user, submission.leadId);
+  if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
+  if (!submission.approvalAttachmentKey) return void res.status(404).json({ error: "No approval attachment" });
+  try {
+    const bytes = await downloadSubmissionPackage(submission.approvalAttachmentKey);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Content-Disposition", `attachment; filename="Lender-Approval-${id}.pdf"`);
+    res.send(bytes);
+  } catch {
+    res.status(404).json({ error: "Approval attachment unavailable" });
+  }
+});
+
 router.get("/deals/:id/submissions", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -845,7 +978,13 @@ router.get("/deals/:id/submissions", async (req: Request, res: Response) => {
   const users = await db.select().from(usersTable);
   const lenderMap = Object.fromEntries(lenders.map((row) => [row.id, row]));
   const userMap = Object.fromEntries(users.map((row) => [row.id, row]));
-  res.json(subs.map((row) => submissionToApi(row, lenderMap[row.lenderId], row.sentBy ? userMap[row.sentBy] : null)));
+  const approvalDocuments = await approvalDocumentsBySubmission(subs);
+  res.json(subs.map((row) => submissionToApi(
+    row,
+    lenderMap[row.lenderId],
+    row.sentBy ? userMap[row.sentBy] : null,
+    approvalDocuments.get(`${dealId}:${row.lenderId}`),
+  )));
 });
 
 export default router;

@@ -8,6 +8,7 @@ import { LeadInfo } from "./lead-detail/info";
 import { LeadNotes } from "./lead-detail/notes";
 import { LeadTasks } from "./lead-detail/tasks";
 import { LeadDocuments } from "./lead-detail/documents";
+import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
 import { LeadCommunications } from "./lead-detail/communications";
 import { LeadActivity } from "./lead-detail/activity";
 import { LeadLenderMatch } from "./lead-detail/matching";
@@ -81,6 +82,7 @@ function LeadDetailContent() {
               <LeadTasks />
             </TabsContent>
             <TabsContent value="documents" className="outline-none">
+              <LenderSubmissionsPanel leadId={lead.id} />
               <LeadDocuments />
             </TabsContent>
             <TabsContent value="communications" className="outline-none">

@@ -418,6 +418,14 @@ export default function LenderManagement() {
                       <span>≥ {lender.minTimeInBusinessMonths} mo.</span>
                     )}
                   </div>
+                  {lender.submissionStats && (
+                    <div className="flex flex-wrap gap-2 border-t pt-1.5 mt-1.5 text-[10px]">
+                      <span>Submitted {lender.submissionStats.submitted}</span>
+                      <span className="text-green-700">Approved {lender.submissionStats.approved}</span>
+                      <span className="text-red-700">Declined {lender.submissionStats.declined}</span>
+                      <span className="font-medium">Approval rate {lender.submissionStats.approvalRate}%</span>
+                    </div>
+                  )}
                   {lender.acceptedStates?.length > 0 && (
                     <p className="text-[10px] text-slate-400">States: {lender.acceptedStates.slice(0, 8).join(", ")}{lender.acceptedStates.length > 8 ? ` +${lender.acceptedStates.length - 8}` : ""}</p>
                   )}

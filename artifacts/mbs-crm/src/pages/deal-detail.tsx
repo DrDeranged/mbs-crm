@@ -8,15 +8,11 @@ import {
   useListUsers,
   DealStage,
   useArchiveDeal,
-  useGetDealSubmissions,
-  getGetDealSubmissionsQueryKey,
-  useUpdateSubmission,
   useListDealApprovals,
   getListDealApprovalsQueryKey,
   useCreateDealApproval,
   useListLenders,
   useUploadDocument,
-  downloadExactSubmissionPackage
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,122 +31,10 @@ import { DetailLoadError } from "@/components/detail-load-error";
 import { getQueryErrorStatus } from "@/lib/query-error";
 import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
+import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
-}
-
-function SubmissionRow({ submission, dealId }: { submission: any; dealId: number }) {
-  const queryClient = useQueryClient();
-  const updateSub = useUpdateSubmission();
-  const { toast } = useToast();
-
-  const [status, setStatus] = useState(submission.status);
-  const [notes, setNotes] = useState(submission.notes || "");
-  const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const lastSavedNotes = useRef(notes);
-
-  useEffect(() => {
-    setStatus(submission.status);
-    setNotes(submission.notes || "");
-    lastSavedNotes.current = submission.notes || "";
-  }, [submission.status, submission.notes]);
-
-  const saveUpdates = (updates: any) => {
-    updateSub.mutate({ id: submission.id, data: updates }, {
-      onSuccess: () => {
-        if (updates.notes !== undefined) lastSavedNotes.current = updates.notes;
-        toast({ title: "Submission updated" });
-        queryClient.invalidateQueries({ queryKey: getGetDealSubmissionsQueryKey(dealId) });
-        queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(dealId) });
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Update failed",
-          description: mutationErrorMessage(err, "Update failed"),
-          variant: "destructive",
-        });
-        // Revert local state on error
-        if (updates.status) setStatus(submission.status);
-        if (updates.notes !== undefined) setNotes(submission.notes || "");
-      }
-    });
-  };
-
-  const handleStatusChange = (val: string) => {
-    setStatus(val);
-    saveUpdates({ status: val });
-  };
-
-  const handleNotesBlur = () => {
-    setIsEditingNotes(false);
-    if (notes !== lastSavedNotes.current) {
-      saveUpdates({ notes });
-    }
-  };
-
-  const statusColor: Record<string, string> = {
-    submitted: "bg-blue-50 text-blue-700 border-blue-200",
-    approved: "bg-green-50 text-green-700 border-green-200",
-    declined: "bg-red-50 text-red-700 border-red-200",
-    funded: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  };
-
-  return (
-    <div className="flex flex-col gap-2 rounded-lg border p-3 text-sm bg-white">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="font-medium text-slate-900">{submission.lender?.name ?? `Lender #${submission.lenderId}`}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Sent {format(new Date(submission.sentAt), "MMM d, yyyy h:mm a")}
-            {submission.sentByUser && ` by ${getUserDisplayName(submission.sentByUser)}`}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize", statusColor[status] ?? "bg-slate-50 text-slate-500")}>
-            {status}
-          </span>
-          <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="h-7 text-xs w-[110px] bg-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="declined">Declined</SelectItem>
-              <SelectItem value="funded">Funded</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="mt-1">
-        {isEditingNotes ? (
-          <Input
-            autoFocus
-            className="h-8 text-xs bg-slate-50 border-slate-200"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={handleNotesBlur}
-            onKeyDown={(e) => e.key === "Enter" && handleNotesBlur()}
-            placeholder="Add lender response notes..."
-          />
-        ) : (
-          <div
-            className={cn("text-xs rounded-md px-2 py-1.5 cursor-text border border-transparent hover:bg-slate-50 hover:border-slate-200 transition-colors", !notes && "text-muted-foreground italic")}
-            onClick={() => setIsEditingNotes(true)}
-          >
-            {notes || "Click to add notes..."}
-          </div>
-        )}
-      </div>
-      {submission.hasExactPackage && (
-        <Button variant="link" className="h-auto w-fit px-1 text-xs" onClick={() => downloadExactSubmissionPackage(submission.id).then((blob) => { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `MBS-Submission-${submission.id}.pdf`; link.click(); URL.revokeObjectURL(url); }).catch(() => toast({ title: "Download failed", variant: "destructive" }))}>
-          <Download className="mr-1 h-3 w-3" /> Re-download the exact package sent
-        </Button>
-      )}
-    </div>
-  );
 }
 
 const STAGES = DEAL_STAGE_COLUMNS;
@@ -170,7 +54,6 @@ export default function DealDetail() {
   const { data: users } = useListUsers({ role: "rep", isActive: true });
   const { data: me } = useGetMe();
 
-  const { data: submissions } = useGetDealSubmissions(dealId, { query: { queryKey: getGetDealSubmissionsQueryKey(dealId), enabled: !!dealId } });
   const { data: approvals } = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
   const { data: lenders } = useListLenders();
   const updateDeal = useUpdateDeal();
@@ -527,29 +410,13 @@ export default function DealDetail() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-gray-200/60 overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Lender Submissions</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {!submissions ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                </div>
-              ) : submissions.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
-                  No submissions yet.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {submissions.map((sub: any) => (
-                    <SubmissionRow key={sub.id} submission={sub} dealId={dealId} />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <LenderSubmissionsPanel
+            leadId={deal?.leadId ?? 0}
+            dealId={dealId}
+            onStageMove={(stage) => updateDeal.mutate({ id: dealId, data: { stage } as any }, {
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(dealId) }),
+            })}
+          />
         </div>
 
         <div className="space-y-6">

@@ -6,7 +6,7 @@ import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 import { dealsTable } from "./deals";
 
-export const SUBMISSION_STATUSES = ["submitted", "approved", "declined", "funded"] as const;
+export const SUBMISSION_STATUSES = ["submitted", "approved", "declined", "funded", "withdrawn"] as const;
 export type TruckingRule = {
   industry: "long_haul" | "local" | "any";
   prohibited?: boolean;
@@ -95,7 +95,10 @@ export const lenderSubmissionsTable = pgTable(
     exactPackageSha256: text("exact_package_sha256"),
     exactPackageBytes: integer("exact_package_bytes"),
     status: text("status", { enum: SUBMISSION_STATUSES }).notNull().default("submitted"),
+    source: text("source", { enum: ["crm", "manual"] as const }).notNull().default("crm"),
     notes: text("notes"),
+    decisionDate: timestamp("decision_date"),
+    approvalAttachmentKey: text("approval_attachment_key"),
     sentAt: timestamp("sent_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -104,7 +107,9 @@ export const lenderSubmissionsTable = pgTable(
     index("lender_submissions_deal_idx").on(t.dealId),
     index("lender_submissions_lender_idx").on(t.lenderId),
     index("lender_submissions_sent_at_idx").on(t.sentAt),
-    check("lender_submissions_status_check", sql`${t.status} IN ('submitted', 'approved', 'declined', 'funded')`),
+    index("lender_submissions_source_idx").on(t.source),
+    check("lender_submissions_status_check", sql`${t.status} IN ('submitted', 'approved', 'declined', 'funded', 'withdrawn')`),
+    check("lender_submissions_source_check", sql`${t.source} IN ('crm', 'manual')`),
   ],
 );
 

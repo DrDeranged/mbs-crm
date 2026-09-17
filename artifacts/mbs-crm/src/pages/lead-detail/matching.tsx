@@ -10,6 +10,7 @@ import { AlertCircle, CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucid
 import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useGetMe, useRunLenderMatch, useUpdateSubmission, getGetDealQueryKey, getListDealActivityQueryKey } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
+import { filterDeclinedMatches } from "@/lib/lenderSubmissions";
 
 function apiErrorDetails(error: any, fallback: string) {
   const data = error?.data;
@@ -96,9 +97,13 @@ export function LeadLenderMatch() {
     });
   };
 
-  const submittedLenderIds = new Set((submissions ?? []).map((s: any) => s.lenderId));
+  const [showDeclined, setShowDeclined] = useState(false);
   const canSubmit = isAdmin || (me?.role === "rep" && me.id === lead?.assignedRepId);
-  const activeMatches = (matches ?? []).filter((match: any) => match.lender?.isActive !== false);
+  const activeMatches = filterDeclinedMatches(
+    (matches ?? []).filter((match: any) => match.lender?.isActive !== false),
+    submissions ?? [],
+    showDeclined,
+  );
 
   const statusColor: Record<string, string> = {
     submitted: "bg-blue-50 text-blue-700 border-blue-200",
@@ -167,6 +172,12 @@ export function LeadLenderMatch() {
           {runMatch.isPending ? "Matching…" : "Run Match"}
         </Button>
       </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Declined lenders are hidden from recommendations by default.</span>
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowDeclined((value) => !value)}>
+          {showDeclined ? "Hide declined" : "Show declined"}
+        </Button>
+      </div>
 
       {/* Match Results */}
       {matchesLoading ? (
@@ -180,7 +191,7 @@ export function LeadLenderMatch() {
       ) : (
         <div className="space-y-2">
           {activeMatches.map((m: any, idx: number) => {
-            const isSubmitted = submittedLenderIds.has(m.lenderId);
+            const isSubmitted = (submissions ?? []).some((s: any) => s.lenderId === m.lenderId);
             const passedCount = (m.criteriaBreakdown ?? []).filter((c: any) => c.passed && !c.skipped).length;
             const totalCount = (m.criteriaBreakdown ?? []).filter((c: any) => !c.skipped).length;
             const isExpanded = expandedIds.has(m.id);

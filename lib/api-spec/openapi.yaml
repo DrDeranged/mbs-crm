@@ -3350,6 +3350,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/LenderSubmission"
 
+  /leads/{id}/submissions/manual:
+    post:
+      operationId: createManualLeadSubmission
+      tags: [lenders]
+      summary: Log a lender submission received outside the CRM
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualLenderSubmissionCreate"
+      responses:
+        "201":
+          description: Manual submission
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderSubmission" }
+  /submissions/{id}/approval-attachment:
+    get:
+      operationId: downloadSubmissionApprovalAttachment
+      tags: [lenders]
+      summary: Download a private lender approval attachment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Approval PDF
+          content:
+            application/pdf: {}
   /deals/{id}/submissions:
     get:
       operationId: getDealSubmissions
@@ -5968,6 +6005,17 @@ components:
           type: integer
         name:
           type: string
+        submissionStats:
+          type: object
+          properties:
+            submitted:
+              type: integer
+            approved:
+              type: integer
+            declined:
+              type: integer
+            approvalRate:
+              type: integer
         programTypes:
           type: array
           items:
@@ -6228,7 +6276,17 @@ components:
             - type: "null"
         status:
           type: string
-          enum: [submitted, approved, declined, funded]
+          enum: [submitted, approved, declined, funded, withdrawn]
+        source:
+          type: string
+          enum: [crm, manual]
+        decisionDate:
+          type: ["string", "null"]
+          format: date-time
+        hasApprovalAttachment:
+          type: boolean
+        approvalDocumentId:
+          type: ["integer", "null"]
         notes:
           type: ["string", "null"]
         messageId:
@@ -6254,6 +6312,25 @@ components:
           enum: [submitted, approved, declined, funded]
         notes:
           type: ["string", "null"]
+
+    ManualLenderSubmissionCreate:
+      type: object
+      required: [lender_id]
+      properties:
+        lender_id:
+          type: integer
+        deal_id:
+          type: integer
+        submitted_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [submitted, approved, declined, funded, withdrawn]
+        notes:
+          type: ["string", "null"]
+        approval_pdf_base64:
+          type: string
 
     VariableField:
       type: object

@@ -147,6 +147,7 @@ import type {
   ListNotificationsParams,
   ListUsersParams,
   LogOutboundCallBody,
+  ManualLenderSubmissionCreate,
   MarkAllNotificationsRead200,
   MarkNotificationRead200,
   MigrationReport,
@@ -227,6 +228,7 @@ export const getApiRootHealthCheckUrl = () => {
 
   return `/api/`
 }
+
 /**
  * @summary API root health check for deployment monitoring
  */
@@ -289,6 +291,13 @@ export function useApiRootHealthCheck<TData = Awaited<ReturnType<typeof apiRootH
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
+
+
 export const getHealthCheckUrl = () => {
 
 
@@ -359,6 +368,13 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
+
+
 export const getGetHealthDeepUrl = () => {
 
 
@@ -429,6 +445,11 @@ export function useGetHealthDeep<TData = Awaited<ReturnType<typeof getHealthDeep
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
 
 
 export const getGetAdminErrorsUrl = (params?: GetAdminErrorsParams,) => {
@@ -508,6 +529,11 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
 
 
 export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
@@ -9813,6 +9839,155 @@ export const useCreateLeadSubmission = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateLeadSubmissionMutationOptions(options));
     }
+
+export const getCreateManualLeadSubmissionUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/submissions/manual`
+}
+
+/**
+ * @summary Log a lender submission received outside the CRM
+ */
+export const createManualLeadSubmission = async (id: number,
+    manualLenderSubmissionCreate: ManualLenderSubmissionCreate, options?: RequestInit): Promise<LenderSubmission> => {
+
+  return customFetch<LenderSubmission>(getCreateManualLeadSubmissionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      manualLenderSubmissionCreate,)
+  }
+);}
+
+
+
+
+export const getCreateManualLeadSubmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createManualLeadSubmission>>, TError,{id: number;data: BodyType<ManualLenderSubmissionCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createManualLeadSubmission>>, TError,{id: number;data: BodyType<ManualLenderSubmissionCreate>}, TContext> => {
+
+const mutationKey = ['createManualLeadSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createManualLeadSubmission>>, {id: number;data: BodyType<ManualLenderSubmissionCreate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createManualLeadSubmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateManualLeadSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof createManualLeadSubmission>>>
+    export type CreateManualLeadSubmissionMutationBody = BodyType<ManualLenderSubmissionCreate>
+    export type CreateManualLeadSubmissionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Log a lender submission received outside the CRM
+ */
+export const useCreateManualLeadSubmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createManualLeadSubmission>>, TError,{id: number;data: BodyType<ManualLenderSubmissionCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createManualLeadSubmission>>,
+        TError,
+        {id: number;data: BodyType<ManualLenderSubmissionCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateManualLeadSubmissionMutationOptions(options));
+    }
+
+export const getDownloadSubmissionApprovalAttachmentUrl = (id: number,) => {
+
+
+
+
+  return `/api/submissions/${id}/approval-attachment`
+}
+
+/**
+ * @summary Download a private lender approval attachment
+ */
+export const downloadSubmissionApprovalAttachment = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadSubmissionApprovalAttachmentUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadSubmissionApprovalAttachmentQueryKey = (id: number,) => {
+    return [
+    `/api/submissions/${id}/approval-attachment`
+    ] as const;
+    }
+
+
+export const getDownloadSubmissionApprovalAttachmentQueryOptions = <TData = Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadSubmissionApprovalAttachmentQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>> = ({ signal }) => downloadSubmissionApprovalAttachment(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadSubmissionApprovalAttachmentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>>
+export type DownloadSubmissionApprovalAttachmentQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Download a private lender approval attachment
+ */
+
+export function useDownloadSubmissionApprovalAttachment<TData = Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSubmissionApprovalAttachment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadSubmissionApprovalAttachmentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetDealSubmissionsUrl = (id: number,) => {
 
