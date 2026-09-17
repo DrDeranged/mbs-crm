@@ -50,6 +50,10 @@ const normalizeSql = (value: string | null | undefined) =>
     .replace(/::text/g, "")
     .replace(/\b[a-z_][a-z0-9_]*\./g, "")
     .replace(/trim\(both from ([^)]+)\)/g, "trim($1)")
+    .replace(
+      /\b([a-z_][a-z0-9_]*)\s*=\s*any\s*\(\s*array\[(.*?)\]\s*\)/g,
+      "$1 in ($2)",
+    )
     .replace(/\s+/g, " ")
     .replace(/^\((.*)\)$/s, "$1")
     .trim();
@@ -129,6 +133,7 @@ try {
       x.indisunique AS is_unique,
       ARRAY(
         SELECT pg_get_indexdef(x.indexrelid, key_position, true)
+          || CASE WHEN (x.indoption[key_position - 1] & 1) = 1 THEN ' DESC' ELSE '' END
         FROM generate_series(1, x.indnkeyatts) AS key_position
         ORDER BY key_position
       ) AS columns,

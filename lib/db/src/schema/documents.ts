@@ -1,4 +1,5 @@
-import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, serial, integer, text, timestamp, index, check } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -29,7 +30,13 @@ export const documentsTable = pgTable(
     label: text("label"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (t) => [index("documents_lead_idx").on(t.leadId)],
+  (t) => [
+    index("documents_lead_idx").on(t.leadId),
+    check(
+      "documents_category_check",
+      sql`${t.category} IN ('bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other')`,
+    ),
+  ],
 );
 
 export const insertDocumentSchema = createInsertSchema(documentsTable).omit({ id: true, createdAt: true });

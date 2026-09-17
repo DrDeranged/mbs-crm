@@ -1,4 +1,5 @@
-import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, serial, integer, text, timestamp, index, check } from "drizzle-orm/pg-core";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 import { emailTemplatesTable } from "./emailTemplates";
@@ -40,6 +41,11 @@ export const emailSendsTable = pgTable(
     index("email_sends_lead_idx").on(t.leadId),
     index("email_sends_sgid_idx").on(t.sendgridMessageId),
     index("email_sends_status_idx").on(t.status),
+    index("email_sends_daily_marketing_idx").on(t.deliveryKind, t.createdAt),
+    check(
+      "email_sends_delivery_kind_check",
+      sql`${t.deliveryKind} IN ('direct', 'bulk', 'drip', 'test')`,
+    ),
   ],
 );
 

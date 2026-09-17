@@ -62,7 +62,9 @@ export const leadsTable = pgTable(
     index("leads_status_idx").on(t.status),
     index("leads_rep_idx").on(t.assignedRepId),
     index("leads_renewal_flagged_idx").on(t.renewalFlaggedAt),
-    uniqueIndex("leads_external_id_unique_idx").on(t.externalId),
+    uniqueIndex("leads_external_id_unique_idx")
+      .on(t.externalId)
+      .where(sql`${t.externalId} IS NOT NULL`),
     index("leads_normalized_email_idx").on(sql`lower(trim(${t.email}))`),
   ],
 );

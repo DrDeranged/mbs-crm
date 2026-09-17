@@ -1,4 +1,5 @@
-import { pgTable, serial, integer, text, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, serial, integer, text, timestamp, jsonb, index, unique, check } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -22,6 +23,10 @@ export const usfaIntakeLogTable = pgTable(
   (t) => [
     index("usfa_intake_log_status_idx").on(t.status),
     index("usfa_intake_log_ingested_idx").on(t.ingestedAt),
+    check(
+      "usfa_intake_log_status_check",
+      sql`${t.status} IN ('ok', 'dup', 'error')`,
+    ),
   ],
 );
 
@@ -39,7 +44,10 @@ export const usfaIntakePrefillTable = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("usfa_intake_prefill_lead_unique").on(t.leadId)],
+  (t) => [
+    unique("usfa_intake_prefill_lead_unique").on(t.leadId),
+    index("usfa_intake_prefill_lead_idx").on(t.leadId),
+  ],
 );
 
 export const insertUsfaIntakeLogSchema = createInsertSchema(usfaIntakeLogTable).omit({ id: true, ingestedAt: true });
@@ -82,7 +90,14 @@ export const usfaApplicationEmailLogTable = pgTable(
     error: text("error"),
     metadata: jsonb("metadata"),
   },
-  (t) => [index("usfa_application_email_status_idx").on(t.status), index("usfa_application_email_expires_idx").on(t.expiresAt)],
+  (t) => [
+    index("usfa_application_email_status_idx").on(t.status),
+    index("usfa_application_email_expires_idx").on(t.expiresAt),
+    check(
+      "usfa_application_email_log_status_check",
+      sql`${t.status} IN ('attached', 'pending', 'processing', 'expired', 'error')`,
+    ),
+  ],
 );
 export const insertUsfaApplicationEmailLogSchema = createInsertSchema(usfaApplicationEmailLogTable).omit({ id: true, attemptedAt: true });
 export type InsertUsfaApplicationEmailLog = z.infer<typeof insertUsfaApplicationEmailLogSchema>;

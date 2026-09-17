@@ -38,8 +38,20 @@ export const companySettingsTable = pgTable(
   },
   (t) => [
     check(
+      "company_settings_routing_mode_check",
+      sql`${t.routingMode} IN ('manual', 'round_robin')`,
+    ),
+    check(
+      "company_settings_routing_stale_days_check",
+      sql`${t.routingStaleDays} BETWEEN 1 AND 365`,
+    ),
+    check(
       "company_settings_bulk_email_per_minute_check",
       sql`${t.bulkEmailPerMinute} BETWEEN 1 AND 1000`,
+    ),
+    check(
+      "company_settings_bulk_email_per_day_check",
+      sql`${t.bulkEmailPerDay} BETWEEN 1 AND 100000`,
     ),
   ],
 );
