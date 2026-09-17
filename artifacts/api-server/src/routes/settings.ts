@@ -283,4 +283,26 @@ router.put("/settings/lead-distribution", async (req: Request, res: Response) =>
   });
 });
 
+router.get("/settings/partner-texting", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
+  const [settings] = await db.select({ enabled: companySettingsTable.partnerTextingEnabled }).from(companySettingsTable).limit(1);
+  res.json({ enabled: settings?.enabled ?? true });
+});
+
+router.put("/settings/partner-texting", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return res.status(403).json({ error: "Forbidden" }) as unknown as void;
+  const enabled = z.boolean().safeParse(req.body?.enabled);
+  if (!enabled.success) return void res.status(400).json({ error: "enabled must be boolean" });
+  const [existing] = await db.select({ id: companySettingsTable.id }).from(companySettingsTable).limit(1);
+  const [result] = existing
+    ? await db.update(companySettingsTable).set({ partnerTextingEnabled: enabled.data, updatedAt: new Date() }).where(eq(companySettingsTable.id, existing.id)).returning()
+    : await db.insert(companySettingsTable).values({ partnerTextingEnabled: enabled.data }).returning();
+  await logActivity({ userId: user.id, action: "partner_texting_setting_updated", entityType: "company_settings", entityId: result.id, details: { enabled: enabled.data } });
+  res.json({ enabled: result.partnerTextingEnabled });
+});
+
 export default router;

@@ -3443,6 +3443,12 @@ paths:
                properties:
                  lender_id:
                    type: integer
+                  via_broker_id:
+                    type: integer
+                    description: Broker-out partner that placed this submission
+                  end_lender_id:
+                    type: integer
+                    description: End lender, when known
                  admin_override:
                    type: boolean
                    default: false
@@ -3514,6 +3520,78 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/LenderSubmission"
+
+  /partners/{partnerId}/contacts/{contactId}/sms:
+    post:
+      operationId: sendPartnerContactSms
+      tags: [communications]
+      summary: Send a business-contact SMS to a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1 }
+                dealId: { type: integer }
+      responses:
+        "201":
+          description: Sent communication
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Communication" }
+        "403": { description: Partner texting is disabled }
+        "422": { description: STOP opt-out or A2P approval required }
+
+  /settings/partner-texting:
+    get:
+      operationId: getPartnerTextingSettings
+      tags: [admin]
+      summary: Get partner texting setting
+      responses:
+        "200":
+          description: Partner texting setting
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enabled]
+                properties:
+                  enabled: { type: boolean }
+    put:
+      operationId: updatePartnerTextingSettings
+      tags: [admin]
+      summary: Enable or disable partner texting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        "200":
+          description: Updated partner texting setting
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enabled]
+                properties:
+                  enabled: { type: boolean }
 
   /submissions/{id}:
     put:
@@ -4802,6 +4880,10 @@ components:
           format: date-time
         assignedRepId:
           type: ["integer", "null"]
+        referredByPartnerId:
+          type: ["integer", "null"]
+        referralSplitPct:
+          type: ["number", "null"]
         assignedRepName:
           type: ["string", "null"]
         requestedAmount:
@@ -5777,6 +5859,8 @@ components:
           type: integer
         leadId:
           type: ["integer", "null"]
+        partnerId:
+          type: ["integer", "null"]
         userId:
           type: ["integer", "null"]
         user:
@@ -6137,6 +6221,7 @@ components:
         phone: { type: ["string", "null"] }
         isPrimary: { type: boolean }
         notes: { type: ["string", "null"] }
+        smsOptedOut: { type: boolean }
         createdBy: { type: ["integer", "null"] }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -6414,6 +6499,12 @@ components:
             - type: "null"
         matchScore:
           type: integer
+        partnerType:
+          type: string
+          enum: [direct_lender, broker_out, broker_in]
+        matchGroup:
+          type: string
+          enum: [lender, super_broker]
         criteriaBreakdown:
           type: array
           items:
@@ -6441,6 +6532,10 @@ components:
           type: integer
         lenderId:
           type: integer
+        viaBrokerId:
+          type: ["integer", "null"]
+        endLenderId:
+          type: ["integer", "null"]
         lender:
           oneOf:
             - $ref: "#/components/schemas/Lender"
@@ -6517,6 +6612,10 @@ components:
           type: ["string", "null"]
         approval_pdf_base64:
           type: string
+        via_broker_id:
+          type: integer
+        end_lender_id:
+          type: integer
 
     VariableField:
       type: object
@@ -7214,6 +7313,9 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        referredByPartnerId: { type: ["integer", "null"] }
+        referralSplitPct: { type: ["number", "null"] }
+        referralGm: { type: ["number", "null"] }
         notes: { type: ["string", "null"] }
         gmSplitPct: { type: integer, minimum: 0, maximum: 100 }
         assignedTo: { type: ["integer", "null"] }

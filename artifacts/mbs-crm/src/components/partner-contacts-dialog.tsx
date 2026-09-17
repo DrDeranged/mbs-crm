@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { SoftphoneContext } from "@/components/softphone-context";
 import { Phone, MessageSquare, Copy, Pencil, Trash2, Plus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
-export function PartnerContactsDialog({ partnerId, partnerName }: { partnerId: number, partnerName: string }) {
+export function PartnerContactsDialog({ partnerId, partnerName, dealId }: { partnerId: number, partnerName: string, dealId?: number }) {
   const { data: contacts = [], isLoading } = usePartnerContacts(partnerId);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -20,6 +21,9 @@ export function PartnerContactsDialog({ partnerId, partnerName }: { partnerId: n
   const updateContact = useUpdatePartnerContact(partnerId);
   const deleteContact = useDeletePartnerContact(partnerId);
   const { toast } = useToast();
+  const [smsContact, setSmsContact] = useState<PartnerContact | null>(null);
+  const [smsBody, setSmsBody] = useState("");
+  const [smsSending, setSmsSending] = useState(false);
 
   const handleEdit = (contact: PartnerContact) => {
     setEditingId(contact.id);
@@ -54,7 +58,30 @@ export function PartnerContactsDialog({ partnerId, partnerName }: { partnerId: n
     }
   };
 
+  const sendPartnerSms = async () => {
+    if (!smsContact || !smsBody.trim()) return;
+    setSmsSending(true);
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/partners/${partnerId}/contacts/${smsContact.id}/sms`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: smsBody.trim(), ...(dealId ? { dealId } : {}) }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || payload.error || "Unable to send partner SMS");
+      toast({ title: "Message sent" });
+      setSmsBody("");
+      setSmsContact(null);
+    } catch (error) {
+      toast({ title: "Message not sent", description: error instanceof Error ? error.message : "Unable to send partner SMS", variant: "destructive" });
+    } finally {
+      setSmsSending(false);
+    }
+  };
+
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-7 text-xs px-2 gap-1.5 border-slate-200">
@@ -131,13 +158,13 @@ export function PartnerContactsDialog({ partnerId, partnerName }: { partnerId: n
                     {contact.email && (
                       <div className="flex items-center justify-between">
                         <div><span className="font-medium text-slate-400 w-12 inline-block">EMAIL</span> {contact.email}</div>
-                        <ContactAffordances email={contact.email} />
+                        <ContactAffordances contact={contact} email={contact.email} onText={setSmsContact} />
                       </div>
                     )}
                     {contact.phone && (
                       <div className="flex items-center justify-between">
                         <div><span className="font-medium text-slate-400 w-12 inline-block">PHONE</span> {contact.phone}</div>
-                        <ContactAffordances phone={contact.phone} />
+                        <ContactAffordances contact={contact} phone={contact.phone} onText={setSmsContact} />
                       </div>
                     )}
                     {contact.notes && <div className="mt-1 text-slate-500">{contact.notes}</div>}
@@ -159,10 +186,18 @@ export function PartnerContactsDialog({ partnerId, partnerName }: { partnerId: n
         )}
       </DialogContent>
     </Dialog>
+      <Dialog open={!!smsContact} onOpenChange={(value) => !value && setSmsContact(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Text {smsContact?.name || "partner contact"}</DialogTitle></DialogHeader>
+          <Textarea value={smsBody} onChange={(event) => setSmsBody(event.target.value)} placeholder="Write a business-contact message" />
+          <div className="flex justify-end"><Button onClick={() => void sendPartnerSms()} disabled={!smsBody.trim() || smsSending}>{smsSending ? "Sending…" : "Send message"}</Button></div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
-export function ContactAffordances({ phone, email }: { phone?: string | null, email?: string | null }) {
+export function ContactAffordances({ contact, phone, email, onText }: { contact: PartnerContact, phone?: string | null, email?: string | null, onText: (contact: PartnerContact) => void }) {
   const { dial } = useContext(SoftphoneContext);
   const { toast } = useToast();
 
@@ -181,7 +216,7 @@ export function ContactAffordances({ phone, email }: { phone?: string | null, em
           <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-600" onClick={() => handleCopy(phone)} title="Copy Phone">
             <Copy className="h-3 w-3" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-300 cursor-not-allowed" disabled title="SMS coming in next phase">
+           <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-green-600 hover:bg-green-50" onClick={() => onText(contact)} title={`Text ${contact.name}`}>
             <MessageSquare className="h-3 w-3" />
           </Button>
         </>

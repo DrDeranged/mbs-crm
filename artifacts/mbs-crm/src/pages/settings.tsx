@@ -65,6 +65,8 @@ export default function Settings() {
   const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
   const [bulkEmailPerDay, setBulkEmailPerDay] = useState("75");
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
+  const [partnerTextingEnabled, setPartnerTextingEnabled] = useState(true);
+  const [savingPartnerTexting, setSavingPartnerTexting] = useState(false);
   const [sendGridTestAddress, setSendGridTestAddress] = useState("");
   const [sendingSendGridTest, setSendingSendGridTest] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<{
@@ -102,7 +104,31 @@ export default function Settings() {
       })
       .catch(() => {})
       .finally(() => setLoadingCompany(false));
+    fetch(`${apiBase}/settings/partner-texting`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error("Unable to load partner texting setting")))
+      .then((data: { enabled?: boolean }) => setPartnerTextingEnabled(data.enabled !== false))
+      .catch(() => {});
   }, [me]);
+
+  const savePartnerTexting = async (enabled: boolean) => {
+    setPartnerTextingEnabled(enabled);
+    setSavingPartnerTexting(true);
+    try {
+      const response = await fetch(`${apiBase}/settings/partner-texting`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      if (!response.ok) throw new Error("Unable to save partner texting setting");
+      toast({ title: enabled ? "Partner texting enabled" : "Partner texting disabled" });
+    } catch (error) {
+      setPartnerTextingEnabled(!enabled);
+      toast({ title: "Could not save partner texting setting", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setSavingPartnerTexting(false);
+    }
+  };
 
   const loadMigrationStatus = async () => {
     if (!isAdmin) return;
@@ -638,6 +664,13 @@ export default function Settings() {
               <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-[#1F4E79] hover:bg-[#163a5f] text-white">
                 {savingEmailSettings ? "Saving…" : "Save Email Safety Settings"}
               </Button>
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Allow partner texting</div>
+                  <div className="text-sm text-muted-foreground">Business-contact SMS bypasses consumer consent, but STOP and A2P provider safeguards still apply.</div>
+                </div>
+                <Switch checked={partnerTextingEnabled} disabled={savingPartnerTexting} onCheckedChange={(checked) => void savePartnerTexting(checked)} aria-label="Allow partner texting" />
+              </div>
               <div className="mt-6 max-w-2xl border-t pt-5">
                 <div className="font-medium">Send SendGrid test email</div>
                 <p className="mt-1 text-sm text-muted-foreground">Sends the CEO delivery-test template from funding@my-business-solutions.com to the typed address. The provider message ID is shown after delivery is accepted.</p>

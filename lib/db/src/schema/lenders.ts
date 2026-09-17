@@ -91,6 +91,7 @@ export const partnerContactsTable = pgTable(
     phone: text("phone"),
     isPrimary: boolean("is_primary").notNull().default(false),
     notes: text("notes"),
+    smsOptedOut: boolean("sms_opted_out").notNull().default(false),
     createdBy: integer("created_by").references(() => usersTable.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
