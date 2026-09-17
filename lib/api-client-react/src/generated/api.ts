@@ -24,6 +24,8 @@ import type {
   AdminErrorsResponse,
   AdminMaintenanceError,
   AdminQrVerifyResponse,
+  AdminUserMergeRequest,
+  AdminUserMergeResponse,
   AdminUsfaIntakeResponse,
   AiDraftRequest,
   AiDraftResponse,
@@ -291,6 +293,13 @@ export function useApiRootHealthCheck<TData = Awaited<ReturnType<typeof apiRootH
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
+
+
 export const getHealthCheckUrl = () => {
 
 
@@ -362,6 +371,12 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
+
+
+
+
+
+
 export const getGetHealthDeepUrl = () => {
 
 
@@ -432,6 +447,12 @@ export function useGetHealthDeep<TData = Awaited<ReturnType<typeof getHealthDeep
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
+
 
 export const getGetAdminErrorsUrl = (params?: GetAdminErrorsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -510,6 +531,12 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
+
+
 
 export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -1918,6 +1945,77 @@ export const useUpdateUser = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateUserMutationOptions(options));
+    }
+
+export const getMergeAdminUsersUrl = () => {
+
+
+
+
+  return `/api/admin/users/merge`
+}
+
+/**
+ * @summary Merge a pending user into an active user (admin only)
+ */
+export const mergeAdminUsers = async (adminUserMergeRequest: AdminUserMergeRequest, options?: RequestInit): Promise<AdminUserMergeResponse> => {
+
+  return customFetch<AdminUserMergeResponse>(getMergeAdminUsersUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminUserMergeRequest,)
+  }
+);}
+
+
+
+
+export const getMergeAdminUsersMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergeAdminUsers>>, TError,{data: BodyType<AdminUserMergeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mergeAdminUsers>>, TError,{data: BodyType<AdminUserMergeRequest>}, TContext> => {
+
+const mutationKey = ['mergeAdminUsers'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mergeAdminUsers>>, {data: BodyType<AdminUserMergeRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mergeAdminUsers(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MergeAdminUsersMutationResult = NonNullable<Awaited<ReturnType<typeof mergeAdminUsers>>>
+    export type MergeAdminUsersMutationBody = BodyType<AdminUserMergeRequest>
+    export type MergeAdminUsersMutationError = ErrorType<void>
+
+    /**
+ * @summary Merge a pending user into an active user (admin only)
+ */
+export const useMergeAdminUsers = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergeAdminUsers>>, TError,{data: BodyType<AdminUserMergeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mergeAdminUsers>>,
+        TError,
+        {data: BodyType<AdminUserMergeRequest>},
+        TContext
+      > => {
+      return useMutation(getMergeAdminUsersMutationOptions(options));
     }
 
 export const getGetLeadDistributionSettingsUrl = () => {

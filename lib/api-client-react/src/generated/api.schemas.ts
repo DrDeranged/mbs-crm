@@ -5,6 +5,24 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface AdminUserMergeRequest {
+  /** @minimum 1 */
+  sourceUserId: number;
+  /** @minimum 1 */
+  targetUserId: number;
+  /** Required when the source owns any records that will be reassigned */
+  confirmReassignment?: boolean;
+}
+
+export type AdminUserMergeResponseCounts = {[key: string]: number};
+
+export interface AdminUserMergeResponse {
+  sourceUserId: number;
+  targetUserId: number;
+  reassigned: number;
+  counts: AdminUserMergeResponseCounts;
+}
+
 export type CollateralTemplateCategory = typeof CollateralTemplateCategory[keyof typeof CollateralTemplateCategory];
 
 

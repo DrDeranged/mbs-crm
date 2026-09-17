@@ -578,6 +578,27 @@ export const UpdateUserResponse = zod.object({
 
 
 /**
+ * @summary Merge a pending user into an active user (admin only)
+ */
+
+
+export const mergeAdminUsersBodyConfirmReassignmentDefault = false;
+
+export const MergeAdminUsersBody = zod.object({
+  "sourceUserId": zod.number().min(1),
+  "targetUserId": zod.number().min(1),
+  "confirmReassignment": zod.boolean().default(mergeAdminUsersBodyConfirmReassignmentDefault).describe('Required when the source owns any records that will be reassigned')
+})
+
+export const MergeAdminUsersResponse = zod.object({
+  "sourceUserId": zod.number(),
+  "targetUserId": zod.number(),
+  "reassigned": zod.number(),
+  "counts": zod.record(zod.string(), zod.number())
+})
+
+
+/**
  * @summary Get inbound lead distribution settings (admin only)
  */
 export const getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;

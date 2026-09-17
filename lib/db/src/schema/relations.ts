@@ -3,6 +3,7 @@ import { leadsTable } from "./leads";
 import { dealsTable } from "./deals";
 import { usersTable } from "./users";
 import { userIdentitiesTable } from "./userIdentities";
+import { adminAuditLogTable } from "./adminAuditLog";
 import { notificationsTable } from "./notifications";
 import { companiesTable } from "./companies";
 import { notesTable } from "./notes";
@@ -71,6 +72,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   approvals: many(dealApprovalsTable),
   collateralTemplates: many(collateralTemplatesTable),
   collateralRenders: many(collateralRendersTable),
+  adminAuditRows: many(adminAuditLogTable),
 }));
 
 export const userIdentitiesRelations = relations(userIdentitiesTable, ({ one }) => ({
@@ -78,6 +80,10 @@ export const userIdentitiesRelations = relations(userIdentitiesTable, ({ one }) 
     fields: [userIdentitiesTable.userId],
     references: [usersTable.id],
   }),
+}));
+
+export const adminAuditLogRelations = relations(adminAuditLogTable, ({ one }) => ({
+  actor: one(usersTable, { fields: [adminAuditLogTable.actorUserId], references: [usersTable.id] }),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({

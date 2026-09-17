@@ -49,6 +49,9 @@ export default function Settings() {
   const [routingStaleDaysInput, setRoutingStaleDaysInput] = useState("7");
   const [routingMode, setRoutingMode] = useState<RoutingSettingsMode>("manual");
   const [autoReassignStale, setAutoReassignStale] = useState(false);
+  const [mergeSourceId, setMergeSourceId] = useState("");
+  const [mergeTargetId, setMergeTargetId] = useState("");
+  const [mergePending, setMergePending] = useState(false);
 
   const apiBase = getApiBaseUrl();
 
@@ -224,6 +227,41 @@ export default function Settings() {
         toast({ title: "Error", description: "Failed to update user role.", variant: "destructive" });
       }
     });
+  };
+
+  const mergeUsers = async (confirmReassignment = false) => {
+    const sourceUserId = Number(mergeSourceId);
+    const targetUserId = Number(mergeTargetId);
+    if (!sourceUserId || !targetUserId || sourceUserId === targetUserId) {
+      toast({ title: "Choose different source and target users", variant: "destructive" });
+      return;
+    }
+    setMergePending(true);
+    try {
+      const response = await fetch(`${apiBase}/admin/users/merge`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceUserId, targetUserId, confirmReassignment }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 409 && payload.code === "CONFIRM_REASSIGNMENT_REQUIRED") {
+        const confirmed = window.confirm(
+          "This pending user owns records. Reassign all of its leads, deals, notes, tasks, documents, activity, submissions, collateral, and history to the target?",
+        );
+        if (confirmed) return await mergeUsers(true);
+        return;
+      }
+      if (!response.ok) throw new Error(payload.error || "Unable to merge users");
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      setMergeSourceId("");
+      setMergeTargetId("");
+      toast({ title: "Users merged", description: `${payload.reassigned ?? 0} records reassigned.` });
+    } catch (error) {
+      toast({ title: "Unable to merge users", description: error instanceof Error ? error.message : "Merge failed", variant: "destructive" });
+    } finally {
+      setMergePending(false);
+    }
   };
 
   const downloadQr = async (slug: string, format: "png" | "svg") => {
@@ -958,6 +996,33 @@ export default function Settings() {
               <CardDescription>Manage user roles within your organization.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border bg-muted/30 p-3">
+                <div className="min-w-[190px]">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Stray pending user</label>
+                  <Select value={mergeSourceId} onValueChange={setMergeSourceId}>
+                    <SelectTrigger><SelectValue placeholder="Choose source" /></SelectTrigger>
+                    <SelectContent>
+                      {(users ?? []).filter((user) => user.role === UserRole.pending && user.isActive).map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[190px]">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Real active user</label>
+                  <Select value={mergeTargetId} onValueChange={setMergeTargetId}>
+                    <SelectTrigger><SelectValue placeholder="Choose target" /></SelectTrigger>
+                    <SelectContent>
+                      {(users ?? []).filter((user) => user.isActive && user.role !== UserRole.pending).map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" disabled={mergePending || !mergeSourceId || !mergeTargetId} onClick={() => void mergeUsers()}>
+                  {mergePending ? "Merging…" : "Merge user"}
+                </Button>
+              </div>
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>

@@ -189,7 +189,11 @@ async function schemaShowsMigrationApplied(
     ]], ["applications", ["has_financial_statements", "has_factoring", "industry_experience_months"]]],
     19: [["documents", ["category"]]],
     34: [["applications", ["sms_consent", "sms_consent_at", "sms_consent_ip"]]],
-    35: [["user_identities", ["user_id", "clerk_id", "email", "provider", "linked_at"]]],
+    35: [
+      ["user_identities", ["user_id", "clerk_id", "email", "provider", "linked_at"]],
+      ["users", ["merged_into_user_id"]],
+      ["admin_audit_log", ["actor_user_id", "action", "entity_type", "entity_id", "details", "created_at"]],
+    ],
   };
   const required = markers[n];
   if (!required) return false;
