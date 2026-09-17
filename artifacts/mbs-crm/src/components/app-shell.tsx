@@ -113,7 +113,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {sectionLabel("Marketing")}
               {navLink("/email/templates", "Email Templates", Mail)}
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
-              {isAdmin && navLink("/lenders", "Lenders", Building2)}
+              {(isAdmin || currentUser?.role === "rep") && navLink("/lenders", "Partners", Building2)}
               {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
               {isManagerOrAdmin && (
                 <>

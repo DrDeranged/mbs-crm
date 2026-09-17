@@ -168,7 +168,6 @@ async function approvalDocumentsBySubmission(
 router.get("/lenders", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
   const lenders = await db.select().from(lendersTable).orderBy(desc(lendersTable.priorityWeight));
   const submissions = await db.select({ lenderId: lenderSubmissionsTable.lenderId, status: lenderSubmissionsTable.status }).from(lenderSubmissionsTable);
