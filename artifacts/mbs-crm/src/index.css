@@ -65,10 +65,12 @@
   --z-sidebar-border: 15;
   --z-sidebar: 20;
   --z-notification-backdrop: 29;
-  --z-popover: 30;
+  /* Portaled menus must sit above the dialog overlay/content so Select,
+     Popover, and command comboboxes remain clickable inside dialogs. */
+  --z-popover: 50;
   --z-dialog: 40;
-  --z-dialog-popover: 45;
-  --z-toast: 50;
+  --z-dialog-popover: 50;
+  --z-toast: 60;
 }
 
 :root {
