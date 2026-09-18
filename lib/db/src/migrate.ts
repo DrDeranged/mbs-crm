@@ -24,6 +24,7 @@ export type MigrationStatus = MigrationFile & {
   appliedAt?: string;
   appliedChecksum?: string;
   detectedAsApplied?: boolean;
+  supersededBy?: string;
 };
 
 export type MigrationReport = {
@@ -214,12 +215,13 @@ type LedgerEntry = {
   appliedAt?: string;
   failedAt?: string;
   error?: string;
+  supersededBy?: string;
 };
 
 async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>> {
   try {
     const result = await executor.execute(sql`
-      SELECT name, checksum, applied_at, failed_at, error
+      SELECT name, checksum, applied_at, failed_at, error, superseded_by
       FROM schema_migrations
       ORDER BY name
     `);
@@ -233,6 +235,7 @@ async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>>
             appliedAt: record.applied_at ? new Date(String(record.applied_at)).toISOString() : undefined,
             failedAt: record.failed_at ? new Date(String(record.failed_at)).toISOString() : undefined,
             error: record.error ? String(record.error) : undefined,
+            supersededBy: record.superseded_by ? String(record.superseded_by) : undefined,
           },
         ];
       }),
@@ -254,8 +257,21 @@ async function recordMigrationFailure(
     ON CONFLICT (name) DO UPDATE SET
       checksum = EXCLUDED.checksum,
       failed_at = EXCLUDED.failed_at,
-      error = EXCLUDED.error
+      error = EXCLUDED.error,
+      superseded_by = NULL
   `);
+}
+
+const failedMigrationRecoveries = new Map([
+  ["036_partners_contacts", "040_complete_partner_contacts_recovery"],
+]);
+
+function isAlreadyExistsMigrationError(error: unknown): boolean {
+  const code = errorCode(error);
+  return code === "42710"
+    || code === "42P07"
+    || code === "42701"
+    || /already exists/i.test(formatMigrationError(error));
 }
 
 function emptyReport(): MigrationReport {
@@ -289,13 +305,15 @@ export async function runMigrations(options: {
         applied_at timestamptz NOT NULL DEFAULT now(),
         checksum text NOT NULL,
         failed_at timestamptz,
-        error text
+        error text,
+        superseded_by text
       )
     `);
     await database.execute(sql`
       ALTER TABLE schema_migrations
         ADD COLUMN IF NOT EXISTS failed_at timestamptz,
-        ADD COLUMN IF NOT EXISTS error text
+        ADD COLUMN IF NOT EXISTS error text,
+        ADD COLUMN IF NOT EXISTS superseded_by text
     `);
   }
   const ledger = await readLedger(database);
@@ -306,18 +324,103 @@ export async function runMigrations(options: {
   // pending migration is allowed to run.
   const pendingMigrations: MigrationFile[] = [];
   for (const migration of migrations) {
-    const ledgerEntry = ledger.get(migration.id);
+    const ledgerEntry = ledger.get(migration.id) ?? ledger.get(migration.name);
     if (ledgerEntry) {
-      if (ledgerEntry.error) {
-        report.pending.push(migration.name);
-        report.migrations.push({
-          ...migration,
-          status: "pending",
-          appliedAt: ledgerEntry.appliedAt,
-          appliedChecksum: ledgerEntry.checksum,
-        });
-        report.failed = { name: migration.name, error: ledgerEntry.error };
-        break;
+      if (ledgerEntry.failedAt || ledgerEntry.error) {
+        const priorError = ledgerEntry.error ?? "Migration previously failed";
+        const recoveryId = failedMigrationRecoveries.get(migration.id);
+        const recovery = recoveryId
+          ? migrations.find((candidate) => candidate.id === recoveryId)
+          : undefined;
+        if (options.dryRun || !recovery) {
+          report.pending.push(migration.name);
+          report.migrations.push({
+            ...migration,
+            status: "pending",
+            appliedAt: ledgerEntry.appliedAt,
+            appliedChecksum: ledgerEntry.checksum,
+          });
+          report.failed = { name: migration.name, error: priorError };
+          break;
+        }
+
+        try {
+          await database.transaction(async (tx) => {
+            await tx.execute(sql.raw(migration.sql));
+            await tx.execute(sql`
+              UPDATE schema_migrations
+              SET checksum = ${migration.checksum},
+                  applied_at = now(),
+                  failed_at = NULL,
+                  error = NULL,
+                  superseded_by = NULL
+              WHERE name IN (${migration.id}, ${migration.name})
+            `);
+          });
+          ledger.set(migration.id, { checksum: migration.checksum });
+          report.applied.push(migration.name);
+          report.migrations.push({ ...migration, status: "applied" });
+          continue;
+        } catch (retryError) {
+          if (!isAlreadyExistsMigrationError(retryError)) {
+            report.pending.push(migration.name);
+            report.migrations.push({ ...migration, status: "pending" });
+            report.failed = {
+              name: migration.name,
+              error: formatMigrationError(retryError),
+            };
+            await recordMigrationFailure(database, migration, report.failed.error);
+            break;
+          }
+        }
+
+        try {
+          await database.transaction(async (tx) => {
+            await tx.execute(sql.raw(recovery.sql));
+            await tx.execute(sql`
+              INSERT INTO schema_migrations (name, checksum, failed_at, error, superseded_by)
+              VALUES (${recovery.id}, ${recovery.checksum}, NULL, NULL, NULL)
+              ON CONFLICT (name) DO UPDATE SET
+                checksum = EXCLUDED.checksum,
+                applied_at = now(),
+                failed_at = NULL,
+                error = NULL,
+                superseded_by = NULL
+            `);
+            await tx.execute(sql`
+              UPDATE schema_migrations
+              SET checksum = ${migration.checksum},
+                  applied_at = now(),
+                  failed_at = NULL,
+                  error = NULL,
+                  superseded_by = ${recovery.name}
+              WHERE name IN (${migration.id}, ${migration.name})
+            `);
+          });
+          ledger.set(migration.id, {
+            checksum: migration.checksum,
+            supersededBy: recovery.name,
+          });
+          ledger.set(recovery.id, { checksum: recovery.checksum });
+          report.skipped.push(migration.name);
+          report.applied.push(recovery.name);
+          report.migrations.push({
+            ...migration,
+            status: "applied",
+            detectedAsApplied: true,
+            supersededBy: recovery.name,
+          });
+          continue;
+        } catch (recoveryError) {
+          report.pending.push(recovery.name);
+          report.migrations.push({ ...recovery, status: "pending" });
+          report.failed = {
+            name: recovery.name,
+            error: formatMigrationError(recoveryError),
+          };
+          await recordMigrationFailure(database, recovery, report.failed.error);
+          break;
+        }
       }
       if (ledgerEntry.checksum !== migration.checksum) {
         report.mismatches.push({
@@ -372,7 +475,8 @@ export async function runMigrations(options: {
                 checksum = EXCLUDED.checksum,
                 applied_at = now(),
                 failed_at = NULL,
-                error = NULL
+                error = NULL,
+                superseded_by = NULL
             `);
           });
         } catch (error) {
@@ -409,7 +513,8 @@ export async function runMigrations(options: {
             checksum = EXCLUDED.checksum,
             applied_at = now(),
             failed_at = NULL,
-            error = NULL
+            error = NULL,
+            superseded_by = NULL
         `);
       });
       report.applied.push(migration.name);

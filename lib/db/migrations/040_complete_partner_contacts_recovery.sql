@@ -1,3 +1,12 @@
+UPDATE schema_migrations
+SET failed_at = NULL, error = NULL, applied_at = now()
+WHERE name = '036_partners_contacts.sql';
+
+-- The application runner stores migration IDs without the .sql suffix.
+UPDATE schema_migrations
+SET failed_at = NULL, error = NULL, applied_at = now()
+WHERE name = '036_partners_contacts';
+
 ALTER TABLE lenders
   ADD COLUMN IF NOT EXISTS partner_type text NOT NULL DEFAULT 'direct_lender',
   ADD COLUMN IF NOT EXISTS referral_split_pct numeric(5, 2),

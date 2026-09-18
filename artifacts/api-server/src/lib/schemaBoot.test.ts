@@ -115,6 +115,79 @@ test("a failing second file keeps the first file applied and recorded", async ()
   }
 });
 
+test("boot supersedes failed 036 with recovery 040 before applying 037 through 039", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "migration-supersession-"));
+  try {
+    for (const [name, body] of [
+      ["036_partners_contacts.sql", "ALTER TABLE lenders ADD CONSTRAINT duplicate_check CHECK (true);"],
+      ["037_partner_flows_and_texting.sql", "SELECT 37;"],
+      ["038_partner_texting.sql", "SELECT 38;"],
+      ["039_ridgestone_partner_profile.sql", "SELECT 39;"],
+      ["040_complete_partner_contacts_recovery.sql", "SELECT 40;"],
+    ] as const) {
+      await writeFile(path.join(directory, name), body);
+    }
+
+    let transactionNumber = 0;
+    const transactionCallCounts: number[] = [];
+    const database = {
+      async execute() {
+        return {
+          rows: [{
+            name: "036_partners_contacts.sql",
+            checksum: "failed-checksum",
+            applied_at: new Date().toISOString(),
+            failed_at: new Date().toISOString(),
+            error: 'constraint "duplicate_check" already exists',
+            superseded_by: null,
+          }],
+        };
+      },
+      async transaction<T>(callback: (tx: { execute(): Promise<{ rows: never[] }> }) => Promise<T>) {
+        transactionNumber++;
+        let calls = 0;
+        try {
+          return await callback({
+            async execute() {
+              calls++;
+              if (transactionNumber === 1 && calls === 1) {
+                throw Object.assign(
+                  new Error('constraint "duplicate_check" already exists'),
+                  { code: "42710" },
+                );
+              }
+              return { rows: [] };
+            },
+          });
+        } finally {
+          transactionCallCounts.push(calls);
+        }
+      },
+    };
+
+    const report = await runMigrations({ db: database, migrationsDir: directory });
+
+    assert.equal(report.failed, null);
+    assert.deepEqual(report.applied, [
+      "040_complete_partner_contacts_recovery.sql",
+      "037_partner_flows_and_texting.sql",
+      "038_partner_texting.sql",
+      "039_ridgestone_partner_profile.sql",
+    ]);
+    assert.deepEqual(report.skipped, [
+      "036_partners_contacts.sql",
+      "040_complete_partner_contacts_recovery.sql",
+    ]);
+    assert.deepEqual(transactionCallCounts, [1, 3, 2, 2, 2]);
+    assert.equal(
+      report.migrations.find((migration) => migration.name === "036_partners_contacts.sql")?.supersededBy,
+      "040_complete_partner_contacts_recovery.sql",
+    );
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("a failed migration reports prior applied work and boot still releases its coordinator", async () => {
   const calls: string[] = [];
   const logger = {
