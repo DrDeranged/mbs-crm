@@ -71,11 +71,12 @@ test("favicon and PWA metadata point at the canonical icon set", () => {
   const html = readFileSync(path.join(root, "..", "index.html"), "utf8");
   const manifest = readFileSync(path.join(root, "..", "public", "manifest.webmanifest"), "utf8");
   assert.match(html, /<title>MBS CRM<\/title>/);
-  assert.match(html, /favicon-16x16\.png/);
-  assert.match(html, /favicon-32x32\.png/);
-  assert.match(html, /favicon-180x180\.png/);
+  assert.match(html, /favicon\.ico/);
+  assert.match(html, /sizes="16x16 32x32 48x48"/);
+  assert.match(html, /favicon-180\.png/);
   assert.match(html, /manifest\.webmanifest/);
-  assert.doesNotMatch(html, /favicon\.svg|favicon\.ico|apple-touch-icon\.png/);
-  assert.match(manifest, /favicon-192x192\.png/);
-  assert.match(manifest, /favicon-512x512\.png/);
+  assert.doesNotMatch(html, /favicon-(?:16x16|32x32|180x180|192x192|512x512)\.png|favicon\.svg|apple-touch-icon\.png/);
+  assert.match(manifest, /favicon-192\.png/);
+  assert.match(manifest, /favicon-512\.png/);
+  assert.doesNotMatch(manifest, /favicon-(?:192x192|512x512)\.png/);
 });
