@@ -34,3 +34,5 @@ export * from "./idempotencyKeys";
 export * from "./piiAccessLog";
 export * from "./usfaIntake";
 export * from "./relations";
+export * from "./pushSubscriptions";
+export * from "./notificationPreferences";

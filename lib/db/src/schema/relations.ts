@@ -26,6 +26,8 @@ import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
 import { retiredRepSlugsTable } from "./retiredRepSlugs";
 import { usfaApplicationEmailLogTable, usfaIntakeLogTable, usfaIntakePrefillTable, usfaPrefillInvitesTable } from "./usfaIntake";
+import { pushSubscriptionsTable } from "./pushSubscriptions";
+import { notificationPreferencesTable } from "./notificationPreferences";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -56,6 +58,8 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
   identities: many(userIdentitiesTable),
+  pushSubscriptions: many(pushSubscriptionsTable),
+  notificationPreferences: many(notificationPreferencesTable),
   leads: many(leadsTable),
   deals: many(dealsTable),
   notes: many(notesTable),

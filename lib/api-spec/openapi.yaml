@@ -4452,6 +4452,81 @@ paths:
                   count:
                     type: integer
 
+  /notifications/vapid-public-key:
+    get:
+      tags: [notifications]
+      operationId: getVapidPublicKey
+      summary: Get the configured VAPID public key for web push
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: VAPID public key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VapidPublicKey"
+        "503": { description: Push notifications are not configured }
+
+  /notifications/preferences:
+    get:
+      tags: [notifications]
+      operationId: getNotificationPreferences
+      summary: Get current user's push notification preferences
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+    put:
+      tags: [notifications]
+      operationId: updateNotificationPreferences
+      summary: Update current user's push notification preferences
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferencesUpdate"
+      responses:
+        "200":
+          description: Updated notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+
+  /notifications/subscriptions:
+    put:
+      tags: [notifications]
+      operationId: upsertPushSubscription
+      summary: Register the current user's web push endpoint
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionInput"
+      responses:
+        "204": { description: Subscription registered }
+    delete:
+      tags: [notifications]
+      operationId: unsubscribePushSubscription
+      summary: Remove the current user's web push endpoint
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionDelete"
+      responses:
+        "204": { description: Subscription removed }
+
   /notifications/read-all:
     put:
       tags: [notifications]
@@ -7169,6 +7244,59 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    VapidPublicKey:
+      type: object
+      required: [publicKey]
+      properties:
+        publicKey: { type: string }
+
+    NotificationPreferences:
+      type: object
+      required: [pushEnabled, events]
+      properties:
+        pushEnabled: { type: boolean }
+        events:
+          type: object
+          required: [new_application, new_lead_assigned, lead_replied, submission_status_changed, task_due, stale_lead]
+          properties:
+            new_application: { type: boolean }
+            new_lead_assigned: { type: boolean }
+            lead_replied: { type: boolean }
+            submission_status_changed: { type: boolean }
+            task_due: { type: boolean }
+            stale_lead: { type: boolean }
+
+    NotificationPreferencesUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        pushEnabled: { type: boolean }
+        events:
+          type: object
+          additionalProperties: false
+          properties:
+            new_application: { type: boolean }
+            new_lead_assigned: { type: boolean }
+            lead_replied: { type: boolean }
+            submission_status_changed: { type: boolean }
+            task_due: { type: boolean }
+            stale_lead: { type: boolean }
+
+    PushSubscriptionInput:
+      type: object
+      required: [endpoint, p256dh, auth]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 2048 }
+        p256dh: { type: string, minLength: 1, maxLength: 512 }
+        auth: { type: string, minLength: 1, maxLength: 512 }
+        userAgent: { type: ["string", "null"], maxLength: 1024 }
+
+    PushSubscriptionDelete:
+      type: object
+      required: [endpoint]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 2048 }
 
     DeepHealthResponse:
       type: object
