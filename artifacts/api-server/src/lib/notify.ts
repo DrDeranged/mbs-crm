@@ -1,7 +1,7 @@
 import { db } from "@workspace/db";
 import { notificationsTable, usersTable } from "@workspace/db";
 import { eq, or } from "drizzle-orm";
-import { sendPushNotification } from "./pushNotifications";
+import { sendPushForNotification, type PushEvent } from "./push";
 
 type NotificationType =
   | "lead_assigned"
@@ -19,6 +19,7 @@ interface NotifyParams {
   title: string;
   body: string;
   leadId?: number | null;
+  event?: PushEvent;
 }
 
 /**
@@ -34,14 +35,7 @@ export async function createNotification(params: NotifyParams): Promise<void> {
     leadId: params.leadId ?? null,
   });
 
-  const user = await db.query.usersTable.findFirst({
-    where: eq(usersTable.id, params.userId),
-  });
-  if (user?.pushToken) {
-    sendPushNotification(user.pushToken, params.title, params.body, {
-      leadId: params.leadId ?? undefined,
-    }).catch(() => {});
-  }
+  void sendPushForNotification(params).catch(() => {});
 }
 
 /** Notify every admin and manager (e.g. a new application arrived). */

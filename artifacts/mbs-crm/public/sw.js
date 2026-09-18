@@ -74,6 +74,23 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (_) {
+    payload = { body: event.data ? event.data.text() : '' };
+  }
+  const data = payload.data || {};
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/favicon-192x192.png',
+    tag: payload.tag || data.tag || 'crm-notification',
+    data: { ...data, url: payload.url || data.url || self.registration.scope },
+  };
+  event.waitUntil(self.registration.showNotification(payload.title || 'MBS CRM', options));
+});
+
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
