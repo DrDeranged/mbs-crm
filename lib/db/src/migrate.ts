@@ -241,6 +241,27 @@ async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>>
       }),
     );
   } catch (error) {
+    // Legacy ledgers predate failure metadata. A dry run must remain
+    // read-only, so retry the narrow historical projection instead of ALTERing.
+    if (errorCode(error) === "42703") {
+      const result = await executor.execute(sql`
+        SELECT name, checksum, applied_at
+        FROM schema_migrations
+        ORDER BY name
+      `);
+      return new Map(
+        (result.rows ?? []).map((row) => {
+          const record = row as Record<string, unknown>;
+          return [
+            String(record.name),
+            {
+              checksum: String(record.checksum),
+              appliedAt: record.applied_at ? new Date(String(record.applied_at)).toISOString() : undefined,
+            },
+          ];
+        }),
+      );
+    }
     if (errorCode(error) === "42P01") return new Map();
     throw error;
   }

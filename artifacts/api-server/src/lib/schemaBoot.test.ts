@@ -229,6 +229,33 @@ test("a failed entry with a checksum mismatch is reported without retrying", asy
   }
 });
 
+test("dry-run reads a legacy schema_migrations ledger without mutating it", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "legacy-ledger-"));
+  try {
+    await writeFile(path.join(directory, "001_legacy.sql"), "SELECT 1;");
+    const discovered = await discoverMigrations(directory);
+    let calls = 0;
+    const database = {
+      async execute() {
+        calls++;
+        if (calls === 1) throw Object.assign(new Error("column failed_at does not exist"), { code: "42703" });
+        return {
+          rows: [{ name: discovered[0].id, checksum: discovered[0].checksum, applied_at: new Date().toISOString() }],
+        };
+      },
+      async transaction() {
+        throw new Error("dry run must not open a transaction");
+      },
+    };
+    const report = await runMigrations({ db: database, migrationsDir: directory, dryRun: true });
+    assert.deepEqual(report.skipped, ["001_legacy.sql"]);
+    assert.equal(report.failed, null);
+    assert.equal(calls, 2);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("a mismatch blocks pending files collected before it", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "migration-mismatch-order-"));
   try {
