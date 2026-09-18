@@ -1,9 +1,9 @@
 import { Router, type IRouter } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
-import { jobRunsTable, emailSendsTable, emailWebhookEventsTable, pushSubscriptionsTable, pushDeliveryAttemptsTable } from "@workspace/db";
+import { jobRunsTable, emailSendsTable, emailWebhookEventsTable } from "@workspace/db";
 import { getMigrationStatus } from "@workspace/db";
-import { desc, eq, isNull, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth } from "../lib/integrationHealth";
 import { getClerkHealth } from "../lib/clerkHealth";
@@ -105,34 +105,6 @@ router.get("/health/deep", async (_req, res) => {
       // Older schema may not yet have email delivery ledgers; retain safe nulls.
     }
   }
-  let pushDelivery = {
-    configured: Boolean(process.env.VAPID_SUBJECT && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
-    activeSubscriptions: 0,
-    totalSubscriptions: 0,
-    lastSuccessfulSendAt: null as string | null,
-  };
-  if (dbOk) {
-    try {
-      const [active, total, lastSuccess] = await Promise.all([
-        db.select({ count: sql<number>`count(*)` }).from(pushSubscriptionsTable)
-          .where(isNull(pushSubscriptionsTable.failedAt)),
-        db.select({ count: sql<number>`count(*)` }).from(pushSubscriptionsTable),
-        db.select({ attemptedAt: pushDeliveryAttemptsTable.attemptedAt })
-          .from(pushDeliveryAttemptsTable)
-          .where(eq(pushDeliveryAttemptsTable.status, "success"))
-          .orderBy(desc(pushDeliveryAttemptsTable.attemptedAt))
-          .limit(1),
-      ]);
-      pushDelivery = {
-        ...pushDelivery,
-        activeSubscriptions: Number(active[0]?.count ?? 0),
-        totalSubscriptions: Number(total[0]?.count ?? 0),
-        lastSuccessfulSendAt: lastSuccess[0]?.attemptedAt?.toISOString() ?? null,
-      };
-    } catch {
-      // The append-only delivery ledger may not have been applied yet.
-    }
-  }
   const integrations = {
     ...detailedIntegrations,
     clerk,
@@ -142,7 +114,6 @@ router.get("/health/deep", async (_req, res) => {
       process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||
       process.env.ANTHROPIC_API_KEY
     ),
-    push: pushDelivery,
   };
 
   // 3. Last job run per job

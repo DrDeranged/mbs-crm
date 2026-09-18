@@ -27,4 +27,22 @@ test("production smoke paths", async ({ browser, request }) => {
   await context.close();
 
   expect((await request.get("/api/healthz")).status()).toBe(200);
+
+  const manifest = await request.get("/manifest.webmanifest");
+  expect(manifest.status()).toBe(200);
+  expect(manifest.headers()["content-type"]).toMatch(/^application\/manifest\+json\b/i);
+  expect(await manifest.json()).toMatchObject({
+    name: "MBS CRM",
+    short_name: "MBS",
+    start_url: "./?source=pwa",
+    display: "standalone",
+    orientation: "portrait-primary",
+    background_color: "#0E2A47",
+    theme_color: "#0E2A47",
+  });
+  const manifestBody = await manifest.json();
+  expect(manifestBody.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: "./favicon-192x192.png", sizes: "192x192", type: "image/png" }),
+    expect.objectContaining({ src: "./favicon-512x512.png", sizes: "512x512", type: "image/png" }),
+  ]));
 });

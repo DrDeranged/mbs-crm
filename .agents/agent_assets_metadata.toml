@@ -40,3 +40,17 @@ mtime_ms = 1789741667422
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/56692b0f-4b19-48c7-992b-51c6f6710288/cc3f1c8f-da47-42f3-ba69-1058eb8f22c5"
 storage_version_token = "1789741743982503"
 content_type = "text/plain"
+
+[[outputs]]
+id = "Bm42BNUXGdGe-OWVy41eA"
+uri = "file://reports/preflight-pwa-push-2026-09-18.txt"
+type = "text"
+title = "PWA and web push preflight — PASS"
+description = "Complete passing preflight transcript, including production build smoke, schema parity, and migration rehearsal."
+logical_id = "95dde7cd-89fe-4230-b517-e0c66e70030f"
+content_hash = "sha256:5a87029c6857fc4890a2f806c6564d87a9e274747b9c09be19085bfcfa97a4dc"
+size = 77569
+mtime_ms = 1789745020514
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/95dde7cd-89fe-4230-b517-e0c66e70030f/eaba3d40-c08e-4eae-929e-4a0be6f1508b"
+storage_version_token = "1789745037715550"
+content_type = "text/plain"

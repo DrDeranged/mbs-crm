@@ -19,21 +19,53 @@ const preferencesBody = z.object({
   message: "At least one preference must be provided",
 });
 
-async function preferenceResponse(userId: number) {
+type PushRouteDependencies = {
+  db: any;
+  authenticate: typeof requireUser;
+};
+
+/**
+ * Browser push endpoints are provider URLs, not arbitrary webhook targets.
+ * Match host names (rather than URL prefixes) so provider-specific canonical
+ * paths and regional subdomains remain valid without allowing lookalikes.
+ */
+export function isAllowedPushEndpointOrigin(endpoint: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:") return false;
+  const host = url.hostname.toLowerCase().replace(/\.$/, "");
+  return (
+    host === "fcm.googleapis.com" ||
+    host === "firebaseinstallations.googleapis.com" ||
+    host === "push.services.mozilla.com" ||
+    host.endsWith(".push.services.mozilla.com") ||
+    host === "updates.push.services.mozilla.com" ||
+    host === "web.push.apple.com" ||
+    host.endsWith(".web.push.apple.com")
+  );
+}
+
+async function preferenceResponse(database: any, userId: number) {
   const [settings, rows] = await Promise.all([
-    db.select().from(notificationSettingsTable).where(eq(notificationSettingsTable.userId, userId)),
-    db.select().from(notificationPreferencesTable).where(eq(notificationPreferencesTable.userId, userId)),
+    database.select().from(notificationSettingsTable).where(eq(notificationSettingsTable.userId, userId)),
+    database.select().from(notificationPreferencesTable).where(eq(notificationPreferencesTable.userId, userId)),
   ]);
   const values = Object.fromEntries(notificationPreferenceEvents.map((event) => [
-    event, rows.find((row) => row.event === event)?.enabled ?? false,
+    event, rows.find((row: { event: string; enabled: boolean }) => row.event === event)?.enabled ?? false,
   ]));
   return { pushEnabled: settings[0]?.pushEnabled ?? false, events: values };
 }
 
+export function createPushNotificationsRouter(dependencies: PushRouteDependencies): IRouter {
+const { db, authenticate } = dependencies;
 const router: IRouter = Router();
 
 router.post("/admin/push/test", async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
   if (user.role !== "admin") {
     res.status(403).json({ error: "Admin only" });
@@ -44,7 +76,7 @@ router.post("/admin/push/test", async (req: Request, res: Response): Promise<voi
 });
 
 router.get("/notifications/vapid-public-key", async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   if (!publicKey) {
@@ -55,13 +87,13 @@ router.get("/notifications/vapid-public-key", async (req: Request, res: Response
 });
 
 router.get("/notifications/preferences", async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
-  res.json(await preferenceResponse(user.id));
+  res.json(await preferenceResponse(db, user.id));
 });
 
 router.put("/notifications/preferences", async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
   const parsed = preferencesBody.safeParse(req.body);
   if (!parsed.success) {
@@ -79,11 +111,11 @@ router.put("/notifications/preferences", async (req: Request, res: Response): Pr
         .onConflictDoUpdate({ target: [notificationPreferencesTable.userId, notificationPreferencesTable.event], set: { enabled } });
     }
   }
-  res.json(await preferenceResponse(user.id));
+  res.json(await preferenceResponse(db, user.id));
 });
 
 const upsertSubscription = async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
   const parsed = subscriptionBody.safeParse(req.body);
   if (!parsed.success) {
@@ -91,20 +123,43 @@ const upsertSubscription = async (req: Request, res: Response): Promise<void> =>
     return;
   }
   const { endpoint, p256dh, auth, userAgent } = parsed.data;
+  if (!isAllowedPushEndpointOrigin(endpoint)) {
+    res.status(400).json({ error: "Unsupported push service endpoint" });
+    return;
+  }
+  // An endpoint is a browser credential. It must not be silently transferred
+  // between accounts when a client happens to present an existing endpoint.
+  const existing = await db.select().from(pushSubscriptionsTable)
+    .where(eq(pushSubscriptionsTable.endpoint, endpoint));
+  if (existing[0] && existing[0].userId !== user.id) {
+    res.status(409).json({ error: "Push subscription belongs to another user" });
+    return;
+  }
   const now = new Date();
   await db.insert(pushSubscriptionsTable).values({
     userId: user.id, endpoint, p256dh, auth, userAgent: userAgent ?? null, lastSeenAt: now, failedAt: null,
   }).onConflictDoUpdate({
     target: pushSubscriptionsTable.endpoint,
-    set: { userId: user.id, p256dh, auth, userAgent: userAgent ?? null, lastSeenAt: now, failedAt: null },
+    // Never update userId on an endpoint conflict. The WHERE predicate makes
+    // the credential update conditional on ownership in the same statement,
+    // so concurrent first claims cannot transfer the endpoint.
+    set: { p256dh, auth, userAgent: userAgent ?? null, lastSeenAt: now, failedAt: null },
+    where: eq(pushSubscriptionsTable.userId, user.id),
   });
+  const [owner] = await db.select({ userId: pushSubscriptionsTable.userId })
+    .from(pushSubscriptionsTable)
+    .where(eq(pushSubscriptionsTable.endpoint, endpoint));
+  if (owner?.userId !== user.id) {
+    res.status(409).json({ error: "Push subscription belongs to another user" });
+    return;
+  }
   res.status(204).send();
 };
 router.put("/notifications/subscriptions", upsertSubscription);
 router.post("/notifications/subscriptions", upsertSubscription);
 
 router.delete("/notifications/subscriptions", async (req: Request, res: Response): Promise<void> => {
-  const user = await requireUser(req, res);
+  const user = await authenticate(req, res);
   if (!user) return;
   const parsed = unsubscribeBody.safeParse(req.body);
   if (!parsed.success) {
@@ -118,4 +173,9 @@ router.delete("/notifications/subscriptions", async (req: Request, res: Response
   res.status(204).send();
 });
 
+return router;
+}
+
+const router = createPushNotificationsRouter({ db, authenticate: requireUser });
+export { router };
 export default router;

@@ -229,6 +229,7 @@ function makeDependencies(fixture: ReturnType<typeof makeDatabase>, user = { id:
       },
       getBaseUrl: () => "https://crm.test",
       recordActivity: fixture.recordActivity,
+      notify: async () => undefined,
       storeExactPackage: async (_key: string, _bytes: Buffer) => undefined,
       acquireSubmissionLock: async () => async () => undefined,
       auditPiiAccess: (params: any) => { audits.push(params); },
