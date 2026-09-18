@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test("production smoke paths", async ({ browser, request }) => {
-  const clerk = await request.get("/api/__clerk/npm/@clerk/clerk-js@latest/dist/clerk.browser.js");
+  expect((await request.storageState()).cookies).toEqual([]);
+  const clerk = await request.get("/api/__clerk/npm/@clerk/clerk-js@6/dist/clerk.browser.js");
   expect(clerk.status()).toBe(200);
   expect(clerk.headers()["content-type"]).toMatch(/javascript/i);
 

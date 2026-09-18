@@ -11,15 +11,32 @@ id = "o3z6dDo2HWXmopqbzLI3T"
 uri = "file://MBS_CRM_Audit_Report.pdf"
 type = "pdf"
 title = "MBS CRM — Project Audit Report"
+logical_id = "3a424cc7-c783-4e3e-9952-1740223a7bee"
 
 [[outputs]]
 id = "kcG-Kb5bsp3oUNmk1eRwd"
 uri = "file://mbs-crm-timeline.pdf"
 type = "pdf"
 title = "MBS CRM — Weekly Timeline"
+logical_id = "51cc9186-5363-47db-8e34-bc9af26b8174"
 
 [[outputs]]
 id = "EsrVLSRSGkGHUGWwNLhc-"
 uri = "file://mbs-crm-rte-verification.pdf"
 type = "pdf"
 title = "RTE Verification Report"
+logical_id = "dab560ea-2091-41dc-b302-4535f40a8ca6"
+
+[[outputs]]
+id = "ufXS6azKwv5l9yltY7gCP"
+uri = "file://reports/preflight-2026-09-18.txt"
+type = "text"
+title = "Clerk proxy release preflight — PASS"
+description = "Complete authoritative preflight transcript for the Clerk proxy ordering fix. Ends with PREFLIGHT PASS."
+logical_id = "56692b0f-4b19-48c7-992b-51c6f6710288"
+content_hash = "sha256:d8380a349b77c2f045e2fc7b31e62a8f483c8d0ea96574681e2690023f0b3808"
+size = 74474
+mtime_ms = 1789740785945
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/56692b0f-4b19-48c7-992b-51c6f6710288/f59369d3-2af4-4479-a74b-f9c254fb445e"
+storage_version_token = "1789740816903373"
+content_type = "text/plain"

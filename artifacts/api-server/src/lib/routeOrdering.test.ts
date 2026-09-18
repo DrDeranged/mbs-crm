@@ -18,6 +18,7 @@ test("boot-critical routes precede Clerk and global validation middleware", () =
   const clerkIndex = appIndex(globalClerkMiddleware);
   assert.notEqual(proxyIndex, -1, "Clerk proxy must be registered");
   assert.notEqual(clerkIndex, -1, "Clerk middleware must be registered");
+  assert.equal(proxyIndex, 0, "Clerk proxy must precede every global Express middleware");
   assert.ok(proxyIndex < clerkIndex);
   assert.ok(bootIndex < clerkIndex);
 
