@@ -5,6 +5,7 @@ import {
   notificationPreferenceEvents,
   notificationSettingsTable,
   pushSubscriptionsTable,
+  pushDeliveryAttemptsTable,
 } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 import { logger } from "./logger";
@@ -32,6 +33,8 @@ export interface PushNotificationInput {
   leadId?: number | null;
   url?: string;
   event?: PushEvent;
+  bypassPreferences?: boolean;
+  tag?: string;
 }
 
 function configured(): boolean {
@@ -64,7 +67,7 @@ export async function sendPushForNotification(
         eq(pushSubscriptionsTable.userId, input.userId),
       )),
     ]);
-    if (!settings[0]?.pushEnabled || preference[0]?.enabled !== true) return;
+    if (!input.bypassPreferences && (!settings[0]?.pushEnabled || preference[0]?.enabled !== true)) return;
     if (subscriptions.length === 0) return;
 
     webpush.setVapidDetails(
@@ -76,11 +79,11 @@ export async function sendPushForNotification(
       title: input.title,
       body: input.body,
       url: input.url ?? (input.leadId ? `/leads/${input.leadId}` : "/notifications"),
-      tag: `crm-${event}-${input.leadId ?? "general"}`,
+      tag: input.tag ?? `crm-${event}-${input.leadId ?? "general"}`,
       icon: "/favicon-192x192.png",
       data: {
         url: input.url ?? (input.leadId ? `/leads/${input.leadId}` : "/notifications"),
-        tag: `crm-${event}-${input.leadId ?? "general"}`,
+        tag: input.tag ?? `crm-${event}-${input.leadId ?? "general"}`,
       },
     });
 
@@ -90,20 +93,35 @@ export async function sendPushForNotification(
           endpoint: subscription.endpoint,
           keys: { p256dh: subscription.p256dh, auth: subscription.auth },
         }, payload);
-        await db.update(pushSubscriptionsTable).set({
-          lastSeenAt: new Date(),
-          failedAt: null,
-        }).where(eq(pushSubscriptionsTable.id, subscription.id));
+        await recordDeliveryAttempt(input.userId, subscription.id, "success");
+        try {
+          await db.update(pushSubscriptionsTable).set({
+            lastSeenAt: new Date(),
+            failedAt: null,
+          }).where(eq(pushSubscriptionsTable.id, subscription.id));
+        } catch (error) {
+          logger.warn({ err: error, subscriptionId: subscription.id }, "Unable to update push subscription after delivery");
+        }
         return response;
       } catch (error) {
         const statusCode = (error as { statusCode?: number })?.statusCode;
         if (statusCode === 404 || statusCode === 410) {
-          await db.delete(pushSubscriptionsTable)
-            .where(eq(pushSubscriptionsTable.id, subscription.id));
+          await recordDeliveryAttempt(input.userId, subscription.id, "pruned", `HTTP ${statusCode}`);
+          try {
+            await db.delete(pushSubscriptionsTable)
+              .where(eq(pushSubscriptionsTable.id, subscription.id));
+          } catch (deleteError) {
+            logger.warn({ err: deleteError, subscriptionId: subscription.id }, "Unable to prune expired push subscription");
+          }
           return;
         }
-        await db.update(pushSubscriptionsTable).set({ failedAt: new Date() })
-          .where(eq(pushSubscriptionsTable.id, subscription.id));
+        await recordDeliveryAttempt(input.userId, subscription.id, "failed", statusCode ? `HTTP ${statusCode}` : "delivery failed");
+        try {
+          await db.update(pushSubscriptionsTable).set({ failedAt: new Date() })
+            .where(eq(pushSubscriptionsTable.id, subscription.id));
+        } catch (updateError) {
+          logger.warn({ err: updateError, subscriptionId: subscription.id }, "Unable to mark failed push subscription");
+        }
         logger.warn({ err: error, subscriptionId: subscription.id }, "Browser push delivery failed");
         return undefined;
       }
@@ -111,4 +129,30 @@ export async function sendPushForNotification(
   } catch (error) {
     logger.warn({ err: error, userId: input.userId }, "Browser push notification skipped after error");
   }
+}
+
+async function recordDeliveryAttempt(
+  userId: number,
+  subscriptionId: number,
+  status: "success" | "failed" | "pruned",
+  errorMessage?: string,
+): Promise<void> {
+  try {
+    await db.insert(pushDeliveryAttemptsTable).values({ userId, subscriptionId, status, errorMessage });
+  } catch (error) {
+    logger.warn({ err: error, userId, subscriptionId, status }, "Unable to record push delivery attempt");
+  }
+}
+
+export function sendTestPush(userId: number): Promise<void> {
+  return sendPushForNotification({
+    userId,
+    type: "push_test",
+    event: "task_due",
+    title: "Test push notification",
+    body: "Your browser push notifications are working.",
+    url: "/system-health",
+    tag: "crm-test-push",
+    bypassPreferences: true,
+  });
 }
