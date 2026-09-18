@@ -12,6 +12,7 @@ import { logger } from "../lib/logger";
 import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
 
 const router = Router();
+export const twilioTokenRouter = Router();
 
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
 const AUTH_TOKEN = process.env["TWILIO_AUTH_TOKEN"];
@@ -67,7 +68,7 @@ function validateTwilioSignature(req: Request): boolean {
 }
 
 // POST /api/twilio/token
-router.post("/twilio/token", async (req, res) => {
+twilioTokenRouter.post("/twilio/token", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -399,3 +400,4 @@ router.post("/twilio/sms/status", async (req, res) => {
 });
 
 export default router;
+export const twilioProviderRouter = router;

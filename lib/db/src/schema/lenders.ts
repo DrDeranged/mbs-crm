@@ -151,6 +151,8 @@ export const lenderSubmissionsTable = pgTable(
     index("lender_submissions_lender_idx").on(t.lenderId),
     index("lender_submissions_sent_at_idx").on(t.sentAt),
     index("lender_submissions_source_idx").on(t.source),
+    index("lender_submissions_via_broker_idx").on(t.viaBrokerId),
+    index("lender_submissions_end_lender_idx").on(t.endLenderId),
     check("lender_submissions_status_check", sql`${t.status} IN ('submitted', 'approved', 'declined', 'funded', 'withdrawn')`),
     check("lender_submissions_source_check", sql`${t.source} IN ('crm', 'manual')`),
   ],

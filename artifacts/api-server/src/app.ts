@@ -12,7 +12,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
-import router from "./routes";
+import router, { bootCriticalRouter } from "./routes";
 import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
@@ -22,6 +22,7 @@ import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
 initSentry();
 
 const app: Express = express();
+export const clerkProxyHandler = clerkProxyMiddleware();
 const recordHttp5xx = createHttp5xxRecorder({
   logger,
   persist: async (record) => {
@@ -82,7 +83,7 @@ app.use(
 
 app.use(compression());
 
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+app.use(CLERK_PROXY_PATH, clerkProxyHandler);
 
 const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -112,14 +113,17 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
+// These routes must run before Clerk auth/validation. Provider callbacks use
+// their own signature checks and health/proxy probes must remain unauthenticated.
+app.use("/api", bootCriticalRouter);
+
+export const globalClerkMiddleware = clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
       getClerkProxyHost(req) ?? "",
       process.env.CLERK_PUBLISHABLE_KEY,
     ),
-  })),
-);
+  }));
+app.use(globalClerkMiddleware);
 
 // Handlers which intentionally catch an error and send a 5xx response still
 // need structured log/error-log coverage. Unhandled errors are recorded below

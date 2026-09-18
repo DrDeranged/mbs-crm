@@ -49,7 +49,8 @@ export async function validateSchemaOnBoot(): Promise<void> {
 }
 
 const migrateOnBoot =
-  process.env.NODE_ENV === "production" || process.env.MIGRATE_ON_BOOT === "true";
+  process.env.MIGRATE_ON_BOOT === "true"
+  || (process.env.NODE_ENV === "production" && process.env.MIGRATE_ON_BOOT !== "false");
 
 // Schema reconciliation is deliberately completed before opening the HTTP
 // listener. The migration coordinator catches migration failures and records
@@ -68,10 +69,11 @@ const server = app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 
-  // Seed default workflow rules (no-op if already seeded)
-  seedDefaultWorkflowRules().catch((err) =>
-    logger.warn({ err }, "Workflow rules seed error"),
-  );
+  if (process.env.DISABLE_BACKGROUND_JOBS !== "true") {
+    // Seed default workflow rules (no-op if already seeded)
+    seedDefaultWorkflowRules().catch((err) =>
+      logger.warn({ err }, "Workflow rules seed error"),
+    );
 
   // Drip email background job — runs every 10 minutes
   const DRIP_INTERVAL_MS = 10 * 60 * 1000;
@@ -126,7 +128,10 @@ const server = app.listen(port, (err) => {
   }, BACKUP_INTERVAL_MS);
   intervals.push(backupInterval);
   // also clear the boot-delay timer on shutdown
-  (intervals as any).__backupBootDelay = backupBootDelay;
+    (intervals as any).__backupBootDelay = backupBootDelay;
+  } else {
+    logger.info("Background jobs disabled by DISABLE_BACKGROUND_JOBS");
+  }
 });
 
 let shuttingDown = false;

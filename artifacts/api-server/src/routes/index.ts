@@ -12,7 +12,7 @@ import lenderPackageRouter from "./lenderPackage";
 import activityRouter from "./activity";
 import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
-import twilioRouter from "./twilio";
+import { twilioProviderRouter, twilioTokenRouter } from "./twilio";
 import communicationsRouter from "./communications";
 import emailRouter from "./email";
 import dripRouter from "./drip";
@@ -31,7 +31,7 @@ import adminErrorsRouter from "./adminErrors";
 import adminBackupRouter from "./adminBackup";
 import piiAccessLogRouter from "./piiAccessLog";
 import adminGovernanceRouter from "./adminGovernance";
-import repPublicRouter from "./repPublic";
+import repAdminRouter, { publicRepRouter } from "./repPublic";
 import dealsRouter from "./deals";
 import adminProductionCloseoutRouter from "./adminProductionCloseout";
 import adminMigrationsRouter from "./adminMigrations";
@@ -42,6 +42,13 @@ import collateralRouter from "./collateral";
 import partnerContactsRouter from "./partnerContacts";
 
 const router: IRouter = Router();
+export const bootCriticalRouter: IRouter = Router();
+
+bootCriticalRouter.use(healthRouter);
+bootCriticalRouter.use(publicRepRouter);
+bootCriticalRouter.use(sendgridRouter);
+bootCriticalRouter.use(twilioProviderRouter);
+bootCriticalRouter.use(usfaIntakeRouter);
 
 /**
  * These are the only unauthenticated state-changing API endpoints. Public
@@ -89,24 +96,24 @@ export function createMutationAuthenticationGuard(
 }
 
 export const mutationAuthenticationGuard = createMutationAuthenticationGuard();
+
+// Provider callbacks authenticate with their own raw-body signatures and must
+// be registered before the global mutation gate.
 router.use(mutationAuthenticationGuard);
 
-router.use(healthRouter);
-router.use(repPublicRouter);
 router.use(dealsRouter);
 router.use(adminProductionCloseoutRouter);
 router.use(adminMigrationsRouter);
 router.use(adminUsfaIntakeRouter);
-router.use(usfaIntakeRouter);
+router.use(repAdminRouter);
 router.use(usfaPrefillRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);
-router.use(twilioRouter);
+router.use(twilioTokenRouter);
 router.use(communicationsRouter);
 router.use(emailRouter);
 router.use(dripRouter);
-router.use(sendgridRouter);
 router.use(leadsRouter);
 router.use(notesRouter);
 router.use(tasksRouter);
