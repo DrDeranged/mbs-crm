@@ -5,6 +5,8 @@ test("production smoke paths", async ({ browser, request }) => {
   const clerk = await request.get("/api/__clerk/npm/@clerk/clerk-js@6/dist/clerk.browser.js");
   expect(clerk.status()).toBe(200);
   expect(clerk.headers()["content-type"]).toMatch(/javascript/i);
+  expect(clerk.headers()["content-length"]).toBeTruthy();
+  expect(clerk.headers()["transfer-encoding"]).toBeUndefined();
 
   const context = await browser.newContext();
   const errors: string[] = [];
