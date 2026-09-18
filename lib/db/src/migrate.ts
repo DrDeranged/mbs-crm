@@ -37,6 +37,250 @@ export type MigrationReport = {
   migrations: MigrationStatus[];
 };
 
+export type MigrationSqlAnalysis = {
+  createdTables: string[];
+  referencedTables: string[];
+  createdBeforeReferencedTables: string[];
+  operations: Array<{ kind: "create" | "reference"; table: string }>;
+};
+
+type SqlToken = { value: string; quoted?: boolean } |
+  { kind: "dollar"; tag: string; body: string } | "(" | ")" | ";" | "," | ".";
+const tokenValue = (token: SqlToken | undefined): string | undefined =>
+  token && typeof token !== "string" && "value" in token ? token.value : undefined;
+const isWordToken = (token: SqlToken | undefined): token is { value: string; quoted?: boolean } =>
+  Boolean(token && typeof token !== "string" && "value" in token);
+
+function lexMigrationSql(text: string): SqlToken[] | null {
+  const out: SqlToken[] = [];
+  let i = 0;
+  const word = (c: string) => /[A-Za-z0-9_$]/.test(c);
+  while (i < text.length) {
+    const c = text[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === "-" && text[i + 1] === "-") {
+      i += 2; while (i < text.length && text[i] !== "\n") i++; continue;
+    }
+    if (c === "/" && text[i + 1] === "*") {
+      i += 2; let closed = false;
+      while (i < text.length) {
+        if (text[i] === "*" && text[i + 1] === "/") { i += 2; closed = true; break; }
+        i++;
+      }
+      if (!closed) return null;
+      continue;
+    }
+    if (c === "'" || (c.toLowerCase() === "e" && text[i + 1] === "'")) {
+      if (c.toLowerCase() === "e") i++;
+      i++;
+      let closed = false;
+      while (i < text.length) {
+        if (text[i] === "\\") { if (++i >= text.length) return null; i++; continue; }
+        if (text[i] === "'") {
+          if (text[i + 1] === "'") { i += 2; continue; }
+          i++; closed = true; break;
+        }
+        i++;
+      }
+      if (!closed) return null;
+      continue;
+    }
+    if (c === '"') {
+      i++; let value = ""; let closed = false;
+      while (i < text.length) {
+        if (text[i] === '"') {
+          if (text[i + 1] === '"') { value += '"'; i += 2; continue; }
+          i++; closed = true; break;
+        }
+        value += text[i++];
+      }
+      if (!closed) return null;
+      out.push({ value, quoted: true }); continue;
+    }
+    if (c === "$") {
+      const tag = text.slice(i).match(/^\$[A-Za-z_][A-Za-z0-9_]*\$|^\$\$/)?.[0];
+      if (tag) {
+        const end = text.indexOf(tag, i + tag.length);
+        if (end < 0) return null;
+        out.push({ kind: "dollar", tag, body: text.slice(i + tag.length, end) });
+        i = end + tag.length; continue;
+      }
+      // A bare dollar is not meaningful to the conservative analyzer.
+      if (!word(text[i + 1] ?? "")) { i++; continue; }
+    }
+    if (c === "(" || c === ")" || c === ";" || c === "," || c === ".") {
+      out.push(c); i++; continue;
+    }
+    if (word(c)) {
+      let value = c; i++;
+      while (i < text.length && word(text[i])) value += text[i++];
+      out.push({ value: value.toLowerCase() }); continue;
+    }
+    // Operators and punctuation in expressions are harmless; retain neither.
+    i++;
+  }
+  return out;
+}
+
+function normalizedRelation(tokens: SqlToken[], start: number): { name?: string; next: number; schema?: string } {
+  const first = tokens[start];
+  if (!first || typeof first === "string") {
+    return { next: start };
+  }
+  if (!isWordToken(first)) return { next: start };
+  const name = first.value;
+  if (tokens[start + 1] === ".") {
+    const second = tokens[start + 2];
+    if (!isWordToken(second)) return { next: start };
+    return { name: second.value, schema: name, next: start + 3 };
+  }
+  return { name, next: start + 1 };
+}
+
+function isPublicRelation(relation: { name?: string; schema?: string }): boolean {
+  if (!relation.name) return false;
+  if (relation.schema === "pg_catalog" || relation.schema === "information_schema") return false;
+  if (relation.schema) return relation.schema === "public";
+  return !relation.name.startsWith("pg_");
+}
+
+/** Conservative, side-effect-free SQL dependency analysis for migration rehearsal. */
+export function analyzeMigrationSql(sqlText: string): MigrationSqlAnalysis {
+  const tokens = lexMigrationSql(sqlText);
+  if (!tokens) throw new Error("malformed SQL (unterminated comment, string, identifier, or dollar body)");
+  const created = new Set<string>();
+  const referenced = new Set<string>();
+  const createdBeforeReferenced = new Set<string>();
+  const operations: Array<{ kind: "create" | "reference"; table: string }> = [];
+  const ctes = new Set<string>();
+  // CTE parsing is deliberately structural. Looking for "name AS" with a
+  // regexp mistakes ordinary subqueries and misses WITH RECURSIVE and column
+  // lists. Parse every WITH (including nested ones) and skip balanced bodies.
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokenValue(tokens[i]) !== "with") continue;
+    const previous = tokens[i - 1];
+    const beforePrevious = tokens[i - 2];
+    const queryBoundary = i === 0 || previous === ";" ||
+      (previous === "(" && (beforePrevious === undefined || new Set([
+        "select", "from", "join", "where", "exists", "in", "as", "union", "all",
+      ]).has(tokenValue(beforePrevious) ?? "")));
+    // PostgreSQL type syntax ("timestamp with time zone", etc.) contains the
+    // word WITH but is not a CTE. Only a statement/query boundary can start one.
+    if (!queryBoundary) continue;
+    let at = i + 1;
+    if (tokenValue(tokens[at]) === "recursive") at++;
+    let found = false;
+    while (at < tokens.length) {
+      const name = tokens[at];
+      if (!isWordToken(name)) throw new Error("malformed WITH CTE name");
+      ctes.add(name.value); found = true; at++;
+      if (tokens[at] === "(") {
+        let depth = 1; at++;
+        while (at < tokens.length && depth) {
+          if (tokens[at] === "(") depth++;
+          else if (tokens[at] === ")") depth--;
+          at++;
+        }
+        if (depth) throw new Error("malformed WITH CTE column list");
+      }
+      if (tokenValue(tokens[at]) !== "as" || tokens[at + 1] !== "(") {
+        throw new Error("malformed WITH CTE (expected AS (...))");
+      }
+      at += 2;
+      let depth = 1;
+      while (at < tokens.length && depth) {
+        if (tokens[at] === "(") depth++;
+        else if (tokens[at] === ")") depth--;
+        at++;
+      }
+      if (depth) throw new Error("malformed WITH CTE body");
+      if (tokens[at] !== ",") break;
+      at++;
+    }
+    if (!found) throw new Error("malformed WITH");
+  }
+  const refKeywords = new Set(["from", "join", "references", "into", "update", "delete"]);
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (!isWordToken(token)) continue;
+    const keyword = token.value;
+    if (keyword === "do" && (i === 0 || tokens[i - 1] === ";")) {
+      const body = tokens[i + 1];
+      if (body && typeof body !== "string" && "kind" in body && body.kind === "dollar") {
+        if (/\bexecute\b/i.test(body.body) || /\b(?:format|quote_ident)\s*\(/i.test(body.body)) {
+          throw new Error("unsupported dynamic SQL analysis in DO body");
+        }
+        let embedded: MigrationSqlAnalysis;
+        try { embedded = analyzeMigrationSql(body.body); }
+        catch (error) { throw new Error(`unsupported DO body analysis: ${safeMigrationAnalysisError(error)}`); }
+        for (const operation of embedded.operations) {
+          operations.push(operation);
+          (operation.kind === "create" ? created : referenced).add(operation.table);
+        }
+      }
+      continue;
+    }
+    const prior = tokens[i - 1];
+    const prior2 = tokens[i - 2];
+    if (keyword === "create" && tokenValue(tokens[i + 1]) === "table") {
+      let at = i + 2;
+      if (tokenValue(tokens[at]) === "if") at += 3;
+      const rel = normalizedRelation(tokens, at);
+      if (!isPublicRelation(rel) || !rel.name) throw new Error(`unsupported or non-public CREATE TABLE near ${rel.name ?? "unknown"}`);
+      created.add(rel.name);
+      operations.push({ kind: "create", table: rel.name });
+      continue;
+    }
+    if (keyword === "alter" && tokenValue(tokens[i + 1]) === "table") {
+      const rel = normalizedRelation(tokens, i + 2);
+      if (!isPublicRelation(rel) || !rel.name) throw new Error("unsupported or non-public ALTER TABLE");
+      referenced.add(rel.name);
+      operations.push({ kind: "reference", table: rel.name });
+      if (created.has(rel.name)) createdBeforeReferenced.add(rel.name);
+      continue;
+    }
+    const indexOn = keyword === "on" && (() => {
+      for (let lookback = 1; lookback <= 8 && i - lookback >= 0; lookback++) {
+        const candidate = tokens[i - lookback];
+        if (candidate === ";") break;
+        if (tokenValue(candidate) === "index") return true;
+      }
+      return false;
+    })();
+    if (indexOn) {
+      const rel = normalizedRelation(tokens, i + 1);
+       if (isPublicRelation(rel) && rel.name && !ctes.has(rel.name)) {
+         referenced.add(rel.name);
+         operations.push({ kind: "reference", table: rel.name });
+         if (created.has(rel.name)) createdBeforeReferenced.add(rel.name);
+       }
+      continue;
+    }
+    if (!refKeywords.has(keyword)) continue;
+    // "ON DELETE SET NULL" is a constraint action, not DELETE FROM DML.
+    if (keyword === "delete" && tokenValue(tokens[i + 1]) !== "from") continue;
+    const rel = normalizedRelation(tokens, i + 1);
+    if (!rel.name || rel.name === "select" || ctes.has(rel.name)) continue;
+    // FROM function(...) and JOIN (subquery) are deliberately ignored.
+    if (tokens[i + 1] === "(") continue;
+    if (isPublicRelation(rel) && rel.name !== "information_schema" && rel.name !== "pg_catalog") {
+      referenced.add(rel.name);
+      operations.push({ kind: "reference", table: rel.name });
+      if (created.has(rel.name)) createdBeforeReferenced.add(rel.name);
+    }
+  }
+  return {
+    createdTables: [...created],
+    referencedTables: [...referenced],
+    createdBeforeReferencedTables: [...createdBeforeReferenced],
+    operations,
+  };
+}
+
+function safeMigrationAnalysisError(error: unknown): string {
+  return error instanceof Error ? error.message : "malformed embedded SQL";
+}
+
 const formatMigrationError = (error: unknown): string => {
   if (!(error instanceof Error)) return String(error);
   const cause = error.cause;
@@ -458,6 +702,7 @@ export async function runMigrations(options: {
   db?: Database;
   migrationsDir?: string;
   dryRun?: boolean;
+  allowDependencyReordering?: boolean;
 } = {}): Promise<MigrationReport> {
   if (!options.db) {
     throw new Error("A database executor is required to run migrations");
@@ -635,7 +880,7 @@ export async function runMigrations(options: {
     } catch (error) {
       if (!retriedAfterDependency && __testMissingRelation(error)) {
         const creator = creatorForRelation(__testMissingRelation(error)!, pendingMigrations, migrationIndex, appliedOutOfOrder);
-        if (creator) {
+        if (creator && options.allowDependencyReordering !== false) {
           try {
             await database.transaction(async (tx) => {
               await tx.execute(sql.raw(creator.sql));

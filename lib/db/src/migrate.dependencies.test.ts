@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { PgDialect } from "drizzle-orm/pg-core/dialect";
-import { __testCreatedRelations, __testMissingRelation, discoverMigrations, runMigrations } from "./migrate";
+import { __testCreatedRelations, __testMissingRelation, analyzeMigrationSql, discoverMigrations, runMigrations } from "./migrate";
 
 async function migrationFixture(files: Record<string, string>, failedName?: string, error?: unknown, missing = "target_table") {
   const directory = await mkdtemp(path.join(tmpdir(), "dependency-run-"));
@@ -101,6 +101,66 @@ test("dependency scanner handles E strings and fails closed for malformed constr
   assert.equal(__testCreatedRelations("SELECT E'unterminated \\'"), null);
   assert.equal(__testCreatedRelations("/* unclosed CREATE TABLE fake (id int);"), null);
   assert.equal(__testCreatedRelations("$1$ CREATE TABLE fake (id int); $1$"), null);
+});
+
+test("migration analyzer ignores CTEs in the real 002 migration", async () => {
+  const migration = (await discoverMigrations(path.resolve(import.meta.dirname, "../migrations")))
+    .find((entry) => entry.name === "002_rep_slugs.sql")!;
+  const analysis = analyzeMigrationSql(migration.sql);
+  assert.deepEqual(analysis.referencedTables.sort(), ["users"]);
+});
+
+test("migration analyzer treats FK SET NULL as an action, not DELETE DML", async () => {
+  const migration = (await discoverMigrations(path.resolve(import.meta.dirname, "../migrations")))
+    .find((entry) => entry.name === "003_deals.sql")!;
+  const analysis = analyzeMigrationSql(migration.sql);
+  assert.deepEqual(analysis.createdTables, ["deals"]);
+  assert.deepEqual(analysis.referencedTables.sort(), ["activity_log", "deals", "leads", "users"]);
+});
+
+test("all current migrations form a parseable analyzer corpus", async () => {
+  const migrations = await discoverMigrations(path.resolve(import.meta.dirname, "../migrations"));
+  for (const migration of migrations) {
+    assert.doesNotThrow(() => analyzeMigrationSql(migration.sql), migration.name);
+  }
+});
+
+test("029 ignores timestamp WITH time zone and finds its real relations", async () => {
+  const migration = (await discoverMigrations(path.resolve(import.meta.dirname, "../migrations")))
+    .find((entry) => entry.name === "029_deal_approvals.sql")!;
+  const analysis = analyzeMigrationSql(migration.sql);
+  assert.ok(analysis.referencedTables.includes("deals"));
+  assert.ok(analysis.referencedTables.includes("lenders"));
+  assert.ok(analysis.referencedTables.includes("documents"));
+  assert.ok(analysis.referencedTables.includes("users"));
+  assert.ok(analysis.referencedTables.includes("deal_approvals"));
+});
+
+test("040 DO body dependencies are analyzed while function bodies stay opaque", async () => {
+  const migration = (await discoverMigrations(path.resolve(import.meta.dirname, "../migrations")))
+    .find((entry) => entry.name === "040_release_schema_parity.sql")!;
+  const analysis = analyzeMigrationSql(migration.sql);
+  assert.ok(analysis.referencedTables.includes("users"));
+  assert.ok(analysis.referencedTables.includes("leads"));
+  assert.deepEqual(analyzeMigrationSql(
+    "CREATE FUNCTION f() RETURNS void AS $$ BEGIN SELECT * FROM fake; END $$ LANGUAGE plpgsql;",
+  ).referencedTables, []);
+  assert.throws(() => analyzeMigrationSql("DO $$ BEGIN EXECUTE format('ALTER TABLE ' || x); END $$;"), /dynamic SQL/);
+  assert.throws(() => analyzeMigrationSql("DO $$ BEGIN EXECUTE 'DROP TABLE users'; END $$;"), /dynamic SQL/);
+  assert.throws(() => analyzeMigrationSql("DO $$ BEGIN EXECUTE query_text; END $$;"), /dynamic SQL/);
+});
+
+test("migration analyzer handles recursive, multiple, quoted, and nested CTEs", () => {
+  const analysis = analyzeMigrationSql(`
+    WITH RECURSIVE "tree" (id) AS (
+      SELECT id FROM public.nodes
+      UNION ALL SELECT n.id FROM nodes n JOIN "tree" t ON t.id = n.parent_id
+    ), other AS (SELECT id FROM nodes)
+    SELECT * FROM other JOIN "tree" ON true;
+  `);
+  assert.deepEqual(analysis.referencedTables, ["nodes"]);
+  assert.deepEqual(analyzeMigrationSql("UPDATE users SET x = f() WHERE id IN (SELECT id FROM candidates);").referencedTables,
+    ["users", "candidates"]);
 });
 
 test("missing relation extraction traverses wrapped causes and message fallback", () => {
