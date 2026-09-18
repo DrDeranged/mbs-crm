@@ -115,19 +115,37 @@ test("a failing second file keeps the first file applied and recorded", async ()
   }
 });
 
-test("boot supersedes duplicate-object failure and then applies 037 through 040 in order", async () => {
+test("boot recovers the actual partial 036 state before applying 037 through 040", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "migration-supersession-"));
   try {
     for (const [name, body] of [
       ["036_partners_contacts.sql", "ALTER TABLE lenders ADD CONSTRAINT duplicate_check CHECK (true);"],
+      [
+        "037_partner_contacts_prerequisite.sql",
+        "CREATE TABLE IF NOT EXISTS partner_contacts (id integer PRIMARY KEY);",
+      ],
       ["037_partner_flows_and_texting.sql", "SELECT 37;"],
-      ["038_partner_texting.sql", "SELECT 38;"],
-      ["039_ridgestone_partner_profile.sql", "SELECT 39;"],
+      ["038_partner_texting.sql", "ALTER TABLE partner_contacts ADD COLUMN sms_opted_out boolean;"],
+      ["039_ridgestone_partner_profile.sql", "UPDATE partner_contacts SET id = id;"],
       ["040_complete_partner_contacts_recovery.sql", "SELECT 40;"],
     ] as const) {
       await writeFile(path.join(directory, name), body);
     }
 
+    const partialProductionState = {
+      lenderColumns: new Set([
+        "partner_type",
+        "referral_split_pct",
+        "submission_method",
+        "portal_url",
+      ]),
+      lenderConstraints: new Set([
+        "lenders_partner_type_check",
+        "lenders_submission_method_check",
+        "lenders_referral_split_check",
+      ]),
+      partnerContactsExists: false,
+    };
     let transactionNumber = 0;
     const transactionCallCounts: number[] = [];
     const database = {
@@ -156,6 +174,19 @@ test("boot supersedes duplicate-object failure and then applies 037 through 040 
                   { code: "42710" },
                 );
               }
+              if (transactionNumber === 2 && calls === 1) {
+                partialProductionState.partnerContactsExists = true;
+              }
+              if (
+                (transactionNumber === 4 || transactionNumber === 5)
+                && calls === 1
+                && !partialProductionState.partnerContactsExists
+              ) {
+                throw Object.assign(
+                  new Error('relation "partner_contacts" does not exist'),
+                  { code: "42P01" },
+                );
+              }
               return { rows: [] };
             },
           });
@@ -168,14 +199,23 @@ test("boot supersedes duplicate-object failure and then applies 037 through 040 
     const report = await runMigrations({ db: database, migrationsDir: directory });
 
     assert.equal(report.failed, null);
+    assert.deepEqual([...partialProductionState.lenderColumns], [
+      "partner_type",
+      "referral_split_pct",
+      "submission_method",
+      "portal_url",
+    ]);
+    assert.equal(partialProductionState.lenderConstraints.size, 3);
+    assert.equal(partialProductionState.partnerContactsExists, true);
     assert.deepEqual(report.applied, [
+      "037_partner_contacts_prerequisite.sql",
       "037_partner_flows_and_texting.sql",
       "038_partner_texting.sql",
       "039_ridgestone_partner_profile.sql",
       "040_complete_partner_contacts_recovery.sql",
     ]);
     assert.deepEqual(report.skipped, ["036_partners_contacts.sql"]);
-    assert.deepEqual(transactionCallCounts, [1, 2, 2, 2, 2]);
+    assert.deepEqual(transactionCallCounts, [1, 2, 2, 2, 2, 2]);
     assert.ok(
       report.migrations.find((migration) => migration.name === "036_partners_contacts.sql")?.supersededAt,
     );
