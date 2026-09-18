@@ -4,6 +4,7 @@ import test from "node:test";
 import express from "express";
 import {
   createNotificationsRouter,
+  notificationsQuery,
   type NotificationStore,
 } from "../routes/notifications";
 
@@ -92,6 +93,14 @@ async function withNotificationServer(
     );
   }
 }
+
+test("the generated client's exact notification payload matches the strict query schema", () => {
+  const exactPayload = { page: "1", limit: "20" };
+  const parsed = notificationsQuery.safeParse(exactPayload);
+  assert.equal(parsed.success, true);
+  if (parsed.success) assert.deepEqual(parsed.data, { page: 1, limit: 20 });
+  assert.equal(notificationsQuery.safeParse({ ...exactPayload, diagnostic: "x" }).success, false);
+});
 
 for (const user of [
   { id: 41, role: "rep" as const },
