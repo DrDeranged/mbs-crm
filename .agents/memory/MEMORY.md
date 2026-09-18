@@ -27,3 +27,4 @@
 - [Orval whitespace drift](orval-whitespace-drift.md) — verification-only codegen can add blank lines to the generated React client; inspect and discard whitespace-only drift.
 - [Orval input-resolution failure](orval-input-resolution.md) — Orval 8.9.1 currently cleans generated folders, then rejects valid YAML targets; restore outputs after failed runs.
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
+- [Partial migration recovery](partial-migration-recovery.md) — never rewrite a failed or applied migration; complete it with a later idempotent recovery and keep failures visible.
