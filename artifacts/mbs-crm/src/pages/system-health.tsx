@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  useGetMe,
-  useGetAdminErrors,
-  getGetAdminErrorsQueryKey,
-  useGetHealthDeep,
-  getGetHealthDeepQueryKey,
-} from "@workspace/api-client-react";
+import { useGetMe, useGetAdminErrors, getGetAdminErrorsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,9 +57,6 @@ export default function SystemHealth() {
     { page },
     { query: { queryKey: getGetAdminErrorsQueryKey({ page }), enabled: isAdmin } },
   );
-  const { data: deepHealth, isLoading: healthLoading, isError: healthError } = useGetHealthDeep({
-    query: { queryKey: getGetHealthDeepQueryKey(), enabled: isAdmin },
-  });
 
   if (meLoading) {
     return (
@@ -95,11 +86,6 @@ export default function SystemHealth() {
   const jobs = (data?.jobs ?? {}) as Record<string, JobRunSummary>;
   const errors = data?.errors ?? [];
   const limit = data?.pagination?.limit ?? 25;
-  const schemaFailed = deepHealth?.schema.failed;
-  const schemaPending = deepHealth?.schema.pending ?? [];
-  const overallLoading = isLoading || healthLoading;
-  const overallDegraded =
-    healthError || !!schemaFailed || schemaPending.length > 0 || (summary?.last24h ?? 0) > 0;
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
@@ -133,9 +119,9 @@ export default function SystemHealth() {
           <CardContent className="pt-5 pb-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Overall</p>
             <div className="flex items-center gap-2 mt-1">
-              {overallLoading ? (
+              {isLoading ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : !overallDegraded ? (
+              ) : (summary?.last24h ?? 0) === 0 ? (
                 <>
                   <CheckCircle2 size={20} className="text-green-600" />
                   <span className="font-semibold text-green-700">Healthy</span>
@@ -143,48 +129,13 @@ export default function SystemHealth() {
               ) : (
                 <>
                   <XCircle size={20} className="text-destructive" />
-                   <span className="font-semibold text-destructive">Degraded</span>
+                  <span className="font-semibold text-destructive">Errors detected</span>
                 </>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      <Card className={schemaFailed || healthError ? "border-destructive bg-destructive/5" : ""}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {schemaFailed || healthError ? (
-              <XCircle size={16} className="text-destructive" />
-            ) : (
-              <CheckCircle2 size={16} className="text-green-600" />
-            )}
-            Database Schema
-          </CardTitle>
-          <CardDescription>
-            {deepHealth ? `${deepHealth.schema.applied} migrations applied.` : "Checking migration status."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {healthLoading ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          ) : schemaFailed ? (
-            <div className="space-y-1 text-destructive">
-              <p className="font-semibold">Failed: {schemaFailed.name}</p>
-              <p className="text-sm break-words">{schemaFailed.error}</p>
-            </div>
-          ) : healthError ? (
-            <p className="text-sm font-medium text-destructive">Unable to load schema health.</p>
-          ) : schemaPending.length > 0 ? (
-            <div className="text-amber-700">
-              <p className="font-semibold">Pending migrations</p>
-              <p className="text-sm">{schemaPending.join(", ")}</p>
-            </div>
-          ) : (
-            <p className="text-sm font-medium text-green-700">Schema is current.</p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Background jobs */}
       <Card>

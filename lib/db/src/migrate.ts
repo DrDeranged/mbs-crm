@@ -24,7 +24,6 @@ export type MigrationStatus = MigrationFile & {
   appliedAt?: string;
   appliedChecksum?: string;
   detectedAsApplied?: boolean;
-  supersededAt?: string;
 };
 
 export type MigrationReport = {
@@ -210,18 +209,10 @@ async function schemaShowsMigrationApplied(
   return true;
 }
 
-type LedgerEntry = {
-  checksum: string;
-  appliedAt?: string;
-  failedAt?: string;
-  error?: string;
-  supersededAt?: string;
-};
-
-async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>> {
+async function readLedger(executor: Executor): Promise<Map<string, { checksum: string; appliedAt?: string }>> {
   try {
     const result = await executor.execute(sql`
-      SELECT name, checksum, applied_at, failed_at, error, superseded_at
+      SELECT name, checksum, applied_at
       FROM schema_migrations
       ORDER BY name
     `);
@@ -233,11 +224,6 @@ async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>>
           {
             checksum: String(record.checksum),
             appliedAt: record.applied_at ? new Date(String(record.applied_at)).toISOString() : undefined,
-            failedAt: record.failed_at ? new Date(String(record.failed_at)).toISOString() : undefined,
-            error: record.error ? String(record.error) : undefined,
-            supersededAt: record.superseded_at
-              ? new Date(String(record.superseded_at)).toISOString()
-              : undefined,
           },
         ];
       }),
@@ -246,47 +232,6 @@ async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>>
     if (errorCode(error) === "42P01") return new Map();
     throw error;
   }
-}
-
-async function recordMigrationFailure(
-  database: Executor,
-  migration: MigrationFile,
-  error: string,
-): Promise<void> {
-  await database.execute(sql`
-    INSERT INTO schema_migrations (name, checksum, failed_at, error)
-    VALUES (${migration.id}, ${migration.checksum}, now(), ${error})
-    ON CONFLICT (name) DO UPDATE SET
-      checksum = EXCLUDED.checksum,
-      failed_at = EXCLUDED.failed_at,
-      error = EXCLUDED.error,
-      superseded_at = NULL
-  `);
-}
-
-async function recordMigrationSuperseded(
-  database: Executor,
-  migration: MigrationFile,
-  error: string,
-): Promise<string> {
-  const supersededAt = new Date().toISOString();
-  await database.execute(sql`
-    UPDATE schema_migrations
-    SET checksum = ${migration.checksum},
-        applied_at = now(),
-        superseded_at = ${supersededAt},
-        error = ${error}
-    WHERE name IN (${migration.id}, ${migration.name})
-  `);
-  return supersededAt;
-}
-
-function isAlreadyExistsMigrationError(error: unknown): boolean {
-  const code = errorCode(error);
-  return code === "42710"
-    || code === "42P07"
-    || code === "42701"
-    || /already exists/i.test(formatMigrationError(error));
 }
 
 function emptyReport(): MigrationReport {
@@ -318,17 +263,8 @@ export async function runMigrations(options: {
       CREATE TABLE IF NOT EXISTS schema_migrations (
         name text PRIMARY KEY,
         applied_at timestamptz NOT NULL DEFAULT now(),
-        checksum text NOT NULL,
-        failed_at timestamptz,
-        error text,
-        superseded_at timestamptz
+        checksum text NOT NULL
       )
-    `);
-    await database.execute(sql`
-      ALTER TABLE schema_migrations
-        ADD COLUMN IF NOT EXISTS failed_at timestamptz,
-        ADD COLUMN IF NOT EXISTS error text,
-        ADD COLUMN IF NOT EXISTS superseded_at timestamptz
     `);
   }
   const ledger = await readLedger(database);
@@ -339,84 +275,8 @@ export async function runMigrations(options: {
   // pending migration is allowed to run.
   const pendingMigrations: MigrationFile[] = [];
   for (const migration of migrations) {
-    const ledgerEntry = ledger.get(migration.id) ?? ledger.get(migration.name);
+    const ledgerEntry = ledger.get(migration.id);
     if (ledgerEntry) {
-      if (ledgerEntry.supersededAt) {
-        report.skipped.push(migration.name);
-        report.migrations.push({
-          ...migration,
-          status: "applied",
-          appliedAt: ledgerEntry.appliedAt,
-          appliedChecksum: ledgerEntry.checksum,
-          detectedAsApplied: true,
-          supersededAt: ledgerEntry.supersededAt,
-        });
-        continue;
-      }
-      if (ledgerEntry.failedAt || ledgerEntry.error) {
-        const priorError = ledgerEntry.error ?? "Migration previously failed";
-        if (options.dryRun) {
-          report.pending.push(migration.name);
-          report.migrations.push({
-            ...migration,
-            status: "pending",
-            appliedAt: ledgerEntry.appliedAt,
-            appliedChecksum: ledgerEntry.checksum,
-          });
-          report.failed = { name: migration.name, error: priorError };
-          break;
-        }
-
-        try {
-          await database.transaction(async (tx) => {
-            await tx.execute(sql.raw(migration.sql));
-            await tx.execute(sql`
-              UPDATE schema_migrations
-              SET checksum = ${migration.checksum},
-                  applied_at = now(),
-                  failed_at = NULL,
-                  error = NULL,
-                  superseded_at = NULL
-              WHERE name IN (${migration.id}, ${migration.name})
-            `);
-          });
-          ledger.set(migration.id, { checksum: migration.checksum });
-          report.applied.push(migration.name);
-          report.migrations.push({ ...migration, status: "applied" });
-          continue;
-        } catch (retryError) {
-          if (!isAlreadyExistsMigrationError(retryError)) {
-            report.pending.push(migration.name);
-            report.migrations.push({ ...migration, status: "pending" });
-            report.failed = {
-              name: migration.name,
-              error: formatMigrationError(retryError),
-            };
-            await recordMigrationFailure(database, migration, report.failed.error);
-            break;
-          }
-          const retryErrorText = formatMigrationError(retryError);
-          const supersededAt = await recordMigrationSuperseded(
-            database,
-            migration,
-            retryErrorText,
-          );
-          ledger.set(migration.id, {
-            checksum: migration.checksum,
-            failedAt: ledgerEntry.failedAt,
-            error: retryErrorText,
-            supersededAt,
-          });
-          report.skipped.push(migration.name);
-          report.migrations.push({
-            ...migration,
-            status: "applied",
-            detectedAsApplied: true,
-            supersededAt,
-          });
-          continue;
-        }
-      }
       if (ledgerEntry.checksum !== migration.checksum) {
         report.mismatches.push({
           name: migration.name,
@@ -451,9 +311,6 @@ export async function runMigrations(options: {
         name: migration.name,
         error: formatMigrationError(error),
       };
-      if (!options.dryRun) {
-        await recordMigrationFailure(database, migration, report.failed.error);
-      }
       break;
     }
     if (detected) {
@@ -464,14 +321,8 @@ export async function runMigrations(options: {
         try {
           await database.transaction(async (tx) => {
             await tx.execute(sql`
-              INSERT INTO schema_migrations (name, checksum, failed_at, error)
-              VALUES (${migration.id}, ${migration.checksum}, NULL, NULL)
-              ON CONFLICT (name) DO UPDATE SET
-                checksum = EXCLUDED.checksum,
-                applied_at = now(),
-                failed_at = NULL,
-                error = NULL,
-                superseded_at = NULL
+              INSERT INTO schema_migrations (name, checksum)
+              VALUES (${migration.id}, ${migration.checksum})
             `);
           });
         } catch (error) {
@@ -479,7 +330,6 @@ export async function runMigrations(options: {
             name: migration.name,
             error: formatMigrationError(error),
           };
-          await recordMigrationFailure(database, migration, report.failed.error);
           break;
         }
       }
@@ -502,14 +352,8 @@ export async function runMigrations(options: {
       await database.transaction(async (tx) => {
         await tx.execute(sql.raw(migration.sql));
         await tx.execute(sql`
-          INSERT INTO schema_migrations (name, checksum, failed_at, error)
-          VALUES (${migration.id}, ${migration.checksum}, NULL, NULL)
-          ON CONFLICT (name) DO UPDATE SET
-            checksum = EXCLUDED.checksum,
-            applied_at = now(),
-            failed_at = NULL,
-            error = NULL,
-            superseded_at = NULL
+          INSERT INTO schema_migrations (name, checksum)
+          VALUES (${migration.id}, ${migration.checksum})
         `);
       });
       report.applied.push(migration.name);
@@ -524,7 +368,6 @@ export async function runMigrations(options: {
         name: migration.name,
         error: formatMigrationError(error),
       };
-      await recordMigrationFailure(database, migration, report.failed.error);
       break;
     }
   }
