@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Calculator,
   FileText,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -211,6 +212,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 </a>
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white cursor-pointer">
+              <button onClick={() => window.dispatchEvent(new CustomEvent('mbs-prompt-install'))} className="w-full text-left flex items-center">
+                <Download className="h-4 w-4 mr-2 text-[#6EE7C0]" />
+                Install app
+              </button>
+            </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuLabel className="text-xs font-normal text-white/45">
               Signed in as {getUserDisplayName(user)}
