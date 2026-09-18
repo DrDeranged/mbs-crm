@@ -45,12 +45,12 @@ test("production-partial partner recovery reaches the current migration head", a
   try {
     await client.query(await readFile(baselinePath, "utf8"));
     const beforeHead = (await readdir(migrationDirectory))
-      .filter((name) => /^\d+_.+\.sql$/.test(name) && Number(name.slice(0, 3)) <= 28);
+      .filter((name) => /^\d+_.+\.sql$/.test(name) && Number(name.slice(0, 3)) <= 35);
     for (const name of beforeHead) await copyFile(path.join(migrationDirectory, name), path.join(beforeDirectory, name));
     const db = drizzle(client);
     await runMigrations({ db, migrationsDir: beforeDirectory });
 
-    // Model the exact production partial: 028 is the last clean ledger entry,
+    // Model the exact production partial: 035 is the last clean ledger entry,
     // 036 failed after its lender changes, and partner_contacts was rolled back.
     const migrations = await discoverMigrations(migrationDirectory);
     await client.query(`
@@ -78,6 +78,14 @@ test("production-partial partner recovery reaches the current migration head", a
       .filter((name) => /^\d+_.+\.sql$/.test(name) && Number(name.slice(0, 3)) >= 37)
       .sort();
     const appliedRecovery = report.applied.filter((name) => currentRecoveryHead.includes(name));
+    const expectedRecoveryOrder = [
+      "037_partner_flows_and_texting.sql", "047_partner_contacts_prerequisite.sql",
+      "038_partner_texting.sql", "039_ridgestone_partner_profile.sql",
+      "040_release_schema_parity.sql", "041_push_notifications.sql",
+      "042_push_delivery_ledger.sql", "043_align_push_schema.sql",
+      "044_notification_delivery_claims.sql", "045_application_equipment_category_homeowner.sql",
+      "046_complete_partner_contacts_recovery.sql",
+    ];
     const evidence = {
       applied: report.applied,
       superseded: report.migrations.filter((migration) => migration.supersededAt).map((migration) => migration.name),
@@ -85,7 +93,9 @@ test("production-partial partner recovery reaches the current migration head", a
       schema: { failed: report.failed },
     };
     console.log(JSON.stringify(evidence));
-    assert.deepEqual(appliedRecovery.sort(), currentRecoveryHead,
+    assert.deepEqual(appliedRecovery, expectedRecoveryOrder,
+      "fixture must demonstrate dependency order through the current migration head");
+    assert.deepEqual(new Set(appliedRecovery), new Set(currentRecoveryHead),
       "fixture must apply every migration from 037 through the current migration head");
     assert.equal(report.pending.length, 0, `unaccounted pending migrations: ${report.pending.join(", ")}`);
     assert.equal(report.failed, null);
