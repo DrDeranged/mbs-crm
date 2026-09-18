@@ -45,7 +45,7 @@ router.get("/health/deep", async (_req, res) => {
           ...migrationStatus.pending,
           ...migrationStatus.mismatches.map(({ name }) => `${name} (checksum mismatch)`),
         ],
-        failed: getBootSchemaFailure(),
+        failed: migrationStatus.failed ?? getBootSchemaFailure(),
       };
     } catch {
       schema = {

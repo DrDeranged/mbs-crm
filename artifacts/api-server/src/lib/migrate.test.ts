@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 // @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { formatSchemaBootLine, runMigrations } from "../../../../lib/db/src/migrate.ts";
+import { formatSchemaBootLine, getMigrationStatus, runMigrations } from "../../../../lib/db/src/migrate.ts";
 
 function fakeDatabase() {
   const ledger = new Map<string, string>();
@@ -123,6 +123,59 @@ test("dry run treats a wrapped missing-ledger error as a first run", async () =>
       dryRun: true,
     });
     assert.deepEqual(report.pending, ["999_test.sql"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("migration failure is persisted, stops later migrations, and remains visible to status", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "migration-runner-"));
+  try {
+    await writeFile(path.join(directory, "998_fail.sql"), "SELECT fail_migration();");
+    await writeFile(path.join(directory, "999_must_not_run.sql"), "SELECT 999;");
+    let failedPersisted = false;
+    let transactionFailed = false;
+    let migrationTransactions = 0;
+    const database = {
+      async execute() {
+        if (transactionFailed && !failedPersisted) {
+          failedPersisted = true;
+          return { rows: [] };
+        }
+        if (failedPersisted) {
+          return {
+            rows: [{
+              name: "998_fail",
+              checksum: "persisted-checksum",
+              applied_at: new Date().toISOString(),
+              failed_at: new Date().toISOString(),
+              error: "intentional migration failure",
+            }],
+          };
+        }
+        return { rows: [] };
+      },
+      async transaction<T>(callback: (tx: { execute(): Promise<{ rows: never[] }> }) => Promise<T>): Promise<T> {
+        migrationTransactions++;
+        return callback({
+          async execute() {
+            transactionFailed = true;
+            throw new Error("intentional migration failure");
+          },
+        });
+      },
+    };
+
+    const first = await runMigrations({ db: database, migrationsDir: directory });
+    assert.equal(first.failed?.name, "998_fail.sql");
+    assert.match(first.failed?.error ?? "", /intentional migration failure/);
+    assert.equal(migrationTransactions, 1);
+    assert.deepEqual(first.applied, []);
+
+    const status = await getMigrationStatus({ db: database, migrationsDir: directory });
+    assert.equal(status.failed?.name, "998_fail.sql");
+    assert.equal(status.failed?.error, "intentional migration failure");
+    assert.ok(status.pending.includes("998_fail.sql"));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

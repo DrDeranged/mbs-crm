@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "lint:migrations": "tsx ./src/lint-migrations.ts",
+    "test:migrations": "node --test --experimental-strip-types ./src/lint-migrations.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

@@ -7,7 +7,10 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "seed:lenders": "node lib/db/seed-lenders.mjs",
-    "check:schema": "pnpm --filter @workspace/scripts exec tsx ../lib/db/src/schemaCiCheck.ts",
+    "lint": "pnpm run lint:migrations",
+    "lint:migrations": "pnpm --filter @workspace/scripts run lint:migrations",
+    "test:migrations": "pnpm --filter @workspace/scripts run test:migrations",
+    "check:schema": "pnpm run lint:migrations && pnpm run test:migrations && pnpm --filter @workspace/scripts exec tsx ../lib/db/src/schemaCiCheck.ts",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
