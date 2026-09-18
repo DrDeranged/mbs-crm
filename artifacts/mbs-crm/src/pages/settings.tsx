@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName } from "@/lib/utils";
-import { ShieldAlert, Phone, Building2, Globe, Wrench } from "lucide-react";
+import { ShieldAlert, Phone, Building2, Globe, Wrench, Bell } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
 import { formatLenderSeedError, formatLenderSeedSummary, formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
 import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
+import { useNotificationSettings } from "@/hooks/use-notification-settings";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -39,6 +40,7 @@ export default function Settings() {
   const productionCloseout = useRunProductionCloseout();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { preferences, isLoading: loadingPreferences, isError: errorPreferences, updatePreferences, togglePushMaster, isUpdating: isUpdatingPreferences } = useNotificationSettings();
 
   const [mobileInput, setMobileInput] = useState<string>("");
   const [mobileEditing, setMobileEditing] = useState(false);
@@ -541,6 +543,91 @@ export default function Settings() {
                 )}
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-[#1F4E79]" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Manage your push notification preferences for events across the system.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingPreferences ? (
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-[200px]" />
+                <Skeleton className="h-6 w-full max-w-sm" />
+                <Skeleton className="h-6 w-full max-w-sm" />
+              </div>
+            ) : errorPreferences || !preferences ? (
+              <div className="text-sm text-destructive">Failed to load notification settings.</div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b pb-4">
+                  <div className="space-y-0.5">
+                    <div className="font-medium">Master Push Toggle</div>
+                    <div className="text-sm text-muted-foreground">
+                      Enable or disable browser push notifications entirely.
+                    </div>
+                  </div>
+                  {preferences.pushEnabled || (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") ? (
+                    <Switch
+                      checked={preferences.pushEnabled}
+                      onCheckedChange={togglePushMaster}
+                      disabled={isUpdatingPreferences}
+                      data-testid="switch-master-push"
+                    />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePushMaster(true)}
+                      disabled={isUpdatingPreferences}
+                      data-testid="button-enable-push"
+                    >
+                      {isUpdatingPreferences ? "Enabling…" : "Enable Notifications"}
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-4 opacity-100 transition-opacity" style={{ opacity: preferences.pushEnabled ? 1 : 0.5 }}>
+                  <h4 className="text-sm font-semibold">Event Subscriptions</h4>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[
+                      { key: "new_application", label: "New Application", desc: "When a new lead applies." },
+                      { key: "new_lead_assigned", label: "Lead Assigned", desc: "When a lead is assigned to you." },
+                      { key: "lead_replied", label: "Lead Replied", desc: "When a lead replies to communication." },
+                      { key: "submission_status_changed", label: "Submission Status", desc: "When a deal submission updates." },
+                      { key: "task_due", label: "Task Due", desc: "When a task assigned to you is due soon." },
+                      { key: "stale_lead", label: "Stale Lead", desc: "When an assigned lead goes stale." },
+                    ].map((event) => (
+                      <div key={event.key} className="flex items-start gap-3">
+                        <Switch
+                          checked={preferences.events[event.key as keyof typeof preferences.events]}
+                          disabled={!preferences.pushEnabled || isUpdatingPreferences}
+                          onCheckedChange={(checked) =>
+                            updatePreferences({
+                              events: { ...preferences.events, [event.key]: checked },
+                            })
+                          }
+                          data-testid={`switch-event-${event.key}`}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-1 leading-none">
+                          <div className="text-sm font-medium">{event.label}</div>
+                          <div className="text-sm text-muted-foreground">{event.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
