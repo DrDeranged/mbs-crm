@@ -52,7 +52,7 @@ SOURCE STATEMENTS (verbatim):
 - Contact correction: Atalie's email on this thread is acurtis@afg.com (her signature block still shows adaniel@afg.com); phone (714) 221-1019, mobile (661) 487-5305; address 18231 Irvine Blvd, Tustin, CA 92780.
 
 SCHEMA MAPPING:
-→ Schema: AFG's trucking criteria are preserved above as source statements; no other existing AFG structured fields are changed.`,
+→ Schema: AFG's OTR gate is represented structurally for the matcher; vocational vehicles bypass it, trailers/construction/other use ordinary rules, and tow trucks are prohibited.`,
     structuredPatch: Object.freeze({
       minCreditScore: 600,
       minTimeInBusinessMonths: 48,
@@ -68,8 +68,9 @@ SCHEMA MAPPING:
             "vape", "collections", "pawn", "transportation", "online retailers",
             "import/export", "accounting", "financial services",
           ]),
+           prohibitedIndustries: Object.freeze(["tow trucks"]),
           truckingRules: Object.freeze([
-            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+             Object.freeze({ industry: "long_haul", minTrucks: 5, minTimeInBusinessMonths: 60 }),
           ]),
         }),
         Object.freeze({
@@ -80,8 +81,9 @@ SCHEMA MAPPING:
             "non-franchise used car dealers", "MSBs", "real estate agents", "vape",
             "collections", "pawn", "motorcoaches", "used high-tech", "Penske/Ryder dealers",
           ]),
+           prohibitedIndustries: Object.freeze(["tow trucks"]),
           truckingRules: Object.freeze([
-            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+             Object.freeze({ industry: "long_haul", minTrucks: 5, minTimeInBusinessMonths: 60 }),
           ]),
         }),
       ]),

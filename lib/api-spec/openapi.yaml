@@ -2464,9 +2464,18 @@ paths:
                   maxLength: 500000
                 equipmentDescription:
                   type: string
+                equipmentCategory:
+                  type: string
+                  enum: [vocational, otr_truck, trailer, construction, other]
+                  nullable: true
+                  description: Optional applicant-reported equipment category; never inferred
                 vendorName:
                   type: string
                   description: Optional vendor/dealer name
+                isHomeowner:
+                  type: boolean
+                  nullable: true
+                  description: Optional applicant-reported homeownership; never inferred
                 bankStatements:
                   type: array
                   items:
@@ -6927,6 +6936,9 @@ components:
           type: ["string", "null"]
         equipmentDescription:
           type: ["string", "null"]
+        equipmentCategory:
+          type: ["string", "null"]
+          enum: [vocational, otr_truck, trailer, construction, other, null]
         vendorName:
           type: ["string", "null"]
         vendorQuoteAmount:
@@ -6938,6 +6950,8 @@ components:
           type: ["string", "null"]
         trucksInFleet:
           type: ["integer", "null"]
+        isHomeowner:
+          type: ["boolean", "null"]
         downPaymentAmount:
           type: ["string", "null"]
         hasFinancialStatements:

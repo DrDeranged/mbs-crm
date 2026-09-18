@@ -293,6 +293,47 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
   assert.equal(matchedNames.includes("Channel Partners Capital"), false);
   assert.equal(matchedNames.includes("Alliance Funding Group (AFG)"), false);
 
+  // AFG's special gate is driven by the explicit equipment category, not
+  // generic trucking text. Missing OTR facts are reported safely.
+  const afgOtr = {
+    name: afgUpdate.name,
+    ...afgUpdate.matchingBaseline,
+    ...afgUpdate.structuredPatch,
+  };
+  const otrEvaluation = evaluateLender(
+    afgOtr,
+    { ...fixture, creditScore: 679 },
+    fixture.company,
+    {
+      industry: "trucking",
+      timeInBusinessMonths: 59,
+      trucksInFleet: 4,
+      equipmentCategory: "otr_truck",
+      isHomeowner: false,
+    },
+  );
+  assert.equal(otrEvaluation.eligible, false);
+  assert.deepEqual(
+    otrEvaluation.criteriaBreakdown
+      .filter((criterion) => criterion.criterion.startsWith("AFG OTR"))
+      .map((criterion) => criterion.criterion),
+    ["AFG OTR Time in Business", "AFG OTR Fleet", "AFG OTR FICO", "AFG OTR Homeownership"],
+  );
+  assert.match(
+    otrEvaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "AFG OTR FICO")!.detail,
+    /below OTR minimum 680/,
+  );
+  assert.equal(evaluateLender(
+    afgOtr,
+    { ...fixture, creditScore: 640 },
+    fixture.company,
+    {
+      industry: "trucking",
+      timeInBusinessMonths: 24,
+      equipmentCategory: "vocational",
+    },
+  ).eligible, true);
+
   // Notes retain packet guidance for human underwriting; they are not parsed
   // or used as an eligibility shortcut by the evaluator.
   assert.match(
@@ -305,7 +346,7 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
   );
   assert.match(
     EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!.notes,
-    /transportation cautionary/,
+    /TRUCKING \/ TRANSPORTATION \(OTR\)/,
   );
   assert.match(
     NEW_LENDER_SEEDS.find((lender) => lender.name === "Luminar Capital")!.notes,

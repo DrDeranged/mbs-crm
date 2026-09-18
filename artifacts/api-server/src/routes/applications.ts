@@ -378,8 +378,12 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           vendorName: applicationBody.vendorName || null,
           vendorQuoteAmount: applicationBody.vendorQuoteAmount ? String(applicationBody.vendorQuoteAmount) : null,
           equipmentCondition: applicationBody.equipmentCondition as "new" | "used" | null || null,
+           equipmentCategory: applicationBody.equipmentCategory as "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null || null,
            yearMakeModel: applicationBody.yearMakeModel || null,
            trucksInFleet: applicationBody.trucksInFleet ? Number(applicationBody.trucksInFleet) : null,
+           isHomeowner: applicationBody.isHomeowner === undefined
+             ? null
+             : applicationBody.isHomeowner === "true" || applicationBody.isHomeowner === true,
            downPaymentAmount: applicationBody.downPaymentAmount ? String(applicationBody.downPaymentAmount) : null,
            hasFinancialStatements: applicationBody.hasFinancialStatements === undefined
              ? null
