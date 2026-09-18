@@ -23,6 +23,12 @@ initSentry();
 
 const app: Express = express();
 export const clerkProxyHandler = clerkProxyMiddleware();
+
+// This must remain the first Express layer. The Clerk asset/FAPI proxy streams
+// requests and responses and must never pass through application auth,
+// validation, parsing, security-header, compression, or rate-limit middleware.
+app.use(CLERK_PROXY_PATH, clerkProxyHandler);
+
 const recordHttp5xx = createHttp5xxRecorder({
   logger,
   persist: async (record) => {
@@ -82,8 +88,6 @@ app.use(
 );
 
 app.use(compression());
-
-app.use(CLERK_PROXY_PATH, clerkProxyHandler);
 
 const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = process.env.ALLOWED_ORIGINS
