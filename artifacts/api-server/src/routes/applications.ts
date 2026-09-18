@@ -626,6 +626,8 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         success: true,
         lead_id: lead.id,
         tracking_token: isReapplication ? null : lead.trackingToken,
+        equipmentCategory: application.equipmentCategory,
+        isHomeowner: application.isHomeowner,
       };
       void storeSubmissionIdempotency(idempKey, "applications/submit", `lead:${lead.id}`, successPayload);
       res.status(201).json(successPayload);

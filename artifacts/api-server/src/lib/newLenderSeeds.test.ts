@@ -7,6 +7,8 @@ import {
   EXISTING_LENDER_UPDATE_MARKER,
   EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
+  PRESERVED_LEGACY_LENDER_NAMES,
+  applyExistingLenderUpdate,
   appendExistingLenderUpdateNotes,
   newLenderSeedToInsertValues,
   planNewLenderSeeds,
@@ -137,7 +139,8 @@ function makeLenderSeedTransaction(initialRows: FakeLenderRow[]) {
             where(condition: { queryChunks?: unknown[] }) {
               if (selection === undefined) {
                 const selected = rows.filter((row) =>
-                  NEW_LENDER_SEEDS.some((seed) => seed.name === row.name),
+                  NEW_LENDER_SEEDS.some((seed) => seed.name === row.name)
+                  || PRESERVED_LEGACY_LENDER_NAMES.includes(row.name as (typeof PRESERVED_LEGACY_LENDER_NAMES)[number]),
                 );
                 const result = {
                   then(resolve: (value: FakeLenderRow[]) => unknown, reject?: (reason: unknown) => unknown) {
@@ -776,6 +779,63 @@ test("prior packet inventory includes the new AFG update and three unapplied Sep
   assert.equal(second.updated, 0);
   assert.equal(second.unchanged, 16);
   assert.deepEqual(second.unchangedNames.sort(), expectedInventory);
+});
+
+test("Section D seeds one missing lender and updates old AFG marker exactly once", async () => {
+  const seedRows = NEW_LENDER_SEEDS
+    .filter((seed) => seed.name !== "Fenix Capital Funding")
+    .map((seed, index) => ({
+      ...fakeLender(seed.name, index + 1),
+      ...(newLenderSeedToInsertValues(seed) as unknown as Partial<FakeLenderRow>),
+      id: index + 1,
+      name: seed.name,
+    }));
+  const initialRows = [
+    ...seedRows,
+    fakeLender("Alliance Funding Group (AFG)", 101, {
+      notes: `legacy notes\n\n${AFG_TRUCKING_UPDATE_MARKER}\nold source`,
+      contactEmail: "adaniel@afg.com",
+    }),
+    fakeLender("AMUR Equipment Finance", 102, {
+      notes: `${EXISTING_LENDER_UPDATE_MARKER}\nprior source`,
+    }),
+    fakeLender("Y.E.S. Leasing", 103, {
+      notes: `${EXISTING_LENDER_UPDATE_MARKER}\nprior source`,
+    }),
+    fakeLender(PRESERVED_LEGACY_LENDER_NAMES[0], 104),
+  ];
+  for (const row of seedRows) {
+    if (["Dexly Finance", "TimePayment Corp", "Keystone Equipment Finance Corp (KEF)"].includes(row.name)) {
+      const update = EXISTING_LENDER_UPDATES.find((candidate) => candidate.name === row.name)!;
+      Object.assign(row, applyExistingLenderUpdate(row, update));
+    }
+  }
+  assert.equal(initialRows.length, 16);
+
+  const double = makeLenderSeedTransaction(initialRows);
+  const first = await executeLenderSeedAndUpdates(double.tx);
+  assert.deepEqual(first.updatedNames, ["Alliance Funding Group (AFG)"]);
+  assert.equal(first.created, 1);
+  assert.equal(first.updated, 1);
+  assert.equal(first.unchanged, 15);
+  assert.equal(double.rows.length, 17);
+  assert.deepEqual(first.createdNames, ["Fenix Capital Funding"]);
+  assert.equal(double.rows.find((row) => row.name === "Alliance Funding Group (AFG)")?.contactEmail, "acurtis@afg.com");
+
+  const second = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(second.created, 0);
+  assert.equal(second.updated, 0);
+  assert.equal(second.unchanged, 17);
+  assert.equal(double.rows.length, 17);
+
+  const withoutLegacy = makeLenderSeedTransaction(
+    initialRows.filter((row) => row.name !== PRESERVED_LEGACY_LENDER_NAMES[0]),
+  );
+  const missingLegacyResult = await executeLenderSeedAndUpdates(withoutLegacy.tx);
+  assert.equal(missingLegacyResult.created, 1);
+  assert.equal(missingLegacyResult.updated, 1);
+  assert.equal(missingLegacyResult.unchangedNames.includes(PRESERVED_LEGACY_LENDER_NAMES[0]), false);
+  assert.equal(withoutLegacy.rows.some((row) => row.name === PRESERVED_LEGACY_LENDER_NAMES[0]), false);
 });
 
 test("the original four-lender seed script remains byte-unchanged", () => {

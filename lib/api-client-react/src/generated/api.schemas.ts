@@ -1747,6 +1747,10 @@ export interface ApplicationSubmitResponse {
   lead_id: number;
   /** @nullable */
   tracking_token?: string | null;
+  /** @nullable */
+  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
+  /** @nullable */
+  isHomeowner?: boolean | null;
 }
 
 export interface ApplicationConsentText {
