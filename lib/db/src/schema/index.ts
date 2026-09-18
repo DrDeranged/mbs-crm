@@ -35,4 +35,5 @@ export * from "./piiAccessLog";
 export * from "./usfaIntake";
 export * from "./relations";
 export * from "./pushSubscriptions";
+export * from "./pushDeliveryAttempts";
 export * from "./notificationPreferences";

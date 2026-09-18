@@ -2,6 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { and, eq } from "drizzle-orm";
 import { db, notificationPreferencesTable, notificationPreferenceEvents, notificationSettingsTable, pushSubscriptionsTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
+import { sendTestPush } from "../lib/push";
 import { z } from "zod/v4";
 
 const subscriptionBody = z.object({
@@ -30,6 +31,17 @@ async function preferenceResponse(userId: number) {
 }
 
 const router: IRouter = Router();
+
+router.post("/admin/push/test", async (req: Request, res: Response): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") {
+    res.status(403).json({ error: "Admin only" });
+    return;
+  }
+  await sendTestPush(user.id);
+  res.json({ ok: true });
+});
 
 router.get("/notifications/vapid-public-key", async (req: Request, res: Response): Promise<void> => {
   const user = await requireUser(req, res);
