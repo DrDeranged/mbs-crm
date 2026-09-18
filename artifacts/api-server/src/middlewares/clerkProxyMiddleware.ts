@@ -22,9 +22,32 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
 import type { RequestHandler } from "express";
 import type { IncomingHttpHeaders } from "http";
+import { logger } from "../lib/logger";
 
-const CLERK_FAPI = "https://frontend-api.clerk.dev";
+export const LEGACY_CLERK_FAPI = "https://frontend-api.clerk.dev";
 export const CLERK_PROXY_PATH = "/api/__clerk";
+
+export function getClerkFapiOrigin(
+  publishableKey = process.env.CLERK_PUBLISHABLE_KEY,
+): string {
+  const payload = publishableKey?.match(/^pk_(?:live|test)_(.+)$/)?.[1];
+  if (!payload) return LEGACY_CLERK_FAPI;
+
+  try {
+    const hostname = Buffer.from(payload, "base64url")
+      .toString("utf8")
+      .replace(/\$$/, "")
+      .toLowerCase();
+    const validHostname =
+      hostname.length <= 253 &&
+      hostname.includes(".") &&
+      !hostname.includes("..") &&
+      /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/.test(hostname);
+    return validHostname ? `https://${hostname}` : LEGACY_CLERK_FAPI;
+  } catch {
+    return LEGACY_CLERK_FAPI;
+  }
+}
 
 /**
  * Returns the first effective public hostname for the given request,
@@ -52,20 +75,33 @@ export function getClerkProxyHost(req: {
   return firstHop || req.headers.host?.trim() || undefined;
 }
 
-export function clerkProxyMiddleware(): RequestHandler {
+export function clerkProxyMiddleware({
+  env = process.env,
+  log = logger,
+}: {
+  env?: NodeJS.ProcessEnv;
+  log?: Pick<typeof logger, "fatal">;
+} = {}): RequestHandler {
   // Only run proxy in production — Clerk proxying doesn't work for dev instances
-  if (process.env.NODE_ENV !== "production") {
+  if (env.NODE_ENV !== "production") {
     return (_req, _res, next) => next();
   }
 
-  const secretKey = process.env.CLERK_SECRET_KEY;
+  const secretKey = env.CLERK_SECRET_KEY;
   if (!secretKey) {
+    log.fatal(
+      { missingVariable: "CLERK_SECRET_KEY" },
+      "Clerk production proxy is disabled because CLERK_SECRET_KEY is missing",
+    );
     return (_req, _res, next) => next();
   }
 
   return createProxyMiddleware({
-    target: CLERK_FAPI,
+    target: getClerkFapiOrigin(env.CLERK_PUBLISHABLE_KEY),
     changeOrigin: true,
+    // The deployment edge rejects chunked proxied responses. Handle the
+    // upstream response so every body has an explicit Content-Length.
+    selfHandleResponse: true,
     pathRewrite: (path: string) =>
       path.replace(new RegExp(`^${CLERK_PROXY_PATH}`), ""),
     on: {
@@ -85,6 +121,44 @@ export function clerkProxyMiddleware(): RequestHandler {
         if (clientIp) {
           proxyReq.setHeader("X-Forwarded-For", clientIp);
         }
+      },
+      proxyRes: (proxyRes, req, res) => {
+        const headers = { ...proxyRes.headers };
+        delete headers["transfer-encoding"];
+        delete headers.connection;
+        delete headers["keep-alive"];
+
+        const status = proxyRes.statusCode ?? 502;
+        if (status < 200 || status === 204) {
+          delete headers["content-length"];
+        }
+
+        const bodyless =
+          req.method === "HEAD" ||
+          status < 200 ||
+          status === 204 ||
+          status === 304;
+        if (headers["content-length"] !== undefined || bodyless) {
+          res.writeHead(status, headers);
+          proxyRes.on("error", () => res.destroy());
+          proxyRes.pipe(res);
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        proxyRes.on("data", (chunk: Buffer) => chunks.push(chunk));
+        proxyRes.on("end", () => {
+          const body = Buffer.concat(chunks);
+          headers["content-length"] = String(body.length);
+          res.writeHead(status, headers);
+          res.end(body);
+        });
+        proxyRes.on("error", () => {
+          if (!res.headersSent) {
+            res.writeHead(502, { "content-length": "0" });
+          }
+          res.end();
+        });
       },
     },
   }) as RequestHandler;
