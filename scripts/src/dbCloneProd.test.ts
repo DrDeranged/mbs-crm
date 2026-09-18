@@ -5,7 +5,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { assertLocalPostgresUrl, localPostgresUrl } from "./localPostgres";
-import { assertRealPathContainment, cloneProduction, defaultCloneConfig, formatCloneCounts, readCloneMetadata, selectCloneSource, serializeCloneMetadata, stopManagedCloneServer, initializeCluster } from "./dbCloneProd";
+import { assertRealPathContainment, cloneProduction, defaultCloneConfig, formatCloneCounts, readCloneMetadata, selectCloneSource, serializeCloneMetadata, startExistingManagedCloneServer, stopManagedCloneServer, initializeCluster } from "./dbCloneProd";
 import { processRunner, type ProcessRunner } from "./process";
 
 type Call = { command: string; args: string[] };
@@ -351,4 +351,56 @@ test("marker ownership mismatch invokes zero destructive calls", async () => {
   await mkdir(config.dataDir, { recursive: true }); await writeFile(config.markerFile, JSON.stringify({ format: 3, workspaceIdentity: "wrong", cloneIdentity: "wrong", database: config.database, username: config.username, port: config.port, postgresMajor: "16" }));
   const runner = fakeRunner(); config.process = runner; await assert.rejects(() => cloneProduction(config));
   assert.equal(runner.calls.filter(c => c.command === config.pgCtlBinary || c.command === config.dropdbBinary).length, 0);
+});
+
+test("existing-clone start failure attempts safe shutdown", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "clone-start-cleanup-"));
+  const config = defaultCloneConfig(root);
+  let status = 3;
+  const runner = fakeRunner((command, args) => {
+    if (command === config.postgresBinary) {
+      return { code: 0, stdout: "postgres (PostgreSQL) 16.10" };
+    }
+    if (command === config.pgCtlBinary && args.at(-1) === "status") {
+      return { code: status };
+    }
+    if (command === config.pgCtlBinary && args.includes("start")) {
+      status = 0;
+      return { code: 0 };
+    }
+    if (command === config.pgCtlBinary && args.includes("stop")) {
+      status = 3;
+      return { code: 0 };
+    }
+    if (command === config.psqlBinary) {
+      return { code: 1, stderr: "identity probe failed" };
+    }
+    return { code: 0 };
+  });
+  config.process = runner;
+  await initializeCluster(config);
+  await writeFile(path.join(config.dataDir, "PG_VERSION"), "16\n");
+  await writeFile(
+    config.metadataFile,
+    serializeCloneMetadata({
+      host: "127.0.0.1",
+      port: config.port,
+      username: config.username,
+      database: config.database,
+      sourceKind: "schema-only",
+      sourceFingerprint: "a".repeat(64),
+      restoredAt: new Date(0).toISOString(),
+    }),
+  );
+  runner.calls.length = 0;
+
+  await assert.rejects(
+    () => startExistingManagedCloneServer(config),
+    /Local PostgreSQL query failed/,
+  );
+  assert.equal(
+    runner.calls.some((call) => call.command === config.pgCtlBinary && call.args.includes("stop")),
+    true,
+  );
+  assert.equal(status, 3);
 });

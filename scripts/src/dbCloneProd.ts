@@ -25,6 +25,7 @@ export type CloneConfig = {
   process: ProcessRunner;
 };
 export type ManagedClusterConfig = CloneConfig;
+export type ManagedCloneInspection = { state: "running" | "stopped"; metadata: CloneMetadata; postgresMajor: string };
 
 export function defaultCloneConfig(workspaceRoot = WORKSPACE_ROOT): CloneConfig {
   const localRoot = path.join(workspaceRoot, ".local");
@@ -163,6 +164,62 @@ async function verifyIdentity(config: CloneConfig): Promise<void> {
   const [dir, port, listen, ssl, user] = values.split("|").map(v => v.trim());
   if (path.resolve(dir) !== path.resolve(config.dataDir) || port !== String(config.port) || listen !== "127.0.0.1" || ssl !== "off" || user !== config.username)
     throw new Error("Managed clone server identity verification failed");
+}
+
+/**
+ * Inspect an already-provisioned clone without changing anything on disk.
+ * This is deliberately separate from initializeCluster: rehearsal and other
+ * read-only consumers must never create, remove, or repair a cluster.
+ */
+export async function inspectManagedCloneServer(config = defaultCloneConfig()): Promise<ManagedCloneInspection> {
+  await validateManagedPaths(config);
+  for (const managed of [config.localRoot, config.cloneRoot, config.dataDir, config.socketDir,
+    config.metadataFile, config.markerFile]) {
+    if (!(await exists(managed))) throw new Error("Managed clone is missing or stale");
+  }
+  const marker = await readMarker(config);
+  if (!(await ownership(config, marker))) throw new Error("Managed clone ownership marker mismatch");
+  const currentMajor = await major(config);
+  const pgVersion = (await readFile(path.join(config.dataDir, "PG_VERSION"), "utf8")
+    .catch(() => "")).trim();
+  if (marker.postgresMajor !== currentMajor || pgVersion !== currentMajor) {
+    throw new Error("Managed clone PostgreSQL major version mismatch");
+  }
+  let metadata: CloneMetadata;
+  try { metadata = JSON.parse(await readFile(config.metadataFile, "utf8")) as CloneMetadata; }
+  catch { throw new Error("Managed clone metadata is missing or invalid"); }
+  if (metadata.database !== config.database || metadata.host !== "127.0.0.1" ||
+      metadata.port !== config.port || metadata.username !== config.username) {
+    throw new Error("Managed clone metadata mismatch");
+  }
+  const running = await status(config);
+  if (running) await verifyIdentity(config);
+  return { state: running ? "running" : "stopped", metadata, postgresMajor: currentMajor };
+}
+
+export async function startExistingManagedCloneServer(config = defaultCloneConfig()): Promise<{ startedByCaller: boolean }> {
+  const inspection = await inspectManagedCloneServer(config);
+  if (inspection.state === "running") {
+    await verifyIdentity(config);
+    return { startedByCaller: false };
+  }
+  try {
+    await command(config, config.pgCtlBinary, ["-D", config.dataDir, "-l", config.logFile,
+      "-o", `-p ${config.port} -k ${config.socketDir} -h 127.0.0.1 -c listen_addresses=127.0.0.1 -c ssl=off`,
+      "start", "-w"], "PostgreSQL start");
+    await verifyIdentity(config);
+  } catch (startError) {
+    try {
+      await stopManagedCloneServer(config);
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [startError, cleanupError],
+        "Managed clone start failed and cleanup failed",
+      );
+    }
+    throw startError;
+  }
+  return { startedByCaller: true };
 }
 
 export async function startManagedCloneServer(config = defaultCloneConfig()): Promise<void> {
