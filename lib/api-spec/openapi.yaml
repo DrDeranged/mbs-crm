@@ -7532,7 +7532,7 @@ components:
 
     SeededDealReassignmentResponse:
       type: object
-      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, changedDealIds]
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, seededRowsFound, seededRowsExpected, convertedOrDeleted, seededRowsSummary, changedDealIds]
       properties:
         changed: { type: integer }
         ordinaryChanged: { type: integer }
@@ -7540,6 +7540,10 @@ components:
         calvinCleared: { type: integer }
         calvinReservedUnassigned: { type: integer }
         arslanTotalDeals: { type: integer }
+        seededRowsFound: { type: integer }
+        seededRowsExpected: { type: integer }
+        convertedOrDeleted: { type: integer }
+        seededRowsSummary: { type: string }
         changedDealIds:
           type: array
           items: { type: integer }
@@ -7609,7 +7613,7 @@ components:
 
     ProductionCloseoutOwnershipDetails:
       type: object
-      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals]
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, seededRowsFound, seededRowsExpected, convertedOrDeleted, seededRowsSummary]
       properties:
         changed: { type: integer }
         ordinaryChanged: { type: integer }
@@ -7617,6 +7621,10 @@ components:
         calvinCleared: { type: integer }
         calvinReservedUnassigned: { type: integer }
         arslanTotalDeals: { type: integer }
+        seededRowsFound: { type: integer }
+        seededRowsExpected: { type: integer }
+        convertedOrDeleted: { type: integer }
+        seededRowsSummary: { type: string }
 
     ProductionCloseoutSlugsDetails:
       type: object
