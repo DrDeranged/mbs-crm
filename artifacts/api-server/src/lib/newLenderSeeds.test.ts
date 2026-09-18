@@ -241,10 +241,10 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.equal("contactName" in dexly, false);
   assert.equal("priorityWeight" in dexly, false);
   assert.equal("maxExistingPositions" in thoro, false);
-  assert.equal(NEW_LENDER_SEEDS.length, 12);
+  assert.equal(NEW_LENDER_SEEDS.length, 13);
 });
 
-test("the six Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
+test("the Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
   const expected = [
     ["Navitas Credit Corp", ["equipment"], 10_000, 350_000, 660, 24, "myapplications@navitascredit.com"],
     ["Keystone Equipment Finance Corp (KEF)", ["equipment"], 10_000, 150_000, 550, 0, "jgothers@keystoneefc.com"],
@@ -252,6 +252,7 @@ test("the six Section A seed literals preserve exact mapped fields, contacts, nu
     ["TimePayment Corp", ["equipment"], 500, 1_500_000, null, 0, "brokerdesk@timepayment.com"],
     ["PEAC Solutions", ["equipment", "working_capital"], 10_000, 250_000, 640, 24, "ezucchi@PEACsolutions.com"],
     ["Luminar Capital", ["working_capital", "MCA"], 5_000, 150_000, 500, 12, "partners@luminarcapital.com"],
+    ["Fenix Capital Funding", ["working_capital", "MCA"], null, 250_000, 500, 12, "iso@fenixcapitalfunding.com"],
   ] as const;
   const states = [
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI",
@@ -269,7 +270,12 @@ test("the six Section A seed literals preserve exact mapped fields, contacts, nu
     assert.equal(seed.maxAmount, maxAmount);
     assert.equal(seed.minCreditScore, minCreditScore);
     assert.equal(seed.minTimeInBusinessMonths, minTib);
-    assert.deepEqual([...seed.acceptedStates], name === "Navitas Credit Corp" ? [...states, "DC"] : states);
+    const expectedStates = name === "Navitas Credit Corp"
+      ? [...states, "DC"]
+      : name === "Fenix Capital Funding"
+        ? states.filter((state) => !["PR", "HI", "CA", "AK"].includes(state))
+        : states;
+    assert.deepEqual([...seed.acceptedStates], expectedStates);
     assert.equal(seed.contactEmail, contactEmail);
     assert.equal(seed.isActive, true);
     assert.match(seed.notes, /^SOURCE STATEMENTS \(verbatim\):/);
@@ -301,6 +307,22 @@ test("the six Section A seed literals preserve exact mapped fields, contacts, nu
   assert.deepEqual([...luminar.programTypes], ["working_capital", "MCA"]);
   assert.match(luminar.notes, /working_capital \+ MCA/);
   assert.match(luminar.notes, /\$5K–\$150K; payoffs must net 50%\+/);
+
+  const fenix = NEW_LENDER_SEEDS.find((seed) => seed.name === "Fenix Capital Funding")!;
+  assert.deepEqual([...fenix.acceptedStates], states.filter((state) => !["PR", "HI", "CA", "AK"].includes(state)));
+  assert.equal(fenix.minMonthlyRevenue, 20_000);
+  assert.deepEqual([...fenix.prohibitedIndustries], [
+    "adult entertainment", "gaming/gambling", "non-profit", "law firms", "auto sales",
+    "bail bonds", "check cashing", "fix and flip", "TRUCKING", "auctions or pawn shops",
+    "credit repair", "gas stations", "payroll or payment processing", "staffing",
+    "property management (unless properties are owned by the merchant)",
+    "money transfer services/financial institutions", "securities and commodities dealers",
+    "financial brokers", "oil field services", "travel agencies",
+  ]);
+  assert.match(fenix.notes, /max funding \$250k for MCAs and \$375k for reverses/);
+  assert.match(fenix.notes, /TRUCKING is prohibited/);
+  assert.equal("contactName" in fenix, false);
+  assert.equal("maxExistingPositions" in fenix, false);
 
   const maxim = NEW_LENDER_SEEDS.find((seed) => seed.name === "Maxim Commercial Capital")!;
   assert.deepEqual([...maxim.programTypes], ["equipment", "working_capital"]);
@@ -458,7 +480,7 @@ test("production executor creates first, then applies Section B updates without 
   const double = makeLenderSeedTransaction([afg, amur, yes]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 12);
+  assert.equal(first.created, 13);
   assert.equal(first.updated, 3);
   assert.equal(first.unchanged, 0);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.map((seed) => seed.name));
@@ -534,7 +556,7 @@ test("production executor creates first, then applies Section B updates without 
   );
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 15);
+  assert.equal(second.unchanged, 16);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -553,7 +575,7 @@ test("seed operation reports the unique configured lender inventory and updates"
   ]);
 
   const first = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(first.created, 10);
+  assert.equal(first.created, 11);
   assert.equal(first.updated, 4);
   assert.equal(first.unchanged, 1);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(2).map((seed) => seed.name));
@@ -563,7 +585,7 @@ test("seed operation reports the unique configured lender inventory and updates"
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 15);
+  assert.equal(second.unchanged, 16);
   assert.deepEqual(second.unchangedNames, [
     ...NEW_LENDER_SEEDS.map((seed) => seed.name),
     "Alliance Funding Group (AFG)",
@@ -715,7 +737,7 @@ test("prior packet inventory reports only the three unapplied September 15 updat
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
   ].sort();
-  assert.equal(first.created, 4);
+  assert.equal(first.created, 5);
   assert.equal(first.updated, 3);
   assert.equal(first.unchanged, 8);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(8).map((seed) => seed.name));
@@ -728,12 +750,12 @@ test("prior packet inventory reports only the three unapplied September 15 updat
     [...first.createdNames, ...first.updatedNames, ...first.unchangedNames].sort(),
     expectedInventory,
   );
-  assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 15);
+  assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 16);
 
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
   assert.equal(second.updated, 0);
-  assert.equal(second.unchanged, 15);
+  assert.equal(second.unchanged, 16);
   assert.deepEqual(second.unchangedNames.sort(), expectedInventory);
 });
 
