@@ -294,38 +294,152 @@ function isAlreadyExistsMigrationError(error: unknown): boolean {
     || /already exists/i.test(formatMigrationError(error));
 }
 
-/**
- * A failed 036 can leave the lender columns in place while its transaction
- * rolls back the partner_contacts table.  038 references that table, so
- * repair this one known production shape before retrying 036 or proceeding.
- * This intentionally keys only the historical .sql ledger identity and never
- * writes a schema_migrations row (nor changes a migration checksum).
- */
-async function bridgeFailedPartnerContacts(
-  database: Database,
-  ledger: Map<string, LedgerEntry>,
-  migrations: MigrationFile[],
-  dryRun: boolean,
-): Promise<void> {
-  if (dryRun) return;
-  const failed = ledger.get("036_partners_contacts.sql");
-  if (!failed || (!failed.failedAt && !failed.error) || failed.supersededAt) return;
-  const failedMigration = migrations.find((migration) => migration.name === "036_partners_contacts.sql");
-  if (!failedMigration || failed.checksum !== failedMigration.checksum) return;
-
-  const table = await database.execute(sql`
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = current_schema() AND table_name = 'partner_contacts'
-  `);
-  if (table.rows?.length) return;
-
-  const prerequisite = migrations.find((migration) => migration.name === "047_partner_contacts_prerequisite.sql");
-  if (!prerequisite) {
-    throw new Error("Recovery prerequisite 047_partner_contacts_prerequisite.sql is missing");
+export function __testMissingRelation(error: unknown): string | undefined {
+  const seen = new Set<object>();
+  const queue: unknown[] = [error];
+  while (queue.length) {
+    const current = queue.shift();
+    if (typeof current !== "object" || current === null) continue;
+    if (seen.has(current)) continue;
+    seen.add(current);
+    const record = current as Record<string, unknown>;
+    const code = typeof record.code === "string" ? record.code : undefined;
+    if (!code || code === "42P01") {
+      const schema = typeof record.schema === "string" ? record.schema : undefined;
+      const table = typeof record.table === "string"
+        ? record.table
+        : typeof record.relation === "string" ? record.relation : undefined;
+      if (table) return schema
+        ? `"${schema.replaceAll('"', '""')}"."${table.replaceAll('"', '""')}"`
+        : table;
+      const message = typeof record.message === "string" ? record.message : "";
+      const match = message.match(/relation\s+((?:"[^"]+"\.)?"[^"]+?"|[a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)?)\s+does not exist/i);
+      if (match) return match[1];
+    }
+    if (typeof record.cause === "object" && record.cause !== null) queue.push(record.cause);
   }
-  await database.transaction(async (tx) => {
-    await tx.execute(sql.raw(prerequisite.sql));
-  });
+  return undefined;
+}
+
+function relationName(value: string): string {
+  return value.split(".").map((part) => {
+    const trimmed = part.trim();
+    return trimmed.startsWith('"')
+      ? trimmed.slice(1, -1).replaceAll('""', '"')
+      : trimmed.toLowerCase();
+  }).join(".");
+}
+
+function topLevelStatements(sqlText: string): string[] | null {
+  const masked = sqlText.split("");
+  const statements: string[] = [];
+  let start = 0;
+  let depth = 0;
+  for (let i = 0; i < sqlText.length; i++) {
+    const char = sqlText[i];
+    if (char === "-" && sqlText[i + 1] === "-") {
+      const end = sqlText.indexOf("\n", i + 2);
+      if (end < 0) break;
+      for (let index = i; index < end; index++) masked[index] = " ";
+      i = end;
+      continue;
+    }
+    if (char === "/" && sqlText[i + 1] === "*") {
+      const commentStart = i;
+      let level = 1;
+      i += 2;
+      while (i < sqlText.length && level) {
+        if (sqlText[i] === "/" && sqlText[i + 1] === "*") { level++; i++; }
+        else if (sqlText[i] === "*" && sqlText[i + 1] === "/") { level--; i++; }
+        i++;
+      }
+      if (level) return null;
+      for (let index = commentStart; index < i; index++) {
+        if (sqlText[index] !== "\n") masked[index] = " ";
+      }
+      continue;
+    }
+    if (char === "'") {
+      const prefix = i > 0 ? sqlText[i - 1] : "";
+      const escapeString = prefix === "e" || prefix === "E";
+      if (/[A-Za-z_]/.test(prefix) && !escapeString) return null;
+      let closed = false;
+      for (i++; i < sqlText.length; i++) {
+        if (escapeString && sqlText[i] === "\\") {
+          if (i + 1 >= sqlText.length) return null;
+          i++;
+          continue;
+        }
+        if (sqlText[i] !== "'") continue;
+        if (sqlText[i + 1] === "'") { i++; continue; }
+        closed = true;
+        break;
+      }
+      if (!closed) return null;
+      continue;
+    }
+    if (char === '"') {
+      let closed = false;
+      for (i++; i < sqlText.length; i++) {
+        if (sqlText[i] !== '"') continue;
+        if (sqlText[i + 1] === '"') { i++; continue; }
+        closed = true;
+        break;
+      }
+      if (!closed) return null;
+      continue;
+    }
+    if (char === "$") {
+      const dollar = sqlText.slice(i).match(/^\$[A-Za-z_][\w]*\$|^\$\$/)?.[0];
+      if (dollar) {
+        const end = sqlText.indexOf(dollar, i + dollar.length);
+        if (end < 0) return null;
+        i = end + dollar.length - 1;
+        continue;
+      }
+      if (/[A-Za-z0-9_]/.test(sqlText[i + 1] ?? "")) return null;
+    }
+    if (char === "(") depth++;
+    else if (char === ")") {
+      depth--;
+      if (depth < 0) return null;
+    } else if (char === ";" && depth === 0) {
+      statements.push(masked.slice(start, i).join(""));
+      start = i + 1;
+    }
+  }
+  if (depth !== 0) return null;
+  statements.push(masked.slice(start).join(""));
+  return statements;
+}
+
+export function __testCreatedRelations(sqlText: string): string[] | null {
+  const statements = topLevelStatements(sqlText);
+  if (!statements) return null;
+  const relations: string[] = [];
+  const identifier = `((?:"(?:[^"]|"")+"|[A-Za-z_][\\w$]*)(?:\\s*\\.\\s*(?:"(?:[^"]|"")+"|[A-Za-z_][\\w$]*))?)`;
+  const create = new RegExp(`^\\s*CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?${identifier}\\s*\\(`, "i");
+  for (const statement of statements) {
+    const match = statement.match(create);
+    if (match) relations.push(match[1].replace(/\s*\.\s*/g, "."));
+  }
+  return relations;
+}
+
+function creatorForRelation(
+  relation: string,
+  pending: MigrationFile[],
+  currentIndex: number,
+  applied: Set<string>,
+): MigrationFile | null | undefined {
+  const creators = pending.filter((candidate, index) =>
+    index > currentIndex
+      && !applied.has(candidate.id)
+      // A migration that mutates the ledger is a recovery/finalization
+      // migration, not a safe prerequisite to move ahead of its slot.
+      && !/\bschema_migrations\b/i.test(candidate.sql)
+      && __testCreatedRelations(candidate.sql)?.some((created) => relationName(created) === relationName(relation)));
+  return creators.length === 1 ? creators[0] : creators.length === 0 ? null : undefined;
 }
 
 function emptyReport(): MigrationReport {
@@ -371,7 +485,6 @@ export async function runMigrations(options: {
     `);
   }
   const ledger = await readLedger(database);
-  await bridgeFailedPartnerContacts(database, ledger, migrations, Boolean(options.dryRun));
 
   // Do the complete first-boot reconciliation before running any migration.
   // This matters for databases created before the ledger was introduced: all
@@ -495,9 +608,14 @@ export async function runMigrations(options: {
   // pending files collected before the mismatched ledger row.
   if (report.mismatches.length > 0) return report;
 
-  for (const migration of pendingMigrations) {
+  const appliedOutOfOrder = new Set<string>();
+  for (let migrationIndex = 0; migrationIndex < pendingMigrations.length; migrationIndex++) {
+    const migration = pendingMigrations[migrationIndex];
+    if (appliedOutOfOrder.has(migration.id)) continue;
     if (options.dryRun) continue;
 
+    let retriedAfterDependency = false;
+    while (true) {
     try {
       await database.transaction(async (tx) => {
         await tx.execute(sql.raw(migration.sql));
@@ -513,7 +631,36 @@ export async function runMigrations(options: {
         status.status = "applied";
         status.appliedChecksum = migration.checksum;
       }
+      break;
     } catch (error) {
+      if (!retriedAfterDependency && __testMissingRelation(error)) {
+        const creator = creatorForRelation(__testMissingRelation(error)!, pendingMigrations, migrationIndex, appliedOutOfOrder);
+        if (creator) {
+          try {
+            await database.transaction(async (tx) => {
+              await tx.execute(sql.raw(creator.sql));
+              await tx.execute(sql`
+                INSERT INTO schema_migrations (name, checksum)
+                VALUES (${creator.id}, ${creator.checksum})
+              `);
+            });
+            appliedOutOfOrder.add(creator.id);
+            report.applied.push(creator.name);
+            report.pending = report.pending.filter((name) => name !== creator.name);
+            const creatorStatus = report.migrations.find((entry) => entry.name === creator.name);
+            if (creatorStatus) {
+              creatorStatus.status = "applied";
+              creatorStatus.appliedChecksum = creator.checksum;
+            }
+            retriedAfterDependency = true;
+            continue;
+          } catch (creatorError) {
+            report.failed = { name: creator.name, error: formatMigrationError(creatorError) };
+            await recordMigrationFailure(database, creator, report.failed.error);
+            break;
+          }
+        }
+      }
       report.failed = {
         name: migration.name,
         error: formatMigrationError(error),
@@ -521,6 +668,8 @@ export async function runMigrations(options: {
       await recordMigrationFailure(database, migration, report.failed.error);
       break;
     }
+    }
+    if (report.failed) break;
   }
 
   return report;
