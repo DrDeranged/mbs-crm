@@ -115,7 +115,7 @@ test("a failing second file keeps the first file applied and recorded", async ()
   }
 });
 
-test("boot supersedes failed 036 with recovery 040 before applying 037 through 039", async () => {
+test("boot supersedes duplicate-object failure and then applies 037 through 040 in order", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "migration-supersession-"));
   try {
     for (const [name, body] of [
@@ -139,7 +139,7 @@ test("boot supersedes failed 036 with recovery 040 before applying 037 through 0
             applied_at: new Date().toISOString(),
             failed_at: new Date().toISOString(),
             error: 'constraint "duplicate_check" already exists',
-            superseded_by: null,
+            superseded_at: null,
           }],
         };
       },
@@ -169,19 +169,66 @@ test("boot supersedes failed 036 with recovery 040 before applying 037 through 0
 
     assert.equal(report.failed, null);
     assert.deepEqual(report.applied, [
-      "040_complete_partner_contacts_recovery.sql",
       "037_partner_flows_and_texting.sql",
       "038_partner_texting.sql",
       "039_ridgestone_partner_profile.sql",
-    ]);
-    assert.deepEqual(report.skipped, [
-      "036_partners_contacts.sql",
       "040_complete_partner_contacts_recovery.sql",
     ]);
-    assert.deepEqual(transactionCallCounts, [1, 3, 2, 2, 2]);
+    assert.deepEqual(report.skipped, ["036_partners_contacts.sql"]);
+    assert.deepEqual(transactionCallCounts, [1, 2, 2, 2, 2]);
+    assert.ok(
+      report.migrations.find((migration) => migration.name === "036_partners_contacts.sql")?.supersededAt,
+    );
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("boot retries a persisted non-duplicate failure and still stops the run", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "migration-retry-failure-"));
+  try {
+    await writeFile(path.join(directory, "036_failed.sql"), "SELECT forbidden_operation();");
+    await writeFile(path.join(directory, "037_must_not_run.sql"), "SELECT 37;");
+
+    let migrationTransactions = 0;
+    let failureRecordWrites = 0;
+    const database = {
+      async execute() {
+        failureRecordWrites++;
+        return {
+          rows: [{
+            name: "036_failed",
+            checksum: "failed-checksum",
+            applied_at: new Date().toISOString(),
+            failed_at: new Date().toISOString(),
+            error: "permission denied",
+            superseded_at: null,
+          }],
+        };
+      },
+      async transaction<T>(callback: (tx: { execute(): Promise<{ rows: never[] }> }) => Promise<T>) {
+        migrationTransactions++;
+        return callback({
+          async execute() {
+            throw Object.assign(new Error("permission denied"), { code: "42501" });
+          },
+        });
+      },
+    };
+
+    const report = await runMigrations({ db: database, migrationsDir: directory });
+
+    assert.equal(migrationTransactions, 1);
+    assert.ok(failureRecordWrites >= 4, "the retried failure is persisted after ledger setup and read");
+    assert.deepEqual(report.applied, []);
+    assert.deepEqual(report.pending, ["036_failed.sql"]);
+    assert.deepEqual(report.failed, {
+      name: "036_failed.sql",
+      error: "permission denied",
+    });
     assert.equal(
-      report.migrations.find((migration) => migration.name === "036_partners_contacts.sql")?.supersededBy,
-      "040_complete_partner_contacts_recovery.sql",
+      report.migrations.some((migration) => migration.name === "037_must_not_run.sql"),
+      false,
     );
   } finally {
     await rm(directory, { recursive: true, force: true });

@@ -1,4 +1,8 @@
 UPDATE schema_migrations
+SET failed_at = NULL, error = NULL, superseded_at = now()
+WHERE name = '036_partners_contacts.sql';
+
+UPDATE schema_migrations
 SET failed_at = NULL, error = NULL, applied_at = now()
 WHERE name = '036_partners_contacts.sql';
 

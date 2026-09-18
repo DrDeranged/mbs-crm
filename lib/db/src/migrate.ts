@@ -24,7 +24,7 @@ export type MigrationStatus = MigrationFile & {
   appliedAt?: string;
   appliedChecksum?: string;
   detectedAsApplied?: boolean;
-  supersededBy?: string;
+  supersededAt?: string;
 };
 
 export type MigrationReport = {
@@ -215,13 +215,13 @@ type LedgerEntry = {
   appliedAt?: string;
   failedAt?: string;
   error?: string;
-  supersededBy?: string;
+  supersededAt?: string;
 };
 
 async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>> {
   try {
     const result = await executor.execute(sql`
-      SELECT name, checksum, applied_at, failed_at, error, superseded_by
+      SELECT name, checksum, applied_at, failed_at, error, superseded_at
       FROM schema_migrations
       ORDER BY name
     `);
@@ -235,7 +235,9 @@ async function readLedger(executor: Executor): Promise<Map<string, LedgerEntry>>
             appliedAt: record.applied_at ? new Date(String(record.applied_at)).toISOString() : undefined,
             failedAt: record.failed_at ? new Date(String(record.failed_at)).toISOString() : undefined,
             error: record.error ? String(record.error) : undefined,
-            supersededBy: record.superseded_by ? String(record.superseded_by) : undefined,
+            supersededAt: record.superseded_at
+              ? new Date(String(record.superseded_at)).toISOString()
+              : undefined,
           },
         ];
       }),
@@ -258,13 +260,26 @@ async function recordMigrationFailure(
       checksum = EXCLUDED.checksum,
       failed_at = EXCLUDED.failed_at,
       error = EXCLUDED.error,
-      superseded_by = NULL
+      superseded_at = NULL
   `);
 }
 
-const failedMigrationRecoveries = new Map([
-  ["036_partners_contacts", "040_complete_partner_contacts_recovery"],
-]);
+async function recordMigrationSuperseded(
+  database: Executor,
+  migration: MigrationFile,
+  error: string,
+): Promise<string> {
+  const supersededAt = new Date().toISOString();
+  await database.execute(sql`
+    UPDATE schema_migrations
+    SET checksum = ${migration.checksum},
+        applied_at = now(),
+        superseded_at = ${supersededAt},
+        error = ${error}
+    WHERE name IN (${migration.id}, ${migration.name})
+  `);
+  return supersededAt;
+}
 
 function isAlreadyExistsMigrationError(error: unknown): boolean {
   const code = errorCode(error);
@@ -306,14 +321,14 @@ export async function runMigrations(options: {
         checksum text NOT NULL,
         failed_at timestamptz,
         error text,
-        superseded_by text
+        superseded_at timestamptz
       )
     `);
     await database.execute(sql`
       ALTER TABLE schema_migrations
         ADD COLUMN IF NOT EXISTS failed_at timestamptz,
         ADD COLUMN IF NOT EXISTS error text,
-        ADD COLUMN IF NOT EXISTS superseded_by text
+        ADD COLUMN IF NOT EXISTS superseded_at timestamptz
     `);
   }
   const ledger = await readLedger(database);
@@ -326,13 +341,21 @@ export async function runMigrations(options: {
   for (const migration of migrations) {
     const ledgerEntry = ledger.get(migration.id) ?? ledger.get(migration.name);
     if (ledgerEntry) {
+      if (ledgerEntry.supersededAt) {
+        report.skipped.push(migration.name);
+        report.migrations.push({
+          ...migration,
+          status: "applied",
+          appliedAt: ledgerEntry.appliedAt,
+          appliedChecksum: ledgerEntry.checksum,
+          detectedAsApplied: true,
+          supersededAt: ledgerEntry.supersededAt,
+        });
+        continue;
+      }
       if (ledgerEntry.failedAt || ledgerEntry.error) {
         const priorError = ledgerEntry.error ?? "Migration previously failed";
-        const recoveryId = failedMigrationRecoveries.get(migration.id);
-        const recovery = recoveryId
-          ? migrations.find((candidate) => candidate.id === recoveryId)
-          : undefined;
-        if (options.dryRun || !recovery) {
+        if (options.dryRun) {
           report.pending.push(migration.name);
           report.migrations.push({
             ...migration,
@@ -353,7 +376,7 @@ export async function runMigrations(options: {
                   applied_at = now(),
                   failed_at = NULL,
                   error = NULL,
-                  superseded_by = NULL
+                  superseded_at = NULL
               WHERE name IN (${migration.id}, ${migration.name})
             `);
           });
@@ -372,54 +395,26 @@ export async function runMigrations(options: {
             await recordMigrationFailure(database, migration, report.failed.error);
             break;
           }
-        }
-
-        try {
-          await database.transaction(async (tx) => {
-            await tx.execute(sql.raw(recovery.sql));
-            await tx.execute(sql`
-              INSERT INTO schema_migrations (name, checksum, failed_at, error, superseded_by)
-              VALUES (${recovery.id}, ${recovery.checksum}, NULL, NULL, NULL)
-              ON CONFLICT (name) DO UPDATE SET
-                checksum = EXCLUDED.checksum,
-                applied_at = now(),
-                failed_at = NULL,
-                error = NULL,
-                superseded_by = NULL
-            `);
-            await tx.execute(sql`
-              UPDATE schema_migrations
-              SET checksum = ${migration.checksum},
-                  applied_at = now(),
-                  failed_at = NULL,
-                  error = NULL,
-                  superseded_by = ${recovery.name}
-              WHERE name IN (${migration.id}, ${migration.name})
-            `);
-          });
+          const retryErrorText = formatMigrationError(retryError);
+          const supersededAt = await recordMigrationSuperseded(
+            database,
+            migration,
+            retryErrorText,
+          );
           ledger.set(migration.id, {
             checksum: migration.checksum,
-            supersededBy: recovery.name,
+            failedAt: ledgerEntry.failedAt,
+            error: retryErrorText,
+            supersededAt,
           });
-          ledger.set(recovery.id, { checksum: recovery.checksum });
           report.skipped.push(migration.name);
-          report.applied.push(recovery.name);
           report.migrations.push({
             ...migration,
             status: "applied",
             detectedAsApplied: true,
-            supersededBy: recovery.name,
+            supersededAt,
           });
           continue;
-        } catch (recoveryError) {
-          report.pending.push(recovery.name);
-          report.migrations.push({ ...recovery, status: "pending" });
-          report.failed = {
-            name: recovery.name,
-            error: formatMigrationError(recoveryError),
-          };
-          await recordMigrationFailure(database, recovery, report.failed.error);
-          break;
         }
       }
       if (ledgerEntry.checksum !== migration.checksum) {
@@ -476,7 +471,7 @@ export async function runMigrations(options: {
                 applied_at = now(),
                 failed_at = NULL,
                 error = NULL,
-                superseded_by = NULL
+                superseded_at = NULL
             `);
           });
         } catch (error) {
@@ -514,7 +509,7 @@ export async function runMigrations(options: {
             applied_at = now(),
             failed_at = NULL,
             error = NULL,
-            superseded_by = NULL
+            superseded_at = NULL
         `);
       });
       report.applied.push(migration.name);
