@@ -17,8 +17,9 @@ const eventByNotificationType: Record<string, PushEvent | undefined> = {
   application_received: "new_application",
   lead_assigned: "new_lead_assigned",
   sms_received: "lead_replied",
-  status_changed: "submission_status_changed",
+  submission_status_changed: "submission_status_changed",
   task_due: "task_due",
+  stale_lead: "stale_lead",
 };
 
 export function inferPushEvent(type: string): PushEvent | undefined {
@@ -45,6 +46,19 @@ function configured(): boolean {
   );
 }
 
+export function isPrunablePushError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: number })?.statusCode;
+  return statusCode === 404 || statusCode === 410;
+}
+
+export function pushPreferenceEnabled(
+  pushEnabled: boolean | undefined,
+  eventEnabled: boolean | undefined,
+  bypassPreferences = false,
+): boolean {
+  return bypassPreferences || (pushEnabled === true && eventEnabled === true);
+}
+
 /**
  * Sends browser push notifications without allowing delivery failures to
  * affect creation of the durable in-app notification.
@@ -67,7 +81,7 @@ export async function sendPushForNotification(
         eq(pushSubscriptionsTable.userId, input.userId),
       )),
     ]);
-    if (!input.bypassPreferences && (!settings[0]?.pushEnabled || preference[0]?.enabled !== true)) return;
+    if (!pushPreferenceEnabled(settings[0]?.pushEnabled, preference[0]?.enabled, input.bypassPreferences)) return;
     if (subscriptions.length === 0) return;
 
     webpush.setVapidDetails(
@@ -105,7 +119,7 @@ export async function sendPushForNotification(
         return response;
       } catch (error) {
         const statusCode = (error as { statusCode?: number })?.statusCode;
-        if (statusCode === 404 || statusCode === 410) {
+        if (isPrunablePushError(error)) {
           await recordDeliveryAttempt(input.userId, subscription.id, "pruned", `HTTP ${statusCode}`);
           try {
             await db.delete(pushSubscriptionsTable)

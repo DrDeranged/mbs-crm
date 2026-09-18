@@ -2,6 +2,7 @@ import { db } from "@workspace/db";
 import { notificationsTable, usersTable } from "@workspace/db";
 import { eq, or } from "drizzle-orm";
 import { sendPushForNotification, type PushEvent } from "./push";
+import { sendPushNotification } from "./pushNotifications";
 
 type NotificationType =
   | "lead_assigned"
@@ -22,20 +23,53 @@ interface NotifyParams {
   event?: PushEvent;
 }
 
+export type NotificationExecutor = Pick<typeof db, "insert">;
+export type NotificationChannels = {
+  expo: () => Promise<void>;
+  web: () => Promise<void>;
+};
+
+export async function insertNotification(
+  executor: NotificationExecutor,
+  params: NotifyParams,
+): Promise<{ id: number }> {
+  const [row] = await executor.insert(notificationsTable).values({
+    userId: params.userId, type: params.type, title: params.title, body: params.body,
+    leadId: params.leadId ?? null,
+  }).returning({ id: notificationsTable.id });
+  return row;
+}
+
+/** Delivers already-persisted notification channels. Call after commit. */
+export async function deliverNotification(
+  params: NotifyParams,
+  channels?: NotificationChannels,
+): Promise<void> {
+  const selected = channels ?? {
+    expo: async () => {
+      const [recipient] = await db.select({ pushToken: usersTable.pushToken })
+        .from(usersTable).where(eq(usersTable.id, params.userId)).limit(1);
+      if (recipient?.pushToken) {
+        await sendPushNotification(recipient.pushToken, params.title, params.body, {
+          type: params.type, leadId: params.leadId ?? null,
+        });
+      }
+    },
+    web: () => sendPushForNotification(params),
+  };
+  void Promise.allSettled([
+    selected.expo(),
+    selected.web(),
+  ]);
+}
+
 /**
  * Creates a PERSISTENT in-app notification row, then fires a push as a side-effect.
  * The in-app row is the primary deliverable; push is best-effort.
  */
 export async function createNotification(params: NotifyParams): Promise<void> {
-  await db.insert(notificationsTable).values({
-    userId: params.userId,
-    type: params.type,
-    title: params.title,
-    body: params.body,
-    leadId: params.leadId ?? null,
-  });
-
-  void sendPushForNotification(params).catch(() => {});
+  await insertNotification(db, params);
+  await deliverNotification(params);
 }
 
 /** Notify every admin and manager (e.g. a new application arrived). */

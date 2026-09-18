@@ -1,4 +1,7 @@
+// Keep this namespace private to this PWA. Never delete caches belonging to
+// another application sharing the origin.
 const CACHE_NAME = 'mbs-crm-v1';
+const CACHE_PREFIX = 'mbs-crm-';
 const OFFLINE_URL = './offline.html';
 
 self.addEventListener('install', (event) => {
@@ -18,7 +21,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
     })
@@ -34,10 +37,10 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   // Network-first for API
-  if (url.pathname.startsWith('/api/') || url.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    // API responses must never be served from Cache Storage. In particular,
+    // an offline shell must not turn stale authenticated data into a response.
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -105,11 +108,9 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (let i = 0; i < windowClients.length; i++) {
-        let client = windowClients[i];
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
-          return client.focus();
-        }
+      const existing = windowClients.find((client) => client.url.includes(urlToOpen) && 'focus' in client);
+      if (existing) {
+        return existing.focus();
       }
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);

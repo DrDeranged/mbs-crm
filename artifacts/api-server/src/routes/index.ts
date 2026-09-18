@@ -41,6 +41,7 @@ import usfaPrefillRouter from "./usfaPrefill";
 import collateralRouter from "./collateral";
 import partnerContactsRouter from "./partnerContacts";
 import pushNotificationsRouter from "./pushNotifications";
+import adminPushHealthRouter from "./adminPushHealth";
 
 const router: IRouter = Router();
 export const bootCriticalRouter: IRouter = Router();
@@ -140,5 +141,6 @@ router.use(storageRouter);
 router.use(collateralRouter);
 router.use(partnerContactsRouter);
 router.use(pushNotificationsRouter);
+router.use(adminPushHealthRouter);
 
 export default router;

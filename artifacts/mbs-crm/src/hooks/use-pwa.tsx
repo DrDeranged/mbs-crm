@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { watchForInstalledUpdate } from '@/lib/serviceWorkerUpdate';
 
 export function usePwa() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -18,23 +19,21 @@ export function usePwa() {
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  toast({
-                    title: "New version available — reload",
-                    duration: 100000,
-                    action: (
-                      <ToastAction
-                        altText="Reload"
-                        onClick={() => {
-                          newWorker.postMessage({ type: 'SKIP_WAITING' });
-                        }}
-                      >
-                        Reload
-                      </ToastAction>
-                    ),
-                  });
-                }
+              watchForInstalledUpdate(newWorker, () => Boolean(navigator.serviceWorker.controller), (worker) => {
+                toast({
+                  title: "New version available — reload",
+                  duration: 100000,
+                  action: (
+                    <ToastAction
+                      altText="Reload"
+                      onClick={() => {
+                        worker.postMessage?.({ type: 'SKIP_WAITING' });
+                      }}
+                    >
+                      Reload
+                    </ToastAction>
+                  ),
+                });
               });
             }
           });

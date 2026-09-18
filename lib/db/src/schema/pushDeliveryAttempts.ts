@@ -1,4 +1,5 @@
-import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, serial, integer, text, timestamp, index, check } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 import { pushSubscriptionsTable } from "./pushSubscriptions";
 import { createInsertSchema } from "drizzle-zod";
@@ -14,6 +15,7 @@ export const pushDeliveryAttemptsTable = pgTable("push_delivery_attempts", {
 }, (t) => [
   index("push_delivery_attempts_status_time_idx").on(t.status, t.attemptedAt),
   index("push_delivery_attempts_user_idx").on(t.userId),
+  check("push_delivery_attempts_status_check", sql`${t.status} IN ('success', 'failed', 'pruned')`),
 ]);
 
 export const insertPushDeliveryAttemptSchema = createInsertSchema(pushDeliveryAttemptsTable)

@@ -68,12 +68,12 @@ export default function SystemHealth() {
   useEffect(() => {
     if (!isAdmin) return;
     setPushLoading(true);
-    fetch("/api/health/deep", { credentials: "include" })
+    fetch("/api/admin/push/health", { credentials: "include" })
       .then(async (response) => {
         if (!response.ok) throw new Error("Unable to load push health");
-        return response.json() as Promise<{ integrations?: { push?: PushHealth } }>;
+        return response.json() as Promise<PushHealth>;
       })
-      .then((result) => setPushHealth(result.integrations?.push ?? null))
+      .then((result) => setPushHealth(result))
       .catch(() => setPushError("Unable to load push health details."))
       .finally(() => setPushLoading(false));
   }, [isAdmin]);
