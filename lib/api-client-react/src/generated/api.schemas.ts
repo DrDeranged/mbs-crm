@@ -1890,6 +1890,8 @@ export interface ApplicationRecord {
   /** @nullable */
   equipmentDescription?: string | null;
   /** @nullable */
+  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
+  /** @nullable */
   vendorName?: string | null;
   /** @nullable */
   vendorQuoteAmount?: string | null;
@@ -1899,6 +1901,8 @@ export interface ApplicationRecord {
   yearMakeModel?: string | null;
   /** @nullable */
   trucksInFleet?: number | null;
+  /** @nullable */
+  isHomeowner?: boolean | null;
   /** @nullable */
   downPaymentAmount?: string | null;
   /** @nullable */
@@ -3409,9 +3413,13 @@ export type SubmitApplicationBody = {
   secondaryOwnerCell?: string;
   secondaryOwnerEstCreditScore?: SubmitApplicationBodySecondaryOwnerEstCreditScore;
   /** Equipment applications only */
+  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other";
+  /** Equipment applications only */
   yearMakeModel?: string;
   /** Equipment applications only */
   trucksInFleet?: number;
+  /** Applicant-reported homeownership */
+  isHomeowner?: boolean;
   /** Equipment applications only */
   downPaymentAmount?: number;
   hasFinancialStatements?: boolean;

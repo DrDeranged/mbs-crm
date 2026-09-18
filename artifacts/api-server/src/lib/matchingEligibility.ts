@@ -46,6 +46,9 @@ export interface LenderEvaluationApplication {
   timeInBusinessMonths?: number | null;
   monthlyRevenueStated?: number | null;
   trucksInFleet?: number | null;
+  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
+  isHomeowner?: boolean | null;
+  equipmentDescription?: string | null;
   hasFinancialStatements?: boolean | null;
   hasFactoring?: boolean | null;
   hasCollateral?: boolean | null;
@@ -168,6 +171,18 @@ export function evaluateLender(
 ): LenderEvaluation {
   const breakdown: EligibilityCriterion[] = [];
   const industry = company?.industry ?? application?.industry ?? null;
+  const isAfg = lender.name === "Alliance Funding Group (AFG)";
+  const equipmentCategory = application?.equipmentCategory ?? null;
+  const explicitTowTruck = /\btow\s+trucks?\b/i.test(
+    `${industry ?? ""} ${application?.equipmentDescription ?? ""}`,
+  );
+  if (isAfg && explicitTowTruck) {
+    breakdown.push({
+      criterion: "AFG Tow Trucks",
+      passed: false,
+      detail: "AFG does not finance tow trucks",
+    });
+  }
   const timeInBusinessMonths = company?.timeInBusinessMonths
     ?? application?.timeInBusinessMonths
     ?? monthsFromBusinessStartDate(application?.businessStartDate);
@@ -343,8 +358,10 @@ export function evaluateLender(
     const restricted = restrictedIndustries.find((criterion) => industryMatches(industry, criterion));
     const truckingRules = programEligibilityRule?.truckingRules ?? lender.truckingRules ?? [];
     const hasTruckingException = Boolean(restricted && isTransportationIndustry(industry)
-      && truckingRules.some((rule) => truckingRuleApplies(rule, industry)));
-    if (restricted && !hasTruckingException) {
+      && (isAfg && equipmentCategory === "otr_truck"
+        || truckingRules.some((rule) => truckingRuleApplies(rule, industry))));
+    const vocationalBypass = isAfg && equipmentCategory === "vocational" && isTransportationIndustry(industry);
+    if (restricted && !hasTruckingException && !vocationalBypass) {
       const exceptionFloor = programEligibilityRule?.restrictedIndustryMinMonthlyRevenue
         ?? lender.restrictedIndustryMinMonthlyRevenue;
       const passed = exceptionFloor != null && monthlyRevenue != null && monthlyRevenue >= exceptionFloor;
@@ -363,7 +380,33 @@ export function evaluateLender(
   }
 
   const truckingRules = programEligibilityRule?.truckingRules ?? lender.truckingRules ?? [];
-  if (industry && isTransportationIndustry(industry) && truckingRules.length > 0) {
+  const applyAfgOtrGate = isAfg && equipmentCategory === "otr_truck";
+  if (applyAfgOtrGate) {
+    const creditScore = lead.creditScore ?? estimatedScoreMinimum(application?.estCreditScore);
+    const checks = [
+      {
+        criterion: "AFG OTR Time in Business",
+        passed: timeInBusinessMonths != null && timeInBusinessMonths >= 60,
+        detail: timeInBusinessMonths == null ? "OTR requires time in business (minimum 60 months)" : `${timeInBusinessMonths} months ${timeInBusinessMonths >= 60 ? "meets" : "is below"} OTR minimum 60 months`,
+      },
+      {
+        criterion: "AFG OTR Fleet",
+        passed: application?.trucksInFleet != null && application.trucksInFleet >= 5,
+        detail: application?.trucksInFleet == null ? "OTR requires trucks in fleet (minimum 5)" : `${application.trucksInFleet} trucks ${application.trucksInFleet >= 5 ? "meets" : "is below"} OTR minimum fleet of 5`,
+      },
+      {
+        criterion: "AFG OTR FICO",
+        passed: creditScore != null && creditScore >= 680,
+        detail: creditScore == null ? "OTR requires FICO (minimum 680)" : `FICO ${creditScore} ${creditScore >= 680 ? "meets" : "is below"} OTR minimum 680`,
+      },
+      {
+        criterion: "AFG OTR Homeownership",
+        passed: application?.isHomeowner === true,
+        detail: application?.isHomeowner == null ? "OTR requires reported homeownership" : application.isHomeowner ? "Homeownership is reported" : "Homeownership is not reported",
+      },
+    ];
+    breakdown.push(...checks);
+  } else if (!isAfg && industry && isTransportationIndustry(industry) && truckingRules.length > 0) {
     const rules = truckingRules.filter((rule) => truckingRuleApplies(rule, industry));
     for (const rule of rules) {
       if (rule.prohibited) {
@@ -445,7 +488,11 @@ export function evaluateLender(
   }
 
   const minMonths = lender.minTimeInBusinessMonths ?? 0;
-  if (minMonths > 0) {
+  // AFG expressly provides vocational vehicles without the trucking/
+  // transportation guidelines. Its lender-level TIB floor is part of that
+  // trucking-specific rule for this category, not a vocational requirement.
+  const bypassAfgVocationalTib = isAfg && equipmentCategory === "vocational";
+  if (minMonths > 0 && !bypassAfgVocationalTib) {
     const passed = timeInBusinessMonths != null && timeInBusinessMonths >= minMonths;
     breakdown.push({
       criterion: "Time in Business",

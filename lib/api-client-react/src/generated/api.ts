@@ -7227,6 +7227,12 @@ if(submitApplicationBody.yearMakeModel !== undefined) {
 if(submitApplicationBody.trucksInFleet !== undefined) {
  formData.append(`trucksInFleet`, submitApplicationBody.trucksInFleet.toString())
  }
+if(submitApplicationBody.equipmentCategory !== undefined) {
+ formData.append(`equipmentCategory`, submitApplicationBody.equipmentCategory);
+ }
+if(submitApplicationBody.isHomeowner !== undefined) {
+ formData.append(`isHomeowner`, submitApplicationBody.isHomeowner.toString())
+ }
 if(submitApplicationBody.downPaymentAmount !== undefined) {
  formData.append(`downPaymentAmount`, submitApplicationBody.downPaymentAmount.toString())
  }
