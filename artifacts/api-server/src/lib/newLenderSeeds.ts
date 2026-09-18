@@ -22,6 +22,7 @@ const YES_ACCEPTED_STATES = Object.freeze([
 export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
 export const BATCH_2_LENDER_UPDATE_MARKER = "2026-09-15 packet update";
 export const STRUCTURED_GATE_BACKFILL_MARKER = "2026-09-16 structured matcher gate backfill";
+export const AFG_TRUCKING_UPDATE_MARKER = "2026-09-18 AFG trucking criteria (direct from partner)";
 
 export interface ExistingLenderMatchingBaseline {
   programTypes: readonly string[];
@@ -41,22 +42,22 @@ export interface ExistingLenderMatchingBaseline {
 export const EXISTING_LENDER_UPDATES = Object.freeze([
   Object.freeze({
     name: "Alliance Funding Group (AFG)",
-    marker: EXISTING_LENDER_UPDATE_MARKER,
+    marker: AFG_TRUCKING_UPDATE_MARKER,
     gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
-    notes: `2026-09-14 packet update
+    notes: `2026-09-18 AFG trucking criteria (direct from partner)
 
 SOURCE STATEMENTS (verbatim):
-WORKING CAPITAL (Premium WC, app-only to $300k; up to $3MM with financials): terms 6–15 mo, weekly payback, 2% origination; grades Platinum 720+ FICO/670 PayNet (1.09–1.14), Gold 675+/660+ (1.09–1.18), Silver 650+/650+ (1.15–1.21, max 12 mo); MINIMUM 4 YEARS TIB; 3 months banks showing $20k+ avg monthly deposits; no negative ending-balance days; no prior bankruptcies; no concurrent WC contracts; open positions case by case, must net ≥50% if paying off one loan; principal-only payoff after 14 weeks. Commission 8 pts to $150k, 6 pts $151k+ (Silver up to 20). Restricted (WC): cannabis, law offices, adult, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents/brokers, vape, collections, pawn; transportation cautionary — 5 yrs TIB, 5 trucks, homeownership; online retailers, import/export, accounting, financial services also restricted per WC sheet.
-EQUIPMENT (app-only $50k–$500k, A–C credits): minimum FICO 600, minimum PayNet Master 620, rates 8.25%–23%, 20-pt commission cap, EFA/$1-out/TRL/FMV. Restricted (EF): cannabis, law offices, adult, tow trucks for towing businesses, med lasers/med spa, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents, vape, collections, pawn, motorcoaches, used high-tech, Penske/Ryder dealers. Cautionary: transportation (5 yrs TIB, 5 trucks, homeownership), oil production, brewery/distillation, food trucks, non-essential equipment, passenger cars, firearms.
-Middle market $500k–$50MM+ with full financials.
-Contacts: Tyson Garrett VP (714) 453-3687 TGarrett@afg.com; Atalie Daniel (714) 221-1019 adaniel@afg.com (already on file); Ashley Bradburn, Katie Bates. Payoffs: PayoffRequest@afg.com.
+- TRUCKING / TRANSPORTATION (OTR): 5 years time in business; minimum of 5 trucks currently in fleet; 680+ FICO; homeownership; satisfactory PayNet report.
+- "That's just for OTR and trucking/transportation companies. We do vocational vehicles without guidelines but no tow trucks!" — i.e. vocational vehicles are financed WITHOUT the trucking criteria above; TOW TRUCKS are excluded entirely.
+- Contact correction: Atalie's email on this thread is acurtis@afg.com (her signature block still shows adaniel@afg.com); phone (714) 221-1019, mobile (661) 487-5305; address 18231 Irvine Blvd, Tustin, CA 92780.
 
 SCHEMA MAPPING:
-→ Schema: set WC minTimeInBusinessMonths 48 and WC minCreditScore 650 (Silver floor) / EF minCreditScore 600 if the schema supports per-program values; otherwise keep 600/48 and put the split in notes. maxAmount stays 500000 (EF app-only); WC app-only 300000 in notes.`,
+→ Schema: AFG's trucking criteria are preserved above as source statements; no other existing AFG structured fields are changed.`,
     structuredPatch: Object.freeze({
       minCreditScore: 600,
       minTimeInBusinessMonths: 48,
       maxAmount: 500_000,
+      contactEmail: "acurtis@afg.com",
       programEligibilityRules: Object.freeze([
         Object.freeze({
           programType: "working_capital",

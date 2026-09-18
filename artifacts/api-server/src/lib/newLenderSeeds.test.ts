@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
   BATCH_2_LENDER_UPDATE_MARKER,
+  AFG_TRUCKING_UPDATE_MARKER,
   EXISTING_LENDER_UPDATE_MARKER,
   EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
@@ -394,14 +395,22 @@ test("Section B update literals preserve the exact marker, source statements, an
     "Keystone Equipment Finance Corp (KEF)",
   ]);
   for (const [index, update] of EXISTING_LENDER_UPDATES.entries()) {
-    assert.equal(update.marker, index < 3 ? EXISTING_LENDER_UPDATE_MARKER : "2026-09-15 packet update");
-    assert.match(update.notes, /^2026-09-(14|15) packet update\n\nSOURCE STATEMENTS \(verbatim\):/);
+    assert.equal(update.marker, index === 0
+      ? AFG_TRUCKING_UPDATE_MARKER
+      : index < 3 ? EXISTING_LENDER_UPDATE_MARKER : "2026-09-15 packet update");
+    assert.match(update.notes, index === 0
+      ? /^2026-09-18 AFG trucking criteria \(direct from partner\)\n\nSOURCE STATEMENTS \(verbatim\):/
+      : /^2026-09-(14|15) packet update\n\nSOURCE STATEMENTS \(verbatim\):/);
     assert.match(update.notes, /SCHEMA MAPPING:/);
   }
 
   const afg = EXISTING_LENDER_UPDATES[0];
-  assert.match(afg.notes, /WORKING CAPITAL \(Premium WC, app-only to \$300k; up to \$3MM with financials\)/);
-  assert.match(afg.notes, /maxAmount stays 500000 \(EF app-only\); WC app-only 300000 in notes\./);
+  assert.match(afg.notes, /TRUCKING \/ TRANSPORTATION \(OTR\): 5 years time in business/);
+  assert.match(afg.notes, /vocational vehicles without guidelines but no tow trucks/);
+  assert.match(afg.notes, /adaniel@afg\.com/);
+  assert.equal(afg.notes.split(AFG_TRUCKING_UPDATE_MARKER).length - 1, 1);
+  assert.equal(afg.marker, AFG_TRUCKING_UPDATE_MARKER);
+  assert.equal(afg.structuredPatch.contactEmail, "acurtis@afg.com");
   assert.equal(afg.structuredPatch.minCreditScore, 600);
   assert.equal(afg.structuredPatch.minTimeInBusinessMonths, 48);
   assert.equal(afg.structuredPatch.maxAmount, 500_000);
@@ -441,18 +450,18 @@ test("Section B appends preserve old notes and contacts while restricting struct
     "minAmount", "maxAmount", "minCreditScore", "minTimeInBusinessMonths",
     "restrictedIndustries", "prohibitedIndustries", "minMonthlyRevenue",
     "restrictedIndustryMinMonthlyRevenue", "truckingRules",
-    "programEligibilityRules",
+    "programEligibilityRules", "contactEmail",
   ]);
   for (const update of EXISTING_LENDER_UPDATES) {
     for (const field of Object.keys(update.structuredPatch)) {
       assert.equal(allowedFields.has(field), true, `${update.name} has an unapproved field: ${field}`);
     }
     assert.equal("contactName" in update.structuredPatch, false);
-    assert.equal("contactEmail" in update.structuredPatch, false);
+    assert.equal("contactEmail" in update.structuredPatch, update.name === "Alliance Funding Group (AFG)");
   }
 });
 
-test("production executor creates first, then applies Section B updates without touching contacts", async () => {
+test("production executor creates first, then applies Section B updates with only AFG contact correction", async () => {
   const afg = fakeLender("Alliance Funding Group (AFG)", 101, {
     notes: "AFG legacy notes",
     minAmount: 10_000,
@@ -505,9 +514,9 @@ test("production executor creates first, then applies Section B updates without 
     "Keystone Equipment Finance Corp (KEF)",
   ]);
 
-  assert.match(String(double.rows.find((row) => row.name === afg.name)?.notes), /^AFG legacy notes\n\n2026-09-14 packet update/);
+  assert.match(String(double.rows.find((row) => row.name === afg.name)?.notes), /^AFG legacy notes\n\n2026-09-18 AFG trucking criteria \(direct from partner\)/);
   assert.equal(afg.contactName, double.rows.find((row) => row.name === afg.name)?.contactName);
-  assert.equal(afg.contactEmail, double.rows.find((row) => row.name === afg.name)?.contactEmail);
+  assert.equal(double.rows.find((row) => row.name === afg.name)?.contactEmail, "acurtis@afg.com");
   assert.equal(double.rows.find((row) => row.name === afg.name)?.minCreditScore, 600);
   assert.equal(double.rows.find((row) => row.name === afg.name)?.minTimeInBusinessMonths, 48);
   assert.equal(double.rows.find((row) => row.name === afg.name)?.maxAmount, 500_000);
@@ -525,7 +534,7 @@ test("production executor creates first, then applies Section B updates without 
   for (const event of updateEvents) {
     const values = event.values as Record<string, unknown>;
     assert.equal("contactName" in values, false);
-    assert.equal("contactEmail" in values, false);
+    assert.equal("contactEmail" in values, event.name === "Alliance Funding Group (AFG)");
   }
   const afgValues = updateEvents.find((event) => event.name === afg.name)?.values as Record<string, unknown>;
   assert.deepEqual(
@@ -534,6 +543,7 @@ test("production executor creates first, then applies Section B updates without 
       minCreditScore: 600,
       minTimeInBusinessMonths: 48,
       maxAmount: 500_000,
+      contactEmail: "acurtis@afg.com",
       programEligibilityRules: EXISTING_LENDER_UPDATES[0].structuredPatch.programEligibilityRules,
     },
   );
@@ -652,7 +662,7 @@ test("structured gates backfill after an earlier packet marker and remain idempo
   assert.equal(double.events.filter((event) => event.kind === "update").length, updatesAfterFirst);
 });
 
-test("a prior packet marker with migration-equivalent gates is unchanged", async () => {
+test("a prior packet marker without the new AFG marker is updated once and then unchanged", async () => {
   const afgUpdate = EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!;
   // jsonb does not preserve JS insertion order, including nested rule objects.
   const reorderKeys = (value: unknown): unknown =>
@@ -670,14 +680,22 @@ test("a prior packet marker with migration-equivalent gates is unchanged", async
   ]);
 
   const result = await executeLenderSeedAndUpdates(double.tx);
-  assert.equal(result.updatedNames.includes("Alliance Funding Group (AFG)"), false);
+  assert.equal(result.updatedNames.includes("Alliance Funding Group (AFG)"), true);
   assert.equal(
     double.events.some((event) => event.kind === "update" && event.name === "Alliance Funding Group (AFG)"),
-    false,
+    true,
   );
+  const updatedNotes = double.rows.find((row) => row.name === "Alliance Funding Group (AFG)")?.notes ?? "";
+  assert.equal(updatedNotes.split(AFG_TRUCKING_UPDATE_MARKER).length - 1, 1);
+  assert.equal(double.rows.find((row) => row.name === "Alliance Funding Group (AFG)")?.contactEmail, "acurtis@afg.com");
+
+  const updatesAfterFirst = double.events.filter((event) => event.kind === "update").length;
+  const rerun = await executeLenderSeedAndUpdates(double.tx);
+  assert.equal(rerun.updatedNames.includes("Alliance Funding Group (AFG)"), false);
+  assert.equal(double.events.filter((event) => event.kind === "update").length, updatesAfterFirst);
 });
 
-test("prior packet inventory reports only the three unapplied September 15 updates", async () => {
+test("prior packet inventory includes the new AFG update and three unapplied September 15 updates", async () => {
   const reorderJsonb = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(reorderJsonb);
     if (value && typeof value === "object") {
@@ -738,10 +756,11 @@ test("prior packet inventory reports only the three unapplied September 15 updat
     "Y.E.S. Leasing",
   ].sort();
   assert.equal(first.created, 5);
-  assert.equal(first.updated, 3);
-  assert.equal(first.unchanged, 8);
+  assert.equal(first.updated, 4);
+  assert.equal(first.unchanged, 7);
   assert.deepEqual(first.createdNames, NEW_LENDER_SEEDS.slice(8).map((seed) => seed.name));
   assert.deepEqual(first.updatedNames, [
+    "Alliance Funding Group (AFG)",
     "Dexly Finance",
     "TimePayment Corp",
     "Keystone Equipment Finance Corp (KEF)",

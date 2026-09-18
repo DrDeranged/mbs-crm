@@ -364,6 +364,7 @@ export async function executeLenderSeedAndUpdates(
         minMonthlyRevenue: lendersTable.minMonthlyRevenue,
         restrictedIndustryMinMonthlyRevenue: lendersTable.restrictedIndustryMinMonthlyRevenue,
         programEligibilityRules: lendersTable.programEligibilityRules,
+        contactEmail: lendersTable.contactEmail,
       })
       .from(lendersTable)
       .where(eq(lendersTable.name, update.name))
