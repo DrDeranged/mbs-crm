@@ -2467,14 +2467,12 @@ paths:
                 equipmentCategory:
                   type: string
                   enum: [vocational, otr_truck, trailer, construction, other]
-                  nullable: true
                   description: Optional applicant-reported equipment category; never inferred
                 vendorName:
                   type: string
                   description: Optional vendor/dealer name
                 isHomeowner:
                   type: boolean
-                  nullable: true
                   description: Optional applicant-reported homeownership; never inferred
                 bankStatements:
                   type: array
@@ -6842,6 +6840,13 @@ components:
           type: integer
         tracking_token:
           type: ["string", "null"]
+        equipmentCategory:
+          type: ["string", "null"]
+          enum: [vocational, otr_truck, trailer, construction, other, null]
+          description: Applicant-reported equipment category, or null when omitted
+        isHomeowner:
+          type: ["boolean", "null"]
+          description: Applicant-reported homeownership, or null when omitted
 
     ApplicationConsentText:
       type: object

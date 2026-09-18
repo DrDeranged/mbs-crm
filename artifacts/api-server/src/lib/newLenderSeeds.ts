@@ -23,6 +23,11 @@ export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
 export const BATCH_2_LENDER_UPDATE_MARKER = "2026-09-15 packet update";
 export const STRUCTURED_GATE_BACKFILL_MARKER = "2026-09-16 structured matcher gate backfill";
 export const AFG_TRUCKING_UPDATE_MARKER = "2026-09-18 AFG trucking criteria (direct from partner)";
+// This legacy lender predates the structured seed inventory. It is report-only:
+// maintenance must preserve it when present, but must never recreate it.
+export const PRESERVED_LEGACY_LENDER_NAMES = Object.freeze([
+  "Financial Pacific Leasing (FINPAC)",
+] as const);
 
 export interface ExistingLenderMatchingBaseline {
   programTypes: readonly string[];

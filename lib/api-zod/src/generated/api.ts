@@ -2977,7 +2977,9 @@ export const SubmitApplicationBody = zod.object({
   "signatureMethod": zod.enum(['typed', 'drawn']),
   "signatureData": zod.string().max(submitApplicationBodySignatureDataMax).describe('Typed legal name or base64 image data URL for a drawn signature'),
   "equipmentDescription": zod.string().optional(),
+  "equipmentCategory": zod.enum(['vocational', 'otr_truck', 'trailer', 'construction', 'other']).optional().describe('Optional applicant-reported equipment category; never inferred'),
   "vendorName": zod.string().optional().describe('Optional vendor\/dealer name'),
+  "isHomeowner": zod.boolean().optional().describe('Optional applicant-reported homeownership; never inferred'),
   "bankStatements": zod.array(zod.instanceof(File)).optional()
 })
 
@@ -3033,11 +3035,13 @@ export const GetLeadApplicationResponse = zod.object({
   "requestedAmount": zod.number().nullish(),
   "useOfFunds": zod.string().nullish(),
   "equipmentDescription": zod.string().nullish(),
+  "equipmentCategory": zod.union([zod.literal('vocational'),zod.literal('otr_truck'),zod.literal('trailer'),zod.literal('construction'),zod.literal('other'),zod.literal(null)]).nullish(),
   "vendorName": zod.string().nullish(),
   "vendorQuoteAmount": zod.string().nullish(),
   "equipmentCondition": zod.union([zod.literal('new'),zod.literal('used'),zod.literal(null)]).nullish(),
   "yearMakeModel": zod.string().nullish(),
   "trucksInFleet": zod.number().nullish(),
+  "isHomeowner": zod.boolean().nullish(),
   "downPaymentAmount": zod.string().nullish(),
   "hasFinancialStatements": zod.boolean().nullish(),
   "hasFactoring": zod.boolean().nullish(),

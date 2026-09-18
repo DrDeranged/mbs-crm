@@ -49,6 +49,7 @@ export interface LenderEvaluationApplication {
   equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
   isHomeowner?: boolean | null;
   equipmentDescription?: string | null;
+  yearMakeModel?: string | null;
   hasFinancialStatements?: boolean | null;
   hasFactoring?: boolean | null;
   hasCollateral?: boolean | null;
@@ -144,6 +145,17 @@ function isTransportationIndustry(industry: string | null): boolean {
   return industry != null && /\b(trucking|transportation|transport|long haul|long-haul|otr)\b/i.test(industry);
 }
 
+function isExplicitTowSignal(value: string | null | undefined): boolean {
+  const signal = value?.trim() ?? "";
+  if (!signal) return false;
+  // "Towing" is an explicit standalone industry/equipment label. Do not
+  // classify incidental phrases such as "tow package" or "tow hitch".
+  if (/^towing$/i.test(signal)) return true;
+  return /\btow[-\s]+trucks?\b/i.test(signal)
+    || /\btowing\s+(?:company|companies|business|businesses|service|services|operation|operations)\b/i.test(signal)
+    || /\bwreckers?\b/i.test(signal);
+}
+
 function truckingRuleApplies(rule: TruckingRule, industry: string): boolean {
   if (rule.industry === "any") return true;
   if (rule.industry === "long_haul") return /\b(long haul|long-haul|otr)\b/i.test(industry);
@@ -173,9 +185,15 @@ export function evaluateLender(
   const industry = company?.industry ?? application?.industry ?? null;
   const isAfg = lender.name === "Alliance Funding Group (AFG)";
   const equipmentCategory = application?.equipmentCategory ?? null;
-  const explicitTowTruck = /\btow\s+trucks?\b/i.test(
-    `${industry ?? ""} ${application?.equipmentDescription ?? ""}`,
-  );
+  const isEquipmentApplication = lead.applicationType === "equipment";
+  // Evaluate every explicit signal independently. Do not let a company's
+  // industry hide a more specific application industry/description/model.
+  const explicitTowTruck = [
+    company?.industry,
+    application?.industry,
+    application?.equipmentDescription,
+    application?.yearMakeModel,
+  ].some(isExplicitTowSignal);
   if (isAfg && explicitTowTruck) {
     breakdown.push({
       criterion: "AFG Tow Trucks",
@@ -357,10 +375,13 @@ export function evaluateLender(
   if (industry && restrictedIndustries.length > 0) {
     const restricted = restrictedIndustries.find((criterion) => industryMatches(industry, criterion));
     const truckingRules = programEligibilityRule?.truckingRules ?? lender.truckingRules ?? [];
-    const hasTruckingException = Boolean(restricted && isTransportationIndustry(industry)
-      && (isAfg && equipmentCategory === "otr_truck"
-        || truckingRules.some((rule) => truckingRuleApplies(rule, industry))));
-    const vocationalBypass = isAfg && equipmentCategory === "vocational" && isTransportationIndustry(industry);
+    const hasTruckingException = Boolean(restricted && isTransportationIndustry(industry) && (
+      isAfg
+        ? isEquipmentApplication && equipmentCategory === "otr_truck"
+        : truckingRules.some((rule) => truckingRuleApplies(rule, industry))
+    ));
+    const vocationalBypass = isAfg && isEquipmentApplication
+      && equipmentCategory === "vocational" && isTransportationIndustry(industry);
     if (restricted && !hasTruckingException && !vocationalBypass) {
       const exceptionFloor = programEligibilityRule?.restrictedIndustryMinMonthlyRevenue
         ?? lender.restrictedIndustryMinMonthlyRevenue;
@@ -380,7 +401,7 @@ export function evaluateLender(
   }
 
   const truckingRules = programEligibilityRule?.truckingRules ?? lender.truckingRules ?? [];
-  const applyAfgOtrGate = isAfg && equipmentCategory === "otr_truck";
+  const applyAfgOtrGate = isAfg && isEquipmentApplication && equipmentCategory === "otr_truck";
   if (applyAfgOtrGate) {
     const creditScore = lead.creditScore ?? estimatedScoreMinimum(application?.estCreditScore);
     const checks = [
@@ -491,7 +512,7 @@ export function evaluateLender(
   // AFG expressly provides vocational vehicles without the trucking/
   // transportation guidelines. Its lender-level TIB floor is part of that
   // trucking-specific rule for this category, not a vocational requirement.
-  const bypassAfgVocationalTib = isAfg && equipmentCategory === "vocational";
+  const bypassAfgVocationalTib = isAfg && isEquipmentApplication && equipmentCategory === "vocational";
   if (minMonths > 0 && !bypassAfgVocationalTib) {
     const passed = timeInBusinessMonths != null && timeInBusinessMonths >= minMonths;
     breakdown.push({
