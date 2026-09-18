@@ -49,6 +49,7 @@
     "puppeteer": "^25.1.0",
     "qrcode": "1.5.4",
     "twilio": "^6.0.2",
+    "web-push": "^3.6.7",
     "zod": "catalog:"
   },
   "devDependencies": {
