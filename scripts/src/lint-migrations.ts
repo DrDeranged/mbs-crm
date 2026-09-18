@@ -10,6 +10,9 @@ export type MigrationLintViolation = {
 };
 
 const legacyUnsafeChecksums: Record<string, string> = {
+  // 032 is historical and already deployed; keep its checksum-scoped exemption
+  // rather than rewriting an applied migration's identity.
+  "032_finance_application_collateral.sql": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
   "020_lender_submissions.sql": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
   "030_add_application_collateral.sql": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
   "031_collateral_library.sql": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",

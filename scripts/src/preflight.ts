@@ -1,6 +1,7 @@
 import { run } from "./process";
 
 const checks: Array<{ label: string; script: string }> = [
+  { label: "recovery guard", script: "recovery:guard" },
   { label: "typecheck", script: "typecheck" },
   { label: "full suite", script: "test" },
   { label: "migration lint", script: "lint:migrations" },
