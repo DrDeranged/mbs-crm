@@ -20,22 +20,18 @@
  */
 
 import { createProxyMiddleware } from "http-proxy-middleware";
-import type { Request, RequestHandler, Response } from "express";
-import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
+import type { RequestHandler } from "express";
+import type { IncomingHttpHeaders } from "http";
 import { logger } from "../lib/logger";
 
-export const CLERK_FAPI = "https://frontend-api.clerk.dev";
+export const LEGACY_CLERK_FAPI = "https://frontend-api.clerk.dev";
 export const CLERK_PROXY_PATH = "/api/__clerk";
 
-export function getClerkKeyPrefix(value: string | undefined): string {
-  return value?.match(/^(?:pk|sk)_(?:live|test)_/)?.[0].slice(0, -1) ?? "unknown";
-}
-
-export function getClerkPublishableKeyOrigin(
+export function getClerkFapiOrigin(
   publishableKey = process.env.CLERK_PUBLISHABLE_KEY,
-): string | undefined {
+): string {
   const payload = publishableKey?.match(/^pk_(?:live|test)_(.+)$/)?.[1];
-  if (!payload) return undefined;
+  if (!payload) return LEGACY_CLERK_FAPI;
 
   try {
     const hostname = Buffer.from(payload, "base64url")
@@ -47,14 +43,10 @@ export function getClerkPublishableKeyOrigin(
       hostname.includes(".") &&
       !hostname.includes("..") &&
       /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/.test(hostname);
-    return validHostname ? `https://${hostname}` : undefined;
+    return validHostname ? `https://${hostname}` : LEGACY_CLERK_FAPI;
   } catch {
-    return undefined;
+    return LEGACY_CLERK_FAPI;
   }
-}
-
-export function getClerkFapiOrigin(): string {
-  return CLERK_FAPI;
 }
 
 /**
@@ -86,26 +78,10 @@ export function getClerkProxyHost(req: {
 export function clerkProxyMiddleware({
   env = process.env,
   log = logger,
-  proxyFactory = createProxyMiddleware,
 }: {
   env?: NodeJS.ProcessEnv;
-  log?: Pick<typeof logger, "error" | "fatal" | "info">;
-  proxyFactory?: typeof createProxyMiddleware;
+  log?: Pick<typeof logger, "fatal">;
 } = {}): RequestHandler {
-  const upstreamOrigin = getClerkFapiOrigin();
-  const publishableKeyOrigin = getClerkPublishableKeyOrigin(env.CLERK_PUBLISHABLE_KEY);
-  log.info(
-    {
-      clerkFapiHost: new URL(upstreamOrigin).host,
-      publishableKeyHost: publishableKeyOrigin
-        ? new URL(publishableKeyOrigin).host
-        : "unknown",
-      publishableKeyPrefix: getClerkKeyPrefix(env.CLERK_PUBLISHABLE_KEY),
-      secretKeyPrefix: getClerkKeyPrefix(env.CLERK_SECRET_KEY),
-    },
-    "Clerk production proxy FAPI host resolved",
-  );
-
   // Only run proxy in production — Clerk proxying doesn't work for dev instances
   if (env.NODE_ENV !== "production") {
     return (_req, _res, next) => next();
@@ -120,57 +96,8 @@ export function clerkProxyMiddleware({
     return (_req, _res, next) => next();
   }
 
-  const redactHeaders = (headers: IncomingHttpHeaders): OutgoingHttpHeaders => {
-    const safe = { ...headers };
-    for (const name of ["authorization", "cookie", "set-cookie"]) {
-      if (safe[name] !== undefined) safe[name] = "[redacted]";
-    }
-    return safe;
-  };
-  const context = (
-    req: Request,
-    status: number | undefined,
-    headers: IncomingHttpHeaders | undefined,
-  ) => ({
-    requestPath: req.originalUrl || req.url,
-    upstreamUrl: new URL(req.url || "/", upstreamOrigin).toString(),
-    upstreamStatus: status ?? null,
-    upstreamResponseHeaders: headers ? redactHeaders(headers) : null,
-  });
-  const errorStatus = (error: unknown): number | undefined => {
-    if (!error || typeof error !== "object") return undefined;
-    const candidate = "statusCode" in error
-      ? error.statusCode
-      : "status" in error
-        ? error.status
-        : undefined;
-    return typeof candidate === "number" ? candidate : undefined;
-  };
-  const failedResponses = new WeakSet<Response>();
-  const fail = (
-    req: Request,
-    res: Response,
-    error: unknown,
-    status?: number,
-    headers?: IncomingHttpHeaders,
-  ) => {
-    if (failedResponses.has(res)) return;
-    failedResponses.add(res);
-    const responseStatus = status && status >= 400 && status <= 599 ? status : 502;
-    log.error(
-      { ...context(req, status, headers), err: error },
-      "Clerk upstream proxy request failed",
-    );
-    if (res.headersSent) {
-      res.destroy(error instanceof Error ? error : undefined);
-      return;
-    }
-    const reason = "Clerk upstream request failed";
-    res.status(responseStatus).type("text/plain").send(reason);
-  };
-
-  const proxy = proxyFactory({
-    target: upstreamOrigin,
+  return createProxyMiddleware({
+    target: getClerkFapiOrigin(env.CLERK_PUBLISHABLE_KEY),
     changeOrigin: true,
     // The deployment edge rejects chunked proxied responses. Handle the
     // upstream response so every body has an explicit Content-Length.
@@ -196,25 +123,12 @@ export function clerkProxyMiddleware({
         }
       },
       proxyRes: (proxyRes, req, res) => {
-        const expressReq = req as Request;
-        const expressRes = res as Response;
         const headers = { ...proxyRes.headers };
         delete headers["transfer-encoding"];
         delete headers.connection;
         delete headers["keep-alive"];
 
         const status = proxyRes.statusCode ?? 502;
-        if (status >= 400) {
-          proxyRes.resume();
-          fail(
-            expressReq,
-            expressRes,
-            new Error(`Clerk upstream returned HTTP ${status}`),
-            status,
-            proxyRes.headers,
-          );
-          return;
-        }
         if (status < 200 || status === 204) {
           delete headers["content-length"];
         }
@@ -226,9 +140,7 @@ export function clerkProxyMiddleware({
           status === 304;
         if (headers["content-length"] !== undefined || bodyless) {
           res.writeHead(status, headers);
-          proxyRes.on("error", (error) => {
-            fail(expressReq, expressRes, error, status, proxyRes.headers);
-          });
+          proxyRes.on("error", () => res.destroy());
           proxyRes.pipe(res);
           return;
         }
@@ -241,24 +153,13 @@ export function clerkProxyMiddleware({
           res.writeHead(status, headers);
           res.end(body);
         });
-        proxyRes.on("error", (error) => {
-          fail(expressReq, expressRes, error, status, proxyRes.headers);
+        proxyRes.on("error", () => {
+          if (!res.headersSent) {
+            res.writeHead(502, { "content-length": "0" });
+          }
+          res.end();
         });
-      },
-      error: (error, req, res) => {
-        fail(req as Request, res as Response, error, errorStatus(error));
       },
     },
   }) as RequestHandler;
-
-  return (req, res, next) => {
-    try {
-      proxy(req, res, (error) => {
-        if (error) fail(req, res, error, errorStatus(error));
-        else next();
-      });
-    } catch (error) {
-      fail(req, res, error, errorStatus(error));
-    }
-  };
 }

@@ -1,7 +1,6 @@
 import { createServer, request as httpRequest, type IncomingMessage, type ServerResponse } from "node:http";
 import { spawn, spawnSync } from "node:child_process";
-import { createReadStream, existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,8 +30,6 @@ run("pnpm", ["--filter", "@workspace/mbs-crm", "run", "build"], buildEnv);
 const smokeDatabaseName = `migration_rehearsal_smoke_${process.pid}_${Date.now()}`;
 const smokeDatabaseUrl = new URL(baseDatabaseUrl);
 smokeDatabaseUrl.pathname = `/${smokeDatabaseName}`;
-const smokeDirectory = mkdtempSync(join(tmpdir(), "mbs-built-smoke-"));
-const smokeSchemaFile = join(smokeDirectory, "schema.sql");
 let smokeDatabaseDropped = false;
 function dropSmokeDatabase(): void {
   if (smokeDatabaseDropped) return;
@@ -43,31 +40,27 @@ function dropSmokeDatabase(): void {
     process.env,
   );
 }
-function removeSmokeDirectory(): void {
-  rmSync(smokeDirectory, { recursive: true, force: true });
-}
 run("createdb", [`--maintenance-db=${baseDatabaseUrl}`, smokeDatabaseName], process.env);
 try {
-  run("pg_dump", [
-    `--dbname=${baseDatabaseUrl}`,
-    "--schema-only",
-    "--no-owner",
-    "--no-privileges",
-    `--file=${smokeSchemaFile}`,
-  ], process.env);
   run("psql", [
     `--dbname=${smokeDatabaseUrl.toString()}`,
     "--set=ON_ERROR_STOP=on",
-    `--file=${smokeSchemaFile}`,
+    `--file=${join(root, "lib/db/schema-ci-baseline/000_pre_runner_schema.sql")}`,
   ], process.env);
-  removeSmokeDirectory();
+  run(
+    "pnpm",
+    ["--filter", "@workspace/scripts", "exec", "tsx", "../lib/db/src/migrationRehearsalRunner.ts"],
+    {
+      ...process.env,
+      MIGRATION_REHEARSAL_DATABASE_URL: smokeDatabaseUrl.toString(),
+    },
+  );
   run("psql", [
     `--dbname=${smokeDatabaseUrl.toString()}`,
     "--set=ON_ERROR_STOP=on",
     "--command=INSERT INTO users (clerk_id, name, email, role, is_active, slug) VALUES ('smoke_nate', 'Nate', 'smoke-nate@example.invalid', 'rep', true, 'nate');",
   ], process.env);
 } catch (error) {
-  removeSmokeDirectory();
   dropSmokeDatabase();
   throw error;
 }
@@ -168,7 +161,6 @@ const shutdown = async (exitCode = 0) => {
   stopping = true;
   await new Promise<void>((resolve) => server.close(() => resolve()));
   api.kill("SIGTERM");
-  removeSmokeDirectory();
   dropSmokeDatabase();
   process.exit(exitCode);
 };
@@ -177,14 +169,12 @@ process.on("SIGTERM", () => void shutdown(0));
 process.on("uncaughtException", (error) => {
   console.error(error);
   api.kill("SIGTERM");
-  removeSmokeDirectory();
   dropSmokeDatabase();
   process.exit(1);
 });
 process.on("unhandledRejection", (error) => {
   console.error(error);
   api.kill("SIGTERM");
-  removeSmokeDirectory();
   dropSmokeDatabase();
   process.exit(1);
 });

@@ -458,8 +458,6 @@ function applicationBody(application: Application, lead: Pick<Lead, "email" | "p
     requestedAmount: application.requestedAmount,
     yearMakeModel: application.yearMakeModel,
     trucksInFleet: application.trucksInFleet,
-    equipmentCategory: application.equipmentCategory,
-    isHomeowner: application.isHomeowner,
     downPaymentAmount: application.downPaymentAmount,
     useOfFunds: application.useOfFunds,
     equipmentDescription: application.equipmentDescription,

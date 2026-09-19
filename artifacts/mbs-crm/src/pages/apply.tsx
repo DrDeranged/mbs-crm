@@ -154,10 +154,8 @@ interface FormData {
   vendorName: string;
   vendorQuoteAmount: string;
   equipmentCondition: "new" | "used" | "";
-  equipmentCategory: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | "";
   yearMakeModel: string;
   trucksInFleet: string;
-  isHomeowner: boolean | null;
   downPaymentAmount: string;
   hasFinancialStatements: boolean | null;
   hasFactoring: boolean | null;
@@ -197,10 +195,9 @@ const emptyForm = (): FormData => ({
   yearsUnderCurrentOwnership: "", businessDescription: "", estCreditScore: "",
   timelineFundsNeeded: "", timeInBusinessMonths: "", monthlyRevenueStated: "",
   requestedAmount: "", useOfFunds: "",
-  equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "", equipmentCategory: "",
+  equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "",
   yearMakeModel: "", trucksInFleet: "", downPaymentAmount: "",
   hasFinancialStatements: null, hasFactoring: null, hasCollateral: false, industryExperienceMonths: "",
-  isHomeowner: null,
   email: "", phone: "",
   ownerFirstName: "", ownerLastName: "", ownerSsn: "", ownerDob: "",
   ownerHomeAddress: "", ownerHomeCity: "", ownerHomeState: "", ownerHomeZip: "",
@@ -684,19 +681,6 @@ export default function ApplyPage() {
                         <Input value={form.equipmentDescription} onChange={(e) => set({ equipmentDescription: e.target.value })} placeholder="e.g. 2024 Ford F-250 Work Truck" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Equipment Category</Label>
-                        <Select value={form.equipmentCategory} onValueChange={(v) => set({ equipmentCategory: v as FormData["equipmentCategory"] })}>
-                          <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="vocational">Vocational vehicle</SelectItem>
-                            <SelectItem value="otr_truck">OTR truck</SelectItem>
-                            <SelectItem value="trailer">Trailer</SelectItem>
-                            <SelectItem value="construction">Construction equipment</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
                         <Label className="text-xs">Vendor / Dealer Name</Label>
                         <Input value={form.vendorName} onChange={(e) => set({ vendorName: e.target.value })} placeholder="Dealer name" />
                       </div>
@@ -825,19 +809,6 @@ export default function ApplyPage() {
                   <div className="space-y-1">
                     <Label className="text-xs">Ownership %</Label>
                     <Input type="number" min="1" max="100" value={form.ownershipPct} onChange={(e) => set({ ownershipPct: e.target.value })} />
-                  </div>
-                  <div className="sm:col-span-2 space-y-1">
-                    <Label className="text-xs">Homeownership</Label>
-                    <Select
-                      value={form.isHomeowner === null ? "" : String(form.isHomeowner)}
-                      onValueChange={(v) => set({ isHomeowner: v === "true" })}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Yes</SelectItem>
-                        <SelectItem value="false">No</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
                 <details className="rounded-xl border border-slate-200 bg-slate-50">

@@ -29,7 +29,7 @@ export function createClerkHealthProbe({
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let proxyReachable = false;
     try {
-      await request(getClerkFapiOrigin(), controller.signal);
+      await request(getClerkFapiOrigin(values.CLERK_PUBLISHABLE_KEY), controller.signal);
       proxyReachable = true;
     } catch {
       proxyReachable = false;

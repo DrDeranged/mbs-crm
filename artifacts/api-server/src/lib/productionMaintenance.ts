@@ -20,7 +20,6 @@ import {
 import {
   EXISTING_LENDER_UPDATES,
   NEW_LENDER_SEEDS,
-  PRESERVED_LEGACY_LENDER_NAMES,
   applyExistingLenderUpdate,
   newLenderSeedToInsertValues,
   planNewLenderSeeds,
@@ -340,11 +339,7 @@ export async function executeLenderSeedAndUpdates(
 ): Promise<LenderSeedOperationResult> {
   await tx.execute(sql`SELECT pg_advisory_xact_lock(874240)`);
   const existing = await tx.select().from(lendersTable).where(
-    sql`${lendersTable.name} IN (${sql.join(
-      [...NEW_LENDER_SEEDS.map((seed) => seed.name), ...PRESERVED_LEGACY_LENDER_NAMES]
-        .map((name) => sql`${name}`),
-      sql`, `,
-    )})`,
+    sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
   );
   const plan = planNewLenderSeeds(existing.map((lender) => lender.name));
   for (const seed of plan.toCreate) {
@@ -369,7 +364,6 @@ export async function executeLenderSeedAndUpdates(
         minMonthlyRevenue: lendersTable.minMonthlyRevenue,
         restrictedIndustryMinMonthlyRevenue: lendersTable.restrictedIndustryMinMonthlyRevenue,
         programEligibilityRules: lendersTable.programEligibilityRules,
-        contactEmail: lendersTable.contactEmail,
       })
       .from(lendersTable)
       .where(eq(lendersTable.name, update.name))
@@ -426,11 +420,7 @@ export async function executeLenderSeedAndUpdates(
   }
 
   const lenders = await tx.select().from(lendersTable).where(
-    sql`${lendersTable.name} IN (${sql.join(
-      [...NEW_LENDER_SEEDS.map((seed) => seed.name), ...PRESERVED_LEGACY_LENDER_NAMES]
-        .map((name) => sql`${name}`),
-      sql`, `,
-    )})`,
+    sql`${lendersTable.name} IN (${sql.join(NEW_LENDER_SEEDS.map((seed) => sql`${seed.name}`), sql`, `)})`,
   );
   const updatedExistingNames: string[] = existingLenderUpdates
     .filter((update) => update.status === "updated")
@@ -455,9 +445,6 @@ export async function executeLenderSeedAndUpdates(
   const unchangedNames: string[] = [...new Set([
     ...plan.unchangedNames,
     ...unchangedExistingNames,
-    ...lenders
-      .map((lender) => lender.name)
-      .filter((name) => PRESERVED_LEGACY_LENDER_NAMES.includes(name as (typeof PRESERVED_LEGACY_LENDER_NAMES)[number])),
   ])].filter((name) => !createdNames.includes(name) && !updatedNames.includes(name));
   return {
     created: createdNames.length,

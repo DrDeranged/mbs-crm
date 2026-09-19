@@ -110,7 +110,6 @@ async function requestWithDatabase(
   database: ReturnType<typeof makeDatabase>,
   notifyRep: (params: Record<string, unknown>) => Promise<void> = async () => {},
   sendEmail: (params: Record<string, unknown>) => Promise<{ error?: unknown }> = async () => ({}),
-  applicationFields: { equipmentCategory?: string | null; isHomeowner?: boolean | null } = {},
 ) {
   const app = express();
   app.use(createApplicationSubmitRouter({
@@ -156,13 +155,6 @@ async function requestWithDatabase(
     body.set("monthlyRevenueStated", "1200000");
     body.set("timeInBusinessMonths", "18");
     body.set("industryExperienceMonths", "36");
-    if (applicationFields.equipmentCategory !== undefined) {
-      if (applicationFields.equipmentCategory !== null) body.set("equipmentCategory", applicationFields.equipmentCategory);
-      else body.set("equipmentCategory", "null");
-    }
-    if (applicationFields.isHomeowner !== undefined) {
-      body.set("isHomeowner", applicationFields.isHomeowner === null ? "null" : String(applicationFields.isHomeowner));
-    }
     body.set("hasFinancialStatements", "true");
     body.set("hasFactoring", "false");
     body.set("consentCreditPull", "true");
@@ -184,13 +176,6 @@ test("application submit attributes a rep-slug lead and records QR-card activity
   const database = makeDatabase();
   const response = await requestWithDatabase(database);
   assert.equal(response.status, 201);
-  assert.deepEqual(await response.json(), {
-    success: true,
-    lead_id: 501,
-    tracking_token: "tracking-501",
-    equipmentCategory: null,
-    isHomeowner: null,
-  });
 
   const leadInsert = database.inserted.find((row) => row.table === leadsTable);
   assert.equal(leadInsert?.values.assignedRepId, 17);
@@ -213,48 +198,6 @@ test("application submit attributes a rep-slug lead and records QR-card activity
   assert.equal(applicationInsert?.values.hasCollateral, false);
 });
 
-test("application submit persists and returns equipment category and homeownership", async () => {
-  const database = makeDatabase();
-  const response = await requestWithDatabase(database, async () => {}, async () => ({}), {
-    equipmentCategory: "vocational",
-    isHomeowner: true,
-  });
-
-  assert.equal(response.status, 201);
-  assert.deepEqual(await response.json(), {
-    success: true,
-    lead_id: 501,
-    tracking_token: "tracking-501",
-    equipmentCategory: "vocational",
-    isHomeowner: true,
-  });
-  const applicationInsert = database.inserted.find((row) => row.table === applicationsTable);
-  assert.equal(applicationInsert?.values.equipmentCategory, "vocational");
-  assert.equal(applicationInsert?.values.isHomeowner, true);
-});
-
-test("application submit rejects explicit null category and homeownership values", async () => {
-  const categoryDatabase = makeDatabase();
-  const categoryResponse = await requestWithDatabase(
-    categoryDatabase,
-    async () => {},
-    async () => ({}),
-    { equipmentCategory: null },
-  );
-  assert.equal(categoryResponse.status, 400);
-  assert.equal(categoryDatabase.inserted.length, 0);
-
-  const homeownerDatabase = makeDatabase();
-  const homeownerResponse = await requestWithDatabase(
-    homeownerDatabase,
-    async () => {},
-    async () => ({}),
-    { isHomeowner: null },
-  );
-  assert.equal(homeownerResponse.status, 400);
-  assert.equal(homeownerDatabase.inserted.length, 0);
-});
-
 test("a second public application reuses its existing email lead, logs the re-application, and notifies its assigned rep", async () => {
   const database = makeDatabase({
     id: 777,
@@ -271,13 +214,7 @@ test("a second public application reuses its existing email lead, logs the re-ap
     notifications.push(params);
   });
   assert.equal(response.status, 201);
-  assert.deepEqual(await response.json(), {
-    success: true,
-    lead_id: 777,
-    tracking_token: null,
-    equipmentCategory: null,
-    isHomeowner: null,
-  });
+  assert.deepEqual(await response.json(), { success: true, lead_id: 777, tracking_token: null });
   assert.equal(database.executed.length, 2, "email and phone identities are transaction-locked before lookup");
   assert.equal(database.inserted.filter((row) => row.table === leadsTable && !("update" in row.values)).length, 0);
   assert.equal(database.inserted.filter((row) => row.table === applicationsTable && !("update" in row.values)).length, 1);
@@ -312,13 +249,7 @@ test("a phone-only re-application sends only to the stored lead email, never the
     return {};
   });
   assert.equal(response.status, 201);
-  assert.deepEqual(await response.json(), {
-    success: true,
-    lead_id: 778,
-    tracking_token: null,
-    equipmentCategory: null,
-    isHomeowner: null,
-  });
+  assert.deepEqual(await response.json(), { success: true, lead_id: 778, tracking_token: null });
   assert.equal(sentEmails.length, 1);
   assert.equal(sentEmails[0]?.toEmail, "verified@example.com");
   assert.notEqual(sentEmails[0]?.toEmail, "jamie@example.com");

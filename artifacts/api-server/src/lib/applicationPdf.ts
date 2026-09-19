@@ -321,8 +321,6 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Year, make, model (if applicable)", app.yearMakeModel, "span-3"),
        cell("Equipment financing or working capital?", app.type === "equipment" ? "Equipment Financing" : app.type === "working_capital" ? "Working Capital" : app.type, "span-2"),
       cell("# of trucks in fleet (if applicable)", app.trucksInFleet, "span-2"),
-      cell("Equipment category", app.equipmentCategory, "span-2"),
-      cell("Homeownership", app.isHomeowner == null ? null : app.isHomeowner ? "Yes" : "No", "span-2"),
       cell("Down payment amount", money(app.downPaymentAmount), "span-2"),
     ], "financing-grid")}
   </section>
@@ -542,8 +540,6 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       { label: "Year, make, model (if applicable)", value: app.yearMakeModel, span: 3 },
       { label: "Equipment financing or working capital?", value: app.type === "equipment" ? "Equipment Financing" : app.type === "working_capital" ? "Working Capital" : app.type, span: 2 },
       { label: "# of trucks in fleet (if applicable)", value: app.trucksInFleet, span: 2 },
-      { label: "Equipment category", value: app.equipmentCategory, span: 2 },
-      { label: "Homeownership", value: app.isHomeowner == null ? null : app.isHomeowner ? "Yes" : "No", span: 2 },
       { label: "Down payment amount", value: nativeMoney(app.downPaymentAmount), span: 2 },
     ],
   });

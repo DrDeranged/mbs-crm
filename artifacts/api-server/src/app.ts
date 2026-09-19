@@ -24,6 +24,11 @@ initSentry();
 const app: Express = express();
 export const clerkProxyHandler = clerkProxyMiddleware();
 
+// This must remain the first Express layer. The Clerk asset/FAPI proxy streams
+// requests and responses and must never pass through application auth,
+// validation, parsing, security-header, compression, or rate-limit middleware.
+app.use(CLERK_PROXY_PATH, clerkProxyHandler);
+
 const recordHttp5xx = createHttp5xxRecorder({
   logger,
   persist: async (record) => {
@@ -49,36 +54,31 @@ function observeHttp5xx(req: Request, res: Response, error?: unknown): void {
 app.set("trust proxy", 1);
 
 // Attach a unique request id to every request
-export const requestIdMiddleware = (req: Request, _res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
   req.requestId = crypto.randomUUID();
   next();
-};
-app.use(requestIdMiddleware);
-
-export const requestLoggingMiddleware = pinoHttp({
-  logger,
-  genReqId: (req) => (req as Request).requestId,
-  serializers: {
-    req(req) {
-      return {
-        id: req.id,
-        method: req.method,
-        url: req.url?.split("?")[0],
-      };
-    },
-    res(res) {
-      return {
-        statusCode: res.statusCode,
-      };
-    },
-  },
 });
-app.use(requestLoggingMiddleware);
 
-// The Clerk asset/FAPI proxy must remain immediately after observability and
-// before application auth, validation, parsing, security-header, compression,
-// or rate-limit middleware.
-app.use(CLERK_PROXY_PATH, clerkProxyHandler);
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req) => (req as Request).requestId,
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url?.split("?")[0],
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
+);
 
 app.use(
   helmet({
