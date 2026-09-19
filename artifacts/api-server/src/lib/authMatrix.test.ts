@@ -64,7 +64,6 @@ function mockedClerkAuth(userId: string | null) {
 test("the real API router has a gate before every private mutation", async () => {
   const {
     default: apiRouter,
-    bootCriticalRouter,
     mutationAuthenticationGuard,
     PUBLIC_MUTATION_PATHS,
   } = await import("../routes/index");
@@ -77,13 +76,12 @@ test("the real API router has a gate before every private mutation", async () =>
   );
 
   const registrations = walkRouter(apiRouter);
-  const allRegistrations = [...walkRouter(bootCriticalRouter), ...registrations];
-  assert.equal(allRegistrations.length, 213, "update this audited count when registering a route");
+  assert.equal(registrations.length, 205, "update this audited count when registering a route");
   const matrix = await readFile(new URL("../../../../docs/AUTH_MATRIX.md", import.meta.url), "utf8");
   const documentedRoutes = [...matrix.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| `([^`]+)` \|/gm)]
     .map(([, method, path]) => `${method} ${path}`)
     .sort();
-  const runtimeRoutes = allRegistrations
+  const runtimeRoutes = registrations
     .map(({ method, path }) => `${method} /api${path}`)
     .sort();
   assert.deepEqual(

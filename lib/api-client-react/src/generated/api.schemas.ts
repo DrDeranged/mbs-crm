@@ -2636,10 +2636,6 @@ export interface SeededDealReassignmentResponse {
   calvinCleared: number;
   calvinReservedUnassigned: number;
   arslanTotalDeals: number;
-  seededRowsFound: number;
-  seededRowsExpected: number;
-  convertedOrDeleted: number;
-  seededRowsSummary: string;
   changedDealIds: number[];
 }
 
@@ -2691,10 +2687,6 @@ export interface ProductionCloseoutOwnershipDetails {
   calvinCleared: number;
   calvinReservedUnassigned: number;
   arslanTotalDeals: number;
-  seededRowsFound: number;
-  seededRowsExpected: number;
-  convertedOrDeleted: number;
-  seededRowsSummary: string;
 }
 
 export type ProductionCloseoutSlugsDetailsUsersItem = {

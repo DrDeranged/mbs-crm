@@ -45,27 +45,6 @@ export type SeededAssignedUser = {
   slug: string | null;
 };
 
-export function selectMatchingSeededDealRows<Row extends SeededDealRow>(
-  rows: readonly Row[],
-  users: readonly SeededAssignedUser[],
-): Row[] {
-  const ordinaryNames = new Set<string>(ORDINARY_SEED_DEAL_NAMES);
-  const calvinNames = new Set<string>(CALVIN_SEED_DEAL_NAMES);
-  const usersById = new Map(users.map((assignedUser) => [assignedUser.id, assignedUser]));
-
-  return rows.filter((row) => {
-    if (ordinaryNames.has(row.dealName)) {
-      return row.intendedRepSlug === null && (row.assignedTo === 7 || row.assignedTo === 16);
-    }
-    if (!calvinNames.has(row.dealName) || (row.intendedRepSlug !== null && row.intendedRepSlug !== "calvin")) {
-      return false;
-    }
-    return row.assignedTo === null
-      || row.assignedTo === 7
-      || usersById.get(row.assignedTo)?.slug === "calvin";
-  });
-}
-
 /**
  * Pure precondition check for the maintenance transaction. Keeping this
  * separate makes it difficult for a future seed edit to silently broaden the
@@ -75,16 +54,37 @@ export function validateSeededDealRows(
   rows: readonly SeededDealRow[],
   users: readonly SeededAssignedUser[],
 ): string | null {
-  const matchingRows = selectMatchingSeededDealRows(rows, users);
-  if (matchingRows.length === 0) {
-    return `No matching seeded rows found (0 of ${ALL_SEED_DEAL_NAMES.length})`;
+  if (rows.length !== ALL_SEED_DEAL_NAMES.length) {
+    return `Expected exactly ${ALL_SEED_DEAL_NAMES.length} seeded rows, found ${rows.length}`;
   }
+  const expectedNames = new Set<string>(ALL_SEED_DEAL_NAMES);
+  const ordinaryNames = new Set<string>(ORDINARY_SEED_DEAL_NAMES);
+  const calvinNames = new Set<string>(CALVIN_SEED_DEAL_NAMES);
   const rowsByName = new Map<string, SeededDealRow>();
-  for (const row of matchingRows) {
-    if (rowsByName.has(row.dealName)) {
-      return `Multiple matching seeded rows found for ${row.dealName}`;
+  for (const row of rows) {
+    if (!expectedNames.has(row.dealName) || rowsByName.has(row.dealName)) {
+      return "Seeded deal names must contain exactly one row for each expected name";
     }
     rowsByName.set(row.dealName, row);
+  }
+  if (rowsByName.size !== expectedNames.size) {
+    return "Seeded deal names are missing an expected row";
+  }
+
+  const usersById = new Map(users.map((assignedUser) => [assignedUser.id, assignedUser]));
+  for (const row of rows) {
+    if (ordinaryNames.has(row.dealName)) {
+      if (row.intendedRepSlug !== null || (row.assignedTo !== 7 && row.assignedTo !== 16)) {
+        return `Ordinary seeded deal ${row.dealName} failed its ownership precondition`;
+      }
+      continue;
+    }
+    if (!calvinNames.has(row.dealName) || (row.intendedRepSlug !== null && row.intendedRepSlug !== "calvin")) {
+      return `Reserved seeded deal ${row.dealName} failed its Calvin marker precondition`;
+    }
+    if (row.assignedTo !== null && row.assignedTo !== 7 && usersById.get(row.assignedTo)?.slug !== "calvin") {
+      return `Reserved seeded deal ${row.dealName} has an invalid assignee`;
+    }
   }
   return null;
 }

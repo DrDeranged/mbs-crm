@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/app-shell";
-import { PwaHandler } from "@/hooks/use-pwa";
 import { BrandLogo } from "@/components/brand-logo";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
@@ -289,7 +288,6 @@ function AppRoutes() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
-          <PwaHandler />
           <Switch>
             <Route path="/" component={HomeRedirect} />
             <Route path="/login">

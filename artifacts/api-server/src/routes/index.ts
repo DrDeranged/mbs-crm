@@ -12,7 +12,7 @@ import lenderPackageRouter from "./lenderPackage";
 import activityRouter from "./activity";
 import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
-import { twilioProviderRouter, twilioTokenRouter } from "./twilio";
+import twilioRouter from "./twilio";
 import communicationsRouter from "./communications";
 import emailRouter from "./email";
 import dripRouter from "./drip";
@@ -31,7 +31,7 @@ import adminErrorsRouter from "./adminErrors";
 import adminBackupRouter from "./adminBackup";
 import piiAccessLogRouter from "./piiAccessLog";
 import adminGovernanceRouter from "./adminGovernance";
-import repAdminRouter, { publicRepRouter } from "./repPublic";
+import repPublicRouter from "./repPublic";
 import dealsRouter from "./deals";
 import adminProductionCloseoutRouter from "./adminProductionCloseout";
 import adminMigrationsRouter from "./adminMigrations";
@@ -40,17 +40,8 @@ import usfaIntakeRouter from "./usfaIntake";
 import usfaPrefillRouter from "./usfaPrefill";
 import collateralRouter from "./collateral";
 import partnerContactsRouter from "./partnerContacts";
-import pushNotificationsRouter from "./pushNotifications";
-import adminPushHealthRouter from "./adminPushHealth";
 
 const router: IRouter = Router();
-export const bootCriticalRouter: IRouter = Router();
-
-bootCriticalRouter.use(healthRouter);
-bootCriticalRouter.use(publicRepRouter);
-bootCriticalRouter.use(sendgridRouter);
-bootCriticalRouter.use(twilioProviderRouter);
-bootCriticalRouter.use(usfaIntakeRouter);
 
 /**
  * These are the only unauthenticated state-changing API endpoints. Public
@@ -98,24 +89,24 @@ export function createMutationAuthenticationGuard(
 }
 
 export const mutationAuthenticationGuard = createMutationAuthenticationGuard();
-
-// Provider callbacks authenticate with their own raw-body signatures and must
-// be registered before the global mutation gate.
 router.use(mutationAuthenticationGuard);
 
+router.use(healthRouter);
+router.use(repPublicRouter);
 router.use(dealsRouter);
 router.use(adminProductionCloseoutRouter);
 router.use(adminMigrationsRouter);
 router.use(adminUsfaIntakeRouter);
-router.use(repAdminRouter);
+router.use(usfaIntakeRouter);
 router.use(usfaPrefillRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);
-router.use(twilioTokenRouter);
+router.use(twilioRouter);
 router.use(communicationsRouter);
 router.use(emailRouter);
 router.use(dripRouter);
+router.use(sendgridRouter);
 router.use(leadsRouter);
 router.use(notesRouter);
 router.use(tasksRouter);
@@ -140,7 +131,5 @@ router.use(adminGovernanceRouter);
 router.use(storageRouter);
 router.use(collateralRouter);
 router.use(partnerContactsRouter);
-router.use(pushNotificationsRouter);
-router.use(adminPushHealthRouter);
 
 export default router;

@@ -8,7 +8,6 @@ import { getUserDisplayName } from "../lib/authHelpers";
 import { buildApplicationFormHtml, enrichApplicationPdfRep, renderApplicationFormPdf } from "../lib/applicationPdf";
 
 const router = Router();
-export const publicRepRouter = Router();
 
 type PublicRepUser = Pick<typeof usersTable.$inferSelect, "name" | "email" | "mobileNumber" | "slug"> & {
   id?: number;
@@ -306,11 +305,11 @@ export async function retireRepSlug(input: RetireSlugInput, database: RetireSlug
 }
 
 // Deliberately returns the same generic payload for unknown and inactive slugs.
-publicRepRouter.use(createPublicRepResolverRouter());
+router.use(createPublicRepResolverRouter());
 
-publicRepRouter.use(createRepQrRouter());
+router.use(createRepQrRouter());
 
-publicRepRouter.use(createPublicApplicationFormRouter());
+router.use(createPublicApplicationFormRouter());
 
 router.get("/admin/qr-verify", async (req: Request, res: Response) => {
   // Do not use requireUser here: it may reconcile reserved deals as a side

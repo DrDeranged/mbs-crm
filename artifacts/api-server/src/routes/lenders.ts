@@ -19,7 +19,6 @@ import { decrypt } from "../lib/encryption";
 import { logPiiAccess } from "../lib/piiAccess";
 import { doSendEmail, renderTemplate, buildVariables } from "./email";
 import { getPublicBaseUrl } from "../lib/brand";
-import { createNotification } from "../lib/notify";
 import {
   seedNewLenders,
   type LenderSeedOperationResult,
@@ -415,7 +414,6 @@ export type LenderSubmissionRouteDependencies = {
   sendEmail?: typeof doSendEmail;
   getBaseUrl?: typeof getPublicBaseUrl;
   recordActivity?: typeof logActivity;
-  notify?: typeof createNotification;
   storeExactPackage?: (key: string, bytes: Buffer) => Promise<void>;
   downloadExactPackage?: (key: string) => Promise<Buffer>;
   acquireSubmissionLock?: (leadId: number, lenderId: number) => Promise<(() => Promise<void>) | null>;
@@ -869,7 +867,6 @@ export function createUpdateSubmissionHandler(
   const routeDb = dependencies.database ?? db;
   const authenticate = dependencies.authenticate ?? requireUser;
   const recordActivity = dependencies.recordActivity ?? logActivity;
-  const notify = dependencies.notify ?? createNotification;
 
   return async function updateSubmission(req: Request, res: Response): Promise<void> {
     const user = await authenticate(req, res);
@@ -915,19 +912,6 @@ export function createUpdateSubmissionHandler(
     const submitter = updated.sentBy
       ? await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, updated.sentBy) })
       : null;
-    if (status !== undefined && status !== existing.status) {
-      const lead = await routeDb.query.leadsTable.findFirst({ where: eq(leadsTable.id, existing.leadId) });
-      if (lead?.assignedRepId) {
-        await notify({
-          userId: lead.assignedRepId,
-          type: "status_changed",
-          event: "submission_status_changed",
-          title: "Lender submission status changed",
-          body: `Submission status changed to ${status}`,
-          leadId: existing.leadId,
-        });
-      }
-    }
 
     res.json(submissionToApi(updated, lender, submitter));
   };

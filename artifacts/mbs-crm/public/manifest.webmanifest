@@ -1,20 +1,12 @@
 {
   "name": "MBS CRM",
-  "short_name": "MBS",
-  "start_url": "./?source=pwa",
+  "short_name": "MBS CRM",
+  "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#0E2A47",
   "theme_color": "#0E2A47",
   "icons": [
-    { "src": "./favicon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./favicon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./favicon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "./favicon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ],
-  "shortcuts": [
-    { "name": "Leads", "url": "./leads", "icons": [{ "src": "./favicon-192x192.png", "sizes": "192x192" }] },
-    { "name": "Deals", "url": "./deals", "icons": [{ "src": "./favicon-192x192.png", "sizes": "192x192" }] },
-    { "name": "Documents", "url": "./documents", "icons": [{ "src": "./favicon-192x192.png", "sizes": "192x192" }] }
+    { "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512x512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

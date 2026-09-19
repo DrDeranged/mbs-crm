@@ -34,7 +34,6 @@ export const communicationsTable = pgTable(
     index("comms_user_idx").on(t.userId),
     index("comms_twilio_sid_idx").on(t.twilioSid),
     index("comms_created_idx").on(t.createdAt),
-    index("communications_partner_idx").on(t.partnerId),
   ],
 );
 

@@ -27,5 +27,3 @@
 - [Orval whitespace drift](orval-whitespace-drift.md) — verification-only codegen can add blank lines to the generated React client; inspect and discard whitespace-only drift.
 - [Orval input-resolution failure](orval-input-resolution.md) — Orval 8.9.1 currently cleans generated folders, then rejects valid YAML targets; restore outputs after failed runs.
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
-- [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
-- [Drizzle Kit composite PK parity](drizzle-kit-composite-pk-parity.md) — avoid new composite primary keys; pushSchema 0.31.10 drops introspection params and breaks schema parity.

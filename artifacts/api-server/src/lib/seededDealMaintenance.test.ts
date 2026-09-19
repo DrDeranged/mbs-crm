@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 // @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
-import { ALL_SEED_DEAL_NAMES, selectMatchingSeededDealRows, validateSeededDealRows, type SeededDealRow, type SeededAssignedUser } from "./seededDealMaintenance.ts";
+import { ALL_SEED_DEAL_NAMES, validateSeededDealRows, type SeededDealRow, type SeededAssignedUser } from "./seededDealMaintenance.ts";
 // @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
 import { normalizeFundingTimeDays } from "./analyticsHelpers.ts";
 // @ts-expect-error Node's strip-types test runner resolves explicit .ts imports.
@@ -79,25 +79,17 @@ test("closeout preserves a real Calvin assignment instead of creating a clear/re
   assert.equal(deal, undefined);
 });
 
-test("tolerates converted or deleted seed rows and reports only matching markers", () => {
-  const partialRows = rows({
-    "Four Pillars": { assignedTo: 99, intendedRepSlug: "calvin" },
-  }).slice(0, -1);
-  const matching = selectMatchingSeededDealRows(partialRows, [
-    sourceUser,
-    { id: 99, slug: "not-calvin" },
-  ]);
-
-  assert.equal(matching.length, ALL_SEED_DEAL_NAMES.length - 2);
-  assert.equal(validateSeededDealRows(partialRows, [sourceUser, { id: 99, slug: "not-calvin" }]), null);
-});
-
-test("fails closeout only when no matching seeded rows remain", () => {
-  assert.match(
-    validateSeededDealRows([
-      { dealName: "Four Pillars", assignedTo: 99, intendedRepSlug: "calvin" },
-    ], [{ id: 99, slug: "not-calvin" }]) ?? "",
-    /0 of 25/,
+test("rejects conflicting Calvin markers and assignees", () => {
+  assert.notEqual(
+    validateSeededDealRows(rows({ "Four Pillars": { intendedRepSlug: "other" } }), [sourceUser]),
+    null,
+  );
+  assert.notEqual(
+    validateSeededDealRows(
+      rows({ "Four Pillars": { assignedTo: 99, intendedRepSlug: "calvin" } }),
+      [sourceUser, { id: 99, slug: "not-calvin" }],
+    ),
+    null,
   );
 });
 

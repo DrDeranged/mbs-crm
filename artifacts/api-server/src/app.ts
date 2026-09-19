@@ -12,7 +12,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
-import router, { bootCriticalRouter } from "./routes";
+import router from "./routes";
 import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
@@ -22,13 +22,6 @@ import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
 initSentry();
 
 const app: Express = express();
-export const clerkProxyHandler = clerkProxyMiddleware();
-
-// This must remain the first Express layer. The Clerk asset/FAPI proxy streams
-// requests and responses and must never pass through application auth,
-// validation, parsing, security-header, compression, or rate-limit middleware.
-app.use(CLERK_PROXY_PATH, clerkProxyHandler);
-
 const recordHttp5xx = createHttp5xxRecorder({
   logger,
   persist: async (record) => {
@@ -89,6 +82,8 @@ app.use(
 
 app.use(compression());
 
+app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+
 const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
@@ -117,17 +112,14 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
-// These routes must run before Clerk auth/validation. Provider callbacks use
-// their own signature checks and health/proxy probes must remain unauthenticated.
-app.use("/api", bootCriticalRouter);
-
-export const globalClerkMiddleware = clerkMiddleware((req) => ({
+app.use(
+  clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
       getClerkProxyHost(req) ?? "",
       process.env.CLERK_PUBLISHABLE_KEY,
     ),
-  }));
-app.use(globalClerkMiddleware);
+  })),
+);
 
 // Handlers which intentionally catch an error and send a 5xx response still
 // need structured log/error-log coverage. Unhandled errors are recorded below

@@ -1,7 +1,7 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { tasksTable, jobRunsTable } from "@workspace/db";
-import { createNotification } from "./notify";
+import { tasksTable, usersTable, jobRunsTable } from "@workspace/db";
+import { sendPushNotification } from "./pushNotifications";
 import { captureException } from "./sentry";
 import { logger } from "./logger";
 
@@ -30,30 +30,37 @@ export async function runTaskReminderJob(): Promise<void> {
       .select({
         userId: tasksTable.userId,
         count: tasksTable.id,
+        pushToken: usersTable.pushToken,
       })
       .from(tasksTable)
+      .innerJoin(usersTable, eq(tasksTable.userId, usersTable.id))
       .where(
         and(
           isNotNull(tasksTable.dueDate),
           eq(tasksTable.dueDate, todayStartStr),
           isNull(tasksTable.completedAt),
+          isNotNull(usersTable.pushToken),
         ),
       );
 
-    const byUser = new Map<number, number>();
+    const byUser = new Map<number, { pushToken: string; count: number }>();
     for (const row of tasksDueToday) {
-      if (row.userId == null) continue;
-      byUser.set(row.userId, (byUser.get(row.userId) ?? 0) + 1);
+      if (!row.pushToken || row.userId == null) continue;
+      const existing = byUser.get(row.userId);
+      if (existing) {
+        existing.count++;
+      } else {
+        byUser.set(row.userId, { pushToken: row.pushToken, count: 1 });
+      }
     }
 
-    for (const [userId, count] of byUser) {
-      await createNotification({
-        userId,
-        type: "task_due",
-        title: "Tasks Due Today",
-        body: `You have ${count} task${count !== 1 ? "s" : ""} due today`,
-        event: "task_due",
-      });
+    for (const [, { pushToken, count }] of byUser) {
+      await sendPushNotification(
+        pushToken,
+        "Tasks Due Today",
+        `You have ${count} task${count !== 1 ? "s" : ""} due today`,
+        { type: "task_reminder" },
+      );
     }
 
     itemsProcessed = byUser.size;

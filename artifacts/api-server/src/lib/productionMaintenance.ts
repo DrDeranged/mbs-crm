@@ -14,7 +14,6 @@ import {
   ALL_SEED_DEAL_NAMES as SEEDED_DEAL_NAMES,
   CALVIN_SEED_DEAL_NAMES as SEEDED_CALVIN_NAMES,
   ORDINARY_SEED_DEAL_NAMES as SEEDED_ORDINARY_NAMES,
-  selectMatchingSeededDealRows,
   validateSeededDealRows,
 } from "./seededDealMaintenance";
 import {
@@ -105,20 +104,9 @@ export async function correctSeededDealOwnership(actorId: number) {
       : [];
     const validationError = validateSeededDealRows(lockedDeals, assignedUsers);
     if (validationError) throw new ProductionMaintenanceError(validationError);
-    const matchingDeals = selectMatchingSeededDealRows(lockedDeals, assignedUsers);
-    const matchingDealIds = matchingDeals.map((deal) => deal.id);
-    const ordinaryNames = new Set<string>(SEEDED_ORDINARY_NAMES);
-    const calvinNames = new Set<string>(SEEDED_CALVIN_NAMES);
-    const ordinaryFoundIds = matchingDeals.filter((deal) => ordinaryNames.has(deal.dealName)).map((deal) => deal.id);
-    const calvinFoundIds = matchingDeals.filter((deal) => calvinNames.has(deal.dealName)).map((deal) => deal.id);
-    const seededRowsFound = matchingDeals.length;
-    const seededRowsExpected = SEEDED_DEAL_NAMES.length;
-    const convertedOrDeleted = seededRowsExpected - seededRowsFound;
-    const seededRowsSummary =
-      `${seededRowsFound} of ${seededRowsExpected} seeded rows found (${convertedOrDeleted} converted or deleted)`;
 
     const { ordinaryToNate, calvinToClear, calvinMarkerOnly } =
-      planSeededOwnershipCorrections(matchingDeals, assignedUsers);
+      planSeededOwnershipCorrections(lockedDeals, assignedUsers);
     const updatedAt = new Date();
     let ordinaryChanged: Array<{ id: number; leadId: number | null }> = [];
     if (ordinaryToNate.length > 0) {
@@ -181,44 +169,41 @@ export async function correctSeededDealOwnership(actorId: number) {
         .set({ intendedRepSlug: "calvin", updatedAt })
         .where(inArray(dealsTable.id, calvinMarkerOnly.map((deal) => deal.id)));
     }
-    const [ordinaryAtNateRow] = ordinaryFoundIds.length === 0 ? [{ count: 0 }] : await tx
+    const [ordinaryAtNateRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(dealsTable)
       .where(and(
         eq(dealsTable.assignedTo, SEEDED_ASSIGNMENT_TARGET_ID),
         isNull(dealsTable.intendedRepSlug),
-        inArray(dealsTable.id, ordinaryFoundIds),
+        inArray(dealsTable.dealName, [...SEEDED_ORDINARY_NAMES]),
       ));
-    const [calvinReservedUnassignedRow] = calvinFoundIds.length === 0 ? [{ count: 0 }] : await tx
+    const [calvinReservedUnassignedRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(dealsTable)
       .where(and(
         isNull(dealsTable.assignedTo),
         eq(dealsTable.intendedRepSlug, "calvin"),
-        inArray(dealsTable.id, calvinFoundIds),
+        inArray(dealsTable.dealName, [...SEEDED_CALVIN_NAMES]),
       ));
-    const [calvinOwnershipValidRow] = calvinFoundIds.length === 0 ? [{ count: 0 }] : await tx
+    const [calvinOwnershipValidRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(dealsTable)
       .leftJoin(usersTable, eq(usersTable.id, dealsTable.assignedTo))
       .where(and(
         eq(dealsTable.intendedRepSlug, "calvin"),
         or(isNull(dealsTable.assignedTo), eq(usersTable.slug, "calvin")),
-        inArray(dealsTable.id, calvinFoundIds),
+        inArray(dealsTable.dealName, [...SEEDED_CALVIN_NAMES]),
       ));
     const [arslanTotalDealsRow] = await tx
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(dealsTable)
-      .where(and(
-        eq(dealsTable.assignedTo, SEEDED_ASSIGNMENT_SOURCE_ID),
-        inArray(dealsTable.id, matchingDealIds),
-      ));
+      .where(eq(dealsTable.assignedTo, SEEDED_ASSIGNMENT_SOURCE_ID));
     const ordinaryAtNate = ordinaryAtNateRow?.count ?? 0;
     const calvinReservedUnassigned = calvinReservedUnassignedRow?.count ?? 0;
     const calvinOwnershipValid = calvinOwnershipValidRow?.count ?? 0;
     const arslanTotalDeals = arslanTotalDealsRow?.count ?? 0;
-    if (ordinaryAtNate !== ordinaryFoundIds.length
-      || calvinOwnershipValid !== calvinFoundIds.length
+    if (ordinaryAtNate !== SEEDED_ORDINARY_NAMES.length
+      || calvinOwnershipValid !== SEEDED_CALVIN_NAMES.length
       || arslanTotalDeals !== 0) {
       throw new ProductionMaintenanceError("Seeded deal ownership postconditions were not satisfied");
     }
@@ -230,10 +215,6 @@ export async function correctSeededDealOwnership(actorId: number) {
       calvinCleared: calvinCleared.length,
       calvinReservedUnassigned,
       arslanTotalDeals,
-      seededRowsFound,
-      seededRowsExpected,
-      convertedOrDeleted,
-      seededRowsSummary,
       changedDealIds,
     };
   });

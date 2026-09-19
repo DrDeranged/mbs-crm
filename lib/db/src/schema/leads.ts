@@ -3,7 +3,6 @@ import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, uniqu
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
-import { lendersTable } from "./lenders";
 
 export const LEAD_STATUSES = [
   "new_lead",
@@ -50,10 +49,7 @@ export const leadsTable = pgTable(
     estimatedTermMonths: integer("estimated_term_months"),
     renewalFlaggedAt: timestamp("renewal_flagged_at"),
     trackingToken: text("tracking_token").unique(),
-    referredByPartnerId: integer("referred_by_partner_id").references(
-      () => lendersTable.id,
-      { onDelete: "set null" },
-    ),
+    referredByPartnerId: integer("referred_by_partner_id"),
     referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
     externalId: text("external_id"),
     creditScoreBand: text("credit_score_band"),

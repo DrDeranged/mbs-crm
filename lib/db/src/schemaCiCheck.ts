@@ -20,85 +20,42 @@ const equivalentDefaultStatements = new Set([
   `ALTER TABLE "deal_approvals" ALTER COLUMN "down_payment" SET DEFAULT 0;`,
 ]);
 
-const equivalentConstraintPairs = [
-  [
-    `ALTER TABLE "deals" DROP CONSTRAINT "deals_lead_id_fkey";`,
-    `ALTER TABLE "deals" ADD CONSTRAINT "deals_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE set null ON UPDATE no action;`,
-  ],
-  [
-    `ALTER TABLE "deals" DROP CONSTRAINT "deals_assigned_to_fkey";`,
-    `ALTER TABLE "deals" ADD CONSTRAINT "deals_assigned_to_users_id_fk" FOREIGN KEY ("assigned_to") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`,
-  ],
-  [
-    `ALTER TABLE "leads" DROP CONSTRAINT "leads_referred_by_partner_id_fkey";`,
-    `ALTER TABLE "leads" ADD CONSTRAINT "leads_referred_by_partner_id_lenders_id_fk" FOREIGN KEY ("referred_by_partner_id") REFERENCES "public"."lenders"("id") ON DELETE set null ON UPDATE no action;`,
-  ],
-  [
-    `ALTER TABLE "deals" DROP CONSTRAINT "deals_referred_by_partner_id_fkey";`,
-    `ALTER TABLE "deals" ADD CONSTRAINT "deals_referred_by_partner_id_lenders_id_fk" FOREIGN KEY ("referred_by_partner_id") REFERENCES "public"."lenders"("id") ON DELETE set null ON UPDATE no action;`,
-  ],
-  [`ALTER TABLE "retired_rep_slugs" DROP CONSTRAINT "retired_rep_slugs_slug_key";`, `ALTER TABLE "retired_rep_slugs" ADD CONSTRAINT "retired_rep_slugs_slug_unique" UNIQUE("slug");`],
-  [`ALTER TABLE "usfa_intake_log" DROP CONSTRAINT "usfa_intake_log_external_id_key";`, `ALTER TABLE "usfa_intake_log" ADD CONSTRAINT "usfa_intake_log_external_id_unique" UNIQUE("external_id");`],
-  [`ALTER TABLE "usfa_application_email_log" DROP CONSTRAINT "usfa_application_email_log_gmail_message_id_key";`, `ALTER TABLE "usfa_application_email_log" ADD CONSTRAINT "usfa_application_email_log_gmail_message_id_unique" UNIQUE("gmail_message_id");`],
-  [`ALTER TABLE "usfa_prefill_invites" DROP CONSTRAINT "usfa_prefill_invites_token_hash_key";`, `ALTER TABLE "usfa_prefill_invites" ADD CONSTRAINT "usfa_prefill_invites_token_hash_unique" UNIQUE("token_hash");`],
-  [`ALTER TABLE "user_identities" DROP CONSTRAINT "user_identities_clerk_id_key";`, `ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_clerk_id_unique" UNIQUE("clerk_id");`],
-  [`ALTER TABLE "activity_log" DROP CONSTRAINT "activity_log_deal_id_fkey";`, `ALTER TABLE "activity_log" ADD CONSTRAINT "activity_log_deal_id_deals_id_fk" FOREIGN KEY ("deal_id") REFERENCES "public"."deals"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "users" DROP CONSTRAINT "users_merged_into_user_id_fkey";`, `ALTER TABLE "users" ADD CONSTRAINT "users_merged_into_user_id_users_id_fk" FOREIGN KEY ("merged_into_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;`],
-  [`ALTER TABLE "communications" DROP CONSTRAINT "communications_partner_id_fkey";`, `ALTER TABLE "communications" ADD CONSTRAINT "communications_partner_id_lenders_id_fk" FOREIGN KEY ("partner_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "email_templates" DROP CONSTRAINT "email_templates_owner_id_fkey";`, `ALTER TABLE "email_templates" ADD CONSTRAINT "email_templates_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "drip_sequences" DROP CONSTRAINT "drip_sequences_owner_id_fkey";`, `ALTER TABLE "drip_sequences" ADD CONSTRAINT "drip_sequences_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "retired_rep_slugs" DROP CONSTRAINT "retired_rep_slugs_user_id_fkey";`, `ALTER TABLE "retired_rep_slugs" ADD CONSTRAINT "retired_rep_slugs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;`],
-  [`ALTER TABLE "usfa_intake_log" DROP CONSTRAINT "usfa_intake_log_lead_id_fkey";`, `ALTER TABLE "usfa_intake_log" ADD CONSTRAINT "usfa_intake_log_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "usfa_intake_prefill" DROP CONSTRAINT "usfa_intake_prefill_lead_id_fkey";`, `ALTER TABLE "usfa_intake_prefill" ADD CONSTRAINT "usfa_intake_prefill_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submission_deliveries" DROP CONSTRAINT "lender_submission_deliveries_lead_id_fkey";`, `ALTER TABLE "lender_submission_deliveries" ADD CONSTRAINT "lender_submission_deliveries_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submission_deliveries" DROP CONSTRAINT "lender_submission_deliveries_lender_id_fkey";`, `ALTER TABLE "lender_submission_deliveries" ADD CONSTRAINT "lender_submission_deliveries_lender_id_lenders_id_fk" FOREIGN KEY ("lender_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submission_deliveries" DROP CONSTRAINT "lender_submission_deliveries_sent_by_fkey";`, `ALTER TABLE "lender_submission_deliveries" ADD CONSTRAINT "lender_submission_deliveries_sent_by_users_id_fk" FOREIGN KEY ("sent_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "usfa_application_email_log" DROP CONSTRAINT "usfa_application_email_log_lead_id_fkey";`, `ALTER TABLE "usfa_application_email_log" ADD CONSTRAINT "usfa_application_email_log_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "usfa_prefill_invites" DROP CONSTRAINT "usfa_prefill_invites_lead_id_fkey";`, `ALTER TABLE "usfa_prefill_invites" ADD CONSTRAINT "usfa_prefill_invites_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "usfa_prefill_invites" DROP CONSTRAINT "usfa_prefill_invites_rep_user_id_fkey";`, `ALTER TABLE "usfa_prefill_invites" ADD CONSTRAINT "usfa_prefill_invites_rep_user_id_users_id_fk" FOREIGN KEY ("rep_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "deal_approvals" DROP CONSTRAINT "deal_approvals_approval_document_id_fkey";`, `ALTER TABLE "deal_approvals" ADD CONSTRAINT "deal_approvals_approval_document_id_documents_id_fk" FOREIGN KEY ("approval_document_id") REFERENCES "public"."documents"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "deal_approvals" DROP CONSTRAINT "deal_approvals_created_by_fkey";`, `ALTER TABLE "deal_approvals" ADD CONSTRAINT "deal_approvals_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "deal_approvals" DROP CONSTRAINT "deal_approvals_deal_id_fkey";`, `ALTER TABLE "deal_approvals" ADD CONSTRAINT "deal_approvals_deal_id_deals_id_fk" FOREIGN KEY ("deal_id") REFERENCES "public"."deals"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "deal_approvals" DROP CONSTRAINT "deal_approvals_lender_id_fkey";`, `ALTER TABLE "deal_approvals" ADD CONSTRAINT "deal_approvals_lender_id_lenders_id_fk" FOREIGN KEY ("lender_id") REFERENCES "public"."lenders"("id") ON DELETE restrict ON UPDATE no action;`],
-  [`ALTER TABLE "collateral_templates" DROP CONSTRAINT "collateral_templates_created_by_fkey";`, `ALTER TABLE "collateral_templates" ADD CONSTRAINT "collateral_templates_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "collateral_renders" DROP CONSTRAINT "collateral_renders_lead_id_fkey";`, `ALTER TABLE "collateral_renders" ADD CONSTRAINT "collateral_renders_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "collateral_renders" DROP CONSTRAINT "collateral_renders_template_id_fkey";`, `ALTER TABLE "collateral_renders" ADD CONSTRAINT "collateral_renders_template_id_collateral_templates_id_fk" FOREIGN KEY ("template_id") REFERENCES "public"."collateral_templates"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "collateral_renders" DROP CONSTRAINT "collateral_renders_user_id_fkey";`, `ALTER TABLE "collateral_renders" ADD CONSTRAINT "collateral_renders_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "user_identities" DROP CONSTRAINT "user_identities_user_id_fkey";`, `ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submissions" DROP CONSTRAINT "lender_submissions_deal_fk";`, `ALTER TABLE "lender_submissions" ADD CONSTRAINT "lender_submissions_deal_id_deals_id_fk" FOREIGN KEY ("deal_id") REFERENCES "public"."deals"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submissions" DROP CONSTRAINT "lender_submissions_end_lender_id_fkey";`, `ALTER TABLE "lender_submissions" ADD CONSTRAINT "lender_submissions_end_lender_id_lenders_id_fk" FOREIGN KEY ("end_lender_id") REFERENCES "public"."lenders"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submissions" DROP CONSTRAINT "lender_submissions_submitted_by_users_id_fk";`, `ALTER TABLE "lender_submissions" ADD CONSTRAINT "lender_submissions_sent_by_users_id_fk" FOREIGN KEY ("sent_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "lender_submissions" DROP CONSTRAINT "lender_submissions_via_broker_id_fkey";`, `ALTER TABLE "lender_submissions" ADD CONSTRAINT "lender_submissions_via_broker_id_lenders_id_fk" FOREIGN KEY ("via_broker_id") REFERENCES "public"."lenders"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "admin_audit_log" DROP CONSTRAINT "admin_audit_log_actor_user_id_fkey";`, `ALTER TABLE "admin_audit_log" ADD CONSTRAINT "admin_audit_log_actor_user_id_users_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;`],
-  [`ALTER TABLE "partner_contacts" DROP CONSTRAINT "partner_contacts_created_by_fkey";`, `ALTER TABLE "partner_contacts" ADD CONSTRAINT "partner_contacts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
-  [`ALTER TABLE "partner_contacts" DROP CONSTRAINT "partner_contacts_partner_id_fkey";`, `ALTER TABLE "partner_contacts" ADD CONSTRAINT "partner_contacts_partner_id_lenders_id_fk" FOREIGN KEY ("partner_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`],
-] as const;
-
-const equivalentIndexPairs = [
-  [
-    `DROP INDEX "lender_submission_deliveries_lead_lender_idx";`,
-    `CREATE INDEX "lender_submission_deliveries_lead_lender_idx" ON "lender_submission_deliveries" USING btree ("lead_id","lender_id","created_at" DESC NULLS LAST);`,
-  ],
-  [
-    `DROP INDEX "deal_approvals_deal_created_idx";`,
-    `CREATE INDEX "deal_approvals_deal_created_idx" ON "deal_approvals" USING btree ("deal_id","created_at" DESC NULLS LAST,"id" DESC NULLS LAST);`,
-  ],
-] as const;
+const constraintKind = (statement: string): string | undefined => {
+  if (statement.includes(" FOREIGN KEY ")) return "foreign-key";
+  if (statement.includes(" UNIQUE(")) return "unique";
+  if (statement.includes(" CHECK ")) return "check";
+  const droppedName = statement.match(/DROP CONSTRAINT "([^"]+)"/)?.[1];
+  if (!droppedName) return undefined;
+  if (droppedName.endsWith("_key")) return "unique";
+  if (droppedName.endsWith("_check")) return "check";
+  if (droppedName.endsWith("_fk") || droppedName.endsWith("_fkey")) {
+    return "foreign-key";
+  }
+  return undefined;
+};
 
 export function filterCheckerArtifacts(statements: string[]): string[] {
   const normalized = statements.map((statement) => statement.trim());
-  const equivalentConstraintStatements = new Set<string>();
-  for (const [dropped, added] of equivalentConstraintPairs) {
-    if (normalized.includes(dropped) && normalized.includes(added)) {
-      equivalentConstraintStatements.add(dropped);
-      equivalentConstraintStatements.add(added);
+  const droppedConstraints = new Map<string, number>();
+  const addedConstraints = new Map<string, number>();
+  const droppedIndexes = new Set<string>();
+  const createdIndexes = new Set<string>();
+
+  for (const statement of normalized) {
+    const table = statement.match(/^ALTER TABLE "([^"]+)"/)?.[1];
+    const kind = constraintKind(statement);
+    if (table && kind && statement.includes(" DROP CONSTRAINT ")) {
+      const key = `${table}:${kind}`;
+      droppedConstraints.set(key, (droppedConstraints.get(key) ?? 0) + 1);
     }
-  }
-  for (const [dropped, added] of equivalentIndexPairs) {
-    if (normalized.includes(dropped) && normalized.includes(added)) {
-      equivalentConstraintStatements.add(dropped);
-      equivalentConstraintStatements.add(added);
+    if (table && kind && statement.includes(" ADD CONSTRAINT ")) {
+      const key = `${table}:${kind}`;
+      addedConstraints.set(key, (addedConstraints.get(key) ?? 0) + 1);
     }
+    const droppedIndex = statement.match(/^DROP INDEX "([^"]+)";$/)?.[1];
+    if (droppedIndex) droppedIndexes.add(droppedIndex);
+    const createdIndex = statement.match(/^CREATE (?:UNIQUE )?INDEX "([^"]+)"/)?.[1];
+    if (createdIndex) createdIndexes.add(createdIndex);
   }
 
   return normalized.filter((statement) => {
@@ -110,7 +67,22 @@ export function filterCheckerArtifacts(statements: string[]): string[] {
       return false;
     }
 
-    if (equivalentConstraintStatements.has(statement)) return false;
+    const table = statement.match(/^ALTER TABLE "([^"]+)"/)?.[1];
+    const kind = constraintKind(statement);
+    if (table && kind) {
+      const key = `${table}:${kind}`;
+      if (
+        droppedConstraints.get(key) === addedConstraints.get(key)
+        && (droppedConstraints.get(key) ?? 0) > 0
+      ) {
+        return false;
+      }
+    }
+
+    const droppedIndex = statement.match(/^DROP INDEX "([^"]+)";$/)?.[1];
+    if (droppedIndex && createdIndexes.has(droppedIndex)) return false;
+    const createdIndex = statement.match(/^CREATE (?:UNIQUE )?INDEX "([^"]+)"/)?.[1];
+    if (createdIndex && droppedIndexes.has(createdIndex)) return false;
     return true;
   });
 }
@@ -123,38 +95,12 @@ export function assertSafeSchemaCheckUrl(value: string | undefined): URL {
   const url = new URL(value);
   const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
   const databaseName = url.pathname.replace(/^\//, "");
-  const developmentHost = process.env.DATABASE_URL
-    ? new URL(process.env.DATABASE_URL).hostname
-    : null;
   if (!["postgres:", "postgresql:"].includes(url.protocol)) {
     throw new Error("Schema parity checks require PostgreSQL");
   }
-  if (
-    (!localHosts.has(url.hostname) && url.hostname !== developmentHost)
-    || !/^schema_ci(?:_|$)/.test(databaseName)
-  ) {
+  if (!localHosts.has(url.hostname) || !/^schema_ci(?:_|$)/.test(databaseName)) {
     throw new Error(
-      "Refusing schema parity check: use a fresh database named schema_ci or schema_ci_* on the development PostgreSQL host",
-    );
-  }
-  return url;
-}
-
-export function assertSafeExistingSchemaCheckUrl(value: string | undefined): URL {
-  if (!value) throw new Error("SCHEMA_CHECK_DATABASE_URL is required");
-  const url = new URL(value);
-  const databaseName = url.pathname.replace(/^\//, "");
-  const developmentHost = process.env.DATABASE_URL
-    ? new URL(process.env.DATABASE_URL).hostname
-    : null;
-  const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
-  if (
-    !["postgres:", "postgresql:"].includes(url.protocol)
-    || (!localHosts.has(url.hostname) && url.hostname !== developmentHost)
-    || !/^migration_rehearsal_[a-z0-9_]+$/.test(databaseName)
-  ) {
-    throw new Error(
-      "Refusing existing-schema parity check: use a migration_rehearsal_* database on the development PostgreSQL host",
+      "Refusing schema parity check: use a fresh local database named schema_ci or schema_ci_*",
     );
   }
   return url;
@@ -215,31 +161,20 @@ export async function checkRunnerMigrationParity(
       })}`);
     }
 
-    await assertDatabaseMatchesDrizzle(database);
-  } finally {
-    await pool.end();
-  }
-}
-
-async function assertDatabaseMatchesDrizzle(database: any): Promise<void> {
-  const schema = await loadCompleteSchemaSet();
-  const diff = await pushSchema(schema, database, ["public"], ["*", "!schema_migrations"]);
-  const actionableDiff = filterCheckerArtifacts(diff.statementsToExecute);
-  if (actionableDiff.length > 0) {
-    throw new Error([
-      "Drizzle schema differs from the migrated database:",
-      ...actionableDiff,
-    ].join("\n\n"));
-  }
-}
-
-export async function checkExistingMigrationParity(
-  connectionString = process.env.SCHEMA_CHECK_DATABASE_URL,
-): Promise<void> {
-  const safeUrl = assertSafeExistingSchemaCheckUrl(connectionString);
-  const pool = new Pool({ connectionString: safeUrl.toString(), max: 1 });
-  try {
-    await assertDatabaseMatchesDrizzle(drizzle(pool));
+    const schema = await loadCompleteSchemaSet();
+    const diff = await pushSchema(
+      schema,
+      database,
+      ["public"],
+      ["*", "!schema_migrations"],
+    );
+    const actionableDiff = filterCheckerArtifacts(diff.statementsToExecute);
+    if (actionableDiff.length > 0) {
+      throw new Error([
+        "Drizzle schema differs from a database built by the SQL migration runner:",
+        ...actionableDiff,
+      ].join("\n\n"));
+    }
   } finally {
     await pool.end();
   }
@@ -248,10 +183,6 @@ export async function checkExistingMigrationParity(
 const invokedDirectly = process.argv[1]
   && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 if (invokedDirectly) {
-  if (process.env.SCHEMA_CHECK_EXISTING === "true") {
-    await checkExistingMigrationParity();
-  } else {
-    await checkRunnerMigrationParity();
-  }
+  await checkRunnerMigrationParity();
   console.log("Schema parity OK: SQL runner and complete Drizzle schema set match");
 }

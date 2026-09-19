@@ -41,8 +41,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | --- | --- | --- | --- | --- |
 | GET | `/api/` | `routes/health.ts:10` | `P` | N/A |
 | GET | `/api/healthz` | `routes/health.ts:15` | `P` | N/A |
-| GET | `/api/health/deep` | `routes/health.ts:21` | `P` | infrastructure health only; no push subscription counts or delivery timestamps |
-| GET | `/api/admin/push/health` | `routes/adminPushHealth.ts` | `A` | admin-only push subscription and delivery health |
+| GET | `/api/health/deep` | `routes/health.ts:20` | `P` | N/A |
 | POST | `/api/intake/usfa` | `routes/usfaIntake.ts:46` | `W` | provider callback; mapper and dedupe rules determine the target lead |
 | GET | `/api/public/reps/:slug/usfa-prefill/:token` | `routes/usfaPrefill.ts:76` | `P` | opaque slug-bound token; returns only initial SSN/DOB prefill with no-store and synchronous PII audit |
 | GET | `/api/admin/usfa-intake` | `routes/adminUsfaIntake.ts:19` | `A` | admin-only intake status and receipt log |
@@ -184,13 +183,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/notifications/read-all` | `routes/notifications.ts:23` | `U` | `notificationsTable.userId === user.id` |
 | GET | `/api/notifications` | `routes/notifications.ts:36` | `U` | `notificationsTable.userId === user.id` |
 | PUT | `/api/notifications/:id/read` | `routes/notifications.ts:77` | `U` | update predicate includes `notificationsTable.userId === user.id` |
-| GET | `/api/notifications/vapid-public-key` | `routes/pushNotifications.ts` | `U` | exposes only the public VAPID key to authenticated users |
-| GET | `/api/notifications/preferences` | `routes/pushNotifications.ts` | `U` | preferences are scoped to the signed-in user |
-| PUT | `/api/notifications/preferences` | `routes/pushNotifications.ts` | `U` | server owns the preference user identity |
-| PUT | `/api/notifications/subscriptions` | `routes/pushNotifications.ts` | `U` | subscription is upserted for the signed-in user |
-| POST | `/api/notifications/subscriptions` | `routes/pushNotifications.ts` | `U` | compatibility alias; subscription is scoped to the signed-in user |
-| DELETE | `/api/notifications/subscriptions` | `routes/pushNotifications.ts` | `U` | only the signed-in user's endpoint is removed |
-| POST | `/api/admin/push/test` | `routes/pushNotifications.ts` | `A` | admins only; sends to the signed-in admin |
 | POST | `/api/ai/pipeline-digest` | `routes/ai.ts:52` | `M` | reps rejected |
 | GET | `/api/leads/:id/ai/briefing` | `routes/ai.ts:65` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/ai/briefing` | `routes/ai.ts:85` | `L` | `lead.assignedRepId === user.id` for reps |

@@ -11,13 +11,6 @@ export const notificationsQuery = z.object({
 }).strict();
 const notificationId = z.coerce.number().int().positive();
 
-function logRejectedField(req: Request, field: string): void {
-  const request = req as Request & {
-    log?: { warn: (context: Record<string, unknown>, message: string) => void };
-  };
-  request.log?.warn({ rejectedField: field }, "Rejected notifications request field");
-}
-
 type NotificationRow = typeof notificationsTable.$inferSelect & {
   lead?: {
     firstName: string | null;
@@ -105,7 +98,6 @@ export function createNotificationsRouter({
 
     const query = notificationsQuery.safeParse(req.query);
     if (!query.success) {
-      logRejectedField(req, query.error.issues[0]?.path.join(".") || "query");
       return void res.status(400).json({ error: `Invalid ${query.error.issues[0]?.path.join(".") || "query"}` });
     }
     const page = query.data.page ?? 1;
@@ -143,7 +135,6 @@ export function createNotificationsRouter({
 
     const id = notificationId.safeParse(req.params.id);
     if (!id.success) {
-      logRejectedField(req, "id");
       return void res.status(400).json({ error: "Invalid id" });
     }
     await store.markRead(user.id, id.data);

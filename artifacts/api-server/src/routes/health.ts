@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
+import { sql } from "drizzle-orm";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
 import { jobRunsTable, emailSendsTable, emailWebhookEventsTable } from "@workspace/db";
 import { getMigrationStatus } from "@workspace/db";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth } from "../lib/integrationHealth";
-import { getClerkHealth } from "../lib/clerkHealth";
 import { getBootSchemaFailure } from "../lib/schemaBoot";
 
 const router: IRouter = Router();
@@ -63,13 +63,10 @@ router.get("/health/deep", async (_req, res) => {
   }
 
   // 2. Integration presence (booleans only, no secret values)
-  const [detailedIntegrations, clerk] = await Promise.all([
-    getIntegrationHealth(),
-    getClerkHealth(),
-  ]) as [{
+  const detailedIntegrations = await getIntegrationHealth() as {
     twilio: object;
     sendgrid: object;
-  }, Awaited<ReturnType<typeof getClerkHealth>>];
+  };
   let sendgridDelivery: {
     configured: boolean;
     fromEmail: string;
@@ -107,7 +104,6 @@ router.get("/health/deep", async (_req, res) => {
   }
   const integrations = {
     ...detailedIntegrations,
-    clerk,
     sendgrid: sendgridDelivery,
     experian: !!(process.env.EXPERIAN_CLIENT_ID || process.env.EXPERIAN_CLIENT_SECRET),
     anthropic: !!(

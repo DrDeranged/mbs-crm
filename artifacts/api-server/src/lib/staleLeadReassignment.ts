@@ -4,7 +4,6 @@ import {
   db,
   leadAssignmentHistoryTable,
   leadsTable,
-  notificationDeliveryClaimsTable,
 } from "@workspace/db";
 import { buildStaleLeadCondition } from "./staleLeadCondition";
 import {
@@ -13,7 +12,6 @@ import {
 } from "./leadDistribution";
 import { shouldAutoReassignStale } from "./leadRouting";
 import { logger } from "./logger";
-import { deliverNotification, insertNotification, type NotificationExecutor } from "./notify";
 
 type CoreSelectDatabase = Pick<typeof db, "select">;
 
@@ -48,36 +46,9 @@ export async function listStaleRoundRobinLeadCandidates(
  */
 export async function runStaleLeadAutoReassignment(): Promise<number> {
   const settings = await getRoutingSettings();
-  const staleLeads = await listStaleRoundRobinLeadCandidates(db, settings.staleDays);
-
-  // Stale reminders are useful even when automatic reassignment is disabled.
-  // The reassignment guard below remains unchanged.
-  for (const lead of staleLeads) {
-    if (!lead.assignedRepId) continue;
-    // Calendar-day dedup is durable across scheduler interval drift and
-    // process restarts (unlike the former ten-minute window).
-    const now = new Date();
-    const periodKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    const notification = {
-      userId: lead.assignedRepId, type: "status_changed" as const, event: "stale_lead" as const,
-      title: "Stale lead needs follow-up", body: "This lead has gone quiet and needs follow-up.",
-      leadId: lead.id,
-    };
-    const won = await db.transaction(async (tx) => {
-      const [claim] = await tx.insert(notificationDeliveryClaimsTable).values({
-        userId: lead.assignedRepId!, event: "stale_lead", scopeKey: `lead:${lead.id}`, periodKey,
-      }).onConflictDoNothing().returning({ id: notificationDeliveryClaimsTable.id });
-      if (!claim) return false;
-      const row = await insertNotification(tx as NotificationExecutor, notification);
-      await tx.update(notificationDeliveryClaimsTable)
-        .set({ notificationId: row.id })
-        .where(eq(notificationDeliveryClaimsTable.id, claim.id));
-      return true;
-    });
-    if (won) await deliverNotification(notification);
-  }
-
   if (!shouldAutoReassignStale("website", settings)) return 0;
+
+  const staleLeads = await listStaleRoundRobinLeadCandidates(db, settings.staleDays);
 
   let reassigned = 0;
   for (const lead of staleLeads) {
