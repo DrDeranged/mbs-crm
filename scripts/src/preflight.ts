@@ -2,11 +2,11 @@ import path from "node:path";
 import { run } from "./process";
 
 export const checks: ReadonlyArray<{ label: string; script: string }> = [
+  { label: "schema path guard", script: "guard:schema-path" },
   { label: "recovery guard", script: "recovery:guard" },
   { label: "typecheck", script: "typecheck" },
   { label: "full suite", script: "test" },
   { label: "migration lint", script: "lint:migrations" },
-  { label: "schema parity", script: "check:schema" },
   { label: "built-app smoke", script: "smoke" },
   { label: "migration dependency lint", script: "lint:migration-dependencies" },
   { label: "production database clone", script: "db:clone-prod" },

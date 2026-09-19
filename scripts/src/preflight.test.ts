@@ -5,6 +5,7 @@ import { checks, runPreflight } from "./preflight";
 test("preflight keeps migration safety gates explicit and ordered", () => {
   const scripts = checks.map((check) => check.script);
   const required = [
+    "guard:schema-path",
     "lint:migration-dependencies",
     "db:clone-prod",
     "migrate:rehearse",
@@ -14,6 +15,7 @@ test("preflight keeps migration safety gates explicit and ordered", () => {
     scripts.filter((script) => required.includes(script)),
     required,
   );
+  assert.equal(scripts[0], "guard:schema-path");
 });
 
 test("preflight stops at a failed migration safety gate", async () => {
