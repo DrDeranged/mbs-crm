@@ -12,6 +12,7 @@ export function usePwa() {
     if ('serviceWorker' in navigator) {
       // Resolve against the base URL provided by Vite
       const swUrl = `${import.meta.env.BASE_URL}sw.js?v=${SERVICE_WORKER_VERSION}`;
+      const hadControllerBeforeRegistration = Boolean(navigator.serviceWorker.controller);
       
       navigator.serviceWorker
         .register(swUrl)
@@ -40,13 +41,15 @@ export function usePwa() {
         })
         .catch((err) => console.error('SW reg error:', err));
 
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
+      if (hadControllerBeforeRegistration) {
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      }
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {

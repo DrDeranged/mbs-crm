@@ -1,11 +1,11 @@
 // Keep this namespace private to this PWA. Never delete caches belonging to
 // another application sharing the origin.
-const CACHE_NAME = 'mbs-crm-v1';
-const CACHE_PREFIX = 'mbs-crm-';
-const OFFLINE_URL = './offline.html';
 // Keep this value in sync with the version in use-pwa.tsx. It is deliberately
 // in the script URL so stale workers can be identified and removed.
-const SERVICE_WORKER_VERSION = 'mbs-crm-sw-v2';
+const SERVICE_WORKER_VERSION = 'mbs-crm-sw-v3';
+const CACHE_NAME = `mbs-crm-${SERVICE_WORKER_VERSION}`;
+const CACHE_ALLOWLIST = new Set([CACHE_NAME]);
+const OFFLINE_URL = './offline.html';
 
 function isClerkRequest(url) {
   const hostname = url.hostname.toLowerCase();
@@ -25,14 +25,16 @@ function responseOrError(value) {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Use new Request to ensure it resolves relative to sw.js location
-      return cache.addAll([
-        new Request(OFFLINE_URL, { cache: 'reload' })
-      ]);
-    })
+    Promise.all([
+      caches.open(CACHE_NAME).then((cache) => {
+        // Use new Request to ensure it resolves relative to sw.js location
+        return cache.addAll([
+          new Request(OFFLINE_URL, { cache: 'reload' })
+        ]);
+      }),
+      self.skipWaiting(),
+    ])
   );
-  // Do NOT skipWaiting automatically; wait for user to click reload toast
 });
 
 self.addEventListener('activate', (event) => {
@@ -40,12 +42,11 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
+          .filter((name) => !CACHE_ALLOWLIST.has(name))
           .map((name) => caches.delete(name))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {

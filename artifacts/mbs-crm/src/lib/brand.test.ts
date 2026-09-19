@@ -53,7 +53,7 @@ test("listed pages select the expected variant and preserve requested sizing", (
   const status = read("pages/application-status.tsx");
   const chooser = read("pages/rep-chooser.tsx");
   const notFound = read("pages/not-found.tsx");
-  const main = read("main.tsx");
+  const renderApp = read("renderApp.tsx");
   assert.match(shell, /variant="reverse"[^>]+className="w-\[120px\]"[^>]+imageClassName="h-auto w-\[120px\]"/);
   assert.match(shell, /<BrandLogo className="h-7" imageClassName="h-7 w-auto"/);
   assert.match(app, /variant="reverse"[^>]+className="mx-auto[^"]*w-\[160px\]"/);
@@ -64,7 +64,7 @@ test("listed pages select the expected variant and preserve requested sizing", (
   assert.match(status, /variant="reverse" imageClassName="h-7 w-auto"/);
   assert.match(chooser, /<BrandLogo className="mx-auto" imageClassName="h-10 w-auto" \/>/);
   assert.match(notFound, /<BrandLogo className="mb-6" imageClassName="h-8 w-auto" \/>/);
-  assert.match(main, /<BrandLogo imageClassName="h-8 w-auto" \/>/);
+  assert.match(renderApp, /<BrandLogo imageClassName="h-8 w-auto" \/>/);
 });
 
 test("favicon and PWA metadata point at the canonical icon set", () => {

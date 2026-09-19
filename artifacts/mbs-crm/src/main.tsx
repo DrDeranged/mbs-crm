@@ -1,30 +1,7 @@
-import * as Sentry from "@sentry/react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import { BrandLogo } from "./components/brand-logo";
-import { removeStaleServiceWorkers } from "./lib/serviceWorkerUpdate";
-import "./index.css";
+import { recoverFromStaleServiceWorker } from "./lib/serviceWorkerUpdate";
 
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    sendDefaultPii: false,
-  });
+const recoveryReloadStarted = await recoverFromStaleServiceWorker().catch(() => false);
+
+if (!recoveryReloadStarted) {
+  await import("./renderApp");
 }
-
-void removeStaleServiceWorkers().catch(() => undefined).finally(() => createRoot(document.getElementById("root")!).render(
-  <Sentry.ErrorBoundary
-    fallback={
-      <div style={{ padding: "2rem", fontFamily: "sans-serif", textAlign: "center" }}>
-        <BrandLogo imageClassName="h-8 w-auto" />
-        <h2>Something went wrong</h2>
-        <p>The application encountered an unexpected error. Please refresh the page.</p>
-        <button onClick={() => window.location.reload()} style={{ marginTop: "1rem", padding: "0.5rem 1rem", cursor: "pointer" }}>
-          Refresh
-        </button>
-      </div>
-    }
-  >
-    <App />
-  </Sentry.ErrorBoundary>
-));

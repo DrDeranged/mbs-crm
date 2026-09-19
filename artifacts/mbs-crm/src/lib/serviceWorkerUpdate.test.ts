@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Script, createContext } from "node:vm";
-import { notificationClickAction, removeStaleServiceWorkers, SERVICE_WORKER_VERSION, watchForInstalledUpdate } from "./serviceWorkerUpdate.ts";
+import { notificationClickAction, recoverFromStaleServiceWorker, SERVICE_WORKER_VERSION, watchForInstalledUpdate } from "./serviceWorkerUpdate.ts";
 
 test("new service worker update is announced only after installed with an existing controller", () => {
   let listener: (() => void) | undefined;
@@ -27,12 +27,14 @@ test("notification click focuses a matching client, otherwise opens the exact de
   assert.deepEqual(notificationClickAction([], "/leads/42"), { kind: "open", url: "/leads/42" });
 });
 
-test("service worker keeps API fetches network-only and cleans only its cache namespace", async () => {
+test("service worker keeps API fetches network-only and deletes caches outside its version allowlist", async () => {
   const source = await readFile(resolve(import.meta.dirname, "../../public/sw.js"), "utf8");
   assert.equal(source.includes("url.pathname.startsWith('/api/')"), true);
   assert.equal(source.includes("url.pathname === '/api'"), true);
-  assert.equal(source.includes("name.startsWith(CACHE_PREFIX)"), true);
-  assert.equal(source.includes("caches.delete(name).filter"), false);
+  assert.equal(source.includes("const CACHE_ALLOWLIST = new Set([CACHE_NAME])"), true);
+  assert.equal(source.includes(".filter((name) => !CACHE_ALLOWLIST.has(name))"), true);
+  assert.equal(source.includes("self.skipWaiting()"), true);
+  assert.equal(source.includes(".then(() => self.clients.claim())"), true);
 });
 
 test("service worker bypasses Clerk and API requests and always resolves handled failures to Response", async () => {
@@ -77,38 +79,125 @@ test("service worker bypasses Clerk and API requests and always resolves handled
   assert.equal(response?.type, "error");
 });
 
-test("stale worker kill switch unregisters unknown versions and reloads only once", async () => {
+test("stale worker recovery unregisters every worker, clears every cache, and reloads only once", async () => {
   const originalNavigator = globalThis.navigator;
   const originalWindow = (globalThis as any).window;
   const originalSessionStorage = (globalThis as any).sessionStorage;
+  const originalCaches = (globalThis as any).caches;
   let reloads = 0;
   let unregistered = 0;
+  const deletedCaches: string[] = [];
+  const session = new Map<string, string>();
   const unknown = { scriptURL: "https://crm.test/sw.js?v=old" };
   const current = { scriptURL: `https://crm.test/sw.js?v=${SERVICE_WORKER_VERSION}` };
+  const registrations = [
+    { active: unknown, waiting: null, installing: null, unregister: async () => { unregistered++; } },
+    { active: current, waiting: null, installing: null, unregister: async () => { unregistered++; } },
+  ];
   Object.defineProperty(globalThis, "navigator", {
     configurable: true,
     value: {
       serviceWorker: {
         controller: unknown,
-        getRegistrations: async () => [
-          { active: unknown, waiting: null, installing: null, unregister: async () => { unregistered++; } },
-          { active: current, waiting: null, installing: null, unregister: async () => { unregistered++; } },
-        ],
+        getRegistrations: async () => registrations,
       },
     },
   });
   Object.defineProperty(globalThis, "sessionStorage", {
     configurable: true,
-    value: { getItem: () => null, setItem: () => {} },
+    value: {
+      getItem: (key: string) => session.get(key) ?? null,
+      setItem: (key: string, value: string) => session.set(key, value),
+    },
+  });
+  Object.defineProperty(globalThis, "caches", {
+    configurable: true,
+    value: {
+      keys: async () => ["mbs-crm-v1", "unrelated-cache"],
+      delete: async (name: string) => { deletedCaches.push(name); return true; },
+    },
   });
   Object.defineProperty(globalThis, "window", {
     configurable: true,
     value: { location: { reload: () => { reloads++; } } },
   });
-  await removeStaleServiceWorkers();
-  assert.equal(unregistered, 1);
+  assert.equal(await recoverFromStaleServiceWorker(), true);
+  assert.equal(unregistered, 2);
+  assert.deepEqual(deletedCaches, ["mbs-crm-v1", "unrelated-cache"]);
+  assert.equal(reloads, 1);
+  assert.equal(await recoverFromStaleServiceWorker(), false);
+  assert.equal(unregistered, 4);
   assert.equal(reloads, 1);
   Object.defineProperty(globalThis, "navigator", { configurable: true, value: originalNavigator });
   Object.defineProperty(globalThis, "window", { configurable: true, value: originalWindow });
   Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: originalSessionStorage });
+  Object.defineProperty(globalThis, "caches", { configurable: true, value: originalCaches });
+});
+
+test("current version registrations do not trigger recovery", async () => {
+  const originalNavigator = globalThis.navigator;
+  const current = { scriptURL: `https://crm.test/sw.js?v=${SERVICE_WORKER_VERSION}` };
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: {
+      serviceWorker: {
+        getRegistrations: async () => [
+          { active: current, waiting: null, installing: null, unregister: async () => true },
+        ],
+      },
+    },
+  });
+  assert.equal(await recoverFromStaleServiceWorker(), false);
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: originalNavigator });
+});
+
+test("lookalike and markerless worker versions trigger recovery", async () => {
+  const originalNavigator = globalThis.navigator;
+  const originalWindow = (globalThis as any).window;
+  const originalSessionStorage = (globalThis as any).sessionStorage;
+  const originalCaches = (globalThis as any).caches;
+  let unregistered = 0;
+  for (const scriptURL of [
+    "https://crm.test/sw.js",
+    `https://crm.test/sw.js?v=${SERVICE_WORKER_VERSION}0`,
+    `https://crm.test/sw.js?other=${SERVICE_WORKER_VERSION}`,
+  ]) {
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      value: {
+        serviceWorker: {
+          getRegistrations: async () => [{
+            active: { scriptURL },
+            waiting: null,
+            installing: null,
+            unregister: async () => { unregistered++; return true; },
+          }],
+        },
+      },
+    });
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      value: { getItem: () => "1", setItem: () => {} },
+    });
+    Object.defineProperty(globalThis, "caches", {
+      configurable: true,
+      value: { keys: async () => [], delete: async () => true },
+    });
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: { location: { reload: () => assert.fail("reload guard should suppress reload") } },
+    });
+    assert.equal(await recoverFromStaleServiceWorker(), false);
+  }
+  assert.equal(unregistered, 3);
+  Object.defineProperty(globalThis, "navigator", { configurable: true, value: originalNavigator });
+  Object.defineProperty(globalThis, "window", { configurable: true, value: originalWindow });
+  Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: originalSessionStorage });
+  Object.defineProperty(globalThis, "caches", { configurable: true, value: originalCaches });
+});
+
+test("initial v3 registration does not add a controller-change reload handler", async () => {
+  const source = await readFile(resolve(import.meta.dirname, "../hooks/use-pwa.tsx"), "utf8");
+  assert.match(source, /const hadControllerBeforeRegistration = Boolean\(navigator\.serviceWorker\.controller\)/);
+  assert.match(source, /if \(hadControllerBeforeRegistration\) \{[\s\S]*addEventListener\('controllerchange'/);
 });
