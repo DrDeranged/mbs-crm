@@ -15,6 +15,7 @@
     "check:schema": "pnpm run lint:migrations && pnpm --filter @workspace/scripts exec tsx ./src/check-schema.ts",
     "smoke": "playwright test --config playwright.smoke.config.ts",
     "migrate:rehearse": "pnpm --filter @workspace/scripts exec tsx ./src/migrate-rehearse.ts",
+    "db:divergence": "pnpm --filter @workspace/scripts exec tsx ./src/db-divergence.ts",
     "preflight": "pnpm --filter @workspace/scripts exec tsx ./src/preflight.ts",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
