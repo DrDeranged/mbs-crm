@@ -1443,98 +1443,6 @@ paths:
           description: Lender package exceeds the maximum PDF size
         "500":
           description: Lender package generation failed
-    post:
-      operationId: buildSelectedLenderPackage
-      tags: [documents]
-      summary: Build a PDF from the selected lender-package sections and documents
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LenderPackageConfig"
-      responses:
-        "200":
-          description: Selected lender package PDF
-          content:
-            application/pdf:
-              schema: { type: string, format: binary }
-        "400": { description: Invalid selection or document ownership }
-        "403": { description: Forbidden }
-        "404": { description: Lead or application not found }
-
-  /leads/{id}/package-config:
-    get:
-      operationId: getLeadPackageConfig
-      tags: [documents]
-      summary: Get a lead's saved lender-package configuration
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Saved configuration
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
-    put:
-      operationId: saveLeadPackageConfig
-      tags: [documents]
-      summary: Save a lead's lender-package configuration
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/LenderPackageConfig" }
-      responses:
-        "200":
-          description: Saved configuration
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
-    delete:
-      operationId: resetLeadPackageConfig
-      tags: [documents]
-      summary: Clear a lead's saved lender-package configuration
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "204": { description: Configuration cleared }
-
-  /submissions/{id}/package:
-    get:
-      operationId: downloadExactSubmissionPackage
-      tags: [lenders]
-      summary: Download the immutable PDF package sent with a lender submission
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Exact sent package PDF
-          content:
-            application/pdf:
-              schema: { type: string, format: binary }
-        "403": { description: Forbidden }
-        "404": { description: Submission or package not found }
-        "409": { description: Package integrity validation failed }
 
   /users/{id}/application-form.pdf:
     get:
@@ -3133,18 +3041,12 @@ paths:
         required: true
         content:
           application/json:
-             schema:
-               type: object
-               required: [lender_id]
-               properties:
-                 lender_id:
-                   type: integer
-                 admin_override:
-                   type: boolean
-                   default: false
-                   description: Administrators may bypass the rolling 24-hour duplicate limit
-                 package_config:
-                   $ref: "#/components/schemas/LenderPackageConfig"
+            schema:
+              type: object
+              required: [lender_id]
+              properties:
+                lender_id:
+                  type: integer
       responses:
         "201":
           description: Submission created
@@ -3153,32 +3055,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/LenderSubmission"
 
-  /deals/{id}/submissions:
-    get:
-      operationId: getDealSubmissions
-      tags: [lenders]
-      summary: List lender submissions for a deal
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Submissions list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/LenderSubmission"
-
   /submissions/{id}:
     put:
       operationId: updateSubmission
       tags: [lenders]
-      summary: Update submission status / notes (administrator or assigned representative)
+      summary: Update submission status / notes (managers/admins only)
       parameters:
         - name: id
           in: path
@@ -3194,32 +3075,9 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [submitted, approved, declined, funded]
-                notes:
+                  enum: [submitted, pending, approved, declined, withdrawn]
+                response_notes:
                   type: ["string", "null"]
-      responses:
-        "200":
-          description: Submission updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LenderSubmission"
-    patch:
-      operationId: patchSubmission
-      tags: [lenders]
-      summary: Partially update submission status / notes
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LenderSubmissionUpdate"
       responses:
         "200":
           description: Submission updated
@@ -5669,7 +5527,7 @@ components:
 
     LenderSubmission:
       type: object
-      required: [id, leadId, lenderId, status, sentAt, updatedAt]
+      required: [id, leadId, lenderId, status, submittedAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5681,11 +5539,9 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Lender"
             - type: "null"
-        dealId:
+        submittedBy:
           type: ["integer", "null"]
-        sentBy:
-          type: ["integer", "null"]
-        sentByUser:
+        submittedByUser:
           oneOf:
             - type: object
               properties:
@@ -5698,32 +5554,15 @@ components:
             - type: "null"
         status:
           type: string
-          enum: [submitted, approved, declined, funded]
-        notes:
+          enum: [submitted, pending, approved, declined, withdrawn]
+        responseNotes:
           type: ["string", "null"]
-        messageId:
-          type: ["string", "null"]
-        packageConfigSnapshot:
-          oneOf:
-            - $ref: "#/components/schemas/LenderPackageConfig"
-            - type: "null"
-        hasExactPackage:
-          type: boolean
-        sentAt:
+        submittedAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
-
-    LenderSubmissionUpdate:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: [submitted, approved, declined, funded]
-        notes:
-          type: ["string", "null"]
 
     VariableField:
       type: object
@@ -6828,32 +6667,3 @@ components:
         jobs:
           type: object
           additionalProperties: true
-
-    LenderPackageConfig:
-      type: object
-      additionalProperties: false
-      properties:
-        sections:
-          type: array
-          items:
-            type: string
-            enum: [cover, application, invoice_quote, bank_statement, drivers_license, tax_return, other]
-        documentIds:
-          type: array
-          items: { type: integer }
-        options:
-          type: object
-          additionalProperties: false
-          properties:
-            maskSsn: { type: boolean }
-            includeCoverPage: { type: boolean }
-            includeFooter: { type: boolean }
-
-    LenderPackageConfigResponse:
-      type: object
-      required: [packageConfig]
-      properties:
-        packageConfig:
-          oneOf:
-            - $ref: "#/components/schemas/LenderPackageConfig"
-            - type: "null"

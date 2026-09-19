@@ -41,7 +41,6 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   emailSends: many(emailSendsTable),
   dripEnrollments: many(dripEnrollmentsTable),
   lenderMatches: many(lenderMatchesTable),
-  lenderSubmissions: many(lenderSubmissionsTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -57,7 +56,6 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   dripSequences: many(dripSequencesTable),
   notifications: many(notificationsTable),
   retiredRepSlugs: many(retiredRepSlugsTable),
-  lenderSubmissions: many(lenderSubmissionsTable),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({
@@ -143,7 +141,6 @@ export const dealsRelations = relations(dealsTable, ({ one, many }) => ({
     references: [usersTable.id],
   }),
   activityLog: many(activityLogTable),
-  lenderSubmissions: many(lenderSubmissionsTable),
 }));
 
 export const communicationsRelations = relations(communicationsTable, ({ one }) => ({
@@ -253,16 +250,10 @@ export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) =>
   lender: one(lendersTable, { fields: [lenderMatchesTable.lenderId], references: [lendersTable.id] }),
 }));
 
-export const lendersRelations = relations(lendersTable, ({ many }) => ({
-  matches: many(lenderMatchesTable),
-  submissions: many(lenderSubmissionsTable),
-}));
-
 export const lenderSubmissionsRelations = relations(lenderSubmissionsTable, ({ one }) => ({
   lead: one(leadsTable, { fields: [lenderSubmissionsTable.leadId], references: [leadsTable.id] }),
-  deal: one(dealsTable, { fields: [lenderSubmissionsTable.dealId], references: [dealsTable.id] }),
   lender: one(lendersTable, { fields: [lenderSubmissionsTable.lenderId], references: [lendersTable.id] }),
-  sender: one(usersTable, { fields: [lenderSubmissionsTable.sentBy], references: [usersTable.id] }),
+  submitter: one(usersTable, { fields: [lenderSubmissionsTable.submittedBy], references: [usersTable.id] }),
 }));
 
 export const notificationsRelations = relations(notificationsTable, ({ one }) => ({

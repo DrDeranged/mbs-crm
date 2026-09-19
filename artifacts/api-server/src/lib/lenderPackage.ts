@@ -1,15 +1,12 @@
 import { PDFDocument, type PDFPage } from "pdf-lib";
 import type { Request, Response } from "express";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
 import { db, documentsTable, applicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "./brand";
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
 import { renderApplicationFormPdf } from "./applicationPdf";
 import { requireUser } from "./authHelpers";
 import { logPiiAccess } from "./piiAccess";
-import { decrypt } from "./encryption";
-import { logActivity } from "./activityHelper";
 import { LenderPackageError, safeLenderPackageReason } from "./lenderPackageErrors";
 import {
   MBS_BORDER,
@@ -53,33 +50,6 @@ export const LENDER_PACKAGE_DOCUMENT_CATEGORY_ORDER = [
   "tax_return",
 ] as const satisfies readonly PackageDocumentCategory[];
 
-export const LENDER_PACKAGE_SECTION_ORDER = [
-  "cover",
-  "application",
-  "invoice_quote",
-  "bank_statement",
-  "drivers_license",
-  "tax_return",
-  "other",
-] as const;
-
-const packageConfigSchema = z.object({
-  sections: z.array(z.enum(LENDER_PACKAGE_SECTION_ORDER)).max(LENDER_PACKAGE_SECTION_ORDER.length).optional(),
-  documentIds: z.array(z.number().int().positive()).max(200).optional(),
-  options: z.object({
-    maskSsn: z.boolean().optional(),
-    includeCoverPage: z.boolean().optional(),
-    includeFooter: z.boolean().optional(),
-  }).strict().optional(),
-}).strict();
-
-export type LenderPackageConfig = z.infer<typeof packageConfigSchema>;
-
-export function parseLenderPackageConfig(value: unknown): LenderPackageConfig | null {
-  const result = packageConfigSchema.safeParse(value);
-  return result.success ? result.data : null;
-}
-
 export type LenderPackageDocumentExclusion = {
   filename: string;
   reason: string;
@@ -91,7 +61,6 @@ export type LenderPackageDependencies = {
   renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
   downloadDocument?: (document: PackageDocument, maxBytes: number) => Promise<Buffer>;
   auditPiiAccess?: typeof logPiiAccess;
-  activityLogger?: typeof logActivity;
 };
 
 type IncludedStatement = {
@@ -214,24 +183,10 @@ export function selectLenderPackageDocuments(documents: PackageDocument[]): Pack
     });
 }
 
-/** Never honor a cross-category drag/order: sections always remain in the lender order. */
-function orderSelectedPackageDocuments(documents: PackageDocument[], documentIds: number[] | undefined): PackageDocument[] {
-  if (!documentIds) return selectLenderPackageDocuments(documents);
-  const byId = new Map(documents.map((document) => [document.id, document]));
-  const requested = documentIds.map((id) => byId.get(id)).filter((document): document is PackageDocument => !!document);
-  const rank = new Map<string, number>([...LENDER_PACKAGE_DOCUMENT_CATEGORY_ORDER, "other"].map((category, index) => [category, index]));
-  return requested
-    .map((document, callerIndex) => ({ document, callerIndex }))
-    .sort((a, b) => (rank.get(a.document.category ?? "") ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.document.category ?? "") ?? Number.MAX_SAFE_INTEGER) || a.callerIndex - b.callerIndex)
-    .map(({ document }) => document);
-}
-
 export function getDocumentExclusionReason(
   document: Pick<PackageDocument, "filename" | "fileKey" | "fileType" | "category">,
 ): string | null {
-  if (getLenderPackageDocumentCategory(document) === null) {
-    return "document category is not selected for lender packages";
-  }
+  if (getLenderPackageDocumentCategory(document) === null) return "document category is not selected for lender packages";
   const isPdf =
     isPdfDocument(document);
   if (!isPdf) return "not a PDF";
@@ -542,21 +497,20 @@ function transferredBytes(error: unknown): number {
 }
 
 async function composePackage(
-  cover: PDFDocument | null,
-  signedApplication: PDFDocument | null,
+  cover: PDFDocument,
+  signedApplication: PDFDocument,
   included: IncludedStatement[],
   exclusions: LenderPackageDocumentExclusion[],
   repEmail: string | null,
   renderNotIncluded?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>,
-  includeFooter = true,
 ): Promise<Buffer> {
   const packagePdf = await PDFDocument.create();
   const appendPages = async (source: PDFDocument): Promise<void> => {
     const pages = await packagePdf.copyPages(source, source.getPageIndices());
     for (const page of pages) packagePdf.addPage(page);
   };
-  if (cover) await appendPages(cover);
-  if (signedApplication) await appendPages(signedApplication);
+  await appendPages(cover);
+  await appendPages(signedApplication);
   for (const statement of included) {
     // Copy pages only. This intentionally does not copy attachments, forms, or
     // hidden document-level data from uploaded PDFs.
@@ -589,7 +543,7 @@ async function composePackage(
     }
   }
   try {
-    if (includeFooter) await addPreparedByFooters(packagePdf, repEmail);
+    await addPreparedByFooters(packagePdf, repEmail);
     return Buffer.from(await packagePdf.save());
   } catch (error) {
     throw new LenderPackageError("merge_failed:package", "Could not finalize lender package pages", { cause: error });
@@ -605,14 +559,8 @@ export async function buildLenderPackagePdf(params: {
   downloadDocument?: (document: PackageDocument, maxBytes: number) => Promise<Buffer>;
   /** Test-only output limit override; production uses the 40 MB constant. */
   maxPackageBytes?: number;
-  selection?: LenderPackageConfig;
-  /** Plaintext is intentionally accepted only after the authorized route decrypts it. */
-  unmaskedSsn?: { ownerSsn: string | null; secondaryOwnerSsn: string | null };
 }): Promise<{ pdf: Buffer; exclusions: LenderPackageDocumentExclusion[] }> {
   const download = params.downloadDocument ?? downloadStoredDocument;
-  const selectedSections = new Set(params.selection?.sections ?? LENDER_PACKAGE_SECTION_ORDER);
-  const selectedIds = params.selection?.documentIds;
-  const selectedDocuments = orderSelectedPackageDocuments(params.documents, selectedIds);
   const applicationOptions = {
     rep: params.assignedRep
       ? {
@@ -624,11 +572,7 @@ export async function buildLenderPackagePdf(params: {
         role: params.assignedRep.role,
       }
       : { name: "My Business Solutions", email: null, role: "rep" },
-    application: {
-      ...applicationBody(params.application, params.lead),
-      ...(params.unmaskedSsn?.ownerSsn ? { ownerSsn: params.unmaskedSsn.ownerSsn } : {}),
-      ...(params.unmaskedSsn?.secondaryOwnerSsn ? { secondaryOwnerSsn: params.unmaskedSsn.secondaryOwnerSsn } : {}),
-    },
+    application: applicationBody(params.application, params.lead),
     submittedAt: params.application.submittedAt,
     signatureSignedAt: params.application.signatureSignedAt,
     signatureMethod: params.application.signatureMethod === "typed" || params.application.signatureMethod === "drawn"
@@ -637,37 +581,33 @@ export async function buildLenderPackagePdf(params: {
     signatureData: params.application.signatureData,
     clientIp: params.application.signatureIp,
     includePreparedFooter: false,
-    revealSsn: params.selection?.options?.maskSsn === false && !!params.unmaskedSsn,
   } as const;
-  let cover: PDFDocument | null = null;
-  let signedApplication: PDFDocument | null = null;
+  let cover: PDFDocument;
+  let signedApplication: PDFDocument;
   try {
-    const [coverBytes, signedBytes] = await Promise.all([
-      selectedSections.has("cover") && params.selection?.options?.includeCoverPage !== false
-        ? (params.renderPdf
-          ? params.renderPdf(
-              ensureFlyerBranding(buildCoverHtml(params.lead, params.application, params.assignedRep), getPublicBaseUrl()),
-              { format: "Letter" },
-          ) : renderLenderPackageCoverPdf(params))
-        : Promise.resolve(null),
-      selectedSections.has("application")
-        ? (params.renderPdf
-          ? params.renderPdf(buildSignedApplicationHtml({
-              lead: { id: params.lead.id, firstName: params.application.ownerFirstName, lastName: params.application.ownerLastName },
-              rep: applicationOptions.rep,
-              logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
-              body: applicationOptions.application,
-              submittedAt: params.application.submittedAt,
-              signatureSignedAt: params.application.signatureSignedAt,
-              clientIp: params.application.signatureIp,
-              revealSsn: applicationOptions.revealSsn,
-            }), { format: "Letter" })
-          : renderApplicationFormPdf(applicationOptions))
-        : Promise.resolve(null),
-    ]);
+    const [coverBytes, signedBytes] = params.renderPdf
+      ? await Promise.all([
+        params.renderPdf(
+          ensureFlyerBranding(buildCoverHtml(params.lead, params.application, params.assignedRep), getPublicBaseUrl()),
+          { format: "Letter" },
+        ),
+        params.renderPdf(buildSignedApplicationHtml({
+          lead: { id: params.lead.id, firstName: params.application.ownerFirstName, lastName: params.application.ownerLastName },
+          rep: applicationOptions.rep,
+          logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
+          body: applicationOptions.application,
+          submittedAt: params.application.submittedAt,
+          signatureSignedAt: params.application.signatureSignedAt,
+          clientIp: params.application.signatureIp,
+        }), { format: "Letter" }),
+      ])
+      : await Promise.all([
+        renderLenderPackageCoverPdf(params),
+        renderApplicationFormPdf(applicationOptions),
+      ]);
     [cover, signedApplication] = await Promise.all([
-      coverBytes ? PDFDocument.load(coverBytes, { throwOnInvalidObject: false, updateMetadata: false }) : Promise.resolve(null),
-      signedBytes ? PDFDocument.load(signedBytes, { throwOnInvalidObject: false, updateMetadata: false }) : Promise.resolve(null),
+      PDFDocument.load(coverBytes, { throwOnInvalidObject: false, updateMetadata: false }),
+      PDFDocument.load(signedBytes, { throwOnInvalidObject: false, updateMetadata: false }),
     ]);
   } catch (error) {
     throw new LenderPackageError(
@@ -681,12 +621,9 @@ export async function buildLenderPackagePdf(params: {
   const included: IncludedStatement[] = [];
   let downloadedBytes = 0;
 
-  for (const document of selectedDocuments) {
+  for (const document of selectLenderPackageDocuments(params.documents)) {
     const name = displayDocumentName(document);
-    if (!selectedSections.has(document.category === "other" ? "other" : document.category as any)) continue;
-    const selectionReason = document.category === "other" && selectedSections.has("other")
-      ? (isPdfDocument(document) ? null : "not a PDF")
-      : getDocumentExclusionReason(document);
+    const selectionReason = getDocumentExclusionReason(document);
     if (selectionReason) {
       exclusions.push({ filename: name, reason: selectionReason });
       continue;
@@ -765,7 +702,6 @@ export async function buildLenderPackagePdf(params: {
         exclusions,
         getLenderRepEmail(params.assignedRep),
         params.renderPdf,
-        params.selection?.options?.includeFooter !== false,
       );
     } catch (error) {
       if (error instanceof StatementCopyError) {
@@ -858,12 +794,6 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         fieldCategory: "application",
         action: "export",
         ip: req.ip,
-        metadata: {
-          sections: LENDER_PACKAGE_SECTION_ORDER,
-          documentIds: documents.map((document) => document.id),
-          options: { maskSsn: true, includeCoverPage: true, includeFooter: true },
-          ssnUnmasked: false,
-        },
       });
 
       res.setHeader("Content-Type", "application/pdf");
@@ -891,108 +821,6 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         return;
       }
       res.status(500).json({ error: "Lender package generation failed", reason });
-    }
-  };
-}
-
-export function createLenderPackageConfigHandler(overrides: LenderPackageDependencies = {}) {
-  const database = overrides.database ?? db;
-  const authenticate = overrides.authenticate ?? requireUser;
-
-  return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
-    if (!user) return;
-    const id = Number(req.params["id"]);
-    if (!Number.isSafeInteger(id) || id <= 0) {
-      res.status(400).json({ error: "Invalid ID" });
-      return;
-    }
-    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
-    if (!lead) {
-      res.status(404).json({ error: "Lead not found" });
-      return;
-    }
-    if (user.role === "rep" && lead.assignedRepId !== user.id) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
-    if (req.method === "GET") {
-      res.json({ packageConfig: parseLenderPackageConfig(lead.packageConfig) });
-      return;
-    }
-    if (req.method === "DELETE") {
-      await database.update(leadsTable).set({ packageConfig: null, updatedAt: new Date() }).where(eq(leadsTable.id, id));
-      res.status(204).end();
-      return;
-    }
-    const parsed = packageConfigSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "Invalid package configuration" });
-      return;
-    }
-    await database.update(leadsTable).set({ packageConfig: parsed.data, updatedAt: new Date() }).where(eq(leadsTable.id, id));
-    res.json({ packageConfig: parsed.data });
-  };
-}
-
-/** Builds only the caller-selected package contents and remembers that choice. */
-export function createSelectedLenderPackageHandler(overrides: LenderPackageDependencies = {}) {
-  const database = overrides.database ?? db;
-  const authenticate = overrides.authenticate ?? requireUser;
-  const download = overrides.downloadDocument ?? downloadStoredDocument;
-  const audit = overrides.auditPiiAccess ?? logPiiAccess;
-
-  return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
-    if (!user) return;
-    const id = Number(req.params["id"]);
-    if (!Number.isSafeInteger(id) || id <= 0) return void res.status(400).json({ error: "Invalid ID" });
-    const selection = parseLenderPackageConfig(req.body);
-    if (!selection) return void res.status(400).json({ error: "Invalid package selection" });
-    if (selection.options?.maskSsn === false && user.role !== "admin") {
-      return void res.status(403).json({ error: "Only administrators may disable SSN masking" });
-    }
-    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
-    if (!lead) return void res.status(404).json({ error: "Lead not found" });
-    if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
-    const [application, assignedRep, documents] = await Promise.all([
-      database.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, id) }),
-      lead.assignedRepId ? database.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) }) : Promise.resolve(null),
-      database.query.documentsTable.findMany({ where: eq(documentsTable.leadId, id) }),
-    ]);
-    if (!application) return void res.status(404).json({ error: "No application on file", reason: "no_application" });
-    const ownedIds = new Set(documents.map((document) => document.id));
-    if ((selection.documentIds ?? []).some((documentId) => !ownedIds.has(documentId))) {
-      return void res.status(400).json({ error: "Every selected document must belong to this lead" });
-    }
-    try {
-      const unmaskedSsn = selection.options?.maskSsn === false
-        ? {
-          ownerSsn: application.ownerSsnEncrypted ? decrypt(application.ownerSsnEncrypted) : null,
-          secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
-        }
-        : undefined;
-      const { pdf } = await buildLenderPackagePdf({
-        lead, application, assignedRep: assignedRep ?? null, documents,
-        renderPdf: overrides.renderPdf, downloadDocument: download, selection, unmaskedSsn,
-      });
-      await database.update(leadsTable).set({ packageConfig: selection, updatedAt: new Date() }).where(eq(leadsTable.id, id));
-      await (overrides.activityLogger ?? logActivity)({
-        userId: user.id, leadId: id, action: "lender_package_built", entityType: "lead", entityId: id,
-        details: {
-          sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER,
-          documentIds: selection.documentIds ?? [],
-          ssnUnmasked: selection.options?.maskSsn === false,
-        },
-      });
-      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked: selection.options?.maskSsn === false } });
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf"`);
-      res.setHeader("Content-Length", String(pdf.length));
-      res.send(pdf);
-    } catch (error) {
-      req.log?.error({ err: error }, "Failed to build selected lender package");
-      res.status(500).json({ error: "Lender package generation failed", reason: safeLenderPackageReason(error) });
     }
   };
 }

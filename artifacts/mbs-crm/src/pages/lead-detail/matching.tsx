@@ -6,25 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucide-react";
-import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useGetMe, useRunLenderMatch, useUpdateSubmission, getGetDealQueryKey, getListDealActivityQueryKey } from "@workspace/api-client-react";
+import { CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucide-react";
+import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useRunLenderMatch, useUpdateSubmission } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
-import { LenderPackageBuilderDialog } from "./lender-package-builder";
-
-function apiErrorDetails(error: any, fallback: string) {
-  const data = error?.data;
-  return {
-    status: error?.status ?? error?.response?.status,
-    reason: data?.reason,
-    message: data?.error ?? data?.message ?? error?.message ?? fallback,
-  };
-}
-
 export function LeadLenderMatch() {
-  const { id: leadId, isAdmin, lead } = useLeadDetail();
+  const { id: leadId } = useLeadDetail();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: me } = useGetMe();
   const runMatch = useRunLenderMatch();
   const { data: matches, isLoading: matchesLoading } = useGetLenderMatches(leadId);
   const { data: submissions } = useGetLeadSubmissions(leadId);
@@ -33,10 +21,8 @@ export function LeadLenderMatch() {
 
   // Confirmation modal state
   const [pendingLender, setPendingLender] = useState<{ id: number; name: string } | null>(null);
-  const [submissionError, setSubmissionError] = useState<{ msg: string; isConflict: boolean } | null>(null);
   // Expandable criteria state — track which match cards are expanded
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
-  const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
 
   const toggleExpanded = (matchId: number) => {
     setExpandedIds((prev) => {
@@ -52,68 +38,47 @@ export function LeadLenderMatch() {
         toast({ title: `Matched ${data.matchCount ?? 0} lenders` });
         queryClient.invalidateQueries({ queryKey: getGetLenderMatchesQueryKey(leadId) });
       },
-      onError: (err: any) => {
-        toast({ title: "Match failed", description: apiErrorDetails(err, "Match failed").message, variant: "destructive" });
-      },
+      onError: () => toast({ title: "Match failed", variant: "destructive" }),
     });
   };
 
-  const confirmSubmit = (override = false) => {
+  const confirmSubmit = () => {
     if (!pendingLender) return;
-    setSubmissionError(null);
-    createSub.mutate({ id: leadId, data: { lender_id: pendingLender.id, admin_override: override } as any }, {
-      onSuccess: (data: any) => {
+    createSub.mutate({ id: leadId, data: { lender_id: pendingLender.id } as any }, {
+      onSuccess: () => {
         toast({ title: `Submitted to ${pendingLender.name}` });
         queryClient.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) });
-        if (data?.dealId) {
-          queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(data.dealId) });
-          queryClient.invalidateQueries({ queryKey: getListDealActivityQueryKey(data.dealId) });
-        }
         setPendingLender(null);
       },
-      onError: (err: any) => {
-        const details = apiErrorDetails(err, "Submission failed");
-        setSubmissionError({
-          msg: details.message,
-          isConflict: details.status === 409 && details.reason === "duplicate_24h",
-        });
+      onError: () => {
+        toast({ title: "Submission failed", variant: "destructive" });
+        setPendingLender(null);
       },
     });
   };
 
   const handleStatusUpdate = (subId: number, status: string) => {
     updateSub.mutate({ id: subId, data: { status } as any }, {
-      onSuccess: (data: any) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) });
-        if (data?.dealId) {
-          queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(data.dealId) });
-          queryClient.invalidateQueries({ queryKey: getListDealActivityQueryKey(data.dealId) });
-        }
       },
-      onError: (err: any) => {
-        toast({ title: "Update failed", description: apiErrorDetails(err, "Status update failed").message, variant: "destructive" });
-      }
     });
   };
 
   const submittedLenderIds = new Set((submissions ?? []).map((s: any) => s.lenderId));
-  const canSubmit = isAdmin || (me?.role === "rep" && me.id === lead?.assignedRepId);
-  const activeMatches = (matches ?? []).filter((match: any) => match.lender?.isActive !== false);
 
   const statusColor: Record<string, string> = {
     submitted: "bg-blue-50 text-blue-700 border-blue-200",
+    pending: "bg-amber-50 text-amber-700 border-amber-200",
     approved: "bg-green-50 text-green-700 border-green-200",
     declined: "bg-red-50 text-red-700 border-red-200",
-    funded: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    withdrawn: "bg-slate-50 text-slate-500 border-slate-200",
   };
 
   return (
     <div className="space-y-5 mt-4">
-      <LenderPackageBuilderDialog leadId={leadId} open={packageBuilderOpen} onOpenChange={setPackageBuilderOpen} submitMode />
       {/* Confirm submission dialog */}
-      <Dialog open={!!pendingLender} onOpenChange={(open) => {
-        if (!open) { setPendingLender(null); setSubmissionError(null); }
-      }}>
+      <Dialog open={!!pendingLender} onOpenChange={(open) => { if (!open) setPendingLender(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Confirm Submission</DialogTitle>
@@ -121,30 +86,12 @@ export function LeadLenderMatch() {
               You are about to submit this deal to <strong>{pendingLender?.name}</strong>. This will notify the lender and create a submission record. Are you sure?
             </DialogDescription>
           </DialogHeader>
-
-          {submissionError && (
-            <div className="bg-red-50 text-red-700 border border-red-100 rounded-md p-3 text-sm flex flex-col gap-2">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span className="break-words">{submissionError.msg}</span>
-              </div>
-              {submissionError.isConflict && isAdmin && (
-                <div className="ml-6 flex items-center justify-between border-t border-red-200/50 pt-2 mt-1">
-                  <span className="text-xs opacity-90">Override 24h limit?</span>
-                  <Button variant="outline" size="sm" className="h-7 text-xs border-red-200 hover:bg-red-100 hover:text-red-800" onClick={() => confirmSubmit(true)}>
-                    Admin Override
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => { setPendingLender(null); setSubmissionError(null); }}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setPendingLender(null)}>Cancel</Button>
             <Button
               size="sm"
               disabled={createSub.isPending}
-              onClick={() => confirmSubmit(false)}
+              onClick={confirmSubmit}
             >
               {createSub.isPending ? "Submitting…" : "Yes, Submit"}
             </Button>
@@ -173,13 +120,13 @@ export function LeadLenderMatch() {
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
         </div>
-      ) : activeMatches.length === 0 ? (
+      ) : !matches || matches.length === 0 ? (
         <div className="text-center py-8 border border-dashed rounded-xl text-muted-foreground text-sm">
           No matches yet. Click "Run Match" to find lenders.
         </div>
       ) : (
         <div className="space-y-2">
-          {activeMatches.map((m: any, idx: number) => {
+          {matches.map((m: any, idx: number) => {
             const isSubmitted = submittedLenderIds.has(m.lenderId);
             const passedCount = (m.criteriaBreakdown ?? []).filter((c: any) => c.passed && !c.skipped).length;
             const totalCount = (m.criteriaBreakdown ?? []).filter((c: any) => !c.skipped).length;
@@ -206,20 +153,20 @@ export function LeadLenderMatch() {
                       </div>
                     </div>
                   </button>
-                  {canSubmit ? (
+                  {!isSubmitted ? (
                     <Button
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs shrink-0 ml-2"
-                      onClick={() => setPackageBuilderOpen(true)}
+                      onClick={() => setPendingLender({ id: m.lenderId, name: lenderName })}
                     >
-                       <Send className="h-3 w-3 mr-1" /> {isSubmitted ? "Resubmit" : "Submit"}
+                      <Send className="h-3 w-3 mr-1" /> Submit
                     </Button>
-                  ) : isSubmitted ? (
+                  ) : (
                     <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200 shrink-0 ml-2">
                       <CheckCircle2 className="h-3 w-3 mr-0.5" /> Submitted
                     </Badge>
-                  ) : null}
+                  )}
                 </div>
 
                 {/* Criteria breakdown — collapsed summary / expanded detail */}
@@ -278,10 +225,10 @@ export function LeadLenderMatch() {
             <div key={s.id} className="flex items-center justify-between rounded-lg border p-2.5 text-sm bg-white">
               <div className="min-w-0">
                 <span className="font-medium">{s.lender?.name ?? `Lender #${s.lenderId}`}</span>
-                <p className="text-xs text-muted-foreground">{format(new Date(s.sentAt), "MMM d, h:mm a")}</p>
-                {s.notes && (
-                  <p className="text-xs text-slate-600 mt-0.5 italic truncate" title={s.notes}>
-                    {s.notes}
+                <p className="text-xs text-muted-foreground">{format(new Date(s.submittedAt), "MMM d, h:mm a")}</p>
+                {s.responseNotes && (
+                  <p className="text-xs text-slate-600 mt-0.5 italic truncate" title={s.responseNotes}>
+                    {s.responseNotes}
                   </p>
                 )}
               </div>
@@ -296,9 +243,10 @@ export function LeadLenderMatch() {
                     onChange={(e) => { if (e.target.value) handleStatusUpdate(s.id, e.target.value); }}
                   >
                     <option value="">Update…</option>
+                    <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="declined">Declined</option>
-                    <option value="funded">Funded</option>
+                    <option value="withdrawn">Withdrawn</option>
                   </select>
                 )}
               </div>

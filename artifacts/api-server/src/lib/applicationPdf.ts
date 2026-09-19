@@ -61,8 +61,6 @@ export type ApplicationPdfOptions = {
   signatureMethod?: "typed" | "drawn" | null;
   signatureData?: string | null;
   clientIp?: string | null;
-  /** Only set by the authorized lender-package export path after decrypting SSNs. */
-  revealSsn?: boolean;
 };
 
 export type NativeApplicationPdfOptions = ApplicationPdfOptions & {
@@ -236,7 +234,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Principal owner", [app.ownerFirstName, app.ownerLastName].filter(Boolean).join(" "), "span-3"),
       cell("Email", app.email, "span-2"),
       cell("Owner full address — street, (unit), city, state, ZIP", ownerAddress, "span-5"),
-       cell("SSN", options.revealSsn ? app.ownerSsn : null, "", { masked: options.application != null && !options.revealSsn }),
+       cell("SSN", null, "", { masked: options.application != null }),
       cell("Date of birth", app.ownerDob),
       cell("Ownership %", app.ownershipPct),
       cell("Cell", app.phone),
@@ -244,7 +242,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
       cell("Secondary owner", app.secondaryOwnerName, "span-3"),
       cell("Email", app.secondaryOwnerEmail, "span-2"),
       cell("Owner full address — street, (unit), city, state, ZIP", secondaryAddress, "span-5"),
-       cell("SSN", options.revealSsn ? app.secondaryOwnerSsn : null, "", { masked: options.application != null && hasSecondaryOwner && !options.revealSsn }),
+       cell("SSN", null, "", { masked: options.application != null && hasSecondaryOwner }),
        cell("Date of birth", hasSecondaryOwner ? app.secondaryOwnerDob : null),
        cell("Ownership %", hasSecondaryOwner ? app.secondaryOwnerOwnershipPct : null),
        cell("Cell", hasSecondaryOwner ? app.secondaryOwnerCell : null),
@@ -377,8 +375,8 @@ function drawnSignaturePng(value: string): Buffer {
 
 /**
  * Native equivalent of the client Finance Application in 00ff546. This
- * renderer deliberately has no browser dependency and keeps SSNs masked unless
- * the authorized lender-package export path explicitly enables revealSsn.
+ * renderer deliberately has no browser dependency and keeps SSNs masked even
+ * when callers accidentally provide a plaintext value.
  */
 export async function renderApplicationFormPdf(options: NativeApplicationPdfOptions): Promise<Buffer> {
   const { pdf, page, fonts } = await createLetterPdf();
@@ -437,7 +435,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       { label: "Principal owner", value: [app.ownerFirstName, app.ownerLastName].filter(Boolean).join(" "), span: 3 },
       { label: "Email", value: app.email, span: 2 },
       { label: "Owner full address — street, (unit), city, state, ZIP", value: nativeAddress(app, "ownerHome"), span: 5 },
-       { label: "SSN", value: options.revealSsn ? app.ownerSsn : null, span: 1, masked: options.application != null && !options.revealSsn },
+      { label: "SSN", value: null, span: 1, masked: options.application != null },
       { label: "Date of birth", value: app.ownerDob, span: 1 },
       { label: "Ownership %", value: app.ownershipPct, span: 1 },
       { label: "Cell", value: app.phone, span: 1 },
@@ -445,7 +443,7 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
       { label: "Secondary owner", value: hasSecondaryOwner ? app.secondaryOwnerName : null, span: 3 },
       { label: "Email", value: hasSecondaryOwner ? app.secondaryOwnerEmail : null, span: 2 },
       { label: "Owner full address — street, (unit), city, state, ZIP", value: hasSecondaryOwner ? app.secondaryOwnerAddress : null, span: 5 },
-       { label: "SSN", value: options.revealSsn ? app.secondaryOwnerSsn : null, span: 1, masked: options.application != null && hasSecondaryOwner && !options.revealSsn },
+      { label: "SSN", value: null, span: 1, masked: options.application != null && hasSecondaryOwner },
       { label: "Date of birth", value: hasSecondaryOwner ? app.secondaryOwnerDob : null, span: 1 },
       { label: "Ownership %", value: hasSecondaryOwner ? app.secondaryOwnerOwnershipPct : null, span: 1 },
       { label: "Cell", value: hasSecondaryOwner ? app.secondaryOwnerCell : null, span: 1 },

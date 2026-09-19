@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 import { leadsTable } from "./leads";
 
@@ -14,7 +14,6 @@ export const piiAccessLogTable = pgTable(
     fieldCategory: text("field_category", { enum: PII_FIELD_CATEGORIES }).notNull(),
     action: text("action", { enum: PII_ACCESS_ACTIONS }).notNull(),
     ip: text("ip"),
-    metadata: jsonb("metadata"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [

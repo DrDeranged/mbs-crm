@@ -1173,7 +1173,7 @@ export interface LenderMatch {
   matchedAt: string;
 }
 
-export type LenderSubmissionSentByUser = {
+export type LenderSubmissionSubmittedByUser = {
   id?: number;
   /** @nullable */
   name?: string | null;
@@ -1186,35 +1186,11 @@ export type LenderSubmissionStatus = typeof LenderSubmissionStatus[keyof typeof 
 
 export const LenderSubmissionStatus = {
   submitted: 'submitted',
+  pending: 'pending',
   approved: 'approved',
   declined: 'declined',
-  funded: 'funded',
+  withdrawn: 'withdrawn',
 } as const;
-
-export type LenderPackageConfigSectionsItem = typeof LenderPackageConfigSectionsItem[keyof typeof LenderPackageConfigSectionsItem];
-
-
-export const LenderPackageConfigSectionsItem = {
-  cover: 'cover',
-  application: 'application',
-  invoice_quote: 'invoice_quote',
-  bank_statement: 'bank_statement',
-  drivers_license: 'drivers_license',
-  tax_return: 'tax_return',
-  other: 'other',
-} as const;
-
-export type LenderPackageConfigOptions = {
-  maskSsn?: boolean;
-  includeCoverPage?: boolean;
-  includeFooter?: boolean;
-};
-
-export interface LenderPackageConfig {
-  sections?: LenderPackageConfigSectionsItem[];
-  documentIds?: number[];
-  options?: LenderPackageConfigOptions;
-}
 
 export interface LenderSubmission {
   id: number;
@@ -1222,35 +1198,13 @@ export interface LenderSubmission {
   lenderId: number;
   lender?: Lender | null;
   /** @nullable */
-  dealId?: number | null;
-  /** @nullable */
-  sentBy?: number | null;
-  sentByUser?: LenderSubmissionSentByUser;
+  submittedBy?: number | null;
+  submittedByUser?: LenderSubmissionSubmittedByUser;
   status: LenderSubmissionStatus;
   /** @nullable */
-  notes?: string | null;
-  /** @nullable */
-  messageId?: string | null;
-  packageConfigSnapshot?: LenderPackageConfig | null;
-  hasExactPackage?: boolean;
-  sentAt: string;
+  responseNotes?: string | null;
+  submittedAt: string;
   updatedAt: string;
-}
-
-export type LenderSubmissionUpdateStatus = typeof LenderSubmissionUpdateStatus[keyof typeof LenderSubmissionUpdateStatus];
-
-
-export const LenderSubmissionUpdateStatus = {
-  submitted: 'submitted',
-  approved: 'approved',
-  declined: 'declined',
-  funded: 'funded',
-} as const;
-
-export interface LenderSubmissionUpdate {
-  status?: LenderSubmissionUpdateStatus;
-  /** @nullable */
-  notes?: string | null;
 }
 
 export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];
@@ -2381,10 +2335,6 @@ export interface AdminErrorsResponse {
   jobs?: AdminErrorsResponseJobs;
 }
 
-export interface LenderPackageConfigResponse {
-  packageConfig: LenderPackageConfig | null;
-}
-
 export type GetAdminErrorsParams = {
 page?: number;
 };
@@ -3027,9 +2977,6 @@ export type RunLenderMatch200 = {
 
 export type CreateLeadSubmissionBody = {
   lender_id: number;
-  /** Administrators may bypass the rolling 24-hour duplicate limit */
-  admin_override?: boolean;
-  package_config?: LenderPackageConfig;
 };
 
 export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof typeof UpdateSubmissionBodyStatus];
@@ -3037,15 +2984,16 @@ export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof
 
 export const UpdateSubmissionBodyStatus = {
   submitted: 'submitted',
+  pending: 'pending',
   approved: 'approved',
   declined: 'declined',
-  funded: 'funded',
+  withdrawn: 'withdrawn',
 } as const;
 
 export type UpdateSubmissionBody = {
   status?: UpdateSubmissionBodyStatus;
   /** @nullable */
-  notes?: string | null;
+  response_notes?: string | null;
 };
 
 export type ListEmailTemplatesParams = {

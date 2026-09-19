@@ -150,7 +150,7 @@ const SAMPLE_VARS: Record<string, string> = {
   rep_email: "rep@company.com",
 };
 
-function buildVariables(lead: any, rep: any, extras: Record<string, unknown> = {}): Record<string, string> {
+function buildVariables(lead: any, rep: any): Record<string, string> {
   return {
     lead_first_name: lead?.firstName || "",
     lead_last_name: lead?.lastName || "",
@@ -160,7 +160,6 @@ function buildVariables(lead: any, rep: any, extras: Record<string, unknown> = {
     rep_name: rep?.name || "",
     rep_phone: rep?.mobileNumber || "",
     rep_email: rep?.email || "",
-    ...Object.fromEntries(Object.entries(extras).map(([key, value]) => [key, String(value ?? "")])),
   };
 }
 
@@ -221,14 +220,13 @@ async function doSendEmail(params: {
   baseUrl: string;
   senderMode?: "default" | "assigned_rep";
   rep?: { name?: string | null; email?: string | null } | null;
-  ccEmail?: string | null;
   attachments?: Array<{
     content: string;
     filename: string;
     type?: string;
     disposition?: "attachment" | "inline";
   }>;
-}): Promise<{ send: any; error?: string; configurationReason?: string; deliveryOutcome?: "definite_failure" | "uncertain" }> {
+}): Promise<{ send: any; error?: string; configurationReason?: string }> {
   const [emailSettings] = await db.select({
     emailSendingEnabled: companySettingsTable.emailSendingEnabled,
   }).from(companySettingsTable).limit(1);
@@ -259,7 +257,7 @@ async function doSendEmail(params: {
       .set({ status: "unsubscribed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
+    return { send: failed, error: reason };
   }
 
   // Delivery is an explicit database-backed opt-in.  Persist a failed
@@ -271,7 +269,7 @@ async function doSendEmail(params: {
       .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
+    return { send: failed, error: reason };
   }
 
   let trackedHtml: string;
@@ -284,7 +282,7 @@ async function doSendEmail(params: {
       .set({ status: "failed", failureReason: reason, updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id))
       .returning();
-    return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
+    return { send: failed, error: reason };
   }
 
   if (!SENDGRID_API_KEY) {
@@ -297,7 +295,6 @@ async function doSendEmail(params: {
       send: failed,
       error: reason,
       configurationReason: "missing:SENDGRID_API_KEY",
-      deliveryOutcome: "definite_failure",
     };
   }
 
@@ -306,7 +303,6 @@ async function doSendEmail(params: {
       from,
       ...(replyTo ? { replyTo } : {}),
       to: params.toEmail,
-      ...(params.ccEmail && VALID_EMAIL.test(params.ccEmail.trim()) ? { cc: params.ccEmail.trim() } : {}),
       subject: params.subject,
       html: trackedHtml,
       ...(params.attachments?.length ? { attachments: params.attachments } : {}),
@@ -340,16 +336,7 @@ async function doSendEmail(params: {
     await db.update(emailSendsTable)
       .set({ status: "failed", failureReason: err?.message || "Send failed", updatedAt: new Date() })
       .where(eq(emailSendsTable.id, placeholder.id));
-    // SendGrid may time out after accepting the message. Only a confirmed
-    // provider 4xx rejection is safe to classify as retryable.
-    const statusCode = Number(err?.response?.statusCode ?? err?.code);
-    return {
-      send: placeholder,
-      error: err?.message || "Send failed",
-      deliveryOutcome: Number.isInteger(statusCode) && statusCode >= 400 && statusCode < 500
-        ? "definite_failure"
-        : "uncertain",
-    };
+    return { send: placeholder, error: err?.message || "Send failed" };
   }
 }
 
@@ -1021,18 +1008,6 @@ export async function seedStarterEmail(actorId: number) {
 <p>If you'd like to see what your business qualifies for, simply reply to this email and I'll send the application over right away, or apply here:<br><a href="https://app.my-business-solutions.com/apply">https://app.my-business-solutions.com/apply</a></p>
 <p>P.S. Many businesses receive approvals the same day and funding within 24 hours.</p>
 <p>Best regards,<br>{{rep_name}}<br>My Business Solutions (MBS)<br>{{rep_phone}}<br>{{rep_email}}<br>www.my-business-solutions.com</p>`,
-    },
-    {
-      name: "Lender Submission",
-      programType: null as string | null,
-      subject: "Lender submission for {{lead_company}}",
-      bodyHtml: `{{brand_email_header}}<p>Hello {{lender_name}},</p>
-<p>Please review the attached signed financing application package for <strong>{{lead_company}}</strong>.</p>
-<p><strong>Requested amount:</strong> {{requested_amount}}<br>
-<strong>Program:</strong> {{application_type}}<br>
-<strong>Applicant:</strong> {{lead_first_name}} {{lead_last_name}}</p>
-<p>Please let {{rep_name}} know if you need anything else to complete your review.</p>
-<p>Regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
     },
   ];
 

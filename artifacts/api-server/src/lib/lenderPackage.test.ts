@@ -7,7 +7,6 @@ import type { Request, Response } from "express";
 import {
   buildLenderPackagePdf,
   createLenderPackageHandler,
-  createSelectedLenderPackageHandler,
   getDocumentExclusionReason,
   getLenderRepEmail,
   isEligibleBankStatement,
@@ -248,109 +247,6 @@ test("selection uses persisted document categories and orders underwriting docum
     ]).map((document) => document.category),
     ["invoice_quote", "bank_statement", "drivers_license", "tax_return"],
   );
-});
-
-test("selected package honors unchecked cover/application sections and the caller's document order", async () => {
-  const first = documentRow({ id: 1, filename: "first.pdf" });
-  const second = documentRow({ id: 2, filename: "second.pdf" });
-  const output = await buildLenderPackagePdf({
-    lead: baseLead(), application: baseApplication(), assignedRep: null, documents: [first, second],
-    selection: { sections: ["bank_statement"], documentIds: [2, 1], options: { includeFooter: false } },
-    downloadDocument: async (document) => markerPdf(document.filename),
-  });
-  const pages = await extractPages(output.pdf);
-  assert.equal(pages.length, 2);
-  assert.match(pages[0]!, /second\.pdf/);
-  assert.match(pages[1]!, /first\.pdf/);
-  assert.ok(!pages.join(" ").includes("APPLICATION"));
-});
-
-test("selected package normalizes scrambled cross-category IDs but retains each category's chosen order", async () => {
-  const bankFirst = documentRow({ id: 1, filename: "bank-first.pdf", category: "bank_statement" });
-  const invoice = documentRow({ id: 2, filename: "invoice.pdf", category: "invoice_quote" });
-  const bankSecond = documentRow({ id: 3, filename: "bank-second.pdf", category: "bank_statement" });
-  const tax = documentRow({ id: 4, filename: "tax.pdf", category: "tax_return" });
-  const output = await buildLenderPackagePdf({
-    lead: baseLead(), application: baseApplication(), assignedRep: null, documents: [bankFirst, invoice, bankSecond, tax],
-    selection: { sections: ["invoice_quote", "bank_statement", "tax_return"], documentIds: [4, 3, 2, 1], options: { includeFooter: false } },
-    downloadDocument: async (document) => markerPdf(document.filename),
-  });
-  const text = (await extractPages(output.pdf)).join("\n");
-  assert.ok(text.indexOf("invoice.pdf") < text.indexOf("bank-second.pdf"));
-  assert.ok(text.indexOf("bank-second.pdf") < text.indexOf("bank-first.pdf"));
-  assert.ok(text.indexOf("bank-first.pdf") < text.indexOf("tax.pdf"));
-});
-
-test("selected package rejects document IDs belonging to another lead", async () => {
-  const response = fakeResponse();
-  await createSelectedLenderPackageHandler({
-    database: { query: {
-      leadsTable: { findFirst: async () => baseLead() },
-      applicationsTable: { findFirst: async () => baseApplication() },
-      usersTable: { findFirst: async () => null },
-      documentsTable: { findMany: async () => [documentRow({ id: 3 })] },
-    } } as any,
-    authenticate: async () => ({ id: 1, role: "admin" } as any),
-  })({ params: { id: "42" }, body: { documentIds: [999] }, log: { error() {} } } as any, response as any);
-  assert.equal(response.statusCode, 400);
-  assert.match((response.body as any).error, /belong to this lead/);
-});
-
-test("explicit unmasked lender-package selection renders decrypted SSNs, while the default remains masked", async () => {
-  const application = baseApplication({ ownerSsnEncrypted: "ciphertext-not-rendered" });
-  const masked = await buildLenderPackagePdf({
-    lead: baseLead(), application, assignedRep: null, documents: [],
-    selection: { sections: ["application"], documentIds: [], options: { maskSsn: true, includeFooter: false } },
-  });
-  const unmasked = await buildLenderPackagePdf({
-    lead: baseLead(), application, assignedRep: null, documents: [],
-    selection: { sections: ["application"], documentIds: [], options: { maskSsn: false, includeFooter: false } },
-    unmaskedSsn: { ownerSsn: "123-45-6789", secondaryOwnerSsn: null },
-  });
-  assert.ok(!((await extractPages(masked.pdf)).join(" ")).includes("123-45-6789"));
-  assert.match((await extractPages(unmasked.pdf)).join(" "), /123-45-6789/);
-});
-
-test("a rep cannot request unmasked SSNs from the selected lender-package route", async () => {
-  const response = fakeResponse();
-  await createSelectedLenderPackageHandler({
-    authenticate: async () => ({ id: 7, role: "rep" } as any),
-  })({ params: { id: "42" }, body: { options: { maskSsn: false } } } as any, response as any);
-  assert.equal(response.statusCode, 403);
-  assert.match((response.body as any).error, /Only administrators/);
-});
-
-test("an admin's explicit unmask selection decrypts and audits the real selected-package route", async () => {
-  const oldKey = process.env.ENCRYPTION_KEY;
-  process.env.ENCRYPTION_KEY = "a".repeat(64);
-  try {
-    const { encrypt } = await import("./encryption");
-    const response = fakeResponse();
-    let audit: any = null;
-    await createSelectedLenderPackageHandler({
-      database: {
-        query: {
-          leadsTable: { findFirst: async () => baseLead() },
-          applicationsTable: { findFirst: async () => baseApplication({ ownerSsnEncrypted: encrypt("987-65-4321") }) },
-          usersTable: { findFirst: async () => null },
-          documentsTable: { findMany: async () => [] },
-        },
-        update: () => ({ set: () => ({ where: async () => undefined }) }),
-      } as any,
-      authenticate: async () => ({ id: 1, role: "admin" } as any),
-      auditPiiAccess: (params) => { audit = params; },
-      activityLogger: async () => undefined,
-    })({ params: { id: "42" }, body: { sections: ["application"], options: { maskSsn: false, includeFooter: false } }, ip: "127.0.0.1", log: { error() {} } } as any, response as any);
-    assert.equal(response.statusCode, 200);
-    assert.match((await extractPages(response.body as Buffer)).join(" "), /987-65-4321/);
-    assert.deepEqual(audit, {
-      userId: 1, leadId: 42, fieldCategory: "application", action: "export", ip: "127.0.0.1",
-      metadata: { sections: ["application"], documentIds: [], options: { maskSsn: false, includeFooter: false }, ssnUnmasked: true },
-    });
-  } finally {
-    if (oldKey === undefined) delete process.env.ENCRYPTION_KEY;
-    else process.env.ENCRYPTION_KEY = oldKey;
-  }
 });
 
 test("baseline application has two pages; exactly two statements append in upload order with safe footers", async () => {
@@ -628,11 +524,5 @@ test("admin can download any lead, audits the successful export, and sanitizes U
     fieldCategory: "application",
     action: "export",
     ip: "127.0.0.1",
-    metadata: {
-      sections: ["cover", "application", "invoice_quote", "bank_statement", "drivers_license", "tax_return", "other"],
-      documentIds: [],
-      options: { maskSsn: true, includeCoverPage: true, includeFooter: true },
-      ssnUnmasked: false,
-    },
   });
 });

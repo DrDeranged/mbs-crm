@@ -42,7 +42,6 @@ export const leadsTable = pgTable(
     leadScoreBreakdown: jsonb("lead_score_breakdown"),
     aiSummary: jsonb("ai_summary"),
     aiSummaryGeneratedAt: timestamp("ai_summary_generated_at"),
-    packageConfig: jsonb("package_config"),
     fundedAt: timestamp("funded_at"),
     fundedAmount: integer("funded_amount"),
     estimatedTermMonths: integer("estimated_term_months"),
