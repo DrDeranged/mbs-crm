@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { PassThrough } from "node:stream";
 import {
+  CLERK_FAPI,
   getClerkFapiOrigin,
   getClerkKeyPrefix,
-  LEGACY_CLERK_FAPI,
+  getClerkPublishableKeyOrigin,
   clerkProxyMiddleware,
 } from "../middlewares/clerkProxyMiddleware";
 import { createClerkHealthProbe } from "./clerkHealth";
@@ -13,20 +14,23 @@ function publishableKey(prefix: "pk_test" | "pk_live", hostname: string): string
   return `${prefix}_${Buffer.from(`${hostname}$`).toString("base64url")}`;
 }
 
-test("Clerk FAPI origin is derived from test and live publishable keys", () => {
+test("Clerk publishable key origins are decoded for diagnostics only", () => {
   assert.equal(
-    getClerkFapiOrigin(publishableKey("pk_test", "select-humpback-65.clerk.accounts.dev")),
+    getClerkPublishableKeyOrigin(
+      publishableKey("pk_test", "select-humpback-65.clerk.accounts.dev"),
+    ),
     "https://select-humpback-65.clerk.accounts.dev",
   );
   assert.equal(
-    getClerkFapiOrigin(publishableKey("pk_live", "clerk.app.example.com")),
+    getClerkPublishableKeyOrigin(publishableKey("pk_live", "clerk.app.example.com")),
     "https://clerk.app.example.com",
   );
 });
 
-test("Clerk FAPI origin uses the legacy fallback for invalid keys", () => {
-  assert.equal(getClerkFapiOrigin("pk_test_not a host"), LEGACY_CLERK_FAPI);
-  assert.equal(getClerkFapiOrigin(""), LEGACY_CLERK_FAPI);
+test("Clerk proxy always uses the documented proxy upstream", () => {
+  assert.equal(getClerkFapiOrigin(), CLERK_FAPI);
+  assert.equal(getClerkPublishableKeyOrigin("pk_test_not a host"), undefined);
+  assert.equal(getClerkPublishableKeyOrigin(""), undefined);
 });
 
 test("production proxy emits a fatal diagnostic when its secret is missing", () => {
@@ -60,7 +64,8 @@ test("production proxy logs the derived FAPI host and safe key prefixes once", (
   });
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0]?.[0], {
-    clerkFapiHost: "clerk.app.example.com",
+    clerkFapiHost: "frontend-api.clerk.dev",
+    publishableKeyHost: "clerk.app.example.com",
     publishableKeyPrefix: "pk_live",
     secretKeyPrefix: "sk_live",
   });
@@ -104,7 +109,7 @@ test("production proxy logs a full upstream exception and returns a short reason
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0]?.[0], {
     requestPath: "/api/__clerk/v1/client",
-    upstreamUrl: "https://clerk.app.example.com/v1/client",
+    upstreamUrl: "https://frontend-api.clerk.dev/v1/client",
     upstreamStatus: null,
     upstreamResponseHeaders: null,
     err: exception,
@@ -159,7 +164,7 @@ test("production proxy preserves an upstream failure status and logs response he
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0]?.[0], {
     requestPath: "/api/__clerk/v1/environment",
-    upstreamUrl: "https://clerk.app.example.com/v1/environment",
+    upstreamUrl: "https://frontend-api.clerk.dev/v1/environment",
     upstreamStatus: 503,
     upstreamResponseHeaders: {
       "retry-after": "5",
@@ -169,7 +174,7 @@ test("production proxy preserves an upstream failure status and logs response he
   });
 });
 
-test("Clerk health probes the decoded host and caches the result", async () => {
+test("Clerk health probes the proxy upstream and caches the result", async () => {
   let now = 1_000;
   const requested: string[] = [];
   const probe = createClerkHealthProbe({
@@ -193,7 +198,7 @@ test("Clerk health probes the decoded host and caches the result", async () => {
     publishableKey: true,
     proxyReachable: true,
   });
-  assert.deepEqual(requested, ["https://instance.clerk.accounts.dev"]);
+  assert.deepEqual(requested, [CLERK_FAPI]);
 
   now += 101;
   await probe();
