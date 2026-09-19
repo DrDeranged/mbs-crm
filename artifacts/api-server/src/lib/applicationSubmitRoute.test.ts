@@ -195,7 +195,6 @@ test("application submit attributes a rep-slug lead and records QR-card activity
   assert.equal(applicationInsert?.values.industryExperienceMonths, 36);
   assert.equal(applicationInsert?.values.hasFinancialStatements, true);
   assert.equal(applicationInsert?.values.hasFactoring, false);
-  assert.equal(applicationInsert?.values.hasCollateral, false);
 });
 
 test("a second public application reuses its existing email lead, logs the re-application, and notifies its assigned rep", async () => {

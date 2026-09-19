@@ -7,7 +7,6 @@ import {
   timestamp,
   index,
   check,
-  numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -43,8 +42,6 @@ export const dealsTable = pgTable(
     actualGm: integer("actual_gm"),
     notes: text("notes"),
     gmSplitPct: integer("gm_split_pct").notNull().default(100),
-    referredByPartnerId: integer("referred_by_partner_id"),
-    referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
     assignedTo: integer("assigned_to").references(() => usersTable.id, {
       onDelete: "set null",
     }),

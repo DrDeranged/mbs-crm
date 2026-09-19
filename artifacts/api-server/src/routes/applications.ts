@@ -36,7 +36,6 @@ import {
   getPublicApplicationConsentText,
   getServerOwnedApplicationConsent,
 } from "../lib/applicationConsent";
-import { applicationSmsConsentFields } from "../lib/smsEligibility";
 import { findUsfaInvite, claimUsfaInvite } from "./usfaPrefill";
 
 const router = Router();
@@ -261,8 +260,6 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       const clientIp = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.ip ?? null;
       const signatureSignedAt = new Date();
       const consentGiven = applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true;
-      const smsConsentGiven = applicationBody.smsConsent === "true" || applicationBody.smsConsent === true;
-      const smsConsentFields = applicationSmsConsentFields(smsConsentGiven, clientIp, signatureSignedAt);
 
       // ── Create lead + application + document rows (single transaction) ────
       const trackingToken = randomBytes(6).toString("hex");
@@ -387,7 +384,6 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
            hasFactoring: applicationBody.hasFactoring === undefined
              ? null
              : applicationBody.hasFactoring === "true" || applicationBody.hasFactoring === true,
-           hasCollateral: applicationBody.hasCollateral === true || applicationBody.hasCollateral === "true",
            industryExperienceMonths: applicationBody.industryExperienceMonths
              ? Number(applicationBody.industryExperienceMonths)
              : null,
@@ -410,7 +406,6 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
            secondaryOwnerEstCreditScore: applicationBody.secondaryOwnerEstCreditScore || null,
           consentCreditPull: applicationBody.consentCreditPull === "true" || applicationBody.consentCreditPull === true,
           consentTerms: applicationBody.consentTerms === "true" || applicationBody.consentTerms === true,
-            ...smsConsentFields,
            ...getServerOwnedApplicationConsent(),
            signatureMethod: applicationBody.signatureMethod as "typed" | "drawn",
            signatureData: applicationBody.signatureData,
@@ -577,7 +572,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
         <tr><td style="background:#ffffff;padding:20px 32px;border-bottom:1px solid #e2e8f0;">
-           <img src="${logoUrl}" alt="My Business Solutions logo" width="116" style="display:block;width:116px;height:auto;border:0;" />
+          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0;" />
           <p style="margin:8px 0 0;font-size:13px;color:#64748b;">Financing made simple</p>
         </td></tr>
         <tr><td style="padding:32px;">

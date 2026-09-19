@@ -2,8 +2,6 @@ import { relations } from "drizzle-orm";
 import { leadsTable } from "./leads";
 import { dealsTable } from "./deals";
 import { usersTable } from "./users";
-import { userIdentitiesTable } from "./userIdentities";
-import { adminAuditLogTable } from "./adminAuditLog";
 import { notificationsTable } from "./notifications";
 import { companiesTable } from "./companies";
 import { notesTable } from "./notes";
@@ -17,10 +15,8 @@ import { dripSequencesTable } from "./dripSequences";
 import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
-import { lendersTable, lenderMatchesTable, lenderSubmissionsTable, partnerContactsTable } from "./lenders";
-import { dealApprovalsTable } from "./dealApprovals";
+import { lendersTable, lenderMatchesTable, lenderSubmissionsTable } from "./lenders";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
-import { collateralTemplatesTable, collateralRendersTable } from "./collateral";
 import { applicationsTable, bankStatementExtractionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
@@ -51,11 +47,9 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   usfaIntakePrefill: many(usfaIntakePrefillTable),
   usfaPrefillInvites: many(usfaPrefillInvitesTable),
   usfaApplicationEmailLogs: many(usfaApplicationEmailLogTable),
-  collateralRenders: many(collateralRendersTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
-  identities: many(userIdentitiesTable),
   leads: many(leadsTable),
   deals: many(dealsTable),
   notes: many(notesTable),
@@ -69,21 +63,6 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   notifications: many(notificationsTable),
   retiredRepSlugs: many(retiredRepSlugsTable),
   lenderSubmissions: many(lenderSubmissionsTable),
-  approvals: many(dealApprovalsTable),
-  collateralTemplates: many(collateralTemplatesTable),
-  collateralRenders: many(collateralRendersTable),
-  adminAuditRows: many(adminAuditLogTable),
-}));
-
-export const userIdentitiesRelations = relations(userIdentitiesTable, ({ one }) => ({
-  user: one(usersTable, {
-    fields: [userIdentitiesTable.userId],
-    references: [usersTable.id],
-  }),
-}));
-
-export const adminAuditLogRelations = relations(adminAuditLogTable, ({ one }) => ({
-  actor: one(usersTable, { fields: [adminAuditLogTable.actorUserId], references: [usersTable.id] }),
 }));
 
 export const retiredRepSlugsRelations = relations(retiredRepSlugsTable, ({ one }) => ({
@@ -186,19 +165,6 @@ export const dealsRelations = relations(dealsTable, ({ one, many }) => ({
   }),
   activityLog: many(activityLogTable),
   lenderSubmissions: many(lenderSubmissionsTable),
-  approvals: many(dealApprovalsTable),
-}));
-
-export const dealApprovalsRelations = relations(dealApprovalsTable, ({ one }) => ({
-  deal: one(dealsTable, { fields: [dealApprovalsTable.dealId], references: [dealsTable.id] }),
-  lender: one(lendersTable, { fields: [dealApprovalsTable.lenderId], references: [lendersTable.id] }),
-  document: one(documentsTable, { fields: [dealApprovalsTable.approvalDocumentId], references: [documentsTable.id] }),
-  creator: one(usersTable, { fields: [dealApprovalsTable.createdBy], references: [usersTable.id] }),
-}));
-
-export const partnerContactsRelations = relations(partnerContactsTable, ({ one }) => ({
-  partner: one(lendersTable, { fields: [partnerContactsTable.partnerId], references: [lendersTable.id] }),
-  creator: one(usersTable, { fields: [partnerContactsTable.createdBy], references: [usersTable.id] }),
 }));
 
 export const communicationsRelations = relations(communicationsTable, ({ one }) => ({
@@ -288,20 +254,6 @@ export const generatedFlyersRelations = relations(generatedFlyersTable, ({ one }
   createdByUser: one(usersTable, { fields: [generatedFlyersTable.createdBy], references: [usersTable.id] }),
 }));
 
-export const collateralTemplatesRelations = relations(collateralTemplatesTable, ({ one, many }) => ({
-  creator: one(usersTable, { fields: [collateralTemplatesTable.createdBy], references: [usersTable.id] }),
-  renders: many(collateralRendersTable),
-}));
-
-export const collateralRendersRelations = relations(collateralRendersTable, ({ one }) => ({
-  template: one(collateralTemplatesTable, {
-    fields: [collateralRendersTable.templateId],
-    references: [collateralTemplatesTable.id],
-  }),
-  user: one(usersTable, { fields: [collateralRendersTable.userId], references: [usersTable.id] }),
-  lead: one(leadsTable, { fields: [collateralRendersTable.leadId], references: [leadsTable.id] }),
-}));
-
 export const applicationsRelations = relations(applicationsTable, ({ one }) => ({
   lead: one(leadsTable, { fields: [applicationsTable.leadId], references: [leadsTable.id] }),
 }));
@@ -333,7 +285,6 @@ export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) =>
 }));
 
 export const lendersRelations = relations(lendersTable, ({ many }) => ({
-  contacts: many(partnerContactsTable),
   matches: many(lenderMatchesTable),
   submissions: many(lenderSubmissionsTable),
 }));

@@ -20,7 +20,7 @@ import {
   requireUser,
 } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { ensureBrandEmailHeader, getBrandLogoPng, getBrandLogoReversePng, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
+import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 import { seedStarterEmailData } from "../lib/productionMaintenance";
@@ -546,13 +546,6 @@ router.get("/brand/logo.png", (_req, res) => {
     .send(getBrandLogoPng());
 });
 
-router.get("/brand/logo-reverse.png", (_req, res) => {
-  res
-    .type("png")
-    .set("Cache-Control", "public, max-age=604800, immutable")
-    .send(getBrandLogoReversePng());
-});
-
 // --- Click tracking redirect (no auth) ---
 router.get("/email/track/click/:sendId", async (req, res) => {
   const sendId = parseInt(req.params["sendId"] as string, 10);
@@ -600,18 +593,14 @@ router.get("/email/unsubscribe", async (req, res) => {
   const sendId = parseInt(sendIdStr, 10);
 
   if (!email || !token || isNaN(sendId)) {
-    const logo = getBrandLogoUrl();
-    return void res.status(400).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc">
-      <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
+    return void res.status(400).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
       <h2>Invalid unsubscribe link</h2>
       <p>This link appears to be malformed or expired. Please contact support.</p>
     </body></html>`);
   }
 
   if (!verifyUnsubToken(sendId, email, token)) {
-    const logo = getBrandLogoUrl();
-    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc">
-      <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
+    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
       <h2>Invalid unsubscribe link</h2>
       <p>This unsubscribe link is invalid or has been tampered with.</p>
     </body></html>`);
@@ -620,9 +609,7 @@ router.get("/email/unsubscribe", async (req, res) => {
   // Bind to the persisted send record — verify sendId and email match
   const sendRecord = await db.query.emailSendsTable.findFirst({ where: eq(emailSendsTable.id, sendId) });
   if (!sendRecord || normalizeEmail(sendRecord.toEmail) !== normalizeEmail(email)) {
-    const logo = getBrandLogoUrl();
-    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc">
-      <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
+    return void res.status(403).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
       <h2>Invalid unsubscribe link</h2>
       <p>This unsubscribe link is invalid.</p>
     </body></html>`);
@@ -636,8 +623,7 @@ router.get("/email/unsubscribe", async (req, res) => {
       .where(and(eq(emailSendsTable.id, sendRecord.id), eq(emailSendsTable.status, sendRecord.status)));
   }
 
-  res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc">
-    <img src="${getBrandLogoUrl()}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
+  res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px">
     <h2>You've been unsubscribed</h2>
     <p>You will no longer receive marketing emails from MBS.</p>
   </body></html>`);

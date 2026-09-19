@@ -48,7 +48,6 @@ function docToApi(doc: typeof documentsTable.$inferSelect, uploader?: any) {
     fileType: doc.fileType,
     fileSize: doc.fileSize,
     category: doc.category,
-    label: doc.label,
     createdAt: doc.createdAt.toISOString(),
   };
 }
@@ -134,7 +133,6 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       category,
-      label: typeof req.body?.label === "string" ? req.body.label : null,
     }).returning();
 
     await activityLogger({

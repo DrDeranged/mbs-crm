@@ -9,6 +9,7 @@
 - [Drizzle relations must be declared both directions](drizzle-relations-both-sides.md) — a `with: { x: ... }` query throws a cryptic `referencedTable` error if the parent table's `relations()` doesn't also declare that relation name.
 - [Redact all free-text before sending to AI providers](ai-prompt-redaction.md) — every free-text input reaching an AI prompt (notes, message bodies, email subjects, user-typed instructions) needs redaction, not just structured/DB fields.
 - [Postgres check constraints drift from Drizzle enums](enum-check-constraints.md) — adding a value to a TS string-union column doesn't update the DB's CHECK constraint; must ALTER it manually and test the real insert path.
+- [drizzle-kit push interactive prompt](drizzle-push-interactive-prompt.md) — push can hang on unrelated pre-existing constraints in non-TTY sessions; apply targeted `ALTER TABLE` via psql instead.
 - [Repeated parameterized sql fragment breaks GROUP BY](drizzle-groupby-param-bug.md) — reusing one `sql` template (e.g. date_trunc(granularity, ...)) across SELECT/GROUP BY/ORDER BY fails in Postgres regardless of row count; use `sql.raw` for whitelisted literals instead.
 - [xlsx replaced with exceljs](xlsx-replaced.md) — xlsx removed (4 HIGH vulns); exceljs replacement requires async parseBuffer (workbook.xlsx.load is promise-based); callers must await.
 - [Sentry + @opentelemetry peer deps in api-server](sentry-opentelemetry-peer-deps.md) — @sentry/node requires @opentelemetry/api, /instrumentation, /sdk-trace-base, @sentry/opentelemetry as peers; all externalized in esbuild — must be installed as direct deps OR remove @opentelemetry/* from build.mjs externals to bundle them instead.
@@ -24,6 +25,3 @@
 - [Lender packet provenance and matching](lender-packet-provenance.md) — map packet rules structurally only when lead data supports them; keep unsupported source facts verbatim in notes and report unique seed outcomes.
 - [Lender delivery safety](lender-delivery-safety.md) — exact PDFs remain private and immutable; uncertain email outcomes must retain a durable retry barrier.
 - [Parallel Git index ownership](parallel-git-index.md) — serialize staging and history edits; a HEAD check followed by amend races with concurrent helper commits.
-- [Orval whitespace drift](orval-whitespace-drift.md) — verification-only codegen can add blank lines to the generated React client; inspect and discard whitespace-only drift.
-- [Orval input-resolution failure](orval-input-resolution.md) — Orval 8.9.1 currently cleans generated folders, then rejects valid YAML targets; restore outputs after failed runs.
-- [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.

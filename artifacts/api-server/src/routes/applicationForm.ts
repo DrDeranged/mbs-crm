@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
-import { buildApplicationFormHtml, enrichApplicationPdfRep, renderApplicationFormPdf } from "../lib/applicationPdf";
+import { buildApplicationFormHtml, renderApplicationFormPdf } from "../lib/applicationPdf";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 
 type Database = typeof db;
@@ -34,7 +34,7 @@ export function createApplicationFormRouter(overrides: ApplicationFormRouteDepen
       res.status(404).json({ error: "User not found" });
       return;
     }
-    const baseRep = {
+    const applicationOptions = {
       rep: {
         name: target.name,
         title: target.title,
@@ -44,9 +44,6 @@ export function createApplicationFormRouter(overrides: ApplicationFormRouteDepen
       },
       logoUrl: getBrandLogoUrl(getPublicBaseUrl()),
     };
-    const applicationOptions = overrides.renderPdf
-      ? baseRep
-      : { ...baseRep, rep: await enrichApplicationPdfRep(database, id, baseRep.rep) };
     // Keep the injected renderer for focused route tests. Production uses the
     // native pdf-lib renderer and therefore never needs a browser executable.
     const pdf = overrides.renderPdf

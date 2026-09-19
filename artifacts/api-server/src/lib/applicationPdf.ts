@@ -6,8 +6,6 @@ import {
   CONSENT_TITLE,
 } from "./consentText";
 import { rgb, type PDFPage } from "pdf-lib";
-import { eq } from "drizzle-orm";
-import { companySettingsTable, userIdentitiesTable } from "@workspace/db";
 import {
   LETTER_WIDTH,
   MBS_BORDER,
@@ -47,70 +45,10 @@ export type ApplicationPdfRep = {
   name?: string | null;
   email?: string | null;
   mobileNumber?: string | null;
-  officePhone?: string | null;
-  emails?: string[] | null;
   slug?: string | null;
   role?: string | null;
   title?: string | null;
 };
-
-export function selectApplicationPdfEmail(rep: Pick<ApplicationPdfRep, "email" | "emails">): string {
-  const primary = rep.email?.trim() ?? "";
-  const candidates = [primary, ...(rep.emails ?? [])]
-    .map((candidate) => candidate?.trim() ?? "")
-    .filter(Boolean);
-  return candidates.find((candidate) => /@my-business-solutions\.com$/i.test(candidate))
-    ?? primary;
-}
-
-export async function enrichApplicationPdfRep(
-  database: { query?: Record<string, any> },
-  userId: number,
-  rep: ApplicationPdfRep,
-): Promise<ApplicationPdfRep> {
-  const identities = database.query?.userIdentitiesTable
-    ? await database.query.userIdentitiesTable.findMany({ where: eq(userIdentitiesTable.userId, userId) })
-    : [];
-  const settings = database.query?.companySettingsTable
-    ? await database.query.companySettingsTable.findFirst()
-    : null;
-  return {
-    ...rep,
-    officePhone: rep.officePhone ?? settings?.companyPhone ?? null,
-    emails: [...new Set([rep.email, ...identities.map((identity: { email?: string | null }) => identity.email)].filter(Boolean) as string[])],
-  };
-}
-
-export type ApplicationPdfHeaderLayout = {
-  title: string;
-  contacts: string[];
-  contactSize: number;
-  contactLeading: number;
-  contactBaseline: number;
-  ruleY: number;
-  ruleHeight: number;
-  businessBarTop: number;
-};
-
-export function applicationPdfHeaderLayout(rep: ApplicationPdfRep): ApplicationPdfHeaderLayout {
-  const title = rep.title?.trim() ? rep.title.trim().toUpperCase() : "";
-  const contacts = [rep.mobileNumber, rep.officePhone, selectApplicationPdfEmail(rep), "www.my-business-solutions.com"]
-    .map((value) => value?.trim() ?? "")
-    .filter(Boolean);
-  const contactBaseline = title ? 738.5 : 745.5;
-  const contactSize = contacts.length <= 3 ? 5.6 : 5.4;
-  const contactLeading = contacts.length <= 3 ? 7 : 6.1;
-  const lastBaseline = contacts.length ? contactBaseline - (contacts.length - 1) * contactLeading : contactBaseline;
-  const ruleY = 712.4;
-  const ruleHeight = 1.6;
-  const businessBarTop = 711;
-  const textToRuleClearance = lastBaseline - (ruleY + ruleHeight);
-  const ruleToBarClearance = ruleY - businessBarTop;
-  if (textToRuleClearance < 1 || ruleToBarClearance < 1) {
-    throw new Error("Finance Application header clearance invariant failed");
-  }
-  return { title, contacts, contactSize, contactLeading, contactBaseline, ruleY, ruleHeight, businessBarTop };
-}
 
 export type ApplicationPdfApplication = Record<string, unknown>;
 
@@ -210,7 +148,7 @@ function signatureLine(label: string, data: ApplicationPdfOptions): string {
 export function buildApplicationFormHtml(options: ApplicationPdfOptions): string {
   const app = options.application ?? {};
   const logo = options.logoUrl
-    ? `<img src="${escapeHtml(options.logoUrl)}" alt="My Business Solutions logo" />`
+    ? `<img src="${escapeHtml(options.logoUrl)}" alt="My Business Solutions" />`
     : "";
   const slug = options.rep.slug?.trim() || "";
   const repName = options.rep.name?.trim() || "My Business Solutions";
@@ -237,7 +175,7 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   .rep-contact{font-size:7.2pt;line-height:1.35;color:#293b4f}
   .application-heading{text-align:center;padding-top:10px}
   .logo{width:1.45in;height:.62in;text-align:right;justify-self:end}
-  .logo img{width:78pt;height:auto;max-height:78pt;object-fit:contain}
+  .logo img{max-width:1.45in;max-height:.62in;object-fit:contain}
   .header-title{color:#0e2a47;font-weight:700;font-size:11pt}
   .apply{margin-top:6px;font-size:7pt;color:#0e2a47;white-space:nowrap}
   .green-rule{height:3px;background:#17a567;margin:8px 0 13px}
@@ -268,13 +206,13 @@ export function buildApplicationFormHtml(options: ApplicationPdfOptions): string
   <header class="rep-header">
     <div class="rep-info"><div class="rep-name">${value(repName)}</div>
       <div class="rep-title">${value(displayTitle(options.rep))}</div>
-       <div class="rep-contact">${[options.rep.mobileNumber, options.rep.officePhone, selectApplicationPdfEmail(options.rep), "www.my-business-solutions.com"].filter(Boolean).map(value).join("<br />")}</div>
+       <div class="rep-contact">${value(options.rep.mobileNumber ?? "—")}<br />${value(options.rep.email)}<br />www.my-business-solutions.com</div>
     </div>
     <div class="application-heading">
       <div class="header-title">Finance Application</div>
       <div class="apply">Apply online: ${value(applyUrl)}</div>
     </div>
-   <div class="logo">${logo}</div>
+    <div class="logo">${logo}</div>
   </header>
   <div class="green-rule"></div>
   <section class="section"><div class="section-header">Business Information</div>
@@ -358,19 +296,6 @@ function nativeAddress(application: ApplicationPdfApplication, prefix: string): 
     application[`${prefix}State`],
     application[`${prefix}Zip`],
   ].filter((part) => part !== null && part !== undefined && String(part).trim() !== "").map(String).join(", ");
-}
-
-function drawTrackedText(
-  page: PDFPage,
-  text: string,
-  options: { x: number; y: number; size: number; font: NativePdfFonts["bold"]; color: ReturnType<typeof rgb>; tracking: number; maxWidth?: number },
-): void {
-  let x = options.x;
-  for (const character of text) {
-    if (options.maxWidth !== undefined && x - options.x > options.maxWidth) break;
-    page.drawText(character, { x, y: options.y, size: options.size, font: options.font, color: options.color });
-    x += options.font.widthOfTextAtSize(character, options.size) + options.tracking;
-  }
 }
 
 function drawSectionBar(page: PDFPage, y: number, title: string, fonts: NativePdfFonts): number {
@@ -467,24 +392,21 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
     ? `app.my-business-solutions.com/r/${encodeURIComponent(rep.slug.trim())}`
     : "app.my-business-solutions.com";
 
-  const header = applicationPdfHeaderLayout(rep);
-  page.drawText(pdfTextForFont(repName, fonts.bold), { x: 22, y: 757, size: 12.5, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
-  if (header.title) {
-    drawTrackedText(page, pdfTextForFont(header.title, fonts.bold), {
-      x: 22, y: 745.5, size: 5.4, font: fonts.bold, color: MBS_GREEN, tracking: 0.5, maxWidth: 190,
-    });
+  page.drawText(pdfTextForFont(repName, fonts.bold), { x: 22, y: 758, size: 12.5, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
+  if (rep.title?.trim()) {
+    page.drawText(pdfTextForFont(rep.title, fonts.bold), { x: 22, y: 744, size: 5.8, font: fonts.bold, color: MBS_NAVY, maxWidth: 190 });
   }
-  header.contacts.forEach((line, index) => page.drawText(pdfTextForFont(line, fonts.regular), {
-    x: 22, y: header.contactBaseline - index * header.contactLeading, size: header.contactSize,
-    font: fonts.regular, color: MBS_SLATE, maxWidth: 190,
+  const contact = [rep.mobileNumber ?? "—", rep.email, "www.my-business-solutions.com"].filter(Boolean).map((line) => pdfTextForFont(line, fonts.regular));
+  contact.forEach((line, index) => page.drawText(line, {
+    x: 22, y: 733 - index * 7, size: 5.6, font: fonts.regular, color: MBS_SLATE, maxWidth: 190,
   }));
   page.drawText("Finance Application", { x: 242, y: 755, size: 10.5, font: fonts.bold, color: MBS_NAVY });
-  page.drawText(pdfTextForFont(`Apply online: ${applyUrl}`, fonts.regular), { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_SLATE });
+  page.drawText(pdfTextForFont(`Apply online: ${applyUrl}`, fonts.regular), { x: 221, y: 743, size: 5.5, font: fonts.regular, color: MBS_NAVY });
   if (logo) {
-    const ratio = Math.min(78 / logo.width, 78 / logo.height, 1);
+    const ratio = Math.min(100 / logo.width, 40 / logo.height, 1);
     page.drawImage(logo, { x: 490, y: 732, width: logo.width * ratio, height: logo.height * ratio });
   }
-  page.drawRectangle({ x: 22, y: header.ruleY, width: 568, height: header.ruleHeight, color: MBS_GREEN });
+  page.drawRectangle({ x: 22, y: 722, width: 568, height: 3, color: MBS_GREEN });
 
   let y = 711;
   y = drawSectionBar(page, y, "Business Information", fonts);
@@ -593,6 +515,6 @@ export async function renderApplicationFormPdf(options: NativeApplicationPdfOpti
   page.drawText(APPLICATION_PDF_FOOTER, {
     x: 50, y: APPLICATION_FORM_FOOTER_BASELINE, size: 4.9, font: fonts.regular, color: MBS_SLATE, maxWidth: 512,
   });
-  if (options.includePreparedFooter !== false) await addPreparedByFooters(pdf, selectApplicationPdfEmail(rep));
+  if (options.includePreparedFooter !== false) await addPreparedByFooters(pdf, rep.email);
   return Buffer.from(await pdf.save());
 }

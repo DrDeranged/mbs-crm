@@ -18,9 +18,6 @@ import {
   leadsTable,
   usersTable,
   DEAL_STAGES,
-  dealApprovalsTable,
-  documentsTable,
-  lendersTable,
 } from "@workspace/db";
 import { db } from "@workspace/db";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
@@ -35,8 +32,6 @@ import {
   CreateDealBody,
   UpdateDealBody,
   ConvertLeadToDealBody,
-  CreateDealApprovalBody,
-  SaveDealRatePointsBody,
 } from "@workspace/api-zod";
 import { latestDealActivitySort } from "../lib/latestActivitySort";
 import { activeDealStageCondition } from "../lib/activeDealStages";
@@ -45,8 +40,6 @@ import {
   buildDealPageIdsQuery,
   reorderByIds,
 } from "../lib/twoPhaseQueries";
-import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
-import { netGmAfterReferralSplit } from "../lib/partnerFlows";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -101,12 +94,6 @@ function toApi(
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
     actualGm: deal.actualGm ?? null,
-    referredByPartnerId: deal.referredByPartnerId ?? null,
-    referralSplitPct: deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
-    referralGm: netGmAfterReferralSplit(
-      Number(deal.actualGm ?? deal.approxGm ?? 0),
-      deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
-    ),
     notes: deal.notes ?? null,
     gmSplitPct: deal.gmSplitPct ?? 100,
     assignedTo: deal.assignedTo ?? null,
@@ -714,218 +701,6 @@ router.get("/deals/:id/activity", async (req, res): Promise<void> => {
       createdAt: entry.createdAt.toISOString(),
     })),
   );
-});
-
-export function createSaveDealRatePointsHandler(dependencies: {
-  database?: any;
-  authenticate?: typeof requireUser;
-  recordActivity?: typeof logActivity;
-} = {}) {
-  const database = dependencies.database ?? db;
-  const authenticate = dependencies.authenticate ?? requireUser;
-  const recordActivity = dependencies.recordActivity;
-  return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
-    if (!user) return;
-    const id = parseId(req, res);
-    if (!id) return;
-    const parsed = SaveDealRatePointsBody.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "Invalid rate and points inputs", details: parsed.error.issues });
-      return;
-    }
-    const existing = await database.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
-    if (!existing) {
-      res.status(404).json({ error: "Deal not found" });
-      return;
-    }
-    if (!canAccessDeal(user, existing)) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
-    if (parsed.data.mode === "reverse" && parsed.data.targetPoints == null) {
-      res.status(400).json({ error: "targetPoints is required in reverse mode" });
-      return;
-    }
-    if (parsed.data.sourceApprovalId != null) {
-      const approval = await database.query.dealApprovalsTable.findFirst({
-        where: and(eq(dealApprovalsTable.id, parsed.data.sourceApprovalId), eq(dealApprovalsTable.dealId, id)),
-      });
-      if (!approval) {
-        res.status(400).json({ error: "sourceApprovalId does not belong to this deal" });
-        return;
-      }
-    }
-    const buyPayment = annuityPayment(parsed.data.advance, parsed.data.buyNominalRate, parsed.data.term, parsed.data.timing);
-    if (parsed.data.mode === "reverse" && buyPayment == null) {
-      res.status(400).json({ error: "Unable to calculate the buy-rate payment" });
-      return;
-    }
-    const payment = parsed.data.mode === "reverse"
-      ? buyPayment + (parsed.data.advance * parsed.data.targetPoints! / 100) / parsed.data.term
-      : parsed.data.payment;
-    const calculation = calculateRatePoints({
-      advance: parsed.data.advance,
-      payment,
-      term: parsed.data.term,
-      timing: parsed.data.timing,
-      buyNominalRate: parsed.data.buyNominalRate,
-    });
-    if (!calculation || !Number.isFinite(calculation.totalCommission) || calculation.totalCommission < 0) {
-      res.status(400).json({ error: "Unable to calculate a non-negative commission from these inputs" });
-      return;
-    }
-    const targetField = existing.stage === "funded" ? "actualGm" : "approxGm";
-    const deal = await database.transaction(async (tx: any) => {
-      const [updated] = await tx.update(dealsTable)
-        .set({ [targetField]: calculation.totalCommission, updatedAt: new Date() })
-        .where(eq(dealsTable.id, id))
-        .returning();
-      const activity = {
-        userId: user.id,
-        dealId: id,
-        leadId: updated.leadId,
-        action: "rate_points_saved",
-        entityType: "deal",
-        entityId: id,
-        details: {
-          advance: parsed.data.advance,
-          payment,
-          term: parsed.data.term,
-          timing: parsed.data.timing,
-          buyNominalRate: parsed.data.buyNominalRate,
-          mode: parsed.data.mode,
-          targetPoints: parsed.data.targetPoints ?? null,
-          sourceApprovalId: parsed.data.sourceApprovalId ?? null,
-          nominalRate: calculation.nominalRate,
-          effectiveRate: calculation.effectiveRate,
-          simpleRate: calculation.simpleRate,
-          buyPayment: calculation.buyPayment,
-          totalCommission: calculation.totalCommission,
-          points: calculation.points,
-        },
-      };
-      if (recordActivity) await recordActivity(activity, tx);
-      else await logActivity(activity, tx);
-      return updated;
-    });
-    res.json({ deal: toApi(deal), gmTarget: targetField, calculation });
-  };
-}
-
-router.post("/deals/:id/rate-points", createSaveDealRatePointsHandler());
-
-function approvalToApi(approval: any) {
-  return {
-    id: approval.id,
-    dealId: approval.dealId,
-    lenderId: approval.lenderId,
-    lenderName: approval.lender?.name ?? `Lender #${approval.lenderId}`,
-    contractType: approval.contractType,
-    advance: Number(approval.advance),
-    payment: Number(approval.payment),
-    term: approval.term,
-    downPayment: Number(approval.downPayment),
-    tier: approval.tier,
-    expiresOn: approval.expiresOn,
-    approvalDocumentId: approval.approvalDocumentId ?? null,
-    createdAt: approval.createdAt.toISOString(),
-  };
-}
-
-async function findAccessibleDeal(id: number, user: typeof usersTable.$inferSelect) {
-  const deal = await db.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
-  if (!deal || !canAccessDeal(user, deal)) return null;
-  return deal;
-}
-
-router.get("/deals/:id/approvals", async (req, res): Promise<void> => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  const id = parseId(req, res);
-  if (!id) return;
-  const deal = await findAccessibleDeal(id, user);
-  if (!deal) {
-    res.status(404).json({ error: "Deal not found" });
-    return;
-  }
-  const rows = await db.query.dealApprovalsTable.findMany({
-    where: eq(dealApprovalsTable.dealId, id),
-    with: { lender: true },
-    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
-  });
-  res.json(rows.map(approvalToApi));
-});
-
-router.post("/deals/:id/approvals", async (req, res): Promise<void> => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  const id = parseId(req, res);
-  if (!id) return;
-  const deal = await findAccessibleDeal(id, user);
-  if (!deal) {
-    res.status(404).json({ error: "Deal not found" });
-    return;
-  }
-  const parsed = CreateDealApprovalBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid approval", details: parsed.error.issues });
-    return;
-  }
-  const lender = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, parsed.data.lenderId) });
-  if (!lender) {
-    res.status(404).json({ error: "Lender not found" });
-    return;
-  }
-  if (parsed.data.approvalDocumentId != null) {
-    const document = await db.query.documentsTable.findFirst({
-      where: eq(documentsTable.id, parsed.data.approvalDocumentId),
-    });
-    const isPdf = document?.fileType === "application/pdf" || document?.filename.toLowerCase().endsWith(".pdf");
-    if (
-      !document ||
-      document.leadId !== deal.leadId ||
-      document.category !== "other" ||
-      document.label !== "Approval" ||
-      !isPdf
-    ) {
-      res.status(400).json({ error: "Approval document must belong to the deal lead, be a PDF, category other, and have label Approval" });
-      return;
-    }
-  }
-  const [approval] = await db.insert(dealApprovalsTable).values({
-    dealId: id,
-    lenderId: parsed.data.lenderId,
-    contractType: parsed.data.contractType,
-    advance: parsed.data.advance,
-    payment: parsed.data.payment,
-    term: parsed.data.term,
-    downPayment: parsed.data.downPayment,
-    tier: parsed.data.tier,
-    expiresOn: parsed.data.expiresOn.toISOString().slice(0, 10),
-    approvalDocumentId: parsed.data.approvalDocumentId ?? null,
-    createdBy: user.id,
-  }).returning();
-  await logActivity({
-    userId: user.id,
-    leadId: deal.leadId,
-    dealId: id,
-    action: "approval_captured",
-    entityType: "deal_approval",
-    entityId: approval.id,
-    details: {
-      lenderId: approval.lenderId,
-      contractType: approval.contractType,
-      advance: approval.advance,
-      payment: approval.payment,
-      term: approval.term,
-      downPayment: approval.downPayment,
-      tier: approval.tier,
-      expiresOn: approval.expiresOn,
-      approvalDocumentId: approval.approvalDocumentId,
-    },
-  });
-  res.status(201).json(approvalToApi({ ...approval, lender }));
 });
 
 router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {

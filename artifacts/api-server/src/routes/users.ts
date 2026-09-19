@@ -1,14 +1,13 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { usersTable, retiredRepSlugsTable, userIdentitiesTable, adminAuditLogTable, activityLogTable } from "@workspace/db";
-import { eq, and, inArray, ne, sql } from "drizzle-orm";
+import { usersTable, retiredRepSlugsTable } from "@workspace/db";
+import { eq, and, inArray, ne } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
 import { backfillProductionSlugs, ProductionMaintenanceError } from "../lib/productionMaintenance";
 import { retireRepSlug } from "./repPublic";
 import { isSlugRetirementAuthorized, requiresSlugRetirement } from "../lib/repSlugPolicy";
-import { MERGE_USER_REFERENCE_COLUMNS, mergeRequiresConfirmation } from "../lib/userIdentityMerge";
 import applicationFormRouter from "./applicationForm";
 
 const router: IRouter = Router();
@@ -118,110 +117,6 @@ router.get("/users", async (req: Request, res: Response) => {
   });
 
   res.json(users.map(userToApi));
-});
-
-router.post("/admin/users/merge", async (req: Request, res: Response) => {
-  const actor = await requireUser(req, res);
-  if (!actor) return;
-  if (actor.role !== "admin") {
-    res.status(403).json({ error: "Admins only" });
-    return;
-  }
-  const sourceId = Number(req.body?.sourceUserId);
-  const targetId = Number(req.body?.targetUserId);
-  const confirmReassignment = req.body?.confirmReassignment === true;
-  if (!Number.isInteger(sourceId) || !Number.isInteger(targetId) || sourceId <= 0 || targetId <= 0 || sourceId === targetId) {
-    res.status(400).json({ error: "Valid, different sourceUserId and targetUserId are required" });
-    return;
-  }
-
-  try {
-    const result = await db.transaction(async (tx: any) => {
-      // Lock in ID order so concurrent inverse merges cannot deadlock.
-      const lockIds = sourceId < targetId ? [sourceId, targetId] : [targetId, sourceId];
-      const locked = await tx.select().from(usersTable).where(inArray(usersTable.id, lockIds)).for("update");
-      const source = locked.find((row: any) => row.id === sourceId);
-      const target = locked.find((row: any) => row.id === targetId);
-      if (!source || !target) throw Object.assign(new Error("Source or target user not found"), { status: 404 });
-      if (source.role !== "pending") throw Object.assign(new Error("Source user must have the pending role"), { status: 409 });
-      if (!target.isActive) throw Object.assign(new Error("Target user must be active"), { status: 409 });
-      if (!source.isActive) throw Object.assign(new Error("Source user is already inactive"), { status: 409 });
-
-      const tables = MERGE_USER_REFERENCE_COLUMNS;
-      const counts: Record<string, number> = {};
-      for (const [table, column] of tables) {
-        const rows = await tx.execute(sql.raw(`SELECT count(*)::int AS count FROM ${table} WHERE ${column} = ${sourceId}`));
-        counts[`${table}.${column}`] = Number((rows.rows?.[0] as any)?.count ?? 0);
-      }
-      const totalRecords = Object.values(counts).reduce((sum, count) => sum + count, 0);
-      if (mergeRequiresConfirmation(counts) && !confirmReassignment) {
-        const error = Object.assign(new Error("Reassignment confirmation is required"), { status: 409 });
-        (error as any).details = { code: "CONFIRM_REASSIGNMENT_REQUIRED", counts };
-        throw error;
-      }
-
-      // Identical cached renders represent the same durable file; retain the target row,
-      // then move every non-colliding render.
-      await tx.execute(sql`DELETE FROM collateral_renders source
-        USING collateral_renders target
-        WHERE source.user_id = ${sourceId} AND target.user_id = ${targetId}
-          AND source.template_id = target.template_id AND source.sha256 = target.sha256
-          AND source.id <> target.id`);
-      for (const [table, column] of tables) {
-        await tx.execute(sql.raw(`UPDATE ${table} SET ${column} = ${targetId} WHERE ${column} = ${sourceId}`));
-      }
-
-      if (source.slug) {
-        if (!target.slug) throw Object.assign(new Error("Target must have a slug before a slotted user can be merged"), { status: 409 });
-        await tx.insert(retiredRepSlugsTable).values({
-          slug: source.slug,
-          replacementSlug: target.slug,
-          userId: target.id,
-        }).onConflictDoNothing({ target: retiredRepSlugsTable.slug });
-      }
-
-      await tx.execute(sql`UPDATE user_identities
-        SET user_id = ${targetId}
-        WHERE user_id = ${sourceId}
-          AND clerk_id NOT IN (SELECT clerk_id FROM user_identities WHERE user_id = ${targetId})`);
-      await tx.delete(userIdentitiesTable).where(eq(userIdentitiesTable.userId, sourceId));
-      await tx.update(usersTable).set({
-        slug: null,
-        isActive: false,
-        mergedInto: targetId,
-        updatedAt: new Date(),
-      }).where(eq(usersTable.id, sourceId));
-
-      const details = { sourceUserId: sourceId, targetUserId: targetId, counts, sourceEmail: source.email };
-      await tx.insert(activityLogTable).values({
-        userId: targetId,
-        action: "user_merged",
-        entityType: "user",
-        entityId: String(targetId),
-        details,
-      });
-      await tx.insert(adminAuditLogTable).values({
-        actorUserId: actor.id,
-        action: "merge_user",
-        entityType: "user",
-        entityId: String(targetId),
-        details,
-      });
-      return { sourceUserId: sourceId, targetUserId: targetId, counts, reassigned: totalRecords };
-    });
-    res.json(result);
-  } catch (error) {
-    const status = typeof error === "object" && error !== null && "status" in error
-      ? Number((error as { status: unknown }).status) : 500;
-    if (status >= 400 && status < 500) {
-      res.status(status).json({
-        error: error instanceof Error ? error.message : "Unable to merge users",
-        ...((error as any).details ?? {}),
-      });
-      return;
-    }
-    throw error;
-  }
 });
 
 router.use(applicationFormRouter);

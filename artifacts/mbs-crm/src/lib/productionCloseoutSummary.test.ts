@@ -73,7 +73,7 @@ test("uses the exact lender count/name structure for first and repeat runs", () 
     formatLenderSeedSummary({
       created: 0,
       updated: 0,
-      unchanged: 12,
+      unchanged: 11,
       createdNames: [],
       updatedNames: [],
       unchangedNames: [
@@ -88,27 +88,9 @@ test("uses the exact lender count/name structure for first and repeat runs", () 
         "Alliance Funding Group (AFG)",
         "AMUR Equipment Finance",
         "Y.E.S. Leasing",
-        "Maxim Commercial Capital",
       ],
     }),
-    "created 0 / updated 0 / unchanged 12 · created: none · updated: none · unchanged: Dexly Finance, Thoro Corp, Navitas Credit Corp, Keystone Equipment Finance Corp (KEF), Channel Partners Capital, TimePayment Corp, PEAC Solutions, Luminar Capital, Alliance Funding Group (AFG), AMUR Equipment Finance, Y.E.S. Leasing, Maxim Commercial Capital",
-  );
-  assert.equal(
-    formatLenderSeedSummary({
-      created: 1,
-      updated: 0,
-      unchanged: 15,
-      createdNames: ["Maxim Commercial Capital"],
-      updatedNames: [],
-      unchangedNames: [
-        "Dexly Finance", "Thoro Corp", "Navitas Credit Corp",
-        "Keystone Equipment Finance Corp (KEF)", "Channel Partners Capital",
-        "TimePayment Corp", "PEAC Solutions", "Luminar Capital",
-        "Alliance Funding Group (AFG)", "AMUR Equipment Finance",
-        "Y.E.S. Leasing", "Maxim Commercial Capital",
-      ],
-    }),
-    "created 1 / updated 0 / unchanged 15 · created: Maxim Commercial Capital · updated: none · unchanged: Dexly Finance, Thoro Corp, Navitas Credit Corp, Keystone Equipment Finance Corp (KEF), Channel Partners Capital, TimePayment Corp, PEAC Solutions, Luminar Capital, Alliance Funding Group (AFG), AMUR Equipment Finance, Y.E.S. Leasing, Maxim Commercial Capital",
+    "created 0 / updated 0 / unchanged 11 · created: none · updated: none · unchanged: Dexly Finance, Thoro Corp, Navitas Credit Corp, Keystone Equipment Finance Corp (KEF), Channel Partners Capital, TimePayment Corp, PEAC Solutions, Luminar Capital, Alliance Funding Group (AFG), AMUR Equipment Finance, Y.E.S. Leasing",
   );
 });
 

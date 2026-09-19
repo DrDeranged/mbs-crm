@@ -27,7 +27,6 @@ export const companySettingsTable = pgTable(
      * in the database makes the disabled default apply to every API process.
      */
     emailSendingEnabled: boolean("email_sending_enabled").notNull().default(false),
-    partnerTextingEnabled: boolean("partner_texting_enabled").notNull().default(true),
     bulkEmailPerMinute: integer("bulk_email_per_minute").notNull().default(60),
     /** Shared daily allowance for marketing bulk and drip delivery attempts. */
     bulkEmailPerDay: integer("bulk_email_per_day").notNull().default(75),

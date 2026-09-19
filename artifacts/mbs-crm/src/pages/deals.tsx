@@ -53,10 +53,6 @@ import {
   formatGmDisplay,
   serializeDealViewStages,
   visibleDealTotals,
-  KANBAN_COMPACT_GAP,
-  KANBAN_COMPACT_COLUMN_MIN_WIDTH,
-  kanbanCompactPreferenceKey,
-  readKanbanCompactPreference,
 } from "@/lib/dealBoard";
 import { createNoteSaveController } from "@/lib/noteSaveController";
 
@@ -100,60 +96,10 @@ export default function DealsPage() {
     ListDealsSortOrder.desc,
   );
   const [dealView, setDealView] = useState<DealView>("all");
-  const [compactPreference, setCompactPreference] = useState<{
-    key: string | null;
-    loadedKey: string | null;
-    value: boolean;
-  }>({ key: null, loadedKey: null, value: true });
   const [isExporting, setIsExporting] = useState(false);
 
   const { data: currentUser } = useGetMe();
   const isRep = currentUser?.role === "rep";
-
-  const compactPreferenceKey = currentUser?.id
-    ? kanbanCompactPreferenceKey(currentUser.id)
-    : null;
-  const compactKanban =
-    compactPreference.loadedKey === compactPreferenceKey &&
-    compactPreference.value;
-
-  useEffect(() => {
-    if (!compactPreferenceKey) {
-      setCompactPreference({ key: null, loadedKey: null, value: true });
-      return;
-    }
-    try {
-      setCompactPreference({
-        key: compactPreferenceKey,
-        loadedKey: compactPreferenceKey,
-        value: readKanbanCompactPreference(window.localStorage, compactPreferenceKey),
-      });
-    } catch {
-      // Storage can be unavailable in privacy-restricted browsers.
-      setCompactPreference({
-        key: compactPreferenceKey,
-        loadedKey: compactPreferenceKey,
-        value: true,
-      });
-    }
-  }, [compactPreferenceKey]);
-
-  useEffect(() => {
-    if (
-      !compactPreferenceKey ||
-      compactPreference.loadedKey !== compactPreferenceKey
-    ) {
-      return;
-    }
-    try {
-      window.localStorage.setItem(
-        compactPreferenceKey,
-        String(compactPreference.value),
-      );
-    } catch {
-      // Storage can be unavailable in privacy-restricted browsers.
-    }
-  }, [compactPreference, compactPreferenceKey]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400);
@@ -457,29 +403,6 @@ export default function DealsPage() {
               <span className="hidden sm:inline">Table</span>
             </button>
           </div>
-          {view === "kanban" && (
-            <button
-              type="button"
-              aria-pressed={compactKanban}
-              aria-label="Toggle compact Kanban"
-              title={compactKanban ? "Use comfortable Kanban" : "Use compact Kanban"}
-              onClick={() =>
-                setCompactPreference((current) =>
-                  current.loadedKey === compactPreferenceKey
-                    ? { ...current, value: !current.value }
-                    : current,
-                )
-              }
-              className={cn(
-                "px-2 py-1 rounded-md border text-xs whitespace-nowrap",
-                compactKanban
-                  ? "bg-[#0E2A47] text-white border-[#0E2A47]"
-                  : "bg-gray-50 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {compactKanban ? "Compact" : "Fit 9 columns"}
-            </button>
-          )}
           <Link href="/deals/new" className="shrink-0">
             <Button size="sm" className="h-9">
               <Plus className="w-4 h-4 mr-1 sm:mr-1" />
@@ -510,42 +433,15 @@ export default function DealsPage() {
             </div>
           </div>
         ) : view === "kanban" ? (
-          <div
-            className={cn(
-              "h-full overflow-y-hidden",
-              compactKanban
-                ? "overflow-x-auto min-[1280px]:overflow-x-hidden p-2 min-[1280px]:p-0"
-                : "overflow-x-auto p-6",
-            )}
-          >
-            <div
-              className={cn(
-                "h-full pb-4",
-                compactKanban
-                  ? "grid min-w-max min-[1280px]:min-w-0"
-                  : "flex gap-4 min-w-max",
-              )}
-              style={
-                compactKanban
-                  ? {
-                      gridTemplateColumns: `repeat(${STAGES.length}, minmax(${KANBAN_COMPACT_COLUMN_MIN_WIDTH}px, 1fr))`,
-                      gap: `${KANBAN_COMPACT_GAP}px`,
-                    }
-                  : undefined
-              }
-            >
+          <div className="h-full overflow-x-auto overflow-y-hidden p-6">
+            <div className="flex gap-4 h-full min-w-max pb-4">
               {STAGES.map((stage) => {
                 const stageDeals = deals.filter((d) => d.stage === stage.id);
                 return (
                   <div
                     key={stage.id}
                     className={cn(
-                      cn(
-                        "flex flex-col bg-gray-100/50 rounded-xl border border-gray-200/60 transition-colors h-full",
-                        compactKanban
-                          ? "min-w-[120px]"
-                          : "w-72",
-                      ),
+                      "flex flex-col w-72 bg-gray-100/50 rounded-xl border border-gray-200/60 transition-colors h-full",
                       dragOverStage === stage.id
                         ? "bg-blue-50 border-blue-200"
                         : "",
@@ -554,24 +450,15 @@ export default function DealsPage() {
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, stage.id)}
                   >
-                    <div className={cn(
-                      "border-b border-gray-200/60 flex items-center justify-between bg-gray-50/50 rounded-t-xl shrink-0",
-                      compactKanban ? "px-2 py-2 gap-1" : "p-3",
-                    )}>
-                      <h3 className={cn(
-                        "font-semibold text-sm text-gray-700",
-                        compactKanban && "truncate whitespace-nowrap text-xs",
-                      )}>
+                    <div className="p-3 border-b border-gray-200/60 flex items-center justify-between bg-gray-50/50 rounded-t-xl shrink-0">
+                      <h3 className="font-semibold text-sm text-gray-700">
                         {stage.label}
                       </h3>
                       <Badge variant="secondary" className="bg-white">
                         {stageDeals.length}
                       </Badge>
                     </div>
-                    <div className={cn(
-                      "overflow-y-auto flex-1 custom-scrollbar",
-                      compactKanban ? "p-1 space-y-1" : "p-2 space-y-2",
-                    )}>
+                    <div className="p-2 space-y-2 overflow-y-auto flex-1 custom-scrollbar">
                       {stageDeals.map((deal) => {
                         const rep = users?.find(
                           (u) => u.id === deal.assignedTo,
@@ -581,55 +468,45 @@ export default function DealsPage() {
                             key={deal.id}
                             draggable
                             onDragStart={(e) => handleDragStart(e, deal)}
-                            className={cn(
-                              "bg-white border rounded-lg shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden",
-                              compactKanban ? "p-2" : "p-3",
-                            )}
+                            className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden"
                           >
                             <Link
                               href={`/deals/${deal.id}`}
                               className="absolute inset-0 z-[var(--z-deal-card-bg)]"
                             />
                             <div className="relative z-[var(--z-deal-card-content)] pointer-events-none">
-                              <h4 className={cn(
-                                "font-semibold text-[#0E2A47] truncate whitespace-nowrap",
-                                compactKanban ? "text-xs" : "text-sm",
-                              )}>
+                              <h4 className="font-semibold text-sm text-[#0E2A47] truncate">
                                 {deal.dealName}
                               </h4>
-                              <div className={cn(
-                                "text-xs",
-                                compactKanban ? "mt-1 flex items-center justify-between gap-1" : "mt-2 space-y-1.5",
-                              )}>
-                                <span className={cn(
-                                  "font-medium text-gray-700 truncate",
-                                  !compactKanban && "flex items-center",
-                                )}>
-                                  {!compactKanban && <DollarSign className="w-3 h-3 mr-0.5" />}
-                                  {formatCurrency(deal.amount)}
-                                </span>
-                                <span className={cn(
-                                  "font-medium text-emerald-600 truncate",
-                                  compactKanban && "rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px]",
-                                )}>
-                                  {!compactKanban && <Building2 className="w-3 h-3 mr-0.5 inline" />}
-                                  {formatGmDisplay(
-                                    deal.actualGm ?? deal.approxGm,
-                                    deal.gmSplitPct ?? 100,
-                                  )}
-                                </span>
+                              <div className="mt-2 space-y-1.5">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground flex items-center">
+                                    <DollarSign className="w-3 h-3 mr-0.5" />{" "}
+                                    Amount
+                                  </span>
+                                  <span className="font-medium text-gray-700">
+                                    {formatCurrency(deal.amount)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground flex items-center">
+                                    <Building2 className="w-3 h-3 mr-0.5" /> GM
+                                  </span>
+                                  <span className="font-medium text-emerald-600">
+                                    {formatGmDisplay(
+                                      deal.actualGm ?? deal.approxGm,
+                                      deal.gmSplitPct ?? 100,
+                                    )}
+                                  </span>
+                                </div>
                               </div>
-                              <div className={cn(
-                                "border-gray-100 flex items-center justify-between",
-                                compactKanban ? "mt-1 pt-1" : "mt-3 pt-3 border-t",
-                              )}>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
-                                  <UserIcon className="w-3 h-3 shrink-0" />
-                                  <span className="truncate">
-                                    {compactKanban
-                                      ? (rep ? getUserDisplayName(rep) : "Unassigned")
-                                          .split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()
-                                      : (rep ? getUserDisplayName(rep) : "Unassigned")}
+                              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <UserIcon className="w-3 h-3" />
+                                  <span className="truncate max-w-[100px]">
+                                    {rep
+                                      ? getUserDisplayName(rep)
+                                      : "Unassigned"}
                                   </span>
                                 </div>
                                 {deal.isArchived && (

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import test from "node:test";
 import express from "express";
-import { createSaveDealRatePointsHandler, createUpdateDealHandler } from "../routes/deals";
+import { createUpdateDealHandler } from "../routes/deals";
 
 process.env.DATABASE_URL ??= "postgresql://integration-test.invalid/test";
 
@@ -121,47 +121,4 @@ test("deal update rolls back notes when activity logging fails", async () => {
   assert.equal(response.status, 500);
   assert.equal(fixture.getDeal().notes, "old");
   assert.equal(fixture.activities.length, 0);
-});
-
-test("rate points save updates the correct GM field and writes complete activity in one transaction", async () => {
-  for (const stage of ["submitted", "funded"]) {
-    const fixture = fakeDatabase();
-    fixture.getDeal().stage = stage;
-    const activities: any[] = [];
-    let activityTx: any;
-    const app = express();
-    app.use(express.json());
-    app.post("/deals/:id/rate-points", createSaveDealRatePointsHandler({
-      database: fixture.database,
-      authenticate: async () => ({ id: 3, role: "admin", assignedTo: null }) as any,
-      recordActivity: async (activity: any, tx: any) => {
-        activityTx = tx;
-        activities.push(activity);
-      },
-    }));
-    const server = createServer(app);
-    await new Promise<void>((resolve) => server.listen(0, resolve));
-    const address = server.address();
-    if (!address || typeof address === "string") throw new Error("server did not start");
-    try {
-      const response = await fetch(`http://127.0.0.1:${address.port}/deals/7/rate-points`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          advance: 28080, payment: 1735.69, term: 24, timing: "arrears",
-          buyNominalRate: 0.18, mode: "spread", sourceApprovalId: null,
-        }),
-      });
-      assert.equal(response.status, 200);
-    } finally {
-      await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    }
-    assert.equal(fixture.getDeal()[stage === "funded" ? "actualGm" : "approxGm"]?.toFixed(2), "8011.71");
-    assert.equal(fixture.getDeal()[stage === "funded" ? "approxGm" : "actualGm"], stage === "funded" ? 1000 : null);
-    assert.equal(activities[0].action, "rate_points_saved");
-    assert.equal(activities[0].details.advance, 28080);
-    assert.equal(activities[0].details.nominalRate > 0, true);
-    assert.equal(activities[0].details.sourceApprovalId, null);
-    assert.ok(activityTx);
-  }
 });

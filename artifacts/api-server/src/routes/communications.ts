@@ -1,13 +1,12 @@
 import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable, lendersTable, partnerContactsTable, companySettingsTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
-import { getLeadSmsEligibility } from "../lib/smsEligibility";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -141,17 +140,10 @@ router.post("/leads/:id/sms", async (req, res) => {
 
   if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
 
-  const smsEligibility = await getLeadSmsEligibility(db, leadId);
-  if (!smsEligibility.eligible && smsEligibility.reason === "unsubscribed") {
+  if (lead.isUnsubscribed) {
     return void res.status(422).json({
       error: "consent_required",
       message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
-    });
-  }
-  if (!smsEligibility.eligible) {
-    return void res.status(422).json({
-      error: "consent_required",
-      message: `Cannot send SMS: ${smsEligibility.reason}.`,
     });
   }
   if (await isUsfaMarketingBlocked(db, lead.leadSource)) {
@@ -200,65 +192,6 @@ router.post("/leads/:id/sms", async (req, res) => {
   });
 
   res.status(201).json(commToApi(full));
-});
-
-// POST /api/partners/:partnerId/contacts/:contactId/sms — business-contact SMS.
-// Partner contacts are not consumer leads: no consumer consent gate is applied,
-// while Twilio/A2P provider errors and STOP handling remain unchanged.
-router.post("/partners/:partnerId/contacts/:contactId/sms", async (req, res) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !TWILIO_PHONE) {
-    return void res.status(503).json({ error: "Twilio not configured" });
-  }
-  const partnerId = positiveId.safeParse(req.params.partnerId);
-  const contactId = positiveId.safeParse(req.params.contactId);
-  const bodyInput = sendSmsBody.safeParse(req.body);
-  if (!partnerId.success || !contactId.success) return void res.status(400).json({ error: "Invalid partner or contact ID" });
-  if (!bodyInput.success) return invalidInput(res, bodyInput);
-  const settings = await db.select({ enabled: companySettingsTable.partnerTextingEnabled }).from(companySettingsTable).limit(1);
-  if (settings[0] && !settings[0].enabled) return void res.status(403).json({ error: "Partner texting is disabled by an administrator" });
-  const contact = await db.query.partnerContactsTable.findFirst({
-    where: and(eq(partnerContactsTable.id, contactId.data), eq(partnerContactsTable.partnerId, partnerId.data)),
-  });
-  if (!contact) return void res.status(404).json({ error: "Partner contact not found" });
-  if (!contact.phone) return void res.status(400).json({ error: "Partner contact has no phone number" });
-  if (contact.smsOptedOut) return void res.status(422).json({ error: "sms_opted_out", message: "Partner contact has sent STOP and cannot receive SMS." });
-  let message: any;
-  try {
-    message = await twilio(ACCOUNT_SID, AUTH_TOKEN).messages.create({
-      from: TWILIO_PHONE,
-      to: contact.phone,
-      body: bodyInput.data.body.trim(),
-      statusCallback: absUrl(req, "/api/twilio/sms/status"),
-    });
-  } catch (error: any) {
-    const code = String(error?.code ?? "");
-    return void res.status(code === "30034" ? 422 : 502).json({
-      error: code === "30034" ? "A2P approval required" : "Partner SMS delivery failed",
-      reason: code || "twilio_send_failed",
-      message: error?.message ?? "Twilio rejected the message",
-    });
-  }
-  const [comm] = await db.insert(communicationsTable).values({
-    partnerId: partnerId.data,
-    userId: user.id,
-    type: "sms",
-    direction: "outbound",
-    fromNumber: TWILIO_PHONE,
-    toNumber: contact.phone,
-    body: bodyInput.data.body.trim(),
-    status: message.status,
-    twilioSid: message.sid,
-  }).returning();
-  await logActivity({
-    userId: user.id,
-    action: "partner_sms_sent",
-    entityType: "partner_contact",
-    entityId: String(contact.id),
-    details: { partnerId: partnerId.data, to: contact.phone, body: bodyInput.data.body.trim().slice(0, 100) },
-  });
-  res.status(201).json(commToApi(comm));
 });
 
 // GET /api/leads/:id/communications — list all communications for a lead

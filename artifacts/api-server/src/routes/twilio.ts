@@ -2,7 +2,7 @@ import { Router, type Request } from "express";
 import twilio from "twilio";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable, partnerContactsTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
 import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -328,18 +328,9 @@ router.post("/twilio/sms/inbound", async (req, res) => {
   const lead = await db.query.leadsTable.findFirst({
     where: and(isNotNull(leadsTable.phone), eq(leadsTable.phone, from)),
   });
-  const partnerContact = await db.query.partnerContactsTable.findFirst({
-    where: eq(partnerContactsTable.phone, from),
-  });
-  if (partnerContact && /^\s*stop\b/i.test(body)) {
-    await db.update(partnerContactsTable)
-      .set({ smsOptedOut: true, updatedAt: new Date() })
-      .where(eq(partnerContactsTable.id, partnerContact.id));
-  }
 
   const [comm] = await db.insert(communicationsTable).values({
     leadId: lead?.id ?? null,
-    partnerId: partnerContact?.partnerId ?? null,
     userId: lead?.assignedRepId ?? null,
     type: "sms",
     direction: "inbound",

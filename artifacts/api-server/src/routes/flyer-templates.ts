@@ -63,7 +63,7 @@ const STARTER_TEMPLATES = [
 </head>
 <body>
   <div class="header">
-    <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions logo" /></div>
+    <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions" /></div>
     <div class="tagline">Business Financing Specialists</div>
   </div>
   <div class="hero">
@@ -150,7 +150,7 @@ const STARTER_TEMPLATES = [
 <body>
   <div class="header">
     <div>
-      <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions logo" /></div>
+      <div class="logo" data-mbs-flyer-logo="true"><img src="{{brand_logo_url}}" alt="My Business Solutions" /></div>
       <div class="tagline">Equipment Financing Division</div>
     </div>
     <div class="badge">Fast Approvals<br/>100% Financing</div>

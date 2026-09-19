@@ -15,7 +15,6 @@ import { eq, and, lt, inArray, count, sql, not, exists, desc } from "drizzle-orm
 import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { getLeadSmsEligibility } from "../lib/smsEligibility";
 
 const router = Router();
 const positiveId = z.coerce.number().int().positive();
@@ -84,14 +83,10 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
       expired: consentAge != null && consentAge > 30,
     },
     tcpaConsent: {
-      captured: Boolean(app?.smsConsent && app.smsConsentAt && app.smsConsentIp),
-      capturedAt: app?.smsConsentAt ?? null,
-      consentIp: app?.smsConsentIp ?? null,
+      captured: !lead.isUnsubscribed,
       note: lead.isUnsubscribed
-        ? "Lead has unsubscribed — do not contact via SMS"
-        : app?.smsConsent
-          ? "Applicant explicitly opted in to application-related text messages"
-          : "No explicit application SMS consent",
+        ? "Lead has unsubscribed — do not contact via SMS or email"
+        : "No explicit TCPA field; isUnsubscribed=false is the opt-out signal",
     },
     applicationConsent: {
       consentCreditPull: app?.consentCreditPull ?? false,
@@ -103,7 +98,7 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
       complianceLogEntries: Number(complianceLogCount[0]?.total ?? 0),
     },
     canAutoEmail: !lead.isUnsubscribed && lead.email != null,
-    canAutoSms: (await getLeadSmsEligibility(db, leadId)).eligible,
+    canAutoSms: !lead.isUnsubscribed && lead.phone != null,
     canPullCredit: consentOk && !lead.isUnsubscribed && (consentAge == null || consentAge <= 30),
   });
 });

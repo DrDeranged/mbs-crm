@@ -10,7 +10,6 @@ import { AlertCircle, CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucid
 import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useGetMe, useRunLenderMatch, useUpdateSubmission, getGetDealQueryKey, getListDealActivityQueryKey } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
-import { filterDeclinedMatches } from "@/lib/lenderSubmissions";
 
 function apiErrorDetails(error: any, fallback: string) {
   const data = error?.data;
@@ -97,13 +96,9 @@ export function LeadLenderMatch() {
     });
   };
 
-  const [showDeclined, setShowDeclined] = useState(false);
+  const submittedLenderIds = new Set((submissions ?? []).map((s: any) => s.lenderId));
   const canSubmit = isAdmin || (me?.role === "rep" && me.id === lead?.assignedRepId);
-  const activeMatches = filterDeclinedMatches(
-    (matches ?? []).filter((match: any) => match.lender?.isActive !== false),
-    submissions ?? [],
-    showDeclined,
-  ).sort((a: any, b: any) => Number(a.matchGroup === "super_broker") - Number(b.matchGroup === "super_broker"));
+  const activeMatches = (matches ?? []).filter((match: any) => match.lender?.isActive !== false);
 
   const statusColor: Record<string, string> = {
     submitted: "bg-blue-50 text-blue-700 border-blue-200",
@@ -172,12 +167,6 @@ export function LeadLenderMatch() {
           {runMatch.isPending ? "Matching…" : "Run Match"}
         </Button>
       </div>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Declined lenders are hidden from recommendations by default.</span>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowDeclined((value) => !value)}>
-          {showDeclined ? "Hide declined" : "Show declined"}
-        </Button>
-      </div>
 
       {/* Match Results */}
       {matchesLoading ? (
@@ -191,15 +180,13 @@ export function LeadLenderMatch() {
       ) : (
         <div className="space-y-2">
           {activeMatches.map((m: any, idx: number) => {
-            const isSubmitted = (submissions ?? []).some((s: any) => s.lenderId === m.lenderId);
+            const isSubmitted = submittedLenderIds.has(m.lenderId);
             const passedCount = (m.criteriaBreakdown ?? []).filter((c: any) => c.passed && !c.skipped).length;
             const totalCount = (m.criteriaBreakdown ?? []).filter((c: any) => !c.skipped).length;
             const isExpanded = expandedIds.has(m.id);
             const lenderName = m.lender?.name ?? `Lender #${m.lenderId}`;
-             return (
-               <div key={m.id}>
-               {m.matchGroup === "super_broker" && (idx === 0 || (activeMatches[idx - 1] as any)?.matchGroup !== "super_broker") && <div className="pt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Super-broker options</div>}
-               <div className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
+            return (
+              <div key={m.id} className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
                 <div className="flex items-start justify-between">
                   <button
                     className="flex items-center gap-2 text-left flex-1 min-w-0"
@@ -277,8 +264,7 @@ export function LeadLenderMatch() {
                     </button>
                   </>
                 )}
-               </div>
-               </div>
+              </div>
             );
           })}
         </div>

@@ -2,14 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   DEAL_STAGE_COLUMNS,
-  KANBAN_COMPACT_BREAKPOINT,
-  KANBAN_COMPACT_COLUMN_MIN_WIDTH,
-  KANBAN_COMPACT_GAP,
-  compactKanbanAvailableWidth,
-  compactKanbanFits,
-  compactKanbanRequiredWidth,
-  kanbanCompactPreferenceKey,
-  readKanbanCompactPreference,
   dealMatchesView,
   formatGmDisplay,
   serializeDealViewStages,
@@ -32,39 +24,6 @@ test("kanban has exactly nine supported deal-stage columns", () => {
         "dead",
       ],
     );
-});
-
-test("compact Kanban sizing keeps nine columns at least 120px wide", () => {
-    assert.equal(DEAL_STAGE_COLUMNS.length, 9);
-    assert.equal(KANBAN_COMPACT_COLUMN_MIN_WIDTH, 120);
-    assert.equal(KANBAN_COMPACT_GAP, 4);
-    assert.equal(compactKanbanRequiredWidth(), 9 * 120 + 8 * 4);
-    assert.equal(compactKanbanFits(1440), true);
-    assert.equal(compactKanbanFits(KANBAN_COMPACT_BREAKPOINT), true);
-});
-
-test("compact is the default while explicit per-user preferences still win", () => {
-    const values = new Map([
-      ["mbs-crm:kanban-compact:41", "true"],
-      ["mbs-crm:kanban-compact:42", "false"],
-    ]);
-    const storage = {
-      getItem(key: string) {
-        return values.get(key) ?? null;
-      },
-    };
-    assert.equal(kanbanCompactPreferenceKey(41), "mbs-crm:kanban-compact:41");
-    assert.equal(readKanbanCompactPreference(storage, kanbanCompactPreferenceKey(41)), true);
-    assert.equal(readKanbanCompactPreference(storage, kanbanCompactPreferenceKey(42)), false);
-    assert.equal(readKanbanCompactPreference(storage, "missing"), true);
-});
-
-test("compact Kanban fits the actual board area at 1280px and 1440px", () => {
-    assert.equal(compactKanbanAvailableWidth(1280), 1120);
-    assert.equal(compactKanbanAvailableWidth(1440), 1280);
-    assert.equal(compactKanbanRequiredWidth(), 1112);
-    assert.equal(compactKanbanFits(1280), true);
-    assert.equal(compactKanbanFits(1440), true);
 });
 
 test("uses the exact built-in view stage predicates and serialization", () => {

@@ -48,7 +48,6 @@ export interface LenderEvaluationApplication {
   trucksInFleet?: number | null;
   hasFinancialStatements?: boolean | null;
   hasFactoring?: boolean | null;
-  hasCollateral?: boolean | null;
   industryExperienceMonths?: number | null;
   // yearsUnderCurrentOwnership is intentionally not evaluated: lenders have
   // no ownership-tenure rule in the current schema.
@@ -85,7 +84,6 @@ export interface ProgramEligibilityRule {
   restrictedIndustries?: readonly string[];
   prohibitedIndustries?: readonly string[];
   truckingRules?: readonly TruckingRule[];
-  requiresCollateral?: boolean;
 }
 
 export const PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED = true;
@@ -174,14 +172,6 @@ export function evaluateLender(
   const monthlyRevenue = application?.monthlyRevenueStated ?? null;
   const programEligibilityRule = lender.programEligibilityRules
     ?.find((rule) => rule.programType === lead.applicationType);
-  if (programEligibilityRule?.requiresCollateral) {
-    const passed = application?.hasCollateral === true;
-    breakdown.push({
-      criterion: "Collateral",
-      passed,
-      detail: passed ? "Required collateral is reported" : "Real-estate or equipment collateral is required",
-    });
-  }
   const programTypes = lender.programTypes ?? [];
   if (programTypes.length > 0) {
     const passed = programTypes.includes(lead.applicationType);

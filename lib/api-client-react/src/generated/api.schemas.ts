@@ -5,161 +5,6 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface AdminUserMergeRequest {
-  /** @minimum 1 */
-  sourceUserId: number;
-  /** @minimum 1 */
-  targetUserId: number;
-  /** Required when the source owns any records that will be reassigned */
-  confirmReassignment?: boolean;
-}
-
-export type AdminUserMergeResponseCounts = {[key: string]: number};
-
-export interface AdminUserMergeResponse {
-  sourceUserId: number;
-  targetUserId: number;
-  reassigned: number;
-  counts: AdminUserMergeResponseCounts;
-}
-
-export type CollateralTemplateCategory = typeof CollateralTemplateCategory[keyof typeof CollateralTemplateCategory];
-
-
-export const CollateralTemplateCategory = {
-  flyer: 'flyer',
-  one_pager: 'one_pager',
-  application: 'application',
-  letter: 'letter',
-  other: 'other',
-} as const;
-
-export type CollateralTemplateKind = typeof CollateralTemplateKind[keyof typeof CollateralTemplateKind];
-
-
-export const CollateralTemplateKind = {
-  html: 'html',
-  image_overlay: 'image_overlay',
-} as const;
-
-export type CollateralTemplateStatus = typeof CollateralTemplateStatus[keyof typeof CollateralTemplateStatus];
-
-
-export const CollateralTemplateStatus = {
-  draft: 'draft',
-  published: 'published',
-} as const;
-
-export interface CollateralTemplate {
-  id: number;
-  name: string;
-  category: CollateralTemplateCategory;
-  kind: CollateralTemplateKind;
-  sourceKey: string;
-  status: CollateralTemplateStatus;
-  /** @nullable */
-  thumbnailUrl?: string | null;
-}
-
-export type CollateralTemplateInputCategory = typeof CollateralTemplateInputCategory[keyof typeof CollateralTemplateInputCategory];
-
-
-export const CollateralTemplateInputCategory = {
-  flyer: 'flyer',
-  one_pager: 'one_pager',
-  application: 'application',
-  letter: 'letter',
-  other: 'other',
-} as const;
-
-export type CollateralTemplateInputKind = typeof CollateralTemplateInputKind[keyof typeof CollateralTemplateInputKind];
-
-
-export const CollateralTemplateInputKind = {
-  html: 'html',
-  image_overlay: 'image_overlay',
-} as const;
-
-export type CollateralTemplateInputStatus = typeof CollateralTemplateInputStatus[keyof typeof CollateralTemplateInputStatus];
-
-
-export const CollateralTemplateInputStatus = {
-  draft: 'draft',
-  published: 'published',
-} as const;
-
-export interface CollateralTemplateInput {
-  /** @minLength 1 */
-  name: string;
-  category: CollateralTemplateInputCategory;
-  kind: CollateralTemplateInputKind;
-  /** @minLength 1 */
-  sourceKey: string;
-  status?: CollateralTemplateInputStatus;
-}
-
-export type CollateralTemplatePatchCategory = typeof CollateralTemplatePatchCategory[keyof typeof CollateralTemplatePatchCategory];
-
-
-export const CollateralTemplatePatchCategory = {
-  flyer: 'flyer',
-  one_pager: 'one_pager',
-  application: 'application',
-  letter: 'letter',
-  other: 'other',
-} as const;
-
-export type CollateralTemplatePatchKind = typeof CollateralTemplatePatchKind[keyof typeof CollateralTemplatePatchKind];
-
-
-export const CollateralTemplatePatchKind = {
-  html: 'html',
-  image_overlay: 'image_overlay',
-} as const;
-
-export type CollateralTemplatePatchStatus = typeof CollateralTemplatePatchStatus[keyof typeof CollateralTemplatePatchStatus];
-
-
-export const CollateralTemplatePatchStatus = {
-  draft: 'draft',
-  published: 'published',
-} as const;
-
-export interface CollateralTemplatePatch {
-  /** @minLength 1 */
-  name?: string;
-  category?: CollateralTemplatePatchCategory;
-  kind?: CollateralTemplatePatchKind;
-  /** @minLength 1 */
-  sourceKey?: string;
-  status?: CollateralTemplatePatchStatus;
-}
-
-export interface CollateralRender {
-  renderId: number;
-  sha256: string;
-  pdfUrl: string;
-  pngUrl: string;
-  shareUrl: string;
-}
-
-export interface CollateralEmailInput {
-  /** @minimum 1 */
-  leadId: number;
-  subject?: string;
-  /** @minLength 1 */
-  bodyHtml: string;
-}
-
-export interface CollateralEmailResult {
-  sent: boolean;
-}
-
-export interface CollateralLink {
-  url: string;
-  expiresInDays: 7;
-}
-
 export type UsfaIntakeLogStatus = typeof UsfaIntakeLogStatus[keyof typeof UsfaIntakeLogStatus];
 
 
@@ -667,8 +512,6 @@ export interface Document {
   fileType: string;
   fileSize: number;
   category: DocumentCategory;
-  /** @nullable */
-  label?: string | null;
   createdAt: string;
 }
 
@@ -1022,7 +865,6 @@ export interface TaskUpdate {
 export interface NewDocumentUpload {
   file: Blob;
   category: DocumentCategory;
-  label?: string;
 }
 
 export interface DocumentCategoryUpdate {
@@ -1382,13 +1224,6 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
-export type LenderSubmissionStats = {
-  submitted?: number;
-  approved?: number;
-  declined?: number;
-  approvalRate?: number;
-};
-
 export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
 
 
@@ -1423,7 +1258,6 @@ export interface ProgramEligibilityRule {
 export interface Lender {
   id: number;
   name: string;
-  submissionStats?: LenderSubmissionStats;
   programTypes: string[];
   /** @nullable */
   minAmount?: number | null;
@@ -1551,15 +1385,6 @@ export const LenderSubmissionStatus = {
   approved: 'approved',
   declined: 'declined',
   funded: 'funded',
-  withdrawn: 'withdrawn',
-} as const;
-
-export type LenderSubmissionSource = typeof LenderSubmissionSource[keyof typeof LenderSubmissionSource];
-
-
-export const LenderSubmissionSource = {
-  crm: 'crm',
-  manual: 'manual',
 } as const;
 
 export type LenderPackageConfigSectionsItem = typeof LenderPackageConfigSectionsItem[keyof typeof LenderPackageConfigSectionsItem];
@@ -1598,12 +1423,6 @@ export interface LenderSubmission {
   sentBy?: number | null;
   sentByUser?: LenderSubmissionSentByUser;
   status: LenderSubmissionStatus;
-  source?: LenderSubmissionSource;
-  /** @nullable */
-  decisionDate?: string | null;
-  hasApprovalAttachment?: boolean;
-  /** @nullable */
-  approvalDocumentId?: number | null;
   /** @nullable */
   notes?: string | null;
   /** @nullable */
@@ -1628,27 +1447,6 @@ export interface LenderSubmissionUpdate {
   status?: LenderSubmissionUpdateStatus;
   /** @nullable */
   notes?: string | null;
-}
-
-export type ManualLenderSubmissionCreateStatus = typeof ManualLenderSubmissionCreateStatus[keyof typeof ManualLenderSubmissionCreateStatus];
-
-
-export const ManualLenderSubmissionCreateStatus = {
-  submitted: 'submitted',
-  approved: 'approved',
-  declined: 'declined',
-  funded: 'funded',
-  withdrawn: 'withdrawn',
-} as const;
-
-export interface ManualLenderSubmissionCreate {
-  lender_id: number;
-  deal_id?: number;
-  submitted_at?: string;
-  status?: ManualLenderSubmissionCreateStatus;
-  /** @nullable */
-  notes?: string | null;
-  approval_pdf_base64?: string;
 }
 
 export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];
@@ -1906,8 +1704,6 @@ export interface ApplicationRecord {
   /** @nullable */
   hasFactoring?: boolean | null;
   /** @nullable */
-  hasCollateral?: boolean | null;
-  /** @nullable */
   industryExperienceMonths?: number | null;
   ownerFirstName: string;
   ownerLastName: string;
@@ -1943,11 +1739,6 @@ export interface ApplicationRecord {
   secondaryOwnerEstCreditScore?: ApplicationRecordSecondaryOwnerEstCreditScore;
   consentCreditPull?: boolean;
   consentTerms?: boolean;
-  smsConsent?: boolean;
-  /** @nullable */
-  smsConsentAt?: string | null;
-  /** @nullable */
-  smsConsentIp?: string | null;
   /** @nullable */
   consentTextVersion?: string | null;
   /** @nullable */
@@ -2317,138 +2108,6 @@ export interface Deal {
   lastActivityAt?: string | null;
   /** User who performed the most recent activity */
   lastActivityActor?: User | null;
-}
-
-export type DealApprovalContractType = typeof DealApprovalContractType[keyof typeof DealApprovalContractType];
-
-
-export const DealApprovalContractType = {
-  EFA: 'EFA',
-  lease: 'lease',
-  loan: 'loan',
-} as const;
-
-export interface DealApproval {
-  id: number;
-  dealId: number;
-  lenderId: number;
-  lenderName: string;
-  contractType: DealApprovalContractType;
-  advance: number;
-  payment: number;
-  /** @minimum 1 */
-  term: number;
-  downPayment: number;
-  tier: string;
-  expiresOn: string;
-  /** @nullable */
-  approvalDocumentId: number | null;
-  createdAt: string;
-}
-
-export type DealApprovalInputContractType = typeof DealApprovalInputContractType[keyof typeof DealApprovalInputContractType];
-
-
-export const DealApprovalInputContractType = {
-  EFA: 'EFA',
-  lease: 'lease',
-  loan: 'loan',
-} as const;
-
-export interface DealApprovalInput {
-  /** @minimum 1 */
-  lenderId: number;
-  contractType: DealApprovalInputContractType;
-  /** @exclusiveMinimum 0 */
-  advance: number;
-  /** @exclusiveMinimum 0 */
-  payment: number;
-  /** @minimum 1 */
-  term: number;
-  /** @minimum 0 */
-  downPayment: number;
-  /** @minLength 1 */
-  tier: string;
-  expiresOn: string;
-  /** @nullable */
-  approvalDocumentId?: number | null;
-}
-
-export type DealRatePointsInputTiming = typeof DealRatePointsInputTiming[keyof typeof DealRatePointsInputTiming];
-
-
-export const DealRatePointsInputTiming = {
-  arrears: 'arrears',
-  advance: 'advance',
-} as const;
-
-export type DealRatePointsInputMode = typeof DealRatePointsInputMode[keyof typeof DealRatePointsInputMode];
-
-
-export const DealRatePointsInputMode = {
-  spread: 'spread',
-  reverse: 'reverse',
-} as const;
-
-export interface DealRatePointsInput {
-  /** @exclusiveMinimum 0 */
-  advance: number;
-  /** @exclusiveMinimum 0 */
-  payment: number;
-  /** @minimum 1 */
-  term: number;
-  timing: DealRatePointsInputTiming;
-  /** @minimum 0 */
-  buyNominalRate: number;
-  mode: DealRatePointsInputMode;
-  /**
-     * @minimum 0
-     * @nullable
-     */
-  targetPoints?: number | null;
-  /**
-     * @minimum 1
-     * @nullable
-     */
-  sourceApprovalId?: number | null;
-}
-
-export type DealRatePointsResultGmTarget = typeof DealRatePointsResultGmTarget[keyof typeof DealRatePointsResultGmTarget];
-
-
-export const DealRatePointsResultGmTarget = {
-  approxGm: 'approxGm',
-  actualGm: 'actualGm',
-} as const;
-
-export type DealRatePointsResultCalculationTiming = typeof DealRatePointsResultCalculationTiming[keyof typeof DealRatePointsResultCalculationTiming];
-
-
-export const DealRatePointsResultCalculationTiming = {
-  arrears: 'arrears',
-  advance: 'advance',
-} as const;
-
-export type DealRatePointsResultCalculation = {
-  advance: number;
-  payment: number;
-  term: number;
-  timing: DealRatePointsResultCalculationTiming;
-  buyNominalRate: number;
-  nominalRate: number;
-  effectiveRate: number;
-  simpleRate: number;
-  buyPayment: number;
-  totalCommission: number;
-  points: number;
-  /** @nullable */
-  targetPoints?: number | null;
-};
-
-export interface DealRatePointsResult {
-  deal: Deal;
-  gmTarget: DealRatePointsResultGmTarget;
-  calculation: DealRatePointsResultCalculation;
 }
 
 export type DealInputStage = typeof DealInputStage[keyof typeof DealInputStage];
@@ -3408,11 +3067,8 @@ export type SubmitApplicationBody = {
   downPaymentAmount?: number;
   hasFinancialStatements?: boolean;
   hasFactoring?: boolean;
-  hasCollateral?: boolean;
   consentCreditPull: boolean;
   consentTerms: boolean;
-  /** Optional SMS consent; omitted and false are both opt-out. */
-  smsConsent?: boolean;
   signatureMethod: SubmitApplicationBodySignatureMethod;
   /**
      * Typed legal name or base64 image data URL for a drawn signature
@@ -3704,13 +3360,5 @@ export type MarkAllNotificationsRead200 = {
 
 export type MarkNotificationRead200 = {
   success?: boolean;
-};
-
-export type ListCollateralTemplatesParams = {
-includeDrafts?: boolean;
-};
-
-export type RenderCollateralTemplateParams = {
-repId?: number;
 };
 

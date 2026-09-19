@@ -4,7 +4,7 @@
 **Audited revision:** `4bd0fde0478f25847f9eb8e5ef5ee93ffc673364` plus the
 Section A fixes listed below plus subsequent registered features. The effective
 API mount is `/api`; paths in this matrix include it. The router contains
-**194 method registrations** (`get`, `post`, `put`, and `delete`).
+**178 method registrations** (`get`, `post`, `put`, and `delete`).
 `router.use` mounts are not counted as registrations; factory registrations
 are counted at their declaration line.
 
@@ -54,7 +54,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/users/:id/retire-slug` | `routes/users.ts:61` | `A` | N/A |
 | POST | `/api/admin/rep-slugs/retire` | `routes/users.ts:72` | `A` | N/A |
 | POST | `/api/admin/users/backfill-slugs` | `routes/users.ts:81` | `A` | N/A |
-| POST | `/api/admin/users/merge` | `routes/users.ts:122` | `A` | N/A |
 | GET | `/api/users` | `routes/users.ts:100` | `M` | reps rejected |
 | GET | `/api/users/:id/application-form.pdf` | `routes/applicationForm.ts:22` | `U` | admin, or `actor.role === "rep" && actor.id === id` |
 | PUT | `/api/users/:id` | `routes/users.ts:124` | `A` | N/A |
@@ -75,7 +74,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/communications/:id` | `routes/communications.ts:251` | `U` | reps may update only communication `userId === user.id`; managers/admins allowed |
 | GET | `/api/email/track/open/:sendId` | `routes/email.ts:339` | `H` | signed tracking token |
 | GET | `/api/brand/logo.png` | `routes/email.ts:361` | `P` | public static brand image |
-| GET | `/api/brand/logo-reverse.png` | `routes/email.ts` | `P` | public static reverse brand image |
 | GET | `/api/email/track/click/:sendId` | `routes/email.ts:369` | `H` | signed tracking token and safe HTTP(S) destination |
 | GET | `/api/email/unsubscribe` | `routes/email.ts:407` | `H` | HMAC token plus persisted send/email equality |
 | POST | `/api/email/send` | `routes/email.ts:565` | `L` | reps require `lead.assignedRepId === user.id`; selected template must be owned by that rep or an admin |
@@ -141,21 +139,14 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/lenders` | `routes/lenders.ts:99` | `A` | reps rejected |
 | PUT | `/api/lenders/:id` | `routes/lenders.ts:139` | `A` | reps rejected |
 | DELETE | `/api/lenders/:id` | `routes/lenders.ts:159` | `A` | reps rejected |
-| GET | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff |
-| POST | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
-| PATCH | `/api/partners/:partnerId/contacts/:contactId` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
-| DELETE | `/api/partners/:partnerId/contacts/:contactId` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
-| POST | `/api/partners/:partnerId/contacts/:contactId/sms` | `routes/communications.ts` | `U` | authenticated staff; partner texting setting enforced |
 | POST | `/api/admin/lenders/seed-new` | `routes/lenders.ts:197` | `A` | reps rejected |
 | POST | `/api/leads/:id/match` | `routes/lenders.ts:227` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/matches` | `routes/lenders.ts:256` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/submissions` | `routes/lenders.ts:287` | `L` | `lead.assignedRepId === user.id` for reps |
-| POST | `/api/leads/:id/submissions/manual` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; explicit deal must belong to the lead |
 | GET | `/api/leads/:id/submissions` | `routes/lenders.ts:326` | `L` | `lead.assignedRepId === user.id` for reps |
 | PUT | `/api/submissions/:id` | `routes/lenders.ts:354` | `L` | submission lead's `assignedRepId === user.id` for reps |
 | PATCH | `/api/submissions/:id` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps |
 | GET | `/api/submissions/:id/package` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; immutable object integrity checked |
-| GET | `/api/submissions/:id/approval-attachment` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; private PDF response |
 | GET | `/api/deals/:id/submissions` | `routes/lenders.ts` | `D` | deal's `assignedTo === user.id` for reps |
 | GET | `/api/flyer-templates` | `routes/flyer-templates.ts:212` | `U` | N/A (template list; not a lead/deal record) |
 | GET | `/api/flyer-templates/:id` | `routes/flyer-templates.ts:230` | `U` | N/A (template detail; not a lead/deal record) |
@@ -194,8 +185,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/settings/email-delivery` | `routes/settings.ts:103` | `A` | reps rejected |
 | GET | `/api/settings/lead-distribution` | `routes/settings.ts:148` | `A` | reps rejected |
 | PUT | `/api/settings/lead-distribution` | `routes/settings.ts:160` | `A` | reps rejected |
-| GET | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
-| PUT | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
 | GET | `/api/admin/errors` | `routes/adminErrors.ts:10` | `A` | reps rejected |
 | GET | `/api/admin/migrations/status` | `routes/adminMigrations.ts:12` | `A` | reps rejected |
 | POST | `/api/admin/migrations/apply` | `routes/adminMigrations.ts:32` | `A` | reps rejected |
@@ -223,28 +212,11 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/deals/:id/archive` | `routes/deals.ts:573` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
 | DELETE | `/api/deals/:id` | `routes/deals.ts:605` | `A` | reps rejected |
 | GET | `/api/deals/:id/activity` | `routes/deals.ts:625` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
-| GET | `/api/deals/:id/approvals` | `routes/deals.ts` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps |
-| POST | `/api/deals/:id/approvals` | `routes/deals.ts` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps; referenced approval document must belong to the deal lead |
-| POST | `/api/deals/:id/rate-points` | `routes/deals.ts` | `D` | `canAccessDeal` requires `assignedTo === user.id` for reps; calculation and GM update are transactional |
 | POST | `/api/leads/:id/convert-to-deal` | `routes/deals.ts:655` | `L` | source lead requires `assignedRepId === user.id`; resulting deal assigned to user |
 | GET | `/api/deals/analytics` | `routes/deals.ts:739` | `D` | rep forces `effectiveRepId = user.id`, then `assignedTo === effectiveRepId` |
 | POST | `/api/admin/deals/seed` | `routes/deals.ts:1079` | `A` | reps rejected |
 | POST | `/api/admin/deals/reassign-seeded` | `routes/deals.ts:1195` | `A` | reps rejected |
 | POST | `/api/admin/production-closeout` | `routes/adminProductionCloseout.ts:32` | `A` | reps rejected |
-
-| GET | `/api/collateral/templates` | `routes/collateral.ts` | U | published templates; admins may include drafts |
-| POST | `/api/collateral/templates` | `routes/collateral.ts` | A | admin template creation |
-| GET | `/api/collateral/templates/:id` | `routes/collateral.ts` | U | published templates; admin drafts |
-| GET | `/api/collateral/templates/:id/thumbnail` | `routes/collateral.ts` | U | published templates; admin drafts |
-| PATCH | `/api/collateral/templates/:id` | `routes/collateral.ts` | A | admin template mutation |
-| POST | `/api/collateral/templates/:id/publish` | `routes/collateral.ts` | A | admin template mutation |
-| POST | `/api/collateral/templates/:id/archive` | `routes/collateral.ts` | A | admin template mutation |
-| GET | `/api/collateral/templates/:id/render` | `routes/collateral.ts` | U | caller or admin-selected rep |
-| GET | `/api/collateral/renders/:id/pdf` | `routes/collateral.ts` | U | owning rep or admin |
-| GET | `/api/collateral/renders/:id/png` | `routes/collateral.ts` | U | owning rep or admin |
-| GET | `/api/collateral/renders/:id/link` | `routes/collateral.ts` | U | owning rep or admin |
-| POST | `/api/collateral/renders/:id/email` | `routes/collateral.ts` | U | owning rep or admin |
-| GET | `/api/collateral/shared/:token` | `routes/collateral.ts` | H | seven-day HMAC signed render URL |
 
 ## Findings and verification
 
