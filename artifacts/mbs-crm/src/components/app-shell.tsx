@@ -22,7 +22,6 @@ import {
   ChevronDown,
   FileDown,
   ClipboardList,
-  Calculator,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -57,13 +56,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
     { href: "/deals", label: "Deals", icon: Briefcase },
-    { href: "/deals/rate-converter", label: "Rate Converter", icon: Calculator },
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {
-    const isActive = exact
-      ? location === href
-      : location === href || (location.startsWith(href + "/") && !(href === "/deals" && location.startsWith("/deals/rate-converter")));
+    const isActive = exact ? location === href : location === href || location.startsWith(href + "/");
     return (
       <Link
         key={href}

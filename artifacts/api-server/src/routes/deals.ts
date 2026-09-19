@@ -1028,7 +1028,7 @@ const SEED_DEALS: SeedDealDefinition[] = [
   },
   {
     dealName: "Diamond AG",
-    stage: "in_funding",
+    stage: "going_to_funding",
     amount: 360000,
     approxGm: 25000,
     actualGm: null,

@@ -8,7 +8,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
-import { notificationTarget } from "@/lib/notificationNavigation";
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   lead_assigned: UserPlus,
@@ -73,9 +72,9 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       }
     }
 
-    const target = notificationTarget(n.leadId);
-    if (target) {
-      navigate(target);
+    // API Limitation: Only leadId is currently provided by the backend notifications schema.
+    if (n.leadId) {
+      navigate(`/leads/${n.leadId}`);
     } else {
       toast({ title: "Cannot open record", description: "API Limitation: No lead ID provided for this notification.", variant: "default" });
     }

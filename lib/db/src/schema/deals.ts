@@ -19,6 +19,7 @@ export const DEAL_STAGES = [
   "information_needed",
   "submitted",
   "approved",
+  "going_to_funding",
   "in_funding",
   "funded",
   "declined",
@@ -59,7 +60,7 @@ export const dealsTable = pgTable(
     index("deals_archived_idx").on(t.isArchived),
     index("deals_intended_rep_slug_idx").on(t.intendedRepSlug),
     check("deals_gm_split_pct_check", sql`${t.gmSplitPct} BETWEEN 0 AND 100`),
-    check("deals_stage_check", sql`${t.stage} IN ('waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on')`),
+    check("deals_stage_check", sql`${t.stage} IN ('waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on')`),
   ],
 );
 

@@ -1,57 +1,5 @@
 import type { Deal } from "@workspace/api-client-react";
 
-export const DEAL_STAGE_COLUMNS = [
-  {
-    id: "waiting_on_app",
-    label: "Waiting on App",
-    color: "bg-gray-100 text-gray-700",
-  },
-  {
-    id: "information_needed",
-    label: "Info Needed",
-    color: "bg-orange-100 text-orange-700",
-  },
-  {
-    id: "submitted",
-    label: "Submitted",
-    color: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: "approved",
-    label: "Approved",
-    color: "bg-green-100 text-green-700",
-  },
-  {
-    id: "in_funding",
-    label: "In Funding",
-    color: "bg-indigo-100 text-indigo-700",
-  },
-  {
-    id: "funded",
-    label: "Funded",
-    color: "bg-[#17A567]/10 text-[#149258]",
-  },
-  {
-    id: "hold_on",
-    label: "Hold On",
-    color: "bg-yellow-100 text-yellow-700",
-  },
-  {
-    id: "declined",
-    label: "Declined",
-    color: "bg-red-100 text-red-700",
-  },
-  {
-    id: "dead",
-    label: "Dead",
-    color: "bg-slate-100 text-slate-700",
-  },
-] as const satisfies ReadonlyArray<{
-  id: Deal["stage"];
-  label: string;
-  color: string;
-}>;
-
 export const DEAL_VIEW_STAGES = {
   all: undefined,
   fundedAndInFunding: ["funded", "in_funding"] as const,
