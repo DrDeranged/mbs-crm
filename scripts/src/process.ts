@@ -10,6 +10,17 @@ export const processRunner: ProcessRunner = {
   capture: runCapture,
 };
 
+export function formatFailedLine(step: string, error: unknown): string {
+  const messages = error instanceof AggregateError
+    ? error.errors.map((item) => item instanceof Error ? item.message : String(item))
+    : [error instanceof Error ? error.message : String(error)];
+  const detail = messages
+    .map((message) => message.replace(/\s+/g, " ").trim())
+    .filter((message) => message && message !== "undefined")
+    .join("; ") || "unknown error";
+  return `${step} FAILED: ${detail}`;
+}
+
 export async function run(
   command: string,
   args: string[],

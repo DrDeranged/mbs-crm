@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, stat } from "node:fs/promises";
 import {
   assertDevelopmentUrl, diffSnapshots, formatSnapshotDiff, parseSnapshotOutput, snapshotDatabase,
+  postgresEnvironment,
   type SchemaSnapshot,
 } from "./db-divergence";
 import type { ProcessRunner } from "./process";
@@ -75,15 +76,42 @@ test("URL guard rejects clone, non-PostgreSQL, and malformed URLs without echoin
   }
 });
 
+test("PostgreSQL connection is split into environment fields without retaining inherited targets", () => {
+  const url = "postgresql://user:secret@example.com:5433/dev?sslmode=require&connect_timeout=5";
+  const env = postgresEnvironment(url, {
+    PGHOST: "wrong-host",
+    PGDATABASE: "wrong-database",
+    PGPASSWORD: "wrong-password",
+    SAFE_VALUE: "kept",
+  });
+  assert.equal(env.PGHOST, "example.com");
+  assert.equal(env.PGPORT, "5433");
+  assert.equal(env.PGDATABASE, "dev");
+  assert.equal(env.PGUSER, "user");
+  assert.equal(env.PGPASSWORD, "secret");
+  assert.equal(env.PGSSLMODE, "require");
+  assert.equal(env.PGCONNECT_TIMEOUT, "5");
+  assert.equal(env.SAFE_VALUE, "kept");
+  assert.equal(Object.values(env).includes(url), false);
+});
+
 test("snapshot runner uses a temporary SQL file, read-only transaction, timeout, and cleans it up", async () => {
   let file = "";
   const runner: ProcessRunner = {
     run: async () => {},
-    capture: async (_command, args) => {
+    capture: async (_command, args, options) => {
       file = args[args.indexOf("--file") + 1];
       const sql = await readFile(file, "utf8");
+      assert.equal((await stat(file)).mode & 0o777, 0o600);
       assert.match(sql, /BEGIN READ ONLY/);
       assert.match(sql, /statement_timeout = '15s'/);
+      assert.doesNotMatch(sql, /secret|example\.com/);
+      assert.equal(args.some((arg) => arg.includes("secret") || arg.includes("example.com")), false);
+      assert.equal(options?.env?.PGHOST, "example.com");
+      assert.equal(options?.env?.PGDATABASE, "dev");
+      assert.equal(options?.env?.PGUSER, "user");
+      assert.equal(options?.env?.PGPASSWORD, "secret");
+      assert.equal(Object.values(options?.env ?? {}).includes("postgresql://user:secret@example.com/dev"), false);
       assert.ok(args.includes("--set=ON_ERROR_STOP=on"));
       return { code: 0, stdout: "X\u001f\n", stderr: "" };
     },

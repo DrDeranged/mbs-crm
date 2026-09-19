@@ -6,7 +6,7 @@ import {
   type CloneConfig,
 } from "./dbCloneProd";
 import { assertLocalPostgresUrl, localPostgresUrl } from "./localPostgres";
-import { run } from "./process";
+import { formatFailedLine, run } from "./process";
 
 const config = defaultCloneConfig(path.resolve(import.meta.dirname, "../.."));
 export async function runManagedRehearsal(
@@ -26,13 +26,6 @@ export async function runManagedRehearsal(
     if (startedByCaller) await stopManagedCloneServer(cloneConfig);
   }
 }
-function errorMessage(error: unknown): string {
-  if (error instanceof AggregateError) {
-    return error.errors.map(errorMessage).filter(Boolean).join("; ") || error.message || error.name;
-  }
-  if (error instanceof Error) return error.message && error.message !== "undefined" ? error.message : error.name;
-  return typeof error === "string" && error !== "undefined" ? error : "Unknown migration rehearsal error";
-}
 async function main(): Promise<void> {
  try {
   const targetUrl = localPostgresUrl(config.port, config.database);
@@ -40,8 +33,7 @@ async function main(): Promise<void> {
   await runManagedRehearsal(targetUrl);
   console.log("MIGRATION REHEARSAL PASS");
 } catch (error) {
-  console.error("MIGRATION REHEARSAL FAIL");
-  console.error(errorMessage(error));
+   console.error(formatFailedLine("MIGRATION REHEARSAL", error));
   process.exitCode = 1;
  }
 }
