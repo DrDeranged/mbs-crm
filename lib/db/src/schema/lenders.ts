@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, check, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -51,7 +50,7 @@ export const lendersTable = pgTable(
       .$type<IndustryTimeInBusinessOverride[] | null>(),
     programEligibilityRules: jsonb("program_eligibility_rules")
       .$type<ProgramEligibilityRule[] | null>(),
-    minTimeInBusinessMonths: integer("min_time_in_business_months").default(0),
+    minTimeInBusinessMonths: integer("min_time_in_business_months"),
     acceptedStates: text("accepted_states").array().notNull().default([]),
     maxExistingPositions: integer("max_existing_positions").notNull().default(10),
     priorityWeight: integer("priority_weight").notNull().default(5),
@@ -104,7 +103,6 @@ export const lenderSubmissionsTable = pgTable(
     index("lender_submissions_deal_idx").on(t.dealId),
     index("lender_submissions_lender_idx").on(t.lenderId),
     index("lender_submissions_sent_at_idx").on(t.sentAt),
-    check("lender_submissions_status_check", sql`${t.status} IN ('submitted', 'approved', 'declined', 'funded')`),
   ],
 );
 
@@ -128,14 +126,7 @@ export const lenderSubmissionDeliveriesTable = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
-    index("lender_submission_deliveries_lead_lender_idx").on(t.leadId, t.lenderId, t.createdAt.desc()),
-    uniqueIndex("lender_submission_deliveries_active_idx")
-      .on(t.leadId, t.lenderId)
-      .where(sql`${t.state} IN ('pending', 'sent', 'uncertain')`),
-    check(
-      "lender_submission_deliveries_state_check",
-      sql`${t.state} IN ('pending', 'sent', 'submitted', 'failed', 'uncertain')`,
-    ),
+    index("lender_submission_deliveries_lead_lender_idx").on(t.leadId, t.lenderId),
   ],
 );
 

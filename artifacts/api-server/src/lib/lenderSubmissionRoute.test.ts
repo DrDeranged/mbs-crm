@@ -247,21 +247,6 @@ function makeDependencies(fixture: ReturnType<typeof makeDatabase>, user = { id:
   };
 }
 
-test("submission request validation returns a named 400 before package work", async () => {
-  const fixture = makeDatabase();
-  const { dependencies, sent } = makeDependencies(fixture);
-  const malformed = response();
-
-  await createSubmissionHandler(dependencies)(
-    request({ lender_id: 5, admin_override: "false" }) as any,
-    malformed as any,
-  );
-
-  assert.equal(malformed.statusCode, 400);
-  assert.deepEqual(malformed.body, { error: "Invalid admin_override" });
-  assert.equal(sent.length, 0);
-});
-
 test("a concurrent second submission is denied by the held advisory lock before email send", async () => {
   const fixture = makeDatabase();
   const { dependencies, sent } = makeDependencies(fixture);

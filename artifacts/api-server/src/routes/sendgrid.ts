@@ -1,7 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { EventWebhook } from "@sendgrid/eventwebhook";
 import { createHash } from "crypto";
-import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import {
   emailSendsTable,
@@ -11,20 +10,9 @@ import {
 import { and, eq, inArray } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 import { suppressEmail } from "../lib/emailSafety";
-import { canAdvanceEmailStatus, classifySendGridEvent, webhookSuppressionEffects } from "../lib/emailSafetyPredicates";
+import { canAdvanceEmailStatus, classifySendGridEvent } from "../lib/emailSafetyPredicates";
 
 const router = Router();
-const sendGridEvent = z.object({
-  event: z.string().optional(),
-  sg_message_id: z.unknown().optional(),
-  "smtp-id": z.unknown().optional(),
-  message_id: z.unknown().optional(),
-  sg_event_id: z.unknown().optional(),
-  event_id: z.unknown().optional(),
-  timestamp: z.union([z.number().finite(), z.string().regex(/^\d+(?:\.\d+)?$/)]).optional(),
-  email: z.string().email().optional(),
-}).passthrough();
-const sendGridWebhookBody = z.union([sendGridEvent, z.array(sendGridEvent).min(1)]);
 
 function verifySendGridSignature(req: Request): boolean {
   // A webhook without the public verification key cannot be authenticated.
@@ -53,79 +41,44 @@ function normalizeMessageId(value: unknown): string | null {
   return cleaned.split(".")[0].trim() || null;
 }
 
-type WebhookSend = {
-  id: number;
-  leadId: number | null;
-  userId: number | null;
-  subject: string;
-  toEmail: string;
-  status: typeof emailSendsTable.$inferSelect["status"];
-  openedAt?: Date | null;
-  clickedAt?: Date | null;
-};
-type WebhookRepository = {
-  insertEvent: (event: { eventId: string; eventType: string; messageId: string | null }) => Promise<boolean>;
-  findSend: (messageId: string | null) => Promise<WebhookSend | undefined>;
-  suppressRecipient: (email: string) => Promise<void>;
-  updateSend: (send: WebhookSend, updates: Record<string, unknown>) => Promise<void>;
-  hasActivity: (send: WebhookSend, action: string) => Promise<boolean>;
-  logActivity: (send: WebhookSend, action: string, details: Record<string, unknown>) => Promise<void>;
-};
+async function logOnce(send: any, action: string, details: Record<string, unknown>): Promise<void> {
+  if (!send.leadId) return;
+  const existing = await db.query.activityLogTable.findFirst({
+    where: and(
+      eq(activityLogTable.action, action),
+      eq(activityLogTable.entityType, "email_send"),
+      eq(activityLogTable.entityId, String(send.id)),
+    ),
+  });
+  if (existing) return;
+  await logActivity({
+    userId: send.userId,
+    leadId: send.leadId,
+    action,
+    entityType: "email_send",
+    entityId: send.id,
+    details: { subject: send.subject, ...details },
+  });
+}
 
-const productionRepository: WebhookRepository = {
-  async insertEvent({ eventId, eventType, messageId }) {
-    const inserted = await db.insert(emailWebhookEventsTable)
-      .values({ eventId, eventType, messageId })
-      .onConflictDoNothing({ target: emailWebhookEventsTable.eventId })
-      .returning({ id: emailWebhookEventsTable.id });
-    return inserted.length > 0;
-  },
-  async findSend(messageId) {
-    if (!messageId) return undefined;
-    const candidates = [messageId, `<${messageId}>`, `${messageId}.filter`, `<${messageId}.filter>`];
-    return db.query.emailSendsTable.findFirst({
-      where: inArray(emailSendsTable.sendgridMessageId, candidates),
-    });
-  },
-  async suppressRecipient(email) {
-    await suppressEmail(email);
-  },
-  async updateSend(send, updates) {
-    await db.update(emailSendsTable)
-      .set(updates)
-      .where(and(eq(emailSendsTable.id, send.id), eq(emailSendsTable.status, send.status)));
-  },
-  async hasActivity(send, action) {
-    if (!send.leadId) return true;
-    return !!await db.query.activityLogTable.findFirst({
-      where: and(
-        eq(activityLogTable.action, action),
-        eq(activityLogTable.entityType, "email_send"),
-        eq(activityLogTable.entityId, String(send.id)),
-      ),
-    });
-  },
-  async logActivity(send, action, details) {
-    if (!send.leadId) return;
-    await logActivity({
-      userId: send.userId,
-      leadId: send.leadId,
-      action,
-      entityType: "email_send",
-      entityId: send.id,
-      details: { subject: send.subject, ...details },
-    });
-  },
-};
+async function findSend(messageId: string | null): Promise<any | undefined> {
+  if (!messageId) return undefined;
+  const candidates = [messageId, `<${messageId}>`, `${messageId}.filter`, `<${messageId}.filter>`];
+  return db.query.emailSendsTable.findFirst({
+    where: inArray(emailSendsTable.sendgridMessageId, candidates),
+  });
+}
 
-export async function processSendGridWebhookEvents(
-  events: Array<z.infer<typeof sendGridEvent>>,
-  repository: WebhookRepository = productionRepository,
-): Promise<{ processed: number; ignored: number }> {
+router.post("/sendgrid/webhook", async (req: Request, res: Response) => {
+  if (!verifySendGridSignature(req)) {
+    return void res.status(403).json({ error: "Invalid webhook signature" });
+  }
+  const events: any[] = Array.isArray(req.body) ? req.body : [req.body];
   let processed = 0;
   let ignored = 0;
+
   for (const event of events) {
-    const eventType = typeof event.event === "string" ? event.event : "";
+    const eventType = typeof event?.event === "string" ? event.event : "";
     if (!eventType) {
       ignored++;
       continue;
@@ -136,70 +89,59 @@ export async function processSendGridWebhookEvents(
       event.event_id ??
       createHash("sha256").update(JSON.stringify({ eventType, messageId, event })).digest("hex"),
     );
-    if (!await repository.insertEvent({ eventId, eventType, messageId })) {
+    // The unique index makes retries and duplicate entries in one batch safe.
+    const inserted = await db.insert(emailWebhookEventsTable)
+      .values({ eventId, eventType, messageId })
+      .onConflictDoNothing({ target: emailWebhookEventsTable.eventId })
+      .returning({ id: emailWebhookEventsTable.id });
+    if (!inserted.length) {
       ignored++;
       continue;
     }
-    const send = await repository.findSend(messageId);
+
+    const send = await findSend(messageId);
     const eventAt = event.timestamp ? new Date(Number(event.timestamp) * 1000) : new Date();
-    const classification = (
-      eventType === "bounce" || eventType === "dropped" || eventType === "spamreport" || eventType === "unsubscribe"
-        ? webhookSuppressionEffects(eventType)
-        : classifySendGridEvent(eventType)
-    );
-    // Once the provider message ID is correlated, the persisted recipient is
-    // authoritative. A signed event with a mismatched email must never
-    // suppress an unrelated address/lead.
-    const recipient = send?.toEmail ?? (typeof event.email === "string" ? event.email : undefined);
-    if (classification.suppress && recipient) await repository.suppressRecipient(recipient);
-    if (!send || !classification.status || !classification.action) {
+    const classification = classifySendGridEvent(eventType);
+    const suppressingEvent = classification.suppress;
+    const recipient = typeof event.email === "string" ? event.email : send?.toEmail;
+    if (suppressingEvent && recipient) await suppressEmail(recipient);
+    if (!send) {
+      // Suppression is still applied when message correlation is unavailable.
       ignored++;
       continue;
     }
+
+    let nextStatus: string | null = classification.status;
+    let action: string | null = classification.action;
     const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (!nextStatus || !action) {
+      ignored++;
+      continue;
+    }
     if (eventType === "open" && !send.openedAt && !["bounced", "unsubscribed", "failed"].includes(send.status)) {
       updates.openedAt = eventAt;
     }
     if (eventType === "click" && !send.clickedAt && !["bounced", "unsubscribed", "failed"].includes(send.status)) {
       updates.clickedAt = eventAt;
     }
-    if (canAdvanceEmailStatus(send.status, classification.status) || updates.openedAt || updates.clickedAt) {
-      updates.status = canAdvanceEmailStatus(send.status, classification.status) ? classification.status : send.status;
-      await repository.updateSend(send, updates);
+
+    if (nextStatus && (canAdvanceEmailStatus(send.status, nextStatus) || updates.openedAt || updates.clickedAt)) {
+      updates.status = canAdvanceEmailStatus(send.status, nextStatus) ? nextStatus : send.status;
+      await db.update(emailSendsTable)
+        .set(updates)
+        .where(and(eq(emailSendsTable.id, send.id), eq(emailSendsTable.status, send.status)));
     }
-    const firstEngagement = eventType === "open" ? !send.openedAt : eventType === "click" ? !send.clickedAt : true;
-    if (firstEngagement && !await repository.hasActivity(send, classification.action)) {
-      await repository.logActivity(send, classification.action, eventType === "open" || eventType === "click"
-        ? { event: eventType, at: eventAt.toISOString() }
-        : { event: eventType });
+    if (action && (eventType === "open" || eventType === "click")) {
+      // openedAt/clickedAt and the activity key together make provider/custom
+      // tracking idempotent; duplicate provider callbacks do not add logs.
+      const firstEvent = eventType === "open" ? !send.openedAt : !send.clickedAt;
+      if (firstEvent) await logOnce(send, action, { event: eventType, at: eventAt.toISOString() });
+    } else if (action) {
+      await logOnce(send, action, { event: eventType });
     }
     processed++;
   }
-  return { processed, ignored };
-}
-
-export function createSendGridWebhookHandler({
-  verifySignature = verifySendGridSignature,
-  processEvents = processSendGridWebhookEvents,
-}: {
-  verifySignature?: (req: Request) => boolean;
-  processEvents?: (events: Array<z.infer<typeof sendGridEvent>>) => Promise<{ processed: number; ignored: number }>;
-} = {}) {
-  return async (req: Request, res: Response) => {
-  if (!verifySignature(req)) {
-    return void res.status(403).json({ error: "Invalid webhook signature" });
-  }
-  const body = sendGridWebhookBody.safeParse(req.body);
-  if (!body.success) {
-    const field = body.error.issues[0]?.path.join(".") || "body";
-    return void res.status(400).json({ error: `Invalid ${field}` });
-  }
-  const events = Array.isArray(body.data) ? body.data : [body.data];
-  const result = await processEvents(events);
-  res.json({ ok: true, ...result });
-  };
-}
-
-router.post("/sendgrid/webhook", createSendGridWebhookHandler());
+  res.json({ ok: true, processed, ignored });
+});
 
 export default router;

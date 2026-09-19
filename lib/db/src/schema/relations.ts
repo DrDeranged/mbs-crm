@@ -21,7 +21,6 @@ import { applicationsTable, bankStatementExtractionsTable } from "./applications
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
 import { retiredRepSlugsTable } from "./retiredRepSlugs";
-import { usfaApplicationEmailLogTable, usfaIntakeLogTable, usfaIntakePrefillTable, usfaPrefillInvitesTable } from "./usfaIntake";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -43,10 +42,6 @@ export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   dripEnrollments: many(dripEnrollmentsTable),
   lenderMatches: many(lenderMatchesTable),
   lenderSubmissions: many(lenderSubmissionsTable),
-  usfaIntakeLogs: many(usfaIntakeLogTable),
-  usfaIntakePrefill: many(usfaIntakePrefillTable),
-  usfaPrefillInvites: many(usfaPrefillInvitesTable),
-  usfaApplicationEmailLogs: many(usfaApplicationEmailLogTable),
 }));
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
@@ -77,22 +72,6 @@ export const companiesRelations = relations(companiesTable, ({ one }) => ({
     fields: [companiesTable.leadId],
     references: [leadsTable.id],
   }),
-}));
-
-export const usfaIntakeLogRelations = relations(usfaIntakeLogTable, ({ one }) => ({
-  lead: one(leadsTable, { fields: [usfaIntakeLogTable.leadId], references: [leadsTable.id] }),
-}));
-
-export const usfaIntakePrefillRelations = relations(usfaIntakePrefillTable, ({ one }) => ({
-  lead: one(leadsTable, { fields: [usfaIntakePrefillTable.leadId], references: [leadsTable.id] }),
-}));
-export const usfaPrefillInvitesRelations = relations(usfaPrefillInvitesTable, ({ one }) => ({
-  lead: one(leadsTable, { fields: [usfaPrefillInvitesTable.leadId], references: [leadsTable.id] }),
-  rep: one(usersTable, { fields: [usfaPrefillInvitesTable.repUserId], references: [usersTable.id] }),
-}));
-
-export const usfaApplicationEmailLogRelations = relations(usfaApplicationEmailLogTable, ({ one }) => ({
-  lead: one(leadsTable, { fields: [usfaApplicationEmailLogTable.leadId], references: [leadsTable.id] }),
 }));
 
 export const notesRelations = relations(notesTable, ({ one }) => ({
@@ -183,11 +162,6 @@ export const emailTemplatesRelations = relations(emailTemplatesTable, ({ one, ma
     fields: [emailTemplatesTable.createdBy],
     references: [usersTable.id],
   }),
-  owner: one(usersTable, {
-    fields: [emailTemplatesTable.ownerId],
-    references: [usersTable.id],
-    relationName: "email_template_owner",
-  }),
   emailSends: many(emailSendsTable),
   sequenceSteps: many(dripSequenceStepsTable),
 }));
@@ -196,11 +170,6 @@ export const dripSequencesRelations = relations(dripSequencesTable, ({ one, many
   creator: one(usersTable, {
     fields: [dripSequencesTable.createdBy],
     references: [usersTable.id],
-  }),
-  owner: one(usersTable, {
-    fields: [dripSequencesTable.ownerId],
-    references: [usersTable.id],
-    relationName: "drip_sequence_owner",
   }),
   steps: many(dripSequenceStepsTable),
   enrollments: many(dripEnrollmentsTable),

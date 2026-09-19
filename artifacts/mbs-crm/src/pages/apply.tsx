@@ -317,7 +317,6 @@ export default function ApplyPage() {
     const term = params.get("term");
     const freq = params.get("freq");
     const rep = params.get("rep");
-    const invite = params.get("invite");
     const validType = type === "equipment" || type === "working_capital" ? type : "";
     const amountBand = requestedAmountBand(amount);
     const snappedTerm = nearestTerm(term);
@@ -330,14 +329,6 @@ export default function ApplyPage() {
       estimatedTermMonths: snappedTerm || f.estimatedTermMonths,
       paymentFrequency: validFrequency || f.paymentFrequency,
     }));
-    if (invite && rep && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rep)) {
-      fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/public/reps/${encodeURIComponent(rep)}/usfa-prefill/${encodeURIComponent(invite)}`, { cache: "no-store" })
-        .then((response) => response.ok ? response.json() : null)
-        .then((prefill: { ownerSsn?: string; ownerDob?: string } | null) => {
-          if (prefill?.ownerSsn) setSsnRaw(prefill.ownerSsn.replace(/\D/g, ""));
-          if (prefill?.ownerDob) setForm((current) => ({ ...current, ownerDob: prefill.ownerDob ?? current.ownerDob }));
-        }).catch(() => {});
-    }
   }, []);
 
   const set = (patch: Partial<FormData>) => {
@@ -384,8 +375,6 @@ export default function ApplyPage() {
         else if (v) formData.append(k, v as string);
       });
       if (statementsSkipped) formData.append("statementsSkipped", "true");
-      const inviteToken = new URLSearchParams(window.location.search).get("invite");
-      if (inviteToken) formData.append("usfaInviteToken", inviteToken);
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
       formData.append("secondaryOwnerSsn", secondarySsnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();

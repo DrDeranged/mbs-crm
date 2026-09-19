@@ -2,9 +2,9 @@
 
 **Section A audit date:** 2026-09-15  
 **Audited revision:** `4bd0fde0478f25847f9eb8e5ef5ee93ffc673364` plus the
-Section A fixes listed below plus subsequent registered features. The effective
-API mount is `/api`; paths in this matrix include it. The router contains
-**178 method registrations** (`get`, `post`, `put`, and `delete`).
+Section A fixes listed below.  The effective API mount is `/api`; paths in
+this matrix include it.  The router contains **161 method registrations**
+(`get`, `post`, `put`, and `delete`), not the previously reported 155.
 `router.use` mounts are not counted as registrations; factory registrations
 are counted at their declaration line.
 
@@ -29,7 +29,6 @@ are counted at their declaration line.
 | `H` | Public signed email action. Tracking and unsubscribe actions require their HMAC token; unsubscribe additionally binds the token email to the persisted send (`email.ts:339-357,369-404,407-443`). |
 | `K` | Public, rate-limited application-status lookup authorized by its opaque status token (`applications.ts:694-739`). |
 | `O` | Authenticated endpoint whose response is not a lead/deal list, detail, export, or download. The route-specific role check shown in its source governs the operation. |
-| `W` | Public USFA webhook. It requires `X-USFA-Signature`, an HMAC-SHA256 over the exact raw body using `USFA_WEBHOOK_SECRET`, strict payload validation, and the database enable flag before intake. |
 
 For `L` and `D`, a client-provided `repId` can only narrow results: it never
 replaces the ownership predicate. `N/A` below means the route has no
@@ -42,12 +41,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/` | `routes/health.ts:10` | `P` | N/A |
 | GET | `/api/healthz` | `routes/health.ts:15` | `P` | N/A |
 | GET | `/api/health/deep` | `routes/health.ts:20` | `P` | N/A |
-| POST | `/api/intake/usfa` | `routes/usfaIntake.ts:46` | `W` | provider callback; mapper and dedupe rules determine the target lead |
-| GET | `/api/public/reps/:slug/usfa-prefill/:token` | `routes/usfaPrefill.ts:76` | `P` | opaque slug-bound token; returns only initial SSN/DOB prefill with no-store and synchronous PII audit |
-| GET | `/api/admin/usfa-intake` | `routes/adminUsfaIntake.ts:19` | `A` | admin-only intake status and receipt log |
-| POST | `/api/admin/usfa-intake/run` | `routes/adminUsfaIntake.ts:52` | `A` | admin-only read of the configured Sheet |
-| POST | `/api/admin/usfa-intake/:id/reprocess` | `routes/adminUsfaIntake.ts:58` | `A` | admin-only retry of one intake receipt |
-| POST | `/api/leads/:id/usfa-application-link` | `routes/usfaPrefill.ts:66` | `L` | assigned reps only; admins may mint for any USFA lead |
 | GET | `/api/me` | `routes/me.ts:9` | `S` | caller only; pending allowed by `requireUser(..., {allowPending:true})` |
 | PUT | `/api/me/mobile` | `routes/me.ts:16` | `S` | `usersTable.id === user.id`; pending allowed |
 | PUT | `/api/me/push-token` | `routes/me.ts:32` | `S` | `usersTable.id === user.id`; pending allowed |
@@ -76,27 +69,26 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/brand/logo.png` | `routes/email.ts:361` | `P` | public static brand image |
 | GET | `/api/email/track/click/:sendId` | `routes/email.ts:369` | `H` | signed tracking token and safe HTTP(S) destination |
 | GET | `/api/email/unsubscribe` | `routes/email.ts:407` | `H` | HMAC token plus persisted send/email equality |
-| POST | `/api/email/send` | `routes/email.ts:565` | `L` | reps require `lead.assignedRepId === user.id`; selected template must be owned by that rep or an admin |
+| POST | `/api/email/send` | `routes/email.ts:452` | `L` | reps require `lead.assignedRepId === user.id`; selected template requires `template.createdBy === user.id` |
 | POST | `/api/email/bulk` | `routes/email.ts:527` | `M` | reps rejected |
-| GET | `/api/email/bulk-capacity` | `routes/email.ts:671` | `M` | reps rejected; reports only the shared daily aggregate |
-| GET | `/api/email/templates` | `routes/email.ts:736` | `U` | reps may read templates they own or templates whose `ownerId` is an admin |
-| GET | `/api/email/templates/:id` | `routes/email.ts:751` | `U` | reps may read their own or admin-owned templates |
-| POST | `/api/email/templates` | `routes/email.ts:769` | `U` | rep-created template is bound to `createdBy` and `ownerId: user.id` |
-| PUT | `/api/email/templates/:id` | `routes/email.ts:792` | `U` | reps may modify only `ownerId === user.id` |
-| DELETE | `/api/email/templates/:id` | `routes/email.ts:825` | `U` | reps may delete only `ownerId === user.id` |
-| POST | `/api/email/templates/:id/preview` | `routes/email.ts:851` | `U` | reps may preview their own or admin-owned templates and, if a lead is supplied, require `lead.assignedRepId === user.id` |
+| GET | `/api/email/templates` | `routes/email.ts:611` | `U` | reps query only `emailTemplatesTable.createdBy === user.id` |
+| GET | `/api/email/templates/:id` | `routes/email.ts:625` | `U` | reps require `template.createdBy === user.id` |
+| POST | `/api/email/templates` | `routes/email.ts:642` | `U` | rep-created template is bound to `createdBy: user.id` |
+| PUT | `/api/email/templates/:id` | `routes/email.ts:663` | `U` | reps require `existing.createdBy === user.id` |
+| DELETE | `/api/email/templates/:id` | `routes/email.ts:693` | `U` | reps require `existing.createdBy === user.id` |
+| POST | `/api/email/templates/:id/preview` | `routes/email.ts:719` | `U` | reps require `template.createdBy === user.id` and, if lead supplied, `lead.assignedRepId === user.id` |
 | POST | `/api/email/test-send` | `routes/email.ts:752` | `A` | reps rejected |
 | GET | `/api/leads/:id/emails` | `routes/email.ts:819` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/email/seed-starter` | `routes/email.ts:1005` | `A` | reps rejected |
-| GET | `/api/drip/sequences` | `routes/drip.ts:103` | `U` | reps may read sequences they own or sequences whose `ownerId` is an admin |
-| POST | `/api/drip/sequences` | `routes/drip.ts:120` | `U` | persisted `createdBy` and `ownerId: user.id` |
-| GET | `/api/drip/sequences/:id` | `routes/drip.ts:147` | `U` | reps may read their own/admin-owned sequences only when every embedded template is also own/admin-owned |
-| PUT | `/api/drip/sequences/:id` | `routes/drip.ts:182` | `U` | reps may modify only `ownerId === user.id` |
-| DELETE | `/api/drip/sequences/:id` | `routes/drip.ts:220` | `U` | reps may delete only `ownerId === user.id` |
-| PUT | `/api/drip/sequences/:id/steps` | `routes/drip.ts:237` | `U` | reps may modify only own sequences and may use only own/admin-owned templates |
-| GET | `/api/leads/:id/drip` | `routes/drip.ts:273` | `L` | reps require `lead.assignedRepId === user.id` and may read only own/admin-owned enrollment sequences |
-| POST | `/api/leads/:id/drip/enroll` | `routes/drip.ts:315` | `L` | reps require `lead.assignedRepId === user.id`, an own/admin-owned sequence, and own/admin-owned templates in every step |
-| POST | `/api/leads/:id/drip/unenroll` | `routes/drip.ts:364` | `L` | `lead.assignedRepId === user.id` for reps |
+| GET | `/api/drip/sequences` | `routes/drip.ts:72` | `U` | reps query only `dripSequencesTable.createdBy === user.id` |
+| POST | `/api/drip/sequences` | `routes/drip.ts:86` | `U` | persisted `createdBy: user.id` |
+| GET | `/api/drip/sequences/:id` | `routes/drip.ts:112` | `U` | reps require `seq.createdBy === user.id` |
+| PUT | `/api/drip/sequences/:id` | `routes/drip.ts:139` | `U` | reps require `existing.createdBy === user.id` |
+| DELETE | `/api/drip/sequences/:id` | `routes/drip.ts:178` | `U` | reps require `existing.createdBy === user.id` |
+| PUT | `/api/drip/sequences/:id/steps` | `routes/drip.ts:195` | `U` | reps require `seq.createdBy === user.id` |
+| GET | `/api/leads/:id/drip` | `routes/drip.ts:228` | `L` | `lead.assignedRepId === user.id` for reps |
+| POST | `/api/leads/:id/drip/enroll` | `routes/drip.ts:256` | `L` | reps require `lead.assignedRepId === user.id` and `seq.createdBy === user.id` |
+| POST | `/api/leads/:id/drip/unenroll` | `routes/drip.ts:298` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/sendgrid/webhook` | `routes/sendgrid.ts:72` | `G` | signed provider callback |
 | GET | `/api/leads` | `routes/leads.ts:263` | `L` | SQL adds `eq(leadsTable.assignedRepId, user.id)` |
 | POST | `/api/leads` | `routes/leads.ts:265` | `U` | only admin/manager may supply `assignedRepId` |
@@ -222,18 +214,18 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 
 | Status | Finding | Evidence / disposition |
 | --- | --- | --- |
-| PASS | All `/admin` registrations require the exact admin role. | Every `/admin` row above maps to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
+| PASS | All `/admin` registrations require the exact admin role. | The 14 `/admin` rows above map to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
 | FIXED | SendGrid accepted unsigned callbacks outside production when its verification key was absent. | `sendgrid.ts:20` previously returned `!IS_PROD`. It now fails closed when no key exists, and the route returns 403 before any write (`sendgrid.ts:17-34,72-74`). |
 | FIXED | There was no router-wide regression barrier for newly registered mutations. | `routes/index.ts:64-85` now installs a Clerk-session mutation gate before every child router. The only exceptions are the explicit public form-intake and provider-callback paths in `PUBLIC_MUTATION_PATHS`. |
 | FIXED | The public rep-card `GET` had a first-view activity-log insert. | `repPublic.ts:163-185` now resolves and returns the public card without a database write; public QR/form reads remain read-only. |
 | PASS | Twilio callbacks verify Twilio signatures. | All six callback paths use `T`; token minting is authenticated and is not a callback. |
 | PASS | Clerk webhooks. | No Clerk webhook registration exists in `artifacts/api-server/src/routes` (0 to verify). Clerk user authentication is established by `clerkMiddleware` in `app.ts:95-102`; the API mutation gate uses Clerk `getAuth(req).userId`. |
 | PASS | Reps cannot self-assign leads. | `/leads/:id/assign` is manager/admin-only (`leads.ts:1039-1043`); `createAssignLeadHandler` makes that behavior directly testable. |
-| FIXED | Rep-owned email templates and drip sequences were readable across reps. | Marketing ownership uses `ownerId`: reps may read their own or admin-owned resources and may CRUD only their own. Template-backed sends and drip enrollment enforce the same rule for every referenced template (`email.ts:531-802`; `drip.ts:103-346`). |
-| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 176 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned provider callback denial. |
+| FIXED | Rep-owned email templates and drip sequences were readable across reps. | Template list/detail/preview and template-backed email send now require `createdBy === user.id` for reps (`email.ts:482-489,611-635,719-742`). Drip list/detail and enrollment sequence selection now apply the same predicate (`drip.ts:72-135,256-291`). |
+| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 161 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned SendGrid and Twilio callback denial. |
 | PASS | Router-walk test isolation. | `flyer-templates.ts:202-209` honors the test-only `DISABLE_FLYER_TEMPLATE_SEED=true` guard used before the composed router is imported, so route inspection cannot trigger its legacy module-load seed write. |
 
-**Re-enumeration result:** 178 registrations and 178 matrix rows. This
+**Re-enumeration result:** 161 registrations and 161 matrix rows. This
 reconciliation is route-inventory evidence, not exhaustive authorization proof.
 Runtime suite/typecheck status must be recorded from their actual command
 results; no unresolved Section A source-audit finding is currently listed here.

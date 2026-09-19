@@ -5,137 +5,6 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
-export type UsfaIntakeLogStatus = typeof UsfaIntakeLogStatus[keyof typeof UsfaIntakeLogStatus];
-
-
-export const UsfaIntakeLogStatus = {
-  ok: 'ok',
-  dup: 'dup',
-  error: 'error',
-} as const;
-
-export interface UsfaIntakeLog {
-  id: number;
-  externalId: string;
-  rowNumber: number;
-  ingestedAt: string;
-  /** @nullable */
-  leadId?: number | null;
-  status: UsfaIntakeLogStatus;
-  /** @nullable */
-  error?: string | null;
-}
-
-export interface UsfaWebhookPayload {
-  /** @minLength 1 */
-  id: string;
-  /** @nullable */
-  company?: string | null;
-  /** @nullable */
-  creditScore?: string | number | null;
-  /** @nullable */
-  industry?: string | null;
-  /** @nullable */
-  ownerName?: string | null;
-  /** @nullable */
-  firstName?: string | null;
-  /** @nullable */
-  lastName?: string | null;
-  /** @nullable */
-  email?: string | null;
-  /** @nullable */
-  phone1?: string | null;
-  /** @nullable */
-  phone2?: string | null;
-  /** @nullable */
-  ein?: string | null;
-  /** @nullable */
-  startDate?: string | null;
-  /** @nullable */
-  ssn?: string | null;
-  /** @nullable */
-  street?: string | null;
-  /** @nullable */
-  city?: string | null;
-  /** @nullable */
-  state?: string | null;
-  /** @nullable */
-  zip?: string | number | null;
-  /** @nullable */
-  dob?: string | null;
-  /** @minimum 0 */
-  revenue: number;
-  /** @nullable */
-  amountRequested?: number | null;
-  /** @nullable */
-  createdAt?: string | null;
-  /** @nullable */
-  statement1?: string | null;
-  /** @nullable */
-  statement2?: string | null;
-  /** @nullable */
-  statement3?: string | null;
-  /** @nullable */
-  statement4?: string | null;
-}
-
-export type UsfaWebhookResponseStatus = typeof UsfaWebhookResponseStatus[keyof typeof UsfaWebhookResponseStatus];
-
-
-export const UsfaWebhookResponseStatus = {
-  ok: 'ok',
-  dup: 'dup',
-} as const;
-
-export interface UsfaWebhookResponse {
-  /** @nullable */
-  leadId: number | null;
-  status: UsfaWebhookResponseStatus;
-}
-
-export type UsfaPollResultStatus = typeof UsfaPollResultStatus[keyof typeof UsfaPollResultStatus];
-
-
-export const UsfaPollResultStatus = {
-  ok: 'ok',
-  skipped: 'skipped',
-} as const;
-
-export interface UsfaPollResult {
-  status: UsfaPollResultStatus;
-  reason?: string;
-  processed: number;
-  skipped: number;
-  duplicates: number;
-  errors: number;
-  headerValid: boolean;
-}
-
-export type AdminUsfaIntakeResponseSettings = {
-  /** @nullable */
-  usfaSheetId: string | null;
-  usfaSheetTab: string;
-  usfaConsentConfirmed: boolean;
-  usfaWebhookEnabled: boolean;
-};
-
-export type AdminUsfaIntakeResponseCounts = {
-  total: number;
-  ok: number;
-  dup: number;
-  error: number;
-  /** @nullable */
-  lastRun: string | null;
-};
-
-export interface AdminUsfaIntakeResponse {
-  settings: AdminUsfaIntakeResponseSettings;
-  counts: AdminUsfaIntakeResponseCounts;
-  logs: UsfaIntakeLog[];
-  page: number;
-  limit: number;
-}
-
 export interface AnalyticsSummary {
   /** Total leads created in the selected date range, regardless of lead source or status */
   totalLeads: number;
@@ -308,16 +177,6 @@ export interface AdminQrVerifyResponse {
   results: QrVerifyResult[];
 }
 
-export interface UsfaApplicationLink {
-  url: string;
-  expiresAt: string;
-}
-
-export interface UsfaPrefill {
-  ownerSsn?: string;
-  ownerDob?: string;
-}
-
 export type LeadApplicationType = typeof LeadApplicationType[keyof typeof LeadApplicationType];
 
 
@@ -476,8 +335,7 @@ export interface Note {
 export interface Task {
   id: number;
   leadId: number;
-  /** @nullable */
-  userId?: number | null;
+  userId: number;
   assignedUser?: User | null;
   title: string;
   /** @nullable */
@@ -635,57 +493,24 @@ export interface LeadCaptureResponse {
   leadId: number;
 }
 
-/**
- * Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.
- */
-export type RoutingSettingsMode = typeof RoutingSettingsMode[keyof typeof RoutingSettingsMode];
-
-
-export const RoutingSettingsMode = {
-  manual: 'manual',
-  round_robin: 'round_robin',
-} as const;
-
-export interface RoutingSettings {
-  /** Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only. */
-  mode: RoutingSettingsMode;
-  /**
-     * Number of idle days before an assigned lead is considered stale.
-     * @minimum 1
-     * @maximum 365
-     */
-  staleDays: number;
-  /** Automatically reassign stale ordinary inbound leads only when mode is round_robin. */
-  autoReassignStale: boolean;
-}
-
 export interface LeadDistributionSettings {
   /** Include active admins after active reps and managers in inbound round-robin assignment */
   includeAdminsInRoundRobin: boolean;
-  routing: RoutingSettings;
-}
-
-export type RoutingSettingsUpdateMode = typeof RoutingSettingsUpdateMode[keyof typeof RoutingSettingsUpdateMode];
-
-
-export const RoutingSettingsUpdateMode = {
-  manual: 'manual',
-  round_robin: 'round_robin',
-} as const;
-
-export interface RoutingSettingsUpdate {
-  mode?: RoutingSettingsUpdateMode;
   /**
+     * Number of idle days before an assigned lead is considered stale
      * @minimum 1
      * @maximum 365
      */
-  staleDays?: number;
-  autoReassignStale?: boolean;
+  staleThresholdDays: number;
 }
 
 export interface LeadDistributionSettingsUpdate {
   includeAdminsInRoundRobin?: boolean;
-  routing?: RoutingSettingsUpdate;
+  /**
+     * @minimum 1
+     * @maximum 365
+     */
+  staleThresholdDays?: number;
 }
 
 export interface EmailDeliverySettings {
@@ -697,12 +522,6 @@ export interface EmailDeliverySettings {
      * @maximum 1000
      */
   bulkEmailPerMinute: number;
-  /**
-     * Shared daily maximum for bulk and drip delivery attempts
-     * @minimum 1
-     * @maximum 100000
-     */
-  bulkEmailPerDay: number;
 }
 
 export interface EmailDeliverySettingsUpdate {
@@ -712,17 +531,6 @@ export interface EmailDeliverySettingsUpdate {
      * @maximum 1000
      */
   bulkEmailPerMinute?: number;
-  /**
-     * @minimum 1
-     * @maximum 100000
-     */
-  bulkEmailPerDay?: number;
-}
-
-export interface BulkEmailCapacity {
-  limit: number;
-  used: number;
-  remaining: number;
 }
 
 export interface DuplicateResponse {
@@ -1030,8 +838,6 @@ export interface EmailTemplate {
   isActive: boolean;
   /** @nullable */
   createdBy?: number | null;
-  /** @nullable */
-  ownerId?: number | null;
   creator?: EmailTemplateCreator;
   createdAt: string;
   updatedAt: string;
@@ -1145,8 +951,6 @@ export interface DripSequence {
   stepCount: number;
   /** @nullable */
   createdBy: number | null;
-  /** @nullable */
-  ownerId: number | null;
   creator?: DripSequenceCreator;
   createdAt: string;
   updatedAt: string;
@@ -1955,27 +1759,15 @@ export type DeepHealthResponseIntegrationsTwilio = {
   voiceToken: string;
 };
 
-/**
- * Signed custom click/open tracking; no provider tracking settings lookup occurs.
- */
-export type DeepHealthResponseIntegrationsSendgridTracking = typeof DeepHealthResponseIntegrationsSendgridTracking[keyof typeof DeepHealthResponseIntegrationsSendgridTracking];
-
-
-export const DeepHealthResponseIntegrationsSendgridTracking = {
-  custom: 'custom',
-} as const;
-
 export type DeepHealthResponseIntegrationsSendgrid = {
-  /** Whether a SendGrid API key is configured. */
-  configured: boolean;
-  /** Fixed From address for all MBS email delivery. */
-  fromEmail: string;
-  /** @nullable */
-  lastWebhookAt: string | null;
-  /** @nullable */
-  lastSendAt: string | null;
-  /** Signed custom click/open tracking; no provider tracking settings lookup occurs. */
-  tracking: DeepHealthResponseIntegrationsSendgridTracking;
+  apiKey: boolean;
+  fromEmail: boolean;
+  fromName: boolean;
+  webhookKey: boolean;
+  openTracking: boolean;
+  clickTracking: boolean;
+  providerOpenTracking: boolean;
+  providerClickTracking: boolean;
 };
 
 export type DeepHealthResponseIntegrations = {
@@ -2595,18 +2387,6 @@ export interface LenderPackageConfigResponse {
 
 export type GetAdminErrorsParams = {
 page?: number;
-};
-
-export type GetAdminUsfaIntakeParams = {
-/**
- * @minimum 1
- */
-page?: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-limit?: number;
 };
 
 export type UpdateMyPushTokenBody = {
@@ -3283,18 +3063,9 @@ export type PreviewEmailTemplate200 = {
 };
 
 export type SendTestEmailBody = {
-  /** Optional template override; omitted sends the fixed CEO delivery-test template. */
-  templateId?: number;
+  templateId: number;
   toEmail: string;
 };
-
-export type SendTestEmail201 = EmailSend & ({
-  /**
-     * SendGrid message identifier returned after provider acceptance.
-     * @nullable
-     */
-  messageId: string | null;
-});
 
 export type TrackEmailOpenParams = {
 /**

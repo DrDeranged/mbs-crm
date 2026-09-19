@@ -13,11 +13,8 @@ export function logPiiAccess(params: {
   /** Safe operational context only; do not put plaintext PII in this object. */
   metadata?: Record<string, unknown> | null;
 }): void {
-  void recordPiiAccess(params).catch(() => {});
-}
-
-export async function recordPiiAccess(params: Parameters<typeof logPiiAccess>[0]): Promise<void> {
-  await db.insert(piiAccessLogTable)
+  // Fire-and-forget — never block the response
+  db.insert(piiAccessLogTable)
     .values({
       userId: params.userId ?? null,
       leadId: params.leadId ?? null,
@@ -26,5 +23,7 @@ export async function recordPiiAccess(params: Parameters<typeof logPiiAccess>[0]
       ip: params.ip ?? null,
       metadata: params.metadata ?? null,
     })
-    ;
+    .catch((err: unknown) => {
+      console.error("[piiAccess] Failed to write PII access log:", err);
+    });
 }

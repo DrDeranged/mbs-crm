@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { sql } from "drizzle-orm";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
-import { jobRunsTable, emailSendsTable, emailWebhookEventsTable } from "@workspace/db";
+import { jobRunsTable } from "@workspace/db";
 import { getMigrationStatus } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
@@ -67,44 +67,8 @@ router.get("/health/deep", async (_req, res) => {
     twilio: object;
     sendgrid: object;
   };
-  let sendgridDelivery: {
-    configured: boolean;
-    fromEmail: string;
-    lastWebhookAt: string | null;
-    lastSendAt: string | null;
-    tracking: "custom";
-  } = {
-    configured: !!process.env["SENDGRID_API_KEY"],
-    fromEmail: "funding@my-business-solutions.com",
-    lastWebhookAt: null,
-    lastSendAt: null,
-    tracking: "custom",
-  };
-  if (dbOk) {
-    try {
-      const [webhooks, sends] = await Promise.all([
-        db.select({ receivedAt: emailWebhookEventsTable.receivedAt })
-          .from(emailWebhookEventsTable)
-          .orderBy(desc(emailWebhookEventsTable.receivedAt))
-          .limit(1),
-        db.select({ sentAt: emailSendsTable.sentAt })
-          .from(emailSendsTable)
-          .where(sql`${emailSendsTable.sentAt} IS NOT NULL`)
-          .orderBy(desc(emailSendsTable.sentAt))
-          .limit(1),
-      ]);
-      sendgridDelivery = {
-        ...sendgridDelivery,
-        lastWebhookAt: webhooks[0]?.receivedAt?.toISOString() ?? null,
-        lastSendAt: sends[0]?.sentAt?.toISOString() ?? null,
-      };
-    } catch {
-      // Older schema may not yet have email delivery ledgers; retain safe nulls.
-    }
-  }
   const integrations = {
     ...detailedIntegrations,
-    sendgrid: sendgridDelivery,
     experian: !!(process.env.EXPERIAN_CLIENT_ID || process.env.EXPERIAN_CLIENT_SECRET),
     anthropic: !!(
       process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||

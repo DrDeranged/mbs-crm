@@ -47,30 +47,6 @@ const dealInputSchema = CreateDealBody;
 const dealUpdateSchema = UpdateDealBody;
 const conversionSchema = ConvertLeadToDealBody;
 const idSchema = z.coerce.number().int().positive();
-export const dealListQuery = z.object({
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
-  include_archived: z.enum(["true", "false"]).optional(),
-  rep_id: z.coerce.number().int().positive().optional(),
-  lead_id: z.coerce.number().int().positive().optional(),
-  stage: z.union([z.string(), z.array(z.string())]).optional(),
-  stages: z.union([z.string(), z.array(z.string())]).optional(),
-  search: z.string().trim().min(1).max(200).optional(),
-  start_date: z.iso.date().optional(),
-  end_date: z.iso.date().optional(),
-  sort_by: z.enum(["createdAt", "updatedAt", "dealName", "stage", "lastActivityAt"]).optional(),
-  sort_order: z.enum(["asc", "desc"]).optional(),
-}).strict();
-type DealListQuery = z.infer<typeof dealListQuery>;
-
-function parseDealListQuery(req: Request, res: Response): DealListQuery | null {
-  const parsed = dealListQuery.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
-    return null;
-  }
-  return parsed.data;
-}
 function validGmSplitPct(value: number | undefined): boolean {
   return (
     value === undefined ||
@@ -157,7 +133,8 @@ async function findDeal(id: number) {
   });
 }
 
-function dateConditions(q: DealListQuery, table = dealsTable) {
+function dateConditions(req: Request, table = dealsTable) {
+  const q = req.query as Record<string, string | undefined>;
   const clauses: any[] = [];
   if (q.start_date) clauses.push(gte(table.createdAt, new Date(q.start_date)));
   if (q.end_date)
@@ -165,41 +142,17 @@ function dateConditions(q: DealListQuery, table = dealsTable) {
   return clauses;
 }
 
-/**
- * Shared ownership scope for the list and CSV export. In particular, query
- * parameters must never let a representative widen beyond their assignments.
- */
-export function exportDealScopeConditions(
-  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
-  query: DealListQuery,
-): any[] {
-  const conditions: any[] = [];
-  if (query.include_archived !== "true") {
-    conditions.push(eq(dealsTable.isArchived, false));
-  }
-  if (user.role === "rep") {
-    conditions.push(eq(dealsTable.assignedTo, user.id));
-  } else if (query.rep_id) {
-    conditions.push(eq(dealsTable.assignedTo, Number(query.rep_id)));
-  }
-  if (query.lead_id) {
-    conditions.push(eq(dealsTable.leadId, Number(query.lead_id)));
-  }
-  return conditions;
-}
-
 // Register this static path before the dynamic /deals/:id route below. Keeping
 // it as a named handler makes the precedence explicit without special-casing
 // "export" in the ID parser.
-router.get("/deals/export", createExportDealsHandler());
+router.get("/deals/export", exportDeals);
 
 router.get("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = parseDealListQuery(req, res);
-  if (!q) return;
-  const page = q.page ?? 1;
-  const limit = q.limit ?? 25;
+  const q = req.query as Record<string, string | undefined>;
+  const page = Math.max(Number(q.page ?? 1), 1);
+  const limit = Math.min(Math.max(Number(q.limit ?? 25), 1), 100);
   const conditions: any[] = [];
   if (q.include_archived !== "true")
     conditions.push(eq(dealsTable.isArchived, false));
@@ -219,7 +172,7 @@ router.get("/deals", async (req, res): Promise<void> => {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(q));
+  conditions.push(...dateConditions(req));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -288,23 +241,20 @@ router.get("/deals", async (req, res): Promise<void> => {
   });
 });
 
-export function createExportDealsHandler(dependencies: {
-  database?: Pick<typeof db, "transaction">;
-  authenticate?: typeof requireUser;
-  recordActivity?: typeof logActivity;
-} = {}) {
-  const database = dependencies.database ?? db;
-  const authenticate = dependencies.authenticate ?? requireUser;
-  const recordActivity = dependencies.recordActivity ?? logActivity;
-  return async function exportDeals(req: Request, res: Response): Promise<void> {
-  const user = await authenticate(req, res);
+async function exportDeals(req: Request, res: Response): Promise<void> {
+  const user = await requireUser(req, res);
   if (!user) return;
 
-  const q = parseDealListQuery(req, res);
-  if (!q) return;
-  // This helper retains the representative restriction even when the request
-  // carries another rep_id.
-  const conditions = exportDealScopeConditions(user, q);
+  const q = req.query as Record<string, string | undefined>;
+  const conditions: any[] = [];
+  if (q.include_archived !== "true")
+    conditions.push(eq(dealsTable.isArchived, false));
+  // Reps are always restricted to their own assignments. A rep_id supplied by
+  // a client can narrow that set, but can never widen it.
+  if (user.role === "rep") conditions.push(eq(dealsTable.assignedTo, user.id));
+  else if (q.rep_id)
+    conditions.push(eq(dealsTable.assignedTo, Number(q.rep_id)));
+  if (q.lead_id) conditions.push(eq(dealsTable.leadId, Number(q.lead_id)));
   if (q.stages || q.stage) {
     const stages = parseStages(q.stages ?? q.stage);
     if (!stages || stages.length === 0) {
@@ -317,7 +267,7 @@ export function createExportDealsHandler(dependencies: {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(q));
+  conditions.push(...dateConditions(req));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -343,7 +293,7 @@ export function createExportDealsHandler(dependencies: {
   let exported = 0;
   const batchSize = 1000;
   const latestActivityRequested = sortField === "lastActivityAt";
-  await database.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     // A repeatable-read snapshot prevents mutable deal/activity rows from
     // moving between batches and being duplicated or skipped.
     await tx.execute(sql`set transaction isolation level repeatable read`);
@@ -405,7 +355,7 @@ export function createExportDealsHandler(dependencies: {
     }
   });
   res.end();
-  await recordActivity({
+  await logActivity({
     userId: user.id,
     dealId: null,
     leadId: null,
@@ -414,7 +364,6 @@ export function createExportDealsHandler(dependencies: {
     entityId: 0,
     details: { count: exported },
   });
-  };
 }
 
 router.post("/deals", async (req, res): Promise<void> => {
@@ -790,14 +739,13 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
 router.get("/deals/analytics", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = parseDealListQuery(req, res);
-  if (!q) return;
+  const q = req.query as Record<string, string | undefined>;
   const conditions: any[] = [eq(dealsTable.isArchived, false)];
   const effectiveRepId =
     user.role === "rep" ? user.id : q.rep_id ? Number(q.rep_id) : undefined;
   if (effectiveRepId)
     conditions.push(eq(dealsTable.assignedTo, effectiveRepId));
-  conditions.push(...dateConditions(q));
+  conditions.push(...dateConditions(req));
   const where = and(...conditions);
   const activeWhere = and(where, activeDealStageCondition());
   const [

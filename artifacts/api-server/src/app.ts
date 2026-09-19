@@ -17,30 +17,10 @@ import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
 import { getSafeUserId } from "./lib/requestAuth";
-import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
 
 initSentry();
 
 const app: Express = express();
-const recordHttp5xx = createHttp5xxRecorder({
-  logger,
-  persist: async (record) => {
-    await db.insert(errorLogTable).values(record);
-  },
-});
-
-function observeHttp5xx(req: Request, res: Response, error?: unknown): void {
-  if (res.statusCode < 500 || res.locals.http5xxObserved) return;
-  res.locals.http5xxObserved = true;
-  recordHttp5xx.record({
-    requestId: req.requestId ?? "unknown",
-    method: req.method,
-    path: req.url?.split("?")[0] ?? req.url,
-    userId: getSafeUserId(() => getAuth(req)) ?? null,
-    status: res.statusCode,
-    error,
-  });
-}
 
 // Replit routes requests through one trusted proxy hop. This lets middleware
 // such as express-rate-limit derive the originating client IP safely.
@@ -121,30 +101,56 @@ app.use(
   })),
 );
 
-// Handlers which intentionally catch an error and send a 5xx response still
-// need structured log/error-log coverage. Unhandled errors are recorded below
-// with their original stack before their response completes.
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.once("finish", () => observeHttp5xx(req, res));
-  next();
-});
-
 app.use("/api", router);
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const requestId = req.requestId ?? "unknown";
+  const userId = getSafeUserId(() => getAuth(req));
+
   const status =
     (err instanceof Error && "status" in err ? (err as any).status : null) ??
     (err instanceof Error && "statusCode" in err ? (err as any).statusCode : null) ??
     500;
 
+  const message = err instanceof Error ? err.message : "Internal server error";
+  const stack = err instanceof Error ? err.stack : undefined;
+
+  logger.error(
+    {
+      requestId,
+      method: req.method,
+      path: req.url?.split("?")[0],
+      userId: userId ?? null,
+      status,
+      message,
+      stack,
+    },
+    "Unhandled error",
+  );
+
   // Report 500-level errors to Sentry with the request_id tag
   if (status >= 500) {
-    captureException(err, { request_id: req.requestId ?? "unknown" });
+    captureException(err, { request_id: requestId });
   }
 
-  res.status(status);
-  observeHttp5xx(req, res, err);
-  res.json({ error: err instanceof Error ? err.message : "Internal server error", requestId: req.requestId ?? "unknown" });
+  // Fire-and-forget: only log 500-level errors to DB, never block the response
+  if (status >= 500) {
+    db.insert(errorLogTable)
+      .values({
+        requestId,
+        userId: userId ?? null,
+        method: req.method,
+        path: req.url?.split("?")[0] ?? req.url,
+        status,
+        message,
+        stack: stack ?? null,
+      })
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Failed to write to error_log");
+      });
+  }
+
+  res.status(status).json({ error: message, requestId });
 });
 
 export default app;

@@ -35,9 +35,6 @@ import repPublicRouter from "./repPublic";
 import dealsRouter from "./deals";
 import adminProductionCloseoutRouter from "./adminProductionCloseout";
 import adminMigrationsRouter from "./adminMigrations";
-import adminUsfaIntakeRouter from "./adminUsfaIntake";
-import usfaIntakeRouter from "./usfaIntake";
-import usfaPrefillRouter from "./usfaPrefill";
 
 const router: IRouter = Router();
 
@@ -50,7 +47,6 @@ export const PUBLIC_MUTATION_PATHS = new Set([
   "/applications/submit",
   "/leads/capture",
   "/sendgrid/webhook",
-  "/intake/usfa",
   "/twilio/voice",
   "/twilio/voice/inbound",
   "/twilio/voice/status",
@@ -94,9 +90,6 @@ router.use(repPublicRouter);
 router.use(dealsRouter);
 router.use(adminProductionCloseoutRouter);
 router.use(adminMigrationsRouter);
-router.use(adminUsfaIntakeRouter);
-router.use(usfaIntakeRouter);
-router.use(usfaPrefillRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);

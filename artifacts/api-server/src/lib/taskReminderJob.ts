@@ -45,7 +45,7 @@ export async function runTaskReminderJob(): Promise<void> {
 
     const byUser = new Map<number, { pushToken: string; count: number }>();
     for (const row of tasksDueToday) {
-      if (!row.pushToken || row.userId == null) continue;
+      if (!row.pushToken) continue;
       const existing = byUser.get(row.userId);
       if (existing) {
         existing.count++;

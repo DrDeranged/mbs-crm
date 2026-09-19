@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@clerk/react";
 import { useGetMe, useListEmailTemplates, useCreateEmailTemplate, useUpdateEmailTemplate, useDeleteEmailTemplate, usePreviewEmailTemplate, useSendBulkEmail, useListLeads } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -239,10 +239,8 @@ const LEAD_STATUSES = [
 function BulkSendDialog({ template }: { template: any }) {
   const [open, setOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dailyCapacity, setDailyCapacity] = useState<{ limit: number; used: number; remaining: number } | null>(null);
   const sendBulk = useSendBulkEmail();
   const { toast } = useToast();
-  const { getToken } = useAuth();
 
   const { data: leadsData } = useListLeads(
     statusFilter && statusFilter !== "all" ? { status: statusFilter as any } : undefined,
@@ -250,22 +248,6 @@ function BulkSendDialog({ template }: { template: any }) {
   );
 
   const eligibleLeads = (leadsData?.leads ?? []).filter((l: any) => l.email && !l.isUnsubscribed);
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void getToken().then(async (token) => {
-      const response = await fetch(`${apiBase}/email/bulk-capacity`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      if (!cancelled) setDailyCapacity(data);
-    }).catch(() => {
-      if (!cancelled) setDailyCapacity(null);
-    });
-    return () => { cancelled = true; };
-  }, [getToken, open]);
 
   const handleSend = () => {
     const leadIds = eligibleLeads.map((l: any) => l.id);
@@ -318,19 +300,13 @@ function BulkSendDialog({ template }: { template: any }) {
               <strong>{eligibleLeads.length}</strong> eligible lead{eligibleLeads.length !== 1 ? "s" : ""} with email addresses
             </span>
           </div>
-            {dailyCapacity && (
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-                <strong>{dailyCapacity.remaining}</strong> of <strong>{dailyCapacity.limit}</strong> bulk/drip emails remain today
-                ({dailyCapacity.used} already reserved). Start with a small warm-up batch and increase volume gradually.
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">Subject: <span className="font-medium">{template.subject}</span></p>
+          <p className="text-xs text-muted-foreground">Subject: <span className="font-medium">{template.subject}</span></p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             onClick={handleSend}
-            disabled={sendBulk.isPending || eligibleLeads.length === 0 || dailyCapacity?.remaining === 0}
+            disabled={sendBulk.isPending || eligibleLeads.length === 0}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             <Send className="h-3.5 w-3.5 mr-1.5" />

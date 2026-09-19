@@ -6,7 +6,6 @@ import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
-import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -15,29 +14,6 @@ function absUrl(req: Request, path: string): string {
 }
 
 const router = Router();
-const positiveId = z.coerce.number().int().positive();
-const callLogBody = z.object({
-  toNumber: z.string().trim().min(1).optional(),
-  type: z.enum(["call", "sms"]).optional(),
-}).strict();
-const sendSmsBody = z.object({ body: z.string().trim().min(1) }).strict();
-const communicationMetricsQuery = z.object({
-  repId: positiveId.optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-}).strict();
-const updateCommunicationBody = z.object({
-  callNotes: z.string().optional(),
-  callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
-}).refine(
-  (value) => Object.keys(value).length > 0,
-  { message: "At least one communication field is required" },
-);
-
-function invalidInput(res: import("express").Response, parsed: z.ZodSafeParseError<unknown>): void {
-  const field = parsed.error.issues[0]?.path.join(".") || "body";
-  res.status(400).json({ error: `Invalid ${field}` });
-}
 
 const TWILIO_PHONE = process.env["TWILIO_PHONE_NUMBER"];
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
@@ -91,9 +67,7 @@ router.post("/leads/:id/calls/log", async (req, res) => {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
-  const body = callLogBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { toNumber, type: commType } = body.data;
+  const { toNumber, type: commType } = req.body as { toNumber?: string; type?: "call" | "sms" };
   const phone = toNumber ?? lead.phone ?? undefined;
   const resolvedType = commType === "sms" ? "sms" : "call";
 
@@ -146,16 +120,9 @@ router.post("/leads/:id/sms", async (req, res) => {
       message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
     });
   }
-  if (await isUsfaMarketingBlocked(db, lead.leadSource)) {
-    return void res.status(422).json({
-      error: "consent_required",
-      message: "Cannot send SMS: USFA lead SMS consent has not been confirmed by an administrator.",
-    });
-  }
 
-  const bodyInput = sendSmsBody.safeParse(req.body);
-  if (!bodyInput.success) return invalidInput(res, bodyInput);
-  const { body } = bodyInput.data;
+  const { body } = req.body as { body?: string };
+  if (!body?.trim()) return void res.status(400).json({ error: "Message body is required" });
 
   const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
   const message = await client.messages.create({
@@ -227,14 +194,12 @@ router.get("/metrics/communications", async (req, res) => {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
-  const query = communicationMetricsQuery.safeParse(req.query);
-  if (!query.success) return invalidInput(res, query);
-  const { repId, startDate, endDate } = query.data;
+  const { repId, startDate, endDate } = req.query as { repId?: string; startDate?: string; endDate?: string };
 
   const filters: any[] = [];
-  if (repId) filters.push(eq(communicationsTable.userId, repId));
-  if (startDate) filters.push(gte(communicationsTable.createdAt, startDate));
-  if (endDate) filters.push(lte(communicationsTable.createdAt, endDate));
+  if (repId) filters.push(eq(communicationsTable.userId, parseInt(repId, 10)));
+  if (startDate) filters.push(gte(communicationsTable.createdAt, new Date(startDate)));
+  if (endDate) filters.push(lte(communicationsTable.createdAt, new Date(endDate)));
 
   const whereClause = filters.length > 0 ? and(...filters) : undefined;
 
@@ -293,9 +258,15 @@ router.put("/communications/:id", async (req, res) => {
     return;
   }
 
-  const parsed = updateCommunicationBody.safeParse(req.body);
+  const bodySchema = z.object({
+    callNotes: z.string().optional(),
+    callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
+  });
+
+  const parsed = bodySchema.safeParse(req.body);
   if (!parsed.success) {
-    return invalidInput(res, parsed);
+    res.status(400).json({ error: "Invalid body" });
+    return;
   }
 
   const [existing] = await db

@@ -1,23 +1,9 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db, companySettingsTable, usersTable } from "@workspace/db";
-import {
-  DEFAULT_ROUTING_SETTINGS,
-  shouldRoundRobinAssign,
-  type RoutingSettings,
-} from "./leadRouting";
 
 const ROUND_ROBIN_LOCK_KEY = 840163;
 
 type EligibleRole = "rep" | "manager" | "admin";
-
-export async function getRoutingSettings(): Promise<RoutingSettings> {
-  const [settings] = await db.select().from(companySettingsTable).limit(1);
-  return {
-    mode: settings?.routingMode ?? DEFAULT_ROUTING_SETTINGS.mode,
-    staleDays: settings?.routingStaleDays ?? settings?.staleThresholdDays ?? DEFAULT_ROUTING_SETTINGS.staleDays,
-    autoReassignStale: settings?.routingAutoReassignStale ?? DEFAULT_ROUTING_SETTINGS.autoReassignStale,
-  };
-}
 
 async function eligibleRoles(): Promise<EligibleRole[]> {
   const [settings] = await db.select().from(companySettingsTable).limit(1);
@@ -32,32 +18,10 @@ async function eligibleRoles(): Promise<EligibleRole[]> {
  * processes, while the cursor is persisted in company_settings.
  */
 export async function pickNextInboundAssignee(): Promise<number | null> {
-  return db.transaction(async (tx) => (await selectNextInboundAssigneeInTransaction(tx))?.repId ?? null);
-}
-
-/**
- * The caller's transaction holds the cursor update and its lead mutation as
- * one unit. The advisory lock serializes every process that advances the
- * shared cursor, preventing concurrent jobs from issuing duplicate picks.
- */
-export type InboundAssigneeSelection = {
-  repId: number;
-  staleDays: number;
-};
-
-export async function selectNextInboundAssigneeInTransaction(
-  tx: any,
-  options: { requireAutoReassignStale?: boolean } = {},
-): Promise<InboundAssigneeSelection | null> {
+  return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(${ROUND_ROBIN_LOCK_KEY})`);
 
     const [settings] = await tx.select().from(companySettingsTable).limit(1);
-    if (
-      (settings?.routingMode ?? DEFAULT_ROUTING_SETTINGS.mode) !== "round_robin" ||
-      (options.requireAutoReassignStale && settings?.routingAutoReassignStale !== true)
-    ) {
-      return null;
-    }
     const roles = settings?.includeAdminsInRoundRobin
       ? (["rep", "manager", "admin"] as const)
       : (["rep", "manager"] as const);
@@ -82,17 +46,10 @@ export async function selectNextInboundAssigneeInTransaction(
       await tx.insert(companySettingsTable).values({
         includeAdminsInRoundRobin: false,
         roundRobinCursor: nextCursor,
-        routingMode: "manual",
-        routingStaleDays: DEFAULT_ROUTING_SETTINGS.staleDays,
-        routingAutoReassignStale: DEFAULT_ROUTING_SETTINGS.autoReassignStale,
       });
     }
-    return selected === null
-      ? null
-      : {
-        repId: selected,
-        staleDays: settings?.routingStaleDays ?? settings?.staleThresholdDays ?? DEFAULT_ROUTING_SETTINGS.staleDays,
-      };
+    return selected;
+  });
 }
 
 /**
@@ -100,29 +57,20 @@ export async function selectNextInboundAssigneeInTransaction(
  * Invalid, pending, inactive, manager, and admin slugs fall through to the
  * normal inbound distribution resolver.
  */
-export async function resolveInboundAssignee(
-  repSlug?: string | null,
-  source = "website",
-): Promise<number | null> {
-  const attributedRep = await findActiveRepBySlug(repSlug);
-  if (attributedRep) return attributedRep.id;
-  const settings = await getRoutingSettings();
-  return shouldRoundRobinAssign(source, settings) ? pickNextInboundAssignee() : null;
-}
-
-/** Returns a valid active QR representative, never a retired or arbitrary slug. */
-export async function findActiveRepBySlug(repSlug?: string | null) {
-  if (!repSlug) return null;
-  const [attributedRep] = await db
-    .select({ id: usersTable.id })
-    .from(usersTable)
-    .where(and(
-      eq(usersTable.slug, repSlug.toLowerCase()),
-      eq(usersTable.role, "rep"),
-      eq(usersTable.isActive, true),
-    ))
-    .limit(1);
-  return attributedRep ?? null;
+export async function resolveInboundAssignee(repSlug?: string | null): Promise<number | null> {
+  if (repSlug) {
+    const [attributedRep] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(and(
+        eq(usersTable.slug, repSlug.toLowerCase()),
+        eq(usersTable.role, "rep"),
+        eq(usersTable.isActive, true),
+      ))
+      .limit(1);
+    if (attributedRep) return attributedRep.id;
+  }
+  return pickNextInboundAssignee();
 }
 
 /** Validate manual assignment destinations against the same eligible pool. */

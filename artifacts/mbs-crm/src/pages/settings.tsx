@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserRole, UserUpdateRole, type RoutingSettingsMode } from "@workspace/api-client-react";
+import { UserRole, UserUpdateRole } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,9 +46,7 @@ export default function Settings() {
   const [slugInput, setSlugInput] = useState("");
   const [editingTitle, setEditingTitle] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
-  const [routingStaleDaysInput, setRoutingStaleDaysInput] = useState("7");
-  const [routingMode, setRoutingMode] = useState<RoutingSettingsMode>("manual");
-  const [autoReassignStale, setAutoReassignStale] = useState(false);
+  const [staleThresholdInput, setStaleThresholdInput] = useState("7");
 
   const apiBase = getApiBaseUrl();
 
@@ -60,10 +58,7 @@ export default function Settings() {
   const [savingCompany, setSavingCompany] = useState(false);
   const [emailSendingEnabled, setEmailSendingEnabled] = useState(false);
   const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
-  const [bulkEmailPerDay, setBulkEmailPerDay] = useState("75");
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
-  const [sendGridTestAddress, setSendGridTestAddress] = useState("");
-  const [sendingSendGridTest, setSendingSendGridTest] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<{
     applied: string[];
     detected: string[];
@@ -85,7 +80,6 @@ export default function Settings() {
         const text = (key: string) => typeof data[key] === "string" ? data[key] as string : "";
         setEmailSendingEnabled(data.emailSendingEnabled === true);
         setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? 60));
-        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? 75));
         return setCompanyForm({
         companyName: text("companyName"),
         companyEmail: text("companyEmail"),
@@ -157,13 +151,8 @@ export default function Settings() {
 
   const handleSaveEmailSettings = async () => {
     const cap = Number(bulkEmailPerMinute);
-    const dayCap = Number(bulkEmailPerDay);
     if (!Number.isInteger(cap) || cap < 1 || cap > 1000) {
       toast({ title: "Invalid bulk cap", description: "Enter a whole number from 1 to 1000 emails per minute.", variant: "destructive" });
-      return;
-    }
-    if (!Number.isInteger(dayCap) || dayCap < 1 || dayCap > 100000) {
-      toast({ title: "Invalid daily cap", description: "Enter a whole number from 1 to 100000 emails per day.", variant: "destructive" });
       return;
     }
     setSavingEmailSettings(true);
@@ -172,45 +161,17 @@ export default function Settings() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ emailSendingEnabled, bulkEmailPerMinute: cap, bulkEmailPerDay: dayCap }),
+        body: JSON.stringify({ emailSendingEnabled, bulkEmailPerMinute: cap }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setEmailSendingEnabled(data.emailSendingEnabled === true);
       setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? cap));
-        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? dayCap));
       toast({ title: "Email delivery settings saved" });
     } catch {
       toast({ title: "Failed to save email delivery settings", variant: "destructive" });
     } finally {
       setSavingEmailSettings(false);
-    }
-  };
-
-  const handleSendGridTest = async () => {
-    const toEmail = sendGridTestAddress.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) {
-      toast({ title: "Enter a valid test email address", variant: "destructive" });
-      return;
-    }
-    setSendingSendGridTest(true);
-    try {
-      const response = await fetch(`${apiBase}/email/test-send`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toEmail }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Unable to send SendGrid test email.");
-      toast({
-        title: "SendGrid test email queued",
-        description: `Message ID: ${payload.messageId || "not returned by provider"}`,
-      });
-    } catch (error) {
-      toast({ title: "SendGrid test failed", description: error instanceof Error ? error.message : "Unable to send test email.", variant: "destructive" });
-    } finally {
-      setSendingSendGridTest(false);
     }
   };
 
@@ -323,28 +284,26 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    if (leadDistribution?.routing) {
-      setRoutingMode(leadDistribution.routing.mode);
-      setRoutingStaleDaysInput(String(leadDistribution.routing.staleDays));
-      setAutoReassignStale(leadDistribution.routing.autoReassignStale);
+    if (leadDistribution?.staleThresholdDays != null) {
+      setStaleThresholdInput(String(leadDistribution.staleThresholdDays));
     }
-  }, [leadDistribution?.routing]);
+  }, [leadDistribution?.staleThresholdDays]);
 
-  const handleSaveRouting = () => {
-    const staleDays = Number(routingStaleDaysInput);
-    if (!Number.isInteger(staleDays) || staleDays < 1 || staleDays > 365) {
+  const handleSaveStaleThreshold = () => {
+    const staleThresholdDays = Number(staleThresholdInput);
+    if (!Number.isInteger(staleThresholdDays) || staleThresholdDays < 1 || staleThresholdDays > 365) {
       toast({ title: "Invalid threshold", description: "Enter a whole number from 1 to 365 days.", variant: "destructive" });
       return;
     }
     updateLeadDistribution.mutate(
-      { data: { routing: { mode: routingMode, staleDays, autoReassignStale } } },
+      { data: { staleThresholdDays } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetLeadDistributionSettingsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          toast({ title: "Routing settings saved" });
+          toast({ title: "Staleness threshold saved" });
         },
-        onError: () => toast({ title: "Error", description: "Failed to save routing settings.", variant: "destructive" }),
+        onError: () => toast({ title: "Error", description: "Failed to save staleness threshold.", variant: "destructive" }),
       },
     );
   };
@@ -579,44 +538,9 @@ export default function Settings() {
                   <span className="text-sm text-muted-foreground">per minute</span>
                 </div>
               </div>
-              <div className="flex flex-wrap items-end justify-between gap-4 max-w-2xl mt-5">
-                <div>
-                  <div className="font-medium">Bulk and drip daily allowance</div>
-                  <div className="text-sm text-muted-foreground">Shared daily ceiling for bulk and automated drip delivery attempts (1–100000).</div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={100000}
-                    value={bulkEmailPerDay}
-                    onChange={(event) => setBulkEmailPerDay(event.target.value)}
-                    className="w-28"
-                    aria-label="Bulk and drip emails per day"
-                  />
-                  <span className="text-sm text-muted-foreground">per day</span>
-                </div>
-              </div>
               <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-[#1F4E79] hover:bg-[#163a5f] text-white">
                 {savingEmailSettings ? "Saving…" : "Save Email Safety Settings"}
               </Button>
-              <div className="mt-6 max-w-2xl border-t pt-5">
-                <div className="font-medium">Send SendGrid test email</div>
-                <p className="mt-1 text-sm text-muted-foreground">Sends the CEO delivery-test template from funding@my-business-solutions.com to the typed address. The provider message ID is shown after delivery is accepted.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Input
-                    type="email"
-                    value={sendGridTestAddress}
-                    onChange={(event) => setSendGridTestAddress(event.target.value)}
-                    placeholder="you@example.com"
-                    aria-label="SendGrid test recipient"
-                    className="max-w-sm"
-                  />
-                  <Button onClick={handleSendGridTest} disabled={sendingSendGridTest} variant="outline">
-                    {sendingSendGridTest ? "Sending…" : "Send test email"}
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         )}
@@ -626,26 +550,11 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>Lead Distribution</CardTitle>
               <CardDescription>
-                Choose manual assignment or round-robin for ordinary inbound website leads. QR-card and prospect-list leads are never round-robin assigned.
+                New inbound website leads and applications are assigned round-robin across one pool of eligible active users. Admins are excluded unless enabled here.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between gap-4 max-w-2xl">
-                <div>
-                  <div className="font-medium">Assignment mode</div>
-                  <div className="text-sm text-muted-foreground">
-                    Manual leaves new ordinary inbound leads unassigned. Round-robin assigns them across eligible active users.
-                  </div>
-                </div>
-                <Select value={routingMode} onValueChange={(value) => setRoutingMode(value as RoutingSettingsMode)}>
-                  <SelectTrigger className="w-44" data-testid="select-routing-mode"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="round_robin">Round robin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
                 <div>
                   <div className="font-medium">Include admins in round-robin</div>
                   <div className="text-sm text-muted-foreground">
@@ -666,14 +575,13 @@ export default function Settings() {
                     },
                   )}
                   aria-label="Include admins in round-robin"
-                  data-testid="switch-include-admins-round-robin"
                 />
               </div>
               <div className="flex items-end justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
                 <div>
                   <div className="font-medium">Stale lead threshold</div>
                   <div className="text-sm text-muted-foreground">
-                    Assigned leads with no activity for this many days are shown in the stale queue. Unassigned leads are never stale.
+                    Assigned leads with no activity for this many days are marked stale. Unassigned leads are never stale.
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -681,33 +589,17 @@ export default function Settings() {
                     type="number"
                     min={1}
                     max={365}
-                    value={routingStaleDaysInput}
-                    onChange={(event) => setRoutingStaleDaysInput(event.target.value)}
+                    value={staleThresholdInput}
+                    onChange={(event) => setStaleThresholdInput(event.target.value)}
                     className="w-24"
                     aria-label="Stale lead threshold in days"
-                    data-testid="input-routing-stale-days"
                   />
                   <span className="text-sm text-muted-foreground">days</span>
+                  <Button size="sm" onClick={handleSaveStaleThreshold} disabled={updateLeadDistribution.isPending}>
+                    Save
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
-                <div>
-                  <div className="font-medium">Automatically reassign stale inbound leads</div>
-                  <div className="text-sm text-muted-foreground">
-                    Requires round-robin mode. Every automated reassignment records the former and new representative.
-                  </div>
-                </div>
-                <Switch
-                  checked={autoReassignStale}
-                  onCheckedChange={setAutoReassignStale}
-                  disabled={routingMode !== "round_robin" || updateLeadDistribution.isPending}
-                  aria-label="Automatically reassign stale inbound leads"
-                  data-testid="switch-auto-reassign-stale"
-                />
-              </div>
-              <Button className="mt-6" onClick={handleSaveRouting} disabled={updateLeadDistribution.isPending} data-testid="button-save-routing-settings">
-                Save routing settings
-              </Button>
             </CardContent>
           </Card>
         )}

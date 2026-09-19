@@ -1,7 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
 import ExcelJS from "exceljs";
-import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable } from "@workspace/db";
 import { or, ilike } from "drizzle-orm";
@@ -9,7 +8,6 @@ import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 
 const router: IRouter = Router();
-const columnMappingSchema = z.record(z.string(), z.string());
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
@@ -173,18 +171,13 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
   }
 
   let columnMapping: Record<string, string> = {};
-  const rawColumnMapping = (req.body as Record<string, unknown> | undefined)?.columnMapping;
-  if (rawColumnMapping !== undefined && rawColumnMapping !== "") {
+  if (req.body?.columnMapping) {
     try {
-      const parsed = columnMappingSchema.safeParse(
-        typeof rawColumnMapping === "string" ? JSON.parse(rawColumnMapping) : rawColumnMapping,
-      );
-      if (!parsed.success) {
-        return void res.status(400).json({ error: "Invalid columnMapping" });
-      }
-      columnMapping = parsed.data;
+      columnMapping = typeof req.body.columnMapping === "string"
+        ? JSON.parse(req.body.columnMapping)
+        : req.body.columnMapping;
     } catch {
-      return void res.status(400).json({ error: "Invalid columnMapping" });
+      columnMapping = {};
     }
   }
 

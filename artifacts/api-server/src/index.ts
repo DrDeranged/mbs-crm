@@ -3,15 +3,12 @@ import { logger } from "./lib/logger";
 import { db, pool, formatSchemaBootLine, getMigrationStatus } from "@workspace/db";
 import { runSchemaBoot } from "./lib/schemaBoot";
 import { runDripJob } from "./lib/dripJob";
-import { runStaleLeadAutoReassignment } from "./lib/staleLeadReassignment";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
 import { runBackupJob } from "./lib/backupJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 import { closeBrowser } from "./lib/renderPdf";
 import { installProcessErrorHandlers } from "./lib/processHandlers";
-import { startUsfaPoller } from "./lib/intake/usfaPoller";
-import { startUsfaApplicationPoller } from "./lib/intake/usfaApplicationPoller";
 
 // Install these before validating startup configuration so module-level
 // startup failures are logged as fatal errors rather than disappearing as an
@@ -81,14 +78,6 @@ const server = app.listen(port, (err) => {
   }, DRIP_INTERVAL_MS);
   intervals.push(dripInterval);
 
-  // This is intentionally a separate guarded job: it is a no-op unless an
-  // administrator enables both round-robin and stale automatic reassignment.
-  runStaleLeadAutoReassignment().catch((err) => logger.error({ err }, "Stale lead reassignment startup error"));
-  const staleReassignmentInterval = setInterval(() => {
-    runStaleLeadAutoReassignment().catch((err) => logger.error({ err }, "Stale lead reassignment error"));
-  }, DRIP_INTERVAL_MS);
-  intervals.push(staleReassignmentInterval);
-
   // Task reminder push notifications — checks every hour, fires at 9 AM
   const REMINDER_INTERVAL_MS = 60 * 60 * 1000;
   runTaskReminderJob().catch((err) =>
@@ -100,8 +89,6 @@ const server = app.listen(port, (err) => {
     );
   }, REMINDER_INTERVAL_MS);
   intervals.push(reminderInterval);
-  intervals.push(startUsfaPoller());
-  intervals.push(startUsfaApplicationPoller());
 
   // Renewal radar — flags funded leads ready to re-fund; runs at startup then once daily
   const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000;

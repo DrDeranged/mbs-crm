@@ -1,7 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import sgMail from "@sendgrid/mail";
 import { createHmac } from "crypto";
-import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import {
   emailTemplatesTable,
@@ -13,12 +12,8 @@ import {
   companySettingsTable,
   activityLogTable,
 } from "@workspace/db";
-import { eq, and, inArray, gte, sql } from "drizzle-orm";
-import {
-  canManageMarketingResource,
-  canReadMarketingResource,
-  requireUser,
-} from "../lib/authHelpers";
+import { eq, and, inArray } from "drizzle-orm";
+import { canAccessCreatorOwnedRecord, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ensureBrandEmailHeader, getBrandLogoPng, getPublicBaseUrl } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
@@ -33,39 +28,6 @@ const SESSION_SECRET = process.env["SESSION_SECRET"];
 // token reuse.
 const EMAIL_SIGNING_SECRET = UNSUB_SECRET || SESSION_SECRET;
 const IS_PROD_EMAIL = process.env["NODE_ENV"] === "production";
-const positiveId = z.coerce.number().int().positive();
-const templateBody = z.object({
-  name: z.string().trim().min(1),
-  subject: z.string().trim().min(1),
-  bodyHtml: z.string().trim().min(1),
-  programType: z.enum(["equipment", "working_capital"]).nullable().optional(),
-  senderMode: z.enum(["default", "assigned_rep"]).optional(),
-  isActive: z.boolean().optional(),
-});
-const templateUpdateBody = templateBody.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  { message: "At least one template field is required" },
-);
-const singleEmailBody = z.object({
-  leadId: positiveId,
-  templateId: positiveId.optional(),
-  subject: z.string().optional(),
-  bodyHtml: z.string().optional(),
-});
-const bulkEmailBody = z.object({
-  leadIds: z.array(positiveId).min(1),
-  templateId: positiveId,
-});
-const previewTemplateBody = z.object({ leadId: positiveId.optional() });
-const testSendBody = z.object({
-  templateId: positiveId.optional(),
-  toEmail: z.string().trim().email(),
-});
-
-function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
-  const field = parsed.error.issues[0]?.path.join(".") || "body";
-  res.status(400).json({ error: `Invalid ${field}` });
-}
 
 function makeUnsubToken(sendId: number, email: string): string {
   if (!EMAIL_SIGNING_SECRET) {
@@ -162,9 +124,6 @@ const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
 const FROM_EMAIL = "funding@my-business-solutions.com";
 const FROM_NAME = "My Business Solutions";
 const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const EMAIL_COMPLIANCE_ADDRESS =
-  "My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307";
-export const DAILY_MARKETING_KINDS = ["bulk", "drip"] as const;
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -248,95 +207,8 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
   const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}?token=${openToken}" width="1" height="1" alt="" style="display:none" />`;
   const unsubLink = `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">
     <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
-    <br><span>${EMAIL_COMPLIANCE_ADDRESS}</span>
   </p>`;
   return `${withClicks}${unsubLink}${pixel}`;
-}
-
-function startOfUtcDay(now = new Date()): Date {
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-}
-
-export async function getDailyMarketingEmailCapacity(): Promise<{
-  limit: number;
-  used: number;
-  remaining: number;
-}> {
-  const [settings] = await db.select({
-    bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
-  }).from(companySettingsTable).limit(1);
-  const limit = Math.max(1, Math.min(100_000, settings?.bulkEmailPerDay ?? 75));
-  const [row] = await db.select({ count: sql<number>`count(*)` })
-    .from(emailSendsTable)
-    .where(and(
-      inArray(emailSendsTable.deliveryKind, DAILY_MARKETING_KINDS),
-      gte(emailSendsTable.createdAt, startOfUtcDay()),
-    ));
-  const used = Number(row?.count ?? 0);
-  return { limit, used, remaining: Math.max(0, limit - used) };
-}
-
-export type DailyMarketingReservationRepository<Context, Created> = {
-  withLock: <T>(work: (context: Context) => Promise<T>) => Promise<T>;
-  getLimit: (context: Context) => Promise<number>;
-  getUsed: (context: Context) => Promise<number>;
-  create: (context: Context) => Promise<Created>;
-};
-
-/** Shared bulk/drip reservation boundary; the repository owns its transaction lock. */
-export async function reserveDailyMarketingEmail<Context, Created>(
-  repository: DailyMarketingReservationRepository<Context, Created>,
-): Promise<Created | null> {
-  return repository.withLock(async (context) => {
-    const limit = Math.max(1, Math.min(100_000, await repository.getLimit(context)));
-    if (await repository.getUsed(context) >= limit) return null;
-    return repository.create(context);
-  });
-}
-
-/** The single provider dispatch sink for all outbound HTML email. */
-export async function sendTrackedEmailToProvider({
-  provider,
-  from,
-  replyTo,
-  toEmail,
-  ccEmail,
-  subject,
-  bodyHtml,
-  sendId,
-  baseUrl,
-  attachments,
-}: {
-  provider: Pick<typeof sgMail, "send">;
-  from: { email: string; name: string };
-  replyTo?: { email: string; name: string };
-  toEmail: string;
-  ccEmail?: string | null;
-  subject: string;
-  bodyHtml: string;
-  sendId: number;
-  baseUrl: string;
-  attachments?: Array<{
-    content: string;
-    filename: string;
-    type?: string;
-    disposition?: "attachment" | "inline";
-  }>;
-}) {
-  const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail);
-  return provider.send({
-    from,
-    ...(replyTo ? { replyTo } : {}),
-    to: toEmail,
-    ...(ccEmail && VALID_EMAIL.test(ccEmail.trim()) ? { cc: ccEmail.trim() } : {}),
-    subject,
-    html,
-    ...(attachments?.length ? { attachments } : {}),
-    trackingSettings: {
-      clickTracking: { enable: false, enableText: false },
-      openTracking: { enable: false },
-    },
-  });
 }
 
 async function doSendEmail(params: {
@@ -348,7 +220,6 @@ async function doSendEmail(params: {
   toEmail: string;
   baseUrl: string;
   senderMode?: "default" | "assigned_rep";
-  deliveryKind?: "direct" | "bulk" | "drip" | "test";
   rep?: { name?: string | null; email?: string | null } | null;
   ccEmail?: string | null;
   attachments?: Array<{
@@ -371,54 +242,16 @@ async function doSendEmail(params: {
     ? { email: repEmail, name: params.rep?.name?.trim() || repEmail }
     : undefined;
 
-  const deliveryKind = params.deliveryKind ?? "direct";
-  const values = {
+  // Create a placeholder record first to get the ID for tracking URLs
+  const [placeholder] = await db.insert(emailSendsTable).values({
     leadId: params.leadId,
     userId: params.userId,
     templateId: params.templateId,
     subject: params.subject,
     toEmail: params.toEmail,
     fromEmail: from.email,
-    deliveryKind,
-    status: "queued" as const,
-  };
-  // The count and queued record are created under one cross-process advisory
-  // lock. A failed provider attempt remains counted: otherwise a retry loop
-  // could bypass the daily safety cap.
-  const placeholder = DAILY_MARKETING_KINDS.includes(deliveryKind as typeof DAILY_MARKETING_KINDS[number])
-    ? await reserveDailyMarketingEmail<any, any>({
-      withLock: (work) => db.transaction(async (tx) => {
-        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('mbs-email-daily-marketing-cap'))`);
-        return work(tx);
-      }),
-      getLimit: async (tx) => {
-        const [settings] = await tx.select({
-          bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
-        }).from(companySettingsTable).limit(1);
-        return settings?.bulkEmailPerDay ?? 75;
-      },
-      getUsed: async (tx) => {
-        const [row] = await tx.select({ count: sql<number>`count(*)` })
-          .from(emailSendsTable)
-          .where(and(
-            inArray(emailSendsTable.deliveryKind, DAILY_MARKETING_KINDS),
-            gte(emailSendsTable.createdAt, startOfUtcDay()),
-          ));
-        return Number(row?.count ?? 0);
-      },
-      create: async (tx) => {
-        const [created] = await tx.insert(emailSendsTable).values(values).returning();
-        return created;
-      },
-    })
-    : (await db.insert(emailSendsTable).values(values).returning())[0];
-  if (!placeholder) {
-    return {
-      send: null,
-      error: "Daily bulk and drip email allowance has been reached",
-      deliveryOutcome: "definite_failure",
-    };
-  }
+    status: "queued",
+  }).returning();
 
   if (await isEmailSuppressed(params.toEmail)) {
     const reason = "Recipient is suppressed";
@@ -441,9 +274,10 @@ async function doSendEmail(params: {
     return { send: failed, error: reason, deliveryOutcome: "definite_failure" };
   }
 
-  let brandedHtml: string;
+  let trackedHtml: string;
   try {
-    brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
+    const brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
+    trackedHtml = injectTracking(brandedHtml, placeholder.id, params.baseUrl, params.toEmail);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unable to secure email tracking links";
     const [failed] = await db.update(emailSendsTable)
@@ -468,17 +302,20 @@ async function doSendEmail(params: {
   }
 
   try {
-    const [response] = await sendTrackedEmailToProvider({
-      provider: sgMail,
+    const [response] = await sgMail.send({
       from,
-      replyTo,
-      toEmail: params.toEmail,
-      ccEmail: params.ccEmail,
+      ...(replyTo ? { replyTo } : {}),
+      to: params.toEmail,
+      ...(params.ccEmail && VALID_EMAIL.test(params.ccEmail.trim()) ? { cc: params.ccEmail.trim() } : {}),
       subject: params.subject,
-      bodyHtml: brandedHtml,
-      sendId: placeholder.id,
-      baseUrl: params.baseUrl,
-      attachments: params.attachments,
+      html: trackedHtml,
+      ...(params.attachments?.length ? { attachments: params.attachments } : {}),
+      trackingSettings: {
+        // Custom signed links/pixel below are the source of truth. Provider
+        // tracking is disabled to prevent duplicate engagement activities.
+        clickTracking: { enable: false, enableText: false },
+        openTracking: { enable: false },
+      },
     });
 
     const messageId = (
@@ -634,9 +471,14 @@ router.post("/email/send", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const body = singleEmailBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { leadId, templateId, subject, bodyHtml } = body.data;
+  const { leadId, templateId, subject, bodyHtml } = req.body as {
+    leadId: number;
+    templateId?: number;
+    subject?: string;
+    bodyHtml?: string;
+  };
+
+  if (!leadId) return void res.status(400).json({ error: "leadId is required" });
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -656,12 +498,9 @@ router.post("/email/send", async (req: Request, res: Response) => {
   let senderMode: "default" | "assigned_rep" = "default";
 
   if (templateId) {
-    const template = await db.query.emailTemplatesTable.findFirst({
-      where: eq(emailTemplatesTable.id, templateId),
-      with: { owner: true },
-    });
+    const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
     if (!template) return void res.status(404).json({ error: "Template not found" });
-    if (!canReadMarketingResource(user, template.owner)) {
+    if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
       return void res.status(403).json({ error: "Forbidden" });
     }
     if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
@@ -712,9 +551,9 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
 
-  const body = bulkEmailBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { leadIds, templateId } = body.data;
+  const { leadIds, templateId } = req.body as { leadIds: number[]; templateId: number };
+  if (!Array.isArray(leadIds) || leadIds.length === 0) return void res.status(400).json({ error: "leadIds required" });
+  if (!templateId) return void res.status(400).json({ error: "templateId required" });
 
   const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, templateId) });
   if (!template) return void res.status(404).json({ error: "Template not found" });
@@ -769,7 +608,6 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
       baseUrl,
       senderMode: template.senderMode as "default" | "assigned_rep",
       rep,
-      deliveryKind: "bulk",
     });
     if (error) {
       failed++;
@@ -791,28 +629,18 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   res.json({ sent, failed, skipped, failures, rateLimitPerMinute: bulkCap });
 });
 
-// This read-only value is shown before a bulk send. It reads exactly the
-// shared bulk-and-drip counter enforced during placeholder creation.
-router.get("/email/bulk-capacity", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  if (user.role === "rep") return void res.status(403).json({ error: "Forbidden" });
-  res.json(await getDailyMarketingEmailCapacity());
-});
-
 // --- List templates ---
 router.get("/email/templates", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
   const templates = await db.query.emailTemplatesTable.findMany({
-    with: { creator: true, owner: true },
+    where: user.role === "rep" ? eq(emailTemplatesTable.createdBy, user.id) : undefined,
+    with: { creator: true },
     orderBy: (t, { desc }) => [desc(t.updatedAt)],
   });
 
-  res.json(templates
-    .filter((template) => canReadMarketingResource(user, template.owner))
-    .map(templateToApi));
+  res.json(templates.map(templateToApi));
 });
 
 // --- Get single template ---
@@ -820,14 +648,13 @@ router.get("/email/templates/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = positiveId.safeParse(req.params["id"]);
-  if (!id.success) return invalidInput(res, id);
+  const id = parseInt(req.params["id"] as string, 10);
   const template = await db.query.emailTemplatesTable.findFirst({
-    where: eq(emailTemplatesTable.id, id.data),
-    with: { creator: true, owner: true },
+    where: eq(emailTemplatesTable.id, id),
+    with: { creator: true },
   });
   if (!template) return void res.status(404).json({ error: "Not found" });
-  if (!canReadMarketingResource(user, template.owner)) {
+  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
     return void res.status(403).json({ error: "Forbidden" });
   }
   res.json(templateToApi(template));
@@ -838,9 +665,8 @@ router.post("/email/templates", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const body = templateBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { name, subject, bodyHtml, programType, senderMode, isActive } = body.data;
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
+  if (!name || !subject || !bodyHtml) return void res.status(400).json({ error: "name, subject, bodyHtml required" });
 
   const [template] = await db.insert(emailTemplatesTable).values({
     name,
@@ -849,7 +675,6 @@ router.post("/email/templates", async (req: Request, res: Response) => {
     programType: programType || null,
     senderMode: senderMode === "assigned_rep" ? "assigned_rep" : "default",
     createdBy: user.id,
-    ownerId: user.id,
     isActive: isActive ?? true,
   }).returning();
 
@@ -861,15 +686,12 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = positiveId.safeParse(req.params["id"]);
-  if (!id.success) return invalidInput(res, id);
-  const body = templateUpdateBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { name, subject, bodyHtml, programType, senderMode, isActive } = body.data;
+  const id = parseInt(req.params["id"] as string, 10);
+  const { name, subject, bodyHtml, programType, senderMode, isActive } = req.body as any;
 
-  const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id.data) });
+  const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
-  if (!canManageMarketingResource(user, existing.ownerId)) {
+  if (user.role === "rep" && existing.createdBy !== user.id) {
     return void res.status(403).json({ error: "You can only edit templates you created" });
   }
 
@@ -883,7 +705,7 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
       isActive: isActive ?? existing.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(emailTemplatesTable.id, id.data))
+    .where(eq(emailTemplatesTable.id, id))
     .returning();
 
   res.json(updated);
@@ -899,7 +721,7 @@ router.delete("/email/templates/:id", async (req: Request, res: Response) => {
 
   const existing = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!existing) return void res.status(404).json({ error: "Not found" });
-  if (!canManageMarketingResource(user, existing.ownerId)) {
+  if (user.role === "rep" && existing.createdBy !== user.id) {
     return void res.status(403).json({ error: "You can only delete templates you created" });
   }
 
@@ -920,18 +742,12 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const id = positiveId.safeParse(req.params["id"]);
-  if (!id.success) return invalidInput(res, id);
-  const body = previewTemplateBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { leadId } = body.data;
+  const id = parseInt(req.params["id"] as string, 10);
+  const { leadId } = req.body as { leadId?: number };
 
-  const template = await db.query.emailTemplatesTable.findFirst({
-    where: eq(emailTemplatesTable.id, id.data),
-    with: { owner: true },
-  });
+  const template = await db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) });
   if (!template) return void res.status(404).json({ error: "Not found" });
-  if (!canReadMarketingResource(user, template.owner)) {
+  if (!canAccessCreatorOwnedRecord(user, template.createdBy)) {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
@@ -954,58 +770,24 @@ router.post("/email/templates/:id/preview", async (req: Request, res: Response) 
   });
 });
 
-type AdminTestSendDependencies = {
-  requireAuthenticatedUser?: (req: Request, res: Response) => Promise<{ id: number; role: string } | undefined>;
-  findTemplate?: (id: number) => Promise<{ id: number; subject: string; bodyHtml: string; senderMode: string; isActive: boolean } | undefined>;
-  findRep?: (id: number) => Promise<{ name?: string | null; email?: string | null } | undefined>;
-  send?: typeof doSendEmail;
-  activity?: (params: {
-    userId: number | null;
-    leadId?: number | null;
-    dealId?: number | null;
-    action: string;
-    entityType: string;
-    entityId: string | number;
-    details?: Record<string, unknown>;
-  }) => Promise<unknown>;
-};
-
-// Exported factory keeps the actual HTTP endpoint testable with a mocked
-// repository/provider; the default dependency set is the production path.
-export function createAdminTestSendHandler(dependencies: AdminTestSendDependencies = {}) {
-  const requireAuthenticatedUser = dependencies.requireAuthenticatedUser ?? requireUser;
-  const findTemplate = dependencies.findTemplate ?? (async (id: number) =>
-    db.query.emailTemplatesTable.findFirst({ where: eq(emailTemplatesTable.id, id) }));
-  const findRep = dependencies.findRep ?? (async (id: number) =>
-    db.query.usersTable.findFirst({ where: eq(usersTable.id, id) }));
-  const sendEmail = dependencies.send ?? doSendEmail;
-  const activity = dependencies.activity ?? logActivity;
-  return async (req: Request, res: Response) => {
-  const user = await requireAuthenticatedUser(req, res);
+// --- Admin-only test send; never associates with or sends to a lead ---
+router.post("/email/test-send", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Admins only" });
 
-  const body = testSendBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { templateId, toEmail } = body.data;
-  // A fixed CEO delivery message makes an operational test independent of
-  // mutable marketing templates. The optional ID remains compatible with the
-  // former endpoint for administrators who explicitly want to test one.
-  const CEO_TEST_TEMPLATE = {
-    id: null,
-    name: "CEO delivery test",
-    subject: "My Business Solutions email delivery test",
-    bodyHtml: "<p>This is a delivery test from My Business Solutions CEO.</p>",
-    senderMode: "default",
-    isActive: true,
-  };
-  const template = templateId
-    ? await findTemplate(templateId)
-    : CEO_TEST_TEMPLATE;
+  const { templateId, toEmail } = req.body as { templateId?: number; toEmail?: string };
+  if (!templateId || !toEmail?.trim()) {
+    return void res.status(400).json({ error: "templateId and toEmail are required" });
+  }
+
+  const template = await db.query.emailTemplatesTable.findFirst({
+    where: eq(emailTemplatesTable.id, templateId),
+  });
   if (!template) return void res.status(404).json({ error: "Template not found" });
   if (!template.isActive) return void res.status(409).json({ error: "Template is inactive" });
 
-  const rep = await findRep(user.id);
+  const rep = await db.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
   const recipientName = toEmail.split("@")[0] || "Test";
   const vars = buildVariables(
     {
@@ -1023,7 +805,7 @@ export function createAdminTestSendHandler(dependencies: AdminTestSendDependenci
     return void res.status(422).json({ error: "Template contains unresolved merge fields" });
   }
 
-  const { send, error: sendError, configurationReason } = await sendEmail({
+  const { send, error: sendError, configurationReason } = await doSendEmail({
     leadId: null,
     userId: user.id,
     templateId: template.id,
@@ -1033,7 +815,6 @@ export function createAdminTestSendHandler(dependencies: AdminTestSendDependenci
     baseUrl: getPublicBaseUrl(),
     senderMode: template.senderMode as "default" | "assigned_rep",
     rep,
-    deliveryKind: "test",
   });
   if (sendError) {
     if (configurationReason) {
@@ -1043,7 +824,7 @@ export function createAdminTestSendHandler(dependencies: AdminTestSendDependenci
     return void res.status(502).json({ error: `Email delivery failed: ${sendError}` });
   }
 
-  await activity({
+  await logActivity({
     userId: user.id,
     leadId: null,
     action: "email_test_sent",
@@ -1057,12 +838,8 @@ export function createAdminTestSendHandler(dependencies: AdminTestSendDependenci
     },
   });
 
-  res.status(201).json({ ...sendToApi(send), messageId: send.sendgridMessageId ?? null });
-  };
-}
-
-// --- Admin-only test send; never associates with or sends to a lead ---
-router.post("/email/test-send", createAdminTestSendHandler());
+  res.status(201).json(sendToApi(send));
+});
 
 // --- List emails for a lead ---
 router.get("/leads/:id/emails", async (req: Request, res: Response) => {
@@ -1098,7 +875,6 @@ function templateToApi(t: any) {
     senderMode: t.senderMode ?? "default",
     isActive: t.isActive,
     createdBy: t.createdBy ?? null,
-    ownerId: t.ownerId ?? null,
     creator: t.creator ? { id: t.creator.id, name: t.creator.name, email: t.creator.email } : null,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
@@ -1294,5 +1070,5 @@ function sendToApi(s: any) {
   };
 }
 
-export { doSendEmail, renderTemplate, buildVariables, sendToApi, injectTracking, FROM_EMAIL, FROM_NAME };
+export { doSendEmail, renderTemplate, buildVariables, sendToApi, FROM_EMAIL, FROM_NAME };
 export default router;

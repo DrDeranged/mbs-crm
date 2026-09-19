@@ -6,9 +6,7 @@ import {
   boolean,
   timestamp,
   index,
-  check,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -58,9 +56,6 @@ export const dealsTable = pgTable(
     index("deals_assigned_to_idx").on(t.assignedTo),
     index("deals_created_idx").on(t.createdAt),
     index("deals_archived_idx").on(t.isArchived),
-    index("deals_intended_rep_slug_idx").on(t.intendedRepSlug),
-    check("deals_gm_split_pct_check", sql`${t.gmSplitPct} BETWEEN 0 AND 100`),
-    check("deals_stage_check", sql`${t.stage} IN ('waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on')`),
   ],
 );
 

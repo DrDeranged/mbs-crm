@@ -4,7 +4,7 @@ import {
   applicationsTable,
   bankStatementExtractionsTable,
 } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export interface ScoreCriterion {
   name: string;
@@ -185,10 +185,7 @@ export async function calculateLeadScore(leadId: number): Promise<{ score: numbe
 
   const [extractions, application] = await Promise.all([
     db.query.bankStatementExtractionsTable.findMany({ where: eq(bankStatementExtractionsTable.leadId, leadId) }),
-    db.query.applicationsTable.findFirst({
-      where: eq(applicationsTable.leadId, leadId),
-      orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
-    }),
+    db.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, leadId) }),
   ]);
 
   const hasBankStatements = extractions.length > 0;

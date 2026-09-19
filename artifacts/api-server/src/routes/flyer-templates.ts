@@ -2,27 +2,9 @@ import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { flyerTemplatesTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 
 const router = Router();
-const flyerProgramType = z.enum(["general", "equipment", "working_capital"]);
-const flyerTemplateBody = z.object({
-  name: z.string().trim().min(1),
-  programType: flyerProgramType.optional(),
-  htmlTemplate: z.string().min(1),
-  variableFields: z.array(z.string()).optional(),
-  isActive: z.boolean().optional(),
-}).strict();
-const flyerTemplateUpdateBody = flyerTemplateBody.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  { message: "At least one flyer template field is required" },
-);
-
-function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
-  const field = parsed.error.issues[0]?.path.join(".") || "body";
-  res.status(400).json({ error: `Invalid ${field}` });
-}
 
 // Starter templates to auto-seed when no templates exist
 const STARTER_TEMPLATES = [
@@ -263,9 +245,8 @@ router.post("/flyer-templates", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") { res.status(403).json({ error: "Admin only" }); return; }
 
-  const body = flyerTemplateBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { name, programType, htmlTemplate, variableFields, isActive } = body.data;
+  const { name, programType, htmlTemplate, variableFields, isActive } = req.body;
+  if (!name || !htmlTemplate) { res.status(400).json({ error: "name and htmlTemplate required" }); return; }
 
   const [tmpl] = await db.insert(flyerTemplatesTable).values({
     name,
@@ -291,9 +272,7 @@ router.put("/flyer-templates/:id", async (req: Request, res: Response) => {
   const existing = await db.query.flyerTemplatesTable.findFirst({ where: eq(flyerTemplatesTable.id, id) });
   if (!existing) { res.status(404).json({ error: "Not found" }); return; }
 
-  const body = flyerTemplateUpdateBody.safeParse(req.body);
-  if (!body.success) return invalidInput(res, body);
-  const { name, programType, htmlTemplate, variableFields, isActive } = body.data;
+  const { name, programType, htmlTemplate, variableFields, isActive } = req.body;
   const [updated] = await db.update(flyerTemplatesTable).set({
     ...(name !== undefined && { name }),
     ...(programType !== undefined && { programType }),

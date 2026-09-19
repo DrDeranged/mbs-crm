@@ -8,18 +8,11 @@ import {
   leadStatusHistoryTable,
 } from "@workspace/db";
 import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
-import { z } from "zod/v4";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { activeRepListingCondition, normalizeFundingTimeDays } from "../lib/analyticsHelpers";
 import { unassignedInboundLeadCondition } from "../lib/inboundLead";
 
 const router: IRouter = Router();
-export const analyticsQuery = z.object({
-  start_date: z.iso.date().optional(),
-  end_date: z.iso.date().optional(),
-  rep_id: z.coerce.number().int().positive().optional(),
-  granularity: z.enum(["daily", "weekly"]).optional(),
-}).strict();
 
 const FUNNEL_ORDER = [
   "new_lead",
@@ -32,15 +25,6 @@ const FUNNEL_ORDER = [
 
 const APPLICATION_STATUSES = ["application_received", "submitted_to_underwriting", "approved", "funded"] as const;
 const APPROVAL_STATUSES = ["approved", "funded"] as const;
-
-router.use((req, res, next) => {
-  const query = analyticsQuery.safeParse(req.query);
-  if (!query.success) {
-    res.status(400).json({ error: `Invalid ${query.error.issues[0]?.path.join(".") || "query"}` });
-    return;
-  }
-  next();
-});
 
 // Admin-only operational count. Keep this predicate shared with the lead-list
 // needsAssignment field so the dashboard cannot drift from the row indicator.
@@ -60,10 +44,10 @@ router.get("/analytics/unassigned-inbound-count", async (req: Request, res: Resp
 });
 
 function parseDateRange(req: Request): { startDate?: Date; endDate?: Date; repId?: number } {
-  const { start_date, end_date, rep_id } = analyticsQuery.parse(req.query);
+  const { start_date, end_date, rep_id } = req.query as Record<string, string | undefined>;
   const startDate = start_date ? new Date(start_date) : undefined;
   const endDate = end_date ? new Date(end_date + "T23:59:59.999Z") : undefined;
-  const repId = rep_id;
+  const repId = rep_id ? parseInt(rep_id, 10) : undefined;
   return { startDate, endDate, repId };
 }
 
@@ -73,25 +57,6 @@ function leadDateWhere(startDate?: Date, endDate?: Date, repId?: number) {
   if (endDate) clauses.push(lte(leadsTable.createdAt, endDate));
   if (repId && !isNaN(repId)) clauses.push(eq(leadsTable.assignedRepId, repId));
   return clauses.length ? and(...clauses) : undefined;
-}
-
-/**
- * Same-lead funding transitions faster than a day are test/repair artifacts,
- * not representative funding cycles. Keep this condition named and exported
- * so the analytics endpoint's calculation has a direct behavioral pin.
- */
-export function fundingTimeEligibilityWhere(
-  startDate?: Date,
-  endDate?: Date,
-  repId?: number,
-) {
-  return and(
-    eq(leadStatusHistoryTable.toStatus, "funded"),
-    sql`${leadStatusHistoryTable.createdAt} >= ${leadsTable.createdAt} + interval '24 hours'`,
-    startDate ? gte(leadsTable.createdAt, startDate) : undefined,
-    endDate ? lte(leadsTable.createdAt, endDate) : undefined,
-    repId ? eq(leadsTable.assignedRepId, repId) : undefined,
-  );
 }
 
 // GET /analytics/summary
@@ -138,7 +103,15 @@ router.get("/analytics/summary", async (req: Request, res: Response) => {
       })
       .from(leadStatusHistoryTable)
       .innerJoin(leadsTable, eq(leadStatusHistoryTable.leadId, leadsTable.id))
-      .where(fundingTimeEligibilityWhere(startDate, endDate, effectiveRepId)),
+      .where(
+        and(
+          eq(leadStatusHistoryTable.toStatus, "funded"),
+          sql`${leadStatusHistoryTable.createdAt} > ${leadsTable.createdAt} + interval '5 minutes'`,
+          startDate ? gte(leadsTable.createdAt, startDate) : undefined,
+          endDate ? lte(leadsTable.createdAt, endDate) : undefined,
+          effectiveRepId ? eq(leadsTable.assignedRepId, effectiveRepId) : undefined,
+        ),
+      ),
 
     // Total revenue from funded leads in range
     db
@@ -413,8 +386,7 @@ router.get("/analytics/communications", async (req: Request, res: Response) => {
 
   const { startDate, endDate, repId } = parseDateRange(req);
   const effectiveRepId = user.role === "rep" ? user.id : repId;
-  const granularity: "day" | "week" =
-    analyticsQuery.parse(req.query).granularity === "weekly" ? "week" : "day";
+  const granularity: "day" | "week" = (req.query["granularity"] as string) === "weekly" ? "week" : "day";
 
   const clauses = [];
   if (startDate) clauses.push(gte(communicationsTable.createdAt, startDate));

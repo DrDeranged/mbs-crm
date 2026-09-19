@@ -3,11 +3,9 @@ import { db } from "@workspace/db";
 import { errorLogTable, jobRunsTable } from "@workspace/db";
 import { desc, gte, eq } from "drizzle-orm";
 import { count } from "drizzle-orm";
-import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 
 const router: IRouter = Router();
-export const errorsQuery = z.object({ page: z.coerce.number().int().positive().optional() }).strict();
 
 router.get("/admin/errors", async (req, res) => {
   const user = await requireUser(req, res);
@@ -17,11 +15,7 @@ router.get("/admin/errors", async (req, res) => {
     return;
   }
 
-  const query = errorsQuery.safeParse(req.query);
-  if (!query.success) {
-    return void res.status(400).json({ error: `Invalid ${query.error.issues[0]?.path.join(".") || "query"}` });
-  }
-  const page = query.data.page ?? 1;
+  const page = Math.max(1, parseInt((req.query.page as string) ?? "1") || 1);
   const limit = 25;
   const offset = (page - 1) * limit;
 

@@ -42,11 +42,14 @@ export const GetHealthDeepResponse = zod.object({
   "voiceToken": zod.string().describe('Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.')
 }).optional(),
   "sendgrid": zod.object({
-  "configured": zod.boolean().describe('Whether a SendGrid API key is configured.'),
-  "fromEmail": zod.string().describe('Fixed From address for all MBS email delivery.'),
-  "lastWebhookAt": zod.coerce.date().nullable(),
-  "lastSendAt": zod.coerce.date().nullable(),
-  "tracking": zod.enum(['custom']).describe('Signed custom click\/open tracking; no provider tracking settings lookup occurs.')
+  "apiKey": zod.boolean(),
+  "fromEmail": zod.boolean(),
+  "fromName": zod.boolean(),
+  "webhookKey": zod.boolean(),
+  "openTracking": zod.boolean(),
+  "clickTracking": zod.boolean(),
+  "providerOpenTracking": zod.boolean(),
+  "providerClickTracking": zod.boolean()
 }).optional(),
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
@@ -99,123 +102,6 @@ export const GetAdminErrorsResponse = zod.object({
   "last7d": zod.number().optional()
 }).optional(),
   "jobs": zod.record(zod.string(), zod.unknown()).optional()
-})
-
-
-/**
- * @summary Read USFA sheet intake status and row log (admin only)
- */
-export const getAdminUsfaIntakeQueryPageDefault = 1;
-
-export const getAdminUsfaIntakeQueryLimitDefault = 50;
-export const getAdminUsfaIntakeQueryLimitMax = 100;
-
-
-
-export const GetAdminUsfaIntakeQueryParams = zod.object({
-  "page": zod.coerce.number().min(1).default(getAdminUsfaIntakeQueryPageDefault),
-  "limit": zod.coerce.number().min(1).max(getAdminUsfaIntakeQueryLimitMax).default(getAdminUsfaIntakeQueryLimitDefault)
-})
-
-export const GetAdminUsfaIntakeResponse = zod.object({
-  "settings": zod.object({
-  "usfaSheetId": zod.string().nullable(),
-  "usfaSheetTab": zod.string(),
-  "usfaConsentConfirmed": zod.boolean(),
-  "usfaWebhookEnabled": zod.boolean()
-}),
-  "counts": zod.object({
-  "total": zod.number(),
-  "ok": zod.number(),
-  "dup": zod.number(),
-  "error": zod.number(),
-  "lastRun": zod.coerce.date().nullable()
-}),
-  "logs": zod.array(zod.object({
-  "id": zod.number(),
-  "externalId": zod.string(),
-  "rowNumber": zod.number(),
-  "ingestedAt": zod.coerce.date(),
-  "leadId": zod.number().nullish(),
-  "status": zod.enum(['ok', 'dup', 'error']),
-  "error": zod.string().nullish()
-})),
-  "page": zod.number(),
-  "limit": zod.number()
-})
-
-
-/**
- * @summary Receive a dormant HMAC-authenticated USFA lead webhook
- */
-
-export const receiveUsfaWebhookBodyRevenueMin = 0;
-
-
-
-export const ReceiveUsfaWebhookBody = zod.object({
-  "id": zod.string().min(1),
-  "company": zod.string().nullish(),
-  "creditScore": zod.union([zod.string(),zod.number()]).nullish(),
-  "industry": zod.string().nullish(),
-  "ownerName": zod.string().nullish(),
-  "firstName": zod.string().nullish(),
-  "lastName": zod.string().nullish(),
-  "email": zod.string().nullish(),
-  "phone1": zod.string().nullish(),
-  "phone2": zod.string().nullish(),
-  "ein": zod.string().nullish(),
-  "startDate": zod.string().nullish(),
-  "ssn": zod.string().nullish(),
-  "street": zod.string().nullish(),
-  "city": zod.string().nullish(),
-  "state": zod.string().nullish(),
-  "zip": zod.union([zod.string(),zod.number()]).nullish(),
-  "dob": zod.string().nullish(),
-  "revenue": zod.number().min(receiveUsfaWebhookBodyRevenueMin),
-  "amountRequested": zod.number().nullish(),
-  "createdAt": zod.string().nullish(),
-  "statement1": zod.string().nullish(),
-  "statement2": zod.string().nullish(),
-  "statement3": zod.string().nullish(),
-  "statement4": zod.string().nullish()
-})
-
-export const ReceiveUsfaWebhookResponse = zod.object({
-  "leadId": zod.number().nullable(),
-  "status": zod.enum(['ok', 'dup'])
-})
-
-
-/**
- * @summary Run one read-only USFA Sheet poll (admin only)
- */
-export const RunAdminUsfaIntakeResponse = zod.object({
-  "status": zod.enum(['ok', 'skipped']),
-  "reason": zod.string().optional(),
-  "processed": zod.number(),
-  "skipped": zod.number(),
-  "duplicates": zod.number(),
-  "errors": zod.number(),
-  "headerValid": zod.boolean()
-})
-
-
-/**
- * @summary Reprocess an errored USFA row (admin only)
- */
-export const ReprocessAdminUsfaIntakeParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const ReprocessAdminUsfaIntakeResponse = zod.object({
-  "status": zod.enum(['ok', 'skipped']),
-  "reason": zod.string().optional(),
-  "processed": zod.number(),
-  "skipped": zod.number(),
-  "duplicates": zod.number(),
-  "errors": zod.number(),
-  "headerValid": zod.boolean()
 })
 
 
@@ -581,52 +467,38 @@ export const UpdateUserResponse = zod.object({
  * @summary Get inbound lead distribution settings (admin only)
  */
 export const getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const getLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
-export const getLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
-export const getLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
+export const getLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
+export const getLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
 
-export const getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
+
 
 export const GetLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "routing": zod.object({
-  "mode": zod.enum(['manual', 'round_robin']).default(getLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
-  "staleDays": zod.number().min(1).max(getLeadDistributionSettingsResponseRoutingStaleDaysMax).default(getLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
-  "autoReassignStale": zod.boolean().default(getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
-})
+  "staleThresholdDays": zod.number().min(1).max(getLeadDistributionSettingsResponseStaleThresholdDaysMax).default(getLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
 })
 
 
 /**
  * @summary Update inbound lead distribution settings (admin only)
  */
-export const updateLeadDistributionSettingsBodyRoutingStaleDaysMax = 365;
+export const updateLeadDistributionSettingsBodyStaleThresholdDaysMax = 365;
 
 
 
 export const UpdateLeadDistributionSettingsBody = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().optional(),
-  "routing": zod.object({
-  "mode": zod.enum(['manual', 'round_robin']).optional(),
-  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyRoutingStaleDaysMax).optional(),
-  "autoReassignStale": zod.boolean().optional()
-}).optional()
+  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyStaleThresholdDaysMax).optional()
 })
 
 export const updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const updateLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
-export const updateLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
-export const updateLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
+export const updateLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
+export const updateLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
 
-export const updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
+
 
 export const UpdateLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "routing": zod.object({
-  "mode": zod.enum(['manual', 'round_robin']).default(updateLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
-  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseRoutingStaleDaysMax).default(updateLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
-  "autoReassignStale": zod.boolean().default(updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
-})
+  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseStaleThresholdDaysMax).default(updateLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
 })
 
 
@@ -637,15 +509,11 @@ export const getEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
-export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
-export const getEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
-
 
 
 export const GetEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(getEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
-  "bulkEmailPerDay": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerDayMax).default(getEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
+  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
 })
 
 
@@ -654,29 +522,22 @@ export const GetEmailDeliverySettingsResponse = zod.object({
  */
 export const updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax = 1000;
 
-export const updateEmailDeliverySettingsBodyBulkEmailPerDayMax = 100000;
-
 
 
 export const UpdateEmailDeliverySettingsBody = zod.object({
   "emailSendingEnabled": zod.boolean().optional(),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional(),
-  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerDayMax).optional()
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional()
 })
 
 export const updateEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
-export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
-export const updateEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
-
 
 
 export const UpdateEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(updateEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
-  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerDayMax).default(updateEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
 })
 
 
@@ -1181,7 +1042,7 @@ export const GetLeadResponse = zod.object({
   "tasks": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1346,28 +1207,6 @@ export const UpdateLeadResponse = zod.object({
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
   "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
   "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
-})
-
-
-/**
- * @summary Create a short-lived USFA application prefill link
- */
-export const CreateUsfaApplicationLinkParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-
-/**
- * @summary Read a one-time USFA application prefill by opaque link token
- */
-export const GetUsfaPrefillParams = zod.object({
-  "slug": zod.coerce.string(),
-  "token": zod.coerce.string()
-})
-
-export const GetUsfaPrefillResponse = zod.object({
-  "ownerSsn": zod.string().optional(),
-  "ownerDob": zod.string().optional()
 })
 
 
@@ -1593,7 +1432,7 @@ export const ListTasksParams = zod.object({
 export const ListTasksResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1648,7 +1487,7 @@ export const UpdateTaskBody = zod.object({
 export const UpdateTaskResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2075,7 +1914,7 @@ export const GetRepDashboardResponse = zod.object({
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2130,7 +1969,7 @@ export const GetMyTasksResponse = zod.object({
   "dueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2153,7 +1992,7 @@ export const GetMyTasksResponse = zod.object({
   "dueThisWeek": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -2176,7 +2015,7 @@ export const GetMyTasksResponse = zod.object({
   "overdue": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number().nullish(),
+  "userId": zod.number(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -4234,7 +4073,6 @@ export const ListEmailTemplatesResponseItem = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
-  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4275,7 +4113,6 @@ export const GetEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
-  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4311,7 +4148,6 @@ export const UpdateEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
-  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4362,7 +4198,7 @@ export const SendEmailBody = zod.object({
  * @summary Send and log an admin-only test email without associating it with a lead
  */
 export const SendTestEmailBody = zod.object({
-  "templateId": zod.number().optional().describe('Optional template override; omitted sends the fixed CEO delivery-test template.'),
+  "templateId": zod.number(),
   "toEmail": zod.string().email()
 })
 
@@ -4384,16 +4220,6 @@ export const SendBulkEmailResponse = zod.object({
   "error": zod.string()
 })).optional(),
   "rateLimitPerMinute": zod.number().optional()
-})
-
-
-/**
- * @summary Get the shared bulk and drip daily email allowance
- */
-export const GetBulkEmailCapacityResponse = zod.object({
-  "limit": zod.number(),
-  "used": zod.number(),
-  "remaining": zod.number()
 })
 
 
@@ -4543,7 +4369,6 @@ export const ListDripSequencesResponseItem = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
-  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4581,7 +4406,6 @@ export const GetDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
-  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4628,7 +4452,6 @@ export const UpdateDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
-  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),

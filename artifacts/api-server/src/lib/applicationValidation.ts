@@ -16,10 +16,8 @@ export function optionalStr<T extends z.ZodTypeAny>(
 }
 
 /** Normalize fields that are formatted by the public multipart application form. */
-export function normalizeApplicationSubmissionBody(raw: unknown): Record<string, unknown> {
-  const body = raw !== null && typeof raw === "object" && !Array.isArray(raw)
-    ? { ...(raw as Record<string, unknown>) }
-    : {};
+export function normalizeApplicationSubmissionBody(raw: Record<string, unknown>): Record<string, unknown> {
+  const body = { ...raw };
   if (typeof body.ein === "string") {
     const digits = body.ein.replace(/\D/g, "");
     body.ein = digits.length === 9
@@ -106,7 +104,6 @@ export const submitSchema = z.object({
   vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
   statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   rep: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-  usfaInviteToken: z.string().min(32).max(128).optional(),
   timeInBusinessMonths: optionalStr(z.string().max(4)),
   ownershipPct: optionalStr(z.string().max(3)),
   equipmentCondition: optionalStr(z.enum(["new", "used"])),
@@ -130,7 +127,7 @@ export const submitSchema = z.object({
   }
 });
 
-export function parseApplicationSubmission(raw: unknown) {
+export function parseApplicationSubmission(raw: Record<string, unknown>) {
   return submitSchema.safeParse(normalizeApplicationSubmissionBody(raw));
 }
 

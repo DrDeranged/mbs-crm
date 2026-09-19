@@ -24,7 +24,6 @@ import type {
   AdminErrorsResponse,
   AdminMaintenanceError,
   AdminQrVerifyResponse,
-  AdminUsfaIntakeResponse,
   AiDraftRequest,
   AiDraftResponse,
   AiNextBestAction,
@@ -39,7 +38,6 @@ import type {
   BulkAssignLeads200,
   BulkDeleteLeads200,
   BulkDeleteLeadsBody,
-  BulkEmailCapacity,
   BulkEmailInput,
   BulkEmailResult,
   BulkLeadAssignment,
@@ -93,7 +91,6 @@ import type {
   GenerateLeadBriefing200,
   GeneratedFlyer,
   GetAdminErrorsParams,
-  GetAdminUsfaIntakeParams,
   GetAnalyticsCommunicationsParams,
   GetAnalyticsPipelineParams,
   GetAnalyticsRenewalsParams,
@@ -157,7 +154,6 @@ import type {
   RetireRepSlugRequest,
   RunLenderMatch200,
   SeededDealReassignmentResponse,
-  SendTestEmail201,
   SendTestEmailBody,
   SlugBackfillResponse,
   SmsInput,
@@ -187,11 +183,6 @@ import type {
   UpsertDripSequenceStepsBody,
   User,
   UserUpdate,
-  UsfaApplicationLink,
-  UsfaPollResult,
-  UsfaPrefill,
-  UsfaWebhookPayload,
-  UsfaWebhookResponse,
   WorkflowRule
 } from './api.schemas';
 
@@ -521,301 +512,6 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
 
 
-
-export const getGetAdminUsfaIntakeUrl = (params?: GetAdminUsfaIntakeParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/admin/usfa-intake?${stringifiedParams}` : `/api/admin/usfa-intake`
-}
-
-/**
- * @summary Read USFA sheet intake status and row log (admin only)
- */
-export const getAdminUsfaIntake = async (params?: GetAdminUsfaIntakeParams, options?: RequestInit): Promise<AdminUsfaIntakeResponse> => {
-
-  return customFetch<AdminUsfaIntakeResponse>(getGetAdminUsfaIntakeUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetAdminUsfaIntakeQueryKey = (params?: GetAdminUsfaIntakeParams,) => {
-    return [
-    `/api/admin/usfa-intake`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getGetAdminUsfaIntakeQueryOptions = <TData = Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError = ErrorType<void>>(params?: GetAdminUsfaIntakeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetAdminUsfaIntakeQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminUsfaIntake>>> = ({ signal }) => getAdminUsfaIntake(params, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetAdminUsfaIntakeQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminUsfaIntake>>>
-export type GetAdminUsfaIntakeQueryError = ErrorType<void>
-
-
-/**
- * @summary Read USFA sheet intake status and row log (admin only)
- */
-
-export function useGetAdminUsfaIntake<TData = Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError = ErrorType<void>>(
- params?: GetAdminUsfaIntakeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminUsfaIntake>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetAdminUsfaIntakeQueryOptions(params,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getReceiveUsfaWebhookUrl = () => {
-
-
-
-
-  return `/api/intake/usfa`
-}
-
-/**
- * @summary Receive a dormant HMAC-authenticated USFA lead webhook
- */
-export const receiveUsfaWebhook = async (usfaWebhookPayload: UsfaWebhookPayload, options?: RequestInit): Promise<UsfaWebhookResponse> => {
-
-  return customFetch<UsfaWebhookResponse>(getReceiveUsfaWebhookUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      usfaWebhookPayload,)
-  }
-);}
-
-
-
-
-export const getReceiveUsfaWebhookMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext> => {
-
-const mutationKey = ['receiveUsfaWebhook'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveUsfaWebhook>>, {data: BodyType<UsfaWebhookPayload>}> = (props) => {
-          const {data} = props ?? {};
-
-          return  receiveUsfaWebhook(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReceiveUsfaWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof receiveUsfaWebhook>>>
-    export type ReceiveUsfaWebhookMutationBody = BodyType<UsfaWebhookPayload>
-    export type ReceiveUsfaWebhookMutationError = ErrorType<void>
-
-    /**
- * @summary Receive a dormant HMAC-authenticated USFA lead webhook
- */
-export const useReceiveUsfaWebhook = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveUsfaWebhook>>, TError,{data: BodyType<UsfaWebhookPayload>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof receiveUsfaWebhook>>,
-        TError,
-        {data: BodyType<UsfaWebhookPayload>},
-        TContext
-      > => {
-      return useMutation(getReceiveUsfaWebhookMutationOptions(options));
-    }
-
-export const getRunAdminUsfaIntakeUrl = () => {
-
-
-
-
-  return `/api/admin/usfa-intake/run`
-}
-
-/**
- * @summary Run one read-only USFA Sheet poll (admin only)
- */
-export const runAdminUsfaIntake = async ( options?: RequestInit): Promise<UsfaPollResult> => {
-
-  return customFetch<UsfaPollResult>(getRunAdminUsfaIntakeUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-export const getRunAdminUsfaIntakeMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext> => {
-
-const mutationKey = ['runAdminUsfaIntake'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runAdminUsfaIntake>>, void> = () => {
-
-
-          return  runAdminUsfaIntake(requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RunAdminUsfaIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof runAdminUsfaIntake>>>
-
-    export type RunAdminUsfaIntakeMutationError = ErrorType<void>
-
-    /**
- * @summary Run one read-only USFA Sheet poll (admin only)
- */
-export const useRunAdminUsfaIntake = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runAdminUsfaIntake>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof runAdminUsfaIntake>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getRunAdminUsfaIntakeMutationOptions(options));
-    }
-
-export const getReprocessAdminUsfaIntakeUrl = (id: number,) => {
-
-
-
-
-  return `/api/admin/usfa-intake/${id}/reprocess`
-}
-
-/**
- * @summary Reprocess an errored USFA row (admin only)
- */
-export const reprocessAdminUsfaIntake = async (id: number, options?: RequestInit): Promise<UsfaPollResult> => {
-
-  return customFetch<UsfaPollResult>(getReprocessAdminUsfaIntakeUrl(id),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-export const getReprocessAdminUsfaIntakeMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext> => {
-
-const mutationKey = ['reprocessAdminUsfaIntake'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
-
-          return  reprocessAdminUsfaIntake(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReprocessAdminUsfaIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>>
-
-    export type ReprocessAdminUsfaIntakeMutationError = ErrorType<void>
-
-    /**
- * @summary Reprocess an errored USFA row (admin only)
- */
-export const useReprocessAdminUsfaIntake = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof reprocessAdminUsfaIntake>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
-      return useMutation(getReprocessAdminUsfaIntakeMutationOptions(options));
-    }
 
 export const getGetAdminMigrationStatusUrl = () => {
 
@@ -3548,158 +3244,6 @@ export const useUpdateLead = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getUpdateLeadMutationOptions(options));
     }
-
-export const getCreateUsfaApplicationLinkUrl = (id: number,) => {
-
-
-
-
-  return `/api/leads/${id}/usfa-application-link`
-}
-
-/**
- * @summary Create a short-lived USFA application prefill link
- */
-export const createUsfaApplicationLink = async (id: number, options?: RequestInit): Promise<UsfaApplicationLink> => {
-
-  return customFetch<UsfaApplicationLink>(getCreateUsfaApplicationLinkUrl(id),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-export const getCreateUsfaApplicationLinkMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext> => {
-
-const mutationKey = ['createUsfaApplicationLink'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createUsfaApplicationLink>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
-
-          return  createUsfaApplicationLink(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateUsfaApplicationLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createUsfaApplicationLink>>>
-
-    export type CreateUsfaApplicationLinkMutationError = ErrorType<void>
-
-    /**
- * @summary Create a short-lived USFA application prefill link
- */
-export const useCreateUsfaApplicationLink = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUsfaApplicationLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof createUsfaApplicationLink>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
-      return useMutation(getCreateUsfaApplicationLinkMutationOptions(options));
-    }
-
-export const getGetUsfaPrefillUrl = (slug: string,
-    token: string,) => {
-
-
-
-
-  return `/api/public/reps/${slug}/usfa-prefill/${token}`
-}
-
-/**
- * @summary Read a one-time USFA application prefill by opaque link token
- */
-export const getUsfaPrefill = async (slug: string,
-    token: string, options?: RequestInit): Promise<UsfaPrefill> => {
-
-  return customFetch<UsfaPrefill>(getGetUsfaPrefillUrl(slug,token),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetUsfaPrefillQueryKey = (slug: string,
-    token: string,) => {
-    return [
-    `/api/public/reps/${slug}/usfa-prefill/${token}`
-    ] as const;
-    }
-
-
-export const getGetUsfaPrefillQueryOptions = <TData = Awaited<ReturnType<typeof getUsfaPrefill>>, TError = ErrorType<void>>(slug: string,
-    token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetUsfaPrefillQueryKey(slug,token);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsfaPrefill>>> = ({ signal }) => getUsfaPrefill(slug,token, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: !!(slug && token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetUsfaPrefillQueryResult = NonNullable<Awaited<ReturnType<typeof getUsfaPrefill>>>
-export type GetUsfaPrefillQueryError = ErrorType<void>
-
-
-/**
- * @summary Read a one-time USFA application prefill by opaque link token
- */
-
-export function useGetUsfaPrefill<TData = Awaited<ReturnType<typeof getUsfaPrefill>>, TError = ErrorType<void>>(
- slug: string,
-    token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUsfaPrefill>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetUsfaPrefillQueryOptions(slug,token,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
 
 export const getChangeLeadStatusUrl = (id: number,) => {
 
@@ -10348,9 +9892,9 @@ export const getSendTestEmailUrl = () => {
 /**
  * @summary Send and log an admin-only test email without associating it with a lead
  */
-export const sendTestEmail = async (sendTestEmailBody: SendTestEmailBody, options?: RequestInit): Promise<SendTestEmail201> => {
+export const sendTestEmail = async (sendTestEmailBody: SendTestEmailBody, options?: RequestInit): Promise<EmailSend> => {
 
-  return customFetch<SendTestEmail201>(getSendTestEmailUrl(),
+  return customFetch<EmailSend>(getSendTestEmailUrl(),
   {
     ...options,
     method: 'POST',
@@ -10478,83 +10022,6 @@ export const useSendBulkEmail = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getSendBulkEmailMutationOptions(options));
     }
-
-export const getGetBulkEmailCapacityUrl = () => {
-
-
-
-
-  return `/api/email/bulk-capacity`
-}
-
-/**
- * @summary Get the shared bulk and drip daily email allowance
- */
-export const getBulkEmailCapacity = async ( options?: RequestInit): Promise<BulkEmailCapacity> => {
-
-  return customFetch<BulkEmailCapacity>(getGetBulkEmailCapacityUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetBulkEmailCapacityQueryKey = () => {
-    return [
-    `/api/email/bulk-capacity`
-    ] as const;
-    }
-
-
-export const getGetBulkEmailCapacityQueryOptions = <TData = Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetBulkEmailCapacityQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBulkEmailCapacity>>> = ({ signal }) => getBulkEmailCapacity({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetBulkEmailCapacityQueryResult = NonNullable<Awaited<ReturnType<typeof getBulkEmailCapacity>>>
-export type GetBulkEmailCapacityQueryError = ErrorType<void>
-
-
-/**
- * @summary Get the shared bulk and drip daily email allowance
- */
-
-export function useGetBulkEmailCapacity<TData = Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError = ErrorType<void>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBulkEmailCapacity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetBulkEmailCapacityQueryOptions(options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
 
 export const getSeedStarterEmailUrl = () => {
 

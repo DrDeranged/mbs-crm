@@ -119,84 +119,6 @@ paths:
         "403":
           description: Forbidden
 
-  /admin/usfa-intake:
-    get:
-      operationId: getAdminUsfaIntake
-      tags: [admin]
-      summary: Read USFA sheet intake status and row log (admin only)
-      parameters:
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: limit
-          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
-      responses:
-        "200":
-          description: USFA intake status and logs
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/AdminUsfaIntakeResponse" }
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-
-  /intake/usfa:
-    post:
-      operationId: receiveUsfaWebhook
-      tags: [leads]
-      summary: Receive a dormant HMAC-authenticated USFA lead webhook
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UsfaWebhookPayload"
-      responses:
-        "200":
-          description: Lead receipt result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UsfaWebhookResponse"
-        "400": { description: Invalid payload with field }
-        "401": { description: Invalid or missing HMAC signature }
-        "404": { description: Webhook disabled }
-
-  /admin/usfa-intake/run:
-    post:
-      operationId: runAdminUsfaIntake
-      tags: [admin]
-      summary: Run one read-only USFA Sheet poll (admin only)
-      responses:
-        "200":
-          description: Poll result
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/UsfaPollResult" }
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-
-  /admin/usfa-intake/{id}/reprocess:
-    post:
-      operationId: reprocessAdminUsfaIntake
-      tags: [admin]
-      summary: Reprocess an errored USFA row (admin only)
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Reprocess result
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/UsfaPollResult" }
-        "400": { description: Invalid ID }
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "404": { description: Intake log not found }
-
   /admin/migrations/status:
     get:
       operationId: getAdminMigrationStatus
@@ -1226,51 +1148,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Lead"
-
-  /leads/{id}/usfa-application-link:
-    post:
-      operationId: createUsfaApplicationLink
-      tags: [leads]
-      summary: Create a short-lived USFA application prefill link
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      responses:
-        "201":
-          description: Secure application link
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UsfaApplicationLink"
-        "401": { description: Unauthorized }
-        "403": { description: Forbidden }
-        "404": { description: USFA lead not found }
-        "409": { description: No active representative slug }
-
-  /public/reps/{slug}/usfa-prefill/{token}:
-    get:
-      operationId: getUsfaPrefill
-      tags: [applications]
-      summary: Read a one-time USFA application prefill by opaque link token
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema: { type: string }
-        - name: token
-          in: path
-          required: true
-          schema: { type: string }
-      responses:
-        "200":
-          description: USFA owner prefill (never cached)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UsfaPrefill"
-        "404": { description: "Invalid, expired, revoked, or used token" }
 
   /leads/{id}/status:
     put:
@@ -3514,11 +3391,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [toEmail]
+              required: [templateId, toEmail]
               properties:
                 templateId:
                   type: integer
-                  description: Optional template override; omitted sends the fixed CEO delivery-test template.
                 toEmail:
                   type: string
                   format: email
@@ -3528,16 +3404,9 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/EmailSend"
-                  - type: object
-                    required: [messageId]
-                    properties:
-                      messageId:
-                        type: [string, "null"]
-                        description: SendGrid message identifier returned after provider acceptance.
+                $ref: "#/components/schemas/EmailSend"
         "400":
-          description: Invalid recipient email
+          description: Missing template ID or recipient email
         "403":
           description: Admin access required
         "404":
@@ -3565,21 +3434,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkEmailResult"
-
-  /email/bulk-capacity:
-    get:
-      operationId: getBulkEmailCapacity
-      tags: [email]
-      summary: Get the shared bulk and drip daily email allowance
-      responses:
-        "200":
-          description: Current daily marketing email capacity
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BulkEmailCapacity"
-        "403":
-          description: Representatives cannot send bulk email
 
   /email/seed-starter:
     post:
@@ -4205,90 +4059,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    UsfaIntakeLog:
-      type: object
-      required: [id, externalId, rowNumber, ingestedAt, status]
-      properties:
-        id: { type: integer }
-        externalId: { type: string }
-        rowNumber: { type: integer }
-        ingestedAt: { type: string, format: date-time }
-        leadId: { type: ["integer", "null"] }
-        status: { type: string, enum: [ok, dup, error] }
-        error: { type: ["string", "null"] }
-    UsfaWebhookPayload:
-      type: object
-      required: [id, revenue]
-      additionalProperties: false
-      properties:
-        id: { type: string, minLength: 1 }
-        company: { type: ["string", "null"] }
-        creditScore: { type: ["string", "number", "null"] }
-        industry: { type: ["string", "null"] }
-        ownerName: { type: ["string", "null"] }
-        firstName: { type: ["string", "null"] }
-        lastName: { type: ["string", "null"] }
-        email: { type: ["string", "null"] }
-        phone1: { type: ["string", "null"] }
-        phone2: { type: ["string", "null"] }
-        ein: { type: ["string", "null"] }
-        startDate: { type: ["string", "null"] }
-        ssn: { type: ["string", "null"] }
-        street: { type: ["string", "null"] }
-        city: { type: ["string", "null"] }
-        state: { type: ["string", "null"] }
-        zip: { type: ["string", "number", "null"] }
-        dob: { type: ["string", "null"] }
-        revenue: { type: number, minimum: 0 }
-        amountRequested: { type: ["number", "null"] }
-        createdAt: { type: ["string", "null"] }
-        statement1: { type: ["string", "null"] }
-        statement2: { type: ["string", "null"] }
-        statement3: { type: ["string", "null"] }
-        statement4: { type: ["string", "null"] }
-    UsfaWebhookResponse:
-      type: object
-      required: [leadId, status]
-      properties:
-        leadId: { type: ["integer", "null"] }
-        status: { type: string, enum: [ok, dup] }
-    UsfaPollResult:
-      type: object
-      required: [status, processed, skipped, duplicates, errors, headerValid]
-      properties:
-        status: { type: string, enum: [ok, skipped] }
-        reason: { type: string }
-        processed: { type: integer }
-        skipped: { type: integer }
-        duplicates: { type: integer }
-        errors: { type: integer }
-        headerValid: { type: boolean }
-    AdminUsfaIntakeResponse:
-      type: object
-      required: [settings, counts, logs, page, limit]
-      properties:
-        settings:
-          type: object
-          required: [usfaSheetId, usfaSheetTab, usfaConsentConfirmed, usfaWebhookEnabled]
-          properties:
-            usfaSheetId: { type: ["string", "null"] }
-            usfaSheetTab: { type: string }
-            usfaConsentConfirmed: { type: boolean }
-            usfaWebhookEnabled: { type: boolean }
-        counts:
-          type: object
-          required: [total, ok, dup, error, lastRun]
-          properties:
-            total: { type: integer }
-            ok: { type: integer }
-            dup: { type: integer }
-            error: { type: integer }
-            lastRun: { type: ["string", "null"], format: date-time }
-        logs:
-          type: array
-          items: { $ref: "#/components/schemas/UsfaIntakeLog" }
-        page: { type: integer }
-        limit: { type: integer }
     AnalyticsSummary:
       type: object
       required: [totalLeads, allTimeTotalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]
@@ -4518,24 +4288,6 @@ components:
           items:
             $ref: "#/components/schemas/QrVerifyResult"
 
-    UsfaApplicationLink:
-      type: object
-      required: [url, expiresAt]
-      properties:
-        url:
-          type: string
-        expiresAt:
-          type: string
-          format: date-time
-
-    UsfaPrefill:
-      type: object
-      properties:
-        ownerSsn:
-          type: string
-        ownerDob:
-          type: string
-
     Lead:
       type: object
       required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle, needsAssignment]
@@ -4755,14 +4507,18 @@ components:
 
     LeadDistributionSettings:
       type: object
-      required: [includeAdminsInRoundRobin, routing]
+      required: [includeAdminsInRoundRobin, staleThresholdDays]
       properties:
         includeAdminsInRoundRobin:
           type: boolean
           default: false
           description: Include active admins after active reps and managers in inbound round-robin assignment
-        routing:
-          $ref: "#/components/schemas/RoutingSettings"
+        staleThresholdDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 7
+          description: Number of idle days before an assigned lead is considered stale
 
     LeadDistributionSettingsUpdate:
       type: object
@@ -4770,45 +4526,14 @@ components:
       properties:
         includeAdminsInRoundRobin:
           type: boolean
-        routing:
-          $ref: "#/components/schemas/RoutingSettingsUpdate"
-
-    RoutingSettings:
-      type: object
-      required: [mode, staleDays, autoReassignStale]
-      properties:
-        mode:
-          type: string
-          enum: [manual, round_robin]
-          default: manual
-          description: Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.
-        staleDays:
+        staleThresholdDays:
           type: integer
           minimum: 1
           maximum: 365
-          default: 7
-          description: Number of idle days before an assigned lead is considered stale.
-        autoReassignStale:
-          type: boolean
-          default: false
-          description: Automatically reassign stale ordinary inbound leads only when mode is round_robin.
-
-    RoutingSettingsUpdate:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [manual, round_robin]
-        staleDays:
-          type: integer
-          minimum: 1
-          maximum: 365
-        autoReassignStale:
-          type: boolean
 
     EmailDeliverySettings:
       type: object
-      required: [emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay]
+      required: [emailSendingEnabled, bulkEmailPerMinute]
       properties:
         emailSendingEnabled:
           type: boolean
@@ -4820,12 +4545,6 @@ components:
           maximum: 1000
           default: 60
           description: Maximum messages per minute for one bulk request
-        bulkEmailPerDay:
-          type: integer
-          minimum: 1
-          maximum: 100000
-          default: 75
-          description: Shared daily maximum for bulk and drip delivery attempts
 
     EmailDeliverySettingsUpdate:
       type: object
@@ -4837,21 +4556,6 @@ components:
           type: integer
           minimum: 1
           maximum: 1000
-        bulkEmailPerDay:
-          type: integer
-          minimum: 1
-          maximum: 100000
-
-    BulkEmailCapacity:
-      type: object
-      required: [limit, used, remaining]
-      properties:
-        limit:
-          type: integer
-        used:
-          type: integer
-        remaining:
-          type: integer
 
     DuplicateResponse:
       type: object
@@ -5113,14 +4817,14 @@ components:
 
     Task:
       type: object
-      required: [id, leadId, title, isCompleted, createdAt]
+      required: [id, leadId, userId, title, isCompleted, createdAt]
       properties:
         id:
           type: integer
         leadId:
           type: integer
         userId:
-          type: ["integer", "null"]
+          type: integer
         assignedUser:
           oneOf:
             - $ref: "#/components/schemas/User"
@@ -5462,8 +5166,6 @@ components:
           type: boolean
         createdBy:
           type: ["integer", "null"]
-        ownerId:
-          type: ["integer", "null"]
         creator:
           oneOf:
             - type: object
@@ -5592,7 +5294,7 @@ components:
 
     DripSequence:
       type: object
-      required: [id, name, triggerStatus, isActive, stepCount, createdBy, ownerId, createdAt, updatedAt]
+      required: [id, name, triggerStatus, isActive, stepCount, createdBy, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5608,8 +5310,6 @@ components:
         stepCount:
           type: integer
         createdBy:
-          type: ["integer", "null"]
-        ownerId:
           type: ["integer", "null"]
         creator:
           oneOf:
@@ -6588,24 +6288,16 @@ components:
                   description: Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.
             sendgrid:
               type: object
-              required: [configured, fromEmail, lastWebhookAt, lastSendAt, tracking]
+              required: [apiKey, fromEmail, fromName, webhookKey, openTracking, clickTracking, providerOpenTracking, providerClickTracking]
               properties:
-                configured:
-                  type: boolean
-                  description: Whether a SendGrid API key is configured.
-                fromEmail:
-                  type: string
-                  description: Fixed From address for all MBS email delivery.
-                lastWebhookAt:
-                  type: [string, "null"]
-                  format: date-time
-                lastSendAt:
-                  type: [string, "null"]
-                  format: date-time
-                tracking:
-                  type: string
-                  enum: [custom]
-                  description: Signed custom click/open tracking; no provider tracking settings lookup occurs.
+                apiKey: { type: boolean }
+                fromEmail: { type: boolean }
+                fromName: { type: boolean }
+                webhookKey: { type: boolean }
+                openTracking: { type: boolean }
+                clickTracking: { type: boolean }
+                providerOpenTracking: { type: boolean }
+                providerClickTracking: { type: boolean }
             experian:
               type: boolean
             anthropic:

@@ -427,7 +427,6 @@ export async function seedStarterEmailData(
         programType: template.programType as "working_capital" | "equipment" | null,
         senderMode: "default",
         createdBy: actorId,
-        ownerId: actorId,
         isActive: true,
       }).returning();
       createdTemplates.push({ name: template.name, id: inserted.id });
@@ -456,8 +455,6 @@ export async function seedStarterEmailData(
           name: sequenceName,
           triggerStatus: "application_received",
           isActive: false,
-          createdBy: actorId,
-          ownerId: actorId,
         }).returning();
         await tx.insert(dripSequenceStepsTable).values([
           { sequenceId: sequence.id, stepOrder: 1, templateId: appReceivedId, delayHours: 0 },
