@@ -1,5 +1,4 @@
-import { useAuth } from "@clerk/expo";
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
@@ -10,16 +9,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 
 export default function TabLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const insets = useSafeAreaInsets();
-
-  if (!isLoaded) return null;
-  if (!isSignedIn) return <Redirect href="/sign-in" />;
 
   return (
     <Tabs

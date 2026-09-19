@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
-import { SERVICE_WORKER_VERSION, watchForInstalledUpdate } from '@/lib/serviceWorkerUpdate';
+import { watchForInstalledUpdate } from '@/lib/serviceWorkerUpdate';
 
 export function usePwa() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -11,8 +11,7 @@ export function usePwa() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       // Resolve against the base URL provided by Vite
-      const swUrl = `${import.meta.env.BASE_URL}sw.js?v=${SERVICE_WORKER_VERSION}`;
-      const hadControllerBeforeRegistration = Boolean(navigator.serviceWorker.controller);
+      const swUrl = `${import.meta.env.BASE_URL}sw.js`;
       
       navigator.serviceWorker
         .register(swUrl)
@@ -41,15 +40,13 @@ export function usePwa() {
         })
         .catch((err) => console.error('SW reg error:', err));
 
-      if (hadControllerBeforeRegistration) {
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-      }
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {

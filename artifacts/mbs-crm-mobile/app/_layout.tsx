@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ClerkLoaded, ClerkProvider, useAuth } from "@clerk/expo";
-import { tokenCache } from "@clerk/expo/token-cache";
+import { useAuth, ClerkProvider } from "@clerk/clerk-expo";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -34,6 +33,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineProvider, useOffline } from "@/context/OfflineContext";
+import { tokenCache } from "@/lib/tokenCache";
 
 SplashScreen.preventAutoHideAsync();
 SystemUI.setBackgroundColorAsync("#1F4E79");
@@ -262,16 +262,16 @@ function RootLayoutNav() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const inSignIn = segments[0] === "sign-in";
 
   useEffect(() => {
     if (!isLoaded) return;
+    const inSignIn = segments[0] === "sign-in";
     if (!isSignedIn && !inSignIn) {
       router.replace("/sign-in");
     } else if (isSignedIn && inSignIn) {
       router.replace("/(tabs)");
     }
-  }, [inSignIn, isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, segments, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -302,32 +302,29 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
-  const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
-      <ClerkLoaded>
-        <SafeAreaProvider>
-          <ErrorBoundary>
-            <QueryClientProvider client={queryClient}>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardProvider>
-                  <OfflineProvider>
-                    <BiometricGate>
-                      <ApiTokenSync />
-                      <PushTokenSync />
-                      <SyncWorker />
-                      <NotificationResponseHandler />
-                      <RootLayoutNav />
-                      <OfflineBanner />
-                    </BiometricGate>
-                  </OfflineProvider>
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </QueryClientProvider>
-          </ErrorBoundary>
-        </SafeAreaProvider>
-      </ClerkLoaded>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <OfflineProvider>
+                  <BiometricGate>
+                    <ApiTokenSync />
+                    <PushTokenSync />
+                    <SyncWorker />
+                    <NotificationResponseHandler />
+                    <RootLayoutNav />
+                    <OfflineBanner />
+                  </BiometricGate>
+                </OfflineProvider>
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
     </ClerkProvider>
   );
 }

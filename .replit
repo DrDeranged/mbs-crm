@@ -8,11 +8,6 @@ deploymentTarget = "gce"
 args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
 
-[[deployment.responseHeaders]]
-path = "/*"
-name = "Cache-Control"
-value = "no-store"
-
 [workflows]
 runButton = "Project"
 

@@ -1,40 +1,19 @@
 // Keep this namespace private to this PWA. Never delete caches belonging to
 // another application sharing the origin.
-// Keep this value in sync with the version in use-pwa.tsx. It is deliberately
-// in the script URL so stale workers can be identified and removed.
-const SERVICE_WORKER_VERSION = 'mbs-crm-sw-v3';
-const CACHE_NAME = `mbs-crm-${SERVICE_WORKER_VERSION}`;
-const CACHE_ALLOWLIST = new Set([CACHE_NAME]);
+const CACHE_NAME = 'mbs-crm-v1';
+const CACHE_PREFIX = 'mbs-crm-';
 const OFFLINE_URL = './offline.html';
-
-function isClerkRequest(url) {
-  const hostname = url.hostname.toLowerCase();
-  const pathname = url.pathname.toLowerCase();
-  return hostname === 'accounts.dev' ||
-    hostname.endsWith('.accounts.dev') ||
-    hostname.includes('clerk') ||
-    pathname.includes('__clerk') ||
-    /(^|\/)clerk(\/|$)/.test(pathname) ||
-    pathname.includes('/npm/@clerk') ||
-    pathname.includes('/@clerk/');
-}
-
-function responseOrError(value) {
-  return value instanceof Response ? value : Response.error();
-}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    Promise.all([
-      caches.open(CACHE_NAME).then((cache) => {
-        // Use new Request to ensure it resolves relative to sw.js location
-        return cache.addAll([
-          new Request(OFFLINE_URL, { cache: 'reload' })
-        ]);
-      }),
-      self.skipWaiting(),
-    ])
+    caches.open(CACHE_NAME).then((cache) => {
+      // Use new Request to ensure it resolves relative to sw.js location
+      return cache.addAll([
+        new Request(OFFLINE_URL, { cache: 'reload' })
+      ]);
+    })
   );
+  // Do NOT skipWaiting automatically; wait for user to click reload toast
 });
 
 self.addEventListener('activate', (event) => {
@@ -42,11 +21,12 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => !CACHE_ALLOWLIST.has(name))
+          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -56,9 +36,11 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
-  // Never intercept Clerk or API traffic. This is important for authenticated
-  // requests: allowing these through preserves Clerk's cookies and headers.
-  if (isClerkRequest(url) || url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+  // Network-first for API
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    // API responses must never be served from Cache Storage. In particular,
+    // an offline shell must not turn stale authenticated data into a response.
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -68,13 +50,12 @@ self.addEventListener('fetch', (event) => {
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
         return fetch(event.request).then((response) => {
-          response = responseOrError(response);
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return response;
-        }).catch(() => Response.error());
+        });
       })
     );
     return;
@@ -83,8 +64,8 @@ self.addEventListener('fetch', (event) => {
   // Navigate requests: network-first, fallback to offline.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).then((response) => responseOrError(response)).catch(() => {
-        return caches.match(new Request(OFFLINE_URL)).then((cached) => responseOrError(cached));
+      fetch(event.request).catch(() => {
+        return caches.match(new Request(OFFLINE_URL));
       })
     );
     return;
@@ -92,9 +73,7 @@ self.addEventListener('fetch', (event) => {
 
   // Network-first default
   event.respondWith(
-    fetch(event.request)
-      .then((response) => responseOrError(response))
-      .catch(() => caches.match(event.request).then((cached) => responseOrError(cached)))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
 

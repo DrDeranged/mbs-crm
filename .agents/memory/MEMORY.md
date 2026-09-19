@@ -29,5 +29,3 @@
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
 - [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
 - [Drizzle Kit composite PK parity](drizzle-kit-composite-pk-parity.md) — avoid new composite primary keys; pushSchema 0.31.10 drops introspection params and breaks schema parity.
-- [Expo tabs auth boundary](expo-tabs-auth-boundary.md) — guard the tabs layout before rendering children; a root-layout redirect alone can briefly mount protected queries.
-- [Migration-model parity](migration-model-parity.md) — migration replay must compare every public table, including `schema_migrations`; exclusions allow destructive publish diffs to recur.

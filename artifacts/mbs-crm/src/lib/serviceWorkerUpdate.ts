@@ -4,48 +4,6 @@ export type ServiceWorkerLike = {
   addEventListener: (type: "statechange", listener: () => void) => void;
 };
 
-export const SERVICE_WORKER_VERSION = "mbs-crm-sw-v3";
-const RECOVERY_RELOAD_KEY = "mbs-crm-sw-recovery-reloaded";
-
-const workerHasRecognizedVersion = (worker: ServiceWorker): boolean => {
-  try {
-    return new URL(worker.scriptURL).searchParams.get("v") === SERVICE_WORKER_VERSION;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Run before importing the application. If any registration contains an old
- * or unversioned worker, remove every registration and cache, then reload once.
- */
-export async function recoverFromStaleServiceWorker(): Promise<boolean> {
-  if (!("serviceWorker" in navigator)) return false;
-  const registrations = await navigator.serviceWorker.getRegistrations();
-  const hasStaleRegistration = registrations.some((registration) => {
-    const workers = [registration.active, registration.waiting, registration.installing]
-      .filter((worker): worker is ServiceWorker => worker !== null);
-    return workers.length === 0 ||
-      workers.some((worker) => !workerHasRecognizedVersion(worker));
-  });
-
-  if (!hasStaleRegistration) return false;
-
-  await Promise.allSettled(registrations.map((registration) => registration.unregister()));
-  if ("caches" in globalThis) {
-    const cacheNames = await caches.keys();
-    await Promise.allSettled(cacheNames.map((name) => caches.delete(name)));
-  }
-
-  if (sessionStorage.getItem(RECOVERY_RELOAD_KEY) !== "1") {
-    sessionStorage.setItem(RECOVERY_RELOAD_KEY, "1");
-    window.location.reload();
-    return true;
-  }
-
-  return false;
-}
-
 /**
  * Installs the browser's deterministic "new worker is ready" transition.
  * Keeping the controller check here makes update behavior testable without
