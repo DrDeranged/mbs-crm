@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, Show, useClerk } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -220,7 +220,56 @@ function SignInPage() {
             routing="path"
             path={`${basePath}/sign-in`}
             appearance={clerkAppearance}
-            signUpUrl={undefined}
+            signUpUrl={`${basePath}/sign-up`}
+            forceRedirectUrl={`${basePath}/dashboard`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <div className="flex min-h-screen w-full bg-[#0E2A47]">
+      <div
+        className="hidden md:flex md:w-[45%] flex-col items-center justify-center gap-8 px-12 relative overflow-hidden"
+        style={{ background: "radial-gradient(circle at 18% 20%, rgba(29,182,116,.22), transparent 30%), radial-gradient(circle at 82% 78%, rgba(31,78,121,.9), transparent 42%), #0E2A47" }}
+      >
+        <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute top-1/3 -right-4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
+        <div className="max-w-xs text-center space-y-5 relative z-[var(--z-hero-content)]">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-white tracking-tight leading-tight">
+              My Business Solutions
+            </h1>
+            <p className="text-lg text-white/65 font-light">
+              Business financing, simplified.
+            </p>
+          </div>
+          <div className="w-12 h-0.5 bg-[#17A567] mx-auto rounded-full" />
+          <p className="text-sm text-white/65 leading-relaxed">
+            Create your account, then contact your administrator for access to the CRM.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center bg-[#0E2A47] px-6 py-12" style={{ backgroundImage: "radial-gradient(circle at 75% 20%, rgba(29,182,116,.12), transparent 28%), radial-gradient(circle at 30% 90%, rgba(31,78,121,.85), transparent 40%)" }}>
+        <div className="w-full max-w-[440px] space-y-7">
+          <div className="flex flex-col items-center gap-3">
+            <BrandLogo
+              variant="reverse"
+              className="w-[160px] shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+              imageClassName="h-auto w-[160px]"
+            />
+            <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
+          </div>
+          <SignUp
+            routing="path"
+            path={`${basePath}/sign-up`}
+            appearance={clerkAppearance}
+            signInUrl={`${basePath}/sign-in`}
             forceRedirectUrl={`${basePath}/dashboard`}
           />
         </div>
@@ -283,6 +332,7 @@ function AppRoutes() {
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
@@ -296,6 +346,7 @@ function AppRoutes() {
               <Redirect to="/sign-in" />
             </Route>
             <Route path="/sign-in/*?" component={SignInPage} />
+            <Route path="/sign-up/*?" component={SignUpPage} />
             <Route path="/dashboard">
               <ProtectedRoute component={Dashboard} />
             </Route>

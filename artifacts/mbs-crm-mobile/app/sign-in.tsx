@@ -1,8 +1,10 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useSSO } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
+import * as AuthSession from "expo-auth-session";
 import * as Haptics from "expo-haptics";
+import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,8 +19,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+  const { signIn, errors, fetchStatus } = useSignIn();
+  const { startSSOFlow } = useSSO();
   const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -30,9 +35,17 @@ export default function SignInScreen() {
   const [error, setError] = useState<string>("");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const isLoading = loading || fetchStatus === "fetching";
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
 
   const handleSignIn = async () => {
-    if (!isLoaded || !signIn) return;
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
@@ -42,15 +55,27 @@ export default function SignInScreen() {
     setError("");
 
     try {
-      const result = await signIn.create({
-        identifier: email.trim().toLowerCase(),
+      const { error: signInError } = await signIn.password({
+        emailAddress: email.trim().toLowerCase(),
         password,
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      if (signInError) {
+        setError(signInError.message ?? "An error occurred. Please check your credentials.");
+        return;
+      }
+
+      if (signIn.status === "complete") {
+        await signIn.finalize({
+          navigate: async ({ session }) => {
+            if (session?.currentTask) {
+              setError("Additional account verification is required.");
+              return;
+            }
+            router.replace("/(tabs)");
+          },
+        });
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.replace("/(tabs)");
       } else {
         setError("Sign-in could not be completed. Please try again.");
       }
@@ -65,6 +90,40 @@ export default function SignInScreen() {
       setLoading(false);
     }
   };
+
+  const handleGoogleSignIn = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+
+      if (!createdSessionId || !setActive) {
+        setError("Google sign-in could not be completed. Please try again.");
+        return;
+      }
+
+      await setActive({
+        session: createdSessionId,
+        navigate: async ({ session }) => {
+          if (session?.currentTask) {
+            setError("Additional account verification is required.");
+            return;
+          }
+          router.replace("/(tabs)");
+        },
+      });
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err: unknown) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const clerkErr = err as { errors?: { message: string }[] };
+      setError(clerkErr?.errors?.[0]?.message ?? "Google sign-in could not be completed.");
+    } finally {
+      setLoading(false);
+    }
+  }, [router, startSSOFlow]);
 
   return (
     <KeyboardAvoidingView
@@ -152,20 +211,41 @@ export default function SignInScreen() {
 
           <TouchableOpacity
             style={[
-              styles.signInBtn,
-              { backgroundColor: colors.primary },
-              (loading || !isLoaded) && styles.btnDisabled,
+              styles.googleBtn,
+              { backgroundColor: colors.card, borderColor: colors.border },
+              isLoading && styles.btnDisabled,
             ]}
-            onPress={handleSignIn}
-            disabled={loading || !isLoaded}
+            onPress={handleGoogleSignIn}
+            disabled={isLoading}
             activeOpacity={0.85}
           >
-            {loading ? (
+            <Feather name="globe" size={18} color={colors.foreground} />
+            <Text style={[styles.googleBtnText, { color: colors.foreground }]}>
+              Continue with Google
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.signInBtn,
+              { backgroundColor: colors.primary },
+              isLoading && styles.btnDisabled,
+            ]}
+            onPress={handleSignIn}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.signInBtnText}>Sign In</Text>
             )}
           </TouchableOpacity>
+          {errors.fields.identifier?.message ? (
+            <Text style={[styles.errorText, { color: colors.destructive }]}>
+              {errors.fields.identifier.message}
+            </Text>
+          ) : null}
         </View>
 
         <Text style={[styles.footer, { color: colors.mutedForeground }]}>
@@ -258,6 +338,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 8,
+  },
+  googleBtn: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  googleBtnText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
   },
   btnDisabled: {
     opacity: 0.6,
