@@ -719,6 +719,7 @@ export async function runMigrations(options: {
         checksum text NOT NULL,
         failed_at timestamptz,
         error text,
+        superseded_by text,
         superseded_at timestamptz
       )
     `);
@@ -726,6 +727,7 @@ export async function runMigrations(options: {
       ALTER TABLE schema_migrations
         ADD COLUMN IF NOT EXISTS failed_at timestamptz,
         ADD COLUMN IF NOT EXISTS error text,
+        ADD COLUMN IF NOT EXISTS superseded_by text,
         ADD COLUMN IF NOT EXISTS superseded_at timestamptz
     `);
   }
