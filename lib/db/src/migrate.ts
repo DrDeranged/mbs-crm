@@ -263,8 +263,19 @@ export async function runMigrations(options: {
       CREATE TABLE IF NOT EXISTS schema_migrations (
         name text PRIMARY KEY,
         applied_at timestamptz NOT NULL DEFAULT now(),
-        checksum text NOT NULL
+        checksum text NOT NULL,
+        failed_at timestamptz,
+        error text,
+        superseded_by text,
+        superseded_at timestamptz
       )
+    `);
+    await database.execute(sql`
+      ALTER TABLE schema_migrations
+        ADD COLUMN IF NOT EXISTS failed_at timestamptz,
+        ADD COLUMN IF NOT EXISTS error text,
+        ADD COLUMN IF NOT EXISTS superseded_by text,
+        ADD COLUMN IF NOT EXISTS superseded_at timestamptz
     `);
   }
   const ledger = await readLedger(database);

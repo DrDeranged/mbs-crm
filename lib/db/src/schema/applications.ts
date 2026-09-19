@@ -8,6 +8,7 @@ import { leadsTable } from "./leads";
 import { documentsTable } from "./documents";
 
 export const EQUIPMENT_CONDITIONS = ["new", "used"] as const;
+export const EQUIPMENT_CATEGORIES = ["vocational", "otr_truck", "trailer", "construction", "other"] as const;
 export const BUSINESS_TYPES = ["LLC", "Corp", "Sole Prop", "Partnership", "Other"] as const;
 export const ESTIMATED_CREDIT_SCORE_BANDS = [
   "below_500",
@@ -49,8 +50,10 @@ export const applicationsTable = pgTable(
     vendorName: text("vendor_name"),
     vendorQuoteAmount: numeric("vendor_quote_amount"),
     equipmentCondition: text("equipment_condition", { enum: EQUIPMENT_CONDITIONS }),
+    equipmentCategory: text("equipment_category", { enum: EQUIPMENT_CATEGORIES }),
     yearMakeModel: text("year_make_model"),
     trucksInFleet: integer("trucks_in_fleet"),
+    isHomeowner: boolean("is_homeowner"),
     downPaymentAmount: numeric("down_payment_amount", { precision: 15, scale: 2 }),
     hasFinancialStatements: boolean("has_financial_statements"),
     hasFactoring: boolean("has_factoring"),
@@ -95,6 +98,10 @@ export const applicationsTable = pgTable(
       "applications_sms_consent_evidence_check",
       sql`(${t.smsConsent} = false AND ${t.smsConsentAt} IS NULL AND ${t.smsConsentIp} IS NULL)
         OR (${t.smsConsent} = true AND ${t.smsConsentAt} IS NOT NULL AND ${t.smsConsentIp} IS NOT NULL)`,
+    ),
+    check(
+      "applications_equipment_category_check",
+      sql`${t.equipmentCategory} IS NULL OR ${t.equipmentCategory} IN ('vocational', 'otr_truck', 'trailer', 'construction', 'other')`,
     ),
   ],
 );

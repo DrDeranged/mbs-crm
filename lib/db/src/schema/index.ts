@@ -38,3 +38,4 @@ export * from "./pushSubscriptions";
 export * from "./pushDeliveryAttempts";
 export * from "./notificationPreferences";
 export * from "./notificationDeliveryClaims";
+export * from "./schemaMigrations";

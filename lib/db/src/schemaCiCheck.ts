@@ -9,6 +9,7 @@ import { runMigrations } from "./migrate";
 const schemaDirectory = path.resolve(import.meta.dirname, "schema");
 const baselineDirectory = path.resolve(import.meta.dirname, "../schema-ci-baseline");
 const migrationsDirectory = path.resolve(import.meta.dirname, "../migrations");
+export const SCHEMA_PARITY_TABLE_FILTER = ["*"] as const;
 
 const equivalentDefaultStatements = new Set([
   `ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'pending';`,
@@ -223,7 +224,7 @@ export async function checkRunnerMigrationParity(
 
 async function assertDatabaseMatchesDrizzle(database: any): Promise<void> {
   const schema = await loadCompleteSchemaSet();
-  const diff = await pushSchema(schema, database, ["public"], ["*", "!schema_migrations"]);
+  const diff = await pushSchema(schema, database, ["public"], [...SCHEMA_PARITY_TABLE_FILTER]);
   const actionableDiff = filterCheckerArtifacts(diff.statementsToExecute);
   if (actionableDiff.length > 0) {
     throw new Error([

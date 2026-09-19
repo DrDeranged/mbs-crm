@@ -5,6 +5,7 @@ import {
   assertSafeExistingSchemaCheckUrl,
   filterCheckerArtifacts,
   loadCompleteSchemaSet,
+  SCHEMA_PARITY_TABLE_FILTER,
 } from "./schemaCiCheck";
 
 test("schema parity check accepts only isolated local CI databases", () => {
@@ -66,9 +67,18 @@ test("schema parity check loads tables from every schema module", async () => {
     "collateralTemplatesTable",
     "dealApprovalsTable",
     "lenderSubmissionsTable",
+    "schemaMigrationsTable",
   ]) {
     assert.ok(schema[exportName], `missing ${exportName}`);
   }
+});
+
+test("migration parity covers every table without exclusions", () => {
+  assert.deepEqual(SCHEMA_PARITY_TABLE_FILTER, ["*"]);
+  assert.equal(
+    SCHEMA_PARITY_TABLE_FILTER.some((pattern) => pattern.startsWith("!")),
+    false,
+  );
 });
 
 test("schema parity check ignores only paired Drizzle naming artifacts", () => {
