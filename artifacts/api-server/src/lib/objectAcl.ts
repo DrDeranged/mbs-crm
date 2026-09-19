@@ -10,7 +10,7 @@ const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
 // - GROUP_MEMBER: the users who are members of a specific group;
 // - SUBSCRIBER: the users who are subscribers of a specific service / content
 //   creator.
-export type ObjectAccessGroupType = string;
+export enum ObjectAccessGroupType {}
 
 export interface ObjectAccessGroup {
   type: ObjectAccessGroupType;
@@ -19,12 +19,10 @@ export interface ObjectAccessGroup {
   id: string;
 }
 
-export const ObjectPermission = {
-  READ: "read",
-  WRITE: "write",
-} as const;
-export type ObjectPermission =
-  (typeof ObjectPermission)[keyof typeof ObjectPermission];
+export enum ObjectPermission {
+  READ = "read",
+  WRITE = "write",
+}
 
 export interface ObjectAclRule {
   group: ObjectAccessGroup;
@@ -49,13 +47,10 @@ function isPermissionAllowed(
 }
 
 abstract class BaseObjectAccessGroup implements ObjectAccessGroup {
-  public readonly type: ObjectAccessGroupType;
-  public readonly id: string;
-
-  constructor(type: ObjectAccessGroupType, id: string) {
-    this.type = type;
-    this.id = id;
-  }
+  constructor(
+    public readonly type: ObjectAccessGroupType,
+    public readonly id: string,
+  ) {}
 
   public abstract hasMember(userId: string): Promise<boolean>;
 }

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import {
   useGetDeal, getGetDealQueryKey,
-  useGetMe,
   useUpdateDeal,
   useListDealActivity,
   useListUsers,
@@ -22,8 +21,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import { Label } from "@/components/ui/label";
-import { DetailLoadError } from "@/components/detail-load-error";
-import { getQueryErrorStatus } from "@/lib/query-error";
 
 const STAGES = [
   { id: DealStage.waiting_on_app, label: "Waiting on App" },
@@ -43,15 +40,9 @@ export default function DealDetail() {
   const dealId = Number(id);
   const [, setLocation] = useLocation();
 
-  const {
-    data: deal,
-    isLoading: dealLoading,
-    error: dealError,
-    refetch: refetchDeal,
-  } = useGetDeal(dealId, { query: { queryKey: getGetDealQueryKey(dealId) } });
+  const { data: deal, isLoading: dealLoading } = useGetDeal(dealId, { query: { queryKey: getGetDealQueryKey(dealId) } });
   const { data: activities, isLoading: activityLoading } = useListDealActivity(dealId);
   const { data: users } = useListUsers({ role: "rep", isActive: true });
-  const { data: me } = useGetMe();
 
   const updateDeal = useUpdateDeal();
   const archiveDeal = useArchiveDeal();
@@ -129,25 +120,12 @@ export default function DealDetail() {
     );
   }
 
-  if (getQueryErrorStatus(dealError) === 404) {
+  if (!deal) {
     return (
       <div className="flex-1 p-6 bg-[#f8fafc] flex flex-col items-center justify-center">
         <h2 className="text-xl font-semibold">Deal not found</h2>
         <Link href="/deals"><Button variant="link" className="mt-2">Back to Deals</Button></Link>
       </div>
-    );
-  }
-
-  if (dealError || !deal) {
-    return (
-      <DetailLoadError
-        entity="deal"
-        error={dealError}
-        isAdmin={me?.role === "admin"}
-        onRetry={() => {
-          void refetchDeal();
-        }}
-      />
     );
   }
 

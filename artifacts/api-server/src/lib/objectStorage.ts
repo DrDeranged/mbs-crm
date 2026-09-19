@@ -1,10 +1,8 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Readable } from "stream";
 import { randomUUID } from "crypto";
-import type {
-  ObjectAclPolicy,
-} from "./objectAcl";
 import {
+  ObjectAclPolicy,
   ObjectPermission,
   canAccessObject,
   getObjectAclPolicy,

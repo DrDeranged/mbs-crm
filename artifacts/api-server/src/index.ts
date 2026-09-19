@@ -1,19 +1,13 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db, pool, formatSchemaBootLine, getMigrationStatus } from "@workspace/db";
-import { runSchemaBoot } from "./lib/schemaBoot";
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
 import { runDripJob } from "./lib/dripJob";
 import { runTaskReminderJob } from "./lib/taskReminderJob";
 import { runRenewalJob } from "./lib/renewalJob";
 import { runBackupJob } from "./lib/backupJob";
 import { seedDefaultWorkflowRules } from "./lib/workflowEngine";
 import { closeBrowser } from "./lib/renderPdf";
-import { installProcessErrorHandlers } from "./lib/processHandlers";
-
-// Install these before validating startup configuration so module-level
-// startup failures are logged as fatal errors rather than disappearing as an
-// unhandled top-level throw.
-installProcessErrorHandlers();
 
 const rawPort = process.env["PORT"];
 
@@ -25,45 +19,214 @@ if (!rawPort) {
 
 const port = Number(rawPort);
 
-if (!Number.isFinite(port) || port <= 0) {
+if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
 const intervals: ReturnType<typeof setInterval>[] = [];
 
-export async function validateSchemaOnBoot(): Promise<void> {
+async function checkApplicationSignatureColumns(): Promise<void> {
   try {
-    const report = await getMigrationStatus({ db });
-    const message = formatSchemaBootLine(report);
-    if (message.startsWith("SCHEMA PENDING:")) {
-      logger.warn(message);
-      return;
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN ('signature_method', 'signature_signed_at')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    const requiredColumns = ["signature_method", "signature_signed_at"];
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "012_application_signature.sql" },
+        "Required application signature columns are missing; apply 012_application_signature.sql",
+      );
     }
-    logger.info(message);
-  } catch (error) {
-    logger.error({ err: error }, "SCHEMA PENDING: unable to inspect migrations");
+  } catch (err) {
+    logger.error(
+      { err, migration: "012_application_signature.sql" },
+      "Could not verify application signature columns for 012_application_signature.sql",
+    );
   }
 }
 
-const migrateOnBoot =
-  process.env.NODE_ENV === "production" || process.env.MIGRATE_ON_BOOT === "true";
+async function checkApplicationOptionalColumns(): Promise<void> {
+  const requiredColumns = [
+    "business_type",
+    "annual_revenue",
+    "business_start_date",
+    "years_under_current_ownership",
+    "business_description",
+    "est_credit_score",
+    "timeline_funds_needed",
+    "year_make_model",
+    "trucks_in_fleet",
+    "down_payment_amount",
+    "secondary_owner_name",
+    "secondary_owner_email",
+    "secondary_owner_address",
+    "secondary_owner_ssn_encrypted",
+    "secondary_owner_dob",
+    "secondary_owner_ownership_pct",
+    "secondary_owner_cell",
+    "secondary_owner_est_credit_score",
+  ];
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN (${sql.join(
+          requiredColumns.map((column) => sql`${column}`),
+          sql`, `,
+        )})
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "014_application_optional_fields.sql" },
+        "Required optional application columns are missing; apply 014_application_optional_fields.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "014_application_optional_fields.sql" },
+      "Could not verify optional application columns for 014_application_optional_fields.sql",
+    );
+  }
+}
 
-// Schema reconciliation is deliberately completed before opening the HTTP
-// listener. The migration coordinator catches migration failures and records
-// them, so a bad migration never prevents the server from coming up.
-if (migrateOnBoot) {
-  await runSchemaBoot({ pool, logger });
-} else {
-  await validateSchemaOnBoot();
+async function checkApplicationConsentColumns(): Promise<void> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'applications'
+        AND column_name IN ('consent_text_version')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    const requiredColumns = ["consent_text_version"];
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      logger.error(
+        {
+          missingColumns,
+          migration: "015_application_consent_text_version.sql",
+        },
+        "Required application consent columns are missing; apply 015_application_consent_text_version.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "015_application_consent_text_version.sql" },
+      "Could not verify application consent columns for 015_application_consent_text_version.sql",
+    );
+  }
+}
+
+async function checkUserTitleColumn(): Promise<void> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'users'
+        AND column_name IN ('title')
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    if (!presentColumns.has("title")) {
+      logger.error(
+        { missingColumns: ["title"], migration: "016_user_titles.sql" },
+        "Required user title column is missing; apply 016_user_titles.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "016_user_titles.sql" },
+      "Could not verify user title column for 016_user_titles.sql",
+    );
+  }
+}
+
+async function checkDealColumns(): Promise<void> {
+  const requiredColumns = ["notes", "gm_split_pct"];
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_schema = 'public'
+        AND table_name = 'deals'
+        AND column_name IN (${sql.join(
+          requiredColumns.map((column) => sql`${column}`),
+          sql`, `,
+        )})
+    `);
+    const presentColumns = new Set(
+      result.rows.map((row) =>
+        String((row as Record<string, unknown>)["column_name"]),
+      ),
+    );
+    const missingColumns = requiredColumns.filter(
+      (column) => !presentColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      logger.error(
+        { missingColumns, migration: "017_deal_notes_gm_split.sql" },
+        "Required deal columns are missing; apply 017_deal_notes_gm_split.sql",
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { err, migration: "017_deal_notes_gm_split.sql" },
+      "Could not verify deal columns for 017_deal_notes_gm_split.sql",
+    );
+  }
 }
 
 const server = app.listen(port, (err) => {
   if (err) {
-    logger.fatal({ err }, "FATAL: Error listening on port; exiting");
+    logger.error({ err }, "Error listening on port");
     process.exit(1);
   }
 
   logger.info({ port }, "Server listening");
+
+  void checkApplicationSignatureColumns();
+  void checkApplicationOptionalColumns();
+  void checkApplicationConsentColumns();
+  void checkUserTitleColumn();
+  void checkDealColumns();
 
   // Seed default workflow rules (no-op if already seeded)
   seedDefaultWorkflowRules().catch((err) =>
@@ -131,7 +294,7 @@ async function shutdown(signal: string) {
     process.exit(0);
   });
   setTimeout(() => {
-    logger.fatal("FATAL: Forced exit after 15s");
+    logger.warn("Forced exit after 15s");
     process.exit(1);
   }, 15_000).unref();
 }

@@ -119,40 +119,6 @@ paths:
         "403":
           description: Forbidden
 
-  /admin/migrations/status:
-    get:
-      operationId: getAdminMigrationStatus
-      tags: [admin]
-      summary: List discovered schema migrations and their checksums (admin only)
-      responses:
-        "200":
-          description: Migration status
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MigrationReport"
-        "401":
-          description: Authentication required
-        "403":
-          description: Admin access required
-
-  /admin/migrations/apply:
-    post:
-      operationId: applyAdminMigrations
-      tags: [admin]
-      summary: Apply pending schema migrations one at a time (admin only)
-      responses:
-        "200":
-          description: Migration application report
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MigrationReport"
-        "401":
-          description: Authentication required
-        "403":
-          description: Admin access required
-
   /admin/users/backfill-slugs:
     post:
       operationId: backfillSlugs
@@ -2305,16 +2271,6 @@ paths:
           description: Unauthorized
         "503":
           description: Twilio not configured
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [error, reason]
-                properties:
-                  error:
-                    type: string
-                  reason:
-                    type: string
 
   /twilio/voice:
     post:
@@ -6098,7 +6054,7 @@ components:
 
     DeepHealthResponse:
       type: object
-      required: [pdf, schema]
+      required: [pdf]
       properties:
         status:
           type: string
@@ -6110,33 +6066,9 @@ components:
           type: object
           properties:
             twilio:
-              type: object
-              required: [accountSid, authToken, apiKey, apiSecret, twimlAppSid, phoneNumber, twimlAppSidFormat, voiceToken]
-              properties:
-                accountSid: { type: boolean }
-                authToken: { type: boolean }
-                apiKey: { type: boolean }
-                apiSecret: { type: boolean }
-                twimlAppSid: { type: boolean }
-                phoneNumber: { type: boolean }
-                twimlAppSidFormat:
-                  type: string
-                  enum: [valid, invalid]
-                voiceToken:
-                  type: string
-                  description: Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.
+              type: boolean
             sendgrid:
-              type: object
-              required: [apiKey, fromEmail, fromName, webhookKey, openTracking, clickTracking, providerOpenTracking, providerClickTracking]
-              properties:
-                apiKey: { type: boolean }
-                fromEmail: { type: boolean }
-                fromName: { type: boolean }
-                webhookKey: { type: boolean }
-                openTracking: { type: boolean }
-                clickTracking: { type: boolean }
-                providerOpenTracking: { type: boolean }
-                providerClickTracking: { type: boolean }
+              type: boolean
             experian:
               type: boolean
             anthropic:
@@ -6151,23 +6083,6 @@ components:
             puppeteer:
               type: string
               description: Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.
-        schema:
-          type: object
-          required: [applied, pending]
-          properties:
-            applied:
-              type: integer
-            pending:
-              type: array
-              items:
-                type: string
-            failed:
-              type: ["object", "null"]
-              properties:
-                name:
-                  type: string
-                error:
-                  type: string
         jobs:
           type: object
           additionalProperties: true
@@ -6176,59 +6091,6 @@ components:
         timestamp:
           type: string
           format: date-time
-
-    MigrationReport:
-      type: object
-      required: [applied, detected, skipped, pending, mismatches, migrations, failed]
-      properties:
-        applied:
-          type: array
-          items: { type: string }
-        detected:
-          type: array
-          items: { type: string }
-        skipped:
-          type: array
-          items: { type: string }
-        pending:
-          type: array
-          items: { type: string }
-        mismatches:
-          type: array
-          items:
-            type: object
-            required: [name, expected, actual]
-            properties:
-              name: { type: string }
-              expected: { type: string }
-              actual: { type: string }
-        failed:
-          oneOf:
-            - type: "null"
-            - type: object
-              required: [name, error]
-              properties:
-                name: { type: string }
-                error: { type: string }
-        migrations:
-          type: array
-          items:
-            type: object
-            required: [name, id, checksum, status]
-            properties:
-              name: { type: string }
-              id: { type: string }
-              checksum: { type: string }
-              status:
-                type: string
-                enum: [applied, pending, mismatch]
-              appliedAt:
-                type: [string, "null"]
-                format: date-time
-              appliedChecksum:
-                type: [string, "null"]
-              detectedAsApplied:
-                type: boolean
 
     Deal:
       type: object

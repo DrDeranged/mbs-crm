@@ -7,8 +7,6 @@ import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification } from "../lib/notify";
-import { logger } from "../lib/logger";
-import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
 
 const router = Router();
 
@@ -49,25 +47,41 @@ router.post("/twilio/token", async (req, res) => {
   // rotation or a secret added after process startup is immediately usable.
   // requireUser already rejects inactive and pending accounts; active reps
   // are intentionally allowed to mint their own browser token.
-  const identity = `user_${user.id}`;
-  const reason = getTwilioFailureReason();
-  if (reason) {
-    logger.error({ route: "/api/twilio/token", reason }, "Twilio token unavailable");
-    return void res.status(503).json({ error: "Twilio token unavailable", reason });
+  const accountSid = process.env["TWILIO_ACCOUNT_SID"];
+  const authToken = process.env["TWILIO_AUTH_TOKEN"];
+  const twimlAppSid = process.env["TWILIO_TWIML_APP_SID"];
+  const apiKey = process.env["TWILIO_API_KEY"];
+  const apiSecret = process.env["TWILIO_API_SECRET"];
+
+  if (!accountSid || !authToken || !twimlAppSid) {
+    return void res.status(503).json({ error: "Twilio not configured" });
   }
-  try {
-    res.json({ token: mintVoiceToken(identity), identity });
-  } catch (error) {
-    const mintReason = error instanceof Error ? error.message : "token_mint_failed";
-    logger.error(
-      { route: "/api/twilio/token", reason: mintReason, err: error },
-      "Twilio token unavailable",
-    );
+  if (!/^AP[0-9a-fA-F]{32}$/.test(twimlAppSid)) {
     return void res.status(503).json({
-      error: "Twilio token unavailable",
-      reason: mintReason,
+      error: "Twilio application SID is invalid. TWILIO_TWIML_APP_SID must start with AP.",
     });
   }
+
+  const AccessToken = twilio.jwt.AccessToken;
+  const VoiceGrant = AccessToken.VoiceGrant;
+
+  const identity = `user_${user.id}`;
+
+  if (!apiKey || !apiSecret) {
+    return void res.status(503).json({
+      error:
+        "Twilio API Key not configured. Create an API Key in the Twilio console and set TWILIO_API_KEY + TWILIO_API_SECRET.",
+    });
+  }
+
+  const token = new AccessToken(accountSid, apiKey, apiSecret, { identity });
+  const voiceGrant = new VoiceGrant({
+    outgoingApplicationSid: twimlAppSid,
+    incomingAllow: true,
+  });
+  token.addGrant(voiceGrant);
+
+  res.json({ token: token.toJwt(), identity });
 });
 
 // POST /api/twilio/voice — outbound call TwiML (Twilio calls this when browser dials)

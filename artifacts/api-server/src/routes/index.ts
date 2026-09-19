@@ -34,7 +34,6 @@ import adminGovernanceRouter from "./adminGovernance";
 import repPublicRouter from "./repPublic";
 import dealsRouter from "./deals";
 import adminProductionCloseoutRouter from "./adminProductionCloseout";
-import adminMigrationsRouter from "./adminMigrations";
 
 const router: IRouter = Router();
 
@@ -89,7 +88,6 @@ router.use(healthRouter);
 router.use(repPublicRouter);
 router.use(dealsRouter);
 router.use(adminProductionCloseoutRouter);
-router.use(adminMigrationsRouter);
 router.use(meRouter);
 router.use(usersRouter);
 router.use(importRouter);

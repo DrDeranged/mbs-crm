@@ -1693,40 +1693,9 @@ export const DeepHealthResponseDb = {
   fail: 'fail',
 } as const;
 
-export type DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat = typeof DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat[keyof typeof DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat];
-
-
-export const DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat = {
-  valid: 'valid',
-  invalid: 'invalid',
-} as const;
-
-export type DeepHealthResponseIntegrationsTwilio = {
-  accountSid: boolean;
-  authToken: boolean;
-  apiKey: boolean;
-  apiSecret: boolean;
-  twimlAppSid: boolean;
-  phoneNumber: boolean;
-  twimlAppSidFormat: DeepHealthResponseIntegrationsTwilioTwimlAppSidFormat;
-  /** Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout. */
-  voiceToken: string;
-};
-
-export type DeepHealthResponseIntegrationsSendgrid = {
-  apiKey: boolean;
-  fromEmail: boolean;
-  fromName: boolean;
-  webhookKey: boolean;
-  openTracking: boolean;
-  clickTracking: boolean;
-  providerOpenTracking: boolean;
-  providerClickTracking: boolean;
-};
-
 export type DeepHealthResponseIntegrations = {
-  twilio?: DeepHealthResponseIntegrationsTwilio;
-  sendgrid?: DeepHealthResponseIntegrationsSendgrid;
+  twilio?: boolean;
+  sendgrid?: boolean;
   experian?: boolean;
   anthropic?: boolean;
 };
@@ -1738,21 +1707,6 @@ export type DeepHealthResponsePdf = {
   puppeteer: string;
 };
 
-/**
- * @nullable
- */
-export type DeepHealthResponseSchemaFailed = {
-  name?: string;
-  error?: string;
-} | null;
-
-export type DeepHealthResponseSchema = {
-  applied: number;
-  pending: string[];
-  /** @nullable */
-  failed?: DeepHealthResponseSchemaFailed;
-};
-
 export type DeepHealthResponseJobs = { [key: string]: unknown };
 
 export interface DeepHealthResponse {
@@ -1760,52 +1714,9 @@ export interface DeepHealthResponse {
   db?: DeepHealthResponseDb;
   integrations?: DeepHealthResponseIntegrations;
   pdf: DeepHealthResponsePdf;
-  schema: DeepHealthResponseSchema;
   jobs?: DeepHealthResponseJobs;
   uptimeSeconds?: number;
   timestamp?: string;
-}
-
-export type MigrationReportMismatchesItem = {
-  name: string;
-  expected: string;
-  actual: string;
-};
-
-export type MigrationReportFailed = null | {
-  name: string;
-  error: string;
-};
-
-export type MigrationReportMigrationsItemStatus = typeof MigrationReportMigrationsItemStatus[keyof typeof MigrationReportMigrationsItemStatus];
-
-
-export const MigrationReportMigrationsItemStatus = {
-  applied: 'applied',
-  pending: 'pending',
-  mismatch: 'mismatch',
-} as const;
-
-export type MigrationReportMigrationsItem = {
-  name: string;
-  id: string;
-  checksum: string;
-  status: MigrationReportMigrationsItemStatus;
-  /** @nullable */
-  appliedAt?: string | null;
-  /** @nullable */
-  appliedChecksum?: string | null;
-  detectedAsApplied?: boolean;
-};
-
-export interface MigrationReport {
-  applied: string[];
-  detected: string[];
-  skipped: string[];
-  pending: string[];
-  mismatches: MigrationReportMismatchesItem[];
-  failed: MigrationReportFailed;
-  migrations: MigrationReportMigrationsItem[];
 }
 
 export type DealStage = typeof DealStage[keyof typeof DealStage];
@@ -2836,11 +2747,6 @@ export const GetAnalyticsCommunicationsGranularity = {
 
 export type GetAnalyticsRenewalsParams = {
 rep_id?: number;
-};
-
-export type GetTwilioToken503 = {
-  error: string;
-  reason: string;
 };
 
 export type TwilioVoiceStatus200 = {

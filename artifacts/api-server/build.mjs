@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { cp, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -117,26 +117,9 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
-
-  // The migration runner discovers numbered SQL files at runtime. Keep the
-  // files beside the bundled server so admin apply and boot dry-runs use the
-  // exact same migration set in a deployment.
-  await cp(
-    path.resolve(artifactDir, "../../lib/db/migrations"),
-    path.resolve(distDir, "migrations"),
-    { recursive: true },
-  );
-  // Native lender PDFs load these at runtime; keep the source assets beside
-  // the bundled server while retaining the source-path fallback for tests.
-  await cp(
-    path.resolve(artifactDir, "src/assets"),
-    path.resolve(distDir, "assets"),
-    { recursive: true },
-  );
 }
 
 buildAll().catch((err) => {
-  const error = err instanceof Error ? err : new Error(String(err));
-  console.error(`FATAL: API server build failed\n${error.stack ?? error.message}`);
+  console.error(err);
   process.exit(1);
 });

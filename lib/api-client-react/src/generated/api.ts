@@ -101,7 +101,6 @@ import type {
   GetCreditComplianceLogParams,
   GetDealsAnalyticsParams,
   GetLeadBriefing200,
-  GetTwilioToken503,
   GetUnreadNotificationCount200,
   HealthStatus,
   ImportLeadsBody,
@@ -131,7 +130,6 @@ import type {
   LogOutboundCallBody,
   MarkAllNotificationsRead200,
   MarkNotificationRead200,
-  MigrationReport,
   MyTasksSummary,
   NewDocumentUpload,
   NewLenderSeedResponse,
@@ -509,153 +507,6 @@ export function useGetAdminErrors<TData = Awaited<ReturnType<typeof getAdminErro
 
 
 
-
-export const getGetAdminMigrationStatusUrl = () => {
-
-
-
-
-  return `/api/admin/migrations/status`
-}
-
-/**
- * @summary List discovered schema migrations and their checksums (admin only)
- */
-export const getAdminMigrationStatus = async ( options?: RequestInit): Promise<MigrationReport> => {
-
-  return customFetch<MigrationReport>(getGetAdminMigrationStatusUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetAdminMigrationStatusQueryKey = () => {
-    return [
-    `/api/admin/migrations/status`
-    ] as const;
-    }
-
-
-export const getGetAdminMigrationStatusQueryOptions = <TData = Awaited<ReturnType<typeof getAdminMigrationStatus>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminMigrationStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetAdminMigrationStatusQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminMigrationStatus>>> = ({ signal }) => getAdminMigrationStatus({ signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminMigrationStatus>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetAdminMigrationStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminMigrationStatus>>>
-export type GetAdminMigrationStatusQueryError = ErrorType<void>
-
-
-/**
- * @summary List discovered schema migrations and their checksums (admin only)
- */
-
-export function useGetAdminMigrationStatus<TData = Awaited<ReturnType<typeof getAdminMigrationStatus>>, TError = ErrorType<void>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminMigrationStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetAdminMigrationStatusQueryOptions(options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-
-
-
-export const getApplyAdminMigrationsUrl = () => {
-
-
-
-
-  return `/api/admin/migrations/apply`
-}
-
-/**
- * @summary Apply pending schema migrations one at a time (admin only)
- */
-export const applyAdminMigrations = async ( options?: RequestInit): Promise<MigrationReport> => {
-
-  return customFetch<MigrationReport>(getApplyAdminMigrationsUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-export const getApplyAdminMigrationsMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyAdminMigrations>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof applyAdminMigrations>>, TError,void, TContext> => {
-
-const mutationKey = ['applyAdminMigrations'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyAdminMigrations>>, void> = () => {
-
-
-          return  applyAdminMigrations(requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ApplyAdminMigrationsMutationResult = NonNullable<Awaited<ReturnType<typeof applyAdminMigrations>>>
-
-    export type ApplyAdminMigrationsMutationError = ErrorType<void>
-
-    /**
- * @summary Apply pending schema migrations one at a time (admin only)
- */
-export const useApplyAdminMigrations = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyAdminMigrations>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof applyAdminMigrations>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getApplyAdminMigrationsMutationOptions(options));
-    }
 
 export const getBackfillSlugsUrl = () => {
 
@@ -6594,7 +6445,7 @@ export const getTwilioToken = async ( options?: RequestInit): Promise<TwilioToke
 
 
 
-export const getGetTwilioTokenMutationOptions = <TError = ErrorType<void | GetTwilioToken503>,
+export const getGetTwilioTokenMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext> => {
 
@@ -6623,12 +6474,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type GetTwilioTokenMutationResult = NonNullable<Awaited<ReturnType<typeof getTwilioToken>>>
 
-    export type GetTwilioTokenMutationError = ErrorType<void | GetTwilioToken503>
+    export type GetTwilioTokenMutationError = ErrorType<void>
 
     /**
  * @summary Generate a Twilio Access Token for the Voice SDK (browser softphone)
  */
-export const useGetTwilioToken = <TError = ErrorType<void | GetTwilioToken503>,
+export const useGetTwilioToken = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getTwilioToken>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof getTwilioToken>>,

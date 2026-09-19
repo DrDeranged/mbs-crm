@@ -17,9 +17,7 @@ import {
   addPreparedByFooters,
   createLetterPdf,
   drawWrappedText,
-  embedMbsLogo,
   pdfText,
-  pdfTextForFont,
 } from "./nativePdf";
 
 export const LENDER_PACKAGE_MAX_BYTES = 40 * 1024 * 1024;
@@ -101,32 +99,7 @@ function text(value: unknown): string {
 }
 
 function displayDate(value: Date | null | undefined): string | null {
-  if (!(value instanceof Date) || Number.isNaN(value.valueOf())) return null;
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York", month: "short", day: "numeric", year: "numeric",
-    hour: "numeric", minute: "2-digit", hour12: true,
-  }).formatToParts(value);
-  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("month")} ${get("day")}, ${get("year")}, ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
-}
-
-function applicationType(value: unknown): string {
-  return value === "equipment" ? "Equipment Financing"
-    : value === "working_capital" ? "Working Capital"
-      : String(value ?? "");
-}
-
-/** Prefer a branded address without assuming extra database columns exist. */
-export function getLenderRepEmail(user: User | null | undefined): string | null {
-  if (!user) return null;
-  const candidates: string[] = [];
-  for (const [key, value] of Object.entries(user as unknown as Record<string, unknown>)) {
-    if (!/email/i.test(key)) continue;
-    if (typeof value === "string") candidates.push(value);
-    if (Array.isArray(value)) candidates.push(...value.filter((item): item is string => typeof item === "string"));
-  }
-  const branded = candidates.find((email) => /@my-business-solutions\.com$/i.test(email.trim()));
-  return (branded ?? candidates.find((email) => email.trim()))?.trim() || null;
+  return value instanceof Date && !Number.isNaN(value.valueOf()) ? value.toUTCString() : null;
 }
 
 function displayMoney(value: number | null | undefined): string | null {
@@ -216,8 +189,6 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
   const ownerName = [application.ownerFirstName, application.ownerLastName].filter(isPresent).join(" ");
   const businessName = application.businessName || lead.companyName;
   const repName = assignedRep?.name ?? null;
-  const repEmail = getLenderRepEmail(assignedRep);
-  const logoUrl = getBrandLogoUrl(getPublicBaseUrl());
 
   return `<!doctype html>
 <html lang="en">
@@ -228,8 +199,7 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
   @page { size: A4; margin: 0; }
   body { margin: 0; padding: 42px 48px; color: #1f2937; font-family: Arial, sans-serif; }
   .header { border-bottom: 3px solid #1f4e79; padding-bottom: 20px; }
-   .logo { min-height: 56px; margin-bottom: 24px; text-align: right; }
-   .logo img { max-width: 150px; max-height: 56px; object-fit: contain; }
+  .logo { min-height: 56px; margin-bottom: 24px; }
   h1 { color: #1f4e79; font-size: 29px; margin: 0 0 8px; }
   .subtitle { color: #64748b; font-size: 13px; margin: 0; }
   .section { margin-top: 25px; }
@@ -242,14 +212,14 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
 </head>
 <body>
   <div class="header">
-     <div class="logo"><img src="${text(logoUrl)}" alt="My Business Solutions" /></div>
+    <div class="logo"></div>
     <h1>Financing Application Package</h1>
     ${row("Business", businessName)}
     ${row("Owner", ownerName)}
   </div>
   <div class="section">
     <h2>Application</h2>
-     ${row("Application type", applicationType(application.type))}
+    ${row("Application type", application.type)}
     ${row("Requested amount", requestedAmount)}
     ${row("Monthly revenue stated", displayMoney(application.monthlyRevenueStated))}
     ${row("Time in business", displayMonths(application.timeInBusinessMonths))}
@@ -260,8 +230,8 @@ function buildCoverHtml(lead: Lead, application: Application, assignedRep: User 
     <h2>Assigned representative</h2>
     ${row("Name", repName)}
     ${row("Title", assignedRep.title)}
-     ${row("Email", repEmail)}
-     ${row("Phone", assignedRep.mobileNumber ?? "—")}
+    ${row("Email", assignedRep.email)}
+    ${row("Phone", assignedRep.mobileNumber)}
   </div>` : ""}
   <p class="note">${text(SELECTION_NOTE)}</p>
 </body>
@@ -315,8 +285,8 @@ function drawCoverField(
 ): number {
   page.drawRectangle({ x: 42, y: y - 28, width: 528, height: 28, borderColor: MBS_BORDER, borderWidth: 0.5 });
   page.drawRectangle({ x: 42.25, y: y - 12, width: 181, height: 11.75, color: MBS_LIGHT });
-  page.drawText(pdfTextForFont(label, fonts.bold).toUpperCase(), { x: 48, y: y - 8.2, size: 5.5, font: fonts.bold, color: MBS_SLATE });
-  page.drawText(pdfTextForFont(value, fonts.regular), { x: 229, y: y - 18.8, size: 8, font: fonts.regular, color: MBS_SLATE, maxWidth: 333 });
+  page.drawText(pdfText(label).toUpperCase(), { x: 48, y: y - 8.2, size: 5.5, font: fonts.bold, color: MBS_SLATE });
+  page.drawText(pdfText(value), { x: 229, y: y - 18.8, size: 8, font: fonts.regular, color: MBS_SLATE, maxWidth: 333 });
   return y - 28;
 }
 
@@ -327,13 +297,10 @@ export async function renderLenderPackageCoverPdf(params: {
   assignedRep: User | null;
 }): Promise<Buffer> {
   const { pdf, page, fonts } = await createLetterPdf();
-  const logo = await embedMbsLogo(pdf);
   const application = params.application;
   const owner = [application.ownerFirstName, application.ownerLastName].filter(isPresent).join(" ");
-  if (logo) {
-    const ratio = Math.min(150 / logo.width, 54 / logo.height, 1);
-    page.drawImage(logo, { x: 420, y: 724, width: logo.width * ratio, height: logo.height * ratio });
-  }
+  page.drawText("MY BUSINESS", { x: 42, y: 748, size: 15, font: fonts.bold, color: MBS_NAVY });
+  page.drawText("SOLUTIONS", { x: 150, y: 748, size: 15, font: fonts.bold, color: MBS_GREEN });
   page.drawText("FINANCING APPLICATION PACKAGE", { x: 42, y: 702, size: 19, font: fonts.bold, color: MBS_NAVY });
   page.drawRectangle({ x: 42, y: 689, width: 528, height: 3, color: MBS_GREEN });
   page.drawText("APPLICATION SUMMARY", { x: 42, y: 662, size: 8, font: fonts.bold, color: MBS_NAVY });
@@ -341,7 +308,7 @@ export async function renderLenderPackageCoverPdf(params: {
   let y = 645;
   y = drawCoverField(page, fonts, y, "Business", nativeCoverValue(application.businessName || params.lead.companyName));
   y = drawCoverField(page, fonts, y, "Owner", nativeCoverValue(owner));
-  y = drawCoverField(page, fonts, y, "Application type", nativeCoverValue(applicationType(application.type)));
+  y = drawCoverField(page, fonts, y, "Application type", nativeCoverValue(application.type));
   y = drawCoverField(page, fonts, y, "Requested amount", nativeCoverMoney(application.requestedAmount ?? params.lead.requestedAmount));
   y = drawCoverField(page, fonts, y, "Monthly revenue stated", nativeCoverMoney(application.monthlyRevenueStated));
   y = drawCoverField(page, fonts, y, "Time in business", displayMonths(application.timeInBusinessMonths) ?? "—");
@@ -351,12 +318,11 @@ export async function renderLenderPackageCoverPdf(params: {
     page.drawText("ASSIGNED REPRESENTATIVE", { x: 42, y, size: 8, font: fonts.bold, color: MBS_NAVY });
     y -= 17;
     y = drawCoverField(page, fonts, y, "Name", nativeCoverValue(params.assignedRep.name));
-    y = drawCoverField(page, fonts, y, "Title", nativeCoverValue(params.assignedRep.title));
-    y = drawCoverField(page, fonts, y, "Email", nativeCoverValue(getLenderRepEmail(params.assignedRep)));
+    y = drawCoverField(page, fonts, y, "Email", nativeCoverValue(params.assignedRep.email));
     y = drawCoverField(page, fonts, y, "Phone", nativeCoverValue(params.assignedRep.mobileNumber));
   }
   page.drawLine({ start: { x: 42, y: 42 }, end: { x: 570, y: 42 }, thickness: 0.6, color: MBS_GREEN });
-  page.drawText(pdfTextForFont("My Business Solutions LLC · Lending package prepared for review", fonts.regular), {
+  page.drawText("My Business Solutions LLC · Lending package prepared for review", {
     x: 42, y: 31, size: 6.5, font: fonts.regular, color: MBS_SLATE,
   });
   return Buffer.from(await pdf.save());
@@ -381,8 +347,8 @@ export async function renderLenderPackageOmissionReportPdf(
       y = 705;
     }
     page.drawRectangle({ x: 42, y: y - 34, width: 528, height: 34, borderColor: MBS_BORDER, borderWidth: 0.5 });
-     page.drawText(pdfTextForFont(exclusion.filename, fonts.bold), { x: 48, y: y - 12, size: 8, font: fonts.bold, color: MBS_SLATE, maxWidth: 516 });
-     page.drawText(pdfTextForFont(exclusion.reason, fonts.regular), { x: 48, y: y - 25, size: 7, font: fonts.regular, color: MBS_SLATE, maxWidth: 516 });
+    page.drawText(pdfText(exclusion.filename), { x: 48, y: y - 12, size: 8, font: fonts.bold, color: MBS_SLATE, maxWidth: 516 });
+    page.drawText(pdfText(exclusion.reason), { x: 48, y: y - 25, size: 7, font: fonts.regular, color: MBS_SLATE, maxWidth: 516 });
     y -= 40;
   }
   return Buffer.from(await pdf.save());
@@ -566,7 +532,7 @@ export async function buildLenderPackagePdf(params: {
       ? {
         name: params.assignedRep.name,
         title: params.assignedRep.title,
-         email: getLenderRepEmail(params.assignedRep),
+        email: params.assignedRep.email,
         mobileNumber: params.assignedRep.mobileNumber,
         slug: params.assignedRep.slug,
         role: params.assignedRep.role,
@@ -700,7 +666,7 @@ export async function buildLenderPackagePdf(params: {
         signedApplication,
         included,
         exclusions,
-        getLenderRepEmail(params.assignedRep),
+        params.assignedRep?.email ?? null,
         params.renderPdf,
       );
     } catch (error) {

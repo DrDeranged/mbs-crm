@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Device, Call } from "@twilio/voice-sdk";
 import {
   useGetTwilioToken,
-  useGetMe,
   useUpdateCommunication,
   useCreateTask,
   getListCommunicationsQueryKey,
@@ -49,7 +48,6 @@ const OUTCOME_LABELS: Record<CallOutcome, string> = {
 export function SoftphoneWidget() {
   const { pendingNumber, autoCall, pendingLeadId, clearPending } = useContext(SoftphoneContext);
   const queryClient = useQueryClient();
-  const { data: currentUser } = useGetMe();
 
   const [minimized, setMinimized] = useState(true);
   const [dialInput, setDialInput] = useState("");
@@ -94,11 +92,8 @@ export function SoftphoneWidget() {
       onSuccess: (data) => {
         initDevice(data.token);
       },
-      onError: (requestError: any) => {
-        const reason = requestError?.response?.data?.reason;
-        setError(currentUser?.role === "admin" && reason
-          ? `Twilio unavailable: ${reason}`
-          : "Twilio calling is currently unavailable.");
+      onError: () => {
+        setError("Twilio not configured. Set TWILIO_* secrets to enable calling.");
       },
     },
   });

@@ -1,5 +1,4 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { DetailLoadError } from "@/components/detail-load-error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, FileText, CheckSquare, File as FileIcon, MessageSquare, Clock, Building2, Megaphone, ClipboardList, BarChart3, ShieldCheck, ListChecks } from "lucide-react";
 import { LeadDetailProvider, useLeadDetail } from "./lead-detail/context";
@@ -16,34 +15,16 @@ import { LeadApplication } from "./lead-detail/application";
 import { LeadFinancials } from "./lead-detail/financials";
 import { LeadCredit } from "./lead-detail/credit";
 import { LeadConsent } from "./lead-detail/consent";
-import { getQueryErrorStatus } from "@/lib/query-error";
 
 function LeadDetailContent() {
-  const {
-    lead,
-    isLoading,
-    error,
-    isAdmin,
-    retry,
-  } = useLeadDetail();
+  const { lead, isLoading } = useLeadDetail();
 
   if (isLoading) {
     return <div className="p-8 space-y-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-[400px] w-full" /></div>;
   }
 
-  if (getQueryErrorStatus(error) === 404) {
+  if (!lead) {
     return <div className="p-8 flex items-center justify-center h-full text-muted-foreground">Lead not found</div>;
-  }
-
-  if (error || !lead) {
-    return (
-      <DetailLoadError
-        entity="lead"
-        error={error}
-        isAdmin={isAdmin}
-        onRetry={retry}
-      />
-    );
   }
 
   return (

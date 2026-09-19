@@ -110,7 +110,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/tasks/:taskId` | `routes/tasks.ts:103` | `L` | task lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/documents` | `routes/documents.ts:51` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/documents` | `routes/documents.ts:80` | `L` | `lead.assignedRepId === user.id` for reps |
-| PATCH | `/api/documents/:docId` | `routes/documents.ts:154` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/documents/:docId/download` | `routes/documents.ts:138` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts:6` | `L` | handler checks `lead.assignedRepId === user.id` for reps (`lib/lenderPackage.ts:556-585`) |
 | GET | `/api/dashboard/summary` | `routes/dashboard.ts:57` | `M` | reps rejected |
@@ -171,8 +170,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/settings/lead-distribution` | `routes/settings.ts:148` | `A` | reps rejected |
 | PUT | `/api/settings/lead-distribution` | `routes/settings.ts:160` | `A` | reps rejected |
 | GET | `/api/admin/errors` | `routes/adminErrors.ts:10` | `A` | reps rejected |
-| GET | `/api/admin/migrations/status` | `routes/adminMigrations.ts:12` | `A` | reps rejected |
-| POST | `/api/admin/migrations/apply` | `routes/adminMigrations.ts:32` | `A` | reps rejected |
 | GET | `/api/admin/backup/export` | `routes/adminBackup.ts:8` | `A` | reps rejected |
 | GET | `/api/pii-access-log` | `routes/piiAccessLog.ts:11` | `A` | reps rejected |
 | GET | `/api/pii-access-log/export` | `routes/piiAccessLog.ts:77` | `A` | reps rejected |
@@ -207,7 +204,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 
 | Status | Finding | Evidence / disposition |
 | --- | --- | --- |
-| PASS | All `/admin` registrations require the exact admin role. | The 14 `/admin` rows above map to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
+| PASS | All `/admin` registrations require the exact admin role. | The 12 `/admin` rows above map to `A`; `repPublic.ts:306-325` applies the same exact predicate without `requireUser` to preserve its read-only health-check behavior. |
 | FIXED | SendGrid accepted unsigned callbacks outside production when its verification key was absent. | `sendgrid.ts:20` previously returned `!IS_PROD`. It now fails closed when no key exists, and the route returns 403 before any write (`sendgrid.ts:17-34,72-74`). |
 | FIXED | There was no router-wide regression barrier for newly registered mutations. | `routes/index.ts:64-85` now installs a Clerk-session mutation gate before every child router. The only exceptions are the explicit public form-intake and provider-callback paths in `PUBLIC_MUTATION_PATHS`. |
 | FIXED | The public rep-card `GET` had a first-view activity-log insert. | `repPublic.ts:163-185` now resolves and returns the public card without a database write; public QR/form reads remain read-only. |

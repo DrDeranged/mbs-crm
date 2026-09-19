@@ -31,40 +31,14 @@ export const GetHealthDeepResponse = zod.object({
   "status": zod.enum(['ok', 'degraded']).optional(),
   "db": zod.enum(['ok', 'fail']).optional(),
   "integrations": zod.object({
-  "twilio": zod.object({
-  "accountSid": zod.boolean(),
-  "authToken": zod.boolean(),
-  "apiKey": zod.boolean(),
-  "apiSecret": zod.boolean(),
-  "twimlAppSid": zod.boolean(),
-  "phoneNumber": zod.boolean(),
-  "twimlAppSidFormat": zod.enum(['valid', 'invalid']),
-  "voiceToken": zod.string().describe('Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.')
-}).optional(),
-  "sendgrid": zod.object({
-  "apiKey": zod.boolean(),
-  "fromEmail": zod.boolean(),
-  "fromName": zod.boolean(),
-  "webhookKey": zod.boolean(),
-  "openTracking": zod.boolean(),
-  "clickTracking": zod.boolean(),
-  "providerOpenTracking": zod.boolean(),
-  "providerClickTracking": zod.boolean()
-}).optional(),
+  "twilio": zod.boolean().optional(),
+  "sendgrid": zod.boolean().optional(),
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
 }).optional(),
   "pdf": zod.object({
   "nativeRenderer": zod.string().describe('Native PDF rendering probe result; ok or unavailable with a safe reason.'),
   "puppeteer": zod.string().describe('Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.')
-}),
-  "schema": zod.object({
-  "applied": zod.number(),
-  "pending": zod.array(zod.string()),
-  "failed": zod.object({
-  "name": zod.string().optional(),
-  "error": zod.string().optional()
-}).nullish()
 }),
   "jobs": zod.record(zod.string(), zod.unknown()).optional(),
   "uptimeSeconds": zod.number().optional(),
@@ -102,64 +76,6 @@ export const GetAdminErrorsResponse = zod.object({
   "last7d": zod.number().optional()
 }).optional(),
   "jobs": zod.record(zod.string(), zod.unknown()).optional()
-})
-
-
-/**
- * @summary List discovered schema migrations and their checksums (admin only)
- */
-export const GetAdminMigrationStatusResponse = zod.object({
-  "applied": zod.array(zod.string()),
-  "detected": zod.array(zod.string()),
-  "skipped": zod.array(zod.string()),
-  "pending": zod.array(zod.string()),
-  "mismatches": zod.array(zod.object({
-  "name": zod.string(),
-  "expected": zod.string(),
-  "actual": zod.string()
-})),
-  "failed": zod.union([zod.null(),zod.object({
-  "name": zod.string(),
-  "error": zod.string()
-})]),
-  "migrations": zod.array(zod.object({
-  "name": zod.string(),
-  "id": zod.string(),
-  "checksum": zod.string(),
-  "status": zod.enum(['applied', 'pending', 'mismatch']),
-  "appliedAt": zod.coerce.date().nullish(),
-  "appliedChecksum": zod.string().nullish(),
-  "detectedAsApplied": zod.boolean().optional()
-}))
-})
-
-
-/**
- * @summary Apply pending schema migrations one at a time (admin only)
- */
-export const ApplyAdminMigrationsResponse = zod.object({
-  "applied": zod.array(zod.string()),
-  "detected": zod.array(zod.string()),
-  "skipped": zod.array(zod.string()),
-  "pending": zod.array(zod.string()),
-  "mismatches": zod.array(zod.object({
-  "name": zod.string(),
-  "expected": zod.string(),
-  "actual": zod.string()
-})),
-  "failed": zod.union([zod.null(),zod.object({
-  "name": zod.string(),
-  "error": zod.string()
-})]),
-  "migrations": zod.array(zod.object({
-  "name": zod.string(),
-  "id": zod.string(),
-  "checksum": zod.string(),
-  "status": zod.enum(['applied', 'pending', 'mismatch']),
-  "appliedAt": zod.coerce.date().nullish(),
-  "appliedChecksum": zod.string().nullish(),
-  "detectedAsApplied": zod.boolean().optional()
-}))
 })
 
 
