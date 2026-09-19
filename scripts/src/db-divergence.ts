@@ -8,7 +8,7 @@ import {
   type CloneConfig,
 } from "./dbCloneProd";
 import { localPostgresUrl } from "./localPostgres";
-import { processRunner, type ProcessRunner } from "./process";
+import { formatFailedLine, processRunner, type ProcessRunner } from "./process";
 
 export type LedgerRow = { name: string; checksum: string; state: string };
 export type LedgerSnapshot = { valid: boolean; rows: LedgerRow[] };
@@ -91,6 +91,49 @@ export function assertDevelopmentUrl(value: string, cloneUrl: string): URL {
 }
 
 const SEP = "\x1f";
+const postgresOptionEnvironment = new Map([
+  ["application_name", "PGAPPNAME"],
+  ["channel_binding", "PGCHANNELBINDING"],
+  ["client_encoding", "PGCLIENTENCODING"],
+  ["connect_timeout", "PGCONNECT_TIMEOUT"],
+  ["gssencmode", "PGGSSENCMODE"],
+  ["krbsrvname", "PGKRBSRVNAME"],
+  ["options", "PGOPTIONS"],
+  ["requirepeer", "PGREQUIREPEER"],
+  ["sslcert", "PGSSLCERT"],
+  ["sslcrl", "PGSSLCRL"],
+  ["sslcrldir", "PGSSLCRLDIR"],
+  ["sslkey", "PGSSLKEY"],
+  ["sslmode", "PGSSLMODE"],
+  ["sslrootcert", "PGSSLROOTCERT"],
+  ["sslsni", "PGSSLSNI"],
+  ["target_session_attrs", "PGTARGETSESSIONATTRS"],
+]);
+const postgresConnectionEnvironment = [
+  "PGAPPNAME", "PGCHANNELBINDING", "PGCLIENTENCODING", "PGCONNECT_TIMEOUT",
+  "PGDATABASE", "PGGSSENCMODE", "PGHOST", "PGKRBSRVNAME", "PGOPTIONS",
+  "PGPASSWORD", "PGPORT", "PGREQUIREPEER", "PGSSLCERT", "PGSSLCRL",
+  "PGSSLCRLDIR", "PGSSLKEY", "PGSSLMODE", "PGSSLROOTCERT", "PGSSLSNI",
+  "PGTARGETSESSIONATTRS", "PGUSER",
+];
+
+export function postgresEnvironment(url: string, base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const parsed = new URL(url);
+  const env = { ...base };
+  for (const name of postgresConnectionEnvironment) delete env[name];
+  env.PGHOST = parsed.hostname;
+  if (parsed.port) env.PGPORT = parsed.port;
+  env.PGDATABASE = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+  if (parsed.username) env.PGUSER = decodeURIComponent(parsed.username);
+  if (parsed.password) env.PGPASSWORD = decodeURIComponent(parsed.password);
+  for (const [name, value] of parsed.searchParams) {
+    const environmentName = postgresOptionEnvironment.get(name);
+    if (!environmentName) throw new Error(`Unsupported PostgreSQL connection option: ${name}`);
+    env[environmentName] = value;
+  }
+  return env;
+}
+
 const snapshotSql = `BEGIN READ ONLY;
 SET LOCAL statement_timeout = '15s';
 SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='schema_migrations') AS ledger_exists \\gset
@@ -148,8 +191,10 @@ export async function snapshotDatabase(url: string, runner: ProcessRunner = proc
   const sqlFile = path.join(directory, "snapshot.sql");
   try {
     await writeFile(sqlFile, snapshotSql, { mode: 0o600 });
-    const result = await runner.capture("psql", ["--dbname", url, "--tuples-only", "--no-align",
-      `--field-separator=${SEP}`, "--set=ON_ERROR_STOP=on", "--file", sqlFile]);
+    const result = await runner.capture("psql", ["--tuples-only", "--no-align",
+      `--field-separator=${SEP}`, "--set=ON_ERROR_STOP=on", "--file", sqlFile], {
+      env: postgresEnvironment(url),
+    });
     if (result.code !== 0) throw new Error("Database snapshot query failed");
     return parseSnapshotOutput(result.stdout);
   } finally {
@@ -183,11 +228,14 @@ async function main(): Promise<void> {
     const result = await compareDatabases(process.env.DATABASE_URL);
     console.log(formatSnapshotDiff(result.diff));
     const clean = result.valid && Object.values(result.diff).every(v => v.length === 0);
-    console.log(clean ? "DB DIVERGENCE PASS" : "DB DIVERGENCE FAIL");
-    if (!clean) process.exitCode = 1;
+    if (clean) {
+      console.log("DB DIVERGENCE PASS");
+    } else {
+      console.error("DB DIVERGENCE FAILED: differences detected");
+      process.exitCode = 1;
+    }
   } catch (error) {
-    console.error("DB DIVERGENCE FAIL");
-    console.error(error instanceof Error ? error.message : "DB divergence could not be completed safely");
+    console.error(formatFailedLine("DB DIVERGENCE", error));
     process.exitCode = 1;
   }
 }

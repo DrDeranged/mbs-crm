@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { lstat, mkdir, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { processRunner, type ProcessRunner } from "./process";
+import { formatFailedLine, processRunner, type ProcessRunner } from "./process";
 import { assertLocalPostgresUrl, localPostgresUrl } from "./localPostgres";
 
 export const CLONE_DATABASE = "production_clone";
@@ -382,4 +382,7 @@ export async function cloneProduction(config = defaultCloneConfig()): Promise<vo
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename))
-  cloneProduction().catch(e => { console.error(e instanceof Error ? e.message : "DB clone failed"); process.exitCode = 1; });
+  cloneProduction().catch(error => {
+    console.error(formatFailedLine("DB CLONE", error));
+    process.exitCode = 1;
+  });
