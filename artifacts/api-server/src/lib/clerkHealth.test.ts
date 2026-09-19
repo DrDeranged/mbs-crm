@@ -3,6 +3,7 @@ import test from "node:test";
 import { PassThrough } from "node:stream";
 import {
   CLERK_FAPI,
+  CLERK_PROXY_REVISION,
   getClerkFapiOrigin,
   getClerkKeyPrefix,
   getClerkPublishableKeyOrigin,
@@ -68,6 +69,7 @@ test("production proxy logs the derived FAPI host and safe key prefixes once", (
     publishableKeyHost: "clerk.app.example.com",
     publishableKeyPrefix: "pk_live",
     secretKeyPrefix: "sk_live",
+    proxyRevision: CLERK_PROXY_REVISION,
   });
   assert.equal(getClerkKeyPrefix("invalid"), "unknown");
 });
@@ -92,6 +94,7 @@ test("production proxy logs a full upstream exception and returns a short reason
   let body = "";
   const response = {
     headersSent: false,
+    setHeader() {},
     status(value: number) { status = value; return this; },
     type() { return this; },
     send(value: string) { body = value; return this; },
@@ -147,6 +150,7 @@ test("production proxy preserves an upstream failure status and logs response he
   let body = "";
   const response = {
     headersSent: false,
+    setHeader() {},
     status(value: number) { status = value; return this; },
     type() { return this; },
     send(value: string) { body = value; return this; },

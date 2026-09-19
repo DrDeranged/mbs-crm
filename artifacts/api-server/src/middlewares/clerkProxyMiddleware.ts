@@ -26,6 +26,7 @@ import { logger } from "../lib/logger";
 
 export const CLERK_FAPI = "https://frontend-api.clerk.dev";
 export const CLERK_PROXY_PATH = "/api/__clerk";
+export const CLERK_PROXY_REVISION = "2026-09-19.1";
 
 export function getClerkKeyPrefix(value: string | undefined): string {
   return value?.match(/^(?:pk|sk)_(?:live|test)_/)?.[0].slice(0, -1) ?? "unknown";
@@ -102,6 +103,7 @@ export function clerkProxyMiddleware({
         : "unknown",
       publishableKeyPrefix: getClerkKeyPrefix(env.CLERK_PUBLISHABLE_KEY),
       secretKeyPrefix: getClerkKeyPrefix(env.CLERK_SECRET_KEY),
+      proxyRevision: CLERK_PROXY_REVISION,
     },
     "Clerk production proxy FAPI host resolved",
   );
@@ -252,6 +254,7 @@ export function clerkProxyMiddleware({
   }) as RequestHandler;
 
   return (req, res, next) => {
+    res.setHeader("X-MBS-Clerk-Proxy-Revision", CLERK_PROXY_REVISION);
     try {
       proxy(req, res, (error) => {
         if (error) fail(req, res, error, errorStatus(error));
