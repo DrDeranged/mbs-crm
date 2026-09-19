@@ -22,6 +22,12 @@ const YES_ACCEPTED_STATES = Object.freeze([
 export const EXISTING_LENDER_UPDATE_MARKER = "2026-09-14 packet update";
 export const BATCH_2_LENDER_UPDATE_MARKER = "2026-09-15 packet update";
 export const STRUCTURED_GATE_BACKFILL_MARKER = "2026-09-16 structured matcher gate backfill";
+export const AFG_TRUCKING_UPDATE_MARKER = "2026-09-18 AFG trucking criteria (direct from partner)";
+// This legacy lender predates the structured seed inventory. It is report-only:
+// maintenance must preserve it when present, but must never recreate it.
+export const PRESERVED_LEGACY_LENDER_NAMES = Object.freeze([
+  "Financial Pacific Leasing (FINPAC)",
+] as const);
 
 export interface ExistingLenderMatchingBaseline {
   programTypes: readonly string[];
@@ -41,22 +47,22 @@ export interface ExistingLenderMatchingBaseline {
 export const EXISTING_LENDER_UPDATES = Object.freeze([
   Object.freeze({
     name: "Alliance Funding Group (AFG)",
-    marker: EXISTING_LENDER_UPDATE_MARKER,
+    marker: AFG_TRUCKING_UPDATE_MARKER,
     gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
-    notes: `2026-09-14 packet update
+    notes: `2026-09-18 AFG trucking criteria (direct from partner)
 
 SOURCE STATEMENTS (verbatim):
-WORKING CAPITAL (Premium WC, app-only to $300k; up to $3MM with financials): terms 6–15 mo, weekly payback, 2% origination; grades Platinum 720+ FICO/670 PayNet (1.09–1.14), Gold 675+/660+ (1.09–1.18), Silver 650+/650+ (1.15–1.21, max 12 mo); MINIMUM 4 YEARS TIB; 3 months banks showing $20k+ avg monthly deposits; no negative ending-balance days; no prior bankruptcies; no concurrent WC contracts; open positions case by case, must net ≥50% if paying off one loan; principal-only payoff after 14 weeks. Commission 8 pts to $150k, 6 pts $151k+ (Silver up to 20). Restricted (WC): cannabis, law offices, adult, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents/brokers, vape, collections, pawn; transportation cautionary — 5 yrs TIB, 5 trucks, homeownership; online retailers, import/export, accounting, financial services also restricted per WC sheet.
-EQUIPMENT (app-only $50k–$500k, A–C credits): minimum FICO 600, minimum PayNet Master 620, rates 8.25%–23%, 20-pt commission cap, EFA/$1-out/TRL/FMV. Restricted (EF): cannabis, law offices, adult, tow trucks for towing businesses, med lasers/med spa, vending, gaming, staffing, non-franchise used car dealers, MSBs, real estate agents, vape, collections, pawn, motorcoaches, used high-tech, Penske/Ryder dealers. Cautionary: transportation (5 yrs TIB, 5 trucks, homeownership), oil production, brewery/distillation, food trucks, non-essential equipment, passenger cars, firearms.
-Middle market $500k–$50MM+ with full financials.
-Contacts: Tyson Garrett VP (714) 453-3687 TGarrett@afg.com; Atalie Daniel (714) 221-1019 adaniel@afg.com (already on file); Ashley Bradburn, Katie Bates. Payoffs: PayoffRequest@afg.com.
+- TRUCKING / TRANSPORTATION (OTR): 5 years time in business; minimum of 5 trucks currently in fleet; 680+ FICO; homeownership; satisfactory PayNet report.
+- "That's just for OTR and trucking/transportation companies. We do vocational vehicles without guidelines but no tow trucks!" — i.e. vocational vehicles are financed WITHOUT the trucking criteria above; TOW TRUCKS are excluded entirely.
+- Contact correction: Atalie's email on this thread is acurtis@afg.com (her signature block still shows adaniel@afg.com); phone (714) 221-1019, mobile (661) 487-5305; address 18231 Irvine Blvd, Tustin, CA 92780.
 
 SCHEMA MAPPING:
-→ Schema: set WC minTimeInBusinessMonths 48 and WC minCreditScore 650 (Silver floor) / EF minCreditScore 600 if the schema supports per-program values; otherwise keep 600/48 and put the split in notes. maxAmount stays 500000 (EF app-only); WC app-only 300000 in notes.`,
+→ Schema: AFG's OTR gate is represented structurally for the matcher; vocational vehicles bypass it, trailers/construction/other use ordinary rules, and tow trucks are prohibited.`,
     structuredPatch: Object.freeze({
       minCreditScore: 600,
       minTimeInBusinessMonths: 48,
       maxAmount: 500_000,
+      contactEmail: "acurtis@afg.com",
       programEligibilityRules: Object.freeze([
         Object.freeze({
           programType: "working_capital",
@@ -67,8 +73,9 @@ SCHEMA MAPPING:
             "vape", "collections", "pawn", "transportation", "online retailers",
             "import/export", "accounting", "financial services",
           ]),
+           prohibitedIndustries: Object.freeze(["tow trucks"]),
           truckingRules: Object.freeze([
-            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+             Object.freeze({ industry: "long_haul", minTrucks: 5, minTimeInBusinessMonths: 60 }),
           ]),
         }),
         Object.freeze({
@@ -79,8 +86,9 @@ SCHEMA MAPPING:
             "non-franchise used car dealers", "MSBs", "real estate agents", "vape",
             "collections", "pawn", "motorcoaches", "used high-tech", "Penske/Ryder dealers",
           ]),
+           prohibitedIndustries: Object.freeze(["tow trucks"]),
           truckingRules: Object.freeze([
-            Object.freeze({ industry: "any", minTrucks: 5, minTimeInBusinessMonths: 60 }),
+             Object.freeze({ industry: "long_haul", minTrucks: 5, minTimeInBusinessMonths: 60 }),
           ]),
         }),
       ]),
@@ -697,6 +705,86 @@ SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditSc
     restrictedIndustries: Object.freeze(["car dealerships", "trucking", "law firms"]),
     minMonthlyRevenue: 1_000_000,
     restrictedIndustryMinMonthlyRevenue: 1_000_000,
+  }),
+  Object.freeze({
+    name: "Maxim Commercial Capital",
+    programTypes: Object.freeze(["equipment", "working_capital"]),
+    minAmount: 20_000,
+    maxAmount: 250_000,
+    minCreditScore: null,
+    minTimeInBusinessMonths: 0,
+    acceptedStates: Object.freeze(ALL_US_STATES.filter((state) => !["AK", "HI", "LA"].includes(state))),
+    contactEmail: "submit@maximcc.com",
+    minMonthlyRevenue: null,
+    programEligibilityRules: Object.freeze([
+      Object.freeze({ programType: "working_capital", requiresCollateral: true }),
+    ]),
+    notes: `SOURCE STATEMENTS (verbatim):
+ - POSITIONING: "your lender for non-bankable clients." Credit profile: challenged & "story" credits; B–D credits; no minimum FICO; non-bankable borrowers; start-ups OK; SOFT credit checks; low to no down payment with additional equipment and/or real estate; discharged BK OK; thin credit file OK; higher revolver utilization OK. Nationwide except Alaska, Hawaii & Louisiana.
+ - USES: buy or lease heavy equipment; buy or lease OTR sleeper, day cab, box truck, trailer or reefer; access working capital (EFA or lease with purchase option, secured); consolidate expensive MCA loans and other short-term debt (secured by qualified real estate and/or equipment); real estate financing.
+ - TERMS: equipment 12–60 months, up to 80% of retail price; real estate fundings > $200K 6–60 months, < $200K 12–60 months; $100K–$3M up to 70% combined LTV. Risk-based pricing and down payment by credit tier.
+ - CREDIT TIER GRID (a borrower must meet or beat ALL variables in a column; effective 4.6.26):
+   B1: rate 18.5%–31.0%; down 10.0%–25.0%; min FICO 760; min TIB 5 yrs; age oldest tradeline 5 yrs; min # tradelines 5; min comp credit 70%; max % revolver used 40%; min $ revolver available $12,500; years from last derogatory/delinquent credit 7.
+   B2: rate 21.5%–36.0%; down 15.0%–27.5%; FICO 730; TIB 2; oldest tradeline 4; tradelines 4; comp credit 60%; revolver used 50%; revolver available $10,000; years from derog 6.
+   B3: rate 24.5%–38.0%; down 20.0%–30.0%; FICO 700; TIB 2; oldest tradeline 4; tradelines 4; comp credit 50%; revolver used 60%; revolver available $7,500; years from derog 5.
+   C1: rate 29.5%–40.0%; down 25.0%–35.0%; FICO 650; TIB —; oldest tradeline 3; tradelines 3; other variables —.
+   C2: rate 33.5%–42.0%; down 30.0%–42.5%; FICO 610; oldest tradeline 3; tradelines 3.
+   D1: rate 39.0%–47.0%; down 35.0%–50.0%; FICO 560; oldest tradeline 2; tradelines 2.
+   D2: rate 44.0%–55.0%; down 40.0%–60.0%; FICO 500; oldest tradeline 2; tradelines 2.
+   CREDIT BUILDER: rate 44.0%–55.0%; down 40.0%–60.0%; FICO < 500; all other variables —.
+   Footnotes: Maxim prices at or near the lowest possible rate per tier; spreads correlate to obligor credit, equipment type, useful life, FMV. Down payment quoted at the best available in range based on collateral age, useful life, FMV, applicant risk.
+ - HEAVY EQUIPMENT (construction, vocational, agriculture) $20,000–$250,000: minimum FLV $20,000/unit; owned collateral meeting guidelines may reduce or replace down payment; 1st lien only; 24–60 month terms; early payoff any time after funding = PV of remaining payments discounted at 10% annual + outstanding payments/fees. Submission: Heavy Equipment Application, equipment invoice(s) & specifications, last 3 months complete business bank statements. Fees: $850 documentation; $350 per GPS unit; $300 per site inspection; $100 UCC search & file; title work at cost. Commission: up to 15% ≤ $75,000; up to 12% $75,001–$250,000; up to 5% on fundings for New York-based borrowers.
+ - TRUCKS & TRAILERS $20,000–$150,000: 1st lien only; 12–60 month terms; NON-STARTERS: Mercedes Benz engines & Cat-13 engines; 2019 International ProStars without Cummins ISX engines; medium duty MaxxForce 7 & 9 engines; private-party sales; rebuilt, rebranded or salvaged titles; current or dismissed BK (discharged BK OK); open tax liens > $10K; auto charge-offs or repossessions. Commission: 8% with ≥ 20% down; up to 10% with ≥ 40% down. EFA early payoff after 12 consecutive on-time months = principal outstanding + 10% of total advance; leases: no prepayment contractually allowed. Submission: Truck Purchase Finance Credit Application; dealer invoice/quote; spec sheet (price, specs, mileage, VIN, engine make & model, transmission, sleeper size & type) on dealer letterhead or hyperlink to dealer website; last 3 months bank statements. Fees: $850 documentation; $700 GPS.
+ - REAL ESTATE $100,000–$3,000,000, 1st/2nd/3rd liens, up to 70% CLTV; minimum FMV $200,000/property; office, retail, industrial, multifamily, residential, infill land; uses: working capital, refinancing, improvements, property purchase; commission up to 5% subject to term; fees $1,500+ documentation, $300 site inspection, $100 UCC, title at cost; submission includes last year's business & personal tax returns, property financials 2 yrs + YTD, appraisals, mortgage/LOC statements, rent roll.
+ - STRUCTURED FINANCING $20,000–$3,000,000 secured by real estate and heavy equipment: equipment up to 80% LTV min $20,000 FLV/unit; real estate up to 70% CLTV min $200,000 FMV; non-starters: private party sales, dismissed or open BK, rebuilt/rebranded/salvaged titles; commission up to 12% $20K–$250K, up to 5% $250K–$3MM, subject to term; fees $1,500+ documentation, $350 GPS, $300 inspection, $100 UCC.
+ - CONTACTS: submit@maximcc.com (applications, submissions, stips, collateral/invoice changes); brokers@maximcc.com 213-480-4840 x2002 (Broker Relations); Don Cosenza, SVP Business Development, donald@maximcc.com, (213) 425-3163; credit@maximcc.com (Luis Ranola x111, Charles Salanga x122); docs@maximcc.com; funding@maximcc.com (Juan Guevara x126). Licensed California Finance Lender. 877.776.2946 on approval notices.
+ - EVIDENCE: MBS already has a live Maxim approval (Godspeed Technologies, 09/16/2026, tier C1, EFA 24 × $1,735.69, 30% down) — this lender is active for MBS today.
+
+MATCHER MAPPING: working_capital requires hasCollateral=true (qualified real-estate or equipment collateral); bankruptcy and tax-lien restrictions are documented above but are not matcher-gated because those application fields do not exist.
+SCHEMA MAPPING: programs equipment + working_capital (structured/secured only); $20,000–$250,000 as the app-only band; minCreditScore null with tier floors in notes; TIB 0; states all except AK/HI/LA; minMonthlyRevenue null (not stated — bank statements required but no floor given).`,
+    isActive: true,
+    acceptedIndustries: Object.freeze([]),
+    restrictedIndustries: Object.freeze([
+      "Mercedes Benz engines", "Cat-13 engines",
+      "2019 International ProStars without Cummins ISX engines",
+      "medium duty MaxxForce 7 & 9 engines", "private-party sales",
+      "rebuilt, rebranded or salvaged titles", "auto charge-offs or repossessions",
+    ]),
+  }),
+  Object.freeze({
+    name: "Fenix Capital Funding",
+    programTypes: Object.freeze(["working_capital", "MCA"]),
+    minAmount: null,
+    maxAmount: 250_000,
+    minCreditScore: 500,
+    minTimeInBusinessMonths: 12,
+    acceptedStates: Object.freeze(ALL_US_STATES.filter((state) => !["PR", "HI", "CA", "AK"].includes(state))),
+    contactEmail: "iso@fenixcapitalfunding.com",
+    notes: `SOURCE STATEMENTS (verbatim):
+- THE BOX: 1st–5th positions and reverse consolidations; max funding $250k for MCAs and $375k for reverses; max term 15 months (60 weeks); daily, weekly and bi-weekly payments; straight buyouts up to $100k; EPAs included in every contract; sweet spot 2nd–3rd position behind reputable A-paper funders; renewals as early as 25% paid in, plus add-ons; max holdback 30% total.
+- BASIC REQUIREMENTS: TIB minimum 1 year; credit score minimum 500 preferred (exceptions with MCA history); revenue ≥ $20k monthly excluding transfers, returns and international wires; negative days up to 5 per month; minimum 4 deposits per month; ownership minimum 67%; no open bankruptcies or defaults.
+- BACKGROUND: no previous defaults unless satisfied timely with re-established payment history. Bankruptcies — will not fund where (a) a pattern of frequent bankruptcies, (b) Chapter 7/11 discharged less than 3 years or dismissed within a year, or (c) Chapter 13 discharged less than 1.5 years or dismissed within a year. Tax liens case-by-case, but automatic decline if (a) liens within a year or (b) more than $50k in liens without a payment plan. Criminal background — financial crimes, fraud, OFAC issues or any violent criminal history is an automatic decline. Civil judgments case-by-case.
+- SUBMISSION DOCS: signed and dated application for each owner (67% of ownership required); 3 months business bank statements (4 months for NY); current balances for active positions if applying for a reverse/buyout. FOR CONTRACTS: voided check for the primary business account; driver's licence and a separate email for each owner; balance confirmations for current positions on buyouts/reverses. FOR FUNDING: proof of ownership (SOS, tax returns, EIN letter, purchase agreement), future-receivables confirmation (detailed AR, invoices, CC processing statements) unless visible, proof of citizenship (US passport, green card, EAD), bank verification (manual or Decision Logic, confirmed with UW), Persona ID verification link completed by the merchant, payback months and Tax Guard for files over $150k, additional docs case by case.
+- EARLY PREPAYMENT DISCOUNTS: every contract includes a Discount Addendum. Term longer than 8 months (160 days / 32 weeks): days 1–30 = 20 discount points, 31–60 = 16, 61–90 = 12, 91–120 = 8. Term 8 months or shorter: 1–30 = 16, 31–60 = 12, 61–90 = 8. "Your commission on the deal doesn't change. Instead, points are taken off the factor."
+- AGGRESSIVE EPA (profit-sharing model): ISO receives 20% of the factor points upfront and the remaining commission after 90 days. Example: EPAs of 1.10 (30 days), 1.13 (60), 1.16 (90) → 2 points upfront (20% of 0.10), the rest after 90 days.
+- EXCLUSIVITY: given to the submitting ISO when the contract is signed, lasting 3 business days; duplicate ISO submissions auto-declined during that window; if not funded in 3 business days exclusivity ends; where multiple ISOs submit the same business they receive the same offer/revisions and the ISO who gets the contract signed first holds exclusivity; rate/fee reductions come out of the ISO's commission when there is competition; exclusivity ends after payoff.
+- PRICING: average term 36–40 weeks, max 60 weeks; processing fee 5% on MCA files, 6% on consolidation files; all offers sent with 12 points commission built in unless competing offers have been downsold; restricted states PR, HI, CA and AK; weekly/bi-weekly payments case by case.
+- AUTO DECLINES: currently in a consolidation with another funder; currently on reduced payments with another funder or bouncing payments to current funders; past-due child support on the personal credit report; payments to MCA debt restructuring/relief companies; multiple fundings within the last 30 days.
+- RESTRICTED INDUSTRIES: adult entertainment; gaming/gambling; non-profit; law firms; auto sales; bail bonds; check cashing; fix and flip; TRUCKING; auctions or pawn shops; credit repair; gas stations; payroll or payment processing; staffing; property management (unless properties are owned by the merchant); money transfer services/financial institutions; securities and commodities dealers; financial brokers; oil field services; travel agencies.
+- ADDRESS: Fenix Capital Funding, LLC, 9265 4th Ave Fl 2, Brooklyn, NY 11209. Main line (877) 563-4226. ISO email iso@fenixcapitalfunding.com. Introduced to MBS by Klaudia (partner inquiry forwarded by Nate Ford 2026-09-17).
+
+SCHEMA MAPPING: working_capital + MCA; max 250000 (reverse 375000 in notes); minCreditScore 500; TIB 12; minMonthlyRevenue 20000; excluded states PR/HI/CA/AK; prohibited industries = the restricted list above (note TRUCKING is prohibited — Fenix must never match a trucking lead).`,
+    isActive: true,
+    acceptedIndustries: Object.freeze([]),
+    prohibitedIndustries: Object.freeze([
+      "adult entertainment", "gaming/gambling", "non-profit", "law firms", "auto sales",
+      "bail bonds", "check cashing", "fix and flip", "TRUCKING", "auctions or pawn shops",
+      "credit repair", "gas stations", "payroll or payment processing", "staffing",
+      "property management (unless properties are owned by the merchant)",
+      "money transfer services/financial institutions", "securities and commodities dealers",
+      "financial brokers", "oil field services", "travel agencies",
+    ]),
+    minMonthlyRevenue: 20_000,
   }),
 ] as const);
 

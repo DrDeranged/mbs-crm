@@ -22,9 +22,10 @@ export function repChooserApplyHref(
   rep: RepChooserData,
   requestedSlug: string,
   basePath: string,
+  invite?: string | null,
 ): string {
   const base = basePath.replace(/\/$/, "");
-  return `${base}/apply?rep=${encodeURIComponent(canonicalRepSlug(rep, requestedSlug))}`;
+  return `${base}/apply?rep=${encodeURIComponent(canonicalRepSlug(rep, requestedSlug))}${invite ? `&invite=${encodeURIComponent(invite)}` : ""}`;
 }
 
 export function repChooserAttribution(

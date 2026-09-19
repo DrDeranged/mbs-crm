@@ -16,6 +16,8 @@ import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
 import { getPublicBaseUrl } from "./brand";
 import { isEmailSuppressed } from "./emailSafety";
+import { canReadMarketingResource } from "./authHelpers";
+import { isUsfaMarketingBlocked } from "./intake/usfaCompliance";
 
 let running: boolean | undefined;
 
@@ -83,6 +85,20 @@ export async function runDripJob(): Promise<void> {
         }
 
         const lead = enrollment.lead;
+        if (lead && await isUsfaMarketingBlocked(db, lead.leadSource)) {
+          await logActivity({
+            userId: null,
+            leadId: lead.id,
+            action: "drip_consent_skip",
+            entityType: "drip_enrollment",
+            entityId: enrollment.id,
+            details: { skipReason: "usfa_consent_not_confirmed", sequenceId: enrollment.sequenceId, step: enrollment.currentStep + 1 },
+          });
+          await db.update(dripEnrollmentsTable)
+            .set({ status: "unenrolled", unenrolledAt: new Date() })
+            .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          continue;
+        }
         if (!lead || !lead.email || lead.isUnsubscribed || (lead.email && await isEmailSuppressed(lead.email))) {
           const skipReason = !lead
             ? "lead_not_found"
@@ -108,19 +124,27 @@ export async function runDripJob(): Promise<void> {
         // Load template
         const template = await db.query.emailTemplatesTable.findFirst({
           where: eq(emailTemplatesTable.id, step.templateId),
+          with: { owner: true },
         });
-        if (!template || !template.isActive) {
-          await db.update(dripEnrollmentsTable)
-            .set({ status: "unenrolled", unenrolledAt: new Date() })
-            .where(eq(dripEnrollmentsTable.id, enrollment.id));
-          logger.warn({ enrollmentId: enrollment.id, templateId: step.templateId }, "Drip enrollment stopped because its template is missing or inactive");
-          continue;
-        }
-
-        // Load assigned rep
+        // Revalidate step-template access at send time. Sequences may outlive
+        // ownership changes, so a rep's enrollment must never send a private
+        // template owned by another rep.
         const rep = lead.assignedRepId
           ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) })
           : null;
+        if (
+          !template ||
+          !template.isActive ||
+          (rep
+            ? !canReadMarketingResource(rep, template.owner)
+            : template.owner?.role !== "admin")
+        ) {
+          await db.update(dripEnrollmentsTable)
+            .set({ status: "unenrolled", unenrolledAt: new Date() })
+            .where(eq(dripEnrollmentsTable.id, enrollment.id));
+          logger.warn({ enrollmentId: enrollment.id, templateId: step.templateId }, "Drip enrollment stopped because its template is unavailable or inaccessible");
+          continue;
+        }
 
         const vars = buildVariables(lead, rep);
         const subject = renderTemplate(template.subject, vars);
@@ -142,11 +166,12 @@ export async function runDripJob(): Promise<void> {
               : enrollment.sequence.senderMode
           ) as "default" | "assigned_rep",
           rep,
+          deliveryKind: "drip",
         });
 
         if (sendError) {
           logger.error({ enrollmentId: enrollment.id, leadId: lead.id, error: sendError }, "Drip step send failed");
-          if (send.status === "unsubscribed") {
+          if (send?.status === "unsubscribed") {
             await db.update(dripEnrollmentsTable)
               .set({ status: "unenrolled", unenrolledAt: new Date() })
               .where(eq(dripEnrollmentsTable.id, enrollment.id));

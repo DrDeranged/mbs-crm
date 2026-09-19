@@ -30,6 +30,15 @@ test("production parser accepts and normalizes a nine-digit EIN", () => {
   }
 });
 
+test("production parser accepts the optional collateral boolean and defaults it when omitted", () => {
+  const omitted = parseApplicationSubmission(validSubmission());
+  assert.equal(omitted.success, true);
+  if (omitted.success) assert.equal(omitted.data.hasCollateral, undefined);
+  const supplied = parseApplicationSubmission(validSubmission({ hasCollateral: "true" }));
+  assert.equal(supplied.success, true);
+  if (supplied.success) assert.equal(supplied.data.hasCollateral, "true");
+});
+
 test("production parser reports malformed EIN with its field and format message", () => {
   const result = parseApplicationSubmission(validSubmission({ ein: "12-345" }));
   assert.equal(result.success, false);
@@ -37,6 +46,14 @@ test("production parser reports malformed EIN with its field and format message"
     const error = firstValidationError(result.error.issues);
     assert.equal(error.field, "ein");
     assert.match(error.message, /EIN must be/);
+  }
+});
+
+test("production parser turns a malformed non-object body into a named validation error", () => {
+  const result = parseApplicationSubmission(null);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.equal(firstValidationError(result.error.issues).field, "type");
   }
 });
 

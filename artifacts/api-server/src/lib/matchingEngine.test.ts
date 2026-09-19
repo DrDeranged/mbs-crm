@@ -293,6 +293,47 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
   assert.equal(matchedNames.includes("Channel Partners Capital"), false);
   assert.equal(matchedNames.includes("Alliance Funding Group (AFG)"), false);
 
+  // AFG's special gate is driven by the explicit equipment category, not
+  // generic trucking text. Missing OTR facts are reported safely.
+  const afgOtr = {
+    name: afgUpdate.name,
+    ...afgUpdate.matchingBaseline,
+    ...afgUpdate.structuredPatch,
+  };
+  const otrEvaluation = evaluateLender(
+    afgOtr,
+    { ...fixture, creditScore: 679 },
+    fixture.company,
+    {
+      industry: "trucking",
+      timeInBusinessMonths: 59,
+      trucksInFleet: 4,
+      equipmentCategory: "otr_truck",
+      isHomeowner: false,
+    },
+  );
+  assert.equal(otrEvaluation.eligible, false);
+  assert.deepEqual(
+    otrEvaluation.criteriaBreakdown
+      .filter((criterion) => criterion.criterion.startsWith("AFG OTR"))
+      .map((criterion) => criterion.criterion),
+    ["AFG OTR Time in Business", "AFG OTR Fleet", "AFG OTR FICO", "AFG OTR Homeownership"],
+  );
+  assert.match(
+    otrEvaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "AFG OTR FICO")!.detail,
+    /below OTR minimum 680/,
+  );
+  assert.equal(evaluateLender(
+    afgOtr,
+    { ...fixture, creditScore: 640 },
+    fixture.company,
+    {
+      industry: "trucking",
+      timeInBusinessMonths: 24,
+      equipmentCategory: "vocational",
+    },
+  ).eligible, true);
+
   // Notes retain packet guidance for human underwriting; they are not parsed
   // or used as an eligibility shortcut by the evaluator.
   assert.match(
@@ -305,7 +346,7 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
   );
   assert.match(
     EXISTING_LENDER_UPDATES.find((update) => update.name === "Alliance Funding Group (AFG)")!.notes,
-    /transportation cautionary/,
+    /TRUCKING \/ TRANSPORTATION \(OTR\)/,
   );
   assert.match(
     NEW_LENDER_SEEDS.find((lender) => lender.name === "Luminar Capital")!.notes,
@@ -477,4 +518,253 @@ test("product-scoped revenue gates and all-program industry restrictions apply c
     null,
     { industry: "Long-Haul Trucking", timeInBusinessMonths: 24 },
   ).eligible, false);
+});
+
+test("Section D Fenix and AFG packet scenarios use production seed rows and matcher", () => {
+  const fenix = newLenderSeedToInsertValues(
+    NEW_LENDER_SEEDS.find((seed) => seed.name === "Fenix Capital Funding")!,
+  );
+  const afgUpdate = EXISTING_LENDER_UPDATES.find(
+    (update) => update.name === "Alliance Funding Group (AFG)",
+  )!;
+  const afg = {
+    name: afgUpdate.name,
+    ...afgUpdate.matchingBaseline,
+    ...afgUpdate.structuredPatch,
+  };
+  const validFenixLead = {
+    applicationType: "working_capital",
+    requestedAmount: 25_000,
+    creditScore: 520,
+    existingPositions: 3,
+    businessState: "NY",
+  };
+  const validFenixApplication = {
+    industry: "professional services",
+    timeInBusinessMonths: 18,
+    monthlyRevenueStated: 25_000,
+  };
+
+  assert.equal(evaluateLender(
+    fenix,
+    validFenixLead,
+    null,
+    { ...validFenixApplication, industry: "trucking" },
+  ).eligible, false);
+  assert.equal(evaluateLender(
+    fenix,
+    validFenixLead,
+    null,
+    { ...validFenixApplication, industry: "merchant services", businessState: "CA" },
+  ).eligible, false);
+  assert.equal(evaluateLender(fenix, validFenixLead, null, validFenixApplication).eligible, true);
+
+  const validAfgVocational = {
+    applicationType: "equipment",
+    requestedAmount: 60_000,
+    creditScore: 640,
+    existingPositions: 1,
+    businessState: "NY",
+  };
+  assert.equal(evaluateLender(
+    afg,
+    validAfgVocational,
+    null,
+    { industry: "trucking", equipmentCategory: "vocational", timeInBusinessMonths: 24 },
+  ).eligible, true);
+  assert.equal(evaluateLender(
+    afg,
+    validAfgVocational,
+    null,
+    { industry: "tow truck", equipmentCategory: "vocational", timeInBusinessMonths: 24 },
+  ).eligible, false);
+
+  const otrApplication = {
+    industry: "transportation",
+    equipmentCategory: "otr_truck" as const,
+    timeInBusinessMonths: 60,
+    trucksInFleet: 5,
+    isHomeowner: true,
+  };
+  assert.equal(evaluateLender(
+    afg,
+    { ...validAfgVocational, creditScore: 680 },
+    null,
+    otrApplication,
+  ).eligible, true);
+  for (const [field, value] of [
+    ["timeInBusinessMonths", 59],
+    ["trucksInFleet", 4],
+    ["isHomeowner", false],
+  ] as const) {
+    assert.equal(evaluateLender(
+      afg,
+      { ...validAfgVocational, creditScore: 680 },
+      null,
+      { ...otrApplication, [field]: value },
+    ).eligible, false, `${field} threshold must be enforced independently`);
+  }
+  assert.equal(evaluateLender(
+    afg,
+    { ...validAfgVocational, creditScore: 679 },
+    null,
+    otrApplication,
+  ).eligible, false);
+});
+
+test("Maxim uses state/amount/TIB gates, ignores FICO, and requires collateral for WC", () => {
+  const maxim = newLenderSeedToInsertValues(
+    NEW_LENDER_SEEDS.find((seed) => seed.name === "Maxim Commercial Capital")!,
+  );
+  const equipmentLead = {
+    applicationType: "equipment", requestedAmount: 50_000, creditScore: 540,
+    existingPositions: null, businessState: "TX",
+  };
+  const app = { industry: "professional services", timeInBusinessMonths: 6, hasCollateral: false };
+  assert.equal(evaluateLender(maxim, equipmentLead, null, app).eligible, true);
+  for (const lender of [
+    newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((seed) => seed.name === "Navitas Credit Corp")!),
+    newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((seed) => seed.name === "Channel Partners Capital")!),
+    { name: "Alliance Funding Group (AFG)", programTypes: ["equipment"], minAmount: 10_000, maxAmount: 500_000,
+      minCreditScore: 600, minTimeInBusinessMonths: 48, acceptedStates: [], acceptedIndustries: [] },
+  ]) {
+    assert.equal(evaluateLender(lender, equipmentLead, null, app).eligible, false);
+  }
+  assert.equal(evaluateLender(maxim, { ...equipmentLead, businessState: "LA" }, null, app).eligible, false);
+  assert.equal(evaluateLender(
+    maxim, { ...equipmentLead, applicationType: "working_capital" }, null, app,
+  ).eligible, false);
+  assert.equal(evaluateLender(
+    maxim, { ...equipmentLead, applicationType: "working_capital" }, null, { ...app, hasCollateral: true },
+  ).eligible, true);
+});
+
+test("AFG vocational exceptions are scoped to equipment applications", () => {
+  const afg = {
+    name: "Alliance Funding Group (AFG)",
+    minTimeInBusinessMonths: 48,
+  };
+  const evaluation = evaluateLender(
+    afg,
+    {
+      applicationType: "working_capital",
+      requestedAmount: 50_000,
+      creditScore: 700,
+      existingPositions: null,
+    },
+    { industry: "transportation", timeInBusinessMonths: 24 },
+    { equipmentCategory: "vocational" },
+  );
+
+  assert.equal(evaluation.eligible, false);
+  assert.equal(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Time in Business")?.passed,
+    false,
+  );
+  assert.equal(
+    evaluation.criteriaBreakdown.some((criterion) => criterion.criterion.startsWith("AFG OTR")),
+    false,
+  );
+});
+
+test("AFG tow-truck exclusion considers company and application signals", () => {
+  const cases = [
+    ["company industry", "company", "Towing"],
+    ["company industry plural", "company", "Towing companies"],
+    ["application industry", "application", "Towing business"],
+    ["application industry plural", "application", "Towing businesses"],
+    ["equipment description", "description", "Towing service"],
+    ["equipment description plural", "description", "Towing services"],
+    ["year/model", "model", "Towing operation"],
+    ["year/model plural", "model", "Towing operations"],
+    ["tow truck", "description", "2024 tow truck"],
+    ["tow-truck", "model", "2024 tow-truck"],
+    ["wrecker", "description", "Commercial wrecker"],
+  ] as const;
+
+  for (const [label, signal, value] of cases) {
+    const evaluation = evaluateLender(
+      { name: "Alliance Funding Group (AFG)" },
+      {
+        applicationType: "equipment",
+        requestedAmount: 50_000,
+        creditScore: 700,
+        existingPositions: null,
+      },
+      {
+        industry: signal === "company" ? value : "transportation",
+        timeInBusinessMonths: 24,
+      },
+      {
+        industry: signal === "application" ? value : "transportation",
+        equipmentDescription: signal === "description" ? value : "Normal equipment",
+        yearMakeModel: signal === "model" ? value : "2024 vehicle",
+      },
+    );
+
+    assert.equal(evaluation.eligible, false, `${label} must exclude AFG`);
+    assert.equal(
+      evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "AFG Tow Trucks")?.passed,
+      false,
+      `${label} must emit the tow exclusion`,
+    );
+  }
+});
+
+test("AFG restricted trucking exceptions cannot be used by working-capital applications", () => {
+  const afg = {
+    name: "Alliance Funding Group (AFG)",
+    restrictedIndustries: ["trucking"],
+    minTimeInBusinessMonths: 48,
+  };
+  const lead = {
+    applicationType: "working_capital",
+    creditScore: 600,
+    requestedAmount: 50_000,
+    existingPositions: null,
+  };
+  const baseApplication = {
+    industry: "OTR trucking",
+    timeInBusinessMonths: 48,
+    trucksInFleet: 1,
+    isHomeowner: false,
+  };
+
+  for (const equipmentCategory of [undefined, "otr_truck"] as const) {
+    const evaluation = evaluateLender(
+      afg,
+      lead,
+      { industry: "OTR trucking" },
+      { ...baseApplication, equipmentCategory },
+    );
+    assert.equal(evaluation.eligible, false, `category ${equipmentCategory ?? "omitted"} must remain restricted`);
+    assert.equal(
+      evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Restricted Industry")?.passed,
+      false,
+    );
+  }
+});
+
+test("AFG tow exclusion ignores incidental towing equipment language", () => {
+  const evaluation = evaluateLender(
+    { name: "Alliance Funding Group (AFG)" },
+    {
+      applicationType: "equipment",
+      requestedAmount: 50_000,
+      creditScore: 700,
+      existingPositions: null,
+    },
+    { industry: "transportation", timeInBusinessMonths: 24 },
+    {
+      industry: "transportation",
+      equipmentDescription: "Pickup with tow package",
+      yearMakeModel: "2024 pickup with tow hitch",
+    },
+  );
+
+  assert.equal(evaluation.eligible, true);
+  assert.equal(
+    evaluation.criteriaBreakdown.some((criterion) => criterion.criterion === "AFG Tow Trucks"),
+    false,
+  );
 });

@@ -16,19 +16,9 @@ import { ArrowLeft, DollarSign } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 
-const STAGES = [
-  { id: DealStage.waiting_on_app, label: "Waiting on App" },
-  { id: DealStage.information_needed, label: "Info Needed" },
-  { id: DealStage.submitted, label: "Submitted" },
-  { id: DealStage.approved, label: "Approved" },
-  { id: DealStage.going_to_funding, label: "Going to Funding" },
-  { id: DealStage.in_funding, label: "In Funding" },
-  { id: DealStage.funded, label: "Funded" },
-  { id: DealStage.hold_on, label: "Hold On" },
-  { id: DealStage.declined, label: "Declined" },
-  { id: DealStage.dead, label: "Dead" },
-];
+const STAGES = DEAL_STAGE_COLUMNS;
 
 export default function NewDeal() {
   const [, setLocation] = useLocation();

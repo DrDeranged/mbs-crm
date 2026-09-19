@@ -11,15 +11,46 @@ id = "o3z6dDo2HWXmopqbzLI3T"
 uri = "file://MBS_CRM_Audit_Report.pdf"
 type = "pdf"
 title = "MBS CRM — Project Audit Report"
+logical_id = "3a424cc7-c783-4e3e-9952-1740223a7bee"
 
 [[outputs]]
 id = "kcG-Kb5bsp3oUNmk1eRwd"
 uri = "file://mbs-crm-timeline.pdf"
 type = "pdf"
 title = "MBS CRM — Weekly Timeline"
+logical_id = "51cc9186-5363-47db-8e34-bc9af26b8174"
 
 [[outputs]]
 id = "EsrVLSRSGkGHUGWwNLhc-"
 uri = "file://mbs-crm-rte-verification.pdf"
 type = "pdf"
 title = "RTE Verification Report"
+logical_id = "dab560ea-2091-41dc-b302-4535f40a8ca6"
+
+[[outputs]]
+id = "ufXS6azKwv5l9yltY7gCP"
+uri = "file://reports/preflight-2026-09-18.txt"
+type = "text"
+title = "Clerk FAPI proxy preflight — PASS"
+description = "Complete preflight transcript for the FAPI host derivation and non-chunked production proxy fix."
+logical_id = "56692b0f-4b19-48c7-992b-51c6f6710288"
+content_hash = "sha256:0c916d6f4d254e662813d6a4cfba910ad6c7951652c16db6751d466324365bd6"
+size = 75540
+mtime_ms = 1789741667422
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/56692b0f-4b19-48c7-992b-51c6f6710288/cc3f1c8f-da47-42f3-ba69-1058eb8f22c5"
+storage_version_token = "1789741743982503"
+content_type = "text/plain"
+
+[[outputs]]
+id = "Bm42BNUXGdGe-OWVy41eA"
+uri = "file://reports/preflight-pwa-push-2026-09-18.txt"
+type = "text"
+title = "A–C pre-release preflight — PASS"
+description = "Complete preflight transcript after notifications hardening: typechecks, tests, migration lint, schema parity, production smoke, and migration rehearsal passed."
+logical_id = "95dde7cd-89fe-4230-b517-e0c66e70030f"
+content_hash = "sha256:b03adef5960aac6e1b6dba609d055ac6b0e86c8af5748abdac643cda9f6f400e"
+size = 80035
+mtime_ms = 1789747191557
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/95dde7cd-89fe-4230-b517-e0c66e70030f/a62610c7-9e8a-45a4-9f24-1f6f2357ddae"
+storage_version_token = "1789747260125394"
+content_type = "text/plain"

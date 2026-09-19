@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/app-shell";
+import { PwaHandler } from "@/hooks/use-pwa";
 import { BrandLogo } from "@/components/brand-logo";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
@@ -20,10 +21,13 @@ const DealDetail = lazy(() => import("@/pages/deal-detail"));
 const LeadDetail = lazy(() => import("@/pages/lead-detail"));
 const NewLead = lazy(() => import("@/pages/new-lead"));
 const Settings = lazy(() => import("@/pages/settings"));
+const RateConverter = lazy(() => import("@/pages/rate-converter"));
+const RatePoints = lazy(() => import("@/pages/rate-points"));
 const EmailTemplates = lazy(() => import("@/pages/email-templates"));
 const DripSequences = lazy(() => import("@/pages/drip-sequences"));
 const LenderManagement = lazy(() => import("@/pages/lender-management"));
 const FlyerTemplates = lazy(() => import("@/pages/flyer-templates"));
+const Documents = lazy(() => import("@/pages/documents"));
 const ApplyPage = lazy(() => import("@/pages/apply"));
 const RepChooser = lazy(() => import("@/pages/rep-chooser"));
 const ApplicationStatus = lazy(() => import("@/pages/application-status"));
@@ -31,6 +35,7 @@ const CreditCompliance = lazy(() => import("@/pages/credit-compliance"));
 const WorkflowRules = lazy(() => import("@/pages/workflow-rules"));
 const SystemHealth = lazy(() => import("@/pages/system-health"));
 const Governance = lazy(() => import("@/pages/governance"));
+const UsfaIntake = lazy(() => import("@/pages/admin-usfa-intake"));
 const RepQuickstart = lazy(() => import("@/pages/rep-quickstart"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -95,8 +100,6 @@ const clerkAppearance = {
     identityPreviewEditButton: "text-[#65D5A2]",
     formFieldSuccessText: "text-[#65D5A2]",
     alertText: "text-white",
-    logoBox: "mb-2",
-    logoImage: "h-10",
     socialButtonsBlockButton: {
       style: {
         border: "1px solid rgba(255,255,255,.2)",
@@ -121,7 +124,10 @@ const clerkAppearance = {
 function PageLoader() {
   return (
     <div className="flex flex-1 items-center justify-center min-h-[60vh]">
-      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex flex-col items-center gap-4">
+        <BrandLogo />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
     </div>
   );
 }
@@ -131,9 +137,9 @@ function PendingApprovalGate() {
     <main className="flex min-h-screen items-center justify-center bg-[#0E2A47] px-6">
       <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-white/10 p-8 text-center shadow-2xl backdrop-blur-xl">
         <BrandLogo
-          variant="chip"
-          className="mx-auto mb-6 w-fit px-5 py-3"
-          imageClassName="h-8"
+          variant="reverse"
+          className="mx-auto mb-6 w-[160px]"
+          imageClassName="h-auto w-[160px]"
         />
         <p className="text-lg font-semibold text-white">
           Your account is awaiting approval — contact your administrator
@@ -204,9 +210,9 @@ function SignInPage() {
         <div className="w-full max-w-[440px] space-y-7">
           <div className="flex flex-col items-center gap-3">
             <BrandLogo
-              variant="chip"
-              className="px-5 py-3 shadow-[0_10px_30px_rgba(0,0,0,.2)]"
-              imageClassName="h-8"
+              variant="reverse"
+              className="w-[160px] shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+              imageClassName="h-auto w-[160px]"
             />
             <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
           </div>
@@ -283,6 +289,7 @@ function AppRoutes() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
+          <PwaHandler />
           <Switch>
             <Route path="/" component={HomeRedirect} />
             <Route path="/login">
@@ -307,6 +314,12 @@ function AppRoutes() {
             <Route path="/deals/new">
               <ProtectedRoute component={NewDeal} />
             </Route>
+            <Route path="/deals/rate-converter">
+              <ProtectedRoute component={RateConverter} />
+            </Route>
+            <Route path="/deals/rate-points">
+              <ProtectedRoute component={RatePoints} />
+            </Route>
             <Route path="/deals/:id">
               <ProtectedRoute component={DealDetail} />
             </Route>
@@ -328,6 +341,9 @@ function AppRoutes() {
             <Route path="/flyer-templates">
               <ProtectedRoute component={FlyerTemplates} />
             </Route>
+            <Route path="/documents">
+              <ProtectedRoute component={Documents} />
+            </Route>
             <Route path="/apply" component={ApplyPage} />
             <Route path="/r/:slug" component={RepChooser} />
             <Route path="/apply/status" component={ApplicationStatus} />
@@ -342,6 +358,9 @@ function AppRoutes() {
             </Route>
             <Route path="/governance">
               <ProtectedRoute component={Governance} />
+            </Route>
+            <Route path="/admin/usfa-intake">
+              <ProtectedRoute component={UsfaIntake} />
             </Route>
             <Route path="/help/rep-quickstart">
               <ProtectedRoute component={RepQuickstart} />
@@ -364,7 +383,7 @@ function App() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 text-center">
         <div className="rounded-lg border bg-white p-8 shadow-sm">
-          <BrandLogo variant="raw" className="mb-6" imageClassName="h-8" />
+          <BrandLogo className="mb-6" imageClassName="h-8 w-auto" />
           <h1 className="mb-2 text-xl font-bold text-red-600">Missing Clerk Configuration</h1>
           <p className="text-gray-600">Please set the VITE_CLERK_PUBLISHABLE_KEY environment variable.</p>
         </div>

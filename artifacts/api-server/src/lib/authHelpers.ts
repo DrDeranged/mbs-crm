@@ -1,16 +1,22 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response } from "express";
 import { db } from "@workspace/db";
-import { activityLogTable, dealsTable, usersTable } from "@workspace/db";
+import {
+  activityLogTable,
+  dealsTable,
+  userIdentitiesTable,
+  usersTable,
+} from "@workspace/db";
 import { and, eq, isNull, ne, or } from "drizzle-orm";
 import { clerkClient } from "@clerk/express";
 import { logger } from "./logger";
+import { reservedIdentityOwnerId } from "./userIdentityMerge";
 
 type RequireUserOptions = {
   allowPending?: boolean;
 };
 
-const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
+export const RESERVED_REP_SLUGS: Readonly<Record<string, string>> = {
   "calvintuon@gmail.com": "calvin",
   "calvin@my-business-solutions.com": "calvin",
   "rahmaredavis@gmail.com": "ray",
@@ -33,6 +39,27 @@ export function canAccessCreatorOwnedRecord(
   createdBy: number | null,
 ): boolean {
   return user.role !== "rep" || createdBy === user.id;
+}
+
+type MarketingOwner = Pick<typeof usersTable.$inferSelect, "id" | "role"> | null | undefined;
+
+/**
+ * Marketing resources have an explicit owner. Representatives can modify only
+ * their own resources, but can read administrator-owned resources so approved
+ * company campaigns remain available to their assigned leads.
+ */
+export function canReadMarketingResource(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  owner: MarketingOwner,
+): boolean {
+  return user.role !== "rep" || owner?.id === user.id || owner?.role === "admin";
+}
+
+export function canManageMarketingResource(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  ownerId: number | null,
+): boolean {
+  return user.role !== "rep" || ownerId === user.id;
 }
 
 /**
@@ -104,7 +131,16 @@ export async function requireUser(
     return null;
   }
 
-  let user = await db.query.usersTable.findFirst({ where: eq(usersTable.clerkId, clerkId) });
+  const identity = await db.query.userIdentitiesTable.findFirst({
+    where: eq(userIdentitiesTable.clerkId, clerkId),
+  });
+  let user = identity
+    ? await db.query.usersTable.findFirst({
+        where: eq(usersTable.id, identity.userId),
+      })
+    : await db.query.usersTable.findFirst({
+        where: eq(usersTable.clerkId, clerkId),
+      });
 
   if (!user) {
     try {
@@ -113,17 +149,98 @@ export async function requireUser(
       const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null;
       const reservedSlug = reservedSlugForEmail(email);
 
-      const existing = await db.query.usersTable.findFirst({ where: eq(usersTable.email, email) });
-      if (existing) {
-        const [linked] = await db.update(usersTable)
-          .set({
-            clerkId,
-            ...(reservedSlug && !existing.slug ? { slug: reservedSlug } : {}),
-          })
-          .where(eq(usersTable.id, existing.id))
-          .returning();
-        user = linked;
-      } else {
+      // Reserved rep emails are aliases for an existing account, not new
+      // accounts. Lock the owner while attaching the identity so a concurrent
+      // sign-in cannot race a deactivation or create a second local user.
+      if (reservedSlug) {
+        const reservedUser = await db.transaction(async (tx) => {
+          const [owner] = await tx
+            .select()
+            .from(usersTable)
+            .where(and(
+              eq(usersTable.slug, reservedSlug),
+              eq(usersTable.isActive, true),
+            ))
+            .for("update");
+
+          if (!owner) return null;
+          if (
+            reservedIdentityOwnerId(
+              email,
+              RESERVED_REP_SLUGS,
+              [owner],
+            ) !== owner.id
+          ) return null;
+
+          const [insertedIdentity] = await tx
+            .insert(userIdentitiesTable)
+            .values({
+              userId: owner.id,
+              clerkId,
+              email,
+              provider: "clerk",
+            })
+            .onConflictDoNothing({ target: userIdentitiesTable.clerkId })
+            .returning();
+
+          if (insertedIdentity) {
+            await tx.insert(activityLogTable).values({
+              userId: owner.id,
+              action: "identity_linked",
+              entityType: "user",
+              entityId: String(owner.id),
+              details: {
+                provider: "clerk",
+                clerkId,
+                email,
+                reservedSlug,
+                reason: "reserved_rep_email_sign_in",
+              },
+            });
+            return owner;
+          }
+
+          // A concurrent request won the unique identity race. Resolve the
+          // committed identity rather than creating or relinking a user.
+          const identityAfterConflict = await tx.query.userIdentitiesTable.findFirst({
+            where: eq(userIdentitiesTable.clerkId, clerkId),
+          });
+          return identityAfterConflict
+            ? await tx.query.usersTable.findFirst({
+                where: eq(usersTable.id, identityAfterConflict.userId),
+              })
+            : null;
+        });
+
+        if (reservedUser) {
+          user = reservedUser;
+        }
+      }
+
+      if (!user) {
+        const existing = await db.query.usersTable.findFirst({ where: eq(usersTable.email, email) });
+        if (existing) {
+          const [linked] = await db.update(usersTable)
+            .set({
+              clerkId,
+              ...(reservedSlug && !existing.slug ? { slug: reservedSlug } : {}),
+            })
+            .where(eq(usersTable.id, existing.id))
+            .returning();
+          user = linked;
+          await db
+            .insert(userIdentitiesTable)
+            .values({
+              userId: existing.id,
+              clerkId,
+              email: existing.email,
+              provider: "clerk",
+            })
+            .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
+        }
+      }
+
+      if (!user) {
         const [created] = await db.insert(usersTable).values({
           clerkId,
           email,
@@ -132,10 +249,35 @@ export async function requireUser(
           slug: reservedSlug,
         }).returning();
         user = created;
+        await db
+          .insert(userIdentitiesTable)
+          .values({
+            userId: created.id,
+            clerkId,
+            email,
+            provider: "clerk",
+          })
+          .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
       }
     } catch (e) {
       res.status(500).json({ error: "Failed to resolve user" });
       return null;
+    }
+  } else if (!identity && user.clerkId === clerkId) {
+    // Keep legacy users resolvable while lazily filling any identity row that
+    // was not present when migration 035 was applied.
+    try {
+      await db
+        .insert(userIdentitiesTable)
+        .values({
+          userId: user.id,
+          clerkId,
+          email: user.email,
+          provider: "clerk",
+        })
+        .onConflictDoNothing({ target: userIdentitiesTable.clerkId });
+    } catch (e) {
+      logger.warn({ err: e, userId: user.id }, "Failed to backfill user identity");
     }
   }
 

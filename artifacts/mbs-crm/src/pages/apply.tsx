@@ -154,11 +154,14 @@ interface FormData {
   vendorName: string;
   vendorQuoteAmount: string;
   equipmentCondition: "new" | "used" | "";
+  equipmentCategory: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | "";
   yearMakeModel: string;
   trucksInFleet: string;
+  isHomeowner: boolean | null;
   downPaymentAmount: string;
   hasFinancialStatements: boolean | null;
   hasFactoring: boolean | null;
+  hasCollateral: boolean;
   industryExperienceMonths: string;
   email: string;
   phone: string;
@@ -180,6 +183,7 @@ interface FormData {
   secondaryOwnerEstCreditScore: string;
   consentCreditPull: boolean;
   consentTerms: boolean;
+  smsConsent: boolean;
 }
 
 const emptyForm = (): FormData => ({
@@ -193,9 +197,10 @@ const emptyForm = (): FormData => ({
   yearsUnderCurrentOwnership: "", businessDescription: "", estCreditScore: "",
   timelineFundsNeeded: "", timeInBusinessMonths: "", monthlyRevenueStated: "",
   requestedAmount: "", useOfFunds: "",
-  equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "",
+  equipmentDescription: "", vendorName: "", vendorQuoteAmount: "", equipmentCondition: "", equipmentCategory: "",
   yearMakeModel: "", trucksInFleet: "", downPaymentAmount: "",
-  hasFinancialStatements: null, hasFactoring: null, industryExperienceMonths: "",
+  hasFinancialStatements: null, hasFactoring: null, hasCollateral: false, industryExperienceMonths: "",
+  isHomeowner: null,
   email: "", phone: "",
   ownerFirstName: "", ownerLastName: "", ownerSsn: "", ownerDob: "",
   ownerHomeAddress: "", ownerHomeCity: "", ownerHomeState: "", ownerHomeZip: "",
@@ -203,7 +208,7 @@ const emptyForm = (): FormData => ({
   secondaryOwnerName: "", secondaryOwnerEmail: "", secondaryOwnerAddress: "",
   secondaryOwnerDob: "", secondaryOwnerOwnershipPct: "", secondaryOwnerCell: "",
   secondaryOwnerEstCreditScore: "",
-  consentCreditPull: false, consentTerms: false,
+  consentCreditPull: false, consentTerms: false, smsConsent: false,
 });
 
 // Dropzone for bank statements
@@ -277,7 +282,7 @@ function ProgressBar({ step }: { step: number }) {
 function MBSHeader() {
   return (
     <div className="flex items-center gap-3 mb-2">
-      <BrandLogo variant="chip" alt="My Business Solutions" imageClassName="h-7" />
+      <BrandLogo variant="reverse" imageClassName="h-7 w-auto" />
       <div>
         <p className="font-semibold text-white text-sm leading-tight">Business Financing Application</p>
         <p className="text-xs text-white/65">My Business Solutions</p>
@@ -317,6 +322,7 @@ export default function ApplyPage() {
     const term = params.get("term");
     const freq = params.get("freq");
     const rep = params.get("rep");
+    const invite = params.get("invite");
     const validType = type === "equipment" || type === "working_capital" ? type : "";
     const amountBand = requestedAmountBand(amount);
     const snappedTerm = nearestTerm(term);
@@ -329,6 +335,14 @@ export default function ApplyPage() {
       estimatedTermMonths: snappedTerm || f.estimatedTermMonths,
       paymentFrequency: validFrequency || f.paymentFrequency,
     }));
+    if (invite && rep && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rep)) {
+      fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/public/reps/${encodeURIComponent(rep)}/usfa-prefill/${encodeURIComponent(invite)}`, { cache: "no-store" })
+        .then((response) => response.ok ? response.json() : null)
+        .then((prefill: { ownerSsn?: string; ownerDob?: string } | null) => {
+          if (prefill?.ownerSsn) setSsnRaw(prefill.ownerSsn.replace(/\D/g, ""));
+          if (prefill?.ownerDob) setForm((current) => ({ ...current, ownerDob: prefill.ownerDob ?? current.ownerDob }));
+        }).catch(() => {});
+    }
   }, []);
 
   const set = (patch: Partial<FormData>) => {
@@ -375,6 +389,8 @@ export default function ApplyPage() {
         else if (v) formData.append(k, v as string);
       });
       if (statementsSkipped) formData.append("statementsSkipped", "true");
+      const inviteToken = new URLSearchParams(window.location.search).get("invite");
+      if (inviteToken) formData.append("usfaInviteToken", inviteToken);
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
       formData.append("secondaryOwnerSsn", secondarySsnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();
@@ -444,7 +460,8 @@ export default function ApplyPage() {
   if (step === 6) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center space-y-5">
+          <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center space-y-5">
+          <BrandLogo className="mx-auto" imageClassName="h-7 w-auto" />
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
@@ -667,6 +684,19 @@ export default function ApplyPage() {
                         <Input value={form.equipmentDescription} onChange={(e) => set({ equipmentDescription: e.target.value })} placeholder="e.g. 2024 Ford F-250 Work Truck" />
                       </div>
                       <div className="space-y-1">
+                        <Label className="text-xs">Equipment Category</Label>
+                        <Select value={form.equipmentCategory} onValueChange={(v) => set({ equipmentCategory: v as FormData["equipmentCategory"] })}>
+                          <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vocational">Vocational vehicle</SelectItem>
+                            <SelectItem value="otr_truck">OTR truck</SelectItem>
+                            <SelectItem value="trailer">Trailer</SelectItem>
+                            <SelectItem value="construction">Construction equipment</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
                         <Label className="text-xs">Vendor / Dealer Name</Label>
                         <Input value={form.vendorName} onChange={(e) => set({ vendorName: e.target.value })} placeholder="Dealer name" />
                       </div>
@@ -702,6 +732,12 @@ export default function ApplyPage() {
                       </label>
                     </>
                   )}
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                      <input data-testid="checkbox-has-collateral" type="checkbox" checked={form.hasCollateral} onChange={(e) => set({ hasCollateral: e.target.checked })} className="mt-0.5 rounded" />
+                      This application is secured by qualified real-estate or equipment collateral.
+                    </label>
+                  </div>
                   <div className="sm:col-span-2 space-y-1">
                     <Label className="text-xs">Does this business currently use factoring?</Label>
                     <select
@@ -789,6 +825,19 @@ export default function ApplyPage() {
                   <div className="space-y-1">
                     <Label className="text-xs">Ownership %</Label>
                     <Input type="number" min="1" max="100" value={form.ownershipPct} onChange={(e) => set({ ownershipPct: e.target.value })} />
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <Label className="text-xs">Homeownership</Label>
+                    <Select
+                      value={form.isHomeowner === null ? "" : String(form.isHomeowner)}
+                      onValueChange={(v) => set({ isHomeowner: v === "true" })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Yes</SelectItem>
+                        <SelectItem value="false">No</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <details className="rounded-xl border border-slate-200 bg-slate-50">
@@ -957,6 +1006,12 @@ export default function ApplyPage() {
                   {submitAttempted && !form.consentTerms && (
                     <p className="text-xs text-red-600">Terms consent is required.</p>
                   )}
+                  <div className="flex gap-3 items-start">
+                    <Checkbox id="sms_consent" checked={form.smsConsent} onCheckedChange={(v) => set({ smsConsent: !!v })} className="mt-0.5" />
+                    <Label htmlFor="sms_consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+                      I agree to receive text messages from My Business Solutions LLC about my application (application received, documents needed, status updates). Message frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP for help. See our <a href="/privacy-policy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a> and <a href="/terms-of-service" target="_blank" rel="noreferrer" className="underline">Terms of Service</a>.
+                    </Label>
+                  </div>
                 </div>
 
                 {/* Signature */}

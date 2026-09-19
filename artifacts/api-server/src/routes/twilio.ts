@@ -1,14 +1,18 @@
 import { Router, type Request } from "express";
 import twilio from "twilio";
+import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable, partnerContactsTable } from "@workspace/db";
 import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification } from "../lib/notify";
+import { logger } from "../lib/logger";
+import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
 
 const router = Router();
+export const twilioTokenRouter = Router();
 
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
 const AUTH_TOKEN = process.env["TWILIO_AUTH_TOKEN"];
@@ -16,6 +20,31 @@ const TWILIO_PHONE = process.env["TWILIO_PHONE_NUMBER"];
 const TWIML_APP_SID = process.env["TWILIO_TWIML_APP_SID"];
 const API_KEY = process.env["TWILIO_API_KEY"];
 const API_SECRET = process.env["TWILIO_API_SECRET"];
+const twilioPayload = z.object({
+  To: z.string().optional(),
+  to: z.string().optional(),
+  From: z.string().optional(),
+  CallSid: z.string().optional(),
+  CallStatus: z.string().optional(),
+  DialCallStatus: z.string().optional(),
+  CallDuration: z.string().optional(),
+  DialCallDuration: z.string().optional(),
+  RecordingSid: z.string().optional(),
+  RecordingUrl: z.string().url().optional(),
+  Body: z.string().optional(),
+  SmsSid: z.string().optional(),
+  MessageSid: z.string().optional(),
+  MessageStatus: z.string().optional(),
+  SmsStatus: z.string().optional(),
+}).passthrough();
+
+function parseTwilioPayload(req: Request, res: import("express").Response) {
+  const parsed = twilioPayload.safeParse(req.body);
+  if (parsed.success) return parsed.data;
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+  return null;
+}
 
 function getTwilioClient() {
   if (!ACCOUNT_SID || !AUTH_TOKEN) return null;
@@ -28,7 +57,7 @@ function absUrl(req: Request, path: string): string {
   return `${proto}://${host}${path}`;
 }
 
-function validateTwilioSignature(req: any): boolean {
+function validateTwilioSignature(req: Request): boolean {
   if (!AUTH_TOKEN) return false;
   const sig = req.headers["x-twilio-signature"] as string | undefined;
   if (!sig) return false;
@@ -39,7 +68,7 @@ function validateTwilioSignature(req: any): boolean {
 }
 
 // POST /api/twilio/token
-router.post("/twilio/token", async (req, res) => {
+twilioTokenRouter.post("/twilio/token", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -47,41 +76,25 @@ router.post("/twilio/token", async (req, res) => {
   // rotation or a secret added after process startup is immediately usable.
   // requireUser already rejects inactive and pending accounts; active reps
   // are intentionally allowed to mint their own browser token.
-  const accountSid = process.env["TWILIO_ACCOUNT_SID"];
-  const authToken = process.env["TWILIO_AUTH_TOKEN"];
-  const twimlAppSid = process.env["TWILIO_TWIML_APP_SID"];
-  const apiKey = process.env["TWILIO_API_KEY"];
-  const apiSecret = process.env["TWILIO_API_SECRET"];
-
-  if (!accountSid || !authToken || !twimlAppSid) {
-    return void res.status(503).json({ error: "Twilio not configured" });
-  }
-  if (!/^AP[0-9a-fA-F]{32}$/.test(twimlAppSid)) {
-    return void res.status(503).json({
-      error: "Twilio application SID is invalid. TWILIO_TWIML_APP_SID must start with AP.",
-    });
-  }
-
-  const AccessToken = twilio.jwt.AccessToken;
-  const VoiceGrant = AccessToken.VoiceGrant;
-
   const identity = `user_${user.id}`;
-
-  if (!apiKey || !apiSecret) {
+  const reason = getTwilioFailureReason();
+  if (reason) {
+    logger.error({ route: "/api/twilio/token", reason }, "Twilio token unavailable");
+    return void res.status(503).json({ error: "Twilio token unavailable", reason });
+  }
+  try {
+    res.json({ token: mintVoiceToken(identity), identity });
+  } catch (error) {
+    const mintReason = error instanceof Error ? error.message : "token_mint_failed";
+    logger.error(
+      { route: "/api/twilio/token", reason: mintReason, err: error },
+      "Twilio token unavailable",
+    );
     return void res.status(503).json({
-      error:
-        "Twilio API Key not configured. Create an API Key in the Twilio console and set TWILIO_API_KEY + TWILIO_API_SECRET.",
+      error: "Twilio token unavailable",
+      reason: mintReason,
     });
   }
-
-  const token = new AccessToken(accountSid, apiKey, apiSecret, { identity });
-  const voiceGrant = new VoiceGrant({
-    outgoingApplicationSid: twimlAppSid,
-    incomingAllow: true,
-  });
-  token.addGrant(voiceGrant);
-
-  res.json({ token: token.toJwt(), identity });
 });
 
 // POST /api/twilio/voice — outbound call TwiML (Twilio calls this when browser dials)
@@ -89,10 +102,12 @@ router.post("/twilio/voice", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
 
-  const to: string = req.body?.To || req.body?.to || "";
-  const callSid: string = req.body?.CallSid || "";
-  const fromClient: string = req.body?.From || "";
+  const to = body.To || body.to || "";
+  const callSid = body.CallSid || "";
+  const fromClient = body.From || "";
 
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
@@ -148,9 +163,11 @@ router.post("/twilio/voice/inbound", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
 
-  const from: string = req.body?.From || "";
-  const callSid: string = req.body?.CallSid || "";
+  const from = body.From || "";
+  const callSid = body.CallSid || "";
 
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
@@ -235,10 +252,12 @@ router.post("/twilio/voice/status", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
 
-  const callSid: string = req.body?.CallSid || "";
-  const status: string = req.body?.CallStatus || req.body?.DialCallStatus || "";
-  const duration: string = req.body?.CallDuration || req.body?.DialCallDuration || "0";
+  const callSid = body.CallSid || "";
+  const status = body.CallStatus || body.DialCallStatus || "";
+  const duration = body.CallDuration || body.DialCallDuration || "0";
 
   if (callSid) {
     const [updated] = await db
@@ -275,11 +294,13 @@ router.post("/twilio/voice/recording", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
 
-  const callSid: string = req.body?.CallSid || "";
-  const recordingSid: string = req.body?.RecordingSid || "";
-  const recordingUrl: string = req.body?.RecordingUrl
-    ? `${req.body.RecordingUrl}.mp3`
+  const callSid = body.CallSid || "";
+  const recordingSid = body.RecordingSid || "";
+  const recordingUrl = body.RecordingUrl
+    ? `${body.RecordingUrl}.mp3`
     : "";
 
   if (callSid && recordingSid) {
@@ -297,18 +318,29 @@ router.post("/twilio/sms/inbound", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const payload = parseTwilioPayload(req, res);
+  if (!payload) return;
 
-  const from: string = req.body?.From || "";
-  const to: string = req.body?.To || "";
-  const body: string = req.body?.Body || "";
-  const smsSid: string = req.body?.SmsSid || req.body?.MessageSid || "";
+  const from = payload.From || "";
+  const to = payload.To || "";
+  const body = payload.Body || "";
+  const smsSid = payload.SmsSid || payload.MessageSid || "";
 
   const lead = await db.query.leadsTable.findFirst({
     where: and(isNotNull(leadsTable.phone), eq(leadsTable.phone, from)),
   });
+  const partnerContact = await db.query.partnerContactsTable.findFirst({
+    where: eq(partnerContactsTable.phone, from),
+  });
+  if (partnerContact && /^\s*stop\b/i.test(body)) {
+    await db.update(partnerContactsTable)
+      .set({ smsOptedOut: true, updatedAt: new Date() })
+      .where(eq(partnerContactsTable.id, partnerContact.id));
+  }
 
   const [comm] = await db.insert(communicationsTable).values({
     leadId: lead?.id ?? null,
+    partnerId: partnerContact?.partnerId ?? null,
     userId: lead?.assignedRepId ?? null,
     type: "sms",
     direction: "inbound",
@@ -351,9 +383,11 @@ router.post("/twilio/sms/status", async (req, res) => {
   if (!validateTwilioSignature(req)) {
     return void res.status(403).send("Forbidden");
   }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
 
-  const smsSid: string = req.body?.SmsSid || req.body?.MessageSid || "";
-  const status: string = req.body?.MessageStatus || req.body?.SmsStatus || "";
+  const smsSid = body.SmsSid || body.MessageSid || "";
+  const status = body.MessageStatus || body.SmsStatus || "";
 
   if (smsSid && status) {
     await db
@@ -366,3 +400,4 @@ router.post("/twilio/sms/status", async (req, res) => {
 });
 
 export default router;
+export const twilioProviderRouter = router;

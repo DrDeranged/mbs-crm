@@ -1,11 +1,13 @@
 import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable, lendersTable, partnerContactsTable, companySettingsTable } from "@workspace/db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
+import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
+import { getLeadSmsEligibility } from "../lib/smsEligibility";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -14,6 +16,29 @@ function absUrl(req: Request, path: string): string {
 }
 
 const router = Router();
+const positiveId = z.coerce.number().int().positive();
+const callLogBody = z.object({
+  toNumber: z.string().trim().min(1).optional(),
+  type: z.enum(["call", "sms"]).optional(),
+}).strict();
+const sendSmsBody = z.object({ body: z.string().trim().min(1) }).strict();
+const communicationMetricsQuery = z.object({
+  repId: positiveId.optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+}).strict();
+const updateCommunicationBody = z.object({
+  callNotes: z.string().optional(),
+  callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
+}).refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one communication field is required" },
+);
+
+function invalidInput(res: import("express").Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
 
 const TWILIO_PHONE = process.env["TWILIO_PHONE_NUMBER"];
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
@@ -67,7 +92,9 @@ router.post("/leads/:id/calls/log", async (req, res) => {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
-  const { toNumber, type: commType } = req.body as { toNumber?: string; type?: "call" | "sms" };
+  const body = callLogBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { toNumber, type: commType } = body.data;
   const phone = toNumber ?? lead.phone ?? undefined;
   const resolvedType = commType === "sms" ? "sms" : "call";
 
@@ -114,15 +141,29 @@ router.post("/leads/:id/sms", async (req, res) => {
 
   if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
 
-  if (lead.isUnsubscribed) {
+  const smsEligibility = await getLeadSmsEligibility(db, leadId);
+  if (!smsEligibility.eligible && smsEligibility.reason === "unsubscribed") {
     return void res.status(422).json({
       error: "consent_required",
       message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
     });
   }
+  if (!smsEligibility.eligible) {
+    return void res.status(422).json({
+      error: "consent_required",
+      message: `Cannot send SMS: ${smsEligibility.reason}.`,
+    });
+  }
+  if (await isUsfaMarketingBlocked(db, lead.leadSource)) {
+    return void res.status(422).json({
+      error: "consent_required",
+      message: "Cannot send SMS: USFA lead SMS consent has not been confirmed by an administrator.",
+    });
+  }
 
-  const { body } = req.body as { body?: string };
-  if (!body?.trim()) return void res.status(400).json({ error: "Message body is required" });
+  const bodyInput = sendSmsBody.safeParse(req.body);
+  if (!bodyInput.success) return invalidInput(res, bodyInput);
+  const { body } = bodyInput.data;
 
   const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
   const message = await client.messages.create({
@@ -161,6 +202,65 @@ router.post("/leads/:id/sms", async (req, res) => {
   res.status(201).json(commToApi(full));
 });
 
+// POST /api/partners/:partnerId/contacts/:contactId/sms — business-contact SMS.
+// Partner contacts are not consumer leads: no consumer consent gate is applied,
+// while Twilio/A2P provider errors and STOP handling remain unchanged.
+router.post("/partners/:partnerId/contacts/:contactId/sms", async (req, res) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (!ACCOUNT_SID || !AUTH_TOKEN || !TWILIO_PHONE) {
+    return void res.status(503).json({ error: "Twilio not configured" });
+  }
+  const partnerId = positiveId.safeParse(req.params.partnerId);
+  const contactId = positiveId.safeParse(req.params.contactId);
+  const bodyInput = sendSmsBody.safeParse(req.body);
+  if (!partnerId.success || !contactId.success) return void res.status(400).json({ error: "Invalid partner or contact ID" });
+  if (!bodyInput.success) return invalidInput(res, bodyInput);
+  const settings = await db.select({ enabled: companySettingsTable.partnerTextingEnabled }).from(companySettingsTable).limit(1);
+  if (settings[0] && !settings[0].enabled) return void res.status(403).json({ error: "Partner texting is disabled by an administrator" });
+  const contact = await db.query.partnerContactsTable.findFirst({
+    where: and(eq(partnerContactsTable.id, contactId.data), eq(partnerContactsTable.partnerId, partnerId.data)),
+  });
+  if (!contact) return void res.status(404).json({ error: "Partner contact not found" });
+  if (!contact.phone) return void res.status(400).json({ error: "Partner contact has no phone number" });
+  if (contact.smsOptedOut) return void res.status(422).json({ error: "sms_opted_out", message: "Partner contact has sent STOP and cannot receive SMS." });
+  let message: any;
+  try {
+    message = await twilio(ACCOUNT_SID, AUTH_TOKEN).messages.create({
+      from: TWILIO_PHONE,
+      to: contact.phone,
+      body: bodyInput.data.body.trim(),
+      statusCallback: absUrl(req, "/api/twilio/sms/status"),
+    });
+  } catch (error: any) {
+    const code = String(error?.code ?? "");
+    return void res.status(code === "30034" ? 422 : 502).json({
+      error: code === "30034" ? "A2P approval required" : "Partner SMS delivery failed",
+      reason: code || "twilio_send_failed",
+      message: error?.message ?? "Twilio rejected the message",
+    });
+  }
+  const [comm] = await db.insert(communicationsTable).values({
+    partnerId: partnerId.data,
+    userId: user.id,
+    type: "sms",
+    direction: "outbound",
+    fromNumber: TWILIO_PHONE,
+    toNumber: contact.phone,
+    body: bodyInput.data.body.trim(),
+    status: message.status,
+    twilioSid: message.sid,
+  }).returning();
+  await logActivity({
+    userId: user.id,
+    action: "partner_sms_sent",
+    entityType: "partner_contact",
+    entityId: String(contact.id),
+    details: { partnerId: partnerId.data, to: contact.phone, body: bodyInput.data.body.trim().slice(0, 100) },
+  });
+  res.status(201).json(commToApi(comm));
+});
+
 // GET /api/leads/:id/communications — list all communications for a lead
 router.get("/leads/:id/communications", async (req, res) => {
   const user = await requireUser(req, res);
@@ -194,12 +294,14 @@ router.get("/metrics/communications", async (req, res) => {
     return void res.status(403).json({ error: "Forbidden" });
   }
 
-  const { repId, startDate, endDate } = req.query as { repId?: string; startDate?: string; endDate?: string };
+  const query = communicationMetricsQuery.safeParse(req.query);
+  if (!query.success) return invalidInput(res, query);
+  const { repId, startDate, endDate } = query.data;
 
   const filters: any[] = [];
-  if (repId) filters.push(eq(communicationsTable.userId, parseInt(repId, 10)));
-  if (startDate) filters.push(gte(communicationsTable.createdAt, new Date(startDate)));
-  if (endDate) filters.push(lte(communicationsTable.createdAt, new Date(endDate)));
+  if (repId) filters.push(eq(communicationsTable.userId, repId));
+  if (startDate) filters.push(gte(communicationsTable.createdAt, startDate));
+  if (endDate) filters.push(lte(communicationsTable.createdAt, endDate));
 
   const whereClause = filters.length > 0 ? and(...filters) : undefined;
 
@@ -258,15 +360,9 @@ router.put("/communications/:id", async (req, res) => {
     return;
   }
 
-  const bodySchema = z.object({
-    callNotes: z.string().optional(),
-    callOutcome: z.enum(["connected", "voicemail", "no_answer", "wrong_number", "busy"]).optional(),
-  });
-
-  const parsed = bodySchema.safeParse(req.body);
+  const parsed = updateCommunicationBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid body" });
-    return;
+    return invalidInput(res, parsed);
   }
 
   const [existing] = await db

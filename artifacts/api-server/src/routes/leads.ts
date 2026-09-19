@@ -5,11 +5,17 @@ import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotenc
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
 import { z } from "zod/v4";
-import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
+import {
+  canReadMarketingResource,
+  getUserDisplayName,
+  requireUser,
+  userToApi,
+} from "../lib/authHelpers";
 import { sanitizeLikeInput } from "../lib/sanitize";
 import { getLatestActivities, getLeadCreationActivities, logActivity } from "../lib/activityHelper";
 import { isUnassignedInboundLead } from "../lib/inboundLead";
 import { isEmailSuppressed } from "../lib/emailSafety";
+import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 import {
   ListLeadsQueryParams,
   CreateLeadBody,
@@ -28,7 +34,12 @@ import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification, notifyAllManagers } from "../lib/notify";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { executeWorkflowRules } from "../lib/workflowEngine";
-import { isEligibleInboundAssignee, resolveInboundAssignee } from "../lib/leadDistribution";
+import {
+  getRoutingSettings,
+  findActiveRepBySlug,
+  isEligibleInboundAssignee,
+  resolveInboundAssignee,
+} from "../lib/leadDistribution";
 import { writeCsvRow } from "../lib/csv";
 import { isLeadStale } from "../lib/staleLeadPredicate";
 import { buildStaleLeadCondition } from "../lib/staleLeadCondition";
@@ -39,6 +50,36 @@ import {
 } from "../lib/twoPhaseQueries";
 
 const router: IRouter = Router();
+const positiveLeadId = z.coerce.number().int().positive();
+export const listLeadsQuery = z.object({
+  search: z.string().trim().min(1).max(200).optional(),
+  status: z.enum(["new_lead", "contacted", "application_received", "submitted_to_underwriting", "approved", "funded", "declined", "follow_up"]).optional(),
+  applicationType: z.enum(["equipment", "working_capital"]).optional(),
+  repId: z.coerce.number().int().positive().optional(),
+  startDate: z.iso.date().optional(),
+  endDate: z.iso.date().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  sortBy: z.enum(["createdAt", "updatedAt", "lastName", "status", "lastActivityAt", "leadScore"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  minScore: z.coerce.number().finite().optional(),
+  maxScore: z.coerce.number().finite().optional(),
+  renewalFlagged: z.enum(["true", "false"]).optional(),
+  stale: z.enum(["true", "false"]).optional(),
+  ids: z.string().regex(/^\d+(,\d+)*$/, "Expected comma-separated positive ids").optional(),
+}).strict();
+type LeadFilter = Pick<z.infer<typeof listLeadsQuery>,
+  "search" | "status" | "applicationType" | "repId" | "startDate" | "endDate" |
+  "minScore" | "maxScore" | "renewalFlagged" | "stale">;
+
+function parseLeadListQuery(req: Request, res: Response) {
+  const parsed = listLeadsQuery.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
+    return null;
+  }
+  return parsed.data;
+}
 
 const captureRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -95,8 +136,7 @@ function leadToApi(
 }
 
 async function getStaleThresholdDays() {
-  const settings = await db.query.companySettingsTable.findFirst();
-  return settings?.staleThresholdDays ?? 7;
+  return (await getRoutingSettings()).staleDays;
 }
 
 async function leadToApiWithCurrentActivity(
@@ -136,8 +176,8 @@ export function createListLeadsHandler({
     const user = await authenticate(req, res);
     if (!user) return;
 
-    const params = ListLeadsQueryParams.safeParse(req.query);
-    const q = (params.success ? params.data : {}) as any;
+    const q = parseLeadListQuery(req, res);
+    if (!q) return;
     const page = Number(q.page ?? 1);
     const limit = Math.min(Number(q.limit ?? 25), 100);
     const offset = (page - 1) * limit;
@@ -145,10 +185,10 @@ export function createListLeadsHandler({
 
     const conditions: ReturnType<typeof eq>[] = [];
     if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
-    if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
-    if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
+    if (q.status) conditions.push(eq(leadsTable.status, q.status));
+    if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType));
     if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
-    if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
+    if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate)));
     if (q.endDate) {
       const end = new Date(q.endDate as string);
       end.setHours(23, 59, 59, 999);
@@ -156,10 +196,10 @@ export function createListLeadsHandler({
     }
     if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
     if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
-    if (q.renewalFlagged === true || q.renewalFlagged === "true") {
+    if (q.renewalFlagged === "true") {
       conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null` as any);
     }
-    if (q.stale === true || q.stale === "true") {
+    if (q.stale === "true") {
       conditions.push(buildStaleLeadCondition(staleThresholdDays) as any);
     }
 
@@ -191,7 +231,7 @@ export function createListLeadsHandler({
     };
     const sortColumn = validSortFields[sortField] ?? leadsTable.createdAt;
 
-    const staleRequested = q.stale === true || q.stale === "true";
+    const staleRequested = q.stale === "true";
     let leadsRaw: any[];
     let total: number;
     const totalQuery = database
@@ -366,11 +406,13 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   }
 
   const { rep: repSlug, ...captureData } = body.data;
-  const assignedRepId = await resolveInboundAssignee(repSlug);
+  const attributedRep = await findActiveRepBySlug(repSlug);
+  const leadSource = attributedRep ? "qr-card" : "website";
+  const assignedRepId = attributedRep?.id ?? await resolveInboundAssignee(undefined, leadSource);
   const [lead] = await db.insert(leadsTable).values({
     ...captureData,
     applicationType: (captureData.applicationType as any) ?? "working_capital",
-    leadSource: "website",
+    leadSource,
     ...(assignedRepId ? { assignedRepId } : {}),
   }).returning();
 
@@ -381,13 +423,13 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
   res.status(201).json(capturePayload);
 });
 
-function buildLeadsWhere(q: any, userRole: string, userId: number, staleThresholdDays = 7, now = Date.now()) {
+function buildLeadsWhere(q: LeadFilter, userRole: string, userId: number, staleThresholdDays = 7, now = Date.now()) {
   const conditions: any[] = [];
   if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
-  if (q.status) conditions.push(eq(leadsTable.status, q.status as any));
-  if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType as any));
+  if (q.status) conditions.push(eq(leadsTable.status, q.status));
+  if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType));
   if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
-  if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate as string)));
+  if (q.startDate) conditions.push(gte(leadsTable.createdAt, new Date(q.startDate)));
   if (q.endDate) {
     const end = new Date(q.endDate as string);
     end.setHours(23, 59, 59, 999);
@@ -395,10 +437,10 @@ function buildLeadsWhere(q: any, userRole: string, userId: number, staleThreshol
   }
   if (q.minScore !== undefined) conditions.push(gte(leadsTable.leadScore, Number(q.minScore)));
   if (q.maxScore !== undefined) conditions.push(lte(leadsTable.leadScore, Number(q.maxScore)));
-  if (q.renewalFlagged === true || q.renewalFlagged === "true") {
+  if (q.renewalFlagged === "true") {
     conditions.push(sql`${leadsTable.renewalFlaggedAt} is not null`);
   }
-  if (q.stale === true || q.stale === "true") {
+  if (q.stale === "true") {
     conditions.push(buildStaleLeadCondition(staleThresholdDays, now));
   }
   let searchCondition: any = undefined;
@@ -421,14 +463,15 @@ router.get("/leads/export", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const q = req.query as any;
+  const q = parseLeadListQuery(req, res);
+  if (!q) return;
   const staleThresholdDays = await getStaleThresholdDays();
-  const staleRequested = q.stale === true || q.stale === "true";
+  const staleRequested = q.stale === "true";
   const staleNow = Date.now();
   const whereClause = buildLeadsWhere(q, user.role, user.id, staleThresholdDays, staleNow);
 
   const ids = q.ids
-    ? String(q.ids).split(",").map(Number).filter((n: number) => !isNaN(n) && n > 0)
+    ? q.ids.split(",").map(Number)
     : null;
   const leadWhere = ids && ids.length > 0
     ? whereClause
@@ -622,7 +665,7 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
   const staleThresholdDays = await getStaleThresholdDays();
   const assignmentWhere = body.data.ids
     ? inArray(leadsTable.id, [...new Set(body.data.ids)])
-    : buildLeadsWhere(body.data.filter, user.role, user.id, staleThresholdDays);
+    : buildLeadsWhere(body.data.filter as LeadFilter, user.role, user.id, staleThresholdDays);
 
   const changedLeads = await db.transaction(async (tx) => {
     const candidates = await tx.query.leadsTable.findMany({
@@ -659,7 +702,11 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
         action: "assigned",
         entityType: "lead",
         entityId: String(lead.id),
-        details: { message },
+        details: {
+          message,
+          fromRepId: lead.assignedRepId,
+          toRepId: body.data.repId,
+        },
       })));
     }
     return candidates;
@@ -703,8 +750,9 @@ router.post("/leads/bulk/delete", async (req: Request, res: Response) => {
 router.post("/leads/:id/score", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) { res.status(400).json({ error: "Invalid ID" }); return; }
+  const parsedLeadId = positiveLeadId.safeParse(req.params["id"]);
+  if (!parsedLeadId.success) { res.status(400).json({ error: "Invalid id" }); return; }
+  const leadId = parsedLeadId.data;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
@@ -948,7 +996,8 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
   try {
     const suppressed = !updated.email || updated.isUnsubscribed ||
       await isEmailSuppressed(updated.email);
-    if (suppressed) {
+    const usfaBlocked = await isUsfaMarketingBlocked(db, updated.leadSource);
+    if (suppressed || usfaBlocked) {
       await db.update(dripEnrollmentsTable)
         .set({ status: "unenrolled", unenrolledAt: new Date() })
         .where(and(eq(dripEnrollmentsTable.leadId, params.data.id), eq(dripEnrollmentsTable.status, "active")));
@@ -958,9 +1007,13 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
         eq(dripSequencesTable.triggerStatus, body.data.status as any),
         eq(dripSequencesTable.isActive, true)
       ),
-      with: { steps: true },
+       with: { steps: { with: { template: { with: { owner: true } } } }, owner: true },
       });
-      for (const seq of triggeredSequences) {
+       for (const seq of triggeredSequences) {
+         if (
+           !canReadMarketingResource(user, seq.owner) ||
+           seq.steps.some((step) => step.template && !canReadMarketingResource(user, step.template.owner))
+         ) continue;
         if (!seq.steps || seq.steps.length === 0) continue;
         const existingEnrollment = await db.query.dripEnrollmentsTable.findFirst({
           where: and(
@@ -1098,7 +1151,11 @@ export function createAssignLeadHandler(dependencies: AssignLeadDependencies = {
       action: "assigned",
       entityType: "lead",
       entityId: String(params.data.id),
-      details: { message },
+      details: {
+        message,
+        fromRepId: existing.assignedRepId,
+        toRepId: body.data.repId,
+      },
     });
 
     return u;

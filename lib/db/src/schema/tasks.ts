@@ -9,7 +9,7 @@ export const tasksTable = pgTable(
   {
     id: serial("id").primaryKey(),
     leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
-    userId: integer("user_id").notNull().references(() => usersTable.id),
+    userId: integer("user_id").references(() => usersTable.id),
     title: text("title").notNull(),
     description: text("description"),
     dueDate: date("due_date"),

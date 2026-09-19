@@ -15,6 +15,9 @@ import {
   useGeneratePipelineDigest,
   useGetDealsAnalytics, getGetDealsAnalyticsQueryKey,
   useGetUnassignedInboundCount, getGetUnassignedInboundCountQueryKey,
+  useListLeads, getListLeadsQueryKey,
+  useListUsers, getListUsersQueryKey,
+  useAssignLead,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,8 +33,11 @@ import {
   Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks, Briefcase, BarChart2
 } from "lucide-react";
 import { Link } from "wouter";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { DASHBOARD_EMPTY_STATES } from "@/lib/dashboardEmptyStates";
 
 const BRAND = "#1F4E79";
 const TEAL = "#0D9488";
@@ -246,6 +252,77 @@ function DailyBriefingCard() {
   );
 }
 
+function StaleLeadQueue() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const staleParams = { stale: true, limit: 10, sortBy: "lastActivityAt", sortOrder: "asc" as const };
+  const { data, isLoading } = useListLeads(staleParams, {
+    query: { queryKey: getListLeadsQueryKey(staleParams) },
+  });
+  const { data: users } = useListUsers({}, {
+    query: { queryKey: getListUsersQueryKey() },
+  });
+  const assignLead = useAssignLead();
+  const [assignees, setAssignees] = useState<Record<number, string>>({});
+  const reps = (users ?? []).filter((user) => user.role === "rep" && user.isActive);
+
+  const reassign = (leadId: number) => {
+    const repId = Number(assignees[leadId]);
+    if (!Number.isSafeInteger(repId) || repId <= 0) {
+      toast({ title: "Choose a representative", description: "Select the new owner before reassigning.", variant: "destructive" });
+      return;
+    }
+    assignLead.mutate({ id: leadId, data: { repId } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey(staleParams) });
+        toast({ title: "Lead reassigned" });
+      },
+      onError: () => toast({ title: "Unable to reassign lead", variant: "destructive" }),
+    });
+  };
+
+  return (
+    <Card className="mb-6" data-testid="card-stale-lead-queue">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Clock className="h-4 w-4 text-amber-600" />
+          Stale lead queue
+        </CardTitle>
+        <CardDescription>Assigned leads with no logged activity within the configured routing window. Reassign each lead directly from this queue.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? <Skeleton className="h-20 w-full" /> : data?.leads.length ? (
+          <div className="space-y-3">
+            {data.leads.map((lead) => {
+              const label = lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || `Lead #${lead.id}`;
+              return (
+                <div key={lead.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center" data-testid={`row-stale-lead-${lead.id}`}>
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/leads/${lead.id}`} className="font-medium text-[#1F4E79] hover:underline">{label}</Link>
+                    <p className="text-xs text-muted-foreground">{lead.daysIdle} idle day{lead.daysIdle === 1 ? "" : "s"} · Current owner: {lead.assignedRep?.name || "Unassigned"}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={assignees[lead.id] ?? ""} onValueChange={(value) => setAssignees((current) => ({ ...current, [lead.id]: value }))}>
+                      <SelectTrigger className="w-44" data-testid={`select-stale-assignee-${lead.id}`}><SelectValue placeholder="New owner" /></SelectTrigger>
+                      <SelectContent>
+                        {reps.map((rep) => <SelectItem key={rep.id} value={String(rep.id)}>{rep.name || rep.email}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" data-testid={`button-reassign-stale-${lead.id}`} onClick={() => reassign(lead.id)} disabled={assignLead.isPending}>
+                      Reassign
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            {data.total > data.leads.length && <Link href="/leads/stale" className="text-sm font-medium text-[#1F4E79] hover:underline">View all stale leads</Link>}
+          </div>
+        ) : <p className="text-sm text-muted-foreground" data-testid="text-stale-queue-empty">No stale leads need reassignment.</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const [preset, setPreset] = useState<DateRangePreset>("ytd");
   const [customRange, setCustomRange] = useState<DateRange>({
@@ -378,6 +455,7 @@ export default function Dashboard() {
       </div>
 
       <DailyBriefingCard />
+      {isAdmin && <StaleLeadQueue />}
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
@@ -789,7 +867,7 @@ export default function Dashboard() {
               <Skeleton className="h-52 w-full" />
             ) : !(communications ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
-                No communication data for this period.
+                {DASHBOARD_EMPTY_STATES.leadActivity}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -871,7 +949,7 @@ export default function Dashboard() {
             {loadingReps ? (
               <Skeleton className="h-40 w-full" />
             ) : !sortedReps.length ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No rep data available.</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{DASHBOARD_EMPTY_STATES.repActivity}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

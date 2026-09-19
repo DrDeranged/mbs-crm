@@ -31,14 +31,37 @@ export const GetHealthDeepResponse = zod.object({
   "status": zod.enum(['ok', 'degraded']).optional(),
   "db": zod.enum(['ok', 'fail']).optional(),
   "integrations": zod.object({
-  "twilio": zod.boolean().optional(),
-  "sendgrid": zod.boolean().optional(),
+  "twilio": zod.object({
+  "accountSid": zod.boolean(),
+  "authToken": zod.boolean(),
+  "apiKey": zod.boolean(),
+  "apiSecret": zod.boolean(),
+  "twimlAppSid": zod.boolean(),
+  "phoneNumber": zod.boolean(),
+  "twimlAppSidFormat": zod.enum(['valid', 'invalid']),
+  "voiceToken": zod.string().describe('Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.')
+}).optional(),
+  "sendgrid": zod.object({
+  "configured": zod.boolean().describe('Whether a SendGrid API key is configured.'),
+  "fromEmail": zod.string().describe('Fixed From address for all MBS email delivery.'),
+  "lastWebhookAt": zod.coerce.date().nullable(),
+  "lastSendAt": zod.coerce.date().nullable(),
+  "tracking": zod.enum(['custom']).describe('Signed custom click\/open tracking; no provider tracking settings lookup occurs.')
+}).optional(),
   "experian": zod.boolean().optional(),
   "anthropic": zod.boolean().optional()
 }).optional(),
   "pdf": zod.object({
   "nativeRenderer": zod.string().describe('Native PDF rendering probe result; ok or unavailable with a safe reason.'),
   "puppeteer": zod.string().describe('Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.')
+}),
+  "schema": zod.object({
+  "applied": zod.number(),
+  "pending": zod.array(zod.string()),
+  "failed": zod.object({
+  "name": zod.string().optional(),
+  "error": zod.string().optional()
+}).nullish()
 }),
   "jobs": zod.record(zod.string(), zod.unknown()).optional(),
   "uptimeSeconds": zod.number().optional(),
@@ -76,6 +99,181 @@ export const GetAdminErrorsResponse = zod.object({
   "last7d": zod.number().optional()
 }).optional(),
   "jobs": zod.record(zod.string(), zod.unknown()).optional()
+})
+
+
+/**
+ * @summary Read USFA sheet intake status and row log (admin only)
+ */
+export const getAdminUsfaIntakeQueryPageDefault = 1;
+
+export const getAdminUsfaIntakeQueryLimitDefault = 50;
+export const getAdminUsfaIntakeQueryLimitMax = 100;
+
+
+
+export const GetAdminUsfaIntakeQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(getAdminUsfaIntakeQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(getAdminUsfaIntakeQueryLimitMax).default(getAdminUsfaIntakeQueryLimitDefault)
+})
+
+export const GetAdminUsfaIntakeResponse = zod.object({
+  "settings": zod.object({
+  "usfaSheetId": zod.string().nullable(),
+  "usfaSheetTab": zod.string(),
+  "usfaConsentConfirmed": zod.boolean(),
+  "usfaWebhookEnabled": zod.boolean()
+}),
+  "counts": zod.object({
+  "total": zod.number(),
+  "ok": zod.number(),
+  "dup": zod.number(),
+  "error": zod.number(),
+  "lastRun": zod.coerce.date().nullable()
+}),
+  "logs": zod.array(zod.object({
+  "id": zod.number(),
+  "externalId": zod.string(),
+  "rowNumber": zod.number(),
+  "ingestedAt": zod.coerce.date(),
+  "leadId": zod.number().nullish(),
+  "status": zod.enum(['ok', 'dup', 'error']),
+  "error": zod.string().nullish()
+})),
+  "page": zod.number(),
+  "limit": zod.number()
+})
+
+
+/**
+ * @summary Receive a dormant HMAC-authenticated USFA lead webhook
+ */
+
+export const receiveUsfaWebhookBodyRevenueMin = 0;
+
+
+
+export const ReceiveUsfaWebhookBody = zod.object({
+  "id": zod.string().min(1),
+  "company": zod.string().nullish(),
+  "creditScore": zod.union([zod.string(),zod.number()]).nullish(),
+  "industry": zod.string().nullish(),
+  "ownerName": zod.string().nullish(),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "phone1": zod.string().nullish(),
+  "phone2": zod.string().nullish(),
+  "ein": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "ssn": zod.string().nullish(),
+  "street": zod.string().nullish(),
+  "city": zod.string().nullish(),
+  "state": zod.string().nullish(),
+  "zip": zod.union([zod.string(),zod.number()]).nullish(),
+  "dob": zod.string().nullish(),
+  "revenue": zod.number().min(receiveUsfaWebhookBodyRevenueMin),
+  "amountRequested": zod.number().nullish(),
+  "createdAt": zod.string().nullish(),
+  "statement1": zod.string().nullish(),
+  "statement2": zod.string().nullish(),
+  "statement3": zod.string().nullish(),
+  "statement4": zod.string().nullish()
+})
+
+export const ReceiveUsfaWebhookResponse = zod.object({
+  "leadId": zod.number().nullable(),
+  "status": zod.enum(['ok', 'dup'])
+})
+
+
+/**
+ * @summary Run one read-only USFA Sheet poll (admin only)
+ */
+export const RunAdminUsfaIntakeResponse = zod.object({
+  "status": zod.enum(['ok', 'skipped']),
+  "reason": zod.string().optional(),
+  "processed": zod.number(),
+  "skipped": zod.number(),
+  "duplicates": zod.number(),
+  "errors": zod.number(),
+  "headerValid": zod.boolean()
+})
+
+
+/**
+ * @summary Reprocess an errored USFA row (admin only)
+ */
+export const ReprocessAdminUsfaIntakeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReprocessAdminUsfaIntakeResponse = zod.object({
+  "status": zod.enum(['ok', 'skipped']),
+  "reason": zod.string().optional(),
+  "processed": zod.number(),
+  "skipped": zod.number(),
+  "duplicates": zod.number(),
+  "errors": zod.number(),
+  "headerValid": zod.boolean()
+})
+
+
+/**
+ * @summary List discovered schema migrations and their checksums (admin only)
+ */
+export const GetAdminMigrationStatusResponse = zod.object({
+  "applied": zod.array(zod.string()),
+  "detected": zod.array(zod.string()),
+  "skipped": zod.array(zod.string()),
+  "pending": zod.array(zod.string()),
+  "mismatches": zod.array(zod.object({
+  "name": zod.string(),
+  "expected": zod.string(),
+  "actual": zod.string()
+})),
+  "failed": zod.union([zod.null(),zod.object({
+  "name": zod.string(),
+  "error": zod.string()
+})]),
+  "migrations": zod.array(zod.object({
+  "name": zod.string(),
+  "id": zod.string(),
+  "checksum": zod.string(),
+  "status": zod.enum(['applied', 'pending', 'mismatch']),
+  "appliedAt": zod.coerce.date().nullish(),
+  "appliedChecksum": zod.string().nullish(),
+  "detectedAsApplied": zod.boolean().optional()
+}))
+})
+
+
+/**
+ * @summary Apply pending schema migrations one at a time (admin only)
+ */
+export const ApplyAdminMigrationsResponse = zod.object({
+  "applied": zod.array(zod.string()),
+  "detected": zod.array(zod.string()),
+  "skipped": zod.array(zod.string()),
+  "pending": zod.array(zod.string()),
+  "mismatches": zod.array(zod.object({
+  "name": zod.string(),
+  "expected": zod.string(),
+  "actual": zod.string()
+})),
+  "failed": zod.union([zod.null(),zod.object({
+  "name": zod.string(),
+  "error": zod.string()
+})]),
+  "migrations": zod.array(zod.object({
+  "name": zod.string(),
+  "id": zod.string(),
+  "checksum": zod.string(),
+  "status": zod.enum(['applied', 'pending', 'mismatch']),
+  "appliedAt": zod.coerce.date().nullish(),
+  "appliedChecksum": zod.string().nullish(),
+  "detectedAsApplied": zod.boolean().optional()
+}))
 })
 
 
@@ -380,41 +578,76 @@ export const UpdateUserResponse = zod.object({
 
 
 /**
+ * @summary Merge a pending user into an active user (admin only)
+ */
+
+
+export const mergeAdminUsersBodyConfirmReassignmentDefault = false;
+
+export const MergeAdminUsersBody = zod.object({
+  "sourceUserId": zod.number().min(1),
+  "targetUserId": zod.number().min(1),
+  "confirmReassignment": zod.boolean().default(mergeAdminUsersBodyConfirmReassignmentDefault).describe('Required when the source owns any records that will be reassigned')
+})
+
+export const MergeAdminUsersResponse = zod.object({
+  "sourceUserId": zod.number(),
+  "targetUserId": zod.number(),
+  "reassigned": zod.number(),
+  "counts": zod.record(zod.string(), zod.number())
+})
+
+
+/**
  * @summary Get inbound lead distribution settings (admin only)
  */
 export const getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const getLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
-export const getLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+export const getLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
+export const getLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
+export const getLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
 
-
+export const getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
 
 export const GetLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(getLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "staleThresholdDays": zod.number().min(1).max(getLeadDistributionSettingsResponseStaleThresholdDaysMax).default(getLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).default(getLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
+  "staleDays": zod.number().min(1).max(getLeadDistributionSettingsResponseRoutingStaleDaysMax).default(getLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
+  "autoReassignStale": zod.boolean().default(getLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
+})
 })
 
 
 /**
  * @summary Update inbound lead distribution settings (admin only)
  */
-export const updateLeadDistributionSettingsBodyStaleThresholdDaysMax = 365;
+export const updateLeadDistributionSettingsBodyRoutingStaleDaysMax = 365;
 
 
 
 export const UpdateLeadDistributionSettingsBody = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().optional(),
-  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyStaleThresholdDaysMax).optional()
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).optional(),
+  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsBodyRoutingStaleDaysMax).optional(),
+  "autoReassignStale": zod.boolean().optional()
+}).optional()
 })
 
 export const updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault = false;
-export const updateLeadDistributionSettingsResponseStaleThresholdDaysDefault = 7;
-export const updateLeadDistributionSettingsResponseStaleThresholdDaysMax = 365;
+export const updateLeadDistributionSettingsResponseRoutingModeDefault = `manual`;
+export const updateLeadDistributionSettingsResponseRoutingStaleDaysDefault = 7;
+export const updateLeadDistributionSettingsResponseRoutingStaleDaysMax = 365;
 
-
+export const updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault = false;
 
 export const UpdateLeadDistributionSettingsResponse = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().default(updateLeadDistributionSettingsResponseIncludeAdminsInRoundRobinDefault).describe('Include active admins after active reps and managers in inbound round-robin assignment'),
-  "staleThresholdDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseStaleThresholdDaysMax).default(updateLeadDistributionSettingsResponseStaleThresholdDaysDefault).describe('Number of idle days before an assigned lead is considered stale')
+  "routing": zod.object({
+  "mode": zod.enum(['manual', 'round_robin']).default(updateLeadDistributionSettingsResponseRoutingModeDefault).describe('Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.'),
+  "staleDays": zod.number().min(1).max(updateLeadDistributionSettingsResponseRoutingStaleDaysMax).default(updateLeadDistributionSettingsResponseRoutingStaleDaysDefault).describe('Number of idle days before an assigned lead is considered stale.'),
+  "autoReassignStale": zod.boolean().default(updateLeadDistributionSettingsResponseRoutingAutoReassignStaleDefault).describe('Automatically reassign stale ordinary inbound leads only when mode is round_robin.')
+})
 })
 
 
@@ -425,11 +658,15 @@ export const getEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
+export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const getEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
+
 
 
 export const GetEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(getEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+  "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
+  "bulkEmailPerDay": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerDayMax).default(getEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
 })
 
 
@@ -438,22 +675,29 @@ export const GetEmailDeliverySettingsResponse = zod.object({
  */
 export const updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax = 1000;
 
+export const updateEmailDeliverySettingsBodyBulkEmailPerDayMax = 100000;
+
 
 
 export const UpdateEmailDeliverySettingsBody = zod.object({
   "emailSendingEnabled": zod.boolean().optional(),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional()
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional(),
+  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerDayMax).optional()
 })
 
 export const updateEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
+export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const updateEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
+
 
 
 export const UpdateEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(updateEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
-  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request')
+  "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
+  "bulkEmailPerDay": zod.number().min(1).max(updateEmailDeliverySettingsResponseBulkEmailPerDayMax).default(updateEmailDeliverySettingsResponseBulkEmailPerDayDefault).describe('Shared daily maximum for bulk and drip delivery attempts')
 })
 
 
@@ -958,7 +1202,7 @@ export const GetLeadResponse = zod.object({
   "tasks": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -999,6 +1243,7 @@ export const GetLeadResponse = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })).optional(),
   "recentActivity": zod.array(zod.object({
@@ -1123,6 +1368,28 @@ export const UpdateLeadResponse = zod.object({
   "renewalFlaggedAt": zod.coerce.date().nullish().describe('When the lead was flagged by the renewal radar job as ready to re-fund'),
   "isStale": zod.boolean().describe('Whether the assigned lead has had no activity within the configured staleness threshold'),
   "daysIdle": zod.number().describe('Number of complete days since the most recent activity (or lead creation when no activity exists)')
+})
+
+
+/**
+ * @summary Create a short-lived USFA application prefill link
+ */
+export const CreateUsfaApplicationLinkParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Read a one-time USFA application prefill by opaque link token
+ */
+export const GetUsfaPrefillParams = zod.object({
+  "slug": zod.coerce.string(),
+  "token": zod.coerce.string()
+})
+
+export const GetUsfaPrefillResponse = zod.object({
+  "ownerSsn": zod.string().optional(),
+  "ownerDob": zod.string().optional()
 })
 
 
@@ -1348,7 +1615,7 @@ export const ListTasksParams = zod.object({
 export const ListTasksResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1403,7 +1670,7 @@ export const UpdateTaskBody = zod.object({
 export const UpdateTaskResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1453,6 +1720,7 @@ export const ListDocumentsResponseItem = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListDocumentsResponse = zod.array(ListDocumentsResponseItem)
@@ -1467,7 +1735,8 @@ export const UploadDocumentParams = zod.object({
 
 export const UploadDocumentBody = zod.object({
   "file": zod.instanceof(File),
-  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other'])
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().optional()
 })
 
 
@@ -1503,6 +1772,7 @@ export const UpdateDocumentCategoryResponse = zod.object({
   "fileType": zod.string(),
   "fileSize": zod.number(),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -1526,6 +1796,90 @@ export const DownloadDocumentResponse = zod.object({
  * @summary Download the submitted application and eligible bank statements as one PDF
  */
 export const DownloadLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Build a PDF from the selected lender-package sections and documents
+ */
+export const BuildSelectedLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const BuildSelectedLenderPackageBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+
+/**
+ * @summary Get a lead's saved lender-package configuration
+ */
+export const GetLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadPackageConfigResponse = zod.object({
+  "packageConfig": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Save a lead's lender-package configuration
+ */
+export const SaveLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SaveLeadPackageConfigBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+export const SaveLeadPackageConfigResponse = zod.object({
+  "packageConfig": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Clear a lead's saved lender-package configuration
+ */
+export const ResetLeadPackageConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Download the immutable PDF package sent with a lender submission
+ */
+export const DownloadExactSubmissionPackageParams = zod.object({
   "id": zod.coerce.number()
 })
 
@@ -1746,7 +2100,7 @@ export const GetRepDashboardResponse = zod.object({
   "tasksDueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1801,7 +2155,7 @@ export const GetMyTasksResponse = zod.object({
   "dueToday": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1824,7 +2178,7 @@ export const GetMyTasksResponse = zod.object({
   "dueThisWeek": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1847,7 +2201,7 @@ export const GetMyTasksResponse = zod.object({
   "overdue": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
-  "userId": zod.number(),
+  "userId": zod.number().nullish(),
   "assignedUser": zod.union([zod.object({
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -1883,8 +2237,8 @@ export const listDealsQuerySortByDefault = `updatedAt`;
 export const listDealsQuerySortOrderDefault = `desc`;
 
 export const ListDealsQueryParams = zod.object({
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
-  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -1907,7 +2261,7 @@ export const ListDealsResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -1964,7 +2318,7 @@ export const createDealBodyGmSplitPctMax = 100;
 export const CreateDealBody = zod.object({
   "leadId": zod.number().nullish(),
   "dealName": zod.string().min(1),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -1982,8 +2336,8 @@ export const exportDealsQuerySortByDefault = `updatedAt`;
 export const exportDealsQuerySortOrderDefault = `desc`;
 
 export const ExportDealsQueryParams = zod.object({
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
-  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stages": zod.array(zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on'])).optional().describe('Comma-separated stage values for multi-stage views'),
   "search": zod.coerce.string().optional(),
   "rep_id": zod.coerce.number().optional(),
   "lead_id": zod.coerce.number().optional(),
@@ -2011,7 +2365,7 @@ export const GetDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2089,7 +2443,7 @@ export const updateDealBodyGmSplitPctMax = 100;
 
 export const UpdateDealBody = zod.object({
   "dealName": zod.string().min(1).optional(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2107,7 +2461,7 @@ export const UpdateDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2170,7 +2524,7 @@ export const ArchiveDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
   "dealName": zod.string(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2242,6 +2596,160 @@ export const ListDealActivityResponse = zod.array(ListDealActivityResponseItem)
 
 
 /**
+ * @summary Save a rate and points calculation to a deal
+ */
+export const SaveDealRatePointsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const saveDealRatePointsBodyAdvanceExclusiveMin = 0;
+
+export const saveDealRatePointsBodyPaymentExclusiveMin = 0;
+
+
+export const saveDealRatePointsBodyBuyNominalRateMin = 0;
+
+export const saveDealRatePointsBodyTargetPointsMin = 0;
+
+
+
+
+export const SaveDealRatePointsBody = zod.object({
+  "advance": zod.number().gt(saveDealRatePointsBodyAdvanceExclusiveMin),
+  "payment": zod.number().gt(saveDealRatePointsBodyPaymentExclusiveMin),
+  "term": zod.number().min(1),
+  "timing": zod.enum(['arrears', 'advance']),
+  "buyNominalRate": zod.number().min(saveDealRatePointsBodyBuyNominalRateMin),
+  "mode": zod.enum(['spread', 'reverse']),
+  "targetPoints": zod.number().min(saveDealRatePointsBodyTargetPointsMin).nullish(),
+  "sourceApprovalId": zod.number().min(1).nullish()
+})
+
+export const saveDealRatePointsResponseDealGmSplitPctMin = 0;
+export const saveDealRatePointsResponseDealGmSplitPctMax = 100;
+
+
+
+export const SaveDealRatePointsResponse = zod.object({
+  "deal": zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullish(),
+  "dealName": zod.string(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']),
+  "amount": zod.number().nullish(),
+  "approxGm": zod.number().nullish(),
+  "actualGm": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "gmSplitPct": zod.number().min(saveDealRatePointsResponseDealGmSplitPctMin).max(saveDealRatePointsResponseDealGmSplitPctMax),
+  "assignedTo": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "fundedAt": zod.coerce.date().nullish(),
+  "isArchived": zod.boolean(),
+  "lastActivityAt": zod.coerce.date().nullish(),
+  "lastActivityActor": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),
+  "gmTarget": zod.enum(['approxGm', 'actualGm']),
+  "calculation": zod.object({
+  "advance": zod.number(),
+  "payment": zod.number(),
+  "term": zod.number(),
+  "timing": zod.enum(['arrears', 'advance']),
+  "buyNominalRate": zod.number(),
+  "nominalRate": zod.number(),
+  "effectiveRate": zod.number(),
+  "simpleRate": zod.number(),
+  "buyPayment": zod.number(),
+  "totalCommission": zod.number(),
+  "points": zod.number(),
+  "targetPoints": zod.number().nullish()
+})
+})
+
+
+/**
+ * @summary List historical lender approvals for a deal, newest first
+ */
+export const ListDealApprovalsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const ListDealApprovalsResponseItem = zod.object({
+  "id": zod.number(),
+  "dealId": zod.number(),
+  "lenderId": zod.number(),
+  "lenderName": zod.string(),
+  "contractType": zod.enum(['EFA', 'lease', 'loan']),
+  "advance": zod.number(),
+  "payment": zod.number(),
+  "term": zod.number().min(1),
+  "downPayment": zod.number(),
+  "tier": zod.string(),
+  "expiresOn": zod.coerce.date(),
+  "approvalDocumentId": zod.number().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListDealApprovalsResponse = zod.array(ListDealApprovalsResponseItem)
+
+
+/**
+ * @summary Capture a lender approval for a deal
+ */
+export const CreateDealApprovalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const createDealApprovalBodyAdvanceExclusiveMin = 0;
+
+export const createDealApprovalBodyPaymentExclusiveMin = 0;
+
+
+export const createDealApprovalBodyDownPaymentMin = 0;
+
+
+
+
+export const CreateDealApprovalBody = zod.object({
+  "lenderId": zod.number().min(1),
+  "contractType": zod.enum(['EFA', 'lease', 'loan']),
+  "advance": zod.number().gt(createDealApprovalBodyAdvanceExclusiveMin),
+  "payment": zod.number().gt(createDealApprovalBodyPaymentExclusiveMin),
+  "term": zod.number().min(1),
+  "downPayment": zod.number().min(createDealApprovalBodyDownPaymentMin),
+  "tier": zod.string().min(1),
+  "expiresOn": zod.coerce.date(),
+  "approvalDocumentId": zod.number().nullish()
+})
+
+
+/**
  * @summary Convert a lead into a linked deal without changing lead status
  */
 export const ConvertLeadToDealParams = zod.object({
@@ -2257,7 +2765,7 @@ export const convertLeadToDealBodyGmSplitPctMax = 100;
 
 export const ConvertLeadToDealBody = zod.object({
   "dealName": zod.string().min(1).optional(),
-  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'going_to_funding', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
+  "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
@@ -2422,6 +2930,7 @@ export const GetApplicationConsentTextResponse = zod.object({
  * @summary Public application submit (no auth, multipart, rate-limited)
  */
 export const submitApplicationBodyBusinessStartDateRegExp = new RegExp('^(0[1-9]|1[0-2])\/[0-9]{4}$');
+export const submitApplicationBodySmsConsentDefault = false;
 export const submitApplicationBodySignatureDataMax = 500000;
 
 
@@ -2461,12 +2970,16 @@ export const SubmitApplicationBody = zod.object({
   "downPaymentAmount": zod.number().optional().describe('Equipment applications only'),
   "hasFinancialStatements": zod.boolean().optional(),
   "hasFactoring": zod.boolean().optional(),
+  "hasCollateral": zod.boolean().optional(),
   "consentCreditPull": zod.boolean(),
   "consentTerms": zod.boolean(),
+  "smsConsent": zod.boolean().default(submitApplicationBodySmsConsentDefault).describe('Optional SMS consent; omitted and false are both opt-out.'),
   "signatureMethod": zod.enum(['typed', 'drawn']),
   "signatureData": zod.string().max(submitApplicationBodySignatureDataMax).describe('Typed legal name or base64 image data URL for a drawn signature'),
   "equipmentDescription": zod.string().optional(),
+  "equipmentCategory": zod.enum(['vocational', 'otr_truck', 'trailer', 'construction', 'other']).optional().describe('Optional applicant-reported equipment category; never inferred'),
   "vendorName": zod.string().optional().describe('Optional vendor\/dealer name'),
+  "isHomeowner": zod.boolean().optional().describe('Optional applicant-reported homeownership; never inferred'),
   "bankStatements": zod.array(zod.instanceof(File)).optional()
 })
 
@@ -2522,14 +3035,17 @@ export const GetLeadApplicationResponse = zod.object({
   "requestedAmount": zod.number().nullish(),
   "useOfFunds": zod.string().nullish(),
   "equipmentDescription": zod.string().nullish(),
+  "equipmentCategory": zod.union([zod.literal('vocational'),zod.literal('otr_truck'),zod.literal('trailer'),zod.literal('construction'),zod.literal('other'),zod.literal(null)]).nullish(),
   "vendorName": zod.string().nullish(),
   "vendorQuoteAmount": zod.string().nullish(),
   "equipmentCondition": zod.union([zod.literal('new'),zod.literal('used'),zod.literal(null)]).nullish(),
   "yearMakeModel": zod.string().nullish(),
   "trucksInFleet": zod.number().nullish(),
+  "isHomeowner": zod.boolean().nullish(),
   "downPaymentAmount": zod.string().nullish(),
   "hasFinancialStatements": zod.boolean().nullish(),
   "hasFactoring": zod.boolean().nullish(),
+  "hasCollateral": zod.boolean().nullish(),
   "industryExperienceMonths": zod.number().nullish(),
   "ownerFirstName": zod.string(),
   "ownerLastName": zod.string(),
@@ -2550,6 +3066,9 @@ export const GetLeadApplicationResponse = zod.object({
   "secondaryOwnerEstCreditScore": zod.union([zod.literal('below_500'),zod.literal('500_549'),zod.literal('550_599'),zod.literal('600_649'),zod.literal('650_699'),zod.literal('700_plus'),zod.literal(null)]).nullish(),
   "consentCreditPull": zod.boolean().optional(),
   "consentTerms": zod.boolean().optional(),
+  "smsConsent": zod.boolean().optional(),
+  "smsConsentAt": zod.coerce.date().nullish(),
+  "smsConsentIp": zod.string().nullish(),
   "consentTextVersion": zod.string().nullish(),
   "signatureData": zod.string().nullish(),
   "signatureMethod": zod.union([zod.literal('typed'),zod.literal('drawn'),zod.literal(null)]).nullish(),
@@ -2983,6 +3502,12 @@ export const DeleteWorkflowRuleParams = zod.object({
 export const ListLendersResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3110,6 +3635,12 @@ export const SeedNewLendersResponse = zod.object({
   "lenders": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3228,6 +3759,12 @@ export const UpdateLenderBody = zod.object({
 export const UpdateLenderResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3290,6 +3827,12 @@ export const DeactivateLenderParams = zod.object({
 export const DeactivateLenderResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3358,6 +3901,12 @@ export const RunLenderMatchResponse = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3434,6 +3983,12 @@ export const GetLenderMatchesResponseItem = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3510,6 +4065,12 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3560,15 +4121,31 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "submittedBy": zod.number().nullish(),
-  "submittedByUser": zod.union([zod.object({
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
-  "responseNotes": zod.string().nullish(),
-  "submittedAt": zod.coerce.date(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "hasExactPackage": zod.boolean().optional(),
+  "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
 export const GetLeadSubmissionsResponse = zod.array(GetLeadSubmissionsResponseItem)
@@ -3581,30 +4158,68 @@ export const CreateLeadSubmissionParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const createLeadSubmissionBodyAdminOverrideDefault = false;
+
 export const CreateLeadSubmissionBody = zod.object({
-  "lender_id": zod.number()
+  "lender_id": zod.number(),
+  "admin_override": zod.boolean().default(createLeadSubmissionBodyAdminOverrideDefault).describe('Administrators may bypass the rolling 24-hour duplicate limit'),
+  "package_config": zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}).optional()
 })
 
 
 /**
- * @summary Update submission status / notes (managers/admins only)
+ * @summary Log a lender submission received outside the CRM
  */
-export const UpdateSubmissionParams = zod.object({
+export const CreateManualLeadSubmissionParams = zod.object({
   "id": zod.coerce.number()
 })
 
-export const UpdateSubmissionBody = zod.object({
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']).optional(),
-  "response_notes": zod.string().nullish()
+export const CreateManualLeadSubmissionBody = zod.object({
+  "lender_id": zod.number(),
+  "deal_id": zod.number().optional(),
+  "submitted_at": zod.coerce.date().optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']).optional(),
+  "notes": zod.string().nullish(),
+  "approval_pdf_base64": zod.string().optional()
 })
 
-export const UpdateSubmissionResponse = zod.object({
+
+/**
+ * @summary Download a private lender approval attachment
+ */
+export const DownloadSubmissionApprovalAttachmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List lender submissions for a deal
+ */
+export const GetDealSubmissionsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDealSubmissionsResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
   "programTypes": zod.array(zod.string()),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3655,15 +4270,240 @@ export const UpdateSubmissionResponse = zod.object({
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
-  "submittedBy": zod.number().nullish(),
-  "submittedByUser": zod.union([zod.object({
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
   "email": zod.string().nullish()
 }),zod.null()]).optional(),
-  "status": zod.enum(['submitted', 'pending', 'approved', 'declined', 'withdrawn']),
-  "responseNotes": zod.string().nullish(),
-  "submittedAt": zod.coerce.date(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "hasExactPackage": zod.boolean().optional(),
+  "sentAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const GetDealSubmissionsResponse = zod.array(GetDealSubmissionsResponseItem)
+
+
+/**
+ * @summary Update submission status / notes (administrator or assigned representative)
+ */
+export const UpdateSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateSubmissionBody = zod.object({
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']).optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateSubmissionResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "hasExactPackage": zod.boolean().optional(),
+  "sentAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Partially update submission status / notes
+ */
+export const PatchSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PatchSubmissionBody = zod.object({
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded']).optional(),
+  "notes": zod.string().nullish()
+})
+
+export const PatchSubmissionResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "dealId": zod.number().nullish(),
+  "sentBy": zod.number().nullish(),
+  "sentByUser": zod.union([zod.object({
+  "id": zod.number().optional(),
+  "name": zod.string().nullish(),
+  "email": zod.string().nullish()
+}),zod.null()]).optional(),
+  "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']),
+  "source": zod.enum(['crm', 'manual']).optional(),
+  "decisionDate": zod.coerce.date().nullish(),
+  "hasApprovalAttachment": zod.boolean().optional(),
+  "approvalDocumentId": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "packageConfigSnapshot": zod.union([zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "maskSsn": zod.boolean().optional(),
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}),zod.null()]).optional(),
+  "hasExactPackage": zod.boolean().optional(),
+  "sentAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
 
@@ -3685,6 +4525,7 @@ export const ListEmailTemplatesResponseItem = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -3725,6 +4566,7 @@ export const GetEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -3760,6 +4602,7 @@ export const UpdateEmailTemplateResponse = zod.object({
   "senderMode": zod.enum(['default', 'assigned_rep']).optional(),
   "isActive": zod.boolean(),
   "createdBy": zod.number().nullish(),
+  "ownerId": zod.number().nullish(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -3810,7 +4653,7 @@ export const SendEmailBody = zod.object({
  * @summary Send and log an admin-only test email without associating it with a lead
  */
 export const SendTestEmailBody = zod.object({
-  "templateId": zod.number(),
+  "templateId": zod.number().optional().describe('Optional template override; omitted sends the fixed CEO delivery-test template.'),
   "toEmail": zod.string().email()
 })
 
@@ -3832,6 +4675,16 @@ export const SendBulkEmailResponse = zod.object({
   "error": zod.string()
 })).optional(),
   "rateLimitPerMinute": zod.number().optional()
+})
+
+
+/**
+ * @summary Get the shared bulk and drip daily email allowance
+ */
+export const GetBulkEmailCapacityResponse = zod.object({
+  "limit": zod.number(),
+  "used": zod.number(),
+  "remaining": zod.number()
 })
 
 
@@ -3981,6 +4834,7 @@ export const ListDripSequencesResponseItem = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4018,6 +4872,7 @@ export const GetDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4064,6 +4919,7 @@ export const UpdateDripSequenceResponse = zod.object({
   "isActive": zod.boolean(),
   "stepCount": zod.number(),
   "createdBy": zod.number().nullable(),
+  "ownerId": zod.number().nullable(),
   "creator": zod.union([zod.object({
   "id": zod.number().optional(),
   "name": zod.string().nullish(),
@@ -4366,6 +5222,196 @@ export const MarkNotificationReadParams = zod.object({
 
 export const MarkNotificationReadResponse = zod.object({
   "success": zod.boolean().optional()
+})
+
+
+export const listCollateralTemplatesQueryIncludeDraftsDefault = false;
+
+export const ListCollateralTemplatesQueryParams = zod.object({
+  "includeDrafts": zod.coerce.boolean().default(listCollateralTemplatesQueryIncludeDraftsDefault)
+})
+
+export const ListCollateralTemplatesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+export const ListCollateralTemplatesResponse = zod.array(ListCollateralTemplatesResponseItem)
+
+
+
+
+
+
+export const CreateCollateralTemplateBody = zod.object({
+  "name": zod.string().min(1),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string().min(1),
+  "status": zod.enum(['draft', 'published']).optional()
+})
+
+
+
+
+
+export const GetCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const GetCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const UpdateCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const UpdateCollateralTemplateBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']).optional(),
+  "kind": zod.enum(['html', 'image_overlay']).optional(),
+  "sourceKey": zod.string().min(1).optional(),
+  "status": zod.enum(['draft', 'published']).optional()
+})
+
+export const UpdateCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const GetCollateralTemplateThumbnailParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const PublishCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const PublishCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+
+
+
+export const ArchiveCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const ArchiveCollateralTemplateResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
+  "kind": zod.enum(['html', 'image_overlay']),
+  "sourceKey": zod.string(),
+  "status": zod.enum(['draft', 'published']),
+  "thumbnailUrl": zod.string().nullish()
+})
+
+
+export const RenderCollateralTemplateParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RenderCollateralTemplateQueryParams = zod.object({
+  "repId": zod.coerce.number().optional()
+})
+
+export const RenderCollateralTemplateResponse = zod.object({
+  "renderId": zod.number(),
+  "sha256": zod.string(),
+  "pdfUrl": zod.string(),
+  "pngUrl": zod.string(),
+  "shareUrl": zod.string()
+})
+
+
+export const DownloadCollateralPdfParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const DownloadCollateralPngParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const EmailCollateralRenderParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+
+
+
+
+export const EmailCollateralRenderBody = zod.object({
+  "leadId": zod.number().min(1),
+  "subject": zod.string().optional(),
+  "bodyHtml": zod.string().min(1)
+})
+
+export const EmailCollateralRenderResponse = zod.object({
+  "sent": zod.boolean()
+})
+
+
+
+
+
+export const CreateCollateralRenderLinkParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const CreateCollateralRenderLinkResponse = zod.object({
+  "url": zod.string().url(),
+  "expiresInDays": zod.number()
+})
+
+
+export const DownloadSharedCollateralParams = zod.object({
+  "token": zod.coerce.string()
 })
 
 

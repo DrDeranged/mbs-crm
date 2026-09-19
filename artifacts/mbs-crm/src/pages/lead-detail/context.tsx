@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetLead,
   getGetLeadQueryKey,
+  useGetMe,
   useChangeLeadStatus,
   StatusChangeStatus,
   getListLeadActivityQueryKey,
@@ -14,6 +15,9 @@ type LeadDetailContextValue = {
   id: number;
   lead: any;
   isLoading: boolean;
+  error: unknown;
+  isAdmin: boolean;
+  retry: () => void;
   status: string | undefined;
   changeStatus: ReturnType<typeof useChangeLeadStatus>;
   fundedDialogOpen: boolean;
@@ -32,9 +36,15 @@ export function LeadDetailProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: lead, isLoading } = useGetLead(id, {
+  const {
+    data: lead,
+    isLoading,
+    error,
+    refetch,
+  } = useGetLead(id, {
     query: { enabled: !!id, queryKey: getGetLeadQueryKey(id) },
   });
+  const { data: me } = useGetMe();
   const changeStatus = useChangeLeadStatus();
   const [fundedDialogOpen, setFundedDialogOpen] = useState(false);
   const [fundedAmountInput, setFundedAmountInput] = useState("");
@@ -86,6 +96,11 @@ export function LeadDetailProvider({ children }: { children: ReactNode }) {
         id,
         lead,
         isLoading,
+        error,
+        isAdmin: me?.role === "admin",
+        retry: () => {
+          void refetch();
+        },
         status: lead?.status,
         changeStatus,
         fundedDialogOpen,

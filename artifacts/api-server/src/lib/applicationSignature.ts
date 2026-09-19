@@ -83,6 +83,8 @@ export type SignedApplicationHtmlParams = {
   submittedAt: Date;
   signatureSignedAt: Date | null;
   clientIp: string | null;
+  /** Set only by the explicitly authorized lender-package unmask flow. */
+  revealSsn?: boolean;
 };
 
 /** Generates the archived signed application document. */
@@ -107,5 +109,6 @@ export function buildSignedApplicationHtml(params: SignedApplicationHtmlParams):
     signatureMethod,
     signatureData: rawSig,
     clientIp: params.clientIp,
+    revealSsn: params.revealSsn,
   });
 }

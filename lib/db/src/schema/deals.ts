@@ -6,18 +6,21 @@ import {
   boolean,
   timestamp,
   index,
+  check,
+  numeric,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
+import { lendersTable } from "./lenders";
 
 export const DEAL_STAGES = [
   "waiting_on_app",
   "information_needed",
   "submitted",
   "approved",
-  "going_to_funding",
   "in_funding",
   "funded",
   "declined",
@@ -41,6 +44,11 @@ export const dealsTable = pgTable(
     actualGm: integer("actual_gm"),
     notes: text("notes"),
     gmSplitPct: integer("gm_split_pct").notNull().default(100),
+    referredByPartnerId: integer("referred_by_partner_id").references(
+      () => lendersTable.id,
+      { onDelete: "set null" },
+    ),
+    referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
     assignedTo: integer("assigned_to").references(() => usersTable.id, {
       onDelete: "set null",
     }),
@@ -56,6 +64,9 @@ export const dealsTable = pgTable(
     index("deals_assigned_to_idx").on(t.assignedTo),
     index("deals_created_idx").on(t.createdAt),
     index("deals_archived_idx").on(t.isArchived),
+    index("deals_intended_rep_slug_idx").on(t.intendedRepSlug),
+    check("deals_gm_split_pct_check", sql`${t.gmSplitPct} BETWEEN 0 AND 100`),
+    check("deals_stage_check", sql`${t.stage} IN ('waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on')`),
   ],
 );
 

@@ -4,8 +4,9 @@ import {
   applicationsTable,
   activityLogTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { evaluateLender } from "./matchingEligibility";
+import { partnerMatchGroup } from "./partnerFlows";
 
 export { evaluateLender, isEligibleFromCriteria } from "./matchingEligibility";
 
@@ -22,6 +23,8 @@ export interface LenderMatchResult {
   matchScore: number;
   weightedScore: number;
   criteriaBreakdown: CriterionResult[];
+  partnerType?: "direct_lender" | "broker_out" | "broker_in";
+  matchGroup?: "lender" | "super_broker";
 }
 
 export async function matchLeadToLenders(leadId: number): Promise<LenderMatchResult[]> {
@@ -34,6 +37,7 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
   const company = (lead as any).company as typeof companiesTable.$inferSelect | null;
   const application = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
   const lenders = await db.select().from(lendersTable).where(eq(lendersTable.isActive, true));
 
@@ -49,11 +53,16 @@ export async function matchLeadToLenders(leadId: number): Promise<LenderMatchRes
       matchScore: evaluation.matchScore,
       weightedScore: evaluation.weightedScore,
       criteriaBreakdown: evaluation.criteriaBreakdown,
+      partnerType: lender.partnerType,
+      matchGroup: partnerMatchGroup(lender.partnerType),
     });
   }
 
   // Sort by weighted score descending
-  results.sort((a, b) => b.weightedScore - a.weightedScore);
+  results.sort((a, b) => {
+    if (a.matchGroup !== b.matchGroup) return a.matchGroup === "super_broker" ? 1 : -1;
+    return b.weightedScore - a.weightedScore;
+  });
 
   // Always clear prior matches first, then insert new results (even if empty)
   await db.delete(lenderMatchesTable).where(eq(lenderMatchesTable.leadId, leadId));

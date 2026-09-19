@@ -22,6 +22,7 @@ import {
 import { getLenderPackageFilename } from "@/lib/lenderPackageDownload";
 import { useLeadDetail } from "./context";
 import { lenderPackageFailureTitle } from "@/lib/lenderPackageError";
+import { LenderPackageBuilderDialog } from "./lender-package-builder";
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
 const documentCategoryOptions: Array<{ value: DocumentCategory; label: string }> = [
@@ -52,6 +53,7 @@ export function LeadDocuments() {
   const [isGeneratingPackage, setIsGeneratingPackage] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("other");
+  const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -150,7 +152,7 @@ export function LeadDocuments() {
       variant="outline"
       className="shrink-0"
       data-testid="button-lender-package"
-      onClick={handleLenderPackageDownload}
+      onClick={() => setPackageBuilderOpen(true)}
       disabled={applicationLoading || !application?.submittedAt || isGeneratingPackage}
       aria-label="Download Lender Package PDF"
     >
@@ -164,6 +166,7 @@ export function LeadDocuments() {
 
   return (
     <div className="space-y-6 mt-4">
+      <LenderPackageBuilderDialog leadId={leadId} open={packageBuilderOpen} onOpenChange={setPackageBuilderOpen} />
       <div className="flex flex-wrap justify-between items-center gap-2">
         <h3 className="font-medium">Documents</h3>
         <div className="flex flex-wrap items-center justify-end gap-2">

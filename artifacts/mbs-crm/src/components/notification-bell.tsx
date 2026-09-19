@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Bell, UserPlus, MessageSquare, ArrowRightCircle, FileText, CreditCard, Phone, Clock, CheckCheck, RefreshCw, Loader2, AlertCircle } from "lucide-react";
-import { useGetUnreadNotificationCount, useListNotifications, getListNotificationsQueryKey, useMarkAllNotificationsRead, useMarkNotificationRead } from "@workspace/api-client-react";
+import { useGetMe, useGetUnreadNotificationCount, useListNotifications, getListNotificationsQueryKey, useMarkAllNotificationsRead, useMarkNotificationRead } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { notificationTarget } from "@/lib/notificationNavigation";
+import { getNotificationLoadError } from "@/lib/notification-error";
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   lead_assigned: UserPlus,
@@ -35,8 +37,9 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   const { toast } = useToast();
   const triggerRef = useRef<HTMLButtonElement>(null);
 
+  const { data: currentUser } = useGetMe();
   const { data: countData, refetch: refetchCount } = useGetUnreadNotificationCount();
-  const { data: listData, isLoading, isError, refetch: refetchList } = useListNotifications({ page: 1, limit: 20 }, { query: { enabled: open, queryKey: getListNotificationsQueryKey({ page: 1, limit: 20 }) } });
+  const { data: listData, error: listError, isLoading, isError, refetch: refetchList } = useListNotifications({ page: 1, limit: 20 }, { query: { enabled: open, queryKey: getListNotificationsQueryKey({ page: 1, limit: 20 }) } });
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
@@ -72,9 +75,9 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       }
     }
 
-    // API Limitation: Only leadId is currently provided by the backend notifications schema.
-    if (n.leadId) {
-      navigate(`/leads/${n.leadId}`);
+    const target = notificationTarget(n.leadId);
+    if (target) {
+      navigate(target);
     } else {
       toast({ title: "Cannot open record", description: "API Limitation: No lead ID provided for this notification.", variant: "default" });
     }
@@ -119,7 +122,9 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
         ) : isError ? (
           <div className="flex flex-col items-center justify-center py-12 text-white/55 gap-2">
             <AlertCircle size={28} className="text-red-400" />
-            <span className="text-sm">Failed to load notifications</span>
+            <span className="text-sm text-center px-4" data-testid="status-notifications-error">
+              {getNotificationLoadError(listError, currentUser?.role === "admin")}
+            </span>
             <Button variant="ghost" size="sm" onClick={() => refetchList()} className="mt-2 text-xs">Retry</Button>
           </div>
         ) : notifications.length === 0 ? (

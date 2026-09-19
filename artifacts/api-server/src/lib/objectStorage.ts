@@ -1,8 +1,10 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Readable } from "stream";
 import { randomUUID } from "crypto";
-import {
+import type {
   ObjectAclPolicy,
+} from "./objectAcl";
+import {
   ObjectPermission,
   canAccessObject,
   getObjectAclPolicy,
@@ -152,6 +154,13 @@ export class ObjectStorageService {
       throw new ObjectNotFoundError();
     }
     return objectFile;
+  }
+
+  async saveObjectEntity(objectPath: string, bytes: Buffer, contentType: string): Promise<void> {
+    if (!objectPath.startsWith("/objects/")) throw new ObjectNotFoundError();
+    const dir = this.getPrivateObjectDir();
+    const { bucketName, objectName } = parseObjectPath(`${dir}/${objectPath.slice("/objects/".length)}`);
+    await objectStorageClient.bucket(bucketName).file(objectName).save(bytes, { contentType, resumable: false });
   }
 
   normalizeObjectEntityPath(rawPath: string): string {

@@ -18,6 +18,33 @@ import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
 
 const router = Router();
+const positiveId = z.coerce.number().int().positive();
+export const complianceLogQuery = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  startDate: z.iso.date().optional(),
+  endDate: z.iso.date().optional(),
+  repId: z.coerce.number().int().positive().optional(),
+  leadId: z.coerce.number().int().positive().optional(),
+}).strict();
+
+function parseComplianceLogQuery(req: Request, res: Response) {
+  const parsed = complianceLogQuery.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
+    return null;
+  }
+  return parsed.data;
+}
+
+function parseLeadId(req: Request, res: Response): number | null {
+  const parsed = positiveId.safeParse(req.params["id"]);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return null;
+  }
+  return parsed.data;
+}
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -157,8 +184,8 @@ router.post("/leads/:id/credit/consent", async (req: Request, res: Response) => 
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -201,8 +228,8 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -229,7 +256,7 @@ router.post("/leads/:id/credit/pull", async (req: Request, res: Response) => {
 
   const application = await db.query.applicationsTable.findFirst({
     where: eq(applicationsTable.leadId, leadId),
-    orderBy: [desc(applicationsTable.submittedAt)],
+    orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
 
   if (!application?.ownerSsnEncrypted) {
@@ -373,8 +400,8 @@ router.get("/leads/:id/credit", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const leadId = parseInt(req.params["id"] as string, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const leadId = parseLeadId(req, res);
+  if (leadId === null) return;
 
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
   if (!lead) return void res.status(404).json({ error: "Lead not found" });
@@ -415,14 +442,16 @@ router.get("/credit/compliance-log", async (req: Request, res: Response) => {
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const page = Math.max(1, parseInt(String(req.query["page"] ?? "1"), 10));
-  const limit = Math.min(100, Math.max(1, parseInt(String(req.query["limit"] ?? "25"), 10)));
+  const query = parseComplianceLogQuery(req, res);
+  if (!query) return;
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
-  const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
-  const repId = req.query["repId"] ? parseInt(String(req.query["repId"]), 10) : null;
-  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
+  const startDate = query.startDate ? new Date(query.startDate) : null;
+  const endDate = query.endDate ? new Date(query.endDate) : null;
+  const repId = query.repId ?? null;
+  const filterLeadId = query.leadId ?? null;
 
   const conditions = [eq(creditComplianceLogTable.action, "credit_pull")];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(creditComplianceLogTable.createdAt, startDate));
@@ -475,10 +504,12 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
     return void res.status(403).json({ error: "Admin only" });
   }
 
-  const startDate = req.query["startDate"] ? new Date(String(req.query["startDate"])) : null;
-  const endDate = req.query["endDate"] ? new Date(String(req.query["endDate"])) : null;
-  const repId = req.query["repId"] ? parseInt(String(req.query["repId"]), 10) : null;
-  const filterLeadId = req.query["leadId"] ? parseInt(String(req.query["leadId"]), 10) : null;
+  const query = parseComplianceLogQuery(req, res);
+  if (!query) return;
+  const startDate = query.startDate ? new Date(query.startDate) : null;
+  const endDate = query.endDate ? new Date(query.endDate) : null;
+  const repId = query.repId ?? null;
+  const filterLeadId = query.leadId ?? null;
 
   const conditions = [eq(creditComplianceLogTable.action, "credit_pull")];
   if (startDate && !isNaN(startDate.getTime())) conditions.push(gte(creditComplianceLogTable.createdAt, startDate));

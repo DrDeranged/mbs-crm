@@ -5,11 +5,13 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
 import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { getUserDisplayName } from "../lib/authHelpers";
-import { buildApplicationFormHtml, renderApplicationFormPdf } from "../lib/applicationPdf";
+import { buildApplicationFormHtml, enrichApplicationPdfRep, renderApplicationFormPdf } from "../lib/applicationPdf";
 
 const router = Router();
+export const publicRepRouter = Router();
 
 type PublicRepUser = Pick<typeof usersTable.$inferSelect, "name" | "email" | "mobileNumber" | "slug"> & {
+  id?: number;
   title?: string | null;
 };
 
@@ -137,7 +139,7 @@ export function createPublicApplicationFormRouter(dependencies: PublicApplicatio
       res.status(404).json({ error: "Representative not found" });
       return;
     }
-    const applicationOptions = {
+    const baseRep = {
       rep: {
         name: user.name,
         title: user.title,
@@ -150,6 +152,9 @@ export function createPublicApplicationFormRouter(dependencies: PublicApplicatio
     // Retain the injected HTML renderer only for existing focused tests.
     // Public production downloads use the same native renderer as the
     // authenticated application-form endpoint.
+    const applicationOptions = dependencies.renderPdf
+      ? baseRep
+      : { ...baseRep, rep: await enrichApplicationPdfRep(db, user.id ?? 0, baseRep.rep) };
     const pdf = dependencies.renderPdf
       ? await dependencies.renderPdf(buildApplicationFormHtml(applicationOptions), { format: "Letter" })
       : await renderApplicationFormPdf(applicationOptions);
@@ -301,11 +306,11 @@ export async function retireRepSlug(input: RetireSlugInput, database: RetireSlug
 }
 
 // Deliberately returns the same generic payload for unknown and inactive slugs.
-router.use(createPublicRepResolverRouter());
+publicRepRouter.use(createPublicRepResolverRouter());
 
-router.use(createRepQrRouter());
+publicRepRouter.use(createRepQrRouter());
 
-router.use(createPublicApplicationFormRouter());
+publicRepRouter.use(createPublicApplicationFormRouter());
 
 router.get("/admin/qr-verify", async (req: Request, res: Response) => {
   // Do not use requireUser here: it may reconcile reserved deals as a side

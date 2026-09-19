@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGetMe, useGetAdminErrors, getGetAdminErrorsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,11 +47,58 @@ type JobRunSummary = {
   errorMessage: string | null;
 } | null;
 
+type PushHealth = {
+  configured: boolean;
+  activeSubscriptions: number;
+  totalSubscriptions: number;
+  lastSuccessfulSendAt: string | null;
+};
+
 export default function SystemHealth() {
   const { data: me, isLoading: meLoading } = useGetMe();
   const [page, setPage] = useState(1);
+  const [pushHealth, setPushHealth] = useState<PushHealth | null>(null);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushSending, setPushSending] = useState(false);
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+  const [pushError, setPushError] = useState<string | null>(null);
 
   const isAdmin = me?.role === "admin";
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    setPushLoading(true);
+    fetch("/api/admin/push/health", { credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to load push health");
+        return response.json() as Promise<PushHealth>;
+      })
+      .then((result) => setPushHealth(result))
+      .catch(() => setPushError("Unable to load push health details."))
+      .finally(() => setPushLoading(false));
+  }, [isAdmin]);
+
+  const sendTestPush = async () => {
+    setPushSending(true);
+    setPushMessage(null);
+    setPushError(null);
+    try {
+      const response = await fetch("/api/admin/push/test", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? "Unable to send test push");
+      }
+      setPushMessage("Test push requested. Check your browser for the notification.");
+    } catch (error) {
+      setPushError(error instanceof Error ? error.message : "Unable to send test push.");
+    } finally {
+      setPushSending(false);
+    }
+  };
 
   const { data, isLoading } = useGetAdminErrors(
     { page },
@@ -136,6 +183,40 @@ export default function SystemHealth() {
           </CardContent>
         </Card>
       </div>
+
+      <Card data-testid="card-push-health">
+        <CardHeader>
+          <CardTitle>Push Notifications</CardTitle>
+          <CardDescription>Browser push delivery status and subscription health.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {pushLoading ? (
+            <div data-testid="status-push-health-loading" className="text-sm text-muted-foreground">Loading push health...</div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Subscriptions</p>
+                <p data-testid="text-push-subscription-count" className="text-xl font-semibold">
+                  {pushHealth ? `${pushHealth.activeSubscriptions} active / ${pushHealth.totalSubscriptions} total` : "Unavailable"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Last successful send</p>
+                <p data-testid="text-push-last-success" className="text-xl font-semibold">
+                  {formatRelativeTime(pushHealth?.lastSuccessfulSendAt)}
+                </p>
+              </div>
+              <div className="flex items-center">
+                <Button data-testid="button-send-test-push" onClick={sendTestPush} disabled={pushSending}>
+                  {pushSending ? "Sending..." : "Send test push"}
+                </Button>
+              </div>
+            </div>
+          )}
+          {pushMessage && <p data-testid="status-push-success" className="mt-3 text-sm text-green-700">{pushMessage}</p>}
+          {pushError && <p data-testid="status-push-error" className="mt-3 text-sm text-destructive">{pushError}</p>}
+        </CardContent>
+      </Card>
 
       {/* Background jobs */}
       <Card>
@@ -258,8 +339,8 @@ export default function SystemHealth() {
                             {err.message ?? "—"}
                           </p>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">
-                          {err.requestId ? `${err.requestId.slice(0, 8)}…` : "—"}
+                        <TableCell className="hidden lg:table-cell max-w-56 break-all font-mono text-xs text-muted-foreground">
+                          {err.requestId ?? "—"}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
                           {err.userId ?? "—"}

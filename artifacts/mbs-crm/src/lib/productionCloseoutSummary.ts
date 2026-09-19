@@ -78,13 +78,14 @@ export function formatProductionCloseoutResults(
       summary = `Skipped: ${typeof details.reason === "string" ? details.reason : "Operation was not run"}`;
     } else if (operation === "ownership") {
       summary = [
+        typeof details.seededRowsSummary === "string" ? details.seededRowsSummary : null,
         `${numberValue(details, "changed")} changed`,
         `${numberValue(details, "ordinaryChanged")} ordinary changed`,
         `${numberValue(details, "ordinaryAtNate")} at Nate Ford`,
         `${numberValue(details, "calvinCleared")} Calvin cleared`,
         `${numberValue(details, "calvinReservedUnassigned")} Calvin unassigned`,
         `${numberValue(details, "arslanTotalDeals")} Arslan deals`,
-      ].join(" · ");
+      ].filter(Boolean).join(" · ");
     } else if (operation === "slugs") {
       const users = Array.isArray(details.users) ? details.users : [];
       const targets = users

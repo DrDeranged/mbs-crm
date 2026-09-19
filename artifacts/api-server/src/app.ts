@@ -12,46 +12,73 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
-import router from "./routes";
+import router, { bootCriticalRouter } from "./routes";
 import { logger } from "./lib/logger";
 import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
 import { getSafeUserId } from "./lib/requestAuth";
+import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
 
 initSentry();
 
 const app: Express = express();
+export const clerkProxyHandler = clerkProxyMiddleware();
+
+const recordHttp5xx = createHttp5xxRecorder({
+  logger,
+  persist: async (record) => {
+    await db.insert(errorLogTable).values(record);
+  },
+});
+
+function observeHttp5xx(req: Request, res: Response, error?: unknown): void {
+  if (res.statusCode < 500 || res.locals.http5xxObserved) return;
+  res.locals.http5xxObserved = true;
+  recordHttp5xx.record({
+    requestId: req.requestId ?? "unknown",
+    method: req.method,
+    path: req.url?.split("?")[0] ?? req.url,
+    userId: getSafeUserId(() => getAuth(req)) ?? null,
+    status: res.statusCode,
+    error,
+  });
+}
 
 // Replit routes requests through one trusted proxy hop. This lets middleware
 // such as express-rate-limit derive the originating client IP safely.
 app.set("trust proxy", 1);
 
 // Attach a unique request id to every request
-app.use((req: Request, _res: Response, next: NextFunction) => {
+export const requestIdMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   req.requestId = crypto.randomUUID();
   next();
-});
+};
+app.use(requestIdMiddleware);
 
-app.use(
-  pinoHttp({
-    logger,
-    genReqId: (req) => (req as Request).requestId,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
+export const requestLoggingMiddleware = pinoHttp({
+  logger,
+  genReqId: (req) => (req as Request).requestId,
+  serializers: {
+    req(req) {
+      return {
+        id: req.id,
+        method: req.method,
+        url: req.url?.split("?")[0],
+      };
     },
-  }),
-);
+    res(res) {
+      return {
+        statusCode: res.statusCode,
+      };
+    },
+  },
+});
+app.use(requestLoggingMiddleware);
+
+// The Clerk asset/FAPI proxy must remain immediately after observability and
+// before application auth, validation, parsing, security-header, compression,
+// or rate-limit middleware.
+app.use(CLERK_PROXY_PATH, clerkProxyHandler);
 
 app.use(
   helmet({
@@ -61,8 +88,6 @@ app.use(
 );
 
 app.use(compression());
-
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -92,65 +117,42 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
+// These routes must run before Clerk auth/validation. Provider callbacks use
+// their own signature checks and health/proxy probes must remain unauthenticated.
+app.use("/api", bootCriticalRouter);
+
+export const globalClerkMiddleware = clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
       getClerkProxyHost(req) ?? "",
       process.env.CLERK_PUBLISHABLE_KEY,
     ),
-  })),
-);
+  }));
+app.use(globalClerkMiddleware);
+
+// Handlers which intentionally catch an error and send a 5xx response still
+// need structured log/error-log coverage. Unhandled errors are recorded below
+// with their original stack before their response completes.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.once("finish", () => observeHttp5xx(req, res));
+  next();
+});
 
 app.use("/api", router);
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
-  const requestId = req.requestId ?? "unknown";
-  const userId = getSafeUserId(() => getAuth(req));
-
   const status =
     (err instanceof Error && "status" in err ? (err as any).status : null) ??
     (err instanceof Error && "statusCode" in err ? (err as any).statusCode : null) ??
     500;
 
-  const message = err instanceof Error ? err.message : "Internal server error";
-  const stack = err instanceof Error ? err.stack : undefined;
-
-  logger.error(
-    {
-      requestId,
-      method: req.method,
-      path: req.url?.split("?")[0],
-      userId: userId ?? null,
-      status,
-      message,
-      stack,
-    },
-    "Unhandled error",
-  );
-
   // Report 500-level errors to Sentry with the request_id tag
   if (status >= 500) {
-    captureException(err, { request_id: requestId });
+    captureException(err, { request_id: req.requestId ?? "unknown" });
   }
 
-  // Fire-and-forget: only log 500-level errors to DB, never block the response
-  if (status >= 500) {
-    db.insert(errorLogTable)
-      .values({
-        requestId,
-        userId: userId ?? null,
-        method: req.method,
-        path: req.url?.split("?")[0] ?? req.url,
-        status,
-        message,
-        stack: stack ?? null,
-      })
-      .catch((dbErr: unknown) => {
-        logger.error({ err: dbErr }, "Failed to write to error_log");
-      });
-  }
-
-  res.status(status).json({ error: message, requestId });
+  res.status(status);
+  observeHttp5xx(req, res, err);
+  res.json({ error: err instanceof Error ? err.message : "Internal server error", requestId: req.requestId ?? "unknown" });
 });
 
 export default app;

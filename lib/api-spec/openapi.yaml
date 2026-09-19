@@ -119,6 +119,118 @@ paths:
         "403":
           description: Forbidden
 
+  /admin/usfa-intake:
+    get:
+      operationId: getAdminUsfaIntake
+      tags: [admin]
+      summary: Read USFA sheet intake status and row log (admin only)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        "200":
+          description: USFA intake status and logs
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminUsfaIntakeResponse" }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+
+  /intake/usfa:
+    post:
+      operationId: receiveUsfaWebhook
+      tags: [leads]
+      summary: Receive a dormant HMAC-authenticated USFA lead webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsfaWebhookPayload"
+      responses:
+        "200":
+          description: Lead receipt result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsfaWebhookResponse"
+        "400": { description: Invalid payload with field }
+        "401": { description: Invalid or missing HMAC signature }
+        "404": { description: Webhook disabled }
+
+  /admin/usfa-intake/run:
+    post:
+      operationId: runAdminUsfaIntake
+      tags: [admin]
+      summary: Run one read-only USFA Sheet poll (admin only)
+      responses:
+        "200":
+          description: Poll result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaPollResult" }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+
+  /admin/usfa-intake/{id}/reprocess:
+    post:
+      operationId: reprocessAdminUsfaIntake
+      tags: [admin]
+      summary: Reprocess an errored USFA row (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Reprocess result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaPollResult" }
+        "400": { description: Invalid ID }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Intake log not found }
+
+  /admin/migrations/status:
+    get:
+      operationId: getAdminMigrationStatus
+      tags: [admin]
+      summary: List discovered schema migrations and their checksums (admin only)
+      responses:
+        "200":
+          description: Migration status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationReport"
+        "401":
+          description: Authentication required
+        "403":
+          description: Admin access required
+
+  /admin/migrations/apply:
+    post:
+      operationId: applyAdminMigrations
+      tags: [admin]
+      summary: Apply pending schema migrations one at a time (admin only)
+      responses:
+        "200":
+          description: Migration application report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationReport"
+        "401":
+          description: Authentication required
+        "403":
+          description: Admin access required
+
   /admin/users/backfill-slugs:
     post:
       operationId: backfillSlugs
@@ -432,6 +544,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+
+  /admin/users/merge:
+    post:
+      operationId: mergeAdminUsers
+      tags: [admin]
+      summary: Merge a pending user into an active user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserMergeRequest"
+      responses:
+        "200":
+          description: Merge result with reassignment counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserMergeResponse"
+        "400": { description: Invalid source or target }
+        "401": { description: Authentication required }
+        "403": { description: Admin access required }
+        "409": { description: Merge requires confirmation or violates user safety rules }
 
   /settings/lead-distribution:
     get:
@@ -1115,6 +1250,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lead"
 
+  /leads/{id}/usfa-application-link:
+    post:
+      operationId: createUsfaApplicationLink
+      tags: [leads]
+      summary: Create a short-lived USFA application prefill link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Secure application link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsfaApplicationLink"
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: USFA lead not found }
+        "409": { description: No active representative slug }
+
+  /public/reps/{slug}/usfa-prefill/{token}:
+    get:
+      operationId: getUsfaPrefill
+      tags: [applications]
+      summary: Read a one-time USFA application prefill by opaque link token
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: USFA owner prefill (never cached)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsfaPrefill"
+        "404": { description: "Invalid, expired, revoked, or used token" }
+
   /leads/{id}/status:
     put:
       operationId: changeLeadStatus
@@ -1409,6 +1589,98 @@ paths:
           description: Lender package exceeds the maximum PDF size
         "500":
           description: Lender package generation failed
+    post:
+      operationId: buildSelectedLenderPackage
+      tags: [documents]
+      summary: Build a PDF from the selected lender-package sections and documents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderPackageConfig"
+      responses:
+        "200":
+          description: Selected lender package PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "400": { description: Invalid selection or document ownership }
+        "403": { description: Forbidden }
+        "404": { description: Lead or application not found }
+
+  /leads/{id}/package-config:
+    get:
+      operationId: getLeadPackageConfig
+      tags: [documents]
+      summary: Get a lead's saved lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Saved configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
+    put:
+      operationId: saveLeadPackageConfig
+      tags: [documents]
+      summary: Save a lead's lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LenderPackageConfig" }
+      responses:
+        "200":
+          description: Saved configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageConfigResponse" }
+    delete:
+      operationId: resetLeadPackageConfig
+      tags: [documents]
+      summary: Clear a lead's saved lender-package configuration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Configuration cleared }
+
+  /submissions/{id}/package:
+    get:
+      operationId: downloadExactSubmissionPackage
+      tags: [lenders]
+      summary: Download the immutable PDF package sent with a lender submission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Exact sent package PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "403": { description: Forbidden }
+        "404": { description: Submission or package not found }
+        "409": { description: Package integrity validation failed }
 
   /users/{id}/application-form.pdf:
     get:
@@ -1535,7 +1807,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+            enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         - name: stages
           in: query
           description: Comma-separated stage values for multi-stage views
@@ -1543,7 +1815,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+              enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
           style: form
           explode: false
         - name: search
@@ -1619,7 +1891,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+            enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         - name: stages
           in: query
           description: Comma-separated stage values for multi-stage views
@@ -1627,7 +1899,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+              enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
           style: form
           explode: false
         - name: search
@@ -1763,6 +2035,78 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DealActivity"
+
+  /deals/{id}/rate-points:
+    post:
+      operationId: saveDealRatePoints
+      tags: [deals]
+      summary: Save a rate and points calculation to a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DealRatePointsInput" }
+      responses:
+        "200":
+          description: Saved deal and calculation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DealRatePointsResult" }
+        "400": { description: Invalid calculation }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal not found }
+
+  /deals/{id}/approvals:
+    get:
+      operationId: listDealApprovals
+      tags: [deals]
+      summary: List historical lender approvals for a deal, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deal approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DealApproval" }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal not found }
+    post:
+      operationId: createDealApproval
+      tags: [deals]
+      summary: Capture a lender approval for a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DealApprovalInput" }
+      responses:
+        "201":
+          description: Captured approval
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DealApproval" }
+        "400": { description: Invalid approval or document reference }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: Deal or lender not found }
 
   /leads/{id}/convert-to-deal:
     post:
@@ -2101,10 +2445,16 @@ paths:
                   type: boolean
                 hasFactoring:
                   type: boolean
+                hasCollateral:
+                  type: boolean
                 consentCreditPull:
                   type: boolean
                 consentTerms:
                   type: boolean
+                smsConsent:
+                  type: boolean
+                  default: false
+                  description: Optional SMS consent; omitted and false are both opt-out.
                 signatureMethod:
                   type: string
                   enum: [typed, drawn]
@@ -2114,9 +2464,16 @@ paths:
                   maxLength: 500000
                 equipmentDescription:
                   type: string
+                equipmentCategory:
+                  type: string
+                  enum: [vocational, otr_truck, trailer, construction, other]
+                  description: Optional applicant-reported equipment category; never inferred
                 vendorName:
                   type: string
                   description: Optional vendor/dealer name
+                isHomeowner:
+                  type: boolean
+                  description: Optional applicant-reported homeownership; never inferred
                 bankStatements:
                   type: array
                   items:
@@ -2271,6 +2628,16 @@ paths:
           description: Unauthorized
         "503":
           description: Twilio not configured
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, reason]
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
 
   /twilio/voice:
     post:
@@ -2809,6 +3176,86 @@ paths:
         "404":
           description: Not found
 
+  /partners/{partnerId}/contacts:
+    get:
+      operationId: listPartnerContacts
+      tags: [lenders]
+      summary: List contacts for a partner
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Partner contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PartnerContact" }
+    post:
+      operationId: createPartnerContact
+      tags: [lenders]
+      summary: Add a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PartnerContactInput" }
+      responses:
+        "201":
+          description: Created partner contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PartnerContact" }
+
+  /partners/{partnerId}/contacts/{contactId}:
+    patch:
+      operationId: updatePartnerContact
+      tags: [lenders]
+      summary: Update a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PartnerContactUpdate" }
+      responses:
+        "200":
+          description: Updated partner contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PartnerContact" }
+    delete:
+      operationId: deletePartnerContact
+      tags: [lenders]
+      summary: Delete a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deleted }
+
   /lenders:
     get:
       operationId: listLenders
@@ -2997,12 +3444,24 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [lender_id]
-              properties:
-                lender_id:
-                  type: integer
+             schema:
+               type: object
+               required: [lender_id]
+               properties:
+                 lender_id:
+                   type: integer
+                  via_broker_id:
+                    type: integer
+                    description: Broker-out partner that placed this submission
+                  end_lender_id:
+                    type: integer
+                    description: End lender, when known
+                 admin_override:
+                   type: boolean
+                   default: false
+                   description: Administrators may bypass the rolling 24-hour duplicate limit
+                 package_config:
+                   $ref: "#/components/schemas/LenderPackageConfig"
       responses:
         "201":
           description: Submission created
@@ -3011,11 +3470,141 @@ paths:
               schema:
                 $ref: "#/components/schemas/LenderSubmission"
 
+  /leads/{id}/submissions/manual:
+    post:
+      operationId: createManualLeadSubmission
+      tags: [lenders]
+      summary: Log a lender submission received outside the CRM
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualLenderSubmissionCreate"
+      responses:
+        "201":
+          description: Manual submission
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderSubmission" }
+  /submissions/{id}/approval-attachment:
+    get:
+      operationId: downloadSubmissionApprovalAttachment
+      tags: [lenders]
+      summary: Download a private lender approval attachment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Approval PDF
+          content:
+            application/pdf: {}
+  /deals/{id}/submissions:
+    get:
+      operationId: getDealSubmissions
+      tags: [lenders]
+      summary: List lender submissions for a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submissions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LenderSubmission"
+
+  /partners/{partnerId}/contacts/{contactId}/sms:
+    post:
+      operationId: sendPartnerContactSms
+      tags: [communications]
+      summary: Send a business-contact SMS to a partner contact
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1 }
+                dealId: { type: integer }
+      responses:
+        "201":
+          description: Sent communication
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Communication" }
+        "403": { description: Partner texting is disabled }
+        "422": { description: STOP opt-out or A2P approval required }
+
+  /settings/partner-texting:
+    get:
+      operationId: getPartnerTextingSettings
+      tags: [admin]
+      summary: Get partner texting setting
+      responses:
+        "200":
+          description: Partner texting setting
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enabled]
+                properties:
+                  enabled: { type: boolean }
+    put:
+      operationId: updatePartnerTextingSettings
+      tags: [admin]
+      summary: Enable or disable partner texting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        "200":
+          description: Updated partner texting setting
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enabled]
+                properties:
+                  enabled: { type: boolean }
+
   /submissions/{id}:
     put:
       operationId: updateSubmission
       tags: [lenders]
-      summary: Update submission status / notes (managers/admins only)
+      summary: Update submission status / notes (administrator or assigned representative)
       parameters:
         - name: id
           in: path
@@ -3031,9 +3620,32 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [submitted, pending, approved, declined, withdrawn]
-                response_notes:
+                  enum: [submitted, approved, declined, funded]
+                notes:
                   type: ["string", "null"]
+      responses:
+        "200":
+          description: Submission updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LenderSubmission"
+    patch:
+      operationId: patchSubmission
+      tags: [lenders]
+      summary: Partially update submission status / notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderSubmissionUpdate"
       responses:
         "200":
           description: Submission updated
@@ -3205,10 +3817,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [templateId, toEmail]
+              required: [toEmail]
               properties:
                 templateId:
                   type: integer
+                  description: Optional template override; omitted sends the fixed CEO delivery-test template.
                 toEmail:
                   type: string
                   format: email
@@ -3218,9 +3831,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EmailSend"
+                allOf:
+                  - $ref: "#/components/schemas/EmailSend"
+                  - type: object
+                    required: [messageId]
+                    properties:
+                      messageId:
+                        type: [string, "null"]
+                        description: SendGrid message identifier returned after provider acceptance.
         "400":
-          description: Missing template ID or recipient email
+          description: Invalid recipient email
         "403":
           description: Admin access required
         "404":
@@ -3248,6 +3868,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkEmailResult"
+
+  /email/bulk-capacity:
+    get:
+      operationId: getBulkEmailCapacity
+      tags: [email]
+      summary: Get the shared bulk and drip daily email allowance
+      responses:
+        "200":
+          description: Current daily marketing email capacity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkEmailCapacity"
+        "403":
+          description: Representatives cannot send bulk email
 
   /email/seed-starter:
     post:
@@ -3824,6 +4459,81 @@ paths:
                   count:
                     type: integer
 
+  /notifications/vapid-public-key:
+    get:
+      tags: [notifications]
+      operationId: getVapidPublicKey
+      summary: Get the configured VAPID public key for web push
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: VAPID public key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VapidPublicKey"
+        "503": { description: Push notifications are not configured }
+
+  /notifications/preferences:
+    get:
+      tags: [notifications]
+      operationId: getNotificationPreferences
+      summary: Get current user's push notification preferences
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+    put:
+      tags: [notifications]
+      operationId: updateNotificationPreferences
+      summary: Update current user's push notification preferences
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferencesUpdate"
+      responses:
+        "200":
+          description: Updated notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+
+  /notifications/subscriptions:
+    put:
+      tags: [notifications]
+      operationId: upsertPushSubscription
+      summary: Register the current user's web push endpoint
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionInput"
+      responses:
+        "204": { description: Subscription registered }
+    delete:
+      tags: [notifications]
+      operationId: unsubscribePushSubscription
+      summary: Remove the current user's web push endpoint
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionDelete"
+      responses:
+        "204": { description: Subscription removed }
+
   /notifications/read-all:
     put:
       tags: [notifications]
@@ -3866,13 +4576,270 @@ paths:
                   success:
                     type: boolean
 
+  /collateral/templates:
+    get:
+      operationId: listCollateralTemplates
+      tags: [documents]
+      parameters:
+        - name: includeDrafts
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+      responses:
+        "200": { description: Published collateral templates, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+    post:
+      operationId: createCollateralTemplate
+      tags: [documents]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplateInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}:
+    get:
+      operationId: getCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+    patch:
+      operationId: updateCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplatePatch" } } } }
+      responses: { "200": { description: Updated template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/thumbnail:
+    get:
+      operationId: getCollateralTemplateThumbnail
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Safe SVG preview, content: { image/svg+xml: {} } } }
+  /collateral/templates/{id}/publish:
+    post:
+      operationId: publishCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Published template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/archive:
+    post:
+      operationId: archiveCollateralTemplate
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralTemplateId" }]
+      responses: { "200": { description: Archived template, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/templates/{id}/render:
+    get:
+      operationId: renderCollateralTemplate
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }, { name: repId, in: query, schema: { type: integer } }]
+      responses: { "200": { description: Personalized cached render, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralRender" } } } } }
+  /collateral/renders/{id}/pdf:
+    get:
+      operationId: downloadCollateralPdf
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: PDF, content: { application/pdf: {} } }, "503": { description: Renderer unavailable } }
+  /collateral/renders/{id}/png:
+    get:
+      operationId: downloadCollateralPng
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "503": { description: sharp is unavailable } }
+  /collateral/renders/{id}/email:
+    post:
+      operationId: emailCollateralRender
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralRenderId" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralEmailInput" } } } }
+      responses: { "200": { description: Email sent, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralEmailResult" } } } } }
+  /collateral/renders/{id}/link:
+    get:
+      operationId: createCollateralRenderLink
+      tags: [documents]
+      parameters: [{ $ref: "#/components/parameters/CollateralRenderId" }]
+      responses: { "200": { description: Signed seven-day URL, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralLink" } } } } }
+  /collateral/shared/{token}:
+    get:
+      operationId: downloadSharedCollateral
+      tags: [documents]
+      security: []
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: PDF download, content: { application/pdf: {} } }, "403": { description: Invalid or expired link } }
+
 components:
+  parameters:
+    CollateralTemplateId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    CollateralRenderId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    AdminUserMergeRequest:
+      type: object
+      required: [sourceUserId, targetUserId]
+      properties:
+        sourceUserId: { type: integer, minimum: 1 }
+        targetUserId: { type: integer, minimum: 1 }
+        confirmReassignment:
+          type: boolean
+          default: false
+          description: Required when the source owns any records that will be reassigned
+    AdminUserMergeResponse:
+      type: object
+      required: [sourceUserId, targetUserId, counts, reassigned]
+      properties:
+        sourceUserId: { type: integer }
+        targetUserId: { type: integer }
+        reassigned: { type: integer }
+        counts:
+          type: object
+          additionalProperties: { type: integer }
+
+    CollateralTemplate:
+      type: object
+      required: [id, name, category, kind, sourceKey, status]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string }
+        status: { type: string, enum: [draft, published] }
+        thumbnailUrl: { type: ["string", "null"] }
+    CollateralTemplateInput:
+      type: object
+      required: [name, category, kind, sourceKey]
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string, minLength: 1 }
+        status: { type: string, enum: [draft, published] }
+    CollateralTemplatePatch:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, enum: [flyer, one_pager, application, letter, other] }
+        kind: { type: string, enum: [html, image_overlay] }
+        sourceKey: { type: string, minLength: 1 }
+        status: { type: string, enum: [draft, published] }
+    CollateralRender:
+      type: object
+      required: [renderId, sha256, pdfUrl, pngUrl, shareUrl]
+      properties:
+        renderId: { type: integer }
+        sha256: { type: string }
+        pdfUrl: { type: string }
+        pngUrl: { type: string }
+        shareUrl: { type: string }
+    CollateralEmailInput:
+      type: object
+      required: [leadId, bodyHtml]
+      properties:
+        leadId: { type: integer, minimum: 1 }
+        subject: { type: string }
+        bodyHtml: { type: string, minLength: 1 }
+    CollateralEmailResult:
+      type: object
+      required: [sent]
+      properties:
+        sent: { type: boolean }
+    CollateralLink:
+      type: object
+      required: [url, expiresInDays]
+      properties:
+        url: { type: string, format: uri }
+        expiresInDays: { type: integer, const: 7 }
+    UsfaIntakeLog:
+      type: object
+      required: [id, externalId, rowNumber, ingestedAt, status]
+      properties:
+        id: { type: integer }
+        externalId: { type: string }
+        rowNumber: { type: integer }
+        ingestedAt: { type: string, format: date-time }
+        leadId: { type: ["integer", "null"] }
+        status: { type: string, enum: [ok, dup, error] }
+        error: { type: ["string", "null"] }
+    UsfaWebhookPayload:
+      type: object
+      required: [id, revenue]
+      additionalProperties: false
+      properties:
+        id: { type: string, minLength: 1 }
+        company: { type: ["string", "null"] }
+        creditScore: { type: ["string", "number", "null"] }
+        industry: { type: ["string", "null"] }
+        ownerName: { type: ["string", "null"] }
+        firstName: { type: ["string", "null"] }
+        lastName: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        phone1: { type: ["string", "null"] }
+        phone2: { type: ["string", "null"] }
+        ein: { type: ["string", "null"] }
+        startDate: { type: ["string", "null"] }
+        ssn: { type: ["string", "null"] }
+        street: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        zip: { type: ["string", "number", "null"] }
+        dob: { type: ["string", "null"] }
+        revenue: { type: number, minimum: 0 }
+        amountRequested: { type: ["number", "null"] }
+        createdAt: { type: ["string", "null"] }
+        statement1: { type: ["string", "null"] }
+        statement2: { type: ["string", "null"] }
+        statement3: { type: ["string", "null"] }
+        statement4: { type: ["string", "null"] }
+    UsfaWebhookResponse:
+      type: object
+      required: [leadId, status]
+      properties:
+        leadId: { type: ["integer", "null"] }
+        status: { type: string, enum: [ok, dup] }
+    UsfaPollResult:
+      type: object
+      required: [status, processed, skipped, duplicates, errors, headerValid]
+      properties:
+        status: { type: string, enum: [ok, skipped] }
+        reason: { type: string }
+        processed: { type: integer }
+        skipped: { type: integer }
+        duplicates: { type: integer }
+        errors: { type: integer }
+        headerValid: { type: boolean }
+    AdminUsfaIntakeResponse:
+      type: object
+      required: [settings, counts, logs, page, limit]
+      properties:
+        settings:
+          type: object
+          required: [usfaSheetId, usfaSheetTab, usfaConsentConfirmed, usfaWebhookEnabled]
+          properties:
+            usfaSheetId: { type: ["string", "null"] }
+            usfaSheetTab: { type: string }
+            usfaConsentConfirmed: { type: boolean }
+            usfaWebhookEnabled: { type: boolean }
+        counts:
+          type: object
+          required: [total, ok, dup, error, lastRun]
+          properties:
+            total: { type: integer }
+            ok: { type: integer }
+            dup: { type: integer }
+            error: { type: integer }
+            lastRun: { type: ["string", "null"], format: date-time }
+        logs:
+          type: array
+          items: { $ref: "#/components/schemas/UsfaIntakeLog" }
+        page: { type: integer }
+        limit: { type: integer }
     AnalyticsSummary:
       type: object
       required: [totalLeads, allTimeTotalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]
@@ -3995,6 +4962,10 @@ components:
           format: date-time
         assignedRepId:
           type: ["integer", "null"]
+        referredByPartnerId:
+          type: ["integer", "null"]
+        referralSplitPct:
+          type: ["number", "null"]
         assignedRepName:
           type: ["string", "null"]
         requestedAmount:
@@ -4101,6 +5072,24 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/QrVerifyResult"
+
+    UsfaApplicationLink:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    UsfaPrefill:
+      type: object
+      properties:
+        ownerSsn:
+          type: string
+        ownerDob:
+          type: string
 
     Lead:
       type: object
@@ -4321,18 +5310,14 @@ components:
 
     LeadDistributionSettings:
       type: object
-      required: [includeAdminsInRoundRobin, staleThresholdDays]
+      required: [includeAdminsInRoundRobin, routing]
       properties:
         includeAdminsInRoundRobin:
           type: boolean
           default: false
           description: Include active admins after active reps and managers in inbound round-robin assignment
-        staleThresholdDays:
-          type: integer
-          minimum: 1
-          maximum: 365
-          default: 7
-          description: Number of idle days before an assigned lead is considered stale
+        routing:
+          $ref: "#/components/schemas/RoutingSettings"
 
     LeadDistributionSettingsUpdate:
       type: object
@@ -4340,14 +5325,45 @@ components:
       properties:
         includeAdminsInRoundRobin:
           type: boolean
-        staleThresholdDays:
+        routing:
+          $ref: "#/components/schemas/RoutingSettingsUpdate"
+
+    RoutingSettings:
+      type: object
+      required: [mode, staleDays, autoReassignStale]
+      properties:
+        mode:
+          type: string
+          enum: [manual, round_robin]
+          default: manual
+          description: Manual leaves inbound leads unassigned; round_robin assigns ordinary website inbound leads only.
+        staleDays:
           type: integer
           minimum: 1
           maximum: 365
+          default: 7
+          description: Number of idle days before an assigned lead is considered stale.
+        autoReassignStale:
+          type: boolean
+          default: false
+          description: Automatically reassign stale ordinary inbound leads only when mode is round_robin.
+
+    RoutingSettingsUpdate:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [manual, round_robin]
+        staleDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        autoReassignStale:
+          type: boolean
 
     EmailDeliverySettings:
       type: object
-      required: [emailSendingEnabled, bulkEmailPerMinute]
+      required: [emailSendingEnabled, bulkEmailPerMinute, bulkEmailPerDay]
       properties:
         emailSendingEnabled:
           type: boolean
@@ -4359,6 +5375,12 @@ components:
           maximum: 1000
           default: 60
           description: Maximum messages per minute for one bulk request
+        bulkEmailPerDay:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 75
+          description: Shared daily maximum for bulk and drip delivery attempts
 
     EmailDeliverySettingsUpdate:
       type: object
@@ -4370,6 +5392,21 @@ components:
           type: integer
           minimum: 1
           maximum: 1000
+        bulkEmailPerDay:
+          type: integer
+          minimum: 1
+          maximum: 100000
+
+    BulkEmailCapacity:
+      type: object
+      required: [limit, used, remaining]
+      properties:
+        limit:
+          type: integer
+        used:
+          type: integer
+        remaining:
+          type: integer
 
     DuplicateResponse:
       type: object
@@ -4631,14 +5668,14 @@ components:
 
     Task:
       type: object
-      required: [id, leadId, userId, title, isCompleted, createdAt]
+      required: [id, leadId, title, isCompleted, createdAt]
       properties:
         id:
           type: integer
         leadId:
           type: integer
         userId:
-          type: integer
+          type: ["integer", "null"]
         assignedUser:
           oneOf:
             - $ref: "#/components/schemas/User"
@@ -4710,6 +5747,8 @@ components:
           type: integer
         category:
           $ref: "#/components/schemas/DocumentCategory"
+        label:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -4733,6 +5772,8 @@ components:
           format: binary
         category:
           $ref: "#/components/schemas/DocumentCategory"
+        label:
+          type: string
 
     DocumentCategoryUpdate:
       type: object
@@ -4900,6 +5941,8 @@ components:
           type: integer
         leadId:
           type: ["integer", "null"]
+        partnerId:
+          type: ["integer", "null"]
         userId:
           type: ["integer", "null"]
         user:
@@ -4979,6 +6022,8 @@ components:
         isActive:
           type: boolean
         createdBy:
+          type: ["integer", "null"]
+        ownerId:
           type: ["integer", "null"]
         creator:
           oneOf:
@@ -5108,7 +6153,7 @@ components:
 
     DripSequence:
       type: object
-      required: [id, name, triggerStatus, isActive, stepCount, createdBy, createdAt, updatedAt]
+      required: [id, name, triggerStatus, isActive, stepCount, createdBy, ownerId, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5124,6 +6169,8 @@ components:
         stepCount:
           type: integer
         createdBy:
+          type: ["integer", "null"]
+        ownerId:
           type: ["integer", "null"]
         creator:
           oneOf:
@@ -5244,6 +6291,42 @@ components:
           type: ["string", "null"]
           format: date-time
 
+    PartnerContact:
+      type: object
+      required: [id, partnerId, role, name, isPrimary, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        partnerId: { type: integer }
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+        smsOptedOut: { type: boolean }
+        createdBy: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    PartnerContactInput:
+      type: object
+      required: [name]
+      properties:
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string, minLength: 1 }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+    PartnerContactUpdate:
+      type: object
+      properties:
+        role: { type: string, enum: [rep, submissions, credit, docs, funding, other] }
+        name: { type: string, minLength: 1 }
+        email: { type: ["string", "null"], format: email }
+        phone: { type: ["string", "null"] }
+        isPrimary: { type: boolean }
+        notes: { type: ["string", "null"] }
+
     Lender:
       type: object
       required: [id, name, programTypes, acceptedIndustries, restrictedIndustries, prohibitedIndustries, acceptedStates, minTimeInBusinessMonths, maxExistingPositions, priorityWeight, requiresFinancialStatements, isActive, createdAt, updatedAt]
@@ -5252,6 +6335,17 @@ components:
           type: integer
         name:
           type: string
+        submissionStats:
+          type: object
+          properties:
+            submitted:
+              type: integer
+            approved:
+              type: integer
+            declined:
+              type: integer
+            approvalRate:
+              type: integer
         programTypes:
           type: array
           items:
@@ -5314,10 +6408,29 @@ components:
           type: ["string", "null"]
         contactEmail:
           type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
         notes:
           type: ["string", "null"]
         isActive:
           type: boolean
+         partnerType:
+           type: string
+           enum: [direct_lender, broker_out, broker_in]
+         referralSplitPct:
+           type: ["number", "null"]
+         submissionMethod:
+           type: string
+           enum: [email, portal, both]
+         portalUrl:
+           type: ["string", "null"]
+         contacts:
+           type: array
+           items: { $ref: "#/components/schemas/PartnerContact" }
         createdAt:
           type: string
           format: date-time
@@ -5331,6 +6444,22 @@ components:
       properties:
         name:
           type: string
+        partnerType:
+          type: string
+          enum: [direct_lender, broker_out, broker_in]
+        referralSplitPct:
+          type: ["number", "null"]
+        submissionMethod:
+          type: string
+          enum: [email, portal, both]
+        portalUrl:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
         programTypes:
           type: array
           items:
@@ -5464,6 +6593,12 @@ components:
             - type: "null"
         matchScore:
           type: integer
+        partnerType:
+          type: string
+          enum: [direct_lender, broker_out, broker_in]
+        matchGroup:
+          type: string
+          enum: [lender, super_broker]
         criteriaBreakdown:
           type: array
           items:
@@ -5483,7 +6618,7 @@ components:
 
     LenderSubmission:
       type: object
-      required: [id, leadId, lenderId, status, submittedAt, updatedAt]
+      required: [id, leadId, lenderId, status, sentAt, updatedAt]
       properties:
         id:
           type: integer
@@ -5491,13 +6626,19 @@ components:
           type: integer
         lenderId:
           type: integer
+        viaBrokerId:
+          type: ["integer", "null"]
+        endLenderId:
+          type: ["integer", "null"]
         lender:
           oneOf:
             - $ref: "#/components/schemas/Lender"
             - type: "null"
-        submittedBy:
+        dealId:
           type: ["integer", "null"]
-        submittedByUser:
+        sentBy:
+          type: ["integer", "null"]
+        sentByUser:
           oneOf:
             - type: object
               properties:
@@ -5510,15 +6651,65 @@ components:
             - type: "null"
         status:
           type: string
-          enum: [submitted, pending, approved, declined, withdrawn]
-        responseNotes:
+          enum: [submitted, approved, declined, funded, withdrawn]
+        source:
+          type: string
+          enum: [crm, manual]
+        decisionDate:
           type: ["string", "null"]
-        submittedAt:
+          format: date-time
+        hasApprovalAttachment:
+          type: boolean
+        approvalDocumentId:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        messageId:
+          type: ["string", "null"]
+        packageConfigSnapshot:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPackageConfig"
+            - type: "null"
+        hasExactPackage:
+          type: boolean
+        sentAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    LenderSubmissionUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [submitted, approved, declined, funded]
+        notes:
+          type: ["string", "null"]
+
+    ManualLenderSubmissionCreate:
+      type: object
+      required: [lender_id]
+      properties:
+        lender_id:
+          type: integer
+        deal_id:
+          type: integer
+        submitted_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [submitted, approved, declined, funded, withdrawn]
+        notes:
+          type: ["string", "null"]
+        approval_pdf_base64:
+          type: string
+        via_broker_id:
+          type: integer
+        end_lender_id:
+          type: integer
 
     VariableField:
       type: object
@@ -5649,6 +6840,13 @@ components:
           type: integer
         tracking_token:
           type: ["string", "null"]
+        equipmentCategory:
+          type: ["string", "null"]
+          enum: [vocational, otr_truck, trailer, construction, other, null]
+          description: Applicant-reported equipment category, or null when omitted
+        isHomeowner:
+          type: ["boolean", "null"]
+          description: Applicant-reported homeownership, or null when omitted
 
     ApplicationConsentText:
       type: object
@@ -5743,6 +6941,9 @@ components:
           type: ["string", "null"]
         equipmentDescription:
           type: ["string", "null"]
+        equipmentCategory:
+          type: ["string", "null"]
+          enum: [vocational, otr_truck, trailer, construction, other, null]
         vendorName:
           type: ["string", "null"]
         vendorQuoteAmount:
@@ -5754,11 +6955,15 @@ components:
           type: ["string", "null"]
         trucksInFleet:
           type: ["integer", "null"]
+        isHomeowner:
+          type: ["boolean", "null"]
         downPaymentAmount:
           type: ["string", "null"]
         hasFinancialStatements:
           type: ["boolean", "null"]
         hasFactoring:
+          type: ["boolean", "null"]
+        hasCollateral:
           type: ["boolean", "null"]
         industryExperienceMonths:
           type: ["integer", "null"]
@@ -5801,6 +7006,13 @@ components:
           type: boolean
         consentTerms:
           type: boolean
+        smsConsent:
+          type: boolean
+        smsConsentAt:
+          type: ["string", "null"]
+          format: date-time
+        smsConsentIp:
+          type: ["string", "null"]
         consentTextVersion:
           type: ["string", "null"]
         signatureData:
@@ -6052,9 +7264,62 @@ components:
           type: string
           format: date-time
 
+    VapidPublicKey:
+      type: object
+      required: [publicKey]
+      properties:
+        publicKey: { type: string }
+
+    NotificationPreferences:
+      type: object
+      required: [pushEnabled, events]
+      properties:
+        pushEnabled: { type: boolean }
+        events:
+          type: object
+          required: [new_application, new_lead_assigned, lead_replied, submission_status_changed, task_due, stale_lead]
+          properties:
+            new_application: { type: boolean }
+            new_lead_assigned: { type: boolean }
+            lead_replied: { type: boolean }
+            submission_status_changed: { type: boolean }
+            task_due: { type: boolean }
+            stale_lead: { type: boolean }
+
+    NotificationPreferencesUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        pushEnabled: { type: boolean }
+        events:
+          type: object
+          additionalProperties: false
+          properties:
+            new_application: { type: boolean }
+            new_lead_assigned: { type: boolean }
+            lead_replied: { type: boolean }
+            submission_status_changed: { type: boolean }
+            task_due: { type: boolean }
+            stale_lead: { type: boolean }
+
+    PushSubscriptionInput:
+      type: object
+      required: [endpoint, p256dh, auth]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 2048 }
+        p256dh: { type: string, minLength: 1, maxLength: 512 }
+        auth: { type: string, minLength: 1, maxLength: 512 }
+        userAgent: { type: ["string", "null"], maxLength: 1024 }
+
+    PushSubscriptionDelete:
+      type: object
+      required: [endpoint]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 2048 }
+
     DeepHealthResponse:
       type: object
-      required: [pdf]
+      required: [pdf, schema]
       properties:
         status:
           type: string
@@ -6066,9 +7331,41 @@ components:
           type: object
           properties:
             twilio:
-              type: boolean
+              type: object
+              required: [accountSid, authToken, apiKey, apiSecret, twimlAppSid, phoneNumber, twimlAppSidFormat, voiceToken]
+              properties:
+                accountSid: { type: boolean }
+                authToken: { type: boolean }
+                apiKey: { type: boolean }
+                apiSecret: { type: boolean }
+                twimlAppSid: { type: boolean }
+                phoneNumber: { type: boolean }
+                twimlAppSidFormat:
+                  type: string
+                  enum: [valid, invalid]
+                voiceToken:
+                  type: string
+                  description: Real Voice SDK token mint result; ok or fail with a safe reason. Cached for ten minutes with a three-second timeout.
             sendgrid:
-              type: boolean
+              type: object
+              required: [configured, fromEmail, lastWebhookAt, lastSendAt, tracking]
+              properties:
+                configured:
+                  type: boolean
+                  description: Whether a SendGrid API key is configured.
+                fromEmail:
+                  type: string
+                  description: Fixed From address for all MBS email delivery.
+                lastWebhookAt:
+                  type: [string, "null"]
+                  format: date-time
+                lastSendAt:
+                  type: [string, "null"]
+                  format: date-time
+                tracking:
+                  type: string
+                  enum: [custom]
+                  description: Signed custom click/open tracking; no provider tracking settings lookup occurs.
             experian:
               type: boolean
             anthropic:
@@ -6083,6 +7380,23 @@ components:
             puppeteer:
               type: string
               description: Chromium launch probe result; ok or unavailable with a safe reason. Cached for ten minutes with a five-second launch timeout.
+        schema:
+          type: object
+          required: [applied, pending]
+          properties:
+            applied:
+              type: integer
+            pending:
+              type: array
+              items:
+                type: string
+            failed:
+              type: ["object", "null"]
+              properties:
+                name:
+                  type: string
+                error:
+                  type: string
         jobs:
           type: object
           additionalProperties: true
@@ -6091,6 +7405,59 @@ components:
         timestamp:
           type: string
           format: date-time
+
+    MigrationReport:
+      type: object
+      required: [applied, detected, skipped, pending, mismatches, migrations, failed]
+      properties:
+        applied:
+          type: array
+          items: { type: string }
+        detected:
+          type: array
+          items: { type: string }
+        skipped:
+          type: array
+          items: { type: string }
+        pending:
+          type: array
+          items: { type: string }
+        mismatches:
+          type: array
+          items:
+            type: object
+            required: [name, expected, actual]
+            properties:
+              name: { type: string }
+              expected: { type: string }
+              actual: { type: string }
+        failed:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [name, error]
+              properties:
+                name: { type: string }
+                error: { type: string }
+        migrations:
+          type: array
+          items:
+            type: object
+            required: [name, id, checksum, status]
+            properties:
+              name: { type: string }
+              id: { type: string }
+              checksum: { type: string }
+              status:
+                type: string
+                enum: [applied, pending, mismatch]
+              appliedAt:
+                type: [string, "null"]
+                format: date-time
+              appliedChecksum:
+                type: [string, "null"]
+              detectedAsApplied:
+                type: boolean
 
     Deal:
       type: object
@@ -6101,10 +7468,13 @@ components:
         dealName: { type: string }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        referredByPartnerId: { type: ["integer", "null"] }
+        referralSplitPct: { type: ["number", "null"] }
+        referralGm: { type: ["number", "null"] }
         notes: { type: ["string", "null"] }
         gmSplitPct: { type: integer, minimum: 0, maximum: 100 }
         assignedTo: { type: ["integer", "null"] }
@@ -6123,6 +7493,74 @@ components:
             - type: "null"
           description: User who performed the most recent activity
 
+    DealApproval:
+      type: object
+      required: [id, dealId, lenderId, lenderName, contractType, advance, payment, term, downPayment, tier, expiresOn, approvalDocumentId, createdAt]
+      properties:
+        id: { type: integer }
+        dealId: { type: integer }
+        lenderId: { type: integer }
+        lenderName: { type: string }
+        contractType: { type: string, enum: [EFA, lease, loan] }
+        advance: { type: number }
+        payment: { type: number }
+        term: { type: integer, minimum: 1 }
+        downPayment: { type: number }
+        tier: { type: string }
+        expiresOn: { type: string, format: date }
+        approvalDocumentId: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    DealApprovalInput:
+      type: object
+      required: [lenderId, contractType, advance, payment, term, downPayment, tier, expiresOn]
+      properties:
+        lenderId: { type: integer, minimum: 1 }
+        contractType: { type: string, enum: [EFA, lease, loan] }
+        advance: { type: number, exclusiveMinimum: 0 }
+        payment: { type: number, exclusiveMinimum: 0 }
+        term: { type: integer, minimum: 1 }
+        downPayment: { type: number, minimum: 0 }
+        tier: { type: string, minLength: 1 }
+        expiresOn: { type: string, format: date }
+        approvalDocumentId: { type: ["integer", "null"] }
+
+    DealRatePointsInput:
+      type: object
+      required: [advance, payment, term, timing, buyNominalRate, mode]
+      properties:
+        advance: { type: number, exclusiveMinimum: 0 }
+        payment: { type: number, exclusiveMinimum: 0 }
+        term: { type: integer, minimum: 1 }
+        timing: { type: string, enum: [arrears, advance] }
+        buyNominalRate: { type: number, minimum: 0 }
+        mode: { type: string, enum: [spread, reverse] }
+        targetPoints: { type: ["number", "null"], minimum: 0 }
+        sourceApprovalId: { type: ["integer", "null"], minimum: 1 }
+
+    DealRatePointsResult:
+      type: object
+      required: [deal, calculation, gmTarget]
+      properties:
+        deal: { $ref: "#/components/schemas/Deal" }
+        gmTarget: { type: string, enum: [approxGm, actualGm] }
+        calculation:
+          type: object
+          required: [advance, payment, term, timing, buyNominalRate, nominalRate, effectiveRate, simpleRate, buyPayment, totalCommission, points]
+          properties:
+            advance: { type: number }
+            payment: { type: number }
+            term: { type: integer }
+            timing: { type: string, enum: [arrears, advance] }
+            buyNominalRate: { type: number }
+            nominalRate: { type: number }
+            effectiveRate: { type: number }
+            simpleRate: { type: number }
+            buyPayment: { type: number }
+            totalCommission: { type: number }
+            points: { type: number }
+            targetPoints: { type: ["number", "null"] }
+
     DealInput:
       type: object
       required: [dealName]
@@ -6131,7 +7569,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6145,7 +7583,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6198,7 +7636,7 @@ components:
         dealName: { type: string, minLength: 1 }
         stage:
           type: string
-          enum: [waiting_on_app, information_needed, submitted, approved, going_to_funding, in_funding, funded, declined, dead, hold_on]
+          enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
@@ -6241,7 +7679,7 @@ components:
 
     SeededDealReassignmentResponse:
       type: object
-      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, changedDealIds]
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, seededRowsFound, seededRowsExpected, convertedOrDeleted, seededRowsSummary, changedDealIds]
       properties:
         changed: { type: integer }
         ordinaryChanged: { type: integer }
@@ -6249,6 +7687,10 @@ components:
         calvinCleared: { type: integer }
         calvinReservedUnassigned: { type: integer }
         arslanTotalDeals: { type: integer }
+        seededRowsFound: { type: integer }
+        seededRowsExpected: { type: integer }
+        convertedOrDeleted: { type: integer }
+        seededRowsSummary: { type: string }
         changedDealIds:
           type: array
           items: { type: integer }
@@ -6318,7 +7760,7 @@ components:
 
     ProductionCloseoutOwnershipDetails:
       type: object
-      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals]
+      required: [changed, ordinaryChanged, ordinaryAtNate, calvinCleared, calvinReservedUnassigned, arslanTotalDeals, seededRowsFound, seededRowsExpected, convertedOrDeleted, seededRowsSummary]
       properties:
         changed: { type: integer }
         ordinaryChanged: { type: integer }
@@ -6326,6 +7768,10 @@ components:
         calvinCleared: { type: integer }
         calvinReservedUnassigned: { type: integer }
         arslanTotalDeals: { type: integer }
+        seededRowsFound: { type: integer }
+        seededRowsExpected: { type: integer }
+        convertedOrDeleted: { type: integer }
+        seededRowsSummary: { type: string }
 
     ProductionCloseoutSlugsDetails:
       type: object
@@ -6529,3 +7975,32 @@ components:
         jobs:
           type: object
           additionalProperties: true
+
+    LenderPackageConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        sections:
+          type: array
+          items:
+            type: string
+            enum: [cover, application, invoice_quote, bank_statement, drivers_license, tax_return, other]
+        documentIds:
+          type: array
+          items: { type: integer }
+        options:
+          type: object
+          additionalProperties: false
+          properties:
+            maskSsn: { type: boolean }
+            includeCoverPage: { type: boolean }
+            includeFooter: { type: boolean }
+
+    LenderPackageConfigResponse:
+      type: object
+      required: [packageConfig]
+      properties:
+        packageConfig:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPackageConfig"
+            - type: "null"

@@ -18,6 +18,9 @@ import {
   leadsTable,
   usersTable,
   DEAL_STAGES,
+  dealApprovalsTable,
+  documentsTable,
+  lendersTable,
 } from "@workspace/db";
 import { db } from "@workspace/db";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
@@ -32,6 +35,8 @@ import {
   CreateDealBody,
   UpdateDealBody,
   ConvertLeadToDealBody,
+  CreateDealApprovalBody,
+  SaveDealRatePointsBody,
 } from "@workspace/api-zod";
 import { latestDealActivitySort } from "../lib/latestActivitySort";
 import { activeDealStageCondition } from "../lib/activeDealStages";
@@ -40,6 +45,8 @@ import {
   buildDealPageIdsQuery,
   reorderByIds,
 } from "../lib/twoPhaseQueries";
+import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
+import { netGmAfterReferralSplit } from "../lib/partnerFlows";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -47,6 +54,30 @@ const dealInputSchema = CreateDealBody;
 const dealUpdateSchema = UpdateDealBody;
 const conversionSchema = ConvertLeadToDealBody;
 const idSchema = z.coerce.number().int().positive();
+export const dealListQuery = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  include_archived: z.enum(["true", "false"]).optional(),
+  rep_id: z.coerce.number().int().positive().optional(),
+  lead_id: z.coerce.number().int().positive().optional(),
+  stage: z.union([z.string(), z.array(z.string())]).optional(),
+  stages: z.union([z.string(), z.array(z.string())]).optional(),
+  search: z.string().trim().min(1).max(200).optional(),
+  start_date: z.iso.date().optional(),
+  end_date: z.iso.date().optional(),
+  sort_by: z.enum(["createdAt", "updatedAt", "dealName", "stage", "lastActivityAt"]).optional(),
+  sort_order: z.enum(["asc", "desc"]).optional(),
+}).strict();
+type DealListQuery = z.infer<typeof dealListQuery>;
+
+function parseDealListQuery(req: Request, res: Response): DealListQuery | null {
+  const parsed = dealListQuery.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Invalid ${parsed.error.issues[0]?.path.join(".") || "query"}` });
+    return null;
+  }
+  return parsed.data;
+}
 function validGmSplitPct(value: number | undefined): boolean {
   return (
     value === undefined ||
@@ -70,6 +101,12 @@ function toApi(
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
     actualGm: deal.actualGm ?? null,
+    referredByPartnerId: deal.referredByPartnerId ?? null,
+    referralSplitPct: deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
+    referralGm: netGmAfterReferralSplit(
+      Number(deal.actualGm ?? deal.approxGm ?? 0),
+      deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
+    ),
     notes: deal.notes ?? null,
     gmSplitPct: deal.gmSplitPct ?? 100,
     assignedTo: deal.assignedTo ?? null,
@@ -133,8 +170,7 @@ async function findDeal(id: number) {
   });
 }
 
-function dateConditions(req: Request, table = dealsTable) {
-  const q = req.query as Record<string, string | undefined>;
+function dateConditions(q: DealListQuery, table = dealsTable) {
   const clauses: any[] = [];
   if (q.start_date) clauses.push(gte(table.createdAt, new Date(q.start_date)));
   if (q.end_date)
@@ -142,17 +178,41 @@ function dateConditions(req: Request, table = dealsTable) {
   return clauses;
 }
 
+/**
+ * Shared ownership scope for the list and CSV export. In particular, query
+ * parameters must never let a representative widen beyond their assignments.
+ */
+export function exportDealScopeConditions(
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  query: DealListQuery,
+): any[] {
+  const conditions: any[] = [];
+  if (query.include_archived !== "true") {
+    conditions.push(eq(dealsTable.isArchived, false));
+  }
+  if (user.role === "rep") {
+    conditions.push(eq(dealsTable.assignedTo, user.id));
+  } else if (query.rep_id) {
+    conditions.push(eq(dealsTable.assignedTo, Number(query.rep_id)));
+  }
+  if (query.lead_id) {
+    conditions.push(eq(dealsTable.leadId, Number(query.lead_id)));
+  }
+  return conditions;
+}
+
 // Register this static path before the dynamic /deals/:id route below. Keeping
 // it as a named handler makes the precedence explicit without special-casing
 // "export" in the ID parser.
-router.get("/deals/export", exportDeals);
+router.get("/deals/export", createExportDealsHandler());
 
 router.get("/deals", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = req.query as Record<string, string | undefined>;
-  const page = Math.max(Number(q.page ?? 1), 1);
-  const limit = Math.min(Math.max(Number(q.limit ?? 25), 1), 100);
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
+  const page = q.page ?? 1;
+  const limit = q.limit ?? 25;
   const conditions: any[] = [];
   if (q.include_archived !== "true")
     conditions.push(eq(dealsTable.isArchived, false));
@@ -172,7 +232,7 @@ router.get("/deals", async (req, res): Promise<void> => {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -241,20 +301,23 @@ router.get("/deals", async (req, res): Promise<void> => {
   });
 });
 
-async function exportDeals(req: Request, res: Response): Promise<void> {
-  const user = await requireUser(req, res);
+export function createExportDealsHandler(dependencies: {
+  database?: Pick<typeof db, "transaction">;
+  authenticate?: typeof requireUser;
+  recordActivity?: typeof logActivity;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const recordActivity = dependencies.recordActivity ?? logActivity;
+  return async function exportDeals(req: Request, res: Response): Promise<void> {
+  const user = await authenticate(req, res);
   if (!user) return;
 
-  const q = req.query as Record<string, string | undefined>;
-  const conditions: any[] = [];
-  if (q.include_archived !== "true")
-    conditions.push(eq(dealsTable.isArchived, false));
-  // Reps are always restricted to their own assignments. A rep_id supplied by
-  // a client can narrow that set, but can never widen it.
-  if (user.role === "rep") conditions.push(eq(dealsTable.assignedTo, user.id));
-  else if (q.rep_id)
-    conditions.push(eq(dealsTable.assignedTo, Number(q.rep_id)));
-  if (q.lead_id) conditions.push(eq(dealsTable.leadId, Number(q.lead_id)));
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
+  // This helper retains the representative restriction even when the request
+  // carries another rep_id.
+  const conditions = exportDealScopeConditions(user, q);
   if (q.stages || q.stage) {
     const stages = parseStages(q.stages ?? q.stage);
     if (!stages || stages.length === 0) {
@@ -267,7 +330,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     conditions.push(
       ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
     );
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
   const sortDirection = q.sort_order === "asc" ? asc : desc;
@@ -293,7 +356,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
   let exported = 0;
   const batchSize = 1000;
   const latestActivityRequested = sortField === "lastActivityAt";
-  await db.transaction(async (tx) => {
+  await database.transaction(async (tx) => {
     // A repeatable-read snapshot prevents mutable deal/activity rows from
     // moving between batches and being duplicated or skipped.
     await tx.execute(sql`set transaction isolation level repeatable read`);
@@ -355,7 +418,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     }
   });
   res.end();
-  await logActivity({
+  await recordActivity({
     userId: user.id,
     dealId: null,
     leadId: null,
@@ -364,6 +427,7 @@ async function exportDeals(req: Request, res: Response): Promise<void> {
     entityId: 0,
     details: { count: exported },
   });
+  };
 }
 
 router.post("/deals", async (req, res): Promise<void> => {
@@ -652,6 +716,218 @@ router.get("/deals/:id/activity", async (req, res): Promise<void> => {
   );
 });
 
+export function createSaveDealRatePointsHandler(dependencies: {
+  database?: any;
+  authenticate?: typeof requireUser;
+  recordActivity?: typeof logActivity;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const recordActivity = dependencies.recordActivity;
+  return async (req: Request, res: Response): Promise<void> => {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    const id = parseId(req, res);
+    if (!id) return;
+    const parsed = SaveDealRatePointsBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid rate and points inputs", details: parsed.error.issues });
+      return;
+    }
+    const existing = await database.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
+    if (!existing) {
+      res.status(404).json({ error: "Deal not found" });
+      return;
+    }
+    if (!canAccessDeal(user, existing)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    if (parsed.data.mode === "reverse" && parsed.data.targetPoints == null) {
+      res.status(400).json({ error: "targetPoints is required in reverse mode" });
+      return;
+    }
+    if (parsed.data.sourceApprovalId != null) {
+      const approval = await database.query.dealApprovalsTable.findFirst({
+        where: and(eq(dealApprovalsTable.id, parsed.data.sourceApprovalId), eq(dealApprovalsTable.dealId, id)),
+      });
+      if (!approval) {
+        res.status(400).json({ error: "sourceApprovalId does not belong to this deal" });
+        return;
+      }
+    }
+    const buyPayment = annuityPayment(parsed.data.advance, parsed.data.buyNominalRate, parsed.data.term, parsed.data.timing);
+    if (parsed.data.mode === "reverse" && buyPayment == null) {
+      res.status(400).json({ error: "Unable to calculate the buy-rate payment" });
+      return;
+    }
+    const payment = parsed.data.mode === "reverse"
+      ? buyPayment + (parsed.data.advance * parsed.data.targetPoints! / 100) / parsed.data.term
+      : parsed.data.payment;
+    const calculation = calculateRatePoints({
+      advance: parsed.data.advance,
+      payment,
+      term: parsed.data.term,
+      timing: parsed.data.timing,
+      buyNominalRate: parsed.data.buyNominalRate,
+    });
+    if (!calculation || !Number.isFinite(calculation.totalCommission) || calculation.totalCommission < 0) {
+      res.status(400).json({ error: "Unable to calculate a non-negative commission from these inputs" });
+      return;
+    }
+    const targetField = existing.stage === "funded" ? "actualGm" : "approxGm";
+    const deal = await database.transaction(async (tx: any) => {
+      const [updated] = await tx.update(dealsTable)
+        .set({ [targetField]: calculation.totalCommission, updatedAt: new Date() })
+        .where(eq(dealsTable.id, id))
+        .returning();
+      const activity = {
+        userId: user.id,
+        dealId: id,
+        leadId: updated.leadId,
+        action: "rate_points_saved",
+        entityType: "deal",
+        entityId: id,
+        details: {
+          advance: parsed.data.advance,
+          payment,
+          term: parsed.data.term,
+          timing: parsed.data.timing,
+          buyNominalRate: parsed.data.buyNominalRate,
+          mode: parsed.data.mode,
+          targetPoints: parsed.data.targetPoints ?? null,
+          sourceApprovalId: parsed.data.sourceApprovalId ?? null,
+          nominalRate: calculation.nominalRate,
+          effectiveRate: calculation.effectiveRate,
+          simpleRate: calculation.simpleRate,
+          buyPayment: calculation.buyPayment,
+          totalCommission: calculation.totalCommission,
+          points: calculation.points,
+        },
+      };
+      if (recordActivity) await recordActivity(activity, tx);
+      else await logActivity(activity, tx);
+      return updated;
+    });
+    res.json({ deal: toApi(deal), gmTarget: targetField, calculation });
+  };
+}
+
+router.post("/deals/:id/rate-points", createSaveDealRatePointsHandler());
+
+function approvalToApi(approval: any) {
+  return {
+    id: approval.id,
+    dealId: approval.dealId,
+    lenderId: approval.lenderId,
+    lenderName: approval.lender?.name ?? `Lender #${approval.lenderId}`,
+    contractType: approval.contractType,
+    advance: Number(approval.advance),
+    payment: Number(approval.payment),
+    term: approval.term,
+    downPayment: Number(approval.downPayment),
+    tier: approval.tier,
+    expiresOn: approval.expiresOn,
+    approvalDocumentId: approval.approvalDocumentId ?? null,
+    createdAt: approval.createdAt.toISOString(),
+  };
+}
+
+async function findAccessibleDeal(id: number, user: typeof usersTable.$inferSelect) {
+  const deal = await db.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
+  if (!deal || !canAccessDeal(user, deal)) return null;
+  return deal;
+}
+
+router.get("/deals/:id/approvals", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = parseId(req, res);
+  if (!id) return;
+  const deal = await findAccessibleDeal(id, user);
+  if (!deal) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+  const rows = await db.query.dealApprovalsTable.findMany({
+    where: eq(dealApprovalsTable.dealId, id),
+    with: { lender: true },
+    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
+  });
+  res.json(rows.map(approvalToApi));
+});
+
+router.post("/deals/:id/approvals", async (req, res): Promise<void> => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = parseId(req, res);
+  if (!id) return;
+  const deal = await findAccessibleDeal(id, user);
+  if (!deal) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+  const parsed = CreateDealApprovalBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid approval", details: parsed.error.issues });
+    return;
+  }
+  const lender = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, parsed.data.lenderId) });
+  if (!lender) {
+    res.status(404).json({ error: "Lender not found" });
+    return;
+  }
+  if (parsed.data.approvalDocumentId != null) {
+    const document = await db.query.documentsTable.findFirst({
+      where: eq(documentsTable.id, parsed.data.approvalDocumentId),
+    });
+    const isPdf = document?.fileType === "application/pdf" || document?.filename.toLowerCase().endsWith(".pdf");
+    if (
+      !document ||
+      document.leadId !== deal.leadId ||
+      document.category !== "other" ||
+      document.label !== "Approval" ||
+      !isPdf
+    ) {
+      res.status(400).json({ error: "Approval document must belong to the deal lead, be a PDF, category other, and have label Approval" });
+      return;
+    }
+  }
+  const [approval] = await db.insert(dealApprovalsTable).values({
+    dealId: id,
+    lenderId: parsed.data.lenderId,
+    contractType: parsed.data.contractType,
+    advance: parsed.data.advance,
+    payment: parsed.data.payment,
+    term: parsed.data.term,
+    downPayment: parsed.data.downPayment,
+    tier: parsed.data.tier,
+    expiresOn: parsed.data.expiresOn.toISOString().slice(0, 10),
+    approvalDocumentId: parsed.data.approvalDocumentId ?? null,
+    createdBy: user.id,
+  }).returning();
+  await logActivity({
+    userId: user.id,
+    leadId: deal.leadId,
+    dealId: id,
+    action: "approval_captured",
+    entityType: "deal_approval",
+    entityId: approval.id,
+    details: {
+      lenderId: approval.lenderId,
+      contractType: approval.contractType,
+      advance: approval.advance,
+      payment: approval.payment,
+      term: approval.term,
+      downPayment: approval.downPayment,
+      tier: approval.tier,
+      expiresOn: approval.expiresOn,
+      approvalDocumentId: approval.approvalDocumentId,
+    },
+  });
+  res.status(201).json(approvalToApi({ ...approval, lender }));
+});
+
 router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -739,13 +1015,14 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
 router.get("/deals/analytics", async (req, res): Promise<void> => {
   const user = await requireUser(req, res);
   if (!user) return;
-  const q = req.query as Record<string, string | undefined>;
+  const q = parseDealListQuery(req, res);
+  if (!q) return;
   const conditions: any[] = [eq(dealsTable.isArchived, false)];
   const effectiveRepId =
     user.role === "rep" ? user.id : q.rep_id ? Number(q.rep_id) : undefined;
   if (effectiveRepId)
     conditions.push(eq(dealsTable.assignedTo, effectiveRepId));
-  conditions.push(...dateConditions(req));
+  conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const activeWhere = and(where, activeDealStageCondition());
   const [
@@ -976,7 +1253,7 @@ const SEED_DEALS: SeedDealDefinition[] = [
   },
   {
     dealName: "Diamond AG",
-    stage: "going_to_funding",
+    stage: "in_funding",
     amount: 360000,
     approxGm: 25000,
     actualGm: null,

@@ -21,6 +21,10 @@ import {
   BookOpen,
   ChevronDown,
   FileDown,
+  ClipboardList,
+  Calculator,
+  FileText,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -55,30 +59,34 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
     { href: "/deals", label: "Deals", icon: Briefcase },
+    { href: "/deals/rate-points", label: "Rate & Points", icon: Calculator },
+    { href: "/documents", label: "Documents", icon: FileText },
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {
-    const isActive = exact ? location === href : location === href || location.startsWith(href + "/");
+    const isActive = exact
+      ? location === href
+      : location === href || (location.startsWith(href + "/") && !(href === "/deals" && location.startsWith("/deals/rate-converter")));
     return (
       <Link
         key={href}
         href={href}
         onClick={onNavigate}
-        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+        className={`flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
           isActive
             ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
             : "text-sidebar-foreground/70 hover:bg-white/8 hover:text-white"
         }`}
         style={isActive ? { borderLeft: "3px solid #17A567", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
       >
-        <Icon size={16} className={isActive ? "text-[#17A567]" : ""} />
-        {label}
+        <Icon size={16} className={`shrink-0 ${isActive ? "text-[#17A567]" : ""}`} />
+        <span className="truncate">{label}</span>
       </Link>
     );
   };
 
   const sectionLabel = (text: string) => (
-    <div className="px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
+    <div className="truncate px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
       {text}
     </div>
   );
@@ -88,7 +96,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-5 flex-shrink-0 gap-2">
         <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2.5 flex-1 min-w-0">
-          <BrandLogo variant="chip" alt="MBS dashboard" imageClassName="h-7" />
+          <BrandLogo variant="reverse" className="w-[120px]" imageClassName="h-auto w-[120px]" />
         </Link>
         <NotificationBell />
       </div>
@@ -106,7 +114,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {sectionLabel("Marketing")}
               {navLink("/email/templates", "Email Templates", Mail)}
               {navLink("/drip/sequences", "Drip Sequences", Zap)}
-              {isAdmin && navLink("/lenders", "Lenders", Building2)}
+              {(isAdmin || currentUser?.role === "rep") && navLink("/lenders", "Partners", Building2)}
               {isAdmin && navLink("/flyer-templates", "Flyer Templates", Megaphone)}
               {isManagerOrAdmin && (
                 <>
@@ -145,6 +153,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {isAdmin && navLink("/governance", "Data Governance", ShieldCheck)}
               {navLink("/workflow-rules", "Workflow Rules", GitBranch)}
               {navLink("/system-health", "System Health", Activity)}
+              {navLink("/admin/usfa-intake", "USFA Intake", ClipboardList)}
               {navLink("/settings", "Settings", SettingsIcon, true)}
             </>
           )}
@@ -204,6 +213,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white cursor-pointer">
+              <button onClick={() => window.dispatchEvent(new CustomEvent('mbs-prompt-install'))} className="w-full text-left flex items-center">
+                <Download className="h-4 w-4 mr-2 text-[#6EE7C0]" />
+                Install app
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuLabel className="text-xs font-normal text-white/45">
               Signed in as {getUserDisplayName(user)}
             </DropdownMenuLabel>
@@ -225,20 +241,26 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [location] = useLocation();
+  const isDealsBoard = location.split("?")[0] === "/deals";
 
   return (
     <div className="flex min-h-screen w-full bg-background">
       <CommandPalette />
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)]">
+      <aside className={`hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)] ${
+        isDealsBoard ? "xl:w-40 2xl:w-64" : ""
+      }`}>
         <SidebarContent />
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden">
+      <main className={`flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden ${
+        isDealsBoard ? "xl:ml-40 2xl:ml-64" : ""
+      }`}>
         <div className="hidden md:flex h-14 items-center justify-between border-b border-border bg-white px-6 lg:px-8 flex-shrink-0">
           <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[#46586C]">Operations workspace</span>
-          <span className="text-sm font-medium text-[#0E2A47]">MBS CRM</span>
+          <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
         </div>
         {/* Mobile top bar */}
         <div className="flex md:hidden h-14 items-center border-b border-border bg-white text-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
@@ -254,7 +276,7 @@ export function AppShell({ children }: AppShellProps) {
             </SheetContent>
           </Sheet>
           <div className="flex items-center flex-1 min-w-0">
-            <BrandLogo variant="raw" alt="MBS dashboard" imageClassName="h-6" />
+            <BrandLogo imageClassName="h-7 w-auto" />
           </div>
           <NotificationBell onDark={false} />
         </div>

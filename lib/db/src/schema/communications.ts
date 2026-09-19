@@ -1,6 +1,7 @@
 import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 import { leadsTable } from "./leads";
+import { lendersTable } from "./lenders";
 
 export const COMMUNICATION_TYPES = ["call", "sms"] as const;
 export const COMMUNICATION_DIRECTIONS = ["inbound", "outbound"] as const;
@@ -11,6 +12,7 @@ export const communicationsTable = pgTable(
   {
     id: serial("id").primaryKey(),
     leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "cascade" }),
+    partnerId: integer("partner_id").references(() => lendersTable.id, { onDelete: "cascade" }),
     userId: integer("user_id").references(() => usersTable.id, { onDelete: "set null" }),
     type: text("type", { enum: COMMUNICATION_TYPES }).notNull(),
     direction: text("direction", { enum: COMMUNICATION_DIRECTIONS }).notNull(),
@@ -32,6 +34,7 @@ export const communicationsTable = pgTable(
     index("comms_user_idx").on(t.userId),
     index("comms_twilio_sid_idx").on(t.twilioSid),
     index("comms_created_idx").on(t.createdAt),
+    index("communications_partner_idx").on(t.partnerId),
   ],
 );
 

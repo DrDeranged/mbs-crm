@@ -1,18 +1,32 @@
-import { Router, type Request, type Response } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import {
   flyerTemplatesTable, generatedFlyersTable, documentsTable,
   leadsTable, usersTable, activityLogTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { z } from "zod/v4";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { renderPdf, renderTemplate } from "../lib/renderPdf";
+import { renderTemplate } from "../lib/renderPdf";
+import { renderFlyerPdf } from "../lib/flyerPdfRenderer";
 import { objectStorageClient } from "../lib/objectStorage";
 import { ensureFlyerBranding, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
 import { doSendEmail } from "./email";
 
 const router = Router();
+const positiveId = z.coerce.number().int().positive();
+const generateFlyerBody = z.object({
+  templateId: positiveId,
+  fieldValues: z.record(z.string(), z.string()),
+  leadId: positiveId.optional(),
+}).strict();
+const emailFlyerBody = z.object({ leadId: positiveId }).strict();
+
+function invalidInput(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
+  const field = parsed.error.issues[0]?.path.join(".") || "body";
+  res.status(400).json({ error: `Invalid ${field}` });
+}
 
 /** Returns false and sends 403 if the user cannot access this flyer. */
 async function assertFlyerAccess(
@@ -33,18 +47,16 @@ async function assertFlyerAccess(
 }
 
 // POST /flyers/generate
-router.post("/flyers/generate", async (req: Request, res: Response) => {
+router.post("/flyers/generate", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  const { templateId, fieldValues, leadId } = req.body;
-  if (!templateId || typeof fieldValues !== "object") {
-    res.status(400).json({ error: "templateId and fieldValues required" });
-    return;
-  }
+  const body = generateFlyerBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { templateId, fieldValues, leadId } = body.data;
 
   const tmpl = await db.query.flyerTemplatesTable.findFirst({
-    where: eq(flyerTemplatesTable.id, Number(templateId)),
+    where: eq(flyerTemplatesTable.id, templateId),
   });
   if (!tmpl || !tmpl.isActive) {
     res.status(404).json({ error: "Template not found or inactive" });
@@ -66,10 +78,10 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
     // Render HTML and generate PDF
     const baseUrl = getPublicBaseUrl();
     const renderedHtml = renderTemplate(tmpl.htmlTemplate, {
-      ...(fieldValues as Record<string, string>),
+      ...fieldValues,
       brand_logo_url: getBrandLogoUrl(baseUrl),
     });
-    const pdfBuffer = await renderPdf(ensureFlyerBranding(renderedHtml, baseUrl));
+    const pdfBuffer = await renderFlyerPdf(ensureFlyerBranding(renderedHtml, baseUrl));
 
     // Upload PDF to GCS
     const bucketId = process.env["DEFAULT_OBJECT_STORAGE_BUCKET_ID"] ?? "";
@@ -113,13 +125,12 @@ router.post("/flyers/generate", async (req: Request, res: Response) => {
       downloadUrl: `/api/flyers/${flyer.id}/download`,
     });
   } catch (err) {
-    req.log.error({ err }, "Failed to generate flyer");
-    res.status(500).json({ error: "PDF generation failed" });
+    next(err);
   }
 });
 
 // GET /flyers/:id/download
-router.get("/flyers/:id/download", async (req: Request, res: Response) => {
+router.get("/flyers/:id/download", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
@@ -149,31 +160,31 @@ router.get("/flyers/:id/download", async (req: Request, res: Response) => {
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     gcsFile.createReadStream().pipe(res);
   } catch (err) {
-    req.log.error({ err }, "Failed to download flyer");
-    res.status(500).json({ error: "Download failed" });
+    next(err);
   }
 });
 
 // POST /flyers/:id/email
-router.post("/flyers/:id/email", async (req: Request, res: Response) => {
+router.post("/flyers/:id/email", async (req: Request, res: Response, next: NextFunction) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
   const id = parseInt(req.params["id"] as string, 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  const { leadId } = req.body;
-  if (!leadId) { res.status(400).json({ error: "leadId required" }); return; }
+  const body = emailFlyerBody.safeParse(req.body);
+  if (!body.success) return invalidInput(res, body);
+  const { leadId } = body.data;
 
   const [flyer, leadRow] = await Promise.all([
     db.query.generatedFlyersTable.findFirst({ where: eq(generatedFlyersTable.id, id) }),
-    db.query.leadsTable.findFirst({ where: eq(leadsTable.id, Number(leadId)) }),
+    db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) }),
   ]);
 
   if (!flyer || !flyer.pdfStorageKey) { res.status(404).json({ error: "Flyer not found" }); return; }
 
   // Verify the provided leadId is consistent with the flyer's stored leadId
-  if (flyer.leadId !== null && flyer.leadId !== Number(leadId)) {
+  if (flyer.leadId !== null && flyer.leadId !== leadId) {
     res.status(403).json({ error: "leadId does not match flyer context" }); return;
   }
 
@@ -212,7 +223,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     const emailHtml = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <div style="background:#fff;padding:20px 32px;border-bottom:1px solid #e2e8f0">
-          <img src="${logoUrl}" alt="My Business Solutions" width="116" height="56" style="display:block;width:116px;height:auto;border:0" />
+          <img src="${logoUrl}" alt="My Business Solutions logo" width="116" style="display:block;width:116px;height:auto;border:0" />
         </div>
         <div style="padding:24px 32px;background:#fff">
           <p style="color:#333">Hi ${leadRow.firstName || leadRow.companyName || "there"},</p>
@@ -254,7 +265,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
     // Log activity
     await logActivity({
       userId: user.id,
-      leadId: Number(leadId),
+      leadId,
       action: "flyer_emailed",
       entityType: "flyer",
       entityId: flyer.id,
@@ -267,8 +278,7 @@ router.post("/flyers/:id/email", async (req: Request, res: Response) => {
 
     res.json({ success: true, sendId: send.id });
   } catch (err) {
-    req.log.error({ err }, "Failed to email flyer");
-    res.status(500).json({ error: "Email failed" });
+    next(err);
   }
 });
 

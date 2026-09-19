@@ -16,8 +16,10 @@ export function optionalStr<T extends z.ZodTypeAny>(
 }
 
 /** Normalize fields that are formatted by the public multipart application form. */
-export function normalizeApplicationSubmissionBody(raw: Record<string, unknown>): Record<string, unknown> {
-  const body = { ...raw };
+export function normalizeApplicationSubmissionBody(raw: unknown): Record<string, unknown> {
+  const body = raw !== null && typeof raw === "object" && !Array.isArray(raw)
+    ? { ...(raw as Record<string, unknown>) }
+    : {};
   if (typeof body.ein === "string") {
     const digits = body.ein.replace(/\D/g, "");
     body.ein = digits.length === 9
@@ -98,20 +100,25 @@ export const submitSchema = z.object({
     .refine(isPositiveAmount, "Vendor quote amount must be a positive number")),
   consentCreditPull: z.union([z.literal("true"), z.literal(true)], { message: "Credit pull consent is required" }),
   consentTerms: z.union([z.literal("true"), z.literal(true)], { message: "Terms consent is required" }),
+  smsConsent: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   signatureMethod: z.enum(["typed", "drawn"], { message: "Signature method must be typed or drawn" }),
   signatureData: z.string().max(500_000, "Signature data must be 500,000 characters or fewer"),
   equipmentDescription: z.string().max(2000, "Equipment description must be 2000 characters or fewer").optional(),
   vendorName: z.string().max(200, "Vendor name must be 200 characters or fewer").optional(),
   statementsSkipped: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   rep: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  usfaInviteToken: z.string().min(32).max(128).optional(),
   timeInBusinessMonths: optionalStr(z.string().max(4)),
   ownershipPct: optionalStr(z.string().max(3)),
   equipmentCondition: optionalStr(z.enum(["new", "used"])),
+  equipmentCategory: optionalStr(z.enum(["vocational", "otr_truck", "trailer", "construction", "other"])),
   yearMakeModel: optionalStr(z.string().max(200)),
   trucksInFleet: optionalStr(z.string().regex(/^\d+$/, "Trucks in fleet must be a whole number")),
+  isHomeowner: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   downPaymentAmount: optionalStr(z.string().refine(isNonNegativeAmount, "Down payment amount must be zero or greater")),
   hasFinancialStatements: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   hasFactoring: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
+  hasCollateral: z.union([z.literal("true"), z.literal("false"), z.literal(true), z.literal(false)]).optional(),
   industryExperienceMonths: optionalStr(z.string().regex(/^\d+$/, "Industry experience must be a whole number of months")),
   industryDetail: optionalStr(z.string().max(200)),
 }).superRefine((data, ctx) => {
@@ -127,7 +134,7 @@ export const submitSchema = z.object({
   }
 });
 
-export function parseApplicationSubmission(raw: Record<string, unknown>) {
+export function parseApplicationSubmission(raw: unknown) {
   return submitSchema.safeParse(normalizeApplicationSubmissionBody(raw));
 }
 

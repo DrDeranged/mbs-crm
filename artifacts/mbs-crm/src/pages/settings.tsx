@@ -4,20 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserRole, UserUpdateRole } from "@workspace/api-client-react";
+import { UserRole, UserUpdateRole, type RoutingSettingsMode } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName } from "@/lib/utils";
-import { ShieldAlert, Phone, Building2, Globe, Wrench } from "lucide-react";
+import { ShieldAlert, Phone, Building2, Globe, Wrench, Bell } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Switch } from "@/components/ui/switch";
 import { formatLenderSeedError, formatLenderSeedSummary, formatProductionCloseoutResults } from "@/lib/productionCloseoutSummary";
 import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
+import { useNotificationSettings } from "@/hooks/use-notification-settings";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -39,6 +40,7 @@ export default function Settings() {
   const productionCloseout = useRunProductionCloseout();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { preferences, isLoading: loadingPreferences, isError: errorPreferences, updatePreferences, togglePushMaster, isUpdating: isUpdatingPreferences } = useNotificationSettings();
 
   const [mobileInput, setMobileInput] = useState<string>("");
   const [mobileEditing, setMobileEditing] = useState(false);
@@ -46,7 +48,12 @@ export default function Settings() {
   const [slugInput, setSlugInput] = useState("");
   const [editingTitle, setEditingTitle] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
-  const [staleThresholdInput, setStaleThresholdInput] = useState("7");
+  const [routingStaleDaysInput, setRoutingStaleDaysInput] = useState("7");
+  const [routingMode, setRoutingMode] = useState<RoutingSettingsMode>("manual");
+  const [autoReassignStale, setAutoReassignStale] = useState(false);
+  const [mergeSourceId, setMergeSourceId] = useState("");
+  const [mergeTargetId, setMergeTargetId] = useState("");
+  const [mergePending, setMergePending] = useState(false);
 
   const apiBase = getApiBaseUrl();
 
@@ -58,7 +65,23 @@ export default function Settings() {
   const [savingCompany, setSavingCompany] = useState(false);
   const [emailSendingEnabled, setEmailSendingEnabled] = useState(false);
   const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
+  const [bulkEmailPerDay, setBulkEmailPerDay] = useState("75");
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
+  const [partnerTextingEnabled, setPartnerTextingEnabled] = useState(true);
+  const [savingPartnerTexting, setSavingPartnerTexting] = useState(false);
+  const [sendGridTestAddress, setSendGridTestAddress] = useState("");
+  const [sendingSendGridTest, setSendingSendGridTest] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<{
+    applied: string[];
+    detected: string[];
+    skipped: string[];
+    pending: string[];
+    mismatches: Array<{ name: string; expected: string; actual: string }>;
+    failed: { name: string; error: string } | null;
+    migrations: Array<{ name: string; status: string; detectedAsApplied?: boolean }>;
+  } | null>(null);
+  const [migrationLoading, setMigrationLoading] = useState(false);
+  const [migrationError, setMigrationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (me?.role !== "admin") return;
@@ -69,6 +92,7 @@ export default function Settings() {
         const text = (key: string) => typeof data[key] === "string" ? data[key] as string : "";
         setEmailSendingEnabled(data.emailSendingEnabled === true);
         setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? 60));
+        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? 75));
         return setCompanyForm({
         companyName: text("companyName"),
         companyEmail: text("companyEmail"),
@@ -82,7 +106,67 @@ export default function Settings() {
       })
       .catch(() => {})
       .finally(() => setLoadingCompany(false));
+    fetch(`${apiBase}/settings/partner-texting`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error("Unable to load partner texting setting")))
+      .then((data: { enabled?: boolean }) => setPartnerTextingEnabled(data.enabled !== false))
+      .catch(() => {});
   }, [me]);
+
+  const savePartnerTexting = async (enabled: boolean) => {
+    setPartnerTextingEnabled(enabled);
+    setSavingPartnerTexting(true);
+    try {
+      const response = await fetch(`${apiBase}/settings/partner-texting`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      if (!response.ok) throw new Error("Unable to save partner texting setting");
+      toast({ title: enabled ? "Partner texting enabled" : "Partner texting disabled" });
+    } catch (error) {
+      setPartnerTextingEnabled(!enabled);
+      toast({ title: "Could not save partner texting setting", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setSavingPartnerTexting(false);
+    }
+  };
+
+  const loadMigrationStatus = async () => {
+    if (!isAdmin) return;
+    try {
+      const response = await fetch(`${apiBase}/admin/migrations/status`, { credentials: "include" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Unable to read migration status.");
+      setMigrationStatus(payload);
+      setMigrationError(null);
+    } catch (error) {
+      setMigrationError(error instanceof Error ? error.message : "Unable to read migration status.");
+    }
+  };
+
+  useEffect(() => {
+    void loadMigrationStatus();
+  }, [isAdmin]);
+
+  const applyPendingMigrations = async () => {
+    setMigrationLoading(true);
+    setMigrationError(null);
+    try {
+      const response = await fetch(`${apiBase}/admin/migrations/apply`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Unable to apply migrations.");
+      setMigrationStatus(payload);
+    } catch (error) {
+      setMigrationError(error instanceof Error ? error.message : "Unable to apply migrations.");
+    } finally {
+      setMigrationLoading(false);
+    }
+  };
 
   const handleSaveCompany = async () => {
     setSavingCompany(true);
@@ -104,8 +188,13 @@ export default function Settings() {
 
   const handleSaveEmailSettings = async () => {
     const cap = Number(bulkEmailPerMinute);
+    const dayCap = Number(bulkEmailPerDay);
     if (!Number.isInteger(cap) || cap < 1 || cap > 1000) {
       toast({ title: "Invalid bulk cap", description: "Enter a whole number from 1 to 1000 emails per minute.", variant: "destructive" });
+      return;
+    }
+    if (!Number.isInteger(dayCap) || dayCap < 1 || dayCap > 100000) {
+      toast({ title: "Invalid daily cap", description: "Enter a whole number from 1 to 100000 emails per day.", variant: "destructive" });
       return;
     }
     setSavingEmailSettings(true);
@@ -114,17 +203,45 @@ export default function Settings() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ emailSendingEnabled, bulkEmailPerMinute: cap }),
+        body: JSON.stringify({ emailSendingEnabled, bulkEmailPerMinute: cap, bulkEmailPerDay: dayCap }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setEmailSendingEnabled(data.emailSendingEnabled === true);
       setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? cap));
+        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? dayCap));
       toast({ title: "Email delivery settings saved" });
     } catch {
       toast({ title: "Failed to save email delivery settings", variant: "destructive" });
     } finally {
       setSavingEmailSettings(false);
+    }
+  };
+
+  const handleSendGridTest = async () => {
+    const toEmail = sendGridTestAddress.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) {
+      toast({ title: "Enter a valid test email address", variant: "destructive" });
+      return;
+    }
+    setSendingSendGridTest(true);
+    try {
+      const response = await fetch(`${apiBase}/email/test-send`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toEmail }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Unable to send SendGrid test email.");
+      toast({
+        title: "SendGrid test email queued",
+        description: `Message ID: ${payload.messageId || "not returned by provider"}`,
+      });
+    } catch (error) {
+      toast({ title: "SendGrid test failed", description: error instanceof Error ? error.message : "Unable to send test email.", variant: "destructive" });
+    } finally {
+      setSendingSendGridTest(false);
     }
   };
 
@@ -138,6 +255,41 @@ export default function Settings() {
         toast({ title: "Error", description: "Failed to update user role.", variant: "destructive" });
       }
     });
+  };
+
+  const mergeUsers = async (confirmReassignment = false) => {
+    const sourceUserId = Number(mergeSourceId);
+    const targetUserId = Number(mergeTargetId);
+    if (!sourceUserId || !targetUserId || sourceUserId === targetUserId) {
+      toast({ title: "Choose different source and target users", variant: "destructive" });
+      return;
+    }
+    setMergePending(true);
+    try {
+      const response = await fetch(`${apiBase}/admin/users/merge`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceUserId, targetUserId, confirmReassignment }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 409 && payload.code === "CONFIRM_REASSIGNMENT_REQUIRED") {
+        const confirmed = window.confirm(
+          "This pending user owns records. Reassign all of its leads, deals, notes, tasks, documents, activity, submissions, collateral, and history to the target?",
+        );
+        if (confirmed) return await mergeUsers(true);
+        return;
+      }
+      if (!response.ok) throw new Error(payload.error || "Unable to merge users");
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      setMergeSourceId("");
+      setMergeTargetId("");
+      toast({ title: "Users merged", description: `${payload.reassigned ?? 0} records reassigned.` });
+    } catch (error) {
+      toast({ title: "Unable to merge users", description: error instanceof Error ? error.message : "Merge failed", variant: "destructive" });
+    } finally {
+      setMergePending(false);
+    }
   };
 
   const downloadQr = async (slug: string, format: "png" | "svg") => {
@@ -237,26 +389,28 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    if (leadDistribution?.staleThresholdDays != null) {
-      setStaleThresholdInput(String(leadDistribution.staleThresholdDays));
+    if (leadDistribution?.routing) {
+      setRoutingMode(leadDistribution.routing.mode);
+      setRoutingStaleDaysInput(String(leadDistribution.routing.staleDays));
+      setAutoReassignStale(leadDistribution.routing.autoReassignStale);
     }
-  }, [leadDistribution?.staleThresholdDays]);
+  }, [leadDistribution?.routing]);
 
-  const handleSaveStaleThreshold = () => {
-    const staleThresholdDays = Number(staleThresholdInput);
-    if (!Number.isInteger(staleThresholdDays) || staleThresholdDays < 1 || staleThresholdDays > 365) {
+  const handleSaveRouting = () => {
+    const staleDays = Number(routingStaleDaysInput);
+    if (!Number.isInteger(staleDays) || staleDays < 1 || staleDays > 365) {
       toast({ title: "Invalid threshold", description: "Enter a whole number from 1 to 365 days.", variant: "destructive" });
       return;
     }
     updateLeadDistribution.mutate(
-      { data: { staleThresholdDays } },
+      { data: { routing: { mode: routingMode, staleDays, autoReassignStale } } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetLeadDistributionSettingsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
-          toast({ title: "Staleness threshold saved" });
+          toast({ title: "Routing settings saved" });
         },
-        onError: () => toast({ title: "Error", description: "Failed to save staleness threshold.", variant: "destructive" }),
+        onError: () => toast({ title: "Error", description: "Failed to save routing settings.", variant: "destructive" }),
       },
     );
   };
@@ -392,6 +546,91 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-[#1F4E79]" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Manage your push notification preferences for events across the system.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingPreferences ? (
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-[200px]" />
+                <Skeleton className="h-6 w-full max-w-sm" />
+                <Skeleton className="h-6 w-full max-w-sm" />
+              </div>
+            ) : errorPreferences || !preferences ? (
+              <div className="text-sm text-destructive">Failed to load notification settings.</div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b pb-4">
+                  <div className="space-y-0.5">
+                    <div className="font-medium">Master Push Toggle</div>
+                    <div className="text-sm text-muted-foreground">
+                      Enable or disable browser push notifications entirely.
+                    </div>
+                  </div>
+                  {preferences.pushEnabled || (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") ? (
+                    <Switch
+                      checked={preferences.pushEnabled}
+                      onCheckedChange={togglePushMaster}
+                      disabled={isUpdatingPreferences}
+                      data-testid="switch-master-push"
+                    />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePushMaster(true)}
+                      disabled={isUpdatingPreferences}
+                      data-testid="button-enable-push"
+                    >
+                      {isUpdatingPreferences ? "Enabling…" : "Enable Notifications"}
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-4 opacity-100 transition-opacity" style={{ opacity: preferences.pushEnabled ? 1 : 0.5 }}>
+                  <h4 className="text-sm font-semibold">Event Subscriptions</h4>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {[
+                      { key: "new_application", label: "New Application", desc: "When a new lead applies." },
+                      { key: "new_lead_assigned", label: "Lead Assigned", desc: "When a lead is assigned to you." },
+                      { key: "lead_replied", label: "Lead Replied", desc: "When a lead replies to communication." },
+                      { key: "submission_status_changed", label: "Submission Status", desc: "When a deal submission updates." },
+                      { key: "task_due", label: "Task Due", desc: "When a task assigned to you is due soon." },
+                      { key: "stale_lead", label: "Stale Lead", desc: "When an assigned lead goes stale." },
+                    ].map((event) => (
+                      <div key={event.key} className="flex items-start gap-3">
+                        <Switch
+                          checked={preferences.events[event.key as keyof typeof preferences.events]}
+                          disabled={!preferences.pushEnabled || isUpdatingPreferences}
+                          onCheckedChange={(checked) =>
+                            updatePreferences({
+                              events: { ...preferences.events, [event.key]: checked },
+                            })
+                          }
+                          data-testid={`switch-event-${event.key}`}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-1 leading-none">
+                          <div className="text-sm font-medium">{event.label}</div>
+                          <div className="text-sm text-muted-foreground">{event.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Call Forwarding */}
         <Card>
           <CardHeader>
@@ -491,9 +730,51 @@ export default function Settings() {
                   <span className="text-sm text-muted-foreground">per minute</span>
                 </div>
               </div>
+              <div className="flex flex-wrap items-end justify-between gap-4 max-w-2xl mt-5">
+                <div>
+                  <div className="font-medium">Bulk and drip daily allowance</div>
+                  <div className="text-sm text-muted-foreground">Shared daily ceiling for bulk and automated drip delivery attempts (1–100000).</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100000}
+                    value={bulkEmailPerDay}
+                    onChange={(event) => setBulkEmailPerDay(event.target.value)}
+                    className="w-28"
+                    aria-label="Bulk and drip emails per day"
+                  />
+                  <span className="text-sm text-muted-foreground">per day</span>
+                </div>
+              </div>
               <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-[#1F4E79] hover:bg-[#163a5f] text-white">
                 {savingEmailSettings ? "Saving…" : "Save Email Safety Settings"}
               </Button>
+              <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Allow partner texting</div>
+                  <div className="text-sm text-muted-foreground">Business-contact SMS bypasses consumer consent, but STOP and A2P provider safeguards still apply.</div>
+                </div>
+                <Switch checked={partnerTextingEnabled} disabled={savingPartnerTexting} onCheckedChange={(checked) => void savePartnerTexting(checked)} aria-label="Allow partner texting" />
+              </div>
+              <div className="mt-6 max-w-2xl border-t pt-5">
+                <div className="font-medium">Send SendGrid test email</div>
+                <p className="mt-1 text-sm text-muted-foreground">Sends the CEO delivery-test template from funding@my-business-solutions.com to the typed address. The provider message ID is shown after delivery is accepted.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Input
+                    type="email"
+                    value={sendGridTestAddress}
+                    onChange={(event) => setSendGridTestAddress(event.target.value)}
+                    placeholder="you@example.com"
+                    aria-label="SendGrid test recipient"
+                    className="max-w-sm"
+                  />
+                  <Button onClick={handleSendGridTest} disabled={sendingSendGridTest} variant="outline">
+                    {sendingSendGridTest ? "Sending…" : "Send test email"}
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -503,11 +784,26 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>Lead Distribution</CardTitle>
               <CardDescription>
-                New inbound website leads and applications are assigned round-robin across one pool of eligible active users. Admins are excluded unless enabled here.
+                Choose manual assignment or round-robin for ordinary inbound website leads. QR-card and prospect-list leads are never round-robin assigned.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between gap-4 max-w-2xl">
+                <div>
+                  <div className="font-medium">Assignment mode</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manual leaves new ordinary inbound leads unassigned. Round-robin assigns them across eligible active users.
+                  </div>
+                </div>
+                <Select value={routingMode} onValueChange={(value) => setRoutingMode(value as RoutingSettingsMode)}>
+                  <SelectTrigger className="w-44" data-testid="select-routing-mode"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="round_robin">Round robin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
                 <div>
                   <div className="font-medium">Include admins in round-robin</div>
                   <div className="text-sm text-muted-foreground">
@@ -528,13 +824,14 @@ export default function Settings() {
                     },
                   )}
                   aria-label="Include admins in round-robin"
+                  data-testid="switch-include-admins-round-robin"
                 />
               </div>
               <div className="flex items-end justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
                 <div>
                   <div className="font-medium">Stale lead threshold</div>
                   <div className="text-sm text-muted-foreground">
-                    Assigned leads with no activity for this many days are marked stale. Unassigned leads are never stale.
+                    Assigned leads with no activity for this many days are shown in the stale queue. Unassigned leads are never stale.
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -542,17 +839,33 @@ export default function Settings() {
                     type="number"
                     min={1}
                     max={365}
-                    value={staleThresholdInput}
-                    onChange={(event) => setStaleThresholdInput(event.target.value)}
+                    value={routingStaleDaysInput}
+                    onChange={(event) => setRoutingStaleDaysInput(event.target.value)}
                     className="w-24"
                     aria-label="Stale lead threshold in days"
+                    data-testid="input-routing-stale-days"
                   />
                   <span className="text-sm text-muted-foreground">days</span>
-                  <Button size="sm" onClick={handleSaveStaleThreshold} disabled={updateLeadDistribution.isPending}>
-                    Save
-                  </Button>
                 </div>
               </div>
+              <div className="flex items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
+                <div>
+                  <div className="font-medium">Automatically reassign stale inbound leads</div>
+                  <div className="text-sm text-muted-foreground">
+                    Requires round-robin mode. Every automated reassignment records the former and new representative.
+                  </div>
+                </div>
+                <Switch
+                  checked={autoReassignStale}
+                  onCheckedChange={setAutoReassignStale}
+                  disabled={routingMode !== "round_robin" || updateLeadDistribution.isPending}
+                  aria-label="Automatically reassign stale inbound leads"
+                  data-testid="switch-auto-reassign-stale"
+                />
+              </div>
+              <Button className="mt-6" onClick={handleSaveRouting} disabled={updateLeadDistribution.isPending} data-testid="button-save-routing-settings">
+                Save routing settings
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -567,6 +880,34 @@ export default function Settings() {
               <CardDescription>Run narrowly scoped, admin-only maintenance actions for seeded CRM data.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="rounded-md border border-amber-600/30 bg-amber-50/60 p-4 max-w-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">Schema migrations</h3>
+                    <div className="text-sm text-muted-foreground">
+                      Apply numbered, checksum-verified migrations one at a time. Existing schema changes are detected safely and are not replayed.
+                    </div>
+                  </div>
+                  <Button onClick={applyPendingMigrations} disabled={migrationLoading} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                    {migrationLoading ? "Applying migrations…" : "Apply pending migrations"}
+                  </Button>
+                </div>
+                {migrationError && (
+                  <p className="mt-3 text-sm text-destructive" role="alert">{migrationError}</p>
+                )}
+                {migrationStatus && (
+                  <div className="mt-4 space-y-1 border-t pt-3 text-sm" aria-live="polite">
+                    <div className="font-medium">
+                      {migrationStatus.pending.length === 0 ? "Schema is up to date" : `${migrationStatus.pending.length} migration${migrationStatus.pending.length === 1 ? "" : "s"} pending`}
+                    </div>
+                    {migrationStatus.applied.length > 0 && <div className="text-muted-foreground">Applied now: {migrationStatus.applied.join(", ")}</div>}
+                    {migrationStatus.detected.length > 0 && <div className="text-muted-foreground">Detected already applied: {migrationStatus.detected.join(", ")}</div>}
+                    {migrationStatus.pending.length > 0 && <div className="text-amber-700">Pending: {migrationStatus.pending.join(", ")}</div>}
+                    {migrationStatus.mismatches.length > 0 && <div className="text-destructive">Checksum mismatch: {migrationStatus.mismatches.map((item) => item.name).join(", ")}</div>}
+                    {migrationStatus.failed && <div className="text-destructive">Failed: {migrationStatus.failed.name} — {migrationStatus.failed.error}</div>}
+                  </div>
+                )}
+              </div>
               <div className="rounded-md border border-[#1F4E79]/30 bg-[#1F4E79]/5 p-4 max-w-2xl">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
@@ -775,6 +1116,33 @@ export default function Settings() {
               <CardDescription>Manage user roles within your organization.</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border bg-muted/30 p-3">
+                <div className="min-w-[190px]">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Stray pending user</label>
+                  <Select value={mergeSourceId} onValueChange={setMergeSourceId}>
+                    <SelectTrigger><SelectValue placeholder="Choose source" /></SelectTrigger>
+                    <SelectContent>
+                      {(users ?? []).filter((user) => user.role === UserRole.pending && user.isActive).map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[190px]">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Real active user</label>
+                  <Select value={mergeTargetId} onValueChange={setMergeTargetId}>
+                    <SelectTrigger><SelectValue placeholder="Choose target" /></SelectTrigger>
+                    <SelectContent>
+                      {(users ?? []).filter((user) => user.isActive && user.role !== UserRole.pending).map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" disabled={mergePending || !mergeSourceId || !mergeTargetId} onClick={() => void mergeUsers()}>
+                  {mergePending ? "Merging…" : "Merge user"}
+                </Button>
+              </div>
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
