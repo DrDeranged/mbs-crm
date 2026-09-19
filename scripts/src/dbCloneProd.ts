@@ -23,6 +23,8 @@ export type CloneConfig = {
   postgresBinary: string; pgCtlBinary: string; psqlBinary: string;
   pgRestoreBinary: string; dropdbBinary: string; createdbBinary: string; initdbBinary: string;
   process: ProcessRunner;
+  log: (message: string) => void;
+  backupSource?: string;
 };
 export type ManagedClusterConfig = CloneConfig;
 export type ManagedCloneInspection = { state: "running" | "stopped"; metadata: CloneMetadata; postgresMajor: string };
@@ -37,7 +39,7 @@ export function defaultCloneConfig(workspaceRoot = WORKSPACE_ROOT): CloneConfig 
     port: PORT, database: CLONE_DATABASE, username: "postgres",
     postgresBinary: "postgres", pgCtlBinary: "pg_ctl", psqlBinary: "psql",
     pgRestoreBinary: "pg_restore", dropdbBinary: "dropdb", createdbBinary: "createdb",
-    initdbBinary: "initdb", process: processRunner,
+    initdbBinary: "initdb", process: processRunner, log: console.log,
   };
 }
 
@@ -301,7 +303,7 @@ export async function cloneProduction(config = defaultCloneConfig()): Promise<vo
     }
     await startManagedCloneServer(config);
     await verifyIdentity(config);
-    const sourceExplicit = process.env.DB_CLONE_BACKUP;
+    const sourceExplicit = config.backupSource ?? process.env.DB_CLONE_BACKUP;
     const candidates: CloneSource[] = [];
     if (sourceExplicit) candidates.push(await selectCloneSource(config.workspaceRoot, sourceExplicit, config));
     else {
@@ -362,7 +364,9 @@ export async function cloneProduction(config = defaultCloneConfig()): Promise<vo
     const fingerprint = createHash("sha256").update(await readFile(selected.path)).digest("hex");
     await validateManagedPaths(config);
     await writeFile(config.metadataFile, serializeCloneMetadata({ host: "127.0.0.1", port: config.port, username: config.username, database: config.database, sourceKind: selected.kind, sourceFingerprint: fingerprint, restoredAt: new Date().toISOString() }));
-    console.log(`DB clone source: ${selected.kind}`); console.log(formatCloneCounts({ tables, columns, ledgerRows })); console.log("DB CLONE PASS");
+    config.log(`DB clone source: ${selected.kind}`);
+    config.log(formatCloneCounts({ tables, columns, ledgerRows }));
+    config.log("DB CLONE PASS");
   } catch (error) {
     primaryError = error;
     throw error;

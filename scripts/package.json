@@ -7,6 +7,7 @@
     "hello": "tsx ./src/hello.ts",
     "db:clone-prod": "tsx ./src/dbCloneProd.ts",
     "lint:migrations": "tsx ./src/lint-migrations.ts",
+    "lint:migration-dependencies": "tsx ./src/lint-migration-dependencies.ts",
     "recovery:guard": "tsx ./src/recovery-guard.ts",
     "test": "tsx --test ./src/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
