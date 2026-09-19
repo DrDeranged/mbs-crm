@@ -3,6 +3,25 @@
 const CACHE_NAME = 'mbs-crm-v1';
 const CACHE_PREFIX = 'mbs-crm-';
 const OFFLINE_URL = './offline.html';
+// Keep this value in sync with the version in use-pwa.tsx. It is deliberately
+// in the script URL so stale workers can be identified and removed.
+const SERVICE_WORKER_VERSION = 'mbs-crm-sw-v2';
+
+function isClerkRequest(url) {
+  const hostname = url.hostname.toLowerCase();
+  const pathname = url.pathname.toLowerCase();
+  return hostname === 'accounts.dev' ||
+    hostname.endsWith('.accounts.dev') ||
+    hostname.includes('clerk') ||
+    pathname.includes('__clerk') ||
+    /(^|\/)clerk(\/|$)/.test(pathname) ||
+    pathname.includes('/npm/@clerk') ||
+    pathname.includes('/@clerk/');
+}
+
+function responseOrError(value) {
+  return value instanceof Response ? value : Response.error();
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -36,11 +55,9 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
-  // Network-first for API
-  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
-    // API responses must never be served from Cache Storage. In particular,
-    // an offline shell must not turn stale authenticated data into a response.
-    event.respondWith(fetch(event.request));
+  // Never intercept Clerk or API traffic. This is important for authenticated
+  // requests: allowing these through preserves Clerk's cookies and headers.
+  if (isClerkRequest(url) || url.pathname === '/api' || url.pathname.startsWith('/api/')) {
     return;
   }
 
@@ -50,12 +67,13 @@ self.addEventListener('fetch', (event) => {
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
         return fetch(event.request).then((response) => {
+          response = responseOrError(response);
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return response;
-        });
+        }).catch(() => Response.error());
       })
     );
     return;
@@ -64,8 +82,8 @@ self.addEventListener('fetch', (event) => {
   // Navigate requests: network-first, fallback to offline.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(new Request(OFFLINE_URL));
+      fetch(event.request).then((response) => responseOrError(response)).catch(() => {
+        return caches.match(new Request(OFFLINE_URL)).then((cached) => responseOrError(cached));
       })
     );
     return;
@@ -73,7 +91,9 @@ self.addEventListener('fetch', (event) => {
 
   // Network-first default
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .then((response) => responseOrError(response))
+      .catch(() => caches.match(event.request).then((cached) => responseOrError(cached)))
   );
 });
 

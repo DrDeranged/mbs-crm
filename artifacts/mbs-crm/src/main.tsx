@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { BrandLogo } from "./components/brand-logo";
+import { removeStaleServiceWorkers } from "./lib/serviceWorkerUpdate";
 import "./index.css";
 
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -11,7 +12,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
+void removeStaleServiceWorkers().catch(() => undefined).finally(() => createRoot(document.getElementById("root")!).render(
   <Sentry.ErrorBoundary
     fallback={
       <div style={{ padding: "2rem", fontFamily: "sans-serif", textAlign: "center" }}>
@@ -26,4 +27,4 @@ createRoot(document.getElementById("root")!).render(
   >
     <App />
   </Sentry.ErrorBoundary>
-);
+));
