@@ -1,5 +1,5 @@
 -- Migration: Create credit_pulls and credit_compliance_log tables
--- Support SQL credit_compliance_log_append_only.sql is installed after migrations.
+-- Must run BEFORE credit_compliance_log_append_only.sql
 
 CREATE TABLE IF NOT EXISTS credit_pulls (
   id              serial PRIMARY KEY,
