@@ -3,6 +3,7 @@ import test from "node:test";
 import { SQL } from "drizzle-orm";
 import { getTableConfig, PgDialect } from "drizzle-orm/pg-core";
 import {
+  applicationsTable,
   notificationSettingsTable,
   schemaMigrationsTable,
 } from "./schema/index";
@@ -42,4 +43,22 @@ test("notification settings model matches migration 041", () => {
   assert.deepEqual(reference.columns.map((column) => column.name), ["user_id"]);
   assert.deepEqual(reference.foreignColumns.map((column) => column.name), ["id"]);
   assert.equal(foreignKeys[0].onDelete, "cascade");
+});
+
+test("applications model preserves migration 045 columns and check constraint", () => {
+  const config = getTableConfig(applicationsTable);
+  const columns = new Map(config.columns.map((column) => [column.name, column]));
+  assert.equal(columns.get("equipment_category")?.getSQLType(), "text");
+  assert.equal(columns.get("equipment_category")?.notNull, false);
+  assert.equal(columns.get("is_homeowner")?.getSQLType(), "boolean");
+  assert.equal(columns.get("is_homeowner")?.notNull, false);
+
+  const constraint = config.checks.find(
+    (checkConstraint) => checkConstraint.name === "applications_equipment_category_check",
+  );
+  assert.ok(constraint);
+  const sql = new PgDialect().sqlToQuery(constraint.value).sql;
+  for (const value of ["vocational", "otr_truck", "trailer", "construction", "other"]) {
+    assert.match(sql, new RegExp(`'${value}'`));
+  }
 });
