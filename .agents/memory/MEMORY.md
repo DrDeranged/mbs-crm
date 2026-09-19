@@ -32,3 +32,6 @@
 - [Express sibling router scope](express-sibling-router-scope.md) — unscoped router.use middleware can validate and reject requests intended for routers mounted later.
 - [SendGrid webhook key rotation](sendgrid-webhook-key-rotation.md) — API tests can be unsigned; re-enabling signing rotates keys, so certify with a real controlled send.
 - [Production clone schema authority](production-clone-schema-authority.md) — for publish gating, trust the managed clone used by preflight when read-only production metadata disagrees.
+- [Drizzle Kit composite PK parity](drizzle-kit-composite-pk-parity.md) — avoid new composite primary keys; pushSchema 0.31.10 drops introspection params and breaks schema parity.
+- [Expo tabs auth boundary](expo-tabs-auth-boundary.md) — guard the tabs layout before rendering children; a root-layout redirect alone can briefly mount protected queries.
+- [Migration-model parity](migration-model-parity.md) — migration replay must compare every public table, including `schema_migrations`; exclusions allow destructive publish diffs to recur.
