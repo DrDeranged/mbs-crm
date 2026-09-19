@@ -24,18 +24,18 @@ import type { Request, RequestHandler, Response } from "express";
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from "http";
 import { logger } from "../lib/logger";
 
-export const LEGACY_CLERK_FAPI = "https://frontend-api.clerk.dev";
+export const CLERK_FAPI = "https://frontend-api.clerk.dev";
 export const CLERK_PROXY_PATH = "/api/__clerk";
 
 export function getClerkKeyPrefix(value: string | undefined): string {
   return value?.match(/^(?:pk|sk)_(?:live|test)_/)?.[0].slice(0, -1) ?? "unknown";
 }
 
-export function getClerkFapiOrigin(
+export function getClerkPublishableKeyOrigin(
   publishableKey = process.env.CLERK_PUBLISHABLE_KEY,
-): string {
+): string | undefined {
   const payload = publishableKey?.match(/^pk_(?:live|test)_(.+)$/)?.[1];
-  if (!payload) return LEGACY_CLERK_FAPI;
+  if (!payload) return undefined;
 
   try {
     const hostname = Buffer.from(payload, "base64url")
@@ -47,10 +47,14 @@ export function getClerkFapiOrigin(
       hostname.includes(".") &&
       !hostname.includes("..") &&
       /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/.test(hostname);
-    return validHostname ? `https://${hostname}` : LEGACY_CLERK_FAPI;
+    return validHostname ? `https://${hostname}` : undefined;
   } catch {
-    return LEGACY_CLERK_FAPI;
+    return undefined;
   }
+}
+
+export function getClerkFapiOrigin(): string {
+  return CLERK_FAPI;
 }
 
 /**
@@ -88,10 +92,14 @@ export function clerkProxyMiddleware({
   log?: Pick<typeof logger, "error" | "fatal" | "info">;
   proxyFactory?: typeof createProxyMiddleware;
 } = {}): RequestHandler {
-  const upstreamOrigin = getClerkFapiOrigin(env.CLERK_PUBLISHABLE_KEY);
+  const upstreamOrigin = getClerkFapiOrigin();
+  const publishableKeyOrigin = getClerkPublishableKeyOrigin(env.CLERK_PUBLISHABLE_KEY);
   log.info(
     {
       clerkFapiHost: new URL(upstreamOrigin).host,
+      publishableKeyHost: publishableKeyOrigin
+        ? new URL(publishableKeyOrigin).host
+        : "unknown",
       publishableKeyPrefix: getClerkKeyPrefix(env.CLERK_PUBLISHABLE_KEY),
       secretKeyPrefix: getClerkKeyPrefix(env.CLERK_SECRET_KEY),
     },
