@@ -57,10 +57,26 @@ function verifySendGridSignature(req: Request): boolean {
     const publicKey = ew.convertPublicKeyToECDSA(verificationKey);
     const valid = ew.verifySignature(publicKey, rawBody, signature, timestamp);
     if (!valid) {
+      const alternatePayloads: Array<[string, string | Buffer]> = [
+        ["json_reserialized", JSON.stringify(req.body)],
+        ["trailing_lf_added", Buffer.concat([rawBody, Buffer.from("\n")])],
+        ["trailing_crlf_added", Buffer.concat([rawBody, Buffer.from("\r\n")])],
+      ];
+      const matchedPayloadVariant = alternatePayloads.find(([, payload]) => {
+        try {
+          return ew.verifySignature(publicKey, payload, signature, timestamp);
+        } catch {
+          return false;
+        }
+      })?.[0] ?? "none";
       logger.warn({
         route: "/api/sendgrid/webhook",
         reason: "signature_mismatch",
         rawBodyBytes: rawBody.length,
+        contentLengthHeader: req.headers["content-length"] ?? null,
+        contentEncodingHeader: req.headers["content-encoding"] ?? null,
+        verificationKeyFingerprint: createHash("sha256").update(verificationKey.trim()).digest("hex").slice(0, 16),
+        matchedPayloadVariant,
       }, "SendGrid webhook signature rejected");
     }
     return valid;
