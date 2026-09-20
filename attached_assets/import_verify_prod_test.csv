@@ -1,3 +1,0 @@
-first_name,last_name,email,phone,company,financing_type,lead_source,industry,state,notes
-Import,Verify One,importverify1@example.com,+15550001111,Verify Imports Inc,working_capital,prospect_list,Retail,NY,Test import verification note for row one
-Import,Verify Two,importverify2@example.com,+15550002222,Verify Imports Inc,equipment,prospect_list,Construction,TX,Test import verification note for row two
