@@ -19,6 +19,11 @@ async function buildAll() {
     platform: "node",
     bundle: true,
     format: "esm",
+    // Keep the startup gate in a tiny entry chunk. The full application and
+    // its heavy external integrations must not load until after port 8080 is
+    // listening and the deployment liveness endpoint can answer.
+    splitting: true,
+    chunkNames: "chunks/[name]-[hash]",
     outdir: distDir,
     outExtension: { ".js": ".mjs" },
     logLevel: "info",
