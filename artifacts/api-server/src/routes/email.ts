@@ -159,8 +159,8 @@ async function logEmailEngagementOnce(send: any, action: "email_opened" | "email
 const router = Router();
 
 const SENDGRID_API_KEY = process.env["SENDGRID_API_KEY"];
-const FROM_EMAIL = "funding@my-business-solutions.com";
-const FROM_NAME = "My Business Solutions";
+const FROM_EMAIL = process.env["SENDGRID_FROM_EMAIL"]?.trim() || "funding@my-business-solutions.com";
+const FROM_NAME = process.env["SENDGRID_FROM_NAME"]?.trim() || "My Business Solutions";
 const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const EMAIL_COMPLIANCE_ADDRESS =
   "My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307";
