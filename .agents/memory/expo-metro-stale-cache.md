@@ -1,10 +1,10 @@
 ---
-name: Expo Metro stale cache after pnpm add
-description: Metro shows "Unable to resolve" after pnpm package upgrade until workflow restart
+name: Expo Metro resolution after pnpm changes
+description: Diagnose Metro "Unable to resolve" errors by checking both workspace links and the running cache
 ---
 
-After running `pnpm add --filter @workspace/mbs-crm-mobile <package>@<new-version>`, Metro Bundler may show "Unable to resolve '<package>'" errors for the web bundle target, even though the pnpm symlink in node_modules is correct.
+For Metro "Unable to resolve" errors after pnpm changes, verify that the package's workspace `node_modules` link actually exists before treating the error as a stale-cache problem. A dependency can be present in both `package.json` and `pnpm-lock.yaml` while its package-level link is absent after a partial or interrupted install.
 
-**Why:** Metro caches module resolution in memory. After a pnpm upgrade, the symlink target path changes (new version hash in .pnpm store), but Metro's in-memory cache still holds the old path which no longer resolves.
+**Why:** Two failures look identical: the pnpm link may genuinely be missing, or Metro may still cache an old symlink target after an upgrade. Restarting cannot repair a missing link, and reinstalling is unnecessary when only the running cache is stale.
 
-**How to apply:** Restart the `artifacts/mbs-crm-mobile: expo` workflow after any pnpm package upgrade. This clears Metro's cache and forces re-resolution. The error is benign until restart — the native app bundle is unaffected; only the web bundle shows the error.
+**How to apply:** Check the package link under the mobile artifact's `node_modules`. If absent, restore the filtered workspace install from the lockfile. Then restart the `artifacts/mbs-crm-mobile: expo` workflow after any pnpm package change so Metro re-resolves the new targets.
