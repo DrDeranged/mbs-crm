@@ -12,6 +12,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 import { suppressEmail } from "../lib/emailSafety";
 import { canAdvanceEmailStatus, classifySendGridEvent, webhookSuppressionEffects } from "../lib/emailSafetyPredicates";
+import { logger } from "../lib/logger";
 
 const router = Router();
 const sendGridEvent = z.object({
@@ -31,16 +32,44 @@ function verifySendGridSignature(req: Request): boolean {
   // Fail closed in every environment so a staging/test configuration can
   // never normalize an unsigned request as a valid provider callback.
   const verificationKey = process.env["SENDGRID_WEBHOOK_VERIFICATION_KEY"];
-  if (!verificationKey) return false;
   const signature = req.headers["x-twilio-email-event-webhook-signature"] as string;
   const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"] as string;
   const rawBody: Buffer | undefined = (req as any).rawBody;
-  if (!signature || !timestamp || !rawBody) return false;
+  if (!verificationKey || !signature || !timestamp || !rawBody) {
+    logger.warn({
+      route: "/api/sendgrid/webhook",
+      reason: !verificationKey
+        ? "verification_key_missing"
+        : !signature
+          ? "signature_header_missing"
+          : !timestamp
+            ? "timestamp_header_missing"
+            : "raw_body_missing",
+      hasSignatureHeader: !!signature,
+      hasTimestampHeader: !!timestamp,
+      hasRawBody: !!rawBody,
+      rawBodyBytes: rawBody?.length ?? 0,
+    }, "SendGrid webhook signature rejected");
+    return false;
+  }
   try {
     const ew = new EventWebhook();
     const publicKey = ew.convertPublicKeyToECDSA(verificationKey);
-    return ew.verifySignature(publicKey, rawBody, signature, timestamp);
+    const valid = ew.verifySignature(publicKey, rawBody, signature, timestamp);
+    if (!valid) {
+      logger.warn({
+        route: "/api/sendgrid/webhook",
+        reason: "signature_mismatch",
+        rawBodyBytes: rawBody.length,
+      }, "SendGrid webhook signature rejected");
+    }
+    return valid;
   } catch {
+    logger.warn({
+      route: "/api/sendgrid/webhook",
+      reason: "verification_error",
+      rawBodyBytes: rawBody.length,
+    }, "SendGrid webhook signature rejected");
     return false;
   }
 }
