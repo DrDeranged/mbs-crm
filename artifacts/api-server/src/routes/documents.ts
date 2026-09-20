@@ -8,6 +8,7 @@ import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListDocumentsParams, DownloadDocumentParams } from "@workspace/api-zod";
 import { isDocumentCategory } from "../lib/documentsCategory";
+import { documentContentDisposition } from "../lib/documentDownload";
 
 type Database = typeof db;
 export type DocumentsRouteDependencies = {
@@ -226,6 +227,15 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
     const { objectStorageClient } = await import("../lib/objectStorage");
     const bucket = objectStorageClient.bucket(bucketId);
     const file = bucket.file(doc.fileKey);
+    if (req.query.direct === "true") {
+      const [contents] = await file.download();
+      res
+        .type(doc.fileType || "application/octet-stream")
+        .set("Content-Disposition", documentContentDisposition(doc.filename, doc.id))
+        .set("Cache-Control", "private, no-store")
+        .send(contents);
+      return;
+    }
     const [signedUrl] = await file.getSignedUrl({
       action: "read",
       expires: Date.now() + 15 * 60 * 1000,

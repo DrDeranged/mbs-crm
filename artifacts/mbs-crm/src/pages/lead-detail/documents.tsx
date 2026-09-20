@@ -17,9 +17,9 @@ import {
   useListDocuments,
   useUpdateDocumentCategory,
   useUploadDocument,
-  downloadDocument,
 } from "@workspace/api-client-react";
 import { getLenderPackageFilename } from "@/lib/lenderPackageDownload";
+import { fetchAuthenticatedBlob, safeDownloadFilename, saveBlob } from "@/lib/fileDownload";
 import { useLeadDetail } from "./context";
 import { lenderPackageFailureTitle } from "@/lib/lenderPackageError";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
@@ -92,12 +92,16 @@ export function LeadDocuments() {
     );
   };
 
-  const handleDownload = async (docId: number, _filename: string) => {
+  const handleDownload = async (docId: number, filename: string) => {
     try {
-      const result = await downloadDocument(docId);
-      if (result.downloadUrl) window.open(result.downloadUrl, "_blank");
-    } catch {
-      toast({ title: "Download Error", description: "Could not download document.", variant: "destructive" });
+      const blob = await fetchAuthenticatedBlob(`${apiBase}/documents/${docId}/download?direct=true`);
+      saveBlob(blob, safeDownloadFilename(filename, `document-${docId}`));
+    } catch (error) {
+      toast({
+        title: "Download Error",
+        description: error instanceof Error ? error.message : "Could not download document.",
+        variant: "destructive",
+      });
     }
   };
 

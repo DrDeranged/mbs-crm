@@ -40,6 +40,13 @@ export type CollateralMailClient = {
   send: (message: any) => Promise<unknown>;
 };
 
+export function canAccessCollateralRender(
+  viewer: { id: number; role: string },
+  renderOwnerId: number,
+): boolean {
+  return viewer.role !== "rep" || viewer.id === renderOwnerId;
+}
+
 export async function sendCollateralEmail(client: CollateralMailClient, input: {
   leadEmail: string;
   repEmail: string;
@@ -224,11 +231,16 @@ router.get("/collateral/templates/:id/render", async (req, res) => {
 router.get("/collateral/renders/:id/pdf", async (req, res) => {
   const u = await user(req, res); if (!u) return;
   const r = await db.query.collateralRendersTable.findFirst({ where: eq(collateralRendersTable.id, Number(req.params.id)), with: { template: true, user: true } });
-  if (!r || (u.role === "rep" && r.userId !== u.id)) return void res.status(404).json({ error: "Render not found" });
+  if (!r || !canAccessCollateralRender(u, r.userId)) return void res.status(404).json({ error: "Render not found" });
   try {
     const file = await objectStorage.getObjectEntityFile(r.fileKey);
     const [pdf] = await file.download();
-    res.type("application/pdf").send(pdf);
+    const filename = `${r.template.name.replace(/[^a-z0-9._-]+/gi, "-") || "collateral"}.pdf`;
+    res
+      .type("application/pdf")
+      .set("Content-Disposition", `inline; filename="${filename}"`)
+      .set("Cache-Control", "private, no-store")
+      .send(pdf);
   }
   catch { res.status(503).json({ error: "PDF rendering unavailable" }); }
 });
@@ -239,7 +251,7 @@ router.post("/collateral/renders/:id/email", async (req, res) => {
   if (!body.success) return void res.status(400).json({ error: "leadId, subject, and bodyHtml are required" });
   const r = await db.query.collateralRendersTable.findFirst({ where: eq(collateralRendersTable.id, Number(req.params.id)), with: { template: true, user: true } });
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, body.data.leadId) });
-  if (!r || !lead?.email || (u.role === "rep" && r.userId !== u.id)) return void res.status(404).json({ error: "Render or lead not found" });
+  if (!r || !lead?.email || !canAccessCollateralRender(u, r.userId)) return void res.status(404).json({ error: "Render or lead not found" });
   if (!canEmailCollateralToLead(u, lead)) return void res.status(403).json({ error: "Forbidden" });
   try {
     const file = await objectStorage.getObjectEntityFile(r.fileKey);
@@ -270,6 +282,12 @@ router.post("/collateral/renders/:id/email", async (req, res) => {
 });
 router.get("/collateral/renders/:id/link", async (req, res) => {
   const u = await user(req, res); if (!u) return;
+  const r = await db.query.collateralRendersTable.findFirst({
+    where: eq(collateralRendersTable.id, Number(req.params.id)),
+  });
+  if (!r || !canAccessCollateralRender(u, r.userId)) {
+    return void res.status(404).json({ error: "Render not found" });
+  }
   const token = signed(`${req.params.id}:${Date.now() + 7 * 86400000}`);
   res.json({ url: `${getPublicBaseUrl()}/api/collateral/shared/${token}`, expiresInDays: 7 });
 });

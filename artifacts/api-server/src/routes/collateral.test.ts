@@ -3,7 +3,18 @@ import test from "node:test";
 import express from "express";
 import { createServer } from "node:http";
 import analyticsRouter from "./analytics";
-import { listCollateralTemplatesHandler, recordCollateralEmailDelivery, sendCollateralEmail } from "./collateral";
+import {
+  canAccessCollateralRender,
+  listCollateralTemplatesHandler,
+  recordCollateralEmailDelivery,
+  sendCollateralEmail,
+} from "./collateral";
+
+test("reps cannot access another rep's collateral render", () => {
+  assert.equal(canAccessCollateralRender({ id: 7, role: "rep" }, 7), true);
+  assert.equal(canAccessCollateralRender({ id: 7, role: "rep" }, 8), false);
+  assert.equal(canAccessCollateralRender({ id: 1, role: "admin" }, 8), true);
+});
 
 test("admin can request draft collateral without analytics rejecting its query", async () => {
   let includedDrafts = false;
