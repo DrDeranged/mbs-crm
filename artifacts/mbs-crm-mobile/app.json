@@ -20,7 +20,8 @@
     "android": {
       "package": "com.mbscrm.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1F4E79"
+        "foregroundImage": "./assets/images/icon-foreground.png",
+        "backgroundColor": "#0E2A47"
       }
     },
     "web": {
@@ -39,8 +40,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
-          "color": "#1F4E79"
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#20B978"
         }
       ]
     ],

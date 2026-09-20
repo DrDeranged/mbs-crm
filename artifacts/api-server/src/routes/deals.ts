@@ -106,7 +106,7 @@ function toApi(
     referralGm: netGmAfterReferralSplit(
       Number(deal.actualGm ?? deal.approxGm ?? 0),
       deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
-    ),
+    ).netGm,
     notes: deal.notes ?? null,
     gmSplitPct: deal.gmSplitPct ?? 100,
     assignedTo: deal.assignedTo ?? null,

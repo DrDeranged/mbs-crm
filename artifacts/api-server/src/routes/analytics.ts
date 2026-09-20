@@ -33,7 +33,7 @@ const FUNNEL_ORDER = [
 const APPLICATION_STATUSES = ["application_received", "submitted_to_underwriting", "approved", "funded"] as const;
 const APPROVAL_STATUSES = ["approved", "funded"] as const;
 
-router.use((req, res, next) => {
+router.use("/analytics", (req, res, next) => {
   const query = analyticsQuery.safeParse(req.query);
   if (!query.success) {
     res.status(400).json({ error: `Invalid ${query.error.issues[0]?.path.join(".") || "query"}` });

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#0E2A47"/>
+  <path d="M178 686h132l86-214-80-74z" fill="#20B978"/>
+  <text
+    x="565"
+    y="625"
+    fill="#FFFFFF"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="300"
+    font-weight="800"
+    letter-spacing="-24"
+    text-anchor="middle"
+  >MBS</text>
+</svg>

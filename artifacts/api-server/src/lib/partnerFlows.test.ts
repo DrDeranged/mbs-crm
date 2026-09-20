@@ -19,3 +19,11 @@ test("split math clamps malformed percentages", () => {
   assert.equal(netGmAfterReferralSplit(100, 140).netGm, 0);
   assert.equal(netGmAfterReferralSplit(100, -5).netGm, 100);
 });
+
+test("missing referral data produces a numeric zero instead of NaN", () => {
+  assert.deepEqual(netGmAfterReferralSplit(0, null), {
+    grossGm: 0,
+    referralAmount: 0,
+    netGm: 0,
+  });
+});

@@ -11,6 +11,13 @@ export const notificationsQuery = z.object({
 }).strict();
 const notificationId = z.coerce.number().int().positive();
 
+function parseNotificationsQuery(query: Request["query"]) {
+  return notificationsQuery.safeParse({
+    page: query.page,
+    limit: query.limit,
+  });
+}
+
 function logRejectedField(req: Request, field: string): void {
   const request = req as Request & {
     log?: { warn: (context: Record<string, unknown>, message: string) => void };
@@ -103,7 +110,10 @@ export function createNotificationsRouter({
     const user = await authenticate(req, res);
     if (!user) return;
 
-    const query = notificationsQuery.safeParse(req.query);
+    // Consume only the documented pagination fields. Browsers, service workers,
+    // and edge proxies may append cache/diagnostic query keys; those must not
+    // make an otherwise valid notification list request fail.
+    const query = parseNotificationsQuery(req.query);
     if (!query.success) {
       logRejectedField(req, query.error.issues[0]?.path.join(".") || "query");
       return void res.status(400).json({ error: `Invalid ${query.error.issues[0]?.path.join(".") || "query"}` });

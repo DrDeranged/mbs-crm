@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import test from "node:test";
 import express from "express";
+import analyticsRouter from "../routes/analytics";
 import {
   createNotificationsRouter,
   notificationsQuery,
@@ -75,6 +76,7 @@ async function withNotificationServer(
   run: (baseUrl: string) => Promise<void>,
 ) {
   const app = express();
+  app.use(analyticsRouter);
   app.use(
     createNotificationsRouter({
       store: fixtureStore(rows),
@@ -94,7 +96,7 @@ async function withNotificationServer(
   }
 }
 
-test("the generated client's exact notification payload matches the strict query schema", () => {
+test("the generated client's exact notification payload matches the query schema", () => {
   const exactPayload = { page: "1", limit: "20" };
   const parsed = notificationsQuery.safeParse(exactPayload);
   assert.equal(parsed.success, true);
@@ -124,6 +126,11 @@ for (const user of [
       assert.equal(listBody.total, 2);
       assert.deepEqual(listBody.data.map((row) => row.leadId), [501, 502]);
       assert.equal(`/leads/${listBody.data[0].leadId}`, "/leads/501");
+
+      const listWithEdgeMetadata = await fetch(
+        `${baseUrl}/notifications?page=1&limit=20&diagnostic=edge`,
+      );
+      assert.equal(listWithEdgeMetadata.status, 200);
 
       const read = await fetch(
         `${baseUrl}/notifications/${listBody.data[0].id}/read`,

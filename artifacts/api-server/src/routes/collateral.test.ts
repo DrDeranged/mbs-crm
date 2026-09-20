@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import express from "express";
 import { createServer } from "node:http";
+import analyticsRouter from "./analytics";
 import { listCollateralTemplatesHandler, recordCollateralEmailDelivery, sendCollateralEmail } from "./collateral";
 
-test("admin can request draft collateral with a true query value", async () => {
+test("admin can request draft collateral without analytics rejecting its query", async () => {
   let includedDrafts = false;
   const app = express();
+  app.use("/api", analyticsRouter);
   app.get("/api/collateral/templates", listCollateralTemplatesHandler({
     getUser: async () => ({ id: 1, role: "admin" }) as any,
     listTemplates: async (includeDrafts) => {

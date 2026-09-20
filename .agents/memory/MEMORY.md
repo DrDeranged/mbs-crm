@@ -29,3 +29,4 @@
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
 - [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
 - [Published API fingerprints](published-api-fingerprints.md) — verify server revisions from a live response/header; a current static bundle does not prove the matching API build shipped.
+- [Express sibling router scope](express-sibling-router-scope.md) — unscoped router.use middleware can validate and reject requests intended for routers mounted later.
