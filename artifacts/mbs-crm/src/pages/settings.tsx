@@ -19,10 +19,11 @@ import { formatLenderSeedError, formatLenderSeedSummary, formatProductionCloseou
 import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { useNotificationSettings } from "@/hooks/use-notification-settings";
+import { canSubmitUserMerge, getEligibleMergeSources, getEligibleMergeTargets, getMergeSourceState } from "@/lib/mergeUserOptions";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
-  const { data: users, isLoading: loadingUsers } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
+  const { data: users, isLoading: loadingUsers, isError: usersError } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
   const updateUser = useUpdateUser();
   const updateMobile = useUpdateMyMobile();
   const isAdmin = me?.role === UserRole.admin;
@@ -54,6 +55,14 @@ export default function Settings() {
   const [mergeSourceId, setMergeSourceId] = useState("");
   const [mergeTargetId, setMergeTargetId] = useState("");
   const [mergePending, setMergePending] = useState(false);
+  const mergeSources = getEligibleMergeSources(users);
+  const mergeTargets = getEligibleMergeTargets(users);
+  const mergeSourceState = getMergeSourceState({
+    isLoading: loadingUsers,
+    isError: usersError,
+    sourceCount: mergeSources.length,
+  });
+  const canMergeUsers = canSubmitUserMerge(mergeSourceId, mergeTargetId, users);
 
   const apiBase = getApiBaseUrl();
 
@@ -1119,27 +1128,41 @@ export default function Settings() {
               <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border bg-muted/30 p-3">
                 <div className="min-w-[190px]">
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Stray pending user</label>
-                  <Select value={mergeSourceId} onValueChange={setMergeSourceId}>
-                    <SelectTrigger><SelectValue placeholder="Choose source" /></SelectTrigger>
-                    <SelectContent>
-                      {(users ?? []).filter((user) => user.role === UserRole.pending && user.isActive).map((user) => (
-                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {mergeSourceState === "loading" ? (
+                    <div className="flex h-9 items-center rounded-md border border-input px-3 text-sm text-muted-foreground" role="status">
+                      Loading pending users…
+                    </div>
+                  ) : mergeSourceState === "error" ? (
+                    <div className="flex min-h-9 items-center rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+                      Pending users could not be loaded. Try refreshing.
+                    </div>
+                  ) : mergeSourceState === "empty" ? (
+                    <div className="flex min-h-9 items-center rounded-md border border-input bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                      No active pending users are eligible to merge.
+                    </div>
+                  ) : (
+                    <Select value={mergeSourceId} onValueChange={setMergeSourceId}>
+                      <SelectTrigger aria-label="Stray pending user"><SelectValue placeholder="Choose source" /></SelectTrigger>
+                      <SelectContent>
+                        {mergeSources.map((user) => (
+                          <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="min-w-[190px]">
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Real active user</label>
-                  <Select value={mergeTargetId} onValueChange={setMergeTargetId}>
+                  <Select value={mergeTargetId} onValueChange={setMergeTargetId} disabled={loadingUsers || usersError || mergeTargets.length === 0}>
                     <SelectTrigger><SelectValue placeholder="Choose target" /></SelectTrigger>
                     <SelectContent>
-                      {(users ?? []).filter((user) => user.isActive && user.role !== UserRole.pending).map((user) => (
+                      {mergeTargets.map((user) => (
                         <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" disabled={mergePending || !mergeSourceId || !mergeTargetId} onClick={() => void mergeUsers()}>
+                <Button variant="outline" disabled={mergePending || !canMergeUsers} onClick={() => void mergeUsers()}>
                   {mergePending ? "Merging…" : "Merge user"}
                 </Button>
               </div>

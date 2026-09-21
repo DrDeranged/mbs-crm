@@ -48,6 +48,7 @@ export function validateMergeUsers(source: MergeUser, target: MergeUser): void {
   if (source.role !== "pending") throw new Error("Source user must have the pending role");
   if (!source.isActive) throw new Error("Source user is already inactive");
   if (!target.isActive) throw new Error("Target user must be active");
+  if (target.role === "pending") throw new Error("Target user must not have the pending role");
 }
 
 export function mergeRequiresConfirmation(counts: Readonly<Record<string, number>>): boolean {

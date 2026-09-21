@@ -39,6 +39,10 @@ test("merge refuses inactive targets and only requires confirmation for reassign
     () => validateMergeUsers(source, { id: 22, role: "rep", isActive: false, slug: "real" }),
     /Target user must be active/,
   );
+  assert.throws(
+    () => validateMergeUsers(source, { id: 22, role: "pending", isActive: true, slug: "other-stray" }),
+    /Target user must not have the pending role/,
+  );
   assert.equal(mergeRequiresConfirmation({}), false);
   assert.equal(mergeRequiresConfirmation({ "leads.assigned_rep_id": 0 }), false);
   assert.equal(mergeRequiresConfirmation({ "leads.assigned_rep_id": 1 }), true);

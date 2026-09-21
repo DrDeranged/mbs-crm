@@ -145,6 +145,7 @@ router.post("/admin/users/merge", async (req: Request, res: Response) => {
       if (!source || !target) throw Object.assign(new Error("Source or target user not found"), { status: 404 });
       if (source.role !== "pending") throw Object.assign(new Error("Source user must have the pending role"), { status: 409 });
       if (!target.isActive) throw Object.assign(new Error("Target user must be active"), { status: 409 });
+      if (target.role === "pending") throw Object.assign(new Error("Target user must not have the pending role"), { status: 409 });
       if (!source.isActive) throw Object.assign(new Error("Source user is already inactive"), { status: 409 });
 
       const tables = MERGE_USER_REFERENCE_COLUMNS;
