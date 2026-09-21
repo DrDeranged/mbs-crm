@@ -30,3 +30,4 @@
 - [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
 - [Published API fingerprints](published-api-fingerprints.md) — verify server revisions from a live response/header; a current static bundle does not prove the matching API build shipped.
 - [Express sibling router scope](express-sibling-router-scope.md) — unscoped router.use middleware can validate and reject requests intended for routers mounted later.
+- [SendGrid webhook key rotation](sendgrid-webhook-key-rotation.md) — a displayed verification key can be stale relative to SendGrid’s signer; rotating signed webhooks resolves unexplained signature mismatches.
