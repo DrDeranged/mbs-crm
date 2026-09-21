@@ -13,9 +13,8 @@ import { requireUser } from "../lib/authHelpers";
 import { matchLeadToLenders } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
 import { recordManualLenderSubmission } from "../lib/manualLenderSubmission";
-import { buildLenderPackagePdf, parseLenderPackageConfig, sanitizeLenderPackageBusinessName, type LenderPackageConfig } from "../lib/lenderPackage";
+import { buildLenderPackagePdf, decryptLenderPackageSsns, parseLenderPackageConfig, parsePersistedLenderPackageConfig, sanitizeLenderPackageBusinessName, type LenderPackageConfig } from "../lib/lenderPackage";
 import { safeLenderPackageReason } from "../lib/lenderPackageErrors";
-import { decrypt } from "../lib/encryption";
 import { logPiiAccess } from "../lib/piiAccess";
 import { doSendEmail, renderTemplate, buildVariables } from "./email";
 import { getPublicBaseUrl } from "../lib/brand";
@@ -139,7 +138,7 @@ function submissionToApi(
     sentAt: sub.sentAt.toISOString(),
     dealId: sub.dealId ?? null,
     messageId: sub.messageId ?? null,
-    packageConfigSnapshot: sub.packageConfigSnapshot ?? null,
+    packageConfigSnapshot: parsePersistedLenderPackageConfig(sub.packageConfigSnapshot),
     hasExactPackage: Boolean(sub.exactPackageKey && sub.exactPackageSha256),
     updatedAt: sub.updatedAt.toISOString(),
   };
@@ -393,13 +392,38 @@ function apiApplicationType(value: unknown): string {
   return value === "equipment" ? "Equipment Financing" : value === "working_capital" ? "Working Capital" : "—";
 }
 
-function piiPackageMetadata(packageConfig: LenderPackageConfig | null): Record<string, unknown> {
+const LENDER_PACKAGE_SENSITIVITY_KEY = "__lenderPackageSensitivity";
+
+function piiPackageMetadata(packageConfig: LenderPackageConfig | null, ssnUnmasked: boolean): Record<string, unknown> {
   return {
     sections: packageConfig?.sections ?? null,
     documentIds: packageConfig?.documentIds ?? null,
     options: packageConfig?.options ?? null,
-    ssnUnmasked: packageConfig?.options?.maskSsn === false,
+    ssnUnmasked,
   };
+}
+
+function packageIncludesApplication(packageConfig: LenderPackageConfig | null): boolean {
+  return packageConfig?.sections?.includes("application") ?? true;
+}
+
+function createPackageConfigSnapshot(packageConfig: LenderPackageConfig | null, ssnUnmasked: boolean): Record<string, unknown> {
+  return {
+    ...(packageConfig ?? {}),
+    [LENDER_PACKAGE_SENSITIVITY_KEY]: { version: 1, ssnUnmasked },
+  };
+}
+
+function snapshotSsnUnmasked(snapshot: unknown): boolean {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return false;
+  const record = snapshot as Record<string, unknown>;
+  const metadata = record[LENDER_PACKAGE_SENSITIVITY_KEY];
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    return (metadata as Record<string, unknown>)["ssnUnmasked"] === true;
+  }
+  const options = record["options"];
+  return Boolean(options && typeof options === "object" && !Array.isArray(options)
+    && (options as Record<string, unknown>)["maskSsn"] === false);
 }
 
 async function canAccessSubmissionLead(database: any, user: { id: number; role: string }, leadId: number) {
@@ -601,22 +625,17 @@ export function createSubmissionHandler(
       if (rawPackageConfig !== undefined && !packageConfig) {
         return void res.status(400).json({ error: "Invalid package selection" });
       }
-      if (packageConfig?.options?.maskSsn === false && user.role !== "admin") {
-        return void res.status(403).json({ error: "Only administrators may disable SSN masking" });
-      }
       if ((packageConfig?.documentIds ?? []).some((documentId) => !documents.some((document: any) => document.id === documentId))) {
         return void res.status(400).json({ error: "Every selected document must belong to this lead" });
       }
-      let unmaskedSsn: { ownerSsn: string | null; secondaryOwnerSsn: string | null } | undefined;
       let packagePdf: Buffer;
+      let ssnUnmasked = false;
     try {
-        unmaskedSsn = packageConfig?.options?.maskSsn === false
-          ? {
-            ownerSsn: application.ownerSsnEncrypted ? decrypt(application.ownerSsnEncrypted) : null,
-            secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
-          }
+        const fullSsn = packageIncludesApplication(packageConfig)
+          ? decryptLenderPackageSsns(application)
           : undefined;
-        packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents, selection: packageConfig ?? undefined, unmaskedSsn })).pdf;
+        ssnUnmasked = Boolean(fullSsn?.ownerSsn || fullSsn?.secondaryOwnerSsn);
+        packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents, selection: packageConfig ?? undefined, fullSsn })).pdf;
     } catch (error) {
       return void res.status(500).json({
         error: "Lender package generation failed",
@@ -649,7 +668,7 @@ export function createSubmissionHandler(
         return void res.status(500).json({ error: "Lender package could not be stored for submission" });
       }
       const receipt = await deliveryReceipt.reserve({
-        leadId, lenderId, sentBy: user.id, packageConfig,
+        leadId, lenderId, sentBy: user.id, packageConfig: createPackageConfigSnapshot(packageConfig, ssnUnmasked),
         exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       });
       if (!receipt) {
@@ -691,6 +710,16 @@ export function createSubmissionHandler(
       await deliveryReceipt.markUncertain(receipt.id, sendResult.error);
       return void res.status(502).json({ error: "Lender email delivery outcome is uncertain; do not retry", reason: "send_outcome_uncertain" });
     }
+    // A confirmed provider acceptance is the disclosure boundary. Audit it
+    // before any receipt or database finalization that may fail afterward.
+    auditPiiAccess({
+      userId: user.id,
+      leadId,
+      fieldCategory: "application",
+      action: "export",
+      ip: req.ip,
+      metadata: piiPackageMetadata(packageConfig, ssnUnmasked),
+    });
     try {
       await deliveryReceipt.markSent(receipt.id, sendResult.send?.sendgridMessageId ?? null);
     } catch (error) {
@@ -717,7 +746,7 @@ export function createSubmissionHandler(
         viaBrokerId: body.data.via_broker_id ?? (lender.partnerType === "broker_out" ? lender.id : null),
         endLenderId: body.data.end_lender_id ?? null,
         messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
-        packageConfigSnapshot: packageConfig,
+        packageConfigSnapshot: createPackageConfigSnapshot(packageConfig, ssnUnmasked),
         exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       }).returning();
       if (deal) {
@@ -750,7 +779,7 @@ export function createSubmissionHandler(
           adminOverride,
           packageSections: packageConfig?.sections ?? null,
           packageDocumentIds: packageConfig?.documentIds ?? null,
-          ssnUnmasked: packageConfig?.options?.maskSsn === false,
+          ssnUnmasked,
         },
       }, tx);
       return [created] as const;
@@ -765,7 +794,6 @@ export function createSubmissionHandler(
     } catch (error) {
       req.log?.error({ err: error, receiptId: receipt.id }, "Could not mark lender delivery receipt submitted");
     }
-    auditPiiAccess({ userId: user.id, leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(packageConfig) });
     const submitter = await routeDb.query.usersTable.findFirst({ where: eq(usersTable.id, user.id) });
     res.status(201).json(submissionToApi(sub, lender, submitter));
     } finally {
@@ -951,12 +979,10 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
     if (!submission) return void res.status(404).json({ error: "Submission not found" });
     const access = await canAccessSubmissionLead(routeDb, user, submission.leadId);
     if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
-    const packageConfig = parseLenderPackageConfig(submission.packageConfigSnapshot);
+    const packageConfig = parsePersistedLenderPackageConfig(submission.packageConfigSnapshot);
+    const ssnUnmasked = snapshotSsnUnmasked(submission.packageConfigSnapshot);
     if (!submission.exactPackageKey || !submission.exactPackageSha256) {
       return void res.status(404).json({ error: "The exact sent package is unavailable" });
-    }
-    if (packageConfig?.options?.maskSsn === false && user.role !== "admin") {
-      return void res.status(403).json({ error: "Only administrators may download an unmasked package" });
     }
     try {
       const bytes = await downloadExactPackage(submission.exactPackageKey);
@@ -971,10 +997,10 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
         details: {
           packageSections: packageConfig?.sections ?? null,
           packageDocumentIds: packageConfig?.documentIds ?? null,
-          ssnUnmasked: packageConfig?.options?.maskSsn === false,
+          ssnUnmasked,
         },
       });
-      auditPiiAccess({ userId: user.id, leadId: submission.leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(packageConfig) });
+      auditPiiAccess({ userId: user.id, leadId: submission.leadId, fieldCategory: "application", action: "export", ip: req.ip, metadata: piiPackageMetadata(packageConfig, ssnUnmasked) });
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `attachment; filename="MBS-Submission-${id}.pdf"`);

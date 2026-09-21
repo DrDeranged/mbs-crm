@@ -3,11 +3,11 @@ name: Lender delivery safety
 description: Immutable packet and ambiguous-email rules for lender submission changes.
 ---
 
-Preserve the exact sent PDF in private storage; never implement historical downloads by rebuilding from current lead data.
+Preserve the exact sent PDF in private storage; never implement historical downloads by rebuilding from current lead data. Newly generated lender packages include available full SSNs for every otherwise-authorized package user.
 
-**Why:** Lead details and documents change after sending, and an administrator's unmasked packet must not become accessible to a representative.
+**Why:** Lead details and documents change after sending. Full SSNs are now a standard protected-package disclosure rather than an administrator-only option, so ordinary lead authorization—not a separate unmask role gate—controls access.
 
-**How to apply:** Keep historical packet downloads authorization-checked, integrity-checked, audited, and non-cacheable.
+**How to apply:** Keep historical and live packet downloads authorization-checked, integrity-checked where stored, audited, and explicitly non-cacheable.
 
 Treat a timeout or unknown provider failure as an uncertain delivery, not a confirmed failure eligible for automatic retry.
 

@@ -7992,7 +7992,6 @@ components:
           type: object
           additionalProperties: false
           properties:
-            maskSsn: { type: boolean }
             includeCoverPage: { type: boolean }
             includeFooter: { type: boolean }
 

@@ -1811,7 +1811,6 @@ export const BuildSelectedLenderPackageBody = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -1830,7 +1829,6 @@ export const GetLeadPackageConfigResponse = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -1849,7 +1847,6 @@ export const SaveLeadPackageConfigBody = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -1860,7 +1857,6 @@ export const SaveLeadPackageConfigResponse = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -4139,7 +4135,6 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -4167,7 +4162,6 @@ export const CreateLeadSubmissionBody = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -4288,7 +4282,6 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -4393,7 +4386,6 @@ export const UpdateSubmissionResponse = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()
@@ -4497,7 +4489,6 @@ export const PatchSubmissionResponse = zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
   "documentIds": zod.array(zod.number()).optional(),
   "options": zod.object({
-  "maskSsn": zod.boolean().optional(),
   "includeCoverPage": zod.boolean().optional(),
   "includeFooter": zod.boolean().optional()
 }).optional()

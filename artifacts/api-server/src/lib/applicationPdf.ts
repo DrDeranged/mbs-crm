@@ -123,7 +123,7 @@ export type ApplicationPdfOptions = {
   signatureMethod?: "typed" | "drawn" | null;
   signatureData?: string | null;
   clientIp?: string | null;
-  /** Only set by the authorized lender-package export path after decrypting SSNs. */
+  /** Only set by an authorized lender-package export after decrypting SSNs. */
   revealSsn?: boolean;
 };
 
@@ -455,7 +455,7 @@ function drawnSignaturePng(value: string): Buffer {
 /**
  * Native equivalent of the client Finance Application in 00ff546. This
  * renderer deliberately has no browser dependency and keeps SSNs masked unless
- * the authorized lender-package export path explicitly enables revealSsn.
+ * an authorized lender-package export explicitly enables revealSsn.
  */
 export async function renderApplicationFormPdf(options: NativeApplicationPdfOptions): Promise<Buffer> {
   const { pdf, page, fonts } = await createLetterPdf();

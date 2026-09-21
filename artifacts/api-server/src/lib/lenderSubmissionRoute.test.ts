@@ -21,7 +21,7 @@ function lead(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function application() {
+function application(overrides: Record<string, unknown> = {}) {
   return {
     id: 99,
     leadId: 42,
@@ -31,6 +31,9 @@ function application() {
     signatureMethod: "typed",
     signatureData: "Owner Example",
     signatureSignedAt: new Date("2025-01-02T11:00:00.000Z"),
+    ownerSsnEncrypted: null,
+    secondaryOwnerSsnEncrypted: null,
+    ...overrides,
   };
 }
 
@@ -105,6 +108,7 @@ function makeDatabase(options: {
   existingSubmission?: ReturnType<typeof submission>;
   existingDeal?: Record<string, unknown> | null;
   transactionFails?: boolean;
+  applicationRow?: ReturnType<typeof application>;
 } = {}) {
   let currentDeal = options.existingDeal ?? null;
   let currentSubmission = options.existingSubmission ?? null;
@@ -124,7 +128,7 @@ function makeDatabase(options: {
         findFirst: async () => options.recentSubmission ?? currentSubmission,
       },
       applicationsTable: {
-        findFirst: async () => application(),
+        findFirst: async () => options.applicationRow ?? application(),
       },
       dealsTable: {
         findMany: async () => currentDeal ? [currentDeal] : [],
@@ -298,11 +302,12 @@ test("a concurrent second submission is denied by the held advisory lock before 
 
 test("a post-SendGrid transaction failure leaves a durable receipt and refuses a second email", async () => {
   const fixture = makeDatabase({ transactionFails: true });
-  const { dependencies, sent } = makeDependencies(fixture);
+  const { dependencies, sent, audits } = makeDependencies(fixture);
   const first = response();
   await createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, first as any);
   assert.equal(first.statusCode, 500);
   assert.equal(sent.length, 1);
+  assert.equal(audits.length, 1);
   const retry = response();
   await createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, retry as any);
   assert.equal(retry.statusCode, 409);
@@ -388,7 +393,7 @@ test("submission stores exactly the emailed attachment with config/hash metadata
   const stored: Array<{ key: string; bytes: Buffer }> = [];
   dependencies.storeExactPackage = async (key: string, bytes: Buffer) => { stored.push({ key, bytes }); };
   const res = response();
-  const config = { sections: ["application", "bank_statement"], documentIds: [], options: { maskSsn: true } };
+  const config = { sections: ["application", "bank_statement"], documentIds: [], options: { includeFooter: true } };
   await createSubmissionHandler(dependencies)(request({ lender_id: 5, package_config: config }) as any, res as any);
   assert.equal(res.statusCode, 201);
   assert.equal(stored.length, 1);
@@ -396,7 +401,10 @@ test("submission stores exactly the emailed attachment with config/hash metadata
   assert.match(snapshot.key, /^\/objects\/lender-submissions\/42\//);
   assert.deepEqual(Buffer.from(sent[0].attachments[0].content, "base64"), snapshot.bytes);
   assert.equal((fixture.getSubmission() as any)?.exactPackageSha256, (await import("node:crypto")).createHash("sha256").update(snapshot.bytes).digest("hex"));
-  assert.deepEqual((fixture.getSubmission() as any)?.packageConfigSnapshot, config);
+  assert.deepEqual((fixture.getSubmission() as any)?.packageConfigSnapshot, {
+    ...config,
+    __lenderPackageSensitivity: { version: 1, ssnUnmasked: false },
+  });
   assert.deepEqual(audits[0]?.metadata, { sections: config.sections, documentIds: config.documentIds, options: config.options, ssnUnmasked: false });
   const downloadRes: any = response();
   downloadRes.setHeader = () => undefined;
@@ -405,12 +413,62 @@ test("submission stores exactly the emailed attachment with config/hash metadata
   assert.deepEqual(downloadRes.body, snapshot.bytes);
 });
 
-test("a rep cannot download an immutable snapshot that was explicitly unmasked", async () => {
-  const fixture = makeDatabase({ existingSubmission: submission({ packageConfigSnapshot: { options: { maskSsn: false } }, exactPackageKey: "/objects/lender-submissions/42/unmasked.pdf", exactPackageSha256: "a".repeat(64) }) });
+test("lender submission decrypts full SSNs for package assembly without placing values in audit metadata", async () => {
+  const oldKey = process.env.ENCRYPTION_KEY;
+  process.env.ENCRYPTION_KEY = "c".repeat(64);
+  try {
+    const { encrypt } = await import("./encryption");
+    const fixture = makeDatabase({ applicationRow: application({
+      ownerSsnEncrypted: encrypt("222-33-4444"),
+      secondaryOwnerSsnEncrypted: encrypt("555-66-7777"),
+    }) });
+    const { dependencies, audits } = makeDependencies(fixture);
+    let fullSsn: unknown;
+    dependencies.buildPackage = async (params) => {
+      fullSsn = params.fullSsn;
+      return { pdf: Buffer.from("%PDF-full-ssn-submission"), exclusions: [] };
+    };
+    const res = response();
+    await createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, res as any);
+    assert.equal(res.statusCode, 201);
+    assert.deepEqual(fullSsn, { ownerSsn: "222-33-4444", secondaryOwnerSsn: "555-66-7777" });
+    assert.equal(audits[0]?.metadata.ssnUnmasked, true);
+    assert.ok(!JSON.stringify(audits).includes("222-33-4444"));
+    assert.ok(!JSON.stringify(audits).includes("555-66-7777"));
+  } finally {
+    if (oldKey === undefined) delete process.env.ENCRYPTION_KEY;
+    else process.env.ENCRYPTION_KEY = oldKey;
+  }
+});
+
+test("document-only lender submission does not decrypt or classify invalid encrypted SSN data", async () => {
+  const fixture = makeDatabase({ applicationRow: application({ ownerSsnEncrypted: "not-valid-ciphertext" }) });
+  const { dependencies, audits } = makeDependencies(fixture);
+  let fullSsn: unknown = "not-called";
+  dependencies.buildPackage = async (params) => {
+    fullSsn = params.fullSsn;
+    return { pdf: Buffer.from("%PDF-document-only"), exclusions: [] };
+  };
   const res = response();
-  await createDownloadSubmissionPackageHandler({ database: fixture.database, authenticate: async () => ({ id: 7, role: "rep" } as any), downloadExactPackage: async () => { throw new Error("must not be read"); } })(request({}, { id: "31" }) as any, res as any);
-  assert.equal(res.statusCode, 403);
-  assert.match((res.body as any).error, /Only administrators/);
+  await createSubmissionHandler(dependencies)(request({
+    lender_id: 5,
+    package_config: { sections: ["bank_statement"] },
+  }) as any, res as any);
+  assert.equal(res.statusCode, 201);
+  assert.equal(fullSsn, undefined);
+  assert.equal(audits[0]?.metadata.ssnUnmasked, false);
+});
+
+test("an assigned rep may download a full-SSN immutable package under the normal lead authorization rule", async () => {
+  const bytes = Buffer.from("%PDF-full-ssn-package");
+  const hash = (await import("node:crypto")).createHash("sha256").update(bytes).digest("hex");
+  const fixture = makeDatabase({ existingSubmission: submission({ packageConfigSnapshot: { options: { maskSsn: false } }, exactPackageKey: "/objects/lender-submissions/42/full.pdf", exactPackageSha256: hash, exactPackageBytes: bytes.length }) });
+  const res: any = response();
+  res.setHeader = () => undefined;
+  res.send = (body: Buffer) => { res.body = body; };
+  await createDownloadSubmissionPackageHandler({ database: fixture.database, authenticate: async () => ({ id: 7, role: "rep" } as any), downloadExactPackage: async () => bytes, recordActivity: async () => undefined })(request({}, { id: "31" }) as any, res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, bytes);
 });
 
 test("exact-package download refuses a corrupt stored object", async () => {

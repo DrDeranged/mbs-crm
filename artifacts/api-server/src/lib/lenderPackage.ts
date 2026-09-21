@@ -67,7 +67,6 @@ const packageConfigSchema = z.object({
   sections: z.array(z.enum(LENDER_PACKAGE_SECTION_ORDER)).max(LENDER_PACKAGE_SECTION_ORDER.length).optional(),
   documentIds: z.array(z.number().int().positive()).max(200).optional(),
   options: z.object({
-    maskSsn: z.boolean().optional(),
     includeCoverPage: z.boolean().optional(),
     includeFooter: z.boolean().optional(),
   }).strict().optional(),
@@ -78,6 +77,30 @@ export type LenderPackageConfig = z.infer<typeof packageConfigSchema>;
 export function parseLenderPackageConfig(value: unknown): LenderPackageConfig | null {
   const result = packageConfigSchema.safeParse(value);
   return result.success ? result.data : null;
+}
+
+/** Read legacy persisted selections without continuing to accept maskSsn from clients. */
+export function parsePersistedLenderPackageConfig(value: unknown): LenderPackageConfig | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return parseLenderPackageConfig(value);
+  const { __lenderPackageSensitivity: _serverSensitivity, ...input } = value as Record<string, unknown>;
+  if (Object.keys(input).length === 0) return null;
+  const options = input["options"];
+  if (!options || typeof options !== "object" || Array.isArray(options)) return parseLenderPackageConfig(input);
+  const { maskSsn: _retiredMaskSsn, ...currentOptions } = options as Record<string, unknown>;
+  return parseLenderPackageConfig({ ...input, options: currentOptions });
+}
+
+export type LenderPackageSsns = {
+  ownerSsn: string | null;
+  secondaryOwnerSsn: string | null;
+};
+
+/** Decrypt only at the authenticated lender-package boundary. */
+export function decryptLenderPackageSsns(application: Pick<Application, "ownerSsnEncrypted" | "secondaryOwnerSsnEncrypted">): LenderPackageSsns {
+  return {
+    ownerSsn: application.ownerSsnEncrypted ? decrypt(application.ownerSsnEncrypted) : null,
+    secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
+  };
 }
 
 export type LenderPackageDocumentExclusion = {
@@ -609,7 +632,7 @@ export async function buildLenderPackagePdf(params: {
   maxPackageBytes?: number;
   selection?: LenderPackageConfig;
   /** Plaintext is intentionally accepted only after the authorized route decrypts it. */
-  unmaskedSsn?: { ownerSsn: string | null; secondaryOwnerSsn: string | null };
+  fullSsn?: LenderPackageSsns;
 }): Promise<{ pdf: Buffer; exclusions: LenderPackageDocumentExclusion[] }> {
   const download = params.downloadDocument ?? downloadStoredDocument;
   const selectedSections = new Set(params.selection?.sections ?? LENDER_PACKAGE_SECTION_ORDER);
@@ -630,8 +653,8 @@ export async function buildLenderPackagePdf(params: {
       : { name: "My Business Solutions", email: null, role: "rep" },
     application: {
       ...applicationBody(params.application, params.lead),
-      ...(params.unmaskedSsn?.ownerSsn ? { ownerSsn: params.unmaskedSsn.ownerSsn } : {}),
-      ...(params.unmaskedSsn?.secondaryOwnerSsn ? { secondaryOwnerSsn: params.unmaskedSsn.secondaryOwnerSsn } : {}),
+      ...(params.fullSsn?.ownerSsn ? { ownerSsn: params.fullSsn.ownerSsn } : {}),
+      ...(params.fullSsn?.secondaryOwnerSsn ? { secondaryOwnerSsn: params.fullSsn.secondaryOwnerSsn } : {}),
     },
     submittedAt: params.application.submittedAt,
     signatureSignedAt: params.application.signatureSignedAt,
@@ -641,7 +664,7 @@ export async function buildLenderPackagePdf(params: {
     signatureData: params.application.signatureData,
     clientIp: params.application.signatureIp,
     includePreparedFooter: false,
-    revealSsn: params.selection?.options?.maskSsn === false && !!params.unmaskedSsn,
+    revealSsn: params.fullSsn !== undefined,
   } as const;
   let cover: PDFDocument | null = null;
   let signedApplication: PDFDocument | null = null;
@@ -858,11 +881,12 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         documents,
         renderPdf: overrides.renderPdf,
         downloadDocument: download,
+        fullSsn: decryptLenderPackageSsns(application),
       });
+      const ssnUnmasked = Boolean(application.ownerSsnEncrypted || application.secondaryOwnerSsnEncrypted);
       const filename = `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`;
 
-      // The package contains the masked application, so audit before handing
-      // the successful binary response to the caller.
+      // Audit sensitivity without recording either SSN value.
       audit({
         userId: user.id,
         leadId: lead.id,
@@ -872,12 +896,13 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         metadata: {
           sections: LENDER_PACKAGE_SECTION_ORDER,
           documentIds: documents.map((document) => document.id),
-          options: { maskSsn: true, includeCoverPage: true, includeFooter: true },
-          ssnUnmasked: false,
+          options: { includeCoverPage: true, includeFooter: true },
+          ssnUnmasked,
         },
       });
 
       res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.setHeader("Content-Length", String(pdf.length));
       res.send(pdf);
@@ -928,7 +953,7 @@ export function createLenderPackageConfigHandler(overrides: LenderPackageDepende
       return;
     }
     if (req.method === "GET") {
-      res.json({ packageConfig: parseLenderPackageConfig(lead.packageConfig) });
+      res.json({ packageConfig: parsePersistedLenderPackageConfig(lead.packageConfig) });
       return;
     }
     if (req.method === "DELETE") {
@@ -960,9 +985,6 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
     if (!Number.isSafeInteger(id) || id <= 0) return void res.status(400).json({ error: "Invalid ID" });
     const selection = parseLenderPackageConfig(req.body);
     if (!selection) return void res.status(400).json({ error: "Invalid package selection" });
-    if (selection.options?.maskSsn === false && user.role !== "admin") {
-      return void res.status(403).json({ error: "Only administrators may disable SSN masking" });
-    }
     const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
     if (!lead) return void res.status(404).json({ error: "Lead not found" });
     if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
@@ -980,12 +1002,9 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
       return void res.status(400).json({ error: "Every selected document must belong to this lead" });
     }
     try {
-      const unmaskedSsn = selection.options?.maskSsn === false
-        ? {
-          ownerSsn: application.ownerSsnEncrypted ? decrypt(application.ownerSsnEncrypted) : null,
-          secondaryOwnerSsn: application.secondaryOwnerSsnEncrypted ? decrypt(application.secondaryOwnerSsnEncrypted) : null,
-        }
-        : undefined;
+      const includesApplication = selection.sections?.includes("application") ?? true;
+      const fullSsn = includesApplication ? decryptLenderPackageSsns(application) : undefined;
+      const ssnUnmasked = Boolean(fullSsn?.ownerSsn || fullSsn?.secondaryOwnerSsn);
       const enrichedAssignedRep = overrides.renderPdf || !assignedRep
         ? assignedRep
         : await enrichApplicationPdfRep(database, assignedRep.id, {
@@ -994,7 +1013,7 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
         }).then((rep) => ({ ...assignedRep, officePhone: rep.officePhone, emails: rep.emails }));
       const { pdf } = await buildLenderPackagePdf({
         lead, application, assignedRep: enrichedAssignedRep ?? null, documents,
-        renderPdf: overrides.renderPdf, downloadDocument: download, selection, unmaskedSsn,
+        renderPdf: overrides.renderPdf, downloadDocument: download, selection, fullSsn,
       });
       await database.update(leadsTable).set({ packageConfig: selection, updatedAt: new Date() }).where(eq(leadsTable.id, id));
       await (overrides.activityLogger ?? logActivity)({
@@ -1002,11 +1021,12 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
         details: {
           sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER,
           documentIds: selection.documentIds ?? [],
-          ssnUnmasked: selection.options?.maskSsn === false,
+          ssnUnmasked,
         },
       });
-      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked: selection.options?.maskSsn === false } });
+      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked } });
       res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `inline; filename="MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf"`);
       res.setHeader("Content-Length", String(pdf.length));
       res.send(pdf);

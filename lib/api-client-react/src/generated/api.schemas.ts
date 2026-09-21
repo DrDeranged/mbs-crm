@@ -1576,7 +1576,6 @@ export const LenderPackageConfigSectionsItem = {
 } as const;
 
 export type LenderPackageConfigOptions = {
-  maskSsn?: boolean;
   includeCoverPage?: boolean;
   includeFooter?: boolean;
 };

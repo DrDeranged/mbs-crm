@@ -2,13 +2,13 @@ export type BuilderSection = "cover" | "application" | "invoice_quote" | "bank_s
 export type BuilderConfig = {
   sections: BuilderSection[];
   documentIds: number[];
-  options: { maskSsn: boolean; includeCoverPage: boolean; includeFooter: boolean };
+  options: { includeCoverPage: boolean; includeFooter: boolean };
 };
 
 const allSections: BuilderSection[] = ["cover", "application", "invoice_quote", "bank_statement", "drivers_license", "tax_return", "other"];
 
 export function defaultBuilderConfig(documents: Array<{ id: number }>): BuilderConfig {
-  return { sections: allSections, documentIds: documents.map((document) => document.id), options: { maskSsn: true, includeCoverPage: true, includeFooter: true } };
+  return { sections: allSections, documentIds: documents.map((document) => document.id), options: { includeCoverPage: true, includeFooter: true } };
 }
 
 /** Do not initialize until both independent requests have settled. */

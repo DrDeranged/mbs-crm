@@ -83,7 +83,7 @@ export type SignedApplicationHtmlParams = {
   submittedAt: Date;
   signatureSignedAt: Date | null;
   clientIp: string | null;
-  /** Set only by the explicitly authorized lender-package unmask flow. */
+  /** Set only by an authorized lender-package export after decrypting SSNs. */
   revealSsn?: boolean;
 };
 
