@@ -82,10 +82,9 @@ export function parseLenderPackageConfig(value: unknown): LenderPackageConfig | 
 /** Read legacy persisted selections without continuing to accept maskSsn from clients. */
 export function parsePersistedLenderPackageConfig(value: unknown): LenderPackageConfig | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return parseLenderPackageConfig(value);
-  const { __lenderPackageSensitivity: _serverSensitivity, ...input } = value as Record<string, unknown>;
-  if (Object.keys(input).length === 0) return null;
+  const input = value as Record<string, unknown>;
   const options = input["options"];
-  if (!options || typeof options !== "object" || Array.isArray(options)) return parseLenderPackageConfig(input);
+  if (!options || typeof options !== "object" || Array.isArray(options)) return parseLenderPackageConfig(value);
   const { maskSsn: _retiredMaskSsn, ...currentOptions } = options as Record<string, unknown>;
   return parseLenderPackageConfig({ ...input, options: currentOptions });
 }
@@ -883,7 +882,6 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
         downloadDocument: download,
         fullSsn: decryptLenderPackageSsns(application),
       });
-      const ssnUnmasked = Boolean(application.ownerSsnEncrypted || application.secondaryOwnerSsnEncrypted);
       const filename = `MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf`;
 
       // Audit sensitivity without recording either SSN value.
@@ -897,12 +895,11 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
           sections: LENDER_PACKAGE_SECTION_ORDER,
           documentIds: documents.map((document) => document.id),
           options: { includeCoverPage: true, includeFooter: true },
-          ssnUnmasked,
+          ssnUnmasked: true,
         },
       });
 
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.setHeader("Content-Length", String(pdf.length));
       res.send(pdf);
@@ -1002,9 +999,7 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
       return void res.status(400).json({ error: "Every selected document must belong to this lead" });
     }
     try {
-      const includesApplication = selection.sections?.includes("application") ?? true;
-      const fullSsn = includesApplication ? decryptLenderPackageSsns(application) : undefined;
-      const ssnUnmasked = Boolean(fullSsn?.ownerSsn || fullSsn?.secondaryOwnerSsn);
+      const fullSsn = decryptLenderPackageSsns(application);
       const enrichedAssignedRep = overrides.renderPdf || !assignedRep
         ? assignedRep
         : await enrichApplicationPdfRep(database, assignedRep.id, {
@@ -1021,12 +1016,11 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
         details: {
           sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER,
           documentIds: selection.documentIds ?? [],
-          ssnUnmasked,
+          ssnUnmasked: true,
         },
       });
-      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked } });
+      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked: true } });
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", `inline; filename="MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf"`);
       res.setHeader("Content-Length", String(pdf.length));
       res.send(pdf);

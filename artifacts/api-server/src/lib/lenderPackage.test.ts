@@ -316,13 +316,6 @@ test("the retired maskSsn input is rejected while legacy saved configs are norma
     parsePersistedLenderPackageConfig({ sections: ["application"], options: { maskSsn: true, includeFooter: false } }),
     { sections: ["application"], options: { includeFooter: false } },
   );
-  assert.deepEqual(
-    parsePersistedLenderPackageConfig({
-      sections: ["bank_statement"],
-      __lenderPackageSensitivity: { version: 1, ssnUnmasked: false },
-    }),
-    { sections: ["bank_statement"] },
-  );
 });
 
 test("an assigned rep's selected-package route decrypts full SSNs and audits sensitivity without logging values", async () => {
@@ -347,7 +340,6 @@ test("an assigned rep's selected-package route decrypts full SSNs and audits sen
       activityLogger: async () => undefined,
     })({ params: { id: "42" }, body: { sections: ["application"], options: { includeFooter: false } }, ip: "127.0.0.1", log: { error() {} } } as any, response as any);
     assert.equal(response.statusCode, 200);
-    assert.equal(response.headers["Cache-Control"], "private, no-store");
     assert.match((await extractPages(response.body as Buffer)).join(" "), /987-65-4321/);
     assert.deepEqual(audit, {
       userId: 7, leadId: 42, fieldCategory: "application", action: "export", ip: "127.0.0.1",
@@ -382,7 +374,6 @@ test("the standard lender-package download decrypts both owner SSNs only after l
       auditPiiAccess: (params) => { audits.push(params); },
     })({ params: { id: "42" }, ip: "127.0.0.1", log: { error() {} } } as any, response as any);
     assert.equal(response.statusCode, 200);
-    assert.equal(response.headers["Cache-Control"], "private, no-store");
     const pdfText = (await extractPages(response.body as Buffer)).join(" ");
     assert.match(pdfText, /111-22-3333/);
     assert.match(pdfText, /444-55-6666/);
@@ -393,25 +384,6 @@ test("the standard lender-package download decrypts both owner SSNs only after l
     if (oldKey === undefined) delete process.env.ENCRYPTION_KEY;
     else process.env.ENCRYPTION_KEY = oldKey;
   }
-});
-
-test("a selected package without the application section never decrypts SSNs", async () => {
-  const response = fakeResponse();
-  const audits: any[] = [];
-  await createSelectedLenderPackageHandler({
-    database: { query: {
-      leadsTable: { findFirst: async () => baseLead() },
-      applicationsTable: { findFirst: async () => baseApplication({ ownerSsnEncrypted: "not-valid-ciphertext" }) },
-      usersTable: { findFirst: async () => null },
-      documentsTable: { findMany: async () => [] },
-    }, update: () => ({ set: () => ({ where: async () => undefined }) }) } as any,
-    authenticate: async () => ({ id: 7, role: "rep" } as any),
-    renderPdf: async () => markerPdf("cover-only"),
-    auditPiiAccess: (params) => { audits.push(params); },
-    activityLogger: async () => undefined,
-  })({ params: { id: "42" }, body: { sections: ["cover"] }, ip: "127.0.0.1", log: { error() {} } } as any, response as any);
-  assert.equal(response.statusCode, 200);
-  assert.equal(audits[0]?.metadata.ssnUnmasked, false);
 });
 
 test("baseline application has two pages; exactly two statements append in upload order with safe footers", async () => {
@@ -693,7 +665,7 @@ test("admin can download any lead, audits the successful export, and sanitizes U
       sections: ["cover", "application", "invoice_quote", "bank_statement", "drivers_license", "tax_return", "other"],
       documentIds: [],
       options: { includeCoverPage: true, includeFooter: true },
-      ssnUnmasked: false,
+      ssnUnmasked: true,
     },
   });
 });

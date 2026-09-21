@@ -186,6 +186,42 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
         </div>
       </div>
 
+      <div className="border-t pt-4 space-y-3">
+        <div>
+          <h4 className="text-sm font-semibold text-slate-800">Published underwriting guideline</h4>
+          <p className="text-xs text-muted-foreground">Only enter terms supported by the lender’s source material. Blank values are omitted from recommendations.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div><Label>Version</Label><Input type="number" min="1" value={form.guidelineVersion} onChange={(e) => set("guidelineVersion", e.target.value)} className="mt-1" /></div>
+          <div className="col-span-2"><Label>Source / document reference</Label><Input value={form.guidelineSource} onChange={(e) => set("guidelineSource", e.target.value)} placeholder="Credit box dated…" className="mt-1" /></div>
+          <div><Label>Effective date</Label><Input type="date" value={form.guidelineEffectiveAt} onChange={(e) => set("guidelineEffectiveAt", e.target.value)} className="mt-1" /></div>
+          <div className="col-span-2"><Label>Equipment restrictions</Label><Input value={form.equipmentRestrictions} onChange={(e) => set("equipmentRestrictions", e.target.value)} placeholder="Aircraft, titled vehicles over 15 years" className="mt-1" /></div>
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          <div><Label>Rate min %</Label><Input type="number" step="0.01" value={form.pricingMin} onChange={(e) => set("pricingMin", e.target.value)} className="mt-1" /></div>
+          <div><Label>Rate max %</Label><Input type="number" step="0.01" value={form.pricingMax} onChange={(e) => set("pricingMax", e.target.value)} className="mt-1" /></div>
+          <div><Label>Max advance %</Label><Input type="number" step="0.01" value={form.maxAdvancePct} onChange={(e) => set("maxAdvancePct", e.target.value)} className="mt-1" /></div>
+          <div><Label>Min down %</Label><Input type="number" step="0.01" value={form.minDownPaymentPct} onChange={(e) => set("minDownPaymentPct", e.target.value)} className="mt-1" /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Structures</Label><Input value={form.structures} onChange={(e) => set("structures", e.target.value)} placeholder="EFA, lease, loan" className="mt-1" /></div>
+          <div><Label>Terms in months</Label><Input value={form.termMonths} onChange={(e) => set("termMonths", e.target.value)} placeholder="24, 36, 48, 60" className="mt-1" /></div>
+          <div className="col-span-2"><Label>Required documents</Label><Input value={form.requiredDocuments} onChange={(e) => set("requiredDocuments", e.target.value)} placeholder="Application, 3 bank statements, invoice" className="mt-1" /></div>
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          <div><Label>Turnaround min days</Label><Input type="number" min="0" value={form.turnaroundMin} onChange={(e) => set("turnaroundMin", e.target.value)} className="mt-1" /></div>
+          <div><Label>Turnaround max days</Label><Input type="number" min="0" value={form.turnaroundMax} onChange={(e) => set("turnaroundMax", e.target.value)} className="mt-1" /></div>
+          <div>
+            <Label>Broker comp.</Label>
+            <Select value={form.compensationType} onValueChange={(v) => set("compensationType", v)}>
+              <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="points">Points</SelectItem><SelectItem value="percent">Percent</SelectItem><SelectItem value="flat">Flat $</SelectItem></SelectContent>
+            </Select>
+          </div>
+          <div><Label>{form.compensationType === "flat" ? "Flat amount" : "Comp. min / max"}</Label><div className="flex gap-1 mt-1"><Input type="number" step="0.01" value={form.compensationMin} onChange={(e) => set("compensationMin", e.target.value)} />{form.compensationType !== "flat" && <Input type="number" step="0.01" value={form.compensationMax} onChange={(e) => set("compensationMax", e.target.value)} />}</div></div>
+        </div>
+      </div>
+
       <div>
         <Label>Internal notes (Turnaround time, general notes)</Label>
         <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Any notes about this partner..." className="mt-1 min-h-[60px] resize-none" />
@@ -330,6 +366,21 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
               <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-md border border-slate-100">
                 <div className="font-semibold text-slate-500 mb-0.5 text-[10px] uppercase tracking-wider">Internal Notes / Turnaround</div>
                 <div className="whitespace-pre-wrap">{partner.notes}</div>
+              </div>
+            )}
+            {(partner.guidelineSource || partner.pricing || partner.requiredDocuments?.length > 0) && (
+              <div className="text-xs bg-blue-50/60 border border-blue-100 rounded-md p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-blue-900">Underwriting guideline v{partner.guidelineVersion ?? 1}</span>
+                  {partner.guidelineEffectiveAt && <span className="text-blue-700">Effective {new Date(partner.guidelineEffectiveAt).toLocaleDateString()}</span>}
+                </div>
+                {partner.guidelineSource && <div><span className="font-medium">Source:</span> {partner.guidelineSource}</div>}
+                <div className="grid grid-cols-2 gap-2">
+                  <div><span className="font-medium">Pricing:</span> {partner.pricing?.minRatePct != null ? `${partner.pricing.minRatePct}%${partner.pricing.maxRatePct != null ? `–${partner.pricing.maxRatePct}%` : ""}` : "Not documented"}</div>
+                  <div><span className="font-medium">Turnaround:</span> {partner.turnaroundBusinessDaysMin != null || partner.turnaroundBusinessDaysMax != null ? `${partner.turnaroundBusinessDaysMin ?? "?"}–${partner.turnaroundBusinessDaysMax ?? "?"} business days` : "Not documented"}</div>
+                </div>
+                {partner.requiredDocuments?.length > 0 && <div><span className="font-medium">Documents:</span> {partner.requiredDocuments.join(", ")}</div>}
+                {partner.equipmentRestrictions?.length > 0 && <div className="text-amber-800"><span className="font-medium">Equipment restrictions:</span> {partner.equipmentRestrictions.join(", ")}</div>}
               </div>
             )}
           </div>

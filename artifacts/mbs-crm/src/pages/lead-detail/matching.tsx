@@ -6,11 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, CheckCircle2, RefreshCw, Send, Star, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Database, Pencil, RefreshCw, Send, Star, XCircle } from "lucide-react";
 import { getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, useCreateLeadSubmission, useGetLenderMatches, useGetLeadSubmissions, useGetMe, useRunLenderMatch, useUpdateSubmission, getGetDealQueryKey, getListDealActivityQueryKey } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
 import { filterDeclinedMatches } from "@/lib/lenderSubmissions";
+import { useCreateUnderwritingCorrection, useUnderwritingProfile, underwritingProfileKey, type UnderwritingFact } from "@/lib/underwriting-api";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function apiErrorDetails(error: any, fallback: string) {
   const data = error?.data;
@@ -31,6 +35,8 @@ export function LeadLenderMatch() {
   const { data: submissions } = useGetLeadSubmissions(leadId);
   const createSub = useCreateLeadSubmission();
   const updateSub = useUpdateSubmission();
+  const profileQuery = useUnderwritingProfile(leadId);
+  const createCorrection = useCreateUnderwritingCorrection();
 
   // Confirmation modal state
   const [pendingLender, setPendingLender] = useState<{ id: number; name: string } | null>(null);
@@ -38,6 +44,10 @@ export function LeadLenderMatch() {
   // Expandable criteria state — track which match cards are expanded
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
+  const [sortPerspective, setSortPerspective] = useState("approvalProbability");
+  const [correctionFact, setCorrectionFact] = useState<UnderwritingFact | null>(null);
+  const [correctionValue, setCorrectionValue] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
 
   const toggleExpanded = (matchId: number) => {
     setExpandedIds((prev) => {
@@ -103,7 +113,27 @@ export function LeadLenderMatch() {
     (matches ?? []).filter((match: any) => match.lender?.isActive !== false),
     submissions ?? [],
     showDeclined,
-  ).sort((a: any, b: any) => Number(a.matchGroup === "super_broker") - Number(b.matchGroup === "super_broker"));
+  ).sort((a: any, b: any) => {
+    const group = Number(a.matchGroup === "super_broker") - Number(b.matchGroup === "super_broker");
+    if (group) return group;
+    return Number(b.rankingDimensions?.[sortPerspective] ?? -1) - Number(a.rankingDimensions?.[sortPerspective] ?? -1);
+  });
+
+  const saveCorrection = () => {
+    if (!correctionFact || !correctionReason.trim()) return;
+    const numericFields = new Set(["requestedAmount", "creditScore", "timeInBusinessMonths", "monthlyRevenue", "existingPositions", "transactionAmount"]);
+    const value = numericFields.has(correctionFact.key) && correctionValue.trim() !== "" ? Number(correctionValue) : correctionValue || null;
+    createCorrection.mutate({ leadId, data: { field: correctionFact.key, value, reason: correctionReason.trim() } }, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: underwritingProfileKey(leadId) });
+        setCorrectionFact(null);
+        setCorrectionValue("");
+        setCorrectionReason("");
+        toast({ title: "Underwriting fact corrected", description: "Run matching again to apply the reviewed fact." });
+      },
+      onError: (error: any) => toast({ title: "Could not save correction", description: apiErrorDetails(error, "Correction failed").message, variant: "destructive" }),
+    });
+  };
 
   const statusColor: Record<string, string> = {
     submitted: "bg-blue-50 text-blue-700 border-blue-200",
@@ -115,6 +145,19 @@ export function LeadLenderMatch() {
   return (
     <div className="space-y-5 mt-4">
       <LenderPackageBuilderDialog leadId={leadId} open={packageBuilderOpen} onOpenChange={setPackageBuilderOpen} submitMode />
+      <Dialog open={!!correctionFact} onOpenChange={(open) => !open && setCorrectionFact(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Correct {correctionFact?.label}</DialogTitle>
+            <DialogDescription>The source record remains unchanged. This correction is audited and takes precedence in underwriting review.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Reviewed value</Label><Input value={correctionValue} onChange={(event) => setCorrectionValue(event.target.value)} className="mt-1" /></div>
+            <div><Label>Reason</Label><Input value={correctionReason} onChange={(event) => setCorrectionReason(event.target.value)} placeholder="What evidence supports this correction?" className="mt-1" /></div>
+            <Button onClick={saveCorrection} disabled={!correctionReason.trim() || createCorrection.isPending} className="w-full">{createCorrection.isPending ? "Saving…" : "Save reviewed correction"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Confirm submission dialog */}
       <Dialog open={!!pendingLender} onOpenChange={(open) => {
         if (!open) { setPendingLender(null); setSubmissionError(null); }
@@ -157,20 +200,72 @@ export function LeadLenderMatch() {
         </DialogContent>
       </Dialog>
 
+      <div className="rounded-xl border bg-white overflow-hidden">
+        <div className="p-3 border-b flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">Borrower underwriting profile</h3>
+            <p className="text-xs text-muted-foreground">Supported facts, extracted bank metrics, and source provenance. Human review is required.</p>
+          </div>
+          {profileQuery.data && <Badge variant="outline" className={profileQuery.data.readiness.readyForMatching ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200"}>{profileQuery.data.readiness.readyForMatching ? "Ready for matching" : `${profileQuery.data.readiness.missingFields.length} missing facts`}</Badge>}
+        </div>
+        {profileQuery.isLoading ? <Skeleton className="h-32 m-3" /> : profileQuery.data ? (
+          <div className="p-3 space-y-3">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {profileQuery.data.facts.filter((fact) => fact.value != null).map((fact) => (
+                <div key={fact.key} className="rounded-lg bg-slate-50 border p-2 group">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-[10px] uppercase tracking-wide font-semibold text-slate-500">{fact.label}</span>
+                    <button onClick={() => { setCorrectionFact(fact); setCorrectionValue(String(fact.value ?? "")); }} className="text-slate-400 hover:text-blue-700" title="Correct reviewed fact"><Pencil className="h-3 w-3" /></button>
+                  </div>
+                  <div className="text-sm font-medium text-slate-800 truncate">{typeof fact.value === "number" && /amount|revenue/i.test(fact.key) ? `$${fact.value.toLocaleString()}` : String(fact.value)}</div>
+                  <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1"><Database className="h-2.5 w-2.5" />{fact.provenance.label}{fact.estimated ? " · estimate" : ""}</div>
+                </div>
+              ))}
+            </div>
+            {profileQuery.data.bank && (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 rounded-lg border bg-blue-50/40 p-2 text-center">
+                {[
+                  ["Avg deposits", profileQuery.data.bank.averageMonthlyDeposits == null ? "—" : `$${Math.round(profileQuery.data.bank.averageMonthlyDeposits).toLocaleString()}`],
+                  ["Avg balance", profileQuery.data.bank.averageDailyBalance == null ? "—" : `$${Math.round(profileQuery.data.bank.averageDailyBalance).toLocaleString()}`],
+                  ["NSFs", profileQuery.data.bank.nsfCount],
+                  ["Negative days", profileQuery.data.bank.negativeBalanceDays],
+                  ["Returned", profileQuery.data.bank.returnedItems],
+                  ["Positions", profileQuery.data.bank.positions.length],
+                ].map(([label, value]) => <div key={String(label)}><div className="text-xs font-semibold">{value}</div><div className="text-[9px] uppercase text-slate-500">{label}</div></div>)}
+              </div>
+            )}
+            {!profileQuery.data.readiness.readyForMatching && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">Missing for a complete review: {profileQuery.data.readiness.missingFields.join(", ")}. Recommendations may be incomplete.</div>}
+          </div>
+        ) : <div className="p-3 text-sm text-red-600">Could not load underwriting profile.</div>}
+      </div>
+
       {/* Run Match Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-700">Lender Matching</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Run the engine to find the best lenders for this deal</p>
         </div>
-        <Button
+        <div className="flex items-center gap-2">
+          <Select value={sortPerspective} onValueChange={setSortPerspective}>
+            <SelectTrigger className="h-8 w-[190px] text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="approvalProbability">Approval probability</SelectItem>
+              <SelectItem value="customerPricing">Customer pricing</SelectItem>
+              <SelectItem value="fundingSpeed">Funding speed</SelectItem>
+              <SelectItem value="mbsPayout">MBS payout</SelectItem>
+              <SelectItem value="documentationBurden">Documentation burden</SelectItem>
+              <SelectItem value="overallStructure">Overall structure</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
           size="sm"
           onClick={handleRunMatch}
           disabled={runMatch.isPending}
-        >
+          >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${runMatch.isPending ? "animate-spin" : ""}`} />
           {runMatch.isPending ? "Matching…" : "Run Match"}
-        </Button>
+          </Button>
+        </div>
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Declined lenders are hidden from recommendations by default.</span>
@@ -234,6 +329,31 @@ export function LeadLenderMatch() {
                     </Badge>
                   ) : null}
                 </div>
+                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 text-center">
+                   {[
+                     ["Approval", m.rankingDimensions?.approvalProbability],
+                     ["Pricing", m.rankingDimensions?.customerPricing],
+                     ["Speed", m.rankingDimensions?.fundingSpeed],
+                     ["MBS payout", m.rankingDimensions?.mbsPayout],
+                     ["Docs", m.rankingDimensions?.documentationBurden],
+                     ["Structure", m.rankingDimensions?.overallStructure],
+                   ].map(([label, value]) => (
+                     <div key={String(label)} className="rounded bg-slate-50 border px-1 py-1">
+                       <div className="text-xs font-semibold">{value == null ? "—" : `${value}%`}</div>
+                       <div className="text-[9px] text-slate-500">{label}</div>
+                     </div>
+                   ))}
+                 </div>
+                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-600">
+                   {m.economics?.pricing?.minRatePct != null && <span>Est. pricing {m.economics.pricing.minRatePct}%{m.economics.pricing.maxRatePct != null ? `–${m.economics.pricing.maxRatePct}%` : ""}</span>}
+                   {m.economics?.turnaroundBusinessDays && <span>Turnaround {m.economics.turnaroundBusinessDays.min ?? "?"}–{m.economics.turnaroundBusinessDays.max ?? "?"} days</span>}
+                   {m.economics?.pricing?.termMonths?.length > 0 && <span>Terms {m.economics.pricing.termMonths.join(", ")} months</span>}
+                   {m.economics?.pricing?.maxAdvancePct != null && <span>Max advance {m.economics.pricing.maxAdvancePct}%</span>}
+                   {m.economics?.pricing?.minDownPaymentPct != null && <span>Down payment {m.economics.pricing.minDownPaymentPct}%+</span>}
+                   {m.estimatedGrossRevenue != null && <span>Est. MBS gross ${Number(m.estimatedGrossRevenue).toLocaleString()}</span>}
+                 </div>
+                 {m.historicalSignal?.submitted > 0 && <div className="text-[10px] text-muted-foreground">Historical signal: {m.historicalSignal.approved} approved, {m.historicalSignal.declined} declined, {m.historicalSignal.funded} funded across {m.historicalSignal.submitted} submissions. Documented rules remain authoritative.</div>}
+                 {m.economics?.requiredDocuments?.length > 0 && <div className="text-[10px] text-slate-600"><span className="font-medium">Required documents:</span> {m.economics.requiredDocuments.join(", ")}</div>}
 
                 {/* Criteria breakdown — collapsed summary / expanded detail */}
                 {m.criteriaBreakdown?.length > 0 && (

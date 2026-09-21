@@ -142,6 +142,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/lenders` | `routes/lenders.ts:99` | `A` | reps rejected |
 | PUT | `/api/lenders/:id` | `routes/lenders.ts:139` | `A` | reps rejected |
 | DELETE | `/api/lenders/:id` | `routes/lenders.ts:159` | `A` | reps rejected |
+| GET | `/api/lenders/:id/guideline-versions` | `routes/lenders.ts` | `U` | authenticated staff; immutable guideline snapshots |
 | GET | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff |
 | POST | `/api/partners/:partnerId/contacts` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
 | PATCH | `/api/partners/:partnerId/contacts/:contactId` | `routes/partnerContacts.ts` | `U` | authenticated staff; writes audit log |
@@ -150,6 +151,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/lenders/seed-new` | `routes/lenders.ts:197` | `A` | reps rejected |
 | POST | `/api/leads/:id/match` | `routes/lenders.ts:227` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/matches` | `routes/lenders.ts:256` | `L` | `lead.assignedRepId === user.id` for reps |
+| GET | `/api/leads/:id/underwriting-profile` | `routes/lenders.ts` | `L` | `lead.assignedRepId === user.id` for reps |
+| POST | `/api/leads/:id/underwriting-corrections` | `routes/lenders.ts` | `L` | `lead.assignedRepId === user.id` for reps; evidence document must belong to lead |
 | POST | `/api/leads/:id/submissions` | `routes/lenders.ts:287` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/submissions/manual` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; explicit deal must belong to the lead |
 | GET | `/api/leads/:id/submissions` | `routes/lenders.ts:326` | `L` | `lead.assignedRepId === user.id` for reps |

@@ -28,6 +28,7 @@ export interface LenderEvaluationLender {
   acceptedStates?: readonly string[] | null;
   maxExistingPositions?: number | null;
   priorityWeight?: number | null;
+  equipmentRestrictions?: readonly string[] | null;
 }
 
 export interface LenderEvaluationLead {
@@ -186,6 +187,26 @@ export function evaluateLender(
   const isAfg = lender.name === "Alliance Funding Group (AFG)";
   const equipmentCategory = application?.equipmentCategory ?? null;
   const isEquipmentApplication = lead.applicationType === "equipment";
+  if (isEquipmentApplication && (lender.equipmentRestrictions?.length ?? 0) > 0) {
+    const equipmentText = [application?.equipmentCategory, application?.equipmentDescription, application?.yearMakeModel]
+      .filter(Boolean).join(" ").toLowerCase();
+    const restriction = lender.equipmentRestrictions!.find((value) => equipmentText.includes(value.toLowerCase()));
+    if (equipmentText) {
+      breakdown.push({
+        criterion: "Equipment Restriction",
+        passed: !restriction,
+        detail: restriction
+          ? `Equipment facts match documented restriction "${restriction}"`
+          : "Equipment facts do not match a documented restriction",
+      });
+    } else {
+      breakdown.push({
+        criterion: "Equipment Classification",
+        passed: false,
+        detail: "Equipment details are required to evaluate documented restrictions",
+      });
+    }
+  }
   // Evaluate every explicit signal independently. Do not let a company's
   // industry hide a more specific application industry/description/model.
   const explicitTowTruck = [

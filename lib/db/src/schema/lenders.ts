@@ -29,6 +29,22 @@ export type ProgramEligibilityRule = {
   prohibitedIndustries?: string[];
   truckingRules?: TruckingRule[];
 };
+export type LenderPricing = {
+  minRatePct?: number;
+  maxRatePct?: number;
+  minFactorRate?: number;
+  maxFactorRate?: number;
+  structures?: string[];
+  termMonths?: number[];
+  maxAdvancePct?: number;
+  minDownPaymentPct?: number;
+};
+export type LenderCompensation = {
+  type: "points" | "percent" | "flat";
+  min?: number;
+  max?: number;
+  flatAmount?: number;
+};
 
 export const lendersTable = pgTable(
   "lenders",
@@ -69,6 +85,15 @@ export const lendersTable = pgTable(
     referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
     submissionMethod: text("submission_method", { enum: SUBMISSION_METHODS }).notNull().default("email"),
     portalUrl: text("portal_url"),
+    guidelineVersion: integer("guideline_version").notNull().default(1),
+    guidelineSource: text("guideline_source"),
+    guidelineEffectiveAt: timestamp("guideline_effective_at", { withTimezone: true }),
+    equipmentRestrictions: text("equipment_restrictions").array().notNull().default([]),
+    pricing: jsonb("pricing").$type<LenderPricing | null>(),
+    requiredDocuments: text("required_documents").array().notNull().default([]),
+    turnaroundBusinessDaysMin: integer("turnaround_business_days_min"),
+    turnaroundBusinessDaysMax: integer("turnaround_business_days_max"),
+    compensation: jsonb("compensation").$type<LenderCompensation | null>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -76,10 +101,31 @@ export const lendersTable = pgTable(
     index("lenders_active_idx").on(t.isActive),
     check("lenders_partner_type_check", sql`${t.partnerType} IN ('direct_lender', 'broker_out', 'broker_in')`),
     check("lenders_submission_method_check", sql`${t.submissionMethod} IN ('email', 'portal', 'both')`),
+    check("lenders_guideline_version_check", sql`${t.guidelineVersion} > 0`),
+    check("lenders_turnaround_check", sql`${t.turnaroundBusinessDaysMin} IS NULL OR ${t.turnaroundBusinessDaysMax} IS NULL OR ${t.turnaroundBusinessDaysMin} <= ${t.turnaroundBusinessDaysMax}`),
     check(
       "lenders_referral_split_check",
       sql`(${t.partnerType} = 'broker_in' AND ${t.referralSplitPct} BETWEEN 0 AND 100) OR (${t.partnerType} <> 'broker_in' AND ${t.referralSplitPct} IS NULL)`,
     ),
+  ],
+);
+
+export const lenderGuidelineVersionsTable = pgTable(
+  "lender_guideline_versions",
+  {
+    id: serial("id").primaryKey(),
+    lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    source: text("source"),
+    effectiveAt: timestamp("effective_at", { withTimezone: true }),
+    snapshot: jsonb("snapshot").notNull(),
+    createdBy: integer("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("lender_guideline_versions_lender_version_unique").on(t.lenderId, t.version),
+    index("lender_guideline_versions_lender_created_at_idx").on(t.lenderId, t.createdAt),
+    check("lender_guideline_versions_version_check", sql`${t.version} > 0`),
   ],
 );
 
@@ -196,6 +242,7 @@ export const insertPartnerContactSchema = createInsertSchema(partnerContactsTabl
   updatedAt: true,
 });
 export type InsertLender = z.infer<typeof insertLenderSchema>;
+export type LenderGuidelineVersion = typeof lenderGuidelineVersionsTable.$inferSelect;
 export type Lender = typeof lendersTable.$inferSelect;
 export type LenderMatch = typeof lenderMatchesTable.$inferSelect;
 export type LenderSubmission = typeof lenderSubmissionsTable.$inferSelect;

@@ -94,6 +94,38 @@ test("missing required criteria exclude a lender", () => {
   );
 });
 
+test("documented equipment restrictions exclude a conflicting equipment file", () => {
+  const evaluation = evaluateLender(
+    { name: "Structured equipment lender", equipmentRestrictions: ["aircraft"] },
+    { applicationType: "equipment", requestedAmount: 250_000, creditScore: 720, existingPositions: 0 },
+    { timeInBusinessMonths: 48, state: "TX", industry: "aviation" },
+    { equipmentCategory: "other", equipmentDescription: "Used business aircraft" },
+  );
+  assert.equal(evaluation.eligible, false);
+  assert.deepEqual(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Equipment Restriction"),
+    {
+      criterion: "Equipment Restriction",
+      passed: false,
+      detail: 'Equipment facts match documented restriction "aircraft"',
+    },
+  );
+});
+
+test("incomplete equipment facts cannot silently clear documented restrictions", () => {
+  const evaluation = evaluateLender(
+    { name: "Structured equipment lender", equipmentRestrictions: ["aircraft"] },
+    { applicationType: "equipment", requestedAmount: 250_000, creditScore: 720, existingPositions: 0 },
+    { timeInBusinessMonths: 48, state: "TX", industry: "aviation" },
+    {},
+  );
+  assert.equal(evaluation.eligible, false);
+  assert.equal(
+    evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Equipment Classification")?.passed,
+    false,
+  );
+});
+
 test("missing amount, TIB, state, and generic Other industry cannot clear structured gates", () => {
   const evaluation = evaluateLender(
     {

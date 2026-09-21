@@ -3,8 +3,9 @@ import { createHash } from "crypto";
 import { z } from "zod/v4";
 import { db, pool } from "@workspace/db";
 import {
-  lendersTable, lenderMatchesTable, lenderSubmissionsTable, lenderSubmissionDeliveriesTable,
+  lendersTable, lenderGuidelineVersionsTable, lenderMatchesTable, lenderSubmissionsTable, lenderSubmissionDeliveriesTable,
   leadsTable, usersTable, activityLogTable, dealsTable, applicationsTable, documentsTable, emailTemplatesTable,
+  companiesTable, bankStatementExtractionsTable, underwritingCorrectionsTable,
   dealApprovalsTable,
   insertLenderSchema,
 } from "@workspace/db";
@@ -23,6 +24,7 @@ import {
   seedNewLenders,
   type LenderSeedOperationResult,
 } from "../lib/productionMaintenance";
+import { historicalSignal, rankDimensions, resolveRevenueFact } from "../lib/underwritingIntelligence";
 
 const router: IRouter = Router();
 const requestIdSchema = z.coerce.number().int().positive();
@@ -51,6 +53,26 @@ const manualSubmissionSchema = z.object({
   notes: z.string().nullable().optional(),
   approval_pdf_base64: z.string().optional(),
 }).strict();
+const correctionSchema = z.object({
+  field: z.enum([
+    "requestedAmount", "creditScore", "industry", "businessState", "timeInBusinessMonths",
+    "monthlyRevenue", "existingPositions", "equipmentDescription", "equipmentCategory",
+    "equipmentYear", "vendorName", "transactionAmount", "intendedUse",
+  ]),
+  value: z.union([z.string().max(1000), z.number().finite(), z.boolean(), z.null()]),
+  reason: z.string().trim().min(1).max(500),
+  evidenceDocumentId: z.number().int().positive().nullable().optional(),
+}).strict();
+const GUIDELINE_FIELDS = new Set([
+  "programTypes", "minAmount", "maxAmount", "minCreditScore", "acceptedIndustries",
+  "restrictedIndustries", "prohibitedIndustries", "minMonthlyRevenue",
+  "restrictedIndustryMinMonthlyRevenue", "startupMinCreditScore",
+  "startupMaxTimeInBusinessMonths", "startupMaxAmount", "minIndustryExperienceMonths",
+  "requiresFinancialStatements", "truckingRules", "industryTimeInBusinessOverrides",
+  "programEligibilityRules", "minTimeInBusinessMonths", "acceptedStates",
+  "maxExistingPositions", "equipmentRestrictions", "pricing", "requiredDocuments",
+  "turnaroundBusinessDaysMin", "turnaroundBusinessDaysMax", "compensation",
+]);
 
 function inputError(res: Response, parsed: z.ZodSafeParseError<unknown>): void {
   const field = parsed.error.issues[0]?.path.join(".") || "body";
@@ -90,15 +112,65 @@ function lenderToApi(lender: typeof lendersTable.$inferSelect) {
     referralSplitPct: lender.referralSplitPct == null ? null : Number(lender.referralSplitPct),
     submissionMethod: lender.submissionMethod,
     portalUrl: lender.portalUrl ?? null,
+    guidelineVersion: lender.guidelineVersion,
+    guidelineSource: lender.guidelineSource ?? null,
+    guidelineEffectiveAt: lender.guidelineEffectiveAt?.toISOString() ?? null,
+    equipmentRestrictions: lender.equipmentRestrictions ?? [],
+    pricing: lender.pricing ?? null,
+    requiredDocuments: lender.requiredDocuments ?? [],
+    turnaroundBusinessDaysMin: lender.turnaroundBusinessDaysMin ?? null,
+    turnaroundBusinessDaysMax: lender.turnaroundBusinessDaysMax ?? null,
+    compensation: lender.compensation ?? null,
     createdAt: lender.createdAt.toISOString(),
     updatedAt: lender.updatedAt.toISOString(),
   };
 }
 
+function guidelineSnapshot(lender: typeof lendersTable.$inferSelect) {
+  return {
+    programTypes: lender.programTypes ?? [], minAmount: lender.minAmount, maxAmount: lender.maxAmount,
+    minCreditScore: lender.minCreditScore, acceptedIndustries: lender.acceptedIndustries ?? [],
+    restrictedIndustries: lender.restrictedIndustries ?? [], prohibitedIndustries: lender.prohibitedIndustries ?? [],
+    minMonthlyRevenue: lender.minMonthlyRevenue, minTimeInBusinessMonths: lender.minTimeInBusinessMonths,
+    acceptedStates: lender.acceptedStates ?? [], maxExistingPositions: lender.maxExistingPositions,
+    equipmentRestrictions: lender.equipmentRestrictions ?? [], pricing: lender.pricing,
+    requiredDocuments: lender.requiredDocuments ?? [], turnaroundBusinessDaysMin: lender.turnaroundBusinessDaysMin,
+    turnaroundBusinessDaysMax: lender.turnaroundBusinessDaysMax, compensation: lender.compensation,
+  };
+}
+
+function normalizeLenderBody(body: unknown): unknown {
+  if (!body || typeof body !== "object") return body;
+  const value = { ...(body as Record<string, unknown>) };
+  if (typeof value.guidelineEffectiveAt === "string") value.guidelineEffectiveAt = new Date(value.guidelineEffectiveAt);
+  return value;
+}
+
 function matchToApi(
   match: typeof lenderMatchesTable.$inferSelect,
   lender?: typeof lendersTable.$inferSelect | null,
+  outcomeStatuses: string[] = [],
+  requestedAmount?: number | null,
 ) {
+  const history = historicalSignal(outcomeStatuses);
+  const dimensions = lender ? rankDimensions({
+    matchScore: match.matchScore,
+    history,
+    pricing: lender.pricing,
+    turnaroundMin: lender.turnaroundBusinessDaysMin,
+    turnaroundMax: lender.turnaroundBusinessDaysMax,
+    compensation: lender.compensation,
+    requiredDocuments: lender.requiredDocuments,
+    maxAdvancePct: lender.pricing?.maxAdvancePct,
+    minDownPaymentPct: lender.pricing?.minDownPaymentPct,
+  }) : rankDimensions({ matchScore: match.matchScore, history });
+  const compensation = lender?.compensation;
+  const percentageCompensation = compensation?.max ?? compensation?.min;
+  const estimatedGrossRevenue = compensation?.flatAmount != null
+    ? compensation.flatAmount
+    : requestedAmount != null && percentageCompensation != null
+      ? Math.round(requestedAmount * Number(percentageCompensation) / 100)
+      : null;
   return {
     id: match.id,
     leadId: match.leadId,
@@ -108,7 +180,102 @@ function matchToApi(
     matchGroup: lender?.partnerType === "broker_out" ? "super_broker" : "lender",
     matchScore: match.matchScore,
     criteriaBreakdown: (match.criteriaBreakdown as unknown as object[]) ?? [],
+    eligibilityStatus: "plausible",
+    rankingVersion: "underwriting-v1",
+    rankingDimensions: dimensions,
+    historicalSignal: history,
+    estimatedGrossRevenue,
+    economics: lender ? {
+      pricing: lender.pricing ?? null,
+      turnaroundBusinessDays: lender.turnaroundBusinessDaysMin == null && lender.turnaroundBusinessDaysMax == null ? null : {
+        min: lender.turnaroundBusinessDaysMin, max: lender.turnaroundBusinessDaysMax,
+      },
+      compensation: lender.compensation ?? null,
+      requiredDocuments: lender.requiredDocuments ?? [],
+      guidelineVersion: lender.guidelineVersion,
+      guidelineSource: lender.guidelineSource ?? null,
+    } : null,
     matchedAt: match.matchedAt.toISOString(),
+  };
+}
+
+async function buildUnderwritingProfile(leadId: number) {
+  const [lead, application, company, banks, documents, corrections] = await Promise.all([
+    db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) }),
+    db.query.applicationsTable.findFirst({ where: eq(applicationsTable.leadId, leadId), orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)] }),
+    db.query.companiesTable.findFirst({ where: eq(companiesTable.leadId, leadId) }),
+    db.select().from(bankStatementExtractionsTable).where(eq(bankStatementExtractionsTable.leadId, leadId)).orderBy(asc(bankStatementExtractionsTable.statementYear), asc(bankStatementExtractionsTable.statementMonth)),
+    db.select({ id: documentsTable.id, category: documentsTable.category, label: documentsTable.label, filename: documentsTable.filename }).from(documentsTable).where(eq(documentsTable.leadId, leadId)),
+    db.select().from(underwritingCorrectionsTable).where(eq(underwritingCorrectionsTable.leadId, leadId)).orderBy(desc(underwritingCorrectionsTable.createdAt), desc(underwritingCorrectionsTable.id)),
+  ]);
+  if (!lead) return null;
+  const latestCorrections = new Map<string, typeof corrections[number]>();
+  for (const correction of corrections) if (!latestCorrections.has(correction.field)) latestCorrections.set(correction.field, correction);
+  const fact = (
+    key: string,
+    label: string,
+    value: unknown,
+    source: "lead" | "application" | "company" | "bank_statement",
+    sourceId?: number,
+    estimated = false,
+    provenanceOverride?: { source: string; sourceId?: number; sourceIds?: number[]; label: string; confidence: string },
+  ) => {
+    const correction = latestCorrections.get(key);
+    return {
+      key, label,
+      value: correction ? correction.correctedValue : value,
+      estimated: correction ? false : estimated,
+      provenance: correction
+        ? { source: "user_correction", sourceId: correction.id, label: `Corrected by user: ${correction.reason}`, confidence: "corrected" }
+        : provenanceOverride ?? { source, sourceId, label: source === "application" ? "Submitted application" : source === "company" ? "CRM company record" : "CRM lead record", confidence: source === "application" ? "reported" : source === "bank_statement" ? "extracted" : "verified" },
+    };
+  };
+  const numeric = (value: unknown) => value == null || value === "" ? null : Number(value);
+  const totalDeposits = banks.map((row) => numeric(row.totalDeposits)).filter((value): value is number => value != null && Number.isFinite(value));
+  const balances = banks.map((row) => numeric(row.averageDailyBalance)).filter((value): value is number => value != null && Number.isFinite(value));
+  const positions = banks.flatMap((row) => Array.isArray(row.existingPositionsJson) ? row.existingPositionsJson as object[] : []);
+  const bank = banks.length ? {
+    monthsAnalyzed: banks.length,
+    averageMonthlyDeposits: totalDeposits.length ? totalDeposits.reduce((a, b) => a + b, 0) / totalDeposits.length : null,
+    averageDailyBalance: balances.length ? balances.reduce((a, b) => a + b, 0) / balances.length : null,
+    nsfCount: banks.reduce((sum, row) => sum + row.nsfCount, 0),
+    negativeBalanceDays: banks.reduce((sum, row) => sum + row.negativeBalanceDays, 0),
+    returnedItems: banks.reduce((sum, row) => sum + Number((row.rawExtractionJson as any)?.returnedItems ?? 0), 0),
+    overdrafts: banks.reduce((sum, row) => sum + Number((row.rawExtractionJson as any)?.overdrafts ?? 0), 0),
+    positions,
+    provenance: banks.map((row) => ({ source: "bank_statement", sourceId: row.documentId ?? row.id, label: `${row.statementMonth ?? "?"}/${row.statementYear ?? "?"} bank statement extraction`, confidence: "extracted" })),
+  } : null;
+  const appId = application?.id;
+  const revenue = resolveRevenueFact({
+    averageMonthlyDeposits: bank?.averageMonthlyDeposits ?? null,
+    bankSources: banks,
+    applicationRevenue: application?.monthlyRevenueStated,
+    applicationId: appId,
+  });
+  const facts = [
+    fact("requestedAmount", "Requested amount", application?.requestedAmount ?? lead.requestedAmount, application?.requestedAmount != null ? "application" : "lead", appId ?? lead.id),
+    fact("creditScore", "Credit score", lead.creditScore ?? application?.estCreditScore, lead.creditScore != null ? "lead" : "application", lead.creditScore != null ? lead.id : appId, lead.creditScore == null && application?.estCreditScore != null),
+    fact("industry", "Industry", company?.industry ?? application?.industry, company?.industry ? "company" : "application", company?.id ?? appId),
+    fact("businessState", "Business state", company?.state ?? application?.businessState, company?.state ? "company" : "application", company?.id ?? appId),
+    fact("timeInBusinessMonths", "Time in business", company?.timeInBusinessMonths ?? application?.timeInBusinessMonths, company?.timeInBusinessMonths != null ? "company" : "application", company?.id ?? appId),
+    fact("monthlyRevenue", "Monthly revenue", revenue.value, revenue.provenance.source, revenue.provenance.sourceId, revenue.estimated, revenue.provenance),
+    fact("existingPositions", "Existing debt positions", positions.length || lead.existingPositions, positions.length ? "application" : "lead", appId ?? lead.id),
+    fact("equipmentDescription", "Equipment", application?.equipmentDescription, "application", appId),
+    fact("equipmentCategory", "Equipment type", application?.equipmentCategory, "application", appId),
+    fact("equipmentYear", "Equipment year/make/model", application?.yearMakeModel, "application", appId),
+    fact("vendorName", "Vendor", application?.vendorName, "application", appId),
+    fact("transactionAmount", "Invoice / transaction amount", numeric(application?.vendorQuoteAmount) ?? application?.requestedAmount, "application", appId),
+    fact("intendedUse", "Intended use", application?.useOfFunds, "application", appId),
+  ];
+  const requiredKeys = lead.applicationType === "equipment"
+    ? ["requestedAmount", "industry", "businessState", "timeInBusinessMonths", "equipmentDescription", "vendorName", "transactionAmount"]
+    : ["requestedAmount", "industry", "businessState", "timeInBusinessMonths", "monthlyRevenue"];
+  const missingFields = requiredKeys.filter((key) => facts.find((candidate) => candidate.key === key)?.value == null);
+  return {
+    leadId, applicationId: appId ?? null, applicationType: lead.applicationType,
+    facts, bank, documents,
+    readiness: { readyForMatching: missingFields.length === 0, missingFields, requiresHumanReview: true },
+    corrections: corrections.map((row) => ({ id: row.id, field: row.field, value: row.correctedValue, reason: row.reason, evidenceDocumentId: row.evidenceDocumentId, createdAt: row.createdAt.toISOString() })),
   };
 }
 
@@ -197,7 +364,7 @@ router.post("/lenders", async (req: Request, res: Response) => {
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Admin only" });
 
-  const body = insertLenderSchema.safeParse(req.body);
+  const body = insertLenderSchema.safeParse(normalizeLenderBody(req.body));
   if (!body.success) return void res.status(400).json({ error: "Invalid lender data" });
 
   const [lender] = await db.insert(lendersTable).values({
@@ -231,9 +398,37 @@ router.post("/lenders", async (req: Request, res: Response) => {
     referralSplitPct: body.data.referralSplitPct ?? null,
     submissionMethod: body.data.submissionMethod ?? "email",
     portalUrl: body.data.portalUrl ?? null,
+    guidelineVersion: body.data.guidelineVersion ?? 1,
+    guidelineSource: body.data.guidelineSource ?? null,
+    guidelineEffectiveAt: body.data.guidelineEffectiveAt ?? null,
+    equipmentRestrictions: (body.data.equipmentRestrictions as string[]) ?? [],
+    pricing: body.data.pricing ?? null,
+    requiredDocuments: (body.data.requiredDocuments as string[]) ?? [],
+    turnaroundBusinessDaysMin: body.data.turnaroundBusinessDaysMin ?? null,
+    turnaroundBusinessDaysMax: body.data.turnaroundBusinessDaysMax ?? null,
+    compensation: body.data.compensation ?? null,
   } as any).returning();
 
+  await db.insert(lenderGuidelineVersionsTable).values({
+    lenderId: lender!.id, version: lender!.guidelineVersion, source: lender!.guidelineSource,
+    effectiveAt: lender!.guidelineEffectiveAt, snapshot: guidelineSnapshot(lender!), createdBy: user.id,
+  }).onConflictDoNothing();
   res.status(201).json(lenderToApi(lender!));
+});
+
+router.get("/lenders/:id/guideline-versions", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const id = parseInt(req.params["id"] as string, 10);
+  if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
+  const versions = await db.select().from(lenderGuidelineVersionsTable)
+    .where(eq(lenderGuidelineVersionsTable.lenderId, id))
+    .orderBy(desc(lenderGuidelineVersionsTable.version), desc(lenderGuidelineVersionsTable.createdAt));
+  res.json(versions.map((version) => ({
+    id: version.id, lenderId: version.lenderId, version: version.version, source: version.source,
+    effectiveAt: version.effectiveAt?.toISOString() ?? null, snapshot: version.snapshot,
+    createdAt: version.createdAt.toISOString(),
+  })));
 });
 
 router.put("/lenders/:id", async (req: Request, res: Response) => {
@@ -244,8 +439,16 @@ router.put("/lenders/:id", async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string, 10);
   if (isNaN(id)) return void res.status(400).json({ error: "Invalid ID" });
 
-  const body = insertLenderSchema.partial().safeParse(req.body);
+  const body = insertLenderSchema.partial().safeParse(normalizeLenderBody(req.body));
   if (!body.success) return void res.status(400).json({ error: "Invalid lender data" });
+  const existing = await db.query.lendersTable.findFirst({ where: eq(lendersTable.id, id) });
+  if (!existing) return void res.status(404).json({ error: "Lender not found" });
+  const changesGuideline = Object.keys(body.data).some((key) => GUIDELINE_FIELDS.has(key));
+  if (changesGuideline && (body.data.guidelineVersion ?? existing.guidelineVersion) <= existing.guidelineVersion) {
+    return void res.status(409).json({
+      error: `Increase guidelineVersion above ${existing.guidelineVersion} before changing documented underwriting rules`,
+    });
+  }
 
   const [updated] = await db.update(lendersTable)
     .set({ ...body.data as any, updatedAt: new Date() })
@@ -253,6 +456,10 @@ router.put("/lenders/:id", async (req: Request, res: Response) => {
     .returning();
 
   if (!updated) return void res.status(404).json({ error: "Lender not found" });
+  await db.insert(lenderGuidelineVersionsTable).values({
+    lenderId: updated.id, version: updated.guidelineVersion, source: updated.guidelineSource,
+    effectiveAt: updated.guidelineEffectiveAt, snapshot: guidelineSnapshot(updated), createdBy: user.id,
+  }).onConflictDoNothing();
   res.json(lenderToApi(updated));
 });
 
@@ -324,6 +531,39 @@ router.use(createSeedNewLendersRouter());
 
 // --- Match endpoints ---
 
+router.get("/leads/:id/underwriting-profile", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const leadId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+  if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  res.json(await buildUnderwritingProfile(leadId));
+});
+
+router.post("/leads/:id/underwriting-corrections", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const leadId = parseInt(req.params["id"] as string, 10);
+  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+  const parsed = correctionSchema.safeParse(req.body);
+  if (!parsed.success) return inputError(res, parsed);
+  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+  if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
+  if (parsed.data.evidenceDocumentId) {
+    const evidence = await db.select({ id: documentsTable.id }).from(documentsTable).where(and(eq(documentsTable.id, parsed.data.evidenceDocumentId), eq(documentsTable.leadId, leadId)));
+    if (!evidence.length) return void res.status(400).json({ error: "Evidence document does not belong to this lead" });
+  }
+  const [created] = await db.insert(underwritingCorrectionsTable).values({
+    leadId, field: parsed.data.field, correctedValue: parsed.data.value,
+    reason: parsed.data.reason, evidenceDocumentId: parsed.data.evidenceDocumentId ?? null, createdBy: user.id,
+  }).returning();
+  await logActivity({ userId: user.id, leadId, action: "underwriting_fact_corrected", entityType: "lead", entityId: leadId, details: { field: parsed.data.field, correctionId: created.id } });
+  res.status(201).json({ id: created.id, field: created.field, value: created.correctedValue, reason: created.reason, evidenceDocumentId: created.evidenceDocumentId, createdAt: created.createdAt.toISOString() });
+});
+
 router.post("/leads/:id/match", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -343,12 +583,15 @@ router.post("/leads/:id/match", async (req: Request, res: Response) => {
     .where(eq(lenderMatchesTable.leadId, leadId));
 
   const allLenders = await db.select().from(lendersTable);
+  const outcomes = await db.select({ lenderId: lenderSubmissionsTable.lenderId, status: lenderSubmissionsTable.status }).from(lenderSubmissionsTable);
+  const outcomeMap = new Map<number, string[]>();
+  for (const row of outcomes) outcomeMap.set(row.lenderId, [...(outcomeMap.get(row.lenderId) ?? []), row.status]);
   const lenderMap: Record<number, typeof lendersTable.$inferSelect> = {};
   for (const l of allLenders) lenderMap[l.id] = l;
 
   const sorted = matches
     .sort((a, b) => b.matchScore - a.matchScore)
-    .map((m) => matchToApi(m, lenderMap[m.lenderId]));
+    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount));
 
   res.json({ matchCount: results.length, matches: sorted });
 });
@@ -370,12 +613,15 @@ router.get("/leads/:id/matches", async (req: Request, res: Response) => {
     .where(eq(lenderMatchesTable.leadId, leadId));
 
   const allLenders = await db.select().from(lendersTable);
+  const outcomes = await db.select({ lenderId: lenderSubmissionsTable.lenderId, status: lenderSubmissionsTable.status }).from(lenderSubmissionsTable);
+  const outcomeMap = new Map<number, string[]>();
+  for (const row of outcomes) outcomeMap.set(row.lenderId, [...(outcomeMap.get(row.lenderId) ?? []), row.status]);
   const lenderMap: Record<number, typeof lendersTable.$inferSelect> = {};
   for (const l of allLenders) lenderMap[l.id] = l;
 
   const sorted = matches
     .sort((a, b) => b.matchScore - a.matchScore)
-    .map((m) => matchToApi(m, lenderMap[m.lenderId]));
+    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount));
 
   res.json(sorted);
 });
@@ -392,8 +638,6 @@ function apiApplicationType(value: unknown): string {
   return value === "equipment" ? "Equipment Financing" : value === "working_capital" ? "Working Capital" : "—";
 }
 
-const LENDER_PACKAGE_SENSITIVITY_KEY = "__lenderPackageSensitivity";
-
 function piiPackageMetadata(packageConfig: LenderPackageConfig | null, ssnUnmasked: boolean): Record<string, unknown> {
   return {
     sections: packageConfig?.sections ?? null,
@@ -401,29 +645,6 @@ function piiPackageMetadata(packageConfig: LenderPackageConfig | null, ssnUnmask
     options: packageConfig?.options ?? null,
     ssnUnmasked,
   };
-}
-
-function packageIncludesApplication(packageConfig: LenderPackageConfig | null): boolean {
-  return packageConfig?.sections?.includes("application") ?? true;
-}
-
-function createPackageConfigSnapshot(packageConfig: LenderPackageConfig | null, ssnUnmasked: boolean): Record<string, unknown> {
-  return {
-    ...(packageConfig ?? {}),
-    [LENDER_PACKAGE_SENSITIVITY_KEY]: { version: 1, ssnUnmasked },
-  };
-}
-
-function snapshotSsnUnmasked(snapshot: unknown): boolean {
-  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return false;
-  const record = snapshot as Record<string, unknown>;
-  const metadata = record[LENDER_PACKAGE_SENSITIVITY_KEY];
-  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
-    return (metadata as Record<string, unknown>)["ssnUnmasked"] === true;
-  }
-  const options = record["options"];
-  return Boolean(options && typeof options === "object" && !Array.isArray(options)
-    && (options as Record<string, unknown>)["maskSsn"] === false);
 }
 
 async function canAccessSubmissionLead(database: any, user: { id: number; role: string }, leadId: number) {
@@ -631,10 +852,8 @@ export function createSubmissionHandler(
       let packagePdf: Buffer;
       let ssnUnmasked = false;
     try {
-        const fullSsn = packageIncludesApplication(packageConfig)
-          ? decryptLenderPackageSsns(application)
-          : undefined;
-        ssnUnmasked = Boolean(fullSsn?.ownerSsn || fullSsn?.secondaryOwnerSsn);
+        const fullSsn = decryptLenderPackageSsns(application);
+        ssnUnmasked = true;
         packagePdf = (await buildPackage({ lead, application, assignedRep: assignedRep ?? null, documents, selection: packageConfig ?? undefined, fullSsn })).pdf;
     } catch (error) {
       return void res.status(500).json({
@@ -668,7 +887,7 @@ export function createSubmissionHandler(
         return void res.status(500).json({ error: "Lender package could not be stored for submission" });
       }
       const receipt = await deliveryReceipt.reserve({
-        leadId, lenderId, sentBy: user.id, packageConfig: createPackageConfigSnapshot(packageConfig, ssnUnmasked),
+        leadId, lenderId, sentBy: user.id, packageConfig,
         exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       });
       if (!receipt) {
@@ -746,7 +965,7 @@ export function createSubmissionHandler(
         viaBrokerId: body.data.via_broker_id ?? (lender.partnerType === "broker_out" ? lender.id : null),
         endLenderId: body.data.end_lender_id ?? null,
         messageId: sendResult.send?.sendgridMessageId ?? null, status: "submitted",
-        packageConfigSnapshot: createPackageConfigSnapshot(packageConfig, ssnUnmasked),
+        packageConfigSnapshot: packageConfig,
         exactPackageKey, exactPackageSha256: packageHash, exactPackageBytes: packagePdf.length,
       }).returning();
       if (deal) {
@@ -980,7 +1199,7 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
     const access = await canAccessSubmissionLead(routeDb, user, submission.leadId);
     if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
     const packageConfig = parsePersistedLenderPackageConfig(submission.packageConfigSnapshot);
-    const ssnUnmasked = snapshotSsnUnmasked(submission.packageConfigSnapshot);
+    const ssnUnmasked = true;
     if (!submission.exactPackageKey || !submission.exactPackageSha256) {
       return void res.status(404).json({ error: "The exact sent package is unavailable" });
     }

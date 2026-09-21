@@ -17,11 +17,11 @@ import { dripSequencesTable } from "./dripSequences";
 import { dripSequenceStepsTable } from "./dripSequenceSteps";
 import { dripEnrollmentsTable } from "./dripEnrollments";
 import { emailSendsTable } from "./emailSends";
-import { lendersTable, lenderMatchesTable, lenderSubmissionsTable, partnerContactsTable } from "./lenders";
+import { lendersTable, lenderGuidelineVersionsTable, lenderMatchesTable, lenderSubmissionsTable, partnerContactsTable } from "./lenders";
 import { dealApprovalsTable } from "./dealApprovals";
 import { flyerTemplatesTable, generatedFlyersTable } from "./flyers";
 import { collateralTemplatesTable, collateralRendersTable } from "./collateral";
-import { applicationsTable, bankStatementExtractionsTable } from "./applications";
+import { applicationsTable, bankStatementExtractionsTable, underwritingCorrectionsTable } from "./applications";
 import { creditPullsTable, creditComplianceLogTable } from "./creditPulls";
 import { workflowRulesTable } from "./workflowRules";
 import { retiredRepSlugsTable } from "./retiredRepSlugs";
@@ -315,6 +315,12 @@ export const bankStatementExtractionsRelations = relations(bankStatementExtracti
   document: one(documentsTable, { fields: [bankStatementExtractionsTable.documentId], references: [documentsTable.id] }),
 }));
 
+export const underwritingCorrectionsRelations = relations(underwritingCorrectionsTable, ({ one }) => ({
+  lead: one(leadsTable, { fields: [underwritingCorrectionsTable.leadId], references: [leadsTable.id] }),
+  evidenceDocument: one(documentsTable, { fields: [underwritingCorrectionsTable.evidenceDocumentId], references: [documentsTable.id] }),
+  creator: one(usersTable, { fields: [underwritingCorrectionsTable.createdBy], references: [usersTable.id] }),
+}));
+
 export const creditPullsRelations = relations(creditPullsTable, ({ one, many }) => ({
   lead: one(leadsTable, { fields: [creditPullsTable.leadId], references: [leadsTable.id] }),
   pulledByUser: one(usersTable, { fields: [creditPullsTable.pulledBy], references: [usersTable.id] }),
@@ -337,9 +343,14 @@ export const lenderMatchesRelations = relations(lenderMatchesTable, ({ one }) =>
 }));
 
 export const lendersRelations = relations(lendersTable, ({ many }) => ({
+  guidelineVersions: many(lenderGuidelineVersionsTable),
   contacts: many(partnerContactsTable),
   matches: many(lenderMatchesTable),
   submissions: many(lenderSubmissionsTable),
+}));
+
+export const lenderGuidelineVersionsRelations = relations(lenderGuidelineVersionsTable, ({ one }) => ({
+  lender: one(lendersTable, { fields: [lenderGuidelineVersionsTable.lenderId], references: [lendersTable.id] }),
 }));
 
 export const lenderSubmissionsRelations = relations(lenderSubmissionsTable, ({ one }) => ({

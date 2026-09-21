@@ -3362,6 +3362,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lender"
 
+  /lenders/{id}/guideline-versions:
+    get:
+      operationId: getLenderGuidelineVersions
+      tags: [lenders]
+      summary: List immutable lender guideline versions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Guideline snapshots, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LenderGuidelineVersion"
+
   /leads/{id}/match:
     post:
       operationId: runLenderMatch
@@ -3388,6 +3409,50 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/LenderMatch"
+
+  /leads/{id}/underwriting-profile:
+    get:
+      operationId: getUnderwritingProfile
+      tags: [lenders]
+      summary: Get the reviewable borrower underwriting profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Underwriting profile with fact provenance and readiness
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnderwritingProfile"
+        "404":
+          description: Lead not found
+
+  /leads/{id}/underwriting-corrections:
+    post:
+      operationId: createUnderwritingCorrection
+      tags: [lenders]
+      summary: Correct a supported underwriting fact without changing its source record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnderwritingCorrectionInput"
+      responses:
+        "201":
+          description: Correction recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnderwritingCorrection"
 
   /leads/{id}/matches:
     get:
@@ -3444,24 +3509,24 @@ paths:
         required: true
         content:
           application/json:
-             schema:
-               type: object
-               required: [lender_id]
-               properties:
-                 lender_id:
-                   type: integer
-                  via_broker_id:
-                    type: integer
-                    description: Broker-out partner that placed this submission
-                  end_lender_id:
-                    type: integer
-                    description: End lender, when known
-                 admin_override:
-                   type: boolean
-                   default: false
-                   description: Administrators may bypass the rolling 24-hour duplicate limit
-                 package_config:
-                   $ref: "#/components/schemas/LenderPackageConfig"
+            schema:
+              type: object
+              required: [lender_id]
+              properties:
+                lender_id:
+                  type: integer
+                via_broker_id:
+                  type: integer
+                  description: Broker-out partner that placed this submission
+                end_lender_id:
+                  type: integer
+                  description: End lender, when known
+                admin_override:
+                  type: boolean
+                  default: false
+                  description: Administrators may bypass the rolling 24-hour duplicate limit
+                package_config:
+                  $ref: "#/components/schemas/LenderPackageConfig"
       responses:
         "201":
           description: Submission created
@@ -5000,6 +5065,31 @@ components:
           enum: [admin, manager, rep, pending]
         isActive:
           type: boolean
+        guidelineVersion:
+          type: integer
+        guidelineSource:
+          type: ["string", "null"]
+        guidelineEffectiveAt:
+          type: ["string", "null"]
+          format: date-time
+        equipmentRestrictions:
+          type: array
+          items: { type: string }
+        pricing:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPricing"
+            - type: "null"
+        requiredDocuments:
+          type: array
+          items: { type: string }
+        turnaroundBusinessDaysMin:
+          type: ["integer", "null"]
+        turnaroundBusinessDaysMax:
+          type: ["integer", "null"]
+        compensation:
+          oneOf:
+            - $ref: "#/components/schemas/LenderCompensation"
+            - type: "null"
         mobileNumber:
           type: ["string", "null"]
         createdAt:
@@ -6418,19 +6508,44 @@ components:
           type: ["string", "null"]
         isActive:
           type: boolean
-         partnerType:
-           type: string
-           enum: [direct_lender, broker_out, broker_in]
-         referralSplitPct:
-           type: ["number", "null"]
-         submissionMethod:
-           type: string
-           enum: [email, portal, both]
-         portalUrl:
-           type: ["string", "null"]
-         contacts:
-           type: array
-           items: { $ref: "#/components/schemas/PartnerContact" }
+        guidelineVersion:
+          type: integer
+        guidelineSource:
+          type: ["string", "null"]
+        guidelineEffectiveAt:
+          type: ["string", "null"]
+          format: date-time
+        equipmentRestrictions:
+          type: array
+          items: { type: string }
+        pricing:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPricing"
+            - type: "null"
+        requiredDocuments:
+          type: array
+          items: { type: string }
+        turnaroundBusinessDaysMin:
+          type: ["integer", "null"]
+        turnaroundBusinessDaysMax:
+          type: ["integer", "null"]
+        compensation:
+          oneOf:
+            - $ref: "#/components/schemas/LenderCompensation"
+            - type: "null"
+        partnerType:
+          type: string
+          enum: [direct_lender, broker_out, broker_in]
+        referralSplitPct:
+          type: ["number", "null"]
+        submissionMethod:
+          type: string
+          enum: [email, portal, both]
+        portalUrl:
+          type: ["string", "null"]
+        contacts:
+          type: array
+          items: { $ref: "#/components/schemas/PartnerContact" }
         createdAt:
           type: string
           format: date-time
@@ -6528,6 +6643,75 @@ components:
           type: ["string", "null"]
         isActive:
           type: boolean
+        guidelineVersion:
+          type: integer
+          minimum: 1
+        guidelineSource:
+          type: ["string", "null"]
+        guidelineEffectiveAt:
+          type: ["string", "null"]
+          format: date-time
+        equipmentRestrictions:
+          type: array
+          items: { type: string }
+        pricing:
+          oneOf:
+            - $ref: "#/components/schemas/LenderPricing"
+            - type: "null"
+        requiredDocuments:
+          type: array
+          items: { type: string }
+        turnaroundBusinessDaysMin:
+          type: ["integer", "null"]
+          minimum: 0
+        turnaroundBusinessDaysMax:
+          type: ["integer", "null"]
+          minimum: 0
+        compensation:
+          oneOf:
+            - $ref: "#/components/schemas/LenderCompensation"
+            - type: "null"
+
+    LenderPricing:
+      type: object
+      properties:
+        minRatePct: { type: number }
+        maxRatePct: { type: number }
+        minFactorRate: { type: number }
+        maxFactorRate: { type: number }
+        structures:
+          type: array
+          items: { type: string }
+        termMonths:
+          type: array
+          items: { type: integer }
+        maxAdvancePct: { type: number }
+        minDownPaymentPct: { type: number }
+
+    LenderCompensation:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [points, percent, flat]
+        min: { type: number }
+        max: { type: number }
+        flatAmount: { type: number }
+
+    LenderGuidelineVersion:
+      type: object
+      required: [id, lenderId, version, snapshot, createdAt]
+      properties:
+        id: { type: integer }
+        lenderId: { type: integer }
+        version: { type: integer }
+        source: { type: ["string", "null"] }
+        effectiveAt: { type: ["string", "null"], format: date-time }
+        snapshot:
+          type: object
+          additionalProperties: true
+        createdAt: { type: string, format: date-time }
 
     TruckingRule:
       type: object
@@ -6612,9 +6796,122 @@ components:
                 type: boolean
               detail:
                 type: string
+        eligibilityStatus:
+          type: string
+          enum: [plausible]
+        rankingVersion:
+          type: string
+        rankingDimensions:
+          $ref: "#/components/schemas/RankingDimensions"
+        historicalSignal:
+          $ref: "#/components/schemas/HistoricalLenderSignal"
+        estimatedGrossRevenue:
+          type: ["number", "null"]
+        economics:
+          type: ["object", "null"]
+          additionalProperties: true
         matchedAt:
           type: string
           format: date-time
+
+    RankingDimensions:
+      type: object
+      required: [approvalProbability, documentationBurden, overallStructure]
+      properties:
+        approvalProbability: { type: number }
+        customerPricing: { type: ["number", "null"] }
+        fundingSpeed: { type: ["number", "null"] }
+        mbsPayout: { type: ["number", "null"] }
+        documentationBurden: { type: number }
+        overallStructure: { type: number }
+
+    HistoricalLenderSignal:
+      type: object
+      required: [submitted, approved, declined, funded]
+      properties:
+        submitted: { type: integer }
+        approved: { type: integer }
+        declined: { type: integer }
+        funded: { type: integer }
+        approvalRate: { type: ["number", "null"] }
+        fundingRate: { type: ["number", "null"] }
+
+    UnderwritingProvenance:
+      type: object
+      required: [source, label, confidence]
+      properties:
+        source:
+          type: string
+          enum: [application, lead, company, bank_statement, document, user_correction]
+        sourceId: { type: integer }
+        label: { type: string }
+        confidence:
+          type: string
+          enum: [verified, reported, extracted, corrected]
+
+    UnderwritingFact:
+      type: object
+      required: [key, label, provenance]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        value: {}
+        estimated: { type: boolean }
+        provenance:
+          $ref: "#/components/schemas/UnderwritingProvenance"
+
+    UnderwritingProfile:
+      type: object
+      required: [leadId, applicationId, applicationType, facts, documents, readiness, corrections]
+      properties:
+        leadId: { type: integer }
+        applicationId: { type: ["integer", "null"] }
+        applicationType: { type: string }
+        facts:
+          type: array
+          items: { $ref: "#/components/schemas/UnderwritingFact" }
+        bank:
+          type: ["object", "null"]
+          additionalProperties: true
+        documents:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        readiness:
+          type: object
+          required: [readyForMatching, missingFields, requiresHumanReview]
+          properties:
+            readyForMatching: { type: boolean }
+            missingFields:
+              type: array
+              items: { type: string }
+            requiresHumanReview: { type: boolean }
+        corrections:
+          type: array
+          items: { $ref: "#/components/schemas/UnderwritingCorrection" }
+
+    UnderwritingCorrectionInput:
+      type: object
+      required: [field, value, reason]
+      properties:
+        field:
+          type: string
+          enum: [requestedAmount, creditScore, industry, businessState, timeInBusinessMonths, monthlyRevenue, existingPositions, equipmentDescription, equipmentCategory, equipmentYear, vendorName, transactionAmount, intendedUse]
+        value: {}
+        reason: { type: string, minLength: 1, maxLength: 500 }
+        evidenceDocumentId: { type: ["integer", "null"] }
+
+    UnderwritingCorrection:
+      type: object
+      required: [id, field, reason, createdAt]
+      properties:
+        id: { type: integer }
+        field: { type: string }
+        value: {}
+        reason: { type: string }
+        evidenceDocumentId: { type: ["integer", "null"] }
+        createdAt: { type: string, format: date-time }
 
     LenderSubmission:
       type: object

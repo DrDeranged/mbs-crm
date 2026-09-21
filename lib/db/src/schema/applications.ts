@@ -6,6 +6,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
 import { documentsTable } from "./documents";
+import { usersTable } from "./users";
 
 export const EQUIPMENT_CONDITIONS = ["new", "used"] as const;
 export const EQUIPMENT_CATEGORIES = ["vocational", "otr_truck", "trailer", "construction", "other"] as const;
@@ -125,6 +126,29 @@ export const bankStatementExtractionsTable = pgTable(
   (t) => [index("bse_lead_idx").on(t.leadId)],
 );
 
+export const underwritingCorrectionsTable = pgTable(
+  "underwriting_corrections",
+  {
+    id: serial("id").primaryKey(),
+    leadId: integer("lead_id").notNull().references(() => leadsTable.id, { onDelete: "cascade" }),
+    field: text("field").notNull(),
+    correctedValue: jsonb("corrected_value").notNull(),
+    reason: text("reason").notNull(),
+    evidenceDocumentId: integer("evidence_document_id").references(() => documentsTable.id, { onDelete: "set null" }),
+    createdBy: integer("created_by").references(() => usersTable.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("underwriting_corrections_lead_field_idx").on(t.leadId, t.field, t.createdAt.desc()),
+    check("underwriting_corrections_field_check", sql`${t.field} IN (
+      'requestedAmount', 'creditScore', 'industry', 'businessState', 'timeInBusinessMonths',
+      'monthlyRevenue', 'existingPositions', 'equipmentDescription', 'equipmentCategory',
+      'equipmentYear', 'vendorName', 'transactionAmount', 'intendedUse'
+    )`),
+    check("underwriting_corrections_reason_check", sql`length(trim(${t.reason})) > 0`),
+  ],
+);
+
 export const insertApplicationSchema = createInsertSchema(applicationsTable).omit({ id: true, submittedAt: true });
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type Application = typeof applicationsTable.$inferSelect;
@@ -132,3 +156,8 @@ export type Application = typeof applicationsTable.$inferSelect;
 export const insertBankStatementExtractionSchema = createInsertSchema(bankStatementExtractionsTable).omit({ id: true, extractedAt: true });
 export type InsertBankStatementExtraction = z.infer<typeof insertBankStatementExtractionSchema>;
 export type BankStatementExtraction = typeof bankStatementExtractionsTable.$inferSelect;
+export const insertUnderwritingCorrectionSchema = createInsertSchema(underwritingCorrectionsTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type UnderwritingCorrection = typeof underwritingCorrectionsTable.$inferSelect;
