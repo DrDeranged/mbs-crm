@@ -1,10 +1,10 @@
 ---
 name: Migration-model parity
-description: Why the migration replay must cover every public table and column without exclusions.
+description: Why schema parity checks must not exclude operational tables.
 ---
 
-The migration-replay parity gate must compare every public table and column against the complete Drizzle model set. Never exclude `schema_migrations` or another operational table.
+Schema parity checks must cover application and operational tables without exclusions.
 
-**Why:** Model declarations for production columns were removed repeatedly by unrelated branch work, causing Publish to propose destructive column drops. A table exclusion allowed the ledger regression to pass schema checks.
+**Why:** Excluding a table can let destructive production drift pass validation.
 
-**How to apply:** Keep the schema parity table filter all-inclusive, replay the full applied migration set in preflight, and model the migration ledger exactly as production defines it.
+**How to apply:** When changing schema validation, keep its table scope complete and treat any proposed destructive diff as a release blocker.
