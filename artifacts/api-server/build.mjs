@@ -138,6 +138,13 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     path.resolve(distDir, "assets"),
     { recursive: true },
   );
+  // Campaign collateral is served as original PNG bytes. Package it with the
+  // production bundle instead of relying on the deployment working directory.
+  await cp(
+    path.resolve(artifactDir, "assets/campaigns"),
+    path.resolve(distDir, "assets/campaigns"),
+    { recursive: true },
+  );
 }
 
 buildAll().catch((err) => {

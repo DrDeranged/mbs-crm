@@ -30,6 +30,33 @@ test("schema path guard ignores ordinary product push references", () => {
   ]), []);
 });
 
+test("schema path guard permits only the audited schema parity inspection", () => {
+  assert.deepEqual(findForbiddenSchemaPushes([
+    {
+      path: "lib/db/src/schemaCiCheck.ts",
+      content: [
+        `import { ${api} } from "${kit}/api";`,
+        `const diff = await ${api}(schema, database, ["public"], [...SCHEMA_PARITY_TABLE_FILTER]);`,
+      ].join("\n"),
+    },
+  ]), []);
+
+  const findings = findForbiddenSchemaPushes([
+    {
+      path: "lib/db/src/schemaCiCheck.ts",
+      content: `await ${api}(unsafeSchema, productionDatabase, ["public"], ["*"]);`,
+    },
+    {
+      path: "lib/db/src/otherCheck.ts",
+      content: `import { ${api} } from "${kit}/api";`,
+    },
+  ]);
+  assert.deepEqual(
+    findings.map(({ path, line }) => `${path}:${line}`),
+    ["lib/db/src/schemaCiCheck.ts:1", "lib/db/src/otherCheck.ts:1"],
+  );
+});
+
 test("schema path guard scans source and deployment configuration only", () => {
   assert.equal(shouldScanFile("package.json"), true);
   assert.equal(shouldScanFile(".replit"), true);

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Router, type Request, type Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod/v4";
@@ -41,10 +42,27 @@ const CAMPAIGN_SOURCES: Record<string, string> = {
   "mbs://campaign/equipment-financing": "equipment-financing.png",
 };
 
-async function campaignSourceBytes(sourceKey: string): Promise<Buffer | null> {
+export function campaignAssetPaths(
+  sourceKey: string,
+  moduleUrl = import.meta.url,
+): string[] {
   const filename = CAMPAIGN_SOURCES[sourceKey];
-  if (!filename) return null;
-  return fs.readFile(path.resolve(process.cwd(), "assets/campaigns", filename));
+  if (!filename) return [];
+  return [
+    fileURLToPath(new URL(`../../assets/campaigns/${filename}`, moduleUrl)),
+    fileURLToPath(new URL(`../assets/campaigns/${filename}`, moduleUrl)),
+  ];
+}
+
+export async function campaignSourceBytes(sourceKey: string): Promise<Buffer | null> {
+  for (const assetPath of campaignAssetPaths(sourceKey)) {
+    try {
+      return await fs.readFile(assetPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  }
+  return null;
 }
 
 export type CollateralMailClient = {
@@ -174,26 +192,46 @@ export function listCollateralTemplatesHandler(deps: CollateralTemplateListDeps)
   };
 }
 
+type CampaignAssetHandlerDeps = {
+  getUser: typeof user;
+  readSource: typeof campaignSourceBytes;
+};
+
+export function campaignAssetHandler(
+  disposition: "inline" | "attachment",
+  deps: CampaignAssetHandlerDeps = {
+    getUser: user,
+    readSource: campaignSourceBytes,
+  },
+) {
+  return async (req: Request, res: Response): Promise<void> => {
+    const u = await deps.getUser(req, res);
+    if (!u) return;
+    const slug = req.params["slug"] as string;
+    const bytes = await deps.readSource(`mbs://campaign/${slug}`);
+    if (!bytes) {
+      res.status(404).json({ error: "Campaign asset not found" });
+      return;
+    }
+    const cacheControl = disposition === "attachment"
+      ? "private, no-store"
+      : "private, max-age=3600";
+    res
+      .type("image/png")
+      .set("Content-Disposition", `${disposition}; filename="${slug}.png"`)
+      .set("Cache-Control", cacheControl)
+      .send(bytes);
+  };
+}
+
 router.get("/collateral/templates", listCollateralTemplatesHandler({
   getUser: user,
   listTemplates: async (includeDrafts) => db.select().from(collateralTemplatesTable)
     .where(includeDrafts ? undefined : eq(collateralTemplatesTable.status, "published"))
     .orderBy(desc(collateralTemplatesTable.updatedAt)),
 }));
-router.get("/collateral/campaign-assets/:slug", async (req, res) => {
-  const u = await user(req, res); if (!u) return;
-  const sourceKey = `mbs://campaign/${req.params.slug}`;
-  const bytes = await campaignSourceBytes(sourceKey);
-  if (!bytes) return void res.status(404).json({ error: "Campaign asset not found" });
-  res.type("image/png").set("Content-Disposition", `inline; filename="${req.params.slug}.png"`).set("Cache-Control", "private, max-age=3600").send(bytes);
-});
-router.get("/collateral/campaign-assets/:slug/download", async (req, res) => {
-  const u = await user(req, res); if (!u) return;
-  const sourceKey = `mbs://campaign/${req.params.slug}`;
-  const bytes = await campaignSourceBytes(sourceKey);
-  if (!bytes) return void res.status(404).json({ error: "Campaign asset not found" });
-  res.type("image/png").set("Content-Disposition", `attachment; filename="${req.params.slug}.png"`).set("Cache-Control", "private, no-store").send(bytes);
-});
+router.get("/collateral/campaign-assets/:slug", campaignAssetHandler("inline"));
+router.get("/collateral/campaign-assets/:slug/download", campaignAssetHandler("attachment"));
 
 router.get("/collateral/templates/:id", async (req, res) => {
   const u = await user(req, res); if (!u) return;

@@ -16,7 +16,7 @@ test("production smoke paths", async ({ browser, request }) => {
   const page = await context.newPage();
   await page.goto("/", { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/\/sign-in(?:\/|$)/);
-  await expect(page.getByRole("heading", { name: /sign in to mbs/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /continue to mbs/i })).toBeVisible();
   await expect(page.getByLabel(/email address/i)).toBeVisible();
   expect(errors).toEqual([]);
 

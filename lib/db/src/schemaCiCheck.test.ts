@@ -85,13 +85,18 @@ test("schema parity check ignores only paired Drizzle naming artifacts", () => {
   const statements = [
     `ALTER TABLE "deals" DROP CONSTRAINT "deals_lead_id_fkey";`,
     `ALTER TABLE "deals" ADD CONSTRAINT "deals_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE set null ON UPDATE no action;`,
+    `ALTER TABLE "lender_guideline_versions" DROP CONSTRAINT "lender_guideline_versions_lender_id_fkey";`,
+    `ALTER TABLE "lender_guideline_versions" ADD CONSTRAINT "lender_guideline_versions_lender_id_lenders_id_fk" FOREIGN KEY ("lender_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`,
+    `DROP INDEX "underwriting_corrections_lead_field_idx";`,
+    `CREATE INDEX "underwriting_corrections_lead_field_idx" ON "underwriting_corrections" USING btree ("lead_id","field","created_at" DESC NULLS LAST);`,
+    `ALTER TABLE "lenders" ALTER COLUMN "equipment_restrictions" SET DEFAULT '{}';`,
     `DROP INDEX "deal_approvals_deal_created_idx";`,
     `CREATE INDEX "deal_approvals_deal_created_idx" ON "deal_approvals" USING btree ("deal_id");`,
     `ALTER TABLE "leads" ADD COLUMN "lead_score" integer;`,
     `ALTER TABLE "pii_access_log" ADD CONSTRAINT "pii_access_log_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`,
   ];
 
-  assert.deepEqual(filterCheckerArtifacts(statements), statements.slice(2));
+  assert.deepEqual(filterCheckerArtifacts(statements), statements.slice(7));
 });
 
 test("schema parity check preserves changed constraint and index semantics", () => {

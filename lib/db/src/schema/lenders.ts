@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, check, uniqueIndex, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, check, uniqueIndex, numeric, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { leadsTable } from "./leads";
@@ -116,7 +116,7 @@ export const lenderGuidelineVersionsTable = pgTable(
     id: serial("id").primaryKey(),
     lenderId: integer("lender_id").notNull().references(() => lendersTable.id, { onDelete: "cascade" }),
     version: integer("version").notNull(),
-    source: text("source"),
+    source: varchar("source", { length: 1000 }),
     effectiveAt: timestamp("effective_at", { withTimezone: true }),
     snapshot: jsonb("snapshot").notNull(),
     createdBy: integer("created_by"),

@@ -18,6 +18,8 @@ const equivalentDefaultStatements = new Set([
   `ALTER TABLE "lenders" ALTER COLUMN "accepted_states" SET DEFAULT '{}';`,
   `ALTER TABLE "lenders" ALTER COLUMN "restricted_industries" SET DEFAULT '{}';`,
   `ALTER TABLE "lenders" ALTER COLUMN "prohibited_industries" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "equipment_restrictions" SET DEFAULT '{}';`,
+  `ALTER TABLE "lenders" ALTER COLUMN "required_documents" SET DEFAULT '{}';`,
   `ALTER TABLE "deal_approvals" ALTER COLUMN "down_payment" SET DEFAULT 0;`,
 ]);
 
@@ -73,6 +75,10 @@ const equivalentConstraintPairs = [
   [`ALTER TABLE "admin_audit_log" DROP CONSTRAINT "admin_audit_log_actor_user_id_fkey";`, `ALTER TABLE "admin_audit_log" ADD CONSTRAINT "admin_audit_log_actor_user_id_users_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;`],
   [`ALTER TABLE "partner_contacts" DROP CONSTRAINT "partner_contacts_created_by_fkey";`, `ALTER TABLE "partner_contacts" ADD CONSTRAINT "partner_contacts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
   [`ALTER TABLE "partner_contacts" DROP CONSTRAINT "partner_contacts_partner_id_fkey";`, `ALTER TABLE "partner_contacts" ADD CONSTRAINT "partner_contacts_partner_id_lenders_id_fk" FOREIGN KEY ("partner_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`],
+  [`ALTER TABLE "lender_guideline_versions" DROP CONSTRAINT "lender_guideline_versions_lender_id_fkey";`, `ALTER TABLE "lender_guideline_versions" ADD CONSTRAINT "lender_guideline_versions_lender_id_lenders_id_fk" FOREIGN KEY ("lender_id") REFERENCES "public"."lenders"("id") ON DELETE cascade ON UPDATE no action;`],
+  [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_created_by_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
+  [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_evidence_document_id_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_evidence_document_id_documents_id_fk" FOREIGN KEY ("evidence_document_id") REFERENCES "public"."documents"("id") ON DELETE set null ON UPDATE no action;`],
+  [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_lead_id_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE cascade ON UPDATE no action;`],
 ] as const;
 
 const equivalentIndexPairs = [
@@ -83,6 +89,10 @@ const equivalentIndexPairs = [
   [
     `DROP INDEX "deal_approvals_deal_created_idx";`,
     `CREATE INDEX "deal_approvals_deal_created_idx" ON "deal_approvals" USING btree ("deal_id","created_at" DESC NULLS LAST,"id" DESC NULLS LAST);`,
+  ],
+  [
+    `DROP INDEX "underwriting_corrections_lead_field_idx";`,
+    `CREATE INDEX "underwriting_corrections_lead_field_idx" ON "underwriting_corrections" USING btree ("lead_id","field","created_at" DESC NULLS LAST);`,
   ],
 ] as const;
 

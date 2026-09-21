@@ -17,6 +17,16 @@ const forbiddenPatterns = [
   /\bpnpm\b[^\r\n;&|]*--filter\s+(?:"[^"]+"|'[^']+'|\S+)\s+(?:run\s+)?push(?:-force)?(?:\s|$)/i,
 ];
 
+const allowedSchemaParityInspectionLines = new Set([
+  `import { ${apiFunction} } from "${kitCommand}/api";`,
+  `const diff = await ${apiFunction}(schema, database, ["public"], [...SCHEMA_PARITY_TABLE_FILTER]);`,
+]);
+
+function isAllowedSchemaParityInspection(file: string, text: string): boolean {
+  return file === "lib/db/src/schemaCiCheck.ts"
+    && allowedSchemaParityInspectionLines.has(text.trim());
+}
+
 const sourceOrConfigExtension = new Set([
   ".cjs", ".js", ".json", ".mjs", ".nix", ".sh", ".toml", ".ts", ".tsx", ".yaml", ".yml",
 ]);
@@ -35,6 +45,7 @@ export function findForbiddenSchemaPushes(files: ScannedFile[]): ForbiddenSchema
   const findings: ForbiddenSchemaPush[] = [];
   for (const file of files) {
     for (const [index, text] of file.content.split(/\r?\n/).entries()) {
+      if (isAllowedSchemaParityInspection(file.path, text)) continue;
       if (forbiddenPatterns.some((pattern) => pattern.test(text))) {
         findings.push({ path: file.path, line: index + 1, text: text.trim() });
       }
