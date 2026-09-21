@@ -1009,7 +1009,7 @@ export default function ApplyPage() {
                   <div className="flex gap-3 items-start">
                     <Checkbox id="sms_consent" checked={form.smsConsent} onCheckedChange={(v) => set({ smsConsent: !!v })} className="mt-0.5" />
                     <Label htmlFor="sms_consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
-                      I agree to receive text messages from My Business Solutions LLC about my application (application received, documents needed, status updates). Message frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP for help. See our <a href="/privacy-policy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a> and <a href="/terms-of-service" target="_blank" rel="noreferrer" className="underline">Terms of Service</a>.
+                      I agree to receive text messages from My Business Solutions LLC about my application (application received, documents needed, status updates). Message frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP for help. See our <a href="https://my-business-solutions.com/privacy-policy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a> and <a href="https://my-business-solutions.com/terms-of-service" target="_blank" rel="noreferrer" className="underline">Terms of Service</a>.
                     </Label>
                   </div>
                 </div>
