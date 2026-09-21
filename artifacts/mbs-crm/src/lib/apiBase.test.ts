@@ -19,3 +19,17 @@ test("resolves relative paths and preserves absolute URLs", () => {
     "https://storage.example/file.pdf",
   );
 });
+
+const renderPaths = [
+  "/api/collateral/renders/3/pdf",
+  "/api/collateral/renders/3/png",
+  "/api/collateral/renders/3/link",
+];
+
+test("keeps one API prefix for every collateral action", () => {
+  for (const path of renderPaths) {
+    const resolved = resolveApiUrl(path, "/mbs-crm/api");
+    assert.equal(resolved, `/mbs-crm${path}`);
+    assert.equal(resolved.includes("/api/api/"), false);
+  }
+});

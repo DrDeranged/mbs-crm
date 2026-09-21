@@ -6,10 +6,13 @@ export function getApiBaseUrl(): string {
 /** Resolves API-returned paths without duplicating the artifact's /api prefix. */
 export function resolveApiUrl(path: string, apiBase = getApiBaseUrl()): string {
   if (/^https?:\/\//i.test(path)) return path;
-  const normalizedPath = path.startsWith("/api/")
-    ? path.slice("/api".length)
-    : path.startsWith("/")
-      ? path
-      : `/${path}`;
-  return `${apiBase.replace(/\/$/, "")}${normalizedPath}`;
+  const normalizedBase = apiBase.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const routePath = normalizedPath === "/api"
+    ? ""
+    : normalizedPath.startsWith("/api/")
+      ? normalizedPath.slice(4)
+      : normalizedPath;
+
+  return `${normalizedBase}${routePath}`;
 }
