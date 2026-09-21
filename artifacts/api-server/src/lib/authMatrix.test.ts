@@ -200,7 +200,7 @@ test("unsigned SendGrid webhooks are rejected in every environment", async () =>
       headers: { "content-type": "application/json" },
       body: JSON.stringify([{ event: "delivered" }]),
     });
-    assert.equal(response.status, 403);
+    assert.equal(response.status, 401);
   } finally {
     if (savedKey === undefined) delete process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
     else process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY = savedKey;

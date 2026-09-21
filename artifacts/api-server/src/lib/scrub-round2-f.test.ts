@@ -85,6 +85,88 @@ test("correlated webhook suppresses the persisted recipient, not a mismatched ev
   }
 });
 
+test("valid SendGrid ECDSA signature passes through exact raw-body verification", async () => {
+  const publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE83T4O/n84iotIvIW4mdBgQ/7dAfSmpqIM8kF9mN1flpVKS3GRqe62gw+2fNNRaINXvVpiglSI8eNEc6wEA3F+g==";
+  const signature = "MEUCIGHQVtGj+Y3LkG9fLcxf3qfI10QysgDWmMOVmxG0u6ZUAiEAyBiXDWzM+uOe5W0JuG+luQAbPIqHh89M15TluLtEZtM=";
+  const timestamp = "1600112502";
+  const payload = JSON.stringify([{
+    email: "hello@world.com",
+    event: "dropped",
+    reason: "Bounced Address",
+    sg_event_id: "ZHJvcC0xMDk5NDkxOS1MUnpYbF9OSFN0T0doUTRrb2ZTbV9BLTA",
+    sg_message_id: "LRzXl_NHStOGhQ4kofSm_A.filterdrecv-p3mdw1-756b745b58-kmzbl-18-5F5FC76C-9.0",
+    "smtp-id": "<LRzXl_NHStOGhQ4kofSm_A@ismtpd0039p1iad1.sendgrid.net>",
+    timestamp: 1600112492,
+  }]) + "\r\n";
+  const savedKey = process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
+  process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY = publicKey;
+  let acceptedEvents: Array<Record<string, unknown>> = [];
+  const app = express();
+  app.use(express.json({
+    verify: (req, _res, body) => { (req as any).rawBody = body; },
+  }));
+  app.post("/sendgrid/webhook", createSendGridWebhookHandler({
+    processEvents: async (events) => {
+      acceptedEvents = events;
+      return { processed: events.length, ignored: 0 };
+    },
+  }));
+  const server = await listen(app);
+  try {
+    const response = await fetch(`${server.url}/sendgrid/webhook`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-twilio-email-event-webhook-signature": signature,
+        "x-twilio-email-event-webhook-timestamp": timestamp,
+      },
+      body: payload,
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { ok: true, processed: 1, ignored: 0 });
+    assert.equal(acceptedEvents[0]?.event, "dropped");
+  } finally {
+    if (savedKey === undefined) delete process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
+    else process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY = savedKey;
+    await server.close();
+  }
+});
+
+test("invalid webhook signatures return 401 before any delivery or suppression mutation", async () => {
+  const mutations: string[] = [];
+  const repository = {
+    insertEvent: async () => { mutations.push("event"); return true; },
+    findSend: async () => { mutations.push("find"); return undefined; },
+    suppressRecipient: async () => { mutations.push("suppress"); },
+    updateSend: async () => { mutations.push("delivery"); },
+    hasActivity: async () => { mutations.push("activity-read"); return false; },
+    logActivity: async () => { mutations.push("activity-write"); },
+  };
+  const app = express();
+  app.use(express.json());
+  app.post("/sendgrid/webhook", createSendGridWebhookHandler({
+    verifySignature: () => false,
+    processEvents: (events) => processSendGridWebhookEvents(events, repository),
+  }));
+  const server = await listen(app);
+  try {
+    const response = await fetch(`${server.url}/sendgrid/webhook`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        event: "bounce",
+        email: "recipient@example.test",
+        sg_message_id: "must-not-be-processed",
+      }),
+    });
+    assert.equal(response.status, 401);
+    assert.deepEqual(await response.json(), { error: "Invalid webhook signature" });
+    assert.deepEqual(mutations, []);
+  } finally {
+    await server.close();
+  }
+});
+
 test("authenticated webhook route applies terminal status, suppression, and activity for every suppressing event", async () => {
   const expected = {
     bounce: { status: "bounced", action: "email_bounced" },

@@ -232,7 +232,7 @@ export function createSendGridWebhookHandler({
 } = {}) {
   return async (req: Request, res: Response) => {
   if (!verifySignature(req)) {
-    return void res.status(403).json({ error: "Invalid webhook signature" });
+    return void res.status(401).json({ error: "Invalid webhook signature" });
   }
   const body = sendGridWebhookBody.safeParse(req.body);
   if (!body.success) {
