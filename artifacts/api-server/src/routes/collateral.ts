@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { Router, type Request, type Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod/v4";
@@ -34,6 +36,16 @@ const collateralTemplatesQuery = z.object({
 const secret = process.env.SESSION_SECRET || "development-collateral-secret";
 const objectStorage = new ObjectStorageService();
 const signed = (value: string) => `${value}.${crypto.createHmac("sha256", secret).update(value).digest("hex")}`;
+const CAMPAIGN_SOURCES: Record<string, string> = {
+  "mbs://campaign/working-capital": "working-capital.png",
+  "mbs://campaign/equipment-financing": "equipment-financing.png",
+};
+
+async function campaignSourceBytes(sourceKey: string): Promise<Buffer | null> {
+  const filename = CAMPAIGN_SOURCES[sourceKey];
+  if (!filename) return null;
+  return fs.readFile(path.resolve(process.cwd(), "assets/campaigns", filename));
+}
 
 export type CollateralMailClient = {
   setApiKey: (key: string) => void;
@@ -104,6 +116,8 @@ function repFields(u: typeof usersTable.$inferSelect) {
   return { name: u.name?.trim() || u.email, title: u.title?.trim() || "", phone: u.mobileNumber?.trim() || "", email: u.email, slug: u.slug || String(u.id) };
 }
 async function sourceBytes(sourceKey: string): Promise<{ bytes: Buffer; format: "pdf" | "png" }> {
+  const campaignBytes = await campaignSourceBytes(sourceKey);
+  if (campaignBytes) return { bytes: campaignBytes, format: "png" };
   const file = await objectStorage.getObjectEntityFile(sourceKey);
   const [bytes] = await file.download();
   if (bytes.subarray(0, 5).toString() === "%PDF-") return { bytes, format: "pdf" };
@@ -166,6 +180,20 @@ router.get("/collateral/templates", listCollateralTemplatesHandler({
     .where(includeDrafts ? undefined : eq(collateralTemplatesTable.status, "published"))
     .orderBy(desc(collateralTemplatesTable.updatedAt)),
 }));
+router.get("/collateral/campaign-assets/:slug", async (req, res) => {
+  const u = await user(req, res); if (!u) return;
+  const sourceKey = `mbs://campaign/${req.params.slug}`;
+  const bytes = await campaignSourceBytes(sourceKey);
+  if (!bytes) return void res.status(404).json({ error: "Campaign asset not found" });
+  res.type("image/png").set("Content-Disposition", `inline; filename="${req.params.slug}.png"`).set("Cache-Control", "private, max-age=3600").send(bytes);
+});
+router.get("/collateral/campaign-assets/:slug/download", async (req, res) => {
+  const u = await user(req, res); if (!u) return;
+  const sourceKey = `mbs://campaign/${req.params.slug}`;
+  const bytes = await campaignSourceBytes(sourceKey);
+  if (!bytes) return void res.status(404).json({ error: "Campaign asset not found" });
+  res.type("image/png").set("Content-Disposition", `attachment; filename="${req.params.slug}.png"`).set("Cache-Control", "private, no-store").send(bytes);
+});
 
 router.get("/collateral/templates/:id", async (req, res) => {
   const u = await user(req, res); if (!u) return;
@@ -177,6 +205,11 @@ router.get("/collateral/templates/:id/thumbnail", async (req, res) => {
   const u = await user(req, res); if (!u) return;
   const t = await db.query.collateralTemplatesTable.findFirst({ where: eq(collateralTemplatesTable.id, Number(req.params.id)) });
   if (!t || !canReadCollateralTemplate(u, t)) return void res.status(404).json({ error: "Template not found" });
+  const campaignBytes = await campaignSourceBytes(t.sourceKey);
+  if (campaignBytes) {
+    res.type("image/png").set("Cache-Control", "private, max-age=3600").send(campaignBytes);
+    return;
+  }
   const title = t.name.replace(/[<&>"]/g, "");
   res.type("svg").send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#f4f7fa"/><rect x="0" y="0" width="640" height="72" fill="#0B2948"/><rect x="32" y="28" width="120" height="16" rx="8" fill="#17B26A"/><text x="32" y="150" fill="#0B2948" font-family="Arial" font-size="28" font-weight="bold">${title}</text><text x="32" y="190" fill="#64748b" font-family="Arial" font-size="15">Personalized collateral preview</text><rect x="32" y="300" width="576" height="2" fill="#17B26A"/></svg>`);
 });

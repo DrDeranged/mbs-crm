@@ -241,6 +241,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/production-closeout` | `routes/adminProductionCloseout.ts:32` | `A` | reps rejected |
 
 | GET | `/api/collateral/templates` | `routes/collateral.ts` | U | published templates; admins may include drafts |
+| GET | `/api/collateral/campaign-assets/:slug` | `routes/collateral.ts` | U | authenticated review preview for draft campaign artwork |
+| GET | `/api/collateral/campaign-assets/:slug/download` | `routes/collateral.ts` | U | authenticated original PNG download for draft campaign artwork |
 | POST | `/api/collateral/templates` | `routes/collateral.ts` | A | admin template creation |
 | GET | `/api/collateral/templates/:id` | `routes/collateral.ts` | U | published templates; admin drafts |
 | GET | `/api/collateral/templates/:id/thumbnail` | `routes/collateral.ts` | U | published templates; admin drafts |

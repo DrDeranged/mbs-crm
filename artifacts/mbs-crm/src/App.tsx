@@ -28,6 +28,7 @@ const DripSequences = lazy(() => import("@/pages/drip-sequences"));
 const LenderManagement = lazy(() => import("@/pages/lender-management"));
 const FlyerTemplates = lazy(() => import("@/pages/flyer-templates"));
 const Documents = lazy(() => import("@/pages/documents"));
+const FinancingCampaign = lazy(() => import("@/pages/financing-campaign"));
 const ApplyPage = lazy(() => import("@/pages/apply"));
 const RepChooser = lazy(() => import("@/pages/rep-chooser"));
 const ApplicationStatus = lazy(() => import("@/pages/application-status"));
@@ -343,6 +344,9 @@ function AppRoutes() {
             </Route>
             <Route path="/documents">
               <ProtectedRoute component={Documents} />
+            </Route>
+            <Route path="/campaigns/financing-draft">
+              <ProtectedRoute component={FinancingCampaign} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
             <Route path="/r/:slug" component={RepChooser} />

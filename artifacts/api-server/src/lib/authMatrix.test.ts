@@ -78,7 +78,7 @@ test("the real API router has a gate before every private mutation", async () =>
 
   const registrations = walkRouter(apiRouter);
   const allRegistrations = [...walkRouter(bootCriticalRouter), ...registrations];
-  assert.equal(allRegistrations.length, 213, "update this audited count when registering a route");
+  assert.equal(allRegistrations.length, 215, "update this audited count when registering a route");
   const matrix = await readFile(new URL("../../../../docs/AUTH_MATRIX.md", import.meta.url), "utf8");
   const documentedRoutes = [...matrix.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| `([^`]+)` \|/gm)]
     .map(([, method, path]) => `${method} ${path}`)
