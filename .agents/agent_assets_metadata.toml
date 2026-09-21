@@ -54,3 +54,17 @@ mtime_ms = 1789747191557
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/95dde7cd-89fe-4230-b517-e0c66e70030f/a62610c7-9e8a-45a4-9f24-1f6f2357ddae"
 storage_version_token = "1789747260125394"
 content_type = "text/plain"
+
+[[outputs]]
+id = "7CxHLz9Kj4W8dSVoxI3Y8"
+uri = "file://reports/preflight-2026-09-21-current-pass.txt"
+type = "text"
+title = "Current CRM Preflight — PASS"
+description = "Complete 1,110-line transcript for the current workspace. All ten release gates pass, including migration rehearsal and zero database divergence."
+logical_id = "6ac58c52-3cf6-482f-8288-deaf202b6573"
+content_hash = "sha256:b41a830cbb437cccd651e07491e029116b66898a351ec0766d0b5aa49c5af7c6"
+size = 97793
+mtime_ms = 1790017677740
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/6ac58c52-3cf6-482f-8288-deaf202b6573/41892a88-dca5-4199-aa7c-06b3cc1e3389"
+storage_version_token = "1790017689192399"
+content_type = "text/plain"

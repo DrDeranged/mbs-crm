@@ -31,3 +31,4 @@
 - [Published API fingerprints](published-api-fingerprints.md) — verify server revisions from a live response/header; a current static bundle does not prove the matching API build shipped.
 - [Express sibling router scope](express-sibling-router-scope.md) — unscoped router.use middleware can validate and reject requests intended for routers mounted later.
 - [SendGrid webhook key rotation](sendgrid-webhook-key-rotation.md) — API tests can be unsigned; re-enabling signing rotates keys, so certify with a real controlled send.
+- [Production clone schema authority](production-clone-schema-authority.md) — for publish gating, trust the managed clone used by preflight when read-only production metadata disagrees.
