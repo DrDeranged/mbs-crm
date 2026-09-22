@@ -1,0 +1,95 @@
+
+> @workspace/scripts@0.0.0 test /home/runner/workspace/scripts
+> tsx --test ./src/*.test.ts
+
+✔ diffs ledger rows, tables, and every column signature (2.781582ms)
+✔ diff formatting is deterministic and redacts values (71.20616ms)
+✔ parser excludes schema_migrations from tables and detects missing/malformed ledgers (0.651963ms)
+✔ URL guard rejects clone, non-PostgreSQL, and malformed URLs without echoing secrets (1.09802ms)
+✔ PostgreSQL connection is split into environment fields without retaining inherited targets (0.58083ms)
+✔ snapshot runner uses a temporary SQL file, read-only transaction, timeout, and cleans it up (16.42184ms)
+✔ snapshot runner does not expose database URL in query failures (2.78274ms)
+✔ local URL validation permits loopback and rejects remote credentials without echoing them (1.939695ms)
+✔ backup selection is newest, with deterministic tie ordering and schema fallback (16.733136ms)
+✔ application JSON backups are rejected clearly (1.580212ms)
+✔ count formatting is stable and metadata-safe (0.156734ms)
+✔ default configuration is injectable and rooted in workspace .local (0.297887ms)
+✔ metadata serialization contains only safe connection and fingerprint fields (0.180693ms)
+✔ metadata fingerprint is not a source path or basename (0.108681ms)
+✔ JSON rejection is independent of extension and BOM (2.921081ms)
+✔ gzip rejection is independent of extension (1.605155ms)
+✔ fallback selection works when production backup directory is absent (1.594615ms)
+✔ explicit invalid source does not silently fall back (1.297801ms)
+✔ custom configuration keeps all managed paths beneath its clone root (0.217535ms)
+✔ generated local connection has no password (0.122123ms)
+✔ realpath containment rejects managed symlink paths (2.697298ms)
+✔ lifecycle stop refuses a symlink before invoking pg_ctl (2.799449ms)
+✔ lifecycle initialization rejects an ownership marker before destructive calls (8.131842ms)
+✔ owned stale-major plus indeterminate pg_ctl status aborts and preserves data (11.793408ms)
+✔ owned stale-major plus definite stopped status safely reinitializes after ownership match (15.800379ms)
+✔ stop command failure preserves data and returns a redacted fixed error (9.595345ms)
+✔ start identity mismatch performs no database cutover and finalizer attempts stop (10.924436ms)
+DB clone source: backup
+Public base tables: 0
+Public columns: 0
+Schema migrations ledger rows: 0
+DB CLONE PASS
+✔ automatic candidate flow retries older valid SQL only after newest staging restore fails (18.18753ms)
+✔ explicit invalid or restore-failed source never falls back or drops production clone (10.615098ms)
+✔ reversible cutover rolls back when second rename fails and never drops backup (15.01046ms)
+✔ restore and capture stderr never expose fake secret or source path (11.100132ms)
+✔ backup parent directory symlink is rejected before restore or process calls (3.429854ms)
+DB clone source: backup
+Public base tables: 1
+Public columns: 1
+Schema migrations ledger rows: 0
+DB CLONE PASS
+✔ real integration restores a one-table SQL clone and stops cleanly (15392.030939ms)
+✔ cloneProduction symlink path finalizer invokes zero pg_ctl (2.44919ms)
+✔ marker ownership mismatch invokes zero destructive calls (13.309805ms)
+✔ existing-clone start failure attempts safe shutdown (12.516461ms)
+✔ schema path guard detects CLI, package script, filter, and API push paths (1.63965ms)
+✔ schema path guard ignores ordinary product push references (0.34019ms)
+✔ schema path guard permits only the audited schema parity inspection (0.240734ms)
+✔ schema path guard scans source and deployment configuration only (0.242325ms)
+✔ numberMigrations is strict, sorted, and rejects aliases (2.096363ms)
+✔ baseline and an earlier creator permit later column use (16261.798852ms)
+✔ same-file table, foreign key, index, and insert are accepted (8710.40857ms)
+✔ forward table and unqualified column dependencies are reported (17439.639326ms)
+✔ missing table and column dependencies are reported (18585.814238ms)
+✔ quoted public names, aliases, CTEs, and non-dynamic DO pass (8844.834333ms)
+✔ dynamic DO SQL is rejected before migration execution (13752.823918ms)
+✔ lazy DO branches are validated even when false (18515.653035ms)
+✔ guarded procedural statements are not skipped (12985.733037ms)
+✔ native statement attribution uses the failing statement (8540.21368ms)
+✔ unqualified missing columns use the structurally inferred table (13012.330332ms)
+✔ opaque numbered function bodies fail closed (8622.007449ms)
+✔ column reference counting is explicit and deduplicated (0.599429ms)
+✔ migration analysis ignores relation-like prose inside SQL string literals (0.150373ms)
+✔ workspace corpus has the expected baseline and migration counts (14247.802006ms)
+✔ migration lint accepts every supported idempotency guard (2.077863ms)
+✔ migration lint rejects unguarded schema creation and alteration (0.438509ms)
+✔ post-merge applies a pending migration to the development ledger before the guard (43.979591ms)
+PREFLIGHT 1/11: schema path guard
+PREFLIGHT 2/11: recovery guard
+PREFLIGHT 3/11: typecheck
+PREFLIGHT 4/11: full suite
+PREFLIGHT 5/11: migration lint
+PREFLIGHT 6/11: schema parity
+PREFLIGHT 7/11: built-app smoke
+PREFLIGHT 8/11: migration dependency lint
+PREFLIGHT 9/11: production database clone
+PREFLIGHT 10/11: migration rehearsal
+✔ preflight keeps migration safety gates explicit and ordered (2.321866ms)
+✔ preflight stops at a failed migration safety gate (2.67467ms)
+✔ failure lines are single-line, named, and never undefined (0.815963ms)
+✔ restore deletion fails when its explicit replacement is missing (2.84208ms)
+✔ dirty worktree migrate.ts cannot alter the committed-tree guard result (8.853945ms)
+ℹ tests 63
+ℹ suites 0
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159872.939515

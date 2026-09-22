@@ -22,6 +22,8 @@ export const emailSendsTable = pgTable(
     leadId: integer("lead_id").references(() => leadsTable.id, { onDelete: "cascade" }),
     userId: integer("user_id").references(() => usersTable.id, { onDelete: "set null" }),
     templateId: integer("template_id").references(() => emailTemplatesTable.id, { onDelete: "set null" }),
+    campaignId: integer("campaign_id"),
+    campaignLaunchId: integer("campaign_launch_id"),
     subject: text("subject").notNull(),
     toEmail: text("to_email").notNull(),
     fromEmail: text("from_email").notNull(),
@@ -42,6 +44,7 @@ export const emailSendsTable = pgTable(
     index("email_sends_sgid_idx").on(t.sendgridMessageId),
     index("email_sends_status_idx").on(t.status),
     index("email_sends_daily_marketing_idx").on(t.deliveryKind, t.createdAt),
+    index("email_sends_campaign_idx").on(t.campaignId, t.campaignLaunchId),
     check(
       "email_sends_delivery_kind_check",
       sql`${t.deliveryKind} IN ('direct', 'bulk', 'drip', 'test')`,

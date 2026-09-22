@@ -222,7 +222,7 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
   });
 }
 
-function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEmail: string): string {
+function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEmail: string, includeOpenPixel = true): string {
   // Wrap hrefs in click-tracking redirect
   const withClicks = bodyHtml.replace(
     /href="([^"#][^"]*)"/gi,
@@ -250,7 +250,12 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
     <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
     <br><span>${EMAIL_COMPLIANCE_ADDRESS}</span>
   </p>`;
-  return `${withClicks}${unsubLink}${pixel}`;
+  return `${withClicks}${unsubLink}${includeOpenPixel ? pixel : ""}`;
+}
+
+function injectPlainCompliance(bodyText: string, sendId: number, baseUrl: string, toEmail: string): string {
+  const token = makeUnsubToken(sendId, toEmail);
+  return `${bodyText.trim()}\n\nUnsubscribe: ${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}\n${EMAIL_COMPLIANCE_ADDRESS}`;
 }
 
 function startOfUtcDay(now = new Date()): Date {
@@ -303,9 +308,11 @@ export async function sendTrackedEmailToProvider({
   ccEmail,
   subject,
   bodyHtml,
+  bodyText,
   sendId,
   baseUrl,
   attachments,
+  minimalNoImages = false,
 }: {
   provider: Pick<typeof sgMail, "send">;
   from: { email: string; name: string };
@@ -314,6 +321,7 @@ export async function sendTrackedEmailToProvider({
   ccEmail?: string | null;
   subject: string;
   bodyHtml: string;
+  bodyText?: string;
   sendId: number;
   baseUrl: string;
   attachments?: Array<{
@@ -322,8 +330,10 @@ export async function sendTrackedEmailToProvider({
     type?: string;
     disposition?: "attachment" | "inline";
   }>;
+  minimalNoImages?: boolean;
 }) {
-  const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail);
+  const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail, !minimalNoImages);
+  const text = bodyText ? injectPlainCompliance(bodyText, sendId, baseUrl, toEmail) : undefined;
   return provider.send({
     from,
     ...(replyTo ? { replyTo } : {}),
@@ -331,6 +341,7 @@ export async function sendTrackedEmailToProvider({
     ...(ccEmail && VALID_EMAIL.test(ccEmail.trim()) ? { cc: ccEmail.trim() } : {}),
     subject,
     html,
+    ...(text ? { text } : {}),
     ...(attachments?.length ? { attachments } : {}),
     trackingSettings: {
       clickTracking: { enable: false, enableText: false },
@@ -345,6 +356,7 @@ async function doSendEmail(params: {
   templateId: number | null;
   subject: string;
   bodyHtml: string;
+  bodyText?: string;
   toEmail: string;
   baseUrl: string;
   senderMode?: "default" | "assigned_rep";
@@ -357,6 +369,9 @@ async function doSendEmail(params: {
     type?: string;
     disposition?: "attachment" | "inline";
   }>;
+  minimalNoImages?: boolean;
+  campaignId?: number | null;
+  campaignLaunchId?: number | null;
 }): Promise<{ send: any; error?: string; configurationReason?: string; deliveryOutcome?: "definite_failure" | "uncertain" }> {
   const [emailSettings] = await db.select({
     emailSendingEnabled: companySettingsTable.emailSendingEnabled,
@@ -376,6 +391,8 @@ async function doSendEmail(params: {
     leadId: params.leadId,
     userId: params.userId,
     templateId: params.templateId,
+    campaignId: params.campaignId ?? null,
+    campaignLaunchId: params.campaignLaunchId ?? null,
     subject: params.subject,
     toEmail: params.toEmail,
     fromEmail: from.email,
@@ -443,7 +460,7 @@ async function doSendEmail(params: {
 
   let brandedHtml: string;
   try {
-    brandedHtml = ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
+    brandedHtml = params.minimalNoImages ? params.bodyHtml : ensureBrandEmailHeader(params.bodyHtml, params.baseUrl);
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unable to secure email tracking links";
     const [failed] = await db.update(emailSendsTable)
@@ -476,9 +493,11 @@ async function doSendEmail(params: {
       ccEmail: params.ccEmail,
       subject: params.subject,
       bodyHtml: brandedHtml,
+      bodyText: params.bodyText,
       sendId: placeholder.id,
       baseUrl: params.baseUrl,
       attachments: params.attachments,
+      minimalNoImages: params.minimalNoImages,
     });
 
     const messageId = (

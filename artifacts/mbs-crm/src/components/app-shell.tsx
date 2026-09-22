@@ -61,7 +61,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/deals", label: "Deals", icon: Briefcase },
     { href: "/deals/rate-points", label: "Rate & Points", icon: Calculator },
     { href: "/documents", label: "Documents", icon: FileText },
-    ...(isManagerOrAdmin ? [{ href: "/campaigns/financing-draft", label: "Financing Campaign", icon: Mail }] : []),
+    ...(isManagerOrAdmin ? [{ href: "/campaigns", label: "Campaigns", icon: Mail }] : []),
   ];
 
   const navLink = (href: string, label: string, Icon: React.ElementType, exact = false) => {

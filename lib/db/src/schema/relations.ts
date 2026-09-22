@@ -28,6 +28,7 @@ import { retiredRepSlugsTable } from "./retiredRepSlugs";
 import { usfaApplicationEmailLogTable, usfaIntakeLogTable, usfaIntakePrefillTable, usfaPrefillInvitesTable } from "./usfaIntake";
 import { pushSubscriptionsTable } from "./pushSubscriptions";
 import { notificationPreferencesTable } from "./notificationPreferences";
+import { campaignsTable, campaignAudiencePresetsTable, campaignApprovalsTable, campaignAudiencePreviewsTable, campaignAuditEventsTable, campaignLaunchesTable, campaignRecipientsTable } from "./campaigns";
 
 export const leadsRelations = relations(leadsTable, ({ one, many }) => ({
   assignedRep: one(usersTable, {
@@ -77,6 +78,12 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   collateralTemplates: many(collateralTemplatesTable),
   collateralRenders: many(collateralRendersTable),
   adminAuditRows: many(adminAuditLogTable),
+  campaigns: many(campaignsTable),
+  campaignAudiencePresets: many(campaignAudiencePresetsTable),
+  campaignApprovals: many(campaignApprovalsTable),
+  campaignAudiencePreviews: many(campaignAudiencePreviewsTable),
+  campaignLaunches: many(campaignLaunchesTable),
+  campaignAuditEvents: many(campaignAuditEventsTable),
 }));
 
 export const userIdentitiesRelations = relations(userIdentitiesTable, ({ one }) => ({
@@ -363,4 +370,40 @@ export const lenderSubmissionsRelations = relations(lenderSubmissionsTable, ({ o
 export const notificationsRelations = relations(notificationsTable, ({ one }) => ({
   user: one(usersTable, { fields: [notificationsTable.userId], references: [usersTable.id] }),
   lead: one(leadsTable, { fields: [notificationsTable.leadId], references: [leadsTable.id] }),
+}));
+
+export const campaignsRelations = relations(campaignsTable, ({ one, many }) => ({
+  owner: one(usersTable, { fields: [campaignsTable.ownerId], references: [usersTable.id] }),
+  creator: one(usersTable, { fields: [campaignsTable.createdBy], references: [usersTable.id] }),
+  emailTemplate: one(emailTemplatesTable, { fields: [campaignsTable.emailTemplateId], references: [emailTemplatesTable.id] }),
+  approvals: many(campaignApprovalsTable),
+  launches: many(campaignLaunchesTable),
+  auditEvents: many(campaignAuditEventsTable),
+  recipients: many(campaignRecipientsTable),
+}));
+
+export const campaignAudiencePresetsRelations = relations(campaignAudiencePresetsTable, ({ one }) => ({
+  owner: one(usersTable, { fields: [campaignAudiencePresetsTable.ownerId], references: [usersTable.id] }),
+}));
+
+export const campaignApprovalsRelations = relations(campaignApprovalsTable, ({ one }) => ({
+  campaign: one(campaignsTable, { fields: [campaignApprovalsTable.campaignId], references: [campaignsTable.id] }),
+  approver: one(usersTable, { fields: [campaignApprovalsTable.approvedBy], references: [usersTable.id] }),
+}));
+
+export const campaignLaunchesRelations = relations(campaignLaunchesTable, ({ one, many }) => ({
+  campaign: one(campaignsTable, { fields: [campaignLaunchesTable.campaignId], references: [campaignsTable.id] }),
+  requester: one(usersTable, { fields: [campaignLaunchesTable.requestedBy], references: [usersTable.id] }),
+  recipients: many(campaignRecipientsTable),
+}));
+
+export const campaignRecipientsRelations = relations(campaignRecipientsTable, ({ one }) => ({
+  campaign: one(campaignsTable, { fields: [campaignRecipientsTable.campaignId], references: [campaignsTable.id] }),
+  launch: one(campaignLaunchesTable, { fields: [campaignRecipientsTable.launchId], references: [campaignLaunchesTable.id] }),
+  lead: one(leadsTable, { fields: [campaignRecipientsTable.leadId], references: [leadsTable.id] }),
+}));
+
+export const campaignAuditEventsRelations = relations(campaignAuditEventsTable, ({ one }) => ({
+  campaign: one(campaignsTable, { fields: [campaignAuditEventsTable.campaignId], references: [campaignsTable.id] }),
+  actor: one(usersTable, { fields: [campaignAuditEventsTable.actorUserId], references: [usersTable.id] }),
 }));

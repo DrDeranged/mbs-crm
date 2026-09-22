@@ -5,6 +5,293 @@
  * MBS CRM API specification
  * OpenAPI spec version: 0.1.0
  */
+export type CampaignChannel = typeof CampaignChannel[keyof typeof CampaignChannel];
+
+
+export const CampaignChannel = {
+  email: 'email',
+  sms: 'sms',
+  email_sms: 'email_sms',
+} as const;
+
+export type CampaignStatus = typeof CampaignStatus[keyof typeof CampaignStatus];
+
+
+export const CampaignStatus = {
+  draft: 'draft',
+  approved: 'approved',
+  scheduled: 'scheduled',
+  running: 'running',
+  paused: 'paused',
+  completed: 'completed',
+  cancelled: 'cancelled',
+  failed: 'failed',
+} as const;
+
+export type CampaignBuiltInFlyerKey = typeof CampaignBuiltInFlyerKey[keyof typeof CampaignBuiltInFlyerKey];
+
+
+export const CampaignBuiltInFlyerKey = {
+  equipment_financing: 'equipment_financing',
+  working_capital: 'working_capital',
+} as const;
+
+export interface CampaignBuiltInFlyer {
+  source: 'built_in';
+  key: CampaignBuiltInFlyerKey;
+  name: string;
+  contentType: 'image/png';
+}
+
+export type CampaignUploadedFlyerContentType = typeof CampaignUploadedFlyerContentType[keyof typeof CampaignUploadedFlyerContentType];
+
+
+export const CampaignUploadedFlyerContentType = {
+  'image/png': 'image/png',
+  'image/jpeg': 'image/jpeg',
+  'image/webp': 'image/webp',
+  'application/pdf': 'application/pdf',
+} as const;
+
+export interface CampaignUploadedFlyer {
+  source: 'uploaded';
+  /** @pattern ^/objects/campaigns/ */
+  objectPath: string;
+  name: string;
+  contentType: CampaignUploadedFlyerContentType;
+  /**
+     * @minimum 1
+     * @maximum 15728640
+     */
+  size: number;
+}
+
+export type CampaignAudienceRulesProgramTypesItem = typeof CampaignAudienceRulesProgramTypesItem[keyof typeof CampaignAudienceRulesProgramTypesItem];
+
+
+export const CampaignAudienceRulesProgramTypesItem = {
+  equipment: 'equipment',
+  working_capital: 'working_capital',
+} as const;
+
+export interface CampaignAudienceRules {
+  statuses?: string[];
+  programTypes?: CampaignAudienceRulesProgramTypesItem[];
+  assignedRepId?: number | null;
+  leadSources?: string[];
+  createdFrom?: string | null;
+  createdTo?: string | null;
+  /** @minimum 0 */
+  minAmount?: number | null;
+  /** @minimum 0 */
+  maxAmount?: number | null;
+}
+
+export interface Campaign {
+  id: number;
+  name: string;
+  description?: string | null;
+  channel: CampaignChannel;
+  status: CampaignStatus;
+  emailTemplateId?: number | null;
+  smsBody?: string | null;
+  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
+  audienceRules: CampaignAudienceRules;
+  ownerId: number;
+  createdBy: number;
+  version: number;
+}
+
+export type CampaignInputChannel = typeof CampaignInputChannel[keyof typeof CampaignInputChannel];
+
+
+export const CampaignInputChannel = {
+  email: 'email',
+  sms: 'sms',
+  email_sms: 'email_sms',
+} as const;
+
+export interface CampaignInput {
+  /** @minLength 1 */
+  name: string;
+  description?: string | null;
+  channel?: CampaignInputChannel;
+  emailTemplateId?: number | null;
+  smsBody?: string | null;
+  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
+  audienceRules?: CampaignAudienceRules;
+  ownerId?: number;
+}
+
+export type CampaignFlyerUploadInputContentType = typeof CampaignFlyerUploadInputContentType[keyof typeof CampaignFlyerUploadInputContentType];
+
+
+export const CampaignFlyerUploadInputContentType = {
+  'image/png': 'image/png',
+  'image/jpeg': 'image/jpeg',
+  'image/webp': 'image/webp',
+  'application/pdf': 'application/pdf',
+} as const;
+
+export interface CampaignFlyerUploadInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  name: string;
+  /**
+     * @minimum 1
+     * @maximum 15728640
+     */
+  size: number;
+  contentType: CampaignFlyerUploadInputContentType;
+}
+
+export interface CampaignFlyerUpload {
+  uploadUrl: string;
+  objectPath: string;
+  name: string;
+  size: number;
+  contentType: string;
+}
+
+export interface CampaignAudiencePreset {
+  id: number;
+  name: string;
+  rules: CampaignAudienceRules;
+  ownerId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignAudiencePresetInput {
+  /** @minLength 1 */
+  name: string;
+  rules: CampaignAudienceRules;
+}
+
+export interface CampaignAudiencePresetPatch {
+  /** @minLength 1 */
+  name?: string;
+  rules?: CampaignAudienceRules;
+}
+
+export type CampaignEligibleRecipientChannel = typeof CampaignEligibleRecipientChannel[keyof typeof CampaignEligibleRecipientChannel];
+
+
+export const CampaignEligibleRecipientChannel = {
+  email: 'email',
+  sms: 'sms',
+} as const;
+
+export interface CampaignEligibleRecipient {
+  leadId: number;
+  channel: CampaignEligibleRecipientChannel;
+}
+
+export type CampaignExclusionChannel = typeof CampaignExclusionChannel[keyof typeof CampaignExclusionChannel];
+
+
+export const CampaignExclusionChannel = {
+  email: 'email',
+  sms: 'sms',
+} as const;
+
+export interface CampaignExclusion {
+  leadId: number;
+  channel: CampaignExclusionChannel;
+  reason: string;
+}
+
+export interface CampaignPreviewCounts {
+  eligible: number;
+  excluded: number;
+  emailEligible: number;
+  smsEligible: number;
+  emailCapacityRemaining: number;
+}
+
+export type CampaignLaunchMode = typeof CampaignLaunchMode[keyof typeof CampaignLaunchMode];
+
+
+export const CampaignLaunchMode = {
+  live: 'live',
+  dry_run: 'dry_run',
+} as const;
+
+export interface CampaignLaunch {
+  id: number;
+  campaignId: number;
+  idempotencyKey: string;
+  requestedBy: number;
+  mode: CampaignLaunchMode;
+  status: string;
+  eligibleCount: number;
+  excludedCount: number;
+  sentCount: number;
+  failedCount: number;
+  scheduledAt?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+}
+
+export type CampaignResultsCounts = {
+  eligible: number;
+  excluded: number;
+  sent: number;
+  failed: number;
+};
+
+export interface CampaignResults {
+  launches: CampaignLaunch[];
+  counts: CampaignResultsCounts;
+}
+
+export interface CampaignPreview {
+  totalMatching: number;
+  eligible: CampaignEligibleRecipient[];
+  exclusions: CampaignExclusion[];
+  counts: CampaignPreviewCounts;
+  previewToken: string;
+  previewId?: number;
+  contentHash?: string;
+}
+
+export interface CampaignLaunchResult {
+  launch: CampaignLaunch;
+  sent?: number;
+  failed?: number;
+  preview?: CampaignPreview;
+}
+
+export interface CampaignDetail {
+  campaign: Campaign;
+  launches: CampaignLaunch[];
+}
+
+export interface ApproveCampaignInput {
+  /** @minLength 10 */
+  previewToken: string;
+  claimsAffirmed: true;
+  approvalType?: string;
+}
+
+export type CampaignLaunchInputMode = typeof CampaignLaunchInputMode[keyof typeof CampaignLaunchInputMode];
+
+
+export const CampaignLaunchInputMode = {
+  live: 'live',
+  dry_run: 'dry_run',
+} as const;
+
+export interface CampaignLaunchInput {
+  /** @minLength 8 */
+  idempotencyKey: string;
+  mode?: CampaignLaunchInputMode;
+  scheduledAt?: string | null;
+}
+
 export interface AdminUserMergeRequest {
   /** @minimum 1 */
   sourceUserId: number;
@@ -365,6 +652,10 @@ export interface RenewalOpportunity {
   /** @nullable */
   assignedRepId?: number | null;
   /** @nullable */
+  referredByPartnerId?: number | null;
+  /** @nullable */
+  referralSplitPct?: number | null;
+  /** @nullable */
   assignedRepName?: string | null;
   /** @nullable */
   requestedAmount?: number | null;
@@ -384,6 +675,33 @@ export const UserRole = {
   pending: 'pending',
 } as const;
 
+export interface LenderPricing {
+  minRatePct?: number;
+  maxRatePct?: number;
+  minFactorRate?: number;
+  maxFactorRate?: number;
+  structures?: string[];
+  termMonths?: number[];
+  maxAdvancePct?: number;
+  minDownPaymentPct?: number;
+}
+
+export type LenderCompensationType = typeof LenderCompensationType[keyof typeof LenderCompensationType];
+
+
+export const LenderCompensationType = {
+  points: 'points',
+  percent: 'percent',
+  flat: 'flat',
+} as const;
+
+export interface LenderCompensation {
+  type: LenderCompensationType;
+  min?: number;
+  max?: number;
+  flatAmount?: number;
+}
+
 export interface User {
   id: number;
   clerkId: string;
@@ -396,6 +714,19 @@ export interface User {
   slug: string | null;
   role: UserRole;
   isActive?: boolean;
+  guidelineVersion?: number;
+  /** @nullable */
+  guidelineSource?: string | null;
+  /** @nullable */
+  guidelineEffectiveAt?: string | null;
+  equipmentRestrictions?: string[];
+  pricing?: LenderPricing | null;
+  requiredDocuments?: string[];
+  /** @nullable */
+  turnaroundBusinessDaysMin?: number | null;
+  /** @nullable */
+  turnaroundBusinessDaysMax?: number | null;
+  compensation?: LenderCompensation | null;
   /** @nullable */
   mobileNumber?: string | null;
   createdAt: string;
@@ -1124,6 +1455,8 @@ export interface Communication {
   /** @nullable */
   leadId?: number | null;
   /** @nullable */
+  partnerId?: number | null;
+  /** @nullable */
   userId?: number | null;
   user?: User | null;
   type: CommunicationType;
@@ -1382,12 +1715,111 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
+export type PartnerContactRole = typeof PartnerContactRole[keyof typeof PartnerContactRole];
+
+
+export const PartnerContactRole = {
+  rep: 'rep',
+  submissions: 'submissions',
+  credit: 'credit',
+  docs: 'docs',
+  funding: 'funding',
+  other: 'other',
+} as const;
+
+export interface PartnerContact {
+  id: number;
+  partnerId: number;
+  role: PartnerContactRole;
+  name: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  isPrimary: boolean;
+  /** @nullable */
+  notes?: string | null;
+  smsOptedOut?: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PartnerContactInputRole = typeof PartnerContactInputRole[keyof typeof PartnerContactInputRole];
+
+
+export const PartnerContactInputRole = {
+  rep: 'rep',
+  submissions: 'submissions',
+  credit: 'credit',
+  docs: 'docs',
+  funding: 'funding',
+  other: 'other',
+} as const;
+
+export interface PartnerContactInput {
+  role?: PartnerContactInputRole;
+  /** @minLength 1 */
+  name: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  isPrimary?: boolean;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export type PartnerContactUpdateRole = typeof PartnerContactUpdateRole[keyof typeof PartnerContactUpdateRole];
+
+
+export const PartnerContactUpdateRole = {
+  rep: 'rep',
+  submissions: 'submissions',
+  credit: 'credit',
+  docs: 'docs',
+  funding: 'funding',
+  other: 'other',
+} as const;
+
+export interface PartnerContactUpdate {
+  role?: PartnerContactUpdateRole;
+  /** @minLength 1 */
+  name?: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  isPrimary?: boolean;
+  /** @nullable */
+  notes?: string | null;
+}
+
 export type LenderSubmissionStats = {
   submitted?: number;
   approved?: number;
   declined?: number;
   approvalRate?: number;
 };
+
+export type LenderPartnerType = typeof LenderPartnerType[keyof typeof LenderPartnerType];
+
+
+export const LenderPartnerType = {
+  direct_lender: 'direct_lender',
+  broker_out: 'broker_out',
+  broker_in: 'broker_in',
+} as const;
+
+export type LenderSubmissionMethod = typeof LenderSubmissionMethod[keyof typeof LenderSubmissionMethod];
+
+
+export const LenderSubmissionMethod = {
+  email: 'email',
+  portal: 'portal',
+  both: 'both',
+} as const;
 
 export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
 
@@ -1463,14 +1895,70 @@ export interface Lender {
   /** @nullable */
   contactEmail?: string | null;
   /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  website?: string | null;
+  /** @nullable */
   notes?: string | null;
   isActive: boolean;
+  guidelineVersion?: number;
+  /** @nullable */
+  guidelineSource?: string | null;
+  /** @nullable */
+  guidelineEffectiveAt?: string | null;
+  equipmentRestrictions?: string[];
+  pricing?: LenderPricing | null;
+  requiredDocuments?: string[];
+  /** @nullable */
+  turnaroundBusinessDaysMin?: number | null;
+  /** @nullable */
+  turnaroundBusinessDaysMax?: number | null;
+  compensation?: LenderCompensation | null;
+  partnerType?: LenderPartnerType;
+  /** @nullable */
+  referralSplitPct?: number | null;
+  submissionMethod?: LenderSubmissionMethod;
+  /** @nullable */
+  portalUrl?: string | null;
+  contacts?: PartnerContact[];
   createdAt: string;
   updatedAt: string;
 }
 
+export type LenderInputPartnerType = typeof LenderInputPartnerType[keyof typeof LenderInputPartnerType];
+
+
+export const LenderInputPartnerType = {
+  direct_lender: 'direct_lender',
+  broker_out: 'broker_out',
+  broker_in: 'broker_in',
+} as const;
+
+export type LenderInputSubmissionMethod = typeof LenderInputSubmissionMethod[keyof typeof LenderInputSubmissionMethod];
+
+
+export const LenderInputSubmissionMethod = {
+  email: 'email',
+  portal: 'portal',
+  both: 'both',
+} as const;
+
 export interface LenderInput {
   name: string;
+  partnerType?: LenderInputPartnerType;
+  /** @nullable */
+  referralSplitPct?: number | null;
+  submissionMethod?: LenderInputSubmissionMethod;
+  /** @nullable */
+  portalUrl?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  website?: string | null;
   programTypes?: string[];
   /** @nullable */
   minAmount?: number | null;
@@ -1516,7 +2004,58 @@ export interface LenderInput {
   /** @nullable */
   notes?: string | null;
   isActive?: boolean;
+  /** @minimum 1 */
+  guidelineVersion?: number;
+  /** @nullable */
+  guidelineSource?: string | null;
+  /** @nullable */
+  guidelineEffectiveAt?: string | null;
+  equipmentRestrictions?: string[];
+  pricing?: LenderPricing | null;
+  requiredDocuments?: string[];
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  turnaroundBusinessDaysMin?: number | null;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  turnaroundBusinessDaysMax?: number | null;
+  compensation?: LenderCompensation | null;
 }
+
+export type LenderGuidelineVersionSnapshot = { [key: string]: unknown };
+
+export interface LenderGuidelineVersion {
+  id: number;
+  lenderId: number;
+  version: number;
+  /** @nullable */
+  source?: string | null;
+  /** @nullable */
+  effectiveAt?: string | null;
+  snapshot: LenderGuidelineVersionSnapshot;
+  createdAt: string;
+}
+
+export type LenderMatchPartnerType = typeof LenderMatchPartnerType[keyof typeof LenderMatchPartnerType];
+
+
+export const LenderMatchPartnerType = {
+  direct_lender: 'direct_lender',
+  broker_out: 'broker_out',
+  broker_in: 'broker_in',
+} as const;
+
+export type LenderMatchMatchGroup = typeof LenderMatchMatchGroup[keyof typeof LenderMatchMatchGroup];
+
+
+export const LenderMatchMatchGroup = {
+  lender: 'lender',
+  super_broker: 'super_broker',
+} as const;
 
 export type LenderMatchCriteriaBreakdownItem = {
   criterion?: string;
@@ -1525,14 +2064,163 @@ export type LenderMatchCriteriaBreakdownItem = {
   detail?: string;
 };
 
+export type LenderMatchEligibilityStatus = typeof LenderMatchEligibilityStatus[keyof typeof LenderMatchEligibilityStatus];
+
+
+export const LenderMatchEligibilityStatus = {
+  plausible: 'plausible',
+} as const;
+
+/**
+ * @nullable
+ */
+export type LenderMatchEconomics = { [key: string]: unknown } | null;
+
+export interface RankingDimensions {
+  approvalProbability: number;
+  /** @nullable */
+  customerPricing?: number | null;
+  /** @nullable */
+  fundingSpeed?: number | null;
+  /** @nullable */
+  mbsPayout?: number | null;
+  documentationBurden: number;
+  overallStructure: number;
+}
+
+export interface HistoricalLenderSignal {
+  submitted: number;
+  approved: number;
+  declined: number;
+  funded: number;
+  /** @nullable */
+  approvalRate?: number | null;
+  /** @nullable */
+  fundingRate?: number | null;
+}
+
 export interface LenderMatch {
   id: number;
   leadId: number;
   lenderId: number;
   lender?: Lender | null;
   matchScore: number;
+  partnerType?: LenderMatchPartnerType;
+  matchGroup?: LenderMatchMatchGroup;
   criteriaBreakdown: LenderMatchCriteriaBreakdownItem[];
+  eligibilityStatus?: LenderMatchEligibilityStatus;
+  rankingVersion?: string;
+  rankingDimensions?: RankingDimensions;
+  historicalSignal?: HistoricalLenderSignal;
+  /** @nullable */
+  estimatedGrossRevenue?: number | null;
+  /** @nullable */
+  economics?: LenderMatchEconomics;
   matchedAt: string;
+}
+
+export type UnderwritingProvenanceSource = typeof UnderwritingProvenanceSource[keyof typeof UnderwritingProvenanceSource];
+
+
+export const UnderwritingProvenanceSource = {
+  application: 'application',
+  lead: 'lead',
+  company: 'company',
+  bank_statement: 'bank_statement',
+  document: 'document',
+  user_correction: 'user_correction',
+} as const;
+
+export type UnderwritingProvenanceConfidence = typeof UnderwritingProvenanceConfidence[keyof typeof UnderwritingProvenanceConfidence];
+
+
+export const UnderwritingProvenanceConfidence = {
+  verified: 'verified',
+  reported: 'reported',
+  extracted: 'extracted',
+  corrected: 'corrected',
+} as const;
+
+export interface UnderwritingProvenance {
+  source: UnderwritingProvenanceSource;
+  sourceId?: number;
+  label: string;
+  confidence: UnderwritingProvenanceConfidence;
+}
+
+export interface UnderwritingFact {
+  key: string;
+  label: string;
+  value?: unknown;
+  estimated?: boolean;
+  provenance: UnderwritingProvenance;
+}
+
+/**
+ * @nullable
+ */
+export type UnderwritingProfileBank = { [key: string]: unknown } | null;
+
+export type UnderwritingProfileDocumentsItem = { [key: string]: unknown };
+
+export type UnderwritingProfileReadiness = {
+  readyForMatching: boolean;
+  missingFields: string[];
+  requiresHumanReview: boolean;
+};
+
+export interface UnderwritingCorrection {
+  id: number;
+  field: string;
+  value?: unknown;
+  reason: string;
+  /** @nullable */
+  evidenceDocumentId?: number | null;
+  createdAt: string;
+}
+
+export interface UnderwritingProfile {
+  leadId: number;
+  /** @nullable */
+  applicationId: number | null;
+  applicationType: string;
+  facts: UnderwritingFact[];
+  /** @nullable */
+  bank?: UnderwritingProfileBank;
+  documents: UnderwritingProfileDocumentsItem[];
+  readiness: UnderwritingProfileReadiness;
+  corrections: UnderwritingCorrection[];
+}
+
+export type UnderwritingCorrectionInputField = typeof UnderwritingCorrectionInputField[keyof typeof UnderwritingCorrectionInputField];
+
+
+export const UnderwritingCorrectionInputField = {
+  requestedAmount: 'requestedAmount',
+  creditScore: 'creditScore',
+  industry: 'industry',
+  businessState: 'businessState',
+  timeInBusinessMonths: 'timeInBusinessMonths',
+  monthlyRevenue: 'monthlyRevenue',
+  existingPositions: 'existingPositions',
+  equipmentDescription: 'equipmentDescription',
+  equipmentCategory: 'equipmentCategory',
+  equipmentYear: 'equipmentYear',
+  vendorName: 'vendorName',
+  transactionAmount: 'transactionAmount',
+  intendedUse: 'intendedUse',
+} as const;
+
+export interface UnderwritingCorrectionInput {
+  field: UnderwritingCorrectionInputField;
+  value: unknown;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  reason: string;
+  /** @nullable */
+  evidenceDocumentId?: number | null;
 }
 
 export type LenderSubmissionSentByUser = {
@@ -1590,6 +2278,10 @@ export interface LenderSubmission {
   id: number;
   leadId: number;
   lenderId: number;
+  /** @nullable */
+  viaBrokerId?: number | null;
+  /** @nullable */
+  endLenderId?: number | null;
   lender?: Lender | null;
   /** @nullable */
   dealId?: number | null;
@@ -1648,6 +2340,8 @@ export interface ManualLenderSubmissionCreate {
   /** @nullable */
   notes?: string | null;
   approval_pdf_base64?: string;
+  via_broker_id?: number;
+  end_lender_id?: number;
 }
 
 export type VariableFieldType = typeof VariableFieldType[keyof typeof VariableFieldType];
@@ -1741,14 +2435,35 @@ export interface EmailFlyerInput {
   leadId: number;
 }
 
+/**
+ * Applicant-reported equipment category, or null when omitted
+ * @nullable
+ */
+export type ApplicationSubmitResponseEquipmentCategory = typeof ApplicationSubmitResponseEquipmentCategory[keyof typeof ApplicationSubmitResponseEquipmentCategory] | null;
+
+
+export const ApplicationSubmitResponseEquipmentCategory = {
+  vocational: 'vocational',
+  otr_truck: 'otr_truck',
+  trailer: 'trailer',
+  construction: 'construction',
+  other: 'other',
+} as const;
+
 export interface ApplicationSubmitResponse {
   success: boolean;
   lead_id: number;
   /** @nullable */
   tracking_token?: string | null;
-  /** @nullable */
-  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
-  /** @nullable */
+  /**
+     * Applicant-reported equipment category, or null when omitted
+     * @nullable
+     */
+  equipmentCategory?: ApplicationSubmitResponseEquipmentCategory;
+  /**
+     * Applicant-reported homeownership, or null when omitted
+     * @nullable
+     */
   isHomeowner?: boolean | null;
 }
 
@@ -1810,6 +2525,20 @@ export const ApplicationRecordEstCreditScore = {
   '600_649': '600_649',
   '650_699': '650_699',
   '700_plus': '700_plus',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ApplicationRecordEquipmentCategory = typeof ApplicationRecordEquipmentCategory[keyof typeof ApplicationRecordEquipmentCategory] | null;
+
+
+export const ApplicationRecordEquipmentCategory = {
+  vocational: 'vocational',
+  otr_truck: 'otr_truck',
+  trailer: 'trailer',
+  construction: 'construction',
+  other: 'other',
 } as const;
 
 /**
@@ -1893,7 +2622,7 @@ export interface ApplicationRecord {
   /** @nullable */
   equipmentDescription?: string | null;
   /** @nullable */
-  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other" | null;
+  equipmentCategory?: ApplicationRecordEquipmentCategory;
   /** @nullable */
   vendorName?: string | null;
   /** @nullable */
@@ -2135,6 +2864,63 @@ export interface Notification {
   createdAt?: string;
 }
 
+export interface VapidPublicKey {
+  publicKey: string;
+}
+
+export type NotificationPreferencesEvents = {
+  new_application: boolean;
+  new_lead_assigned: boolean;
+  lead_replied: boolean;
+  submission_status_changed: boolean;
+  task_due: boolean;
+  stale_lead: boolean;
+};
+
+export interface NotificationPreferences {
+  pushEnabled: boolean;
+  events: NotificationPreferencesEvents;
+}
+
+export type NotificationPreferencesUpdateEvents = {
+  new_application?: boolean;
+  new_lead_assigned?: boolean;
+  lead_replied?: boolean;
+  submission_status_changed?: boolean;
+  task_due?: boolean;
+  stale_lead?: boolean;
+};
+
+export interface NotificationPreferencesUpdate {
+  pushEnabled?: boolean;
+  events?: NotificationPreferencesUpdateEvents;
+}
+
+export interface PushSubscriptionInput {
+  /** @maxLength 2048 */
+  endpoint: string;
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  p256dh: string;
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  auth: string;
+  /**
+     * @maxLength 1024
+     * @nullable
+     */
+  userAgent?: string | null;
+}
+
+export interface PushSubscriptionDelete {
+  /** @maxLength 2048 */
+  endpoint: string;
+}
+
 export type DeepHealthResponseStatus = typeof DeepHealthResponseStatus[keyof typeof DeepHealthResponseStatus];
 
 
@@ -2305,6 +3091,12 @@ export interface Deal {
   approxGm?: number | null;
   /** @nullable */
   actualGm?: number | null;
+  /** @nullable */
+  referredByPartnerId?: number | null;
+  /** @nullable */
+  referralSplitPct?: number | null;
+  /** @nullable */
+  referralGm?: number | null;
   /** @nullable */
   notes?: string | null;
   /**
@@ -3378,6 +4170,20 @@ export const SubmitApplicationBodySignatureMethod = {
   drawn: 'drawn',
 } as const;
 
+/**
+ * Optional applicant-reported equipment category; never inferred
+ */
+export type SubmitApplicationBodyEquipmentCategory = typeof SubmitApplicationBodyEquipmentCategory[keyof typeof SubmitApplicationBodyEquipmentCategory];
+
+
+export const SubmitApplicationBodyEquipmentCategory = {
+  vocational: 'vocational',
+  otr_truck: 'otr_truck',
+  trailer: 'trailer',
+  construction: 'construction',
+  other: 'other',
+} as const;
+
 export type SubmitApplicationBody = {
   type: SubmitApplicationBodyType;
   ownerFirstName: string;
@@ -3416,13 +4222,9 @@ export type SubmitApplicationBody = {
   secondaryOwnerCell?: string;
   secondaryOwnerEstCreditScore?: SubmitApplicationBodySecondaryOwnerEstCreditScore;
   /** Equipment applications only */
-  equipmentCategory?: "vocational" | "otr_truck" | "trailer" | "construction" | "other";
-  /** Equipment applications only */
   yearMakeModel?: string;
   /** Equipment applications only */
   trucksInFleet?: number;
-  /** Applicant-reported homeownership */
-  isHomeowner?: boolean;
   /** Equipment applications only */
   downPaymentAmount?: number;
   hasFinancialStatements?: boolean;
@@ -3439,8 +4241,12 @@ export type SubmitApplicationBody = {
      */
   signatureData: string;
   equipmentDescription?: string;
+  /** Optional applicant-reported equipment category; never inferred */
+  equipmentCategory?: SubmitApplicationBodyEquipmentCategory;
   /** Optional vendor/dealer name */
   vendorName?: string;
+  /** Optional applicant-reported homeownership; never inferred */
+  isHomeowner?: boolean;
   bankStatements?: Blob[];
 };
 
@@ -3602,9 +4408,31 @@ export type RunLenderMatch200 = {
 
 export type CreateLeadSubmissionBody = {
   lender_id: number;
+  /** Broker-out partner that placed this submission */
+  via_broker_id?: number;
+  /** End lender, when known */
+  end_lender_id?: number;
   /** Administrators may bypass the rolling 24-hour duplicate limit */
   admin_override?: boolean;
   package_config?: LenderPackageConfig;
+};
+
+export type SendPartnerContactSmsBody = {
+  /** @minLength 1 */
+  body: string;
+  dealId?: number;
+};
+
+export type GetPartnerTextingSettings200 = {
+  enabled: boolean;
+};
+
+export type UpdatePartnerTextingSettingsBody = {
+  enabled: boolean;
+};
+
+export type UpdatePartnerTextingSettings200 = {
+  enabled: boolean;
 };
 
 export type UpdateSubmissionBodyStatus = typeof UpdateSubmissionBodyStatus[keyof typeof UpdateSubmissionBodyStatus];
@@ -3731,5 +4559,9 @@ includeDrafts?: boolean;
 
 export type RenderCollateralTemplateParams = {
 repId?: number;
+};
+
+export type DryRunCampaignTestBody = {
+  toEmail: string;
 };
 

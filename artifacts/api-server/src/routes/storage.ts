@@ -9,9 +9,37 @@ import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage"
 import { requireUser } from "../lib/authHelpers";
 import { db } from "@workspace/db";
 import { documentsTable, leadsTable } from "@workspace/db";
+import { z } from "zod/v4";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
+const CAMPAIGN_FLYER_TYPES = ["image/png", "image/jpeg", "image/webp", "application/pdf"] as const;
+const MAX_CAMPAIGN_FLYER_BYTES = 15 * 1024 * 1024;
+
+router.post("/storage/campaign-flyers/request-url", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "manager" && user.role !== "admin") {
+    res.status(403).json({ error: "Manager or admin role required" });
+    return;
+  }
+  const parsed = z.object({
+    name: z.string().trim().min(1).max(255),
+    size: z.number().int().positive().max(MAX_CAMPAIGN_FLYER_BYTES),
+    contentType: z.enum(CAMPAIGN_FLYER_TYPES),
+  }).safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: `Flyers must be PNG, JPG, WebP, or PDF files up to ${MAX_CAMPAIGN_FLYER_BYTES / 1024 / 1024} MB` });
+    return;
+  }
+  try {
+    const upload = await objectStorageService.getCampaignFlyerUploadURL(user.id);
+    res.json({ ...upload, name: parsed.data.name, size: parsed.data.size, contentType: parsed.data.contentType });
+  } catch (error) {
+    req.log.error({ err: error }, "Error generating campaign flyer upload URL");
+    res.status(500).json({ error: "Failed to generate flyer upload URL" });
+  }
+});
 
 /**
  * POST /storage/uploads/request-url
@@ -98,6 +126,7 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
     // Deny-by-default: only serve paths that match a known authorized pattern.
     // Currently the only private objects are lead documents.
     const leadDocMatch = wildcardPath.match(/^leads\/(\d+)\/documents\/.+/);
+    const campaignFlyerMatch = wildcardPath.match(/^campaigns\/(\d+)\/.+/);
     if (leadDocMatch) {
       const leadId = Number(leadDocMatch[1]);
       // Reps may only access documents on leads assigned to them.
@@ -118,6 +147,17 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
           res.status(404).json({ error: "Object not found" });
           return;
         }
+      }
+    } else if (campaignFlyerMatch) {
+      const ownerId = Number(campaignFlyerMatch[1]);
+      if (user.role !== "admin" && user.role !== "manager" && user.id !== ownerId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+      // Managers may preview a just-uploaded file before saving it. Reps cannot browse campaign assets.
+      if (user.role === "rep" || (user.role !== "admin" && user.role !== "manager")) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
       }
     } else {
       // Unrecognized private object path — deny access by default.

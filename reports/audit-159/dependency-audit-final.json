@@ -1,0 +1,1076 @@
+{
+  "generatedForRevision": "088a0907eb438bb7f662a974769aa42ee8937af4",
+  "metadata": {
+    "vulnerabilities": {
+      "critical": 11,
+      "high": 59,
+      "info": 0,
+      "low": 4,
+      "moderate": 25
+    }
+  },
+  "criticalAndHighByPackage": [
+    {
+      "severity": "critical",
+      "package": "orval",
+      "count": 11
+    },
+    {
+      "severity": "high",
+      "package": "@tiptap/core",
+      "count": 1
+    },
+    {
+      "severity": "high",
+      "package": "@xmldom/xmldom",
+      "count": 19
+    },
+    {
+      "severity": "high",
+      "package": "brace-expansion",
+      "count": 6
+    },
+    {
+      "severity": "high",
+      "package": "browserslist",
+      "count": 2
+    },
+    {
+      "severity": "high",
+      "package": "fast-uri",
+      "count": 6
+    },
+    {
+      "severity": "high",
+      "package": "image-size",
+      "count": 2
+    },
+    {
+      "severity": "high",
+      "package": "ip-address",
+      "count": 1
+    },
+    {
+      "severity": "high",
+      "package": "js-yaml",
+      "count": 6
+    },
+    {
+      "severity": "high",
+      "package": "linkify-it",
+      "count": 2
+    },
+    {
+      "severity": "high",
+      "package": "multer",
+      "count": 3
+    },
+    {
+      "severity": "high",
+      "package": "orval",
+      "count": 1
+    },
+    {
+      "severity": "high",
+      "package": "postcss",
+      "count": 2
+    },
+    {
+      "severity": "high",
+      "package": "shell-quote",
+      "count": 1
+    },
+    {
+      "severity": "high",
+      "package": "tar",
+      "count": 3
+    },
+    {
+      "severity": "high",
+      "package": "uuid",
+      "count": 4
+    }
+  ],
+  "advisories": [
+    {
+      "id": "GHSA-j95f-988m-3j2f@@tiptap/core-3.27.3",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@tiptap/core",
+        "purl": "pkg:npm/%40tiptap/core",
+        "version": "3.27.3"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-27p8-2357-5qqv@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-4w3w-2rp5-g8jm@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-8344-3jmq-59r6@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-93r5-fhx6-vmg9@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-965w-775f-mr7g@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-c7q8-3ch8-vqpv@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-w2rr-34g9-rvrj@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-x4fp-j954-r2f4@@xmldom/xmldom-0.8.13",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.8.13"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-27p8-2357-5qqv@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-3px3-54cx-rmw9@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-4w3w-2rp5-g8jm@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-6mj3-qw4j-hgrw@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-8344-3jmq-59r6@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-93r5-fhx6-vmg9@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-965w-775f-mr7g@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-c7q8-3ch8-vqpv@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-g53g-w8rj-fmg7@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-vr34-hp96-76pp@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-w2rr-34g9-rvrj@@xmldom/xmldom-0.9.10",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@xmldom/xmldom",
+        "purl": "pkg:npm/%40xmldom/xmldom",
+        "version": "0.9.10"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-mh99-v99m-4gvg@brace-expansion-1.1.15",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "1.1.15"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-rgw5-rvv9-x895@brace-expansion-1.1.15",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "1.1.15"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-mh99-v99m-4gvg@brace-expansion-2.1.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "2.1.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-rgw5-rvv9-x895@brace-expansion-2.1.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "2.1.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-mh99-v99m-4gvg@brace-expansion-5.0.6",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "5.0.6"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-rgw5-rvv9-x895@brace-expansion-5.0.6",
+      "package": {
+        "ecosystem": "npm",
+        "name": "brace-expansion",
+        "purl": "pkg:npm/brace-expansion",
+        "version": "5.0.6"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-73wf-gq98-2v4g@browserslist-4.28.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "browserslist",
+        "purl": "pkg:npm/browserslist",
+        "version": "4.28.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-c83g-rgw3-j3cx@browserslist-4.28.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "browserslist",
+        "purl": "pkg:npm/browserslist",
+        "version": "4.28.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-4c8g-83qw-93j6@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-7p8r-x3mc-p8w7@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-f65p-4m7j-42xc@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-fph4-wmhf-6fwf@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-jqff-g426-hqxp@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-v2hh-gcrm-f6hx@fast-uri-3.1.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "fast-uri",
+        "purl": "pkg:npm/fast-uri",
+        "version": "3.1.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-5p2g-fcmc-qvqq@image-size-1.2.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "image-size",
+        "purl": "pkg:npm/image-size",
+        "version": "1.2.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-w3rx-r6r6-pgpr@image-size-1.2.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "image-size",
+        "purl": "pkg:npm/image-size",
+        "version": "1.2.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-mwp4-54f8-5fhr@ip-address-10.2.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "ip-address",
+        "purl": "pkg:npm/ip-address",
+        "version": "10.2.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:N/VA:N/SC:H/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-2883-xcg3-v3hh@js-yaml-3.14.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "3.14.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-52cp-r559-cp3m@js-yaml-3.14.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "3.14.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj@js-yaml-3.14.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "3.14.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-2883-xcg3-v3hh@js-yaml-4.1.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "4.1.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-52cp-r559-cp3m@js-yaml-4.1.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "4.1.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj@js-yaml-4.1.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "js-yaml",
+        "purl": "pkg:npm/js-yaml",
+        "version": "4.1.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-22p9-wv53-3rq4@linkify-it-5.0.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "linkify-it",
+        "purl": "pkg:npm/linkify-it",
+        "version": "5.0.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-v245-v573-v5vm@linkify-it-5.0.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "linkify-it",
+        "purl": "pkg:npm/linkify-it",
+        "version": "5.0.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-535w-7cp7-47q4@multer-2.2.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "multer",
+        "purl": "pkg:npm/multer",
+        "version": "2.2.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-qfvm-cv95-jqjf@multer-2.2.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "multer",
+        "purl": "pkg:npm/multer",
+        "version": "2.2.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-wc9g-mqfw-jrwm@multer-2.2.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "multer",
+        "purl": "pkg:npm/multer",
+        "version": "2.2.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-2h9g-j24r-h63g@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-2w86-xfrc-g85r@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-3575-w9fc-c2j6@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-6437-gxhq-pqv8@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-653q-5476-x79g@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-6mr6-jvcr-2f25@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-88f2-fpv8-89q2@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-8j6p-r8jg-mxqh@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-cxq5-97v7-87j8@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:N"
+      }
+    },
+    {
+      "id": "GHSA-fg9p-mrxr-hvq7@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-p4cg-3328-rvfg@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-w727-8j6c-2rj4@orval-8.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "orval",
+        "purl": "pkg:npm/orval",
+        "version": "8.9.1"
+      },
+      "severity": {
+        "level": "critical",
+        "type": "CVSS_V4",
+        "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"
+      }
+    },
+    {
+      "id": "GHSA-6g55-p6wh-862q@postcss-8.4.49",
+      "package": {
+        "ecosystem": "npm",
+        "name": "postcss",
+        "purl": "pkg:npm/postcss",
+        "version": "8.4.49"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      }
+    },
+    {
+      "id": "GHSA-r28c-9q8g-f849@postcss-8.4.49",
+      "package": {
+        "ecosystem": "npm",
+        "name": "postcss",
+        "purl": "pkg:npm/postcss",
+        "version": "8.4.49"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      }
+    },
+    {
+      "id": "GHSA-395f-4hp3-45gv@shell-quote-1.8.4",
+      "package": {
+        "ecosystem": "npm",
+        "name": "shell-quote",
+        "purl": "pkg:npm/shell-quote",
+        "version": "1.8.4"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-23hp-3jrh-7fpw@tar-7.5.16",
+      "package": {
+        "ecosystem": "npm",
+        "name": "tar",
+        "purl": "pkg:npm/tar",
+        "version": "7.5.16"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-8x88-c5mf-7j5w@tar-7.5.16",
+      "package": {
+        "ecosystem": "npm",
+        "name": "tar",
+        "purl": "pkg:npm/tar",
+        "version": "7.5.16"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-r292-9mhp-454m@tar-7.5.16",
+      "package": {
+        "ecosystem": "npm",
+        "name": "tar",
+        "purl": "pkg:npm/tar",
+        "version": "7.5.16"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      }
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq@uuid-3.4.0",
+      "package": {
+        "ecosystem": "npm",
+        "name": "uuid",
+        "purl": "pkg:npm/uuid",
+        "version": "3.4.0"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq@uuid-7.0.3",
+      "package": {
+        "ecosystem": "npm",
+        "name": "uuid",
+        "purl": "pkg:npm/uuid",
+        "version": "7.0.3"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq@uuid-8.3.2",
+      "package": {
+        "ecosystem": "npm",
+        "name": "uuid",
+        "purl": "pkg:npm/uuid",
+        "version": "8.3.2"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq@uuid-9.0.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "uuid",
+        "purl": "pkg:npm/uuid",
+        "version": "9.0.1"
+      },
+      "severity": {
+        "level": "high",
+        "type": "CVSS_V3",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      }
+    }
+  ]
+}

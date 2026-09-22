@@ -1,0 +1,12 @@
+
+> workspace@0.0.0 migrate:rehearse /home/runner/workspace
+> pnpm --silent --dir scripts exec tsx ./src/migrate-rehearse.ts
+
+Applied names/count: 052_reusable_campaign_launcher.sql, 053_campaign_preview_approval_snapshots.sql, 054_campaign_preview_recipient_snapshots.sql, 055_campaign_launch_execution_leases.sql / 4
+Superseded names/count: none / 0
+Failed: none
+Ledger before/after counts: 50/54
+Added ledger rows: 052_reusable_campaign_launcher, 053_campaign_preview_approval_snapshots, 054_campaign_preview_recipient_snapshots, 055_campaign_launch_execution_leases
+Changed ledger rows: none
+Removed ledger rows: none
+MIGRATION REHEARSAL PASS

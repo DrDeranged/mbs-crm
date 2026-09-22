@@ -86,7 +86,11 @@ test("production-partial partner recovery reaches the current migration head", a
       "044_notification_delivery_claims.sql", "045_application_equipment_category_homeowner.sql",
       "046_complete_partner_contacts_recovery.sql", "048_financing_campaign_draft.sql",
       "049_lender_underwriting_intelligence.sql", "050_lender_guideline_versions.sql",
-      "051_users_role_default_pending.sql",
+       "051_users_role_default_pending.sql", "052_reusable_campaign_launcher.sql",
+       "053_campaign_preview_approval_snapshots.sql",
+       "054_campaign_preview_recipient_snapshots.sql",
+       "055_campaign_launch_execution_leases.sql",
+        "056_campaign_flyer.sql",
     ];
     const evidence = {
       applied: report.applied,

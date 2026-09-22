@@ -1,0 +1,175 @@
+export type CampaignChannel = "email" | "sms" | "email_sms";
+export type CampaignStatus = "draft" | "approved" | "scheduled" | "running" | "paused" | "completed" | "cancelled" | "failed";
+
+import { createHash } from "node:crypto";
+
+/** Stable JSON encoding prevents object key ordering from changing an approval hash. */
+export function stableJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  return `{${Object.keys(value as Record<string, unknown>).sort().map((key) =>
+    `${JSON.stringify(key)}:${stableJson((value as Record<string, unknown>)[key])}`).join(",")}}`;
+}
+
+export function campaignContentHash(content: unknown): string {
+  return createHash("sha256").update(stableJson(content)).digest("hex");
+}
+
+export function buildCampaignFlyerAttachment(flyer: {
+  bytes: Buffer;
+  name: string;
+  contentType: string;
+} | null) {
+  if (!flyer) return undefined;
+  const filename = flyer.name.replace(/[^a-zA-Z0-9._ -]/g, "_").slice(0, 120) || "campaign-flyer";
+  return [{
+    content: flyer.bytes.toString("base64"),
+    filename,
+    type: flyer.contentType,
+    disposition: "attachment" as const,
+  }];
+}
+
+export function approvedFlyerMatches(
+  approved: { digest?: string; generation?: string } | null | undefined,
+  current: { digest?: string; generation?: string } | null | undefined,
+): boolean {
+  return (approved?.digest ?? null) === (current?.digest ?? null) &&
+    (approved?.generation ?? null) === (current?.generation ?? null);
+}
+
+function decodeBasicEntities(value: string): string {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/gi, "'");
+}
+
+export function campaignPlainText(bodyHtml: string): string {
+  return decodeBasicEntities(bodyHtml
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, "\n")
+    .replace(/<[^>]*>/g, ""))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function minimalCampaignHtml(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+  return escaped.split(/\n{2,}/).map((paragraph) =>
+    `<p>${paragraph.replace(/\n/g, "<br>")}</p>`).join("");
+}
+
+export function assignedRepReplyTo(rep: { name?: string | null; email?: string | null } | null | undefined): { name?: string; email?: string } | undefined {
+  const email = rep?.email?.trim();
+  if (!email) return undefined;
+  return { email, ...(rep?.name?.trim() ? { name: rep.name.trim() } : {}) };
+}
+
+export function sameKeyResumeDecision(input: {
+  sameCampaign: boolean;
+  launchStatus: string;
+  campaignStatus: string;
+}): "resume" | "return_existing" | "reject" {
+  if (!input.sameCampaign) return "reject";
+  if (["queued", "running"].includes(input.launchStatus) && input.campaignStatus === "running") return "resume";
+  return "return_existing";
+}
+
+export function eligibleResumeCandidates<T extends { status: string }>(rows: T[]): T[] {
+  return rows.filter((row) => row.status === "eligible");
+}
+
+export function summarizeRecipientLedger(rows: Array<{ status: string; exclusionReason?: string | null }>) {
+  const sent = rows.filter((row) => row.status === "sent").length;
+  const eligible = rows.filter((row) => row.status === "eligible").length;
+  const uncertain = rows.filter((row) => row.status === "queued").length;
+  const failed = rows.filter((row) => row.status === "failed" ||
+    (row.status === "excluded" && ["unsubscribed", "email_suppressed"].includes(row.exclusionReason ?? ""))).length;
+  return { sent, failed, eligible, uncertain, terminalStatus: uncertain || eligible || (failed > 0 && sent === 0) ? "failed" : "completed" as const };
+}
+
+export function canAcquireExecutionLease(existingToken: string | null, expiresAt: Date | null, now: Date): boolean {
+  return !existingToken || !expiresAt || expiresAt <= now;
+}
+
+export function selectResumeClaimOutcome(rows: Array<{ status: string }>): Array<"claimed" | "already_processed"> {
+  return rows.map((row) => row.status === "eligible" ? "claimed" : "already_processed");
+}
+
+export function canManageCampaign(user: { role: string }): boolean {
+  return user.role === "admin" || user.role === "manager";
+}
+
+export function isSmsLaunchUnsupported(channel: CampaignChannel): boolean {
+  return channel === "sms" || channel === "email_sms";
+}
+
+export function canTransitionCampaign(from: CampaignStatus, to: CampaignStatus): boolean {
+  const allowed: Record<CampaignStatus, CampaignStatus[]> = {
+    draft: ["approved", "cancelled"],
+    approved: ["draft", "scheduled", "running", "paused", "cancelled"],
+    scheduled: ["paused", "cancelled", "running"],
+    running: ["paused", "cancelled", "completed", "failed"],
+    paused: ["approved", "scheduled", "running", "cancelled"],
+    completed: [],
+    cancelled: [],
+    failed: ["draft"],
+  };
+  return from === to || allowed[from].includes(to);
+}
+
+export function hasCurrentApproval(
+  approval: { contentVersion: number; invalidatedAt: Date | null; contentHash?: string; claimsAffirmed?: boolean } | null | undefined,
+  version: number,
+  contentHash?: string,
+): boolean {
+  return Boolean(approval && approval.contentVersion === version && approval.invalidatedAt == null &&
+    (contentHash === undefined || approval.contentHash === contentHash) &&
+    approval.claimsAffirmed !== false);
+}
+
+export function campaignFailureState(): { campaign: "failed"; launch: "failed" } {
+  return { campaign: "failed", launch: "failed" };
+}
+
+export function campaignStatusAfterLaunch(
+  current: CampaignStatus,
+  scheduled: boolean,
+): CampaignStatus {
+  return scheduled ? "scheduled" : current;
+}
+
+export function classifyEmailRecipient(input: {
+  email: string | null;
+  duplicate: boolean;
+  unsubscribed: boolean;
+  suppressed: boolean;
+  capacityAvailable: boolean;
+}): "missing_contact_info" | "duplicate_email" | "email_unsubscribed_or_suppressed" | "daily_email_capacity" | "eligible" {
+  if (!input.email?.trim()) return "missing_contact_info";
+  if (input.duplicate) return "duplicate_email";
+  if (input.unsubscribed || input.suppressed) return "email_unsubscribed_or_suppressed";
+  if (!input.capacityAvailable) return "daily_email_capacity";
+  return "eligible";
+}
+
+export function classifySmsRecipient(input: {
+  phone: string | null;
+  duplicate: boolean;
+  eligible: boolean;
+  reason?: string;
+}): "missing_contact_info" | "duplicate_phone" | "sms_launch_not_supported" | string {
+  if (!input.phone?.trim()) return "missing_contact_info";
+  if (input.duplicate) return "duplicate_phone";
+  if (!input.eligible) return input.reason || "sms_ineligible";
+  return "sms_launch_not_supported";
+}

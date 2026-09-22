@@ -48,6 +48,31 @@ test("the actual provider dispatch sink sends a signed unsubscribe footer and le
   assert.ok(dispatched?.html?.includes(EMAIL_COMPLIANCE_ADDRESS));
 });
 
+test("a no-flyer campaign message has text/plain, minimal HTML, and zero attachments", async () => {
+  let dispatched: any;
+  await sendTrackedEmailToProvider({
+    provider: {
+      send: async (message: any) => {
+        dispatched = message;
+        return [{}] as any;
+      },
+    },
+    from: { email: FROM_EMAIL, name: "My Business Solutions" },
+    toEmail: "recipient@example.test",
+    subject: "Plain campaign",
+    bodyText: "Hello from MBS.",
+    bodyHtml: "<p>Hello from MBS.</p>",
+    sendId: 43,
+    baseUrl: "https://crm.example.test",
+    attachments: undefined,
+    minimalNoImages: true,
+  });
+  assert.equal(dispatched.attachments, undefined);
+  assert.match(dispatched.text, /Hello from MBS\./);
+  assert.match(dispatched.text, /Unsubscribe:/);
+  assert.doesNotMatch(dispatched.html, /<img|src=/i);
+});
+
 test("correlated webhook suppresses the persisted recipient, not a mismatched event email", async () => {
   const suppressed: string[] = [];
   const send = {

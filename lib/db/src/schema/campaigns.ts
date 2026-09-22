@@ -17,6 +17,7 @@ export const campaignsTable = pgTable("campaigns", {
   status: text("status", { enum: CAMPAIGN_STATUSES }).notNull().default("draft"),
   emailTemplateId: integer("email_template_id"),
   smsBody: text("sms_body"),
+  flyer: jsonb("flyer"),
   audienceRules: jsonb("audience_rules").notNull().default({}),
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
   launchedAt: timestamp("launched_at", { withTimezone: true }),

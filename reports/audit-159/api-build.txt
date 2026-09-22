@@ -1,0 +1,28 @@
+
+> @workspace/api-server@0.0.0 build /home/runner/workspace/artifacts/api-server
+> node ./build.mjs
+
+
+  dist/chunks/runtime-RRFNHN2C.mjs               15.2mb ⚠️
+  dist/chunks/chunk-TX26DT4O.mjs                  2.9mb ⚠️
+  dist/chunks/esm-JJSRRVUZ.mjs                  992.6kb
+  dist/chunks/chunk-TJJS3D2A.mjs                117.7kb
+  dist/pino-pretty.mjs                           84.6kb
+  dist/chunks/chunk-RICIZEEN.mjs                 51.8kb
+  dist/chunks/chunk-RIS63LTX.mjs                 21.9kb
+  dist/pino-worker.mjs                            9.1kb
+  dist/chunks/chunk-K4DXFEFI.mjs                  8.9kb
+  dist/index.mjs                                  4.7kb
+  dist/thread-stream-worker.mjs                   4.2kb
+  dist/chunks/chunk-R5GPNPTX.mjs                  3.8kb
+  dist/chunks/chunk-ATFS5275.mjs                  3.5kb
+  dist/chunks/chunk-KKR2HMRO.mjs                  2.6kb
+  dist/chunks/chunk-OUD2LORY.mjs                  2.6kb
+  dist/chunks/chunk-5AX5I6WE.mjs                  2.4kb
+  dist/chunks/getMachineId-win-IBLM3IE2.mjs       2.0kb
+  dist/chunks/getMachineId-darwin-HFMRGTA6.mjs    1.8kb
+  dist/chunks/getMachineId-bsd-UN3MRJQ5.mjs       1.8kb
+  dist/chunks/chunk-EFSD5NGP.mjs                  1.8kb
+  ...and 36 more output files...
+
+⚡ Done in 1446ms

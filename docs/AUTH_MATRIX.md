@@ -220,6 +220,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | DELETE | `/api/leads/:id/pii/force` | `routes/adminGovernance.ts:319` | `A` | reps rejected |
 | GET | `/api/storage/public-objects/*filePath` | `routes/storage.ts:56` | `P` | separate allowlisted public-object namespace only |
 | POST | `/api/storage/uploads/request-url` | `routes/storage.ts:23` | `U` | N/A |
+| POST | `/api/storage/campaign-flyers/request-url` | `routes/storage.ts` | A | manager/admin campaign flyer upload |
+| GET | `/api/campaign-flyers` | `routes/campaigns.ts` | A | manager/admin reusable uploaded campaign flyers |
 | GET | `/api/storage/objects/*path` | `routes/storage.ts:90` | `L` | private lead-doc path: rep requires `lead.assignedRepId === user.id`; all other paths denied |
 | GET | `/api/public/reps/:slug` | `routes/repPublic.ts:163` | `P` | public rep card; no lead/deal payload |
 | GET | `/api/public/reps/:slug/qr.png` | `routes/repPublic.ts:191` | `P` | public QR image |
@@ -258,6 +260,22 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/collateral/renders/:id/link` | `routes/collateral.ts` | U | owning rep or admin |
 | POST | `/api/collateral/renders/:id/email` | `routes/collateral.ts` | U | owning rep or admin |
 | GET | `/api/collateral/shared/:token` | `routes/collateral.ts` | H | seven-day HMAC signed render URL |
+| GET | `/api/campaigns` | `routes/campaigns.ts` | A | manager/admin campaign list |
+| POST | `/api/campaigns` | `routes/campaigns.ts` | A | manager/admin campaign creation |
+| GET | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign detail |
+| PATCH | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign update |
+| POST | `/api/campaigns/:id/duplicate` | `routes/campaigns.ts` | A | manager/admin campaign duplication |
+| POST | `/api/campaigns/:id/preview` | `routes/campaigns.ts` | A | manager/admin audience eligibility preview |
+| POST | `/api/campaigns/:id/approve` | `routes/campaigns.ts` | A | manager/admin campaign approval |
+| POST | `/api/campaigns/:id/test` | `routes/campaigns.ts` | A | manager/admin provider-free test dry run |
+| POST | `/api/campaigns/:id/launch` | `routes/campaigns.ts` | A | manager/admin approval-gated launch |
+| POST | `/api/campaigns/:id/pause` | `routes/campaigns.ts` | A | manager/admin pause |
+| POST | `/api/campaigns/:id/cancel` | `routes/campaigns.ts` | A | manager/admin cancellation |
+| GET | `/api/campaigns/:id/results` | `routes/campaigns.ts` | A | manager/admin campaign results |
+| GET | `/api/campaign-audience-presets` | `routes/campaigns.ts` | A | manager/admin audience presets |
+| POST | `/api/campaign-audience-presets` | `routes/campaigns.ts` | A | manager/admin audience preset creation |
+| PATCH | `/api/campaign-audience-presets/:id` | `routes/campaigns.ts` | A | manager/admin audience preset rename/update |
+| DELETE | `/api/campaign-audience-presets/:id` | `routes/campaigns.ts` | A | manager/admin audience preset deletion |
 
 ## Findings and verification
 
@@ -271,10 +289,10 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PASS | Clerk webhooks. | No Clerk webhook registration exists in `artifacts/api-server/src/routes` (0 to verify). Clerk user authentication is established by `clerkMiddleware` in `app.ts:95-102`; the API mutation gate uses Clerk `getAuth(req).userId`. |
 | PASS | Reps cannot self-assign leads. | `/leads/:id/assign` is manager/admin-only (`leads.ts:1039-1043`); `createAssignLeadHandler` makes that behavior directly testable. |
 | FIXED | Rep-owned email templates and drip sequences were readable across reps. | Marketing ownership uses `ownerId`: reps may read their own or admin-owned resources and may CRUD only their own. Template-backed sends and drip enrollment enforce the same rule for every referenced template (`email.ts:531-802`; `drip.ts:103-346`). |
-| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 176 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned provider callback denial. |
+| PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 234 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned provider callback denial. |
 | PASS | Router-walk test isolation. | `flyer-templates.ts:202-209` honors the test-only `DISABLE_FLYER_TEMPLATE_SEED=true` guard used before the composed router is imported, so route inspection cannot trigger its legacy module-load seed write. |
 
-**Re-enumeration result:** 178 registrations and 178 matrix rows. This
+**Re-enumeration result:** 234 registrations and 234 matrix rows. This
 reconciliation is route-inventory evidence, not exhaustive authorization proof.
 Runtime suite/typecheck status must be recorded from their actual command
 results; no unresolved Section A source-audit finding is currently listed here.

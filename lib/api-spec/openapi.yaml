@@ -38,6 +38,8 @@ tags:
     description: Lead communication history
   - name: email
     description: Email templates, sending, and tracking
+  - name: campaigns
+    description: Reusable, approval-gated campaign launch orchestration
   - name: drip
     description: Drip sequences and enrollment
   - name: sendgrid
@@ -4469,6 +4471,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/UploadUrlResponse"
 
+  /storage/campaign-flyers/request-url:
+    post:
+      tags: [storage, campaigns]
+      operationId: requestCampaignFlyerUploadUrl
+      summary: Request a protected presigned URL for a campaign flyer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CampaignFlyerUploadInput" }
+      responses:
+        "200":
+          description: Presigned campaign flyer upload URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CampaignFlyerUpload" }
+        "400": { description: Invalid file type or size }
+        "403": { description: Manager or admin role required }
+
   /notifications:
     get:
       tags: [notifications]
@@ -4726,6 +4747,129 @@ paths:
       parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
       responses: { "200": { description: PDF download, content: { application/pdf: {} } }, "403": { description: Invalid or expired link } }
 
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      responses:
+        "200":
+          description: Campaigns
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Campaign" } }
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: "#/components/schemas/CampaignInput" } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+  /campaign-flyers:
+    get:
+      operationId: listCampaignFlyers
+      tags: [campaigns]
+      summary: List uploaded campaign flyers available for reuse
+      responses:
+        "200":
+          description: Uploaded campaign flyers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CampaignUploadedFlyer" } }
+  /campaigns/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      responses: { "200": { description: Campaign, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignDetail" } } } } }
+    patch:
+      operationId: updateCampaign
+      tags: [campaigns]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/CampaignInput" } } }
+      responses: { "200": { description: Updated, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /campaigns/{id}/duplicate:
+    post:
+      operationId: duplicateCampaign
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "201": { description: Duplicated, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /campaigns/{id}/preview:
+    post:
+      operationId: previewCampaignAudience
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Audience preview, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignPreview" } } } } }
+  /campaigns/{id}/approve:
+    post:
+      operationId: approveCampaign
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ApproveCampaignInput" } } }
+      responses: { "200": { description: Approved, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /campaigns/{id}/test:
+    post:
+      operationId: dryRunCampaignTest
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [toEmail], properties: { toEmail: { type: string, format: email } } } } } }
+      responses: { "200": { description: Dry run result } }
+  /campaigns/{id}/launch:
+    post:
+      operationId: launchCampaign
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignLaunchInput" } } } }
+      responses: { "201": { description: Launch result, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignLaunchResult" } } } }, "409": { description: Approval or template failure } }
+  /campaigns/{id}/pause:
+    post:
+      operationId: pauseCampaign
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Paused } }
+  /campaigns/{id}/cancel:
+    post:
+      operationId: cancelCampaign
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Cancelled } }
+  /campaigns/{id}/results:
+    get:
+      operationId: getCampaignResults
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: Campaign results, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignResults" } } } } }
+  /campaign-audience-presets:
+    get:
+      operationId: listCampaignAudiencePresets
+      tags: [campaigns]
+      responses:
+        "200": { description: Audience presets, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignAudiencePreset" } } } } }
+    post:
+      operationId: createCampaignAudiencePreset
+      tags: [campaigns]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/CampaignAudiencePresetInput" } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignAudiencePreset" } } } } }
+  /campaign-audience-presets/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      operationId: updateCampaignAudiencePreset
+      tags: [campaigns]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/CampaignAudiencePresetPatch" } } }
+      responses: { "200": { description: Updated, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignAudiencePreset" } } } } }
+    delete:
+      operationId: deleteCampaignAudiencePreset
+      tags: [campaigns]
+      responses: { "204": { description: Deleted } }
+
 components:
   parameters:
     CollateralTemplateId:
@@ -4744,6 +4888,200 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Campaign:
+      type: object
+      required: [id, name, channel, status, audienceRules, ownerId, createdBy, version]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        channel: { type: string, enum: [email, sms, email_sms] }
+        status: { type: string, enum: [draft, approved, scheduled, running, paused, completed, cancelled, failed] }
+        emailTemplateId: { type: integer, nullable: true }
+        smsBody: { type: string, nullable: true }
+        flyer:
+          oneOf:
+            - { $ref: "#/components/schemas/CampaignBuiltInFlyer" }
+            - { $ref: "#/components/schemas/CampaignUploadedFlyer" }
+          nullable: true
+        audienceRules: { $ref: "#/components/schemas/CampaignAudienceRules" }
+        ownerId: { type: integer }
+        createdBy: { type: integer }
+        version: { type: integer }
+    CampaignInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string, nullable: true }
+        channel: { type: string, enum: [email, sms, email_sms] }
+        emailTemplateId: { type: integer, nullable: true }
+        smsBody: { type: string, nullable: true }
+        flyer:
+          oneOf:
+            - { $ref: "#/components/schemas/CampaignBuiltInFlyer" }
+            - { $ref: "#/components/schemas/CampaignUploadedFlyer" }
+          nullable: true
+        audienceRules: { $ref: "#/components/schemas/CampaignAudienceRules" }
+        ownerId: { type: integer }
+    CampaignAudienceRules:
+      type: object
+      properties:
+        statuses: { type: array, items: { type: string } }
+        programTypes: { type: array, items: { type: string, enum: [equipment, working_capital] } }
+        assignedRepId: { type: integer, nullable: true }
+        leadSources: { type: array, items: { type: string } }
+        createdFrom: { type: string, format: date-time, nullable: true }
+        createdTo: { type: string, format: date-time, nullable: true }
+        minAmount: { type: integer, minimum: 0, nullable: true }
+        maxAmount: { type: integer, minimum: 0, nullable: true }
+    CampaignBuiltInFlyer:
+      type: object
+      required: [source, key, name, contentType]
+      properties:
+        source: { type: string, const: built_in }
+        key: { type: string, enum: [equipment_financing, working_capital] }
+        name: { type: string }
+        contentType: { type: string, const: image/png }
+    CampaignUploadedFlyer:
+      type: object
+      required: [source, objectPath, name, contentType, size]
+      properties:
+        source: { type: string, const: uploaded }
+        objectPath: { type: string, pattern: "^/objects/campaigns/" }
+        name: { type: string }
+        contentType: { type: string, enum: [image/png, image/jpeg, image/webp, application/pdf] }
+        size: { type: integer, minimum: 1, maximum: 15728640 }
+    CampaignFlyerUploadInput:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        size: { type: integer, minimum: 1, maximum: 15728640 }
+        contentType: { type: string, enum: [image/png, image/jpeg, image/webp, application/pdf] }
+    CampaignFlyerUpload:
+      type: object
+      required: [uploadUrl, objectPath, name, size, contentType]
+      properties:
+        uploadUrl: { type: string, format: uri }
+        objectPath: { type: string }
+        name: { type: string }
+        size: { type: integer }
+        contentType: { type: string }
+    CampaignAudiencePreset:
+      type: object
+      required: [id, name, rules, ownerId, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        rules: { $ref: "#/components/schemas/CampaignAudienceRules" }
+        ownerId: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CampaignAudiencePresetInput:
+      type: object
+      required: [name, rules]
+      properties:
+        name: { type: string, minLength: 1 }
+        rules: { $ref: "#/components/schemas/CampaignAudienceRules" }
+    CampaignAudiencePresetPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1 }
+        rules: { $ref: "#/components/schemas/CampaignAudienceRules" }
+    CampaignEligibleRecipient:
+      type: object
+      required: [leadId, channel]
+      properties:
+        leadId: { type: integer }
+        channel: { type: string, enum: [email, sms] }
+    CampaignExclusion:
+      type: object
+      required: [leadId, channel, reason]
+      properties:
+        leadId: { type: integer }
+        channel: { type: string, enum: [email, sms] }
+        reason: { type: string }
+    CampaignPreviewCounts:
+      type: object
+      required: [eligible, excluded, emailEligible, smsEligible, emailCapacityRemaining]
+      properties:
+        eligible: { type: integer }
+        excluded: { type: integer }
+        emailEligible: { type: integer }
+        smsEligible: { type: integer }
+        emailCapacityRemaining: { type: integer }
+    CampaignLaunch:
+      type: object
+      required: [id, campaignId, idempotencyKey, requestedBy, mode, status, eligibleCount, excludedCount, sentCount, failedCount, createdAt]
+      properties:
+        id: { type: integer }
+        campaignId: { type: integer }
+        idempotencyKey: { type: string }
+        requestedBy: { type: integer }
+        mode: { type: string, enum: [live, dry_run] }
+        status: { type: string }
+        eligibleCount: { type: integer }
+        excludedCount: { type: integer }
+        sentCount: { type: integer }
+        failedCount: { type: integer }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+        startedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+    CampaignResults:
+      type: object
+      required: [launches, counts]
+      properties:
+        launches: { type: array, items: { $ref: "#/components/schemas/CampaignLaunch" } }
+        counts:
+          type: object
+          required: [eligible, excluded, sent, failed]
+          properties:
+            eligible: { type: integer }
+            excluded: { type: integer }
+            sent: { type: integer }
+            failed: { type: integer }
+    CampaignLaunchResult:
+      type: object
+      required: [launch]
+      properties:
+        launch: { $ref: "#/components/schemas/CampaignLaunch" }
+        sent: { type: integer }
+        failed: { type: integer }
+        preview: { $ref: "#/components/schemas/CampaignPreview" }
+    CampaignDetail:
+      type: object
+      required: [campaign, launches]
+      properties:
+        campaign: { $ref: "#/components/schemas/Campaign" }
+        launches: { type: array, items: { $ref: "#/components/schemas/CampaignLaunch" } }
+    CampaignPreview:
+      type: object
+      required: [totalMatching, eligible, exclusions, counts, previewToken]
+      properties:
+        totalMatching: { type: integer }
+        eligible: { type: array, items: { $ref: "#/components/schemas/CampaignEligibleRecipient" } }
+        exclusions: { type: array, items: { $ref: "#/components/schemas/CampaignExclusion" } }
+        counts: { $ref: "#/components/schemas/CampaignPreviewCounts" }
+        previewToken: { type: string }
+        previewId: { type: integer }
+        contentHash: { type: string }
+    ApproveCampaignInput:
+      type: object
+      required: [previewToken, claimsAffirmed]
+      properties:
+        previewToken: { type: string, minLength: 10 }
+        claimsAffirmed: { type: boolean, enum: [true] }
+        approvalType: { type: string, default: content_and_audience }
+    CampaignLaunchInput:
+      type: object
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey: { type: string, minLength: 8 }
+        mode: { type: string, enum: [live, dry_run], default: live }
+        scheduledAt: { type: string, format: date-time, nullable: true }
     AdminUserMergeRequest:
       type: object
       required: [sourceUserId, targetUserId]

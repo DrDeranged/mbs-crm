@@ -1,0 +1,51 @@
+
+> @workspace/mbs-crm-mobile@0.0.0 build /home/runner/workspace/artifacts/mbs-crm-mobile
+> node scripts/build.js
+
+Building static Expo Go deployment...
+Preparing build directories...
+Build: 1790041068044-7694
+Clearing Metro cache...
+Cache cleared
+Starting Metro...
+Setting EXPO_PUBLIC_DOMAIN=8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-zmboxojw.worf.replit.dev
+Setting EXPO_PUBLIC_REPL_ID=8b2f0d46-c34b-495e-bca0-bc5f10c647fc:zmboxojw
+[Metro] Starting project at /home/runner/workspace/artifacts/mbs-crm-mobile
+[Metro] React Compiler enabled
+[Metro] Starting Metro Bundler
+Metro ready
+Downloading bundles and manifests...
+This may take several minutes for production builds...
+Fetching ios bundle...
+Downloading: http://localhost:8082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=ios&dev=false&hot=false&lazy=false&minify=true
+[Metro] Waiting on http://localhost:8082
+[Metro] Logs for your project will appear below.
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓░░░░░░░░░░░░ 25.0% (18/46)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓░░░░░░░░░░░░ 25.0% (382/791)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓░░░░░░░ 60.2% ( 876/1129)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 81.3% (1256/1393)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 92.0% (1648/1757)
+[Metro] iOS Bundled 21337ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1840 modules)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1840/1840)
+ios bundle ready
+Fetching android bundle...
+Downloading: http://localhost:8082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=android&dev=false&hot=false&lazy=false&minify=true
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 46.5% (677/993)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 66.0% (1076/1324)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 90.5% (1641/1740)
+[Metro] Android Bundled 13110ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1836 modules)
+android bundle ready
+Fetching ios manifest...
+Fetching android manifest...
+ios manifest ready
+android manifest ready
+All downloads completed successfully
+Processing assets...
+Found 49 unique asset(s)
+Copying assets...
+Copied 49 assets
+Updated bundle URLs
+Updating manifests and creating landing page...
+Manifests updated
+Build complete! Deploy to: https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-zmboxojw.worf.replit.dev

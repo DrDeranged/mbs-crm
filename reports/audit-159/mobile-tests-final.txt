@@ -1,0 +1,14 @@
+
+> @workspace/mbs-crm-mobile@0.0.0 test /home/runner/workspace/artifacts/mbs-crm-mobile
+> node --test server/*.test.js
+
+✔ static paths stay within the build root (0.870603ms)
+✔ base-path health endpoint supports GET and HEAD (28.583973ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.562884

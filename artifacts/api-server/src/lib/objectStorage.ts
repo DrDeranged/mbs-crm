@@ -130,6 +130,16 @@ export class ObjectStorageService {
     });
   }
 
+  async getCampaignFlyerUploadURL(userId: number): Promise<{ uploadUrl: string; objectPath: string }> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    const entityPath = `campaigns/${userId}/${randomUUID()}`;
+    const { bucketName, objectName } = parseObjectPath(`${privateObjectDir}/${entityPath}`);
+    return {
+      uploadUrl: await signObjectURL({ bucketName, objectName, method: "PUT", ttlSec: 900 }),
+      objectPath: `/objects/${entityPath}`,
+    };
+  }
+
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
@@ -154,6 +164,26 @@ export class ObjectStorageService {
       throw new ObjectNotFoundError();
     }
     return objectFile;
+  }
+
+  async getObjectEntityMetadata(objectPath: string): Promise<{ contentType: string; size: number }> {
+    const file = await this.getObjectEntityFile(objectPath);
+    const [metadata] = await file.getMetadata();
+    return {
+      contentType: String(metadata.contentType || "application/octet-stream"),
+      size: Number(metadata.size || 0),
+    };
+  }
+
+  async readObjectEntity(objectPath: string): Promise<{ bytes: Buffer; contentType: string; size: number; generation: string }> {
+    const file = await this.getObjectEntityFile(objectPath);
+    const [[metadata], [bytes]] = await Promise.all([file.getMetadata(), file.download()]);
+    return {
+      bytes,
+      contentType: String(metadata.contentType || "application/octet-stream"),
+      size: Number(metadata.size || bytes.length),
+      generation: String(metadata.generation || ""),
+    };
   }
 
   async saveObjectEntity(objectPath: string, bytes: Buffer, contentType: string): Promise<void> {

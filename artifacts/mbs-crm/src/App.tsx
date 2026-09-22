@@ -28,7 +28,9 @@ const DripSequences = lazy(() => import("@/pages/drip-sequences"));
 const LenderManagement = lazy(() => import("@/pages/lender-management"));
 const FlyerTemplates = lazy(() => import("@/pages/flyer-templates"));
 const Documents = lazy(() => import("@/pages/documents"));
-const FinancingCampaign = lazy(() => import("@/pages/financing-campaign"));
+const Campaigns = lazy(() => import("@/pages/campaigns"));
+const CampaignDetail = lazy(() => import("@/pages/campaign-detail"));
+const FinancingCampaignRedirect = lazy(() => import("@/pages/financing-campaign-redirect"));
 const ApplyPage = lazy(() => import("@/pages/apply"));
 const RepChooser = lazy(() => import("@/pages/rep-chooser"));
 const ApplicationStatus = lazy(() => import("@/pages/application-status"));
@@ -346,7 +348,13 @@ function AppRoutes() {
               <ProtectedRoute component={Documents} />
             </Route>
             <Route path="/campaigns/financing-draft">
-              <ProtectedRoute component={FinancingCampaign} />
+              <ProtectedRoute component={FinancingCampaignRedirect} />
+            </Route>
+            <Route path="/campaigns/:id">
+              <ProtectedRoute component={CampaignDetail} />
+            </Route>
+            <Route path="/campaigns">
+              <ProtectedRoute component={Campaigns} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
             <Route path="/r/:slug" component={RepChooser} />

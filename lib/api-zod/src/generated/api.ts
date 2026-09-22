@@ -309,7 +309,11 @@ export const RunProductionCloseoutResponse = zod.object({
   "ordinaryAtNate": zod.number(),
   "calvinCleared": zod.number(),
   "calvinReservedUnassigned": zod.number(),
-  "arslanTotalDeals": zod.number()
+  "arslanTotalDeals": zod.number(),
+  "seededRowsFound": zod.number(),
+  "seededRowsExpected": zod.number(),
+  "convertedOrDeleted": zod.number(),
+  "seededRowsSummary": zod.string()
 })
 }),zod.object({
   "operation": zod.enum(['slugs']),
@@ -388,6 +392,29 @@ export const GetMeResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -417,6 +444,29 @@ export const UpdateMyMobileResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -439,6 +489,29 @@ export const ListUsersResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -504,6 +577,29 @@ export const RetireUserSlugResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -536,6 +632,29 @@ export const RetireRepSlugResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -572,6 +691,29 @@ export const UpdateUserResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -757,6 +899,29 @@ export const ListLeadsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -774,6 +939,29 @@ export const ListLeadsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -786,6 +974,29 @@ export const ListLeadsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -1116,6 +1327,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1133,6 +1367,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -1145,6 +1402,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -1193,6 +1473,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1212,6 +1515,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1235,6 +1561,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1258,6 +1607,29 @@ export const GetLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1317,6 +1689,29 @@ export const UpdateLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1334,6 +1729,29 @@ export const UpdateLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -1346,6 +1764,29 @@ export const UpdateLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -1425,6 +1866,29 @@ export const ChangeLeadStatusResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1442,6 +1906,29 @@ export const ChangeLeadStatusResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -1454,6 +1941,29 @@ export const ChangeLeadStatusResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -1510,6 +2020,29 @@ export const AssignLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1527,6 +2060,29 @@ export const AssignLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -1539,6 +2095,29 @@ export const AssignLeadResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -1584,6 +2163,29 @@ export const ListNotesResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1625,6 +2227,29 @@ export const ListTasksResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1680,6 +2305,29 @@ export const UpdateTaskResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1712,6 +2360,29 @@ export const ListDocumentsResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1764,6 +2435,29 @@ export const UpdateDocumentCategoryResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1917,6 +2611,29 @@ export const ListLeadActivityResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1957,6 +2674,29 @@ export const GetDashboardSummaryResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -1974,6 +2714,29 @@ export const GetDashboardSummaryResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -1986,6 +2749,29 @@ export const GetDashboardSummaryResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -2041,6 +2827,29 @@ export const GetRepDashboardResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2058,6 +2867,29 @@ export const GetRepDashboardResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
@@ -2070,6 +2902,29 @@ export const GetRepDashboardResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who created the lead, derived from the earliest lead-creation activity'),
@@ -2106,6 +2961,29 @@ export const GetRepDashboardResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2128,6 +3006,29 @@ export const GetRepDashboardResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2161,6 +3062,29 @@ export const GetMyTasksResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2184,6 +3108,29 @@ export const GetMyTasksResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2207,6 +3154,29 @@ export const GetMyTasksResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2261,6 +3231,9 @@ export const ListDealsResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
+  "referralGm": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "gmSplitPct": zod.number().min(listDealsResponseDealsItemGmSplitPctMin).max(listDealsResponseDealsItemGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
@@ -2273,6 +3246,29 @@ export const ListDealsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2290,6 +3286,29 @@ export const ListDealsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity')
@@ -2365,6 +3384,9 @@ export const GetDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
+  "referralGm": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "gmSplitPct": zod.number().min(getDealResponseOneGmSplitPctMin).max(getDealResponseOneGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
@@ -2377,6 +3399,29 @@ export const GetDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2394,6 +3439,29 @@ export const GetDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity')
@@ -2411,6 +3479,29 @@ export const GetDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2461,6 +3552,9 @@ export const UpdateDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
+  "referralGm": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "gmSplitPct": zod.number().min(updateDealResponseGmSplitPctMin).max(updateDealResponseGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
@@ -2473,6 +3567,29 @@ export const UpdateDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2490,6 +3607,29 @@ export const UpdateDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity')
@@ -2524,6 +3664,9 @@ export const ArchiveDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
+  "referralGm": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "gmSplitPct": zod.number().min(archiveDealResponseGmSplitPctMin).max(archiveDealResponseGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
@@ -2536,6 +3679,29 @@ export const ArchiveDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2553,6 +3719,29 @@ export const ArchiveDealResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity')
@@ -2578,6 +3767,29 @@ export const ListDealActivityResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2635,6 +3847,9 @@ export const SaveDealRatePointsResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
+  "referralGm": zod.number().nullish(),
   "notes": zod.string().nullish(),
   "gmSplitPct": zod.number().min(saveDealRatePointsResponseDealGmSplitPctMin).max(saveDealRatePointsResponseDealGmSplitPctMax),
   "assignedTo": zod.number().nullish(),
@@ -2647,6 +3862,29 @@ export const SaveDealRatePointsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -2664,6 +3902,29 @@ export const SaveDealRatePointsResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity')
@@ -2818,6 +4079,10 @@ export const ReassignSeededDealsResponse = zod.object({
   "calvinCleared": zod.number(),
   "calvinReservedUnassigned": zod.number(),
   "arslanTotalDeals": zod.number(),
+  "seededRowsFound": zod.number(),
+  "seededRowsExpected": zod.number(),
+  "convertedOrDeleted": zod.number(),
+  "seededRowsSummary": zod.string(),
   "changedDealIds": zod.array(zod.number())
 })
 
@@ -3149,6 +4414,8 @@ export const GetAnalyticsRenewalsResponseItem = zod.object({
   "fundedAt": zod.coerce.date().nullable(),
   "renewalFlaggedAt": zod.coerce.date(),
   "assignedRepId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
+  "referralSplitPct": zod.number().nullish(),
   "assignedRepName": zod.string().nullish(),
   "requestedAmount": zod.number().nullish()
 })
@@ -3230,6 +4497,7 @@ export const UpdateCommunicationBody = zod.object({
 export const UpdateCommunicationResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "partnerId": zod.number().nullish(),
   "userId": zod.number().nullish(),
   "user": zod.union([zod.object({
   "id": zod.number(),
@@ -3240,6 +4508,29 @@ export const UpdateCommunicationResponse = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -3270,6 +4561,7 @@ export const ListCommunicationsParams = zod.object({
 export const ListCommunicationsResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "partnerId": zod.number().nullish(),
   "userId": zod.number().nullish(),
   "user": zod.union([zod.object({
   "id": zod.number(),
@@ -3280,6 +4572,29 @@ export const ListCommunicationsResponseItem = zod.object({
   "slug": zod.string().nullable(),
   "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
   "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -3493,6 +4808,95 @@ export const DeleteWorkflowRuleParams = zod.object({
 
 
 /**
+ * @summary List contacts for a partner
+ */
+export const ListPartnerContactsParams = zod.object({
+  "partnerId": zod.coerce.number()
+})
+
+export const ListPartnerContactsResponseItem = zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListPartnerContactsResponse = zod.array(ListPartnerContactsResponseItem)
+
+
+/**
+ * @summary Add a partner contact
+ */
+export const CreatePartnerContactParams = zod.object({
+  "partnerId": zod.coerce.number()
+})
+
+
+
+
+export const CreatePartnerContactBody = zod.object({
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']).optional(),
+  "name": zod.string().min(1),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a partner contact
+ */
+export const UpdatePartnerContactParams = zod.object({
+  "partnerId": zod.coerce.number(),
+  "contactId": zod.coerce.number()
+})
+
+
+
+
+export const UpdatePartnerContactBody = zod.object({
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']).optional(),
+  "name": zod.string().min(1).optional(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdatePartnerContactResponse = zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a partner contact
+ */
+export const DeletePartnerContactParams = zod.object({
+  "partnerId": zod.coerce.number(),
+  "contactId": zod.coerce.number()
+})
+
+
+/**
  * @summary List all lenders (managers/admins only)
  */
 export const ListLendersResponseItem = zod.object({
@@ -3549,8 +4953,52 @@ export const ListLendersResponseItem = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3563,9 +5011,21 @@ export const ListLendersResponse = zod.array(ListLendersResponseItem)
 export const createLenderBodyPriorityWeightMax = 10;
 
 
+export const createLenderBodyTurnaroundBusinessDaysMinMin = 0;
+
+export const createLenderBodyTurnaroundBusinessDaysMaxMin = 0;
+
+
 
 export const CreateLenderBody = zod.object({
   "name": zod.string(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "programTypes": zod.array(zod.string()).optional(),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3612,7 +5072,30 @@ export const CreateLenderBody = zod.object({
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
   "notes": zod.string().nullish(),
-  "isActive": zod.boolean().optional()
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().min(1).optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().min(createLenderBodyTurnaroundBusinessDaysMinMin).nullish(),
+  "turnaroundBusinessDaysMax": zod.number().min(createLenderBodyTurnaroundBusinessDaysMaxMin).nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional()
 })
 
 
@@ -3682,8 +5165,52 @@ export const SeedNewLendersResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))
@@ -3700,9 +5227,21 @@ export const UpdateLenderParams = zod.object({
 export const updateLenderBodyPriorityWeightMax = 10;
 
 
+export const updateLenderBodyTurnaroundBusinessDaysMinMin = 0;
+
+export const updateLenderBodyTurnaroundBusinessDaysMaxMin = 0;
+
+
 
 export const UpdateLenderBody = zod.object({
   "name": zod.string(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "programTypes": zod.array(zod.string()).optional(),
   "minAmount": zod.number().nullish(),
   "maxAmount": zod.number().nullish(),
@@ -3749,7 +5288,30 @@ export const UpdateLenderBody = zod.object({
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
   "notes": zod.string().nullish(),
-  "isActive": zod.boolean().optional()
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().min(1).optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().min(updateLenderBodyTurnaroundBusinessDaysMinMin).nullish(),
+  "turnaroundBusinessDaysMax": zod.number().min(updateLenderBodyTurnaroundBusinessDaysMaxMin).nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional()
 })
 
 export const UpdateLenderResponse = zod.object({
@@ -3806,8 +5368,52 @@ export const UpdateLenderResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -3874,11 +5480,74 @@ export const DeactivateLenderResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
+
+
+/**
+ * @summary List immutable lender guideline versions
+ */
+export const GetLenderGuidelineVersionsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLenderGuidelineVersionsResponseItem = zod.object({
+  "id": zod.number(),
+  "lenderId": zod.number(),
+  "version": zod.number(),
+  "source": zod.string().nullish(),
+  "effectiveAt": zod.coerce.date().nullish(),
+  "snapshot": zod.record(zod.string(), zod.unknown()),
+  "createdAt": zod.coerce.date()
+})
+export const GetLenderGuidelineVersionsResponse = zod.array(GetLenderGuidelineVersionsResponseItem)
 
 
 /**
@@ -3948,20 +5617,146 @@ export const RunLenderMatchResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "matchScore": zod.number(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "matchGroup": zod.enum(['lender', 'super_broker']).optional(),
   "criteriaBreakdown": zod.array(zod.object({
   "criterion": zod.string().optional(),
   "passed": zod.boolean().optional(),
   "skipped": zod.boolean().optional(),
   "detail": zod.string().optional()
 })),
+  "eligibilityStatus": zod.enum(['plausible']).optional(),
+  "rankingVersion": zod.string().optional(),
+  "rankingDimensions": zod.object({
+  "approvalProbability": zod.number(),
+  "customerPricing": zod.number().nullish(),
+  "fundingSpeed": zod.number().nullish(),
+  "mbsPayout": zod.number().nullish(),
+  "documentationBurden": zod.number(),
+  "overallStructure": zod.number()
+}).optional(),
+  "historicalSignal": zod.object({
+  "submitted": zod.number(),
+  "approved": zod.number(),
+  "declined": zod.number(),
+  "funded": zod.number(),
+  "approvalRate": zod.number().nullish(),
+  "fundingRate": zod.number().nullish()
+}).optional(),
+  "estimatedGrossRevenue": zod.number().nullish(),
+  "economics": zod.record(zod.string(), zod.unknown()).nullish(),
   "matchedAt": zod.coerce.date()
 }))
+})
+
+
+/**
+ * @summary Get the reviewable borrower underwriting profile
+ */
+export const GetUnderwritingProfileParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetUnderwritingProfileResponse = zod.object({
+  "leadId": zod.number(),
+  "applicationId": zod.number().nullable(),
+  "applicationType": zod.string(),
+  "facts": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "value": zod.unknown().optional(),
+  "estimated": zod.boolean().optional(),
+  "provenance": zod.object({
+  "source": zod.enum(['application', 'lead', 'company', 'bank_statement', 'document', 'user_correction']),
+  "sourceId": zod.number().optional(),
+  "label": zod.string(),
+  "confidence": zod.enum(['verified', 'reported', 'extracted', 'corrected'])
+})
+})),
+  "bank": zod.record(zod.string(), zod.unknown()).nullish(),
+  "documents": zod.array(zod.record(zod.string(), zod.unknown())),
+  "readiness": zod.object({
+  "readyForMatching": zod.boolean(),
+  "missingFields": zod.array(zod.string()),
+  "requiresHumanReview": zod.boolean()
+}),
+  "corrections": zod.array(zod.object({
+  "id": zod.number(),
+  "field": zod.string(),
+  "value": zod.unknown().optional(),
+  "reason": zod.string(),
+  "evidenceDocumentId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Correct a supported underwriting fact without changing its source record
+ */
+export const CreateUnderwritingCorrectionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createUnderwritingCorrectionBodyReasonMax = 500;
+
+
+
+export const CreateUnderwritingCorrectionBody = zod.object({
+  "field": zod.enum(['requestedAmount', 'creditScore', 'industry', 'businessState', 'timeInBusinessMonths', 'monthlyRevenue', 'existingPositions', 'equipmentDescription', 'equipmentCategory', 'equipmentYear', 'vendorName', 'transactionAmount', 'intendedUse']),
+  "value": zod.unknown(),
+  "reason": zod.string().min(1).max(createUnderwritingCorrectionBodyReasonMax),
+  "evidenceDocumentId": zod.number().nullish()
 })
 
 
@@ -4030,18 +5825,84 @@ export const GetLenderMatchesResponseItem = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "matchScore": zod.number(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "matchGroup": zod.enum(['lender', 'super_broker']).optional(),
   "criteriaBreakdown": zod.array(zod.object({
   "criterion": zod.string().optional(),
   "passed": zod.boolean().optional(),
   "skipped": zod.boolean().optional(),
   "detail": zod.string().optional()
 })),
+  "eligibilityStatus": zod.enum(['plausible']).optional(),
+  "rankingVersion": zod.string().optional(),
+  "rankingDimensions": zod.object({
+  "approvalProbability": zod.number(),
+  "customerPricing": zod.number().nullish(),
+  "fundingSpeed": zod.number().nullish(),
+  "mbsPayout": zod.number().nullish(),
+  "documentationBurden": zod.number(),
+  "overallStructure": zod.number()
+}).optional(),
+  "historicalSignal": zod.object({
+  "submitted": zod.number(),
+  "approved": zod.number(),
+  "declined": zod.number(),
+  "funded": zod.number(),
+  "approvalRate": zod.number().nullish(),
+  "fundingRate": zod.number().nullish()
+}).optional(),
+  "estimatedGrossRevenue": zod.number().nullish(),
+  "economics": zod.record(zod.string(), zod.unknown()).nullish(),
   "matchedAt": zod.coerce.date()
 })
 export const GetLenderMatchesResponse = zod.array(GetLenderMatchesResponseItem)
@@ -4058,6 +5919,8 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
+  "viaBrokerId": zod.number().nullish(),
+  "endLenderId": zod.number().nullish(),
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -4112,8 +5975,52 @@ export const GetLeadSubmissionsResponseItem = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -4157,6 +6064,8 @@ export const createLeadSubmissionBodyAdminOverrideDefault = false;
 
 export const CreateLeadSubmissionBody = zod.object({
   "lender_id": zod.number(),
+  "via_broker_id": zod.number().optional().describe('Broker-out partner that placed this submission'),
+  "end_lender_id": zod.number().optional().describe('End lender, when known'),
   "admin_override": zod.boolean().default(createLeadSubmissionBodyAdminOverrideDefault).describe('Administrators may bypass the rolling 24-hour duplicate limit'),
   "package_config": zod.object({
   "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
@@ -4182,7 +6091,9 @@ export const CreateManualLeadSubmissionBody = zod.object({
   "submitted_at": zod.coerce.date().optional(),
   "status": zod.enum(['submitted', 'approved', 'declined', 'funded', 'withdrawn']).optional(),
   "notes": zod.string().nullish(),
-  "approval_pdf_base64": zod.string().optional()
+  "approval_pdf_base64": zod.string().optional(),
+  "via_broker_id": zod.number().optional(),
+  "end_lender_id": zod.number().optional()
 })
 
 
@@ -4205,6 +6116,8 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
+  "viaBrokerId": zod.number().nullish(),
+  "endLenderId": zod.number().nullish(),
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -4259,8 +6172,52 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -4294,6 +6251,43 @@ export const GetDealSubmissionsResponse = zod.array(GetDealSubmissionsResponseIt
 
 
 /**
+ * @summary Send a business-contact SMS to a partner contact
+ */
+export const SendPartnerContactSmsParams = zod.object({
+  "partnerId": zod.coerce.number(),
+  "contactId": zod.coerce.number()
+})
+
+
+
+
+export const SendPartnerContactSmsBody = zod.object({
+  "body": zod.string().min(1),
+  "dealId": zod.number().optional()
+})
+
+
+/**
+ * @summary Get partner texting setting
+ */
+export const GetPartnerTextingSettingsResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary Enable or disable partner texting
+ */
+export const UpdatePartnerTextingSettingsBody = zod.object({
+  "enabled": zod.boolean()
+})
+
+export const UpdatePartnerTextingSettingsResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+/**
  * @summary Update submission status / notes (administrator or assigned representative)
  */
 export const UpdateSubmissionParams = zod.object({
@@ -4309,6 +6303,8 @@ export const UpdateSubmissionResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
+  "viaBrokerId": zod.number().nullish(),
+  "endLenderId": zod.number().nullish(),
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -4363,8 +6359,52 @@ export const UpdateSubmissionResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -4412,6 +6452,8 @@ export const PatchSubmissionResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
+  "viaBrokerId": zod.number().nullish(),
+  "endLenderId": zod.number().nullish(),
   "lender": zod.union([zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -4466,8 +6508,52 @@ export const PatchSubmissionResponse = zod.object({
   "priorityWeight": zod.number(),
   "contactName": zod.string().nullish(),
   "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()]).optional(),
@@ -5161,6 +7247,30 @@ export const RequestUploadUrlResponse = zod.object({
 
 
 /**
+ * @summary Request a protected presigned URL for a campaign flyer
+ */
+export const requestCampaignFlyerUploadUrlBodyNameMax = 255;
+
+export const requestCampaignFlyerUploadUrlBodySizeMax = 15728640;
+
+
+
+export const RequestCampaignFlyerUploadUrlBody = zod.object({
+  "name": zod.string().min(1).max(requestCampaignFlyerUploadUrlBodyNameMax),
+  "size": zod.number().min(1).max(requestCampaignFlyerUploadUrlBodySizeMax),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf'])
+})
+
+export const RequestCampaignFlyerUploadUrlResponse = zod.object({
+  "uploadUrl": zod.string().url(),
+  "objectPath": zod.string(),
+  "name": zod.string(),
+  "size": zod.number(),
+  "contentType": zod.string()
+})
+
+
+/**
  * @summary List notifications for the current user
  */
 export const listNotificationsQueryPageDefault = 1;
@@ -5193,6 +7303,91 @@ export const ListNotificationsResponse = zod.object({
  */
 export const GetUnreadNotificationCountResponse = zod.object({
   "count": zod.number().optional()
+})
+
+
+/**
+ * @summary Get the configured VAPID public key for web push
+ */
+export const GetVapidPublicKeyResponse = zod.object({
+  "publicKey": zod.string()
+})
+
+
+/**
+ * @summary Get current user's push notification preferences
+ */
+export const GetNotificationPreferencesResponse = zod.object({
+  "pushEnabled": zod.boolean(),
+  "events": zod.object({
+  "new_application": zod.boolean(),
+  "new_lead_assigned": zod.boolean(),
+  "lead_replied": zod.boolean(),
+  "submission_status_changed": zod.boolean(),
+  "task_due": zod.boolean(),
+  "stale_lead": zod.boolean()
+})
+})
+
+
+/**
+ * @summary Update current user's push notification preferences
+ */
+export const UpdateNotificationPreferencesBody = zod.object({
+  "pushEnabled": zod.boolean().optional(),
+  "events": zod.object({
+  "new_application": zod.boolean().optional(),
+  "new_lead_assigned": zod.boolean().optional(),
+  "lead_replied": zod.boolean().optional(),
+  "submission_status_changed": zod.boolean().optional(),
+  "task_due": zod.boolean().optional(),
+  "stale_lead": zod.boolean().optional()
+}).optional()
+})
+
+export const UpdateNotificationPreferencesResponse = zod.object({
+  "pushEnabled": zod.boolean(),
+  "events": zod.object({
+  "new_application": zod.boolean(),
+  "new_lead_assigned": zod.boolean(),
+  "lead_replied": zod.boolean(),
+  "submission_status_changed": zod.boolean(),
+  "task_due": zod.boolean(),
+  "stale_lead": zod.boolean()
+})
+})
+
+
+/**
+ * @summary Register the current user's web push endpoint
+ */
+export const upsertPushSubscriptionBodyEndpointMax = 2048;
+
+export const upsertPushSubscriptionBodyP256dhMax = 512;
+
+export const upsertPushSubscriptionBodyAuthMax = 512;
+
+export const upsertPushSubscriptionBodyUserAgentMax = 1024;
+
+
+
+export const UpsertPushSubscriptionBody = zod.object({
+  "endpoint": zod.string().url().max(upsertPushSubscriptionBodyEndpointMax),
+  "p256dh": zod.string().min(1).max(upsertPushSubscriptionBodyP256dhMax),
+  "auth": zod.string().min(1).max(upsertPushSubscriptionBodyAuthMax),
+  "userAgent": zod.string().max(upsertPushSubscriptionBodyUserAgentMax).nullish()
+})
+
+
+/**
+ * @summary Remove the current user's web push endpoint
+ */
+export const unsubscribePushSubscriptionBodyEndpointMax = 2048;
+
+
+
+export const UnsubscribePushSubscriptionBody = zod.object({
+  "endpoint": zod.string().url().max(unsubscribePushSubscriptionBodyEndpointMax)
 })
 
 
@@ -5403,6 +7598,528 @@ export const CreateCollateralRenderLinkResponse = zod.object({
 
 export const DownloadSharedCollateralParams = zod.object({
   "token": zod.coerce.string()
+})
+
+
+export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
+
+export const listCampaignsResponseAudienceRulesMinAmountMin = 0;
+
+export const listCampaignsResponseAudienceRulesMaxAmountMin = 0;
+
+
+
+export const ListCampaignsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(listCampaignsResponseFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(listCampaignsResponseFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(listCampaignsResponseAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(listCampaignsResponseAudienceRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number()
+})
+export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
+
+
+
+export const createCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const createCampaignBodyFlyerTwoSizeMax = 15728640;
+
+export const createCampaignBodyAudienceRulesMinAmountMin = 0;
+
+export const createCampaignBodyAudienceRulesMaxAmountMin = 0;
+
+
+
+export const CreateCampaignBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']).optional(),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(createCampaignBodyFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(createCampaignBodyFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(createCampaignBodyAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(createCampaignBodyAudienceRulesMaxAmountMin).nullish()
+}).optional(),
+  "ownerId": zod.number().optional()
+})
+
+
+/**
+ * @summary List uploaded campaign flyers available for reuse
+ */
+export const listCampaignFlyersResponseObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const listCampaignFlyersResponseSizeMax = 15728640;
+
+
+
+export const ListCampaignFlyersResponseItem = zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(listCampaignFlyersResponseObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(listCampaignFlyersResponseSizeMax)
+})
+export const ListCampaignFlyersResponse = zod.array(ListCampaignFlyersResponseItem)
+
+
+export const GetCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const getCampaignResponseCampaignFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const getCampaignResponseCampaignFlyerTwoSizeMax = 15728640;
+
+export const getCampaignResponseCampaignAudienceRulesMinAmountMin = 0;
+
+export const getCampaignResponseCampaignAudienceRulesMaxAmountMin = 0;
+
+
+
+export const GetCampaignResponse = zod.object({
+  "campaign": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(getCampaignResponseCampaignFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(getCampaignResponseCampaignFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number()
+}),
+  "launches": zod.array(zod.object({
+  "id": zod.number(),
+  "campaignId": zod.number(),
+  "idempotencyKey": zod.string(),
+  "requestedBy": zod.number(),
+  "mode": zod.enum(['live', 'dry_run']),
+  "status": zod.string(),
+  "eligibleCount": zod.number(),
+  "excludedCount": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "scheduledAt": zod.coerce.date().nullish(),
+  "startedAt": zod.coerce.date().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const UpdateCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const updateCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const updateCampaignBodyFlyerTwoSizeMax = 15728640;
+
+export const updateCampaignBodyAudienceRulesMinAmountMin = 0;
+
+export const updateCampaignBodyAudienceRulesMaxAmountMin = 0;
+
+
+
+export const UpdateCampaignBody = zod.object({
+  "name": zod.string().min(1),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']).optional(),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(updateCampaignBodyFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(updateCampaignBodyFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(updateCampaignBodyAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(updateCampaignBodyAudienceRulesMaxAmountMin).nullish()
+}).optional(),
+  "ownerId": zod.number().optional()
+})
+
+export const updateCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const updateCampaignResponseFlyerTwoSizeMax = 15728640;
+
+export const updateCampaignResponseAudienceRulesMinAmountMin = 0;
+
+export const updateCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+
+export const UpdateCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(updateCampaignResponseFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(updateCampaignResponseFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(updateCampaignResponseAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(updateCampaignResponseAudienceRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number()
+})
+
+
+export const DuplicateCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const PreviewCampaignAudienceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PreviewCampaignAudienceResponse = zod.object({
+  "totalMatching": zod.number(),
+  "eligible": zod.array(zod.object({
+  "leadId": zod.number(),
+  "channel": zod.enum(['email', 'sms'])
+})),
+  "exclusions": zod.array(zod.object({
+  "leadId": zod.number(),
+  "channel": zod.enum(['email', 'sms']),
+  "reason": zod.string()
+})),
+  "counts": zod.object({
+  "eligible": zod.number(),
+  "excluded": zod.number(),
+  "emailEligible": zod.number(),
+  "smsEligible": zod.number(),
+  "emailCapacityRemaining": zod.number()
+}),
+  "previewToken": zod.string(),
+  "previewId": zod.number().optional(),
+  "contentHash": zod.string().optional()
+})
+
+
+export const ApproveCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const approveCampaignBodyPreviewTokenMin = 10;
+
+export const approveCampaignBodyApprovalTypeDefault = `content_and_audience`;
+
+export const ApproveCampaignBody = zod.object({
+  "previewToken": zod.string().min(approveCampaignBodyPreviewTokenMin),
+  "claimsAffirmed": zod.literal(true),
+  "approvalType": zod.string().default(approveCampaignBodyApprovalTypeDefault)
+})
+
+export const approveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const approveCampaignResponseFlyerTwoSizeMax = 15728640;
+
+export const approveCampaignResponseAudienceRulesMinAmountMin = 0;
+
+export const approveCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+
+export const ApproveCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "smsBody": zod.string().nullish(),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(approveCampaignResponseFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(approveCampaignResponseFlyerTwoSizeMax)
+})]).nullish(),
+  "audienceRules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(approveCampaignResponseAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(approveCampaignResponseAudienceRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number()
+})
+
+
+export const DryRunCampaignTestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DryRunCampaignTestBody = zod.object({
+  "toEmail": zod.string().email()
+})
+
+
+export const LaunchCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const launchCampaignBodyIdempotencyKeyMin = 8;
+
+export const launchCampaignBodyModeDefault = `live`;
+
+export const LaunchCampaignBody = zod.object({
+  "idempotencyKey": zod.string().min(launchCampaignBodyIdempotencyKeyMin),
+  "mode": zod.enum(['live', 'dry_run']).default(launchCampaignBodyModeDefault),
+  "scheduledAt": zod.coerce.date().nullish()
+})
+
+
+export const PauseCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const CancelCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const GetCampaignResultsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCampaignResultsResponse = zod.object({
+  "launches": zod.array(zod.object({
+  "id": zod.number(),
+  "campaignId": zod.number(),
+  "idempotencyKey": zod.string(),
+  "requestedBy": zod.number(),
+  "mode": zod.enum(['live', 'dry_run']),
+  "status": zod.string(),
+  "eligibleCount": zod.number(),
+  "excludedCount": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "scheduledAt": zod.coerce.date().nullish(),
+  "startedAt": zod.coerce.date().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "counts": zod.object({
+  "eligible": zod.number(),
+  "excluded": zod.number(),
+  "sent": zod.number(),
+  "failed": zod.number()
+})
+})
+
+
+export const listCampaignAudiencePresetsResponseRulesMinAmountMin = 0;
+
+export const listCampaignAudiencePresetsResponseRulesMaxAmountMin = 0;
+
+
+
+export const ListCampaignAudiencePresetsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListCampaignAudiencePresetsResponse = zod.array(ListCampaignAudiencePresetsResponseItem)
+
+
+
+export const createCampaignAudiencePresetBodyRulesMinAmountMin = 0;
+
+export const createCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
+
+
+
+export const CreateCampaignAudiencePresetBody = zod.object({
+  "name": zod.string().min(1),
+  "rules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMaxAmountMin).nullish()
+})
+})
+
+
+export const UpdateCampaignAudiencePresetParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const updateCampaignAudiencePresetBodyRulesMinAmountMin = 0;
+
+export const updateCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
+
+
+
+export const UpdateCampaignAudiencePresetBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "rules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMaxAmountMin).nullish()
+}).optional()
+})
+
+export const updateCampaignAudiencePresetResponseRulesMinAmountMin = 0;
+
+export const updateCampaignAudiencePresetResponseRulesMaxAmountMin = 0;
+
+
+
+export const UpdateCampaignAudiencePresetResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "rules": zod.object({
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMaxAmountMin).nullish()
+}),
+  "ownerId": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const DeleteCampaignAudiencePresetParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
