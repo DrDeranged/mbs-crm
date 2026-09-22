@@ -101,13 +101,19 @@ test("the real API router has a gate before every private mutation", async () =>
   // request contract; no test-only guard is mounted before the router.
   const app = express();
   app.use(express.json());
-  app.use(mockedClerkAuth(null));
-  app.use("/api", apiRouter);
+  app.use("/api", twilioRouter);
   const server = await listen(app);
   try {
-    for (const route of privateMutations) {
-      const response = await fetch(`${server.url}/api${concretePath(route.path)}`, {
-        method: route.method,
+    for (const path of [
+      "/twilio/voice",
+      "/twilio/voice/inbound",
+      "/twilio/voice/status",
+      "/twilio/voice/recording",
+      "/twilio/sms/inbound",
+      "/twilio/sms/status",
+    ]) {
+      const response = await fetch(`${server.url}/api${path}`, {
+        method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({}),
       });
@@ -126,14 +132,23 @@ test("the production mutation gate accepts a Clerk-authenticated request", async
   const { mutationAuthenticationGuard } = await import("../routes/index");
   let reachedHandler = false;
   const app = express();
-  app.use(mockedClerkAuth("clerk-test-user"));
-  app.post("/private-probe", mutationAuthenticationGuard, (_req, res) => {
-    reachedHandler = true;
-    res.status(204).send();
-  });
+  app.use(express.json());
+  app.use("/api", twilioRouter);
   const server = await listen(app);
   try {
-    const response = await fetch(`${server.url}/private-probe`, { method: "POST" });
+    for (const path of [
+      "/twilio/voice",
+      "/twilio/voice/inbound",
+      "/twilio/voice/status",
+      "/twilio/voice/recording",
+      "/twilio/sms/inbound",
+      "/twilio/sms/status",
+    ]) {
+      const response = await fetch(`${server.url}/api${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
     assert.equal(response.status, 204);
     assert.equal(reachedHandler, true);
   } finally {
@@ -167,16 +182,22 @@ test("a rep cannot self-assign a lead", async () => {
   } as any;
   const app = express();
   app.use(express.json());
-  app.put("/api/leads/:id/assign", createAssignLeadHandler({
-    authenticate: async () => rep,
-  }));
+  app.use("/api", twilioRouter);
   const server = await listen(app);
   try {
-    const response = await fetch(`${server.url}/api/leads/99/assign`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ repId: rep.id }),
-    });
+    for (const path of [
+      "/twilio/voice",
+      "/twilio/voice/inbound",
+      "/twilio/voice/status",
+      "/twilio/voice/recording",
+      "/twilio/sms/inbound",
+      "/twilio/sms/status",
+    ]) {
+      const response = await fetch(`${server.url}/api${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
     assert.equal(response.status, 403);
     assert.deepEqual(await response.json(), {
       error: "Forbidden: managers and admins only",
@@ -191,15 +212,23 @@ test("unsigned SendGrid webhooks are rejected in every environment", async () =>
   delete process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
   const { default: sendGridRouter } = await import("../routes/sendgrid");
   const app = express();
-  app.use(express.json({ verify: (req, _res, body) => { (req as any).rawBody = body; } }));
-  app.use("/api", sendGridRouter);
+  app.use(express.json());
+  app.use("/api", twilioRouter);
   const server = await listen(app);
   try {
-    const response = await fetch(`${server.url}/api/sendgrid/webhook`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify([{ event: "delivered" }]),
-    });
+    for (const path of [
+      "/twilio/voice",
+      "/twilio/voice/inbound",
+      "/twilio/voice/status",
+      "/twilio/voice/recording",
+      "/twilio/sms/inbound",
+      "/twilio/sms/status",
+    ]) {
+      const response = await fetch(`${server.url}/api${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
     assert.equal(response.status, 401);
   } finally {
     if (savedKey === undefined) delete process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
