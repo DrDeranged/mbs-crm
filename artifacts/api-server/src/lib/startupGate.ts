@@ -59,11 +59,16 @@ export function createStartupGate(): StartupGate {
     }
 
     if (isMethodSafe && isDeepHealth) {
-      sendJson(res, 200, {
-        status: "degraded",
-        phase,
-        initialization: phase === "failed" ? "failed" : "in_progress",
-      });
+      sendJson(
+        res,
+        503,
+        {
+          status: "degraded",
+          phase,
+          initialization: phase === "failed" ? "failed" : "in_progress",
+        },
+        { "retry-after": "5" },
+      );
       return;
     }
 

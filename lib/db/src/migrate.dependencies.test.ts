@@ -118,6 +118,16 @@ test("migration analyzer treats FK SET NULL as an action, not DELETE DML", async
   assert.deepEqual(analysis.referencedTables.sort(), ["activity_log", "deals", "leads", "users"]);
 });
 
+test("migration analyzer does not treat LATERAL as a table", () => {
+  const analysis = analyzeMigrationSql(`
+    INSERT INTO campaigns (owner_id)
+    SELECT u.id
+    FROM users
+    JOIN LATERAL (SELECT id FROM users ORDER BY id LIMIT 1) u ON true;
+  `);
+  assert.deepEqual(analysis.referencedTables, ["campaigns", "users"]);
+});
+
 test("all current migrations form a parseable analyzer corpus", async () => {
   const migrations = await discoverMigrations(path.resolve(import.meta.dirname, "../migrations"));
   for (const migration of migrations) {

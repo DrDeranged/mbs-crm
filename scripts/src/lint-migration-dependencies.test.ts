@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { countColumnReferences, lintMigrationDependencies, numberMigrations } from "./lint-migration-dependencies";
+import {
+  analyzeMigrationSql,
+  countColumnReferences,
+  lintMigrationDependencies,
+  numberMigrations,
+} from "./lint-migration-dependencies";
 
 test("numberMigrations is strict, sorted, and rejects aliases", () => {
   assert.deepEqual(numberMigrations(["002_second.sql", "001_first.sql"]), [
@@ -159,11 +164,21 @@ test("column reference counting is explicit and deduplicated", () => {
   assert.equal(countColumnReferences(sql), 8);
 });
 
+test("migration analysis ignores relation-like prose inside SQL string literals", () => {
+  const analysis = analyzeMigrationSql(`
+    INSERT INTO campaigns (description)
+    VALUES ('Reusable campaign seeded from the review-only campaign page.');
+  `);
+  assert.deepEqual(analysis.operations, [
+    { kind: "reference", table: "campaigns" },
+  ]);
+});
+
 test("workspace corpus has the expected baseline and migration counts", { concurrency: false }, async () => {
   const result = await lintMigrationDependencies();
   assert.equal(result.baselineTables, 31);
   assert.equal(result.baselineColumns, 320);
-  assert.equal(result.migrationsChecked, 50);
+  assert.equal(result.migrationsChecked, 54);
   assert.ok(result.tableReferencesChecked > 0);
   assert.ok(result.columnReferencesChecked > 0);
 });

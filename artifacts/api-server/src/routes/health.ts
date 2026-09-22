@@ -144,8 +144,11 @@ router.get("/health/deep", async (_req, res) => {
     // job_runs table may not exist yet — safe to skip
   }
 
-  res.json({
-    status: dbOk && schema.pending.length === 0 && !schema.failed ? "ok" : "degraded",
+  const healthy = dbOk &&
+    schema.pending.length === 0 &&
+    !schema.failed;
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? "ok" : "degraded",
     db: dbOk ? "ok" : "fail",
     schema,
     integrations,

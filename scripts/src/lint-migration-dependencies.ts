@@ -82,7 +82,12 @@ export function countColumnReferences(sql: string): number {
  */
 export function analyzeMigrationSql(sql: string): MigrationSqlAnalysis {
   const operations: Operation[] = [];
-  const clean = sql.replace(/--[^\n]*/g, " ").replace(/\/\*[\s\S]*?\*\//g, " ");
+  const clean = sql
+    .replace(/--[^\n]*/g, " ")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    // String literals can contain prose such as "from the review page"; they
+    // are values, not relation references.
+    .replace(/'(?:''|[^'])*'/g, "''");
   let dynamic = false;
   if (/\bDO\s+\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$[\s\S]*?\b(?:EXECUTE|format\s*\(|quote_ident\s*\()/i.test(clean)) dynamic = true;
   const relation = String.raw`(?:"(?:[^"]|"")+"|[a-z_][a-z0-9_$]*)(?:\s*\.\s*(?:"(?:[^"]|"")+"|[a-z_][a-z0-9_$]*))?`;
@@ -104,7 +109,7 @@ export function analyzeMigrationSql(sql: string): MigrationSqlAnalysis {
     const table = parsed.table;
     if (!ctes.has(table) && parsed.schema !== "pg_catalog" &&
         parsed.schema !== "information_schema" && !table.startsWith("pg_") &&
-        !["select", "values"].includes(table)) {
+        !["select", "values", "lateral"].includes(table)) {
       operations.push({ kind: "reference", table });
     }
   }

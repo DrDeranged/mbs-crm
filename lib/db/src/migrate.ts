@@ -260,7 +260,7 @@ export function analyzeMigrationSql(sqlText: string): MigrationSqlAnalysis {
     // "ON DELETE SET NULL" is a constraint action, not DELETE FROM DML.
     if (keyword === "delete" && tokenValue(tokens[i + 1]) !== "from") continue;
     const rel = normalizedRelation(tokens, i + 1);
-    if (!rel.name || rel.name === "select" || ctes.has(rel.name)) continue;
+    if (!rel.name || rel.name === "select" || rel.name === "lateral" || ctes.has(rel.name)) continue;
     // FROM function(...) and JOIN (subquery) are deliberately ignored.
     if (tokens[i + 1] === "(") continue;
     if (isPublicRelation(rel) && rel.name !== "information_schema" && rel.name !== "pg_catalog") {

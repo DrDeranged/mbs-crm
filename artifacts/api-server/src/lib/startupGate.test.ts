@@ -68,7 +68,8 @@ test("failed initialization stays observable and does not admit business traffic
     });
 
     const deepHealth = await fetch(`${baseUrl}/api/health/deep`);
-    assert.equal(deepHealth.status, 200);
+    assert.equal(deepHealth.status, 503);
+    assert.equal(deepHealth.headers.get("retry-after"), "5");
     assert.deepEqual(await deepHealth.json(), {
       status: "degraded",
       phase: "failed",
