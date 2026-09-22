@@ -79,6 +79,10 @@ const equivalentConstraintPairs = [
   [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_created_by_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;`],
   [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_evidence_document_id_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_evidence_document_id_documents_id_fk" FOREIGN KEY ("evidence_document_id") REFERENCES "public"."documents"("id") ON DELETE set null ON UPDATE no action;`],
   [`ALTER TABLE "underwriting_corrections" DROP CONSTRAINT "underwriting_corrections_lead_id_fkey";`, `ALTER TABLE "underwriting_corrections" ADD CONSTRAINT "underwriting_corrections_lead_id_leads_id_fk" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE cascade ON UPDATE no action;`],
+  [
+    `ALTER TABLE "campaign_audience_presets" DROP CONSTRAINT "campaign_audience_presets_owner_id_name_key";`,
+    `ALTER TABLE "campaign_audience_presets" ADD CONSTRAINT "campaign_audience_presets_owner_id_name_key" UNIQUE("owner_id","name");`,
+  ],
 ] as const;
 
 const equivalentIndexPairs = [
