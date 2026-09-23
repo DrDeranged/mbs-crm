@@ -12,6 +12,7 @@ import {
   evaluateLender,
   PACKET_TRUCKING_INDUSTRY_GATING_SUPPORTED,
 } from "./matchingEligibility";
+import { repFacingMatchDetails } from "./matchingEngine";
 
 const dexly = NEW_LENDER_SEEDS.find((seed) => seed.name === "Dexly Finance")!;
 const thoro = NEW_LENDER_SEEDS.find((seed) => seed.name === "Thoro Corp")!;
@@ -220,6 +221,13 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
       state: "NY",
     },
   };
+  // The production rows now enforce documented equipment restrictions. This
+  // fixture is a local vocational/service truck, not a long-distance sleeper
+  // or dry van, so the restriction evaluator has the facts it needs.
+  const fixtureApplication = {
+    equipmentCategory: "vocational" as const,
+    equipmentDescription: "local vocational service truck",
+  };
 
   const seedRow = (name: string) => {
     const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === name);
@@ -314,7 +322,7 @@ test("an equipment trucking lead matches only lenders allowed by structured crit
   assert.equal(yes.minTimeInBusinessMonths, 0);
 
   const matchedNames = lenderRows
-    .filter((lender) => evaluateLender(lender, fixture, fixture.company).eligible)
+    .filter((lender) => evaluateLender(lender, fixture, fixture.company, fixtureApplication).eligible)
     .map((lender) => lender.name);
 
   assert.deepEqual(matchedNames, [
@@ -542,13 +550,13 @@ test("product-scoped revenue gates and all-program industry restrictions apply c
     seedRow("Navitas Credit Corp"),
     navitasLead,
     null,
-    { industry: "trucking", timeInBusinessMonths: 24 },
+    { industry: "trucking", timeInBusinessMonths: 24, equipmentCategory: "vocational", equipmentDescription: "local service truck" },
   ).eligible, true);
   assert.equal(evaluateLender(
     seedRow("Navitas Credit Corp"),
     navitasLead,
     null,
-    { industry: "Long-Haul Trucking", timeInBusinessMonths: 24 },
+    { industry: "Long-Haul Trucking", timeInBusinessMonths: 24, equipmentCategory: "otr_truck", equipmentDescription: "long-distance sleeper" },
   ).eligible, false);
 });
 
@@ -652,7 +660,13 @@ test("Maxim uses state/amount/TIB gates, ignores FICO, and requires collateral f
     applicationType: "equipment", requestedAmount: 50_000, creditScore: 540,
     existingPositions: null, businessState: "TX",
   };
-  const app = { industry: "professional services", timeInBusinessMonths: 6, hasCollateral: false };
+  const app = {
+    industry: "professional services",
+    timeInBusinessMonths: 6,
+    hasCollateral: false,
+    equipmentCategory: "construction" as const,
+    equipmentDescription: "standard commercial excavator",
+  };
   assert.equal(evaluateLender(maxim, equipmentLead, null, app).eligible, true);
   for (const lender of [
     newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((seed) => seed.name === "Navitas Credit Corp")!),
@@ -799,4 +813,112 @@ test("AFG tow exclusion ignores incidental towing equipment language", () => {
     evaluation.criteriaBreakdown.some((criterion) => criterion.criterion === "AFG Tow Trucks"),
     false,
   );
+});
+
+test("rep-facing DKW fixture ranks approval before points and speed", () => {
+  const dkw = {
+    applicationType: "equipment", requestedAmount: 60_000, creditScore: 560,
+    existingPositions: 0, businessState: "NY",
+  };
+  const trucking = { industry: "trucking", timeInBusinessMonths: 12, equipmentCategory: "vocational" as const };
+  const lenders = [
+    { name: "Maxim Commercial Capital", minAmount: 20_000, maxAmount: 250_000, programTypes: ["equipment"] },
+    { name: "Keystone Equipment Finance Corp (KEF)", minAmount: 10_000, maxAmount: 300_000, programTypes: ["equipment"], compensation: { type: "points" as const, min: 5, max: 10 } },
+    { name: "Y.E.S. Leasing", minAmount: 10_000, maxAmount: 300_000, programTypes: ["equipment"] },
+    { name: "Fenix Capital Funding", programTypes: ["equipment"], prohibitedIndustries: ["trucking"] },
+  ];
+  const evaluations = lenders.map((lender) => ({
+    lender,
+    evaluation: evaluateLender(lender, dkw, trucking, trucking),
+  }));
+  assert.deepEqual(evaluations.filter(({ evaluation }) => evaluation.eligible).map(({ lender }) => lender.name), [
+    "Maxim Commercial Capital", "Keystone Equipment Finance Corp (KEF)", "Y.E.S. Leasing",
+  ]);
+  const fenix = evaluations.find(({ lender }) => lender.name.startsWith("Fenix"))!;
+  assert.equal(fenix.evaluation.eligible, false);
+  assert.match(fenix.evaluation.criteriaBreakdown.find((criterion) => !criterion.passed)!.detail, /prohibited/i);
+  assert.equal(repFacingMatchDetails(fenix.evaluation, fenix.lender).verdict, "Excluded");
+});
+
+test("Godspeed approval evidence exposes Maxim C1 down-payment range and points", () => {
+  const lender = {
+    name: "Maxim Commercial Capital",
+    programTypes: ["equipment"],
+    compensation: { type: "points" as const, min: 5, max: 15 },
+    pricing: { minDownPaymentPct: null },
+    notes: "Heavy equipment commission: up to 15% ≤ $75,000; up to 12% $75,001–$250,000.",
+  };
+  const evaluation = evaluateLender(lender, {
+    applicationType: "equipment", requestedAmount: 100_000, creditScore: 560,
+  }, { industry: "trucking", timeInBusinessMonths: 24 }, { equipmentCategory: "vocational" });
+  const details = repFacingMatchDetails(evaluation, lender, {
+    requestedAmount: 100_000,
+    equipmentCategory: "construction",
+    capturedApproval: { tier: "C1", downPayment: "25–35%" },
+  });
+  assert.equal(details.points, 12);
+  assert.equal(details.expectedTier, "C1");
+  assert.equal(details.downPayment, "25–35%");
+});
+
+test("generic lender notes never leak a captured approval tier to another lead", () => {
+  const lender = {
+    name: "Maxim Commercial Capital",
+    notes: "Godspeed Technologies approved tier C1, 25–35% down",
+  };
+  const evaluation = { eligible: true, matchScore: 100, weightedScore: 100, criteriaBreakdown: [] };
+  const details = repFacingMatchDetails(evaluation, lender, { requestedAmount: 60_000 });
+  assert.equal(details.expectedTier, null);
+  assert.equal(details.downPayment, null);
+});
+
+test("Maxim points are a documented deal-specific upper bound, not compensation.max", () => {
+  const lender = {
+    compensation: { type: "points" as const, min: 5, max: 15 },
+    notes: "Heavy equipment commission: up to 15% ≤ $75,000; up to 12% $75,001–$250,000; up to 5% on fundings for New York-based borrowers. Commission: 8% with ≥ 20% down; up to 10% with ≥ 40% down.",
+  };
+  const evaluation = { eligible: true, matchScore: 100, weightedScore: 100, criteriaBreakdown: [] };
+  assert.equal(repFacingMatchDetails(evaluation, lender, { requestedAmount: 60_000, equipmentCategory: "construction" }).points, 15);
+  assert.equal(repFacingMatchDetails(evaluation, lender, { requestedAmount: 150_000, equipmentCategory: "construction" }).points, 12);
+  assert.equal(repFacingMatchDetails(evaluation, lender, { requestedAmount: 60_000, businessState: "NY", equipmentCategory: "construction" }).points, 5);
+  assert.equal(repFacingMatchDetails(evaluation, lender, { industry: "trucking", equipmentCategory: "otr_truck" }).points, null);
+});
+
+test("Enviro-Care below AFG equipment minimum is explicitly excluded", () => {
+  const lender = { name: "Alliance Funding Group (AFG)", minAmount: 50_000, maxAmount: 500_000, programTypes: ["equipment"] };
+  const evaluation = evaluateLender(lender, {
+    applicationType: "equipment", requestedAmount: 40_000, creditScore: 700,
+  }, { industry: "environmental services", timeInBusinessMonths: 36 }, { equipmentCategory: "other" });
+  assert.equal(evaluation.eligible, false);
+  assert.match(evaluation.criteriaBreakdown.find((criterion) => criterion.criterion === "Requested Amount")!.detail, /\$40,000/);
+});
+
+test("document gaps use categories and statement count without treating one bank statement as three", () => {
+  const lender = {
+    requiredDocuments: ["last 3 months complete business bank statements", "equipment invoice"],
+  };
+  const evaluation = { eligible: true, matchScore: 100, weightedScore: 100, criteriaBreakdown: [] };
+  const oneStatement = repFacingMatchDetails(evaluation, lender, {
+    uploadedDocuments: ["bank_statement", "invoice_quote"],
+    uploadedDocumentCategories: ["bank_statement", "invoice_quote"],
+    businessStatementStatus: "business",
+  });
+  assert.deepEqual(oneStatement.needsBeforeSubmit, ["last 3 months complete business bank statements"]);
+  const complete = repFacingMatchDetails(evaluation, lender, {
+    uploadedDocuments: ["bank_statement", "bank_statement", "bank_statement", "invoice_quote"],
+    uploadedDocumentCategories: ["bank_statement", "bank_statement", "bank_statement", "invoice_quote"],
+    businessStatementStatus: "business",
+  });
+  assert.deepEqual(complete.needsBeforeSubmit, []);
+});
+
+test("a current business statement reconciles a stale personal-only persisted gap", () => {
+  const lender = { requiredDocuments: ["3 months business bank statements"] };
+  const evaluation = { eligible: true, matchScore: 100, weightedScore: 100, criteriaBreakdown: [] };
+  const details = repFacingMatchDetails(evaluation, lender, {
+    uploadedDocuments: ["personal statement", "business checking statement", "bank_statement", "bank_statement", "bank_statement"],
+    uploadedDocumentCategories: ["bank_statement", "bank_statement", "bank_statement"],
+    businessStatementStatus: "business",
+  });
+  assert.deepEqual(details.needsBeforeSubmit, []);
 });

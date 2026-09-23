@@ -11,7 +11,7 @@ import {
 } from "@workspace/db";
 import { eq, desc, asc, and, gte, sql, inArray, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
-import { matchLeadToLenders } from "../lib/matchingEngine";
+import { lenderNeedsBusinessStatements, matchLeadToLenders, repFacingMatchDetails } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
 import { recordManualLenderSubmission } from "../lib/manualLenderSubmission";
 import { buildLenderPackagePdf, decryptLenderPackageSsns, parseLenderPackageConfig, parsePersistedLenderPackageConfig, sanitizeLenderPackageBusinessName, type LenderPackageConfig } from "../lib/lenderPackage";
@@ -151,6 +151,7 @@ function matchToApi(
   lender?: typeof lendersTable.$inferSelect | null,
   outcomeStatuses: string[] = [],
   requestedAmount?: number | null,
+  capturedApproval?: { tier: string; downPayment?: string | null } | null,
 ) {
   const history = historicalSignal(outcomeStatuses);
   const dimensions = lender ? rankDimensions({
@@ -165,6 +166,19 @@ function matchToApi(
     minDownPaymentPct: lender.pricing?.minDownPaymentPct,
   }) : rankDimensions({ matchScore: match.matchScore, history });
   const compensation = lender?.compensation;
+  const repDetails = lender ? repFacingMatchDetails(
+    {
+      eligible: ((match.criteriaBreakdown as any[]) ?? []).every((criterion) => criterion.skipped || criterion.passed),
+      criteriaBreakdown: (match.criteriaBreakdown as any[]) ?? [],
+      matchScore: match.matchScore,
+      weightedScore: match.matchScore,
+    },
+    lender,
+    { requestedAmount, capturedApproval: capturedApproval ?? undefined },
+  ) : null;
+  const persistedDocumentGaps = ((match.criteriaBreakdown as any[]) ?? [])
+    .filter((criterion) => criterion.criterion === "Document Gap" && criterion.detail)
+    .map((criterion) => String(criterion.detail));
   const percentageCompensation = compensation?.max ?? compensation?.min;
   const estimatedGrossRevenue = compensation?.flatAmount != null
     ? compensation.flatAmount
@@ -180,7 +194,16 @@ function matchToApi(
     matchGroup: lender?.partnerType === "broker_out" ? "super_broker" : "lender",
     matchScore: match.matchScore,
     criteriaBreakdown: (match.criteriaBreakdown as unknown as object[]) ?? [],
-    eligibilityStatus: "plausible",
+     eligibilityStatus: repDetails?.verdict ?? "Possible",
+     verdict: repDetails?.verdict ?? "Possible",
+     reason: repDetails?.reason ?? "Documented criteria are available for review",
+     expectedTier: repDetails?.expectedTier ?? null,
+     downPaymentPct: repDetails?.downPaymentPct ?? null,
+     downPayment: repDetails?.downPayment ?? null,
+     points: repDetails?.points ?? null,
+     turnaround: repDetails?.turnaround ?? null,
+     needsBeforeSubmit: [...new Set([...(repDetails?.needsBeforeSubmit ?? []), ...persistedDocumentGaps])],
+     exclusions: [...new Set([...(repDetails?.exclusions ?? []), ...persistedDocumentGaps])],
     rankingVersion: "underwriting-v1",
     rankingDimensions: dimensions,
     historicalSignal: history,
@@ -197,6 +220,30 @@ function matchToApi(
     } : null,
     matchedAt: match.matchedAt.toISOString(),
   };
+}
+
+async function capturedApprovalsForLead(leadId: number): Promise<Map<number, { tier: string; downPayment: string | null }>> {
+  const deals = await db.select({ id: dealsTable.id }).from(dealsTable).where(eq(dealsTable.leadId, leadId));
+  if (!deals.length) return new Map();
+  const approvals = await db.select().from(dealApprovalsTable)
+    .where(inArray(dealApprovalsTable.dealId, deals.map((deal) => deal.id)))
+    .orderBy(desc(dealApprovalsTable.createdAt), desc(dealApprovalsTable.id));
+  const result = new Map<number, { tier: string; downPayment: string | null }>();
+  const lenders = await db.select().from(lendersTable).where(inArray(lendersTable.id, approvals.map((approval) => approval.lenderId)));
+  const lenderMap = new Map(lenders.map((lender) => [lender.id, lender]));
+  for (const approval of approvals) {
+    if (result.has(approval.lenderId)) continue;
+    const lender = lenderMap.get(approval.lenderId);
+    const pricing = lender?.pricing as ({ tiers?: Array<{ name?: string; minDownPaymentPct?: number; maxDownPaymentPct?: number }> } | null | undefined);
+    const pricingTier = pricing?.tiers?.find((tier) => tier.name?.toLowerCase() === approval.tier.toLowerCase());
+    const downPayment = pricingTier?.minDownPaymentPct != null && pricingTier.maxDownPaymentPct != null
+      ? `${pricingTier.minDownPaymentPct}–${pricingTier.maxDownPaymentPct}%`
+      : approval.advance + approval.downPayment > 0
+        ? `${Math.round((approval.downPayment / (approval.advance + approval.downPayment)) * 100)}%`
+        : null;
+    result.set(approval.lenderId, { tier: approval.tier, downPayment });
+  }
+  return result;
 }
 
 async function buildUnderwritingProfile(leadId: number) {
@@ -588,12 +635,22 @@ router.post("/leads/:id/match", async (req: Request, res: Response) => {
   for (const row of outcomes) outcomeMap.set(row.lenderId, [...(outcomeMap.get(row.lenderId) ?? []), row.status]);
   const lenderMap: Record<number, typeof lendersTable.$inferSelect> = {};
   for (const l of allLenders) lenderMap[l.id] = l;
+  const capturedApprovals = await capturedApprovalsForLead(leadId);
 
   const sorted = matches
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount));
+    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount, capturedApprovals.get(m.lenderId)))
+    .sort((a, b) => {
+      const verdictRank = (value: string) => value === "Likely" ? 0 : value === "Possible" ? 1 : 2;
+      const verdict = verdictRank(a.verdict) - verdictRank(b.verdict);
+      if (verdict) return verdict;
+      const approval = (b.rankingDimensions?.approvalProbability ?? -1) - (a.rankingDimensions?.approvalProbability ?? -1);
+      if (approval) return approval;
+      const points = (b.points ?? -1) - (a.points ?? -1);
+      if (points) return points;
+      return (a.turnaround?.max ?? 999) - (b.turnaround?.max ?? 999);
+    });
 
-  res.json({ matchCount: results.length, matches: sorted });
+   res.json({ matchCount: results.filter((result) => result.verdict !== "Excluded").length, matches: sorted });
 });
 
 router.get("/leads/:id/matches", async (req: Request, res: Response) => {
@@ -618,10 +675,20 @@ router.get("/leads/:id/matches", async (req: Request, res: Response) => {
   for (const row of outcomes) outcomeMap.set(row.lenderId, [...(outcomeMap.get(row.lenderId) ?? []), row.status]);
   const lenderMap: Record<number, typeof lendersTable.$inferSelect> = {};
   for (const l of allLenders) lenderMap[l.id] = l;
+  const capturedApprovals = await capturedApprovalsForLead(leadId);
 
   const sorted = matches
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount));
+    .map((m) => matchToApi(m, lenderMap[m.lenderId], outcomeMap.get(m.lenderId), lead.requestedAmount, capturedApprovals.get(m.lenderId)))
+    .sort((a, b) => {
+      const verdictRank = (value: string) => value === "Likely" ? 0 : value === "Possible" ? 1 : 2;
+      const verdict = verdictRank(a.verdict) - verdictRank(b.verdict);
+      if (verdict) return verdict;
+      const approval = (b.rankingDimensions?.approvalProbability ?? -1) - (a.rankingDimensions?.approvalProbability ?? -1);
+      if (approval) return approval;
+      const points = (b.points ?? -1) - (a.points ?? -1);
+      if (points) return points;
+      return (a.turnaround?.max ?? 999) - (b.turnaround?.max ?? 999);
+    });
 
   res.json(sorted);
 });
@@ -783,6 +850,35 @@ export function createSubmissionHandler(
     if (!lender.contactEmail || !VALID_EMAIL.test(lender.contactEmail.trim())) {
       return void res.status(409).json({ error: "Selected lender has no valid contact email" });
     }
+     // Business-statement lenders must never receive personal/joint statements.
+     // Prefer the persisted match document-gap marker (which includes extraction
+     // based detection), with a document-label fallback for older matches.
+     if (lender.requiresFinancialStatements || lenderNeedsBusinessStatements(lender.requiredDocuments ?? [])) {
+       const persistedMatch = typeof routeDb.query.lenderMatchesTable?.findFirst === "function"
+         ? await routeDb.query.lenderMatchesTable.findFirst({ where: and(eq(lenderMatchesTable.leadId, leadId), eq(lenderMatchesTable.lenderId, lenderId)) })
+         : null;
+       const documents = typeof routeDb.query.documentsTable?.findMany === "function"
+         ? await routeDb.query.documentsTable.findMany({ where: eq(documentsTable.leadId, leadId) })
+         : [];
+       const extractions = typeof routeDb.query.bankStatementExtractionsTable?.findMany === "function"
+         ? await routeDb.query.bankStatementExtractionsTable.findMany({ where: eq(bankStatementExtractionsTable.leadId, leadId) })
+         : [];
+       const bankDocuments = documents.filter((document: any) => document.category === "bank_statement");
+       const hasBusinessStatement = bankDocuments.some((document: any) => /business account|business checking|business savings/i.test([document.label, document.filename].filter(Boolean).join(" ")))
+         || extractions.some((row: any) => /business/i.test(String((row.rawExtractionJson as any)?.accountType ?? (row.rawExtractionJson as any)?.account_type ?? (row.rawExtractionJson as any)?.ownershipType ?? "")));
+       const hasPersonalOnly = !hasBusinessStatement && (
+         bankDocuments.some((document: any) => /personal|joint/i.test([document.label, document.filename].filter(Boolean).join(" ")))
+         || extractions.some((row: any) => /personal|joint/i.test(String((row.rawExtractionJson as any)?.accountType ?? (row.rawExtractionJson as any)?.account_type ?? (row.rawExtractionJson as any)?.ownershipType ?? "")))
+         || ((persistedMatch?.criteriaBreakdown as any[]) ?? []).some((criterion) => criterion.criterion === "Document Gap" && /personal\/joint/i.test(String(criterion.detail)))
+       );
+       if (hasPersonalOnly) {
+         return void res.status(409).json({
+           error: "Business bank statements are required; uploaded statements are personal or joint",
+           reason: "business_bank_statements_required",
+           needsBeforeSubmit: ["Business bank statements"],
+         });
+       }
+     }
 
     const adminOverride = body.data.admin_override ?? body.data.adminOverride ?? false;
     if (adminOverride && user.role !== "admin") {

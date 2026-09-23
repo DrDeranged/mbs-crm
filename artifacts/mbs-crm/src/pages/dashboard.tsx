@@ -18,6 +18,8 @@ import {
   useListLeads, getListLeadsQueryKey,
   useListUsers, getListUsersQueryKey,
   useAssignLead,
+  useListDeals,
+  getListDealsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -339,6 +341,15 @@ export default function Dashboard() {
   const { data: myTasks } = useGetMyTasks({
     query: { queryKey: getGetMyTasksQueryKey() },
   });
+  const { data: expiringDealsResponse } = useListDeals(
+    { limit: 100, include_archived: false },
+    { query: { queryKey: getListDealsQueryKey({ limit: 100, include_archived: false }), enabled: !!currentUser } },
+  );
+  const expiringDeals = (expiringDealsResponse?.deals ?? []).filter((deal) => {
+    if (!deal.approvalExpiresOn) return false;
+    const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
+    return days <= 14;
+  });
 
   const isRep = currentUser?.role === "rep";
   const isAdmin = currentUser?.role === "admin";
@@ -456,6 +467,31 @@ export default function Dashboard() {
 
       <DailyBriefingCard />
       {isAdmin && <StaleLeadQueue />}
+      <Card className="mb-6" data-testid="card-expiring-approvals">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock className="h-4 w-4 text-amber-600" /> Approvals expiring within 14 days
+          </CardTitle>
+          <CardDescription>Capture-recorded lender approvals that need rep follow-up.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {expiringDeals.length ? (
+            <div className="space-y-2">
+              {expiringDeals.map((deal) => {
+                const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
+                return (
+                  <Link key={deal.id} href={`/deals/${deal.id}`} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/40">
+                    <span className="font-medium text-[#1F4E79]">{deal.dealName}</span>
+                    <Badge variant="outline" className={days < 0 ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-700"}>
+                      {deal.approvalExpiresOn} · {days < 0 ? "expired" : `${days}d left`}
+                    </Badge>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : <p className="text-sm text-muted-foreground">No approvals are expiring within 14 days.</p>}
+        </CardContent>
+      </Card>
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap items-center gap-2 mb-6">

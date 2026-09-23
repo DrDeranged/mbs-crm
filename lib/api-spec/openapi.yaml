@@ -8153,6 +8153,7 @@ components:
             - $ref: "#/components/schemas/User"
             - type: "null"
           description: User who performed the most recent activity
+        approvalExpiresOn: { type: ["string", "null"], format: date }
 
     DealApproval:
       type: object

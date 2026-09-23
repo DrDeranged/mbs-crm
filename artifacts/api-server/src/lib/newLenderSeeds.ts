@@ -389,6 +389,16 @@ SCHEMA MAPPING:
     minTimeInBusinessMonths: 24,
     acceptedStates: Object.freeze([...ALL_US_STATES, "DC"]),
     contactEmail: "myapplications@navitascredit.com",
+    pricing: Object.freeze({ minRatePct: 8.5, maxRatePct: 12, tiers: [
+      { name: "Platinum", minRatePct: 8.5, minCreditScore: 725 },
+      { name: "Gold", minRatePct: 9.5, minCreditScore: 700 },
+      { name: "Silver", minRatePct: 10.75, minCreditScore: 675 },
+      { name: "Bronze", minRatePct: 12, minCreditScore: 660 },
+      { name: "Start-Up", minRatePct: 17, minDownPaymentPct: 20 },
+    ] }),
+    compensation: Object.freeze({ type: "points", min: 6, max: 15 }),
+    requiredDocuments: Object.freeze(["3 months business bank statements", "credit application", "equipment invoice", "ACH authorization"]),
+    equipmentRestrictions: Object.freeze(["long-distance sleepers", "dry vans/reefer trailers", "rebuilt/salvage titles", "ATMs", "boats/planes", "food trucks/trailers"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - programTypes: ["equipment"]
 - minAmount: 10000 | maxAmount: 350000 (app-only; commercial program $250k–$500k with financials; $500k–$2.5MM+ call)
@@ -437,6 +447,13 @@ SCHEMA MAPPING:
     acceptedStates: ALL_US_STATES,
     contactName: "Jake Gothers",
     contactEmail: "jgothers@keystoneefc.com",
+    requiredDocuments: Object.freeze(["completed credit application", "last 3 months bank statements", "equipment description/invoice"]),
+    pricing: Object.freeze({ tiers: [
+      { name: "startup", minDownPaymentPct: 30 },
+      { name: "non-startup", minDownPaymentPct: 20 },
+      { name: "under-2-years-without-CDL", minDownPaymentPct: 50 },
+    ] }),
+    equipmentRestrictions: Object.freeze(["rebuilds/reconditioned", "glider kits", "salvaged/branded titles", "private sellers"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - programTypes: ["equipment"]
 - minAmount: 10000 | maxAmount: 150000 (marketing deck says to $250k; credit guidelines say max $150k — use 150000, note the discrepancy)
@@ -472,6 +489,13 @@ SCHEMA MAPPING:
     minTimeInBusinessMonths: 12,
     acceptedStates: ALL_US_STATES,
     contactEmail: "newdeals@channelpartnersllc.com",
+    requiredDocuments: Object.freeze(["application", "most recent 3 months bank statements", "valid DL/passport", "voided business check", "verification of material ownership"]),
+    equipmentRestrictions: Object.freeze(["non-essential", "aircraft", "aesthetic lasers", "ATMs", "boats", "copiers/printers", "gaming", "invasive medical", "leasehold improvements", "agriculture equipment"]),
+    pricing: Object.freeze({ tiers: [
+      { name: "Tier 1-3", maxAmount: 250_000 },
+      { name: "Tier 4", maxAmount: 150_000 },
+      { name: "Tier 7", maxAmount: 50_000 },
+    ] }),
     notes: `SOURCE STATEMENTS (verbatim):
 - programTypes: ["working_capital", "equipment"]
 - minAmount: 10000 (WC) / 15000 (EF) — use 10000, note EF floor
@@ -527,6 +551,12 @@ SCHEMA MAPPING:
     minTimeInBusinessMonths: 0,
     acceptedStates: ALL_US_STATES,
     contactEmail: "brokerdesk@timepayment.com",
+    compensation: Object.freeze({ type: "points", max: 15 }),
+    pricing: Object.freeze({ tiers: [
+      { name: "AAA", minCreditScore: 750, maxAmount: 150_000 },
+      { name: "U", minCreditScore: 550, maxAmount: 6_000 },
+    ] }),
+    equipmentRestrictions: Object.freeze(["consumer", "private party sales", "sale leasebacks", "working capital", "permanent fixtures", "ATM", "POS/bankcard", "cannabis", "computers and 100% software", "copiers", "security & monitoring", "water quality products"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - programTypes: ["equipment"]
 - minAmount: 500 | maxAmount: 1500000
@@ -565,6 +595,11 @@ SCHEMA MAPPING:
     acceptedStates: ALL_US_STATES,
     contactName: "Elena Zucchi",
     contactEmail: "ezucchi@PEACsolutions.com",
+    compensation: Object.freeze({ type: "points", min: 8, max: 15 }),
+    pricing: Object.freeze({ tiers: [
+      { name: "app-only-under-30k", minDownPaymentPct: 0 },
+      { name: "structured-finance", minDownPaymentPct: 0 },
+    ] }),
     notes: `SOURCE STATEMENTS (verbatim):
 - programTypes: ["equipment", "working_capital"]
 - minAmount: 10000 | maxAmount: 250000 (app-only; $150k standard / $250k "A" credits)
@@ -641,6 +676,15 @@ SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 
     minTimeInBusinessMonths: 0,
     acceptedStates: ALL_US_STATES,
     contactEmail: "apps@nmef.com",
+    pricing: Object.freeze({ minRatePct: 10, maxRatePct: 26, tiers: [
+      { name: "A-1", minDownPaymentPct: 0, maxAdvancePct: 175 },
+      { name: "A-2", minDownPaymentPct: 0, maxAdvancePct: 150 },
+      { name: "A-3", minDownPaymentPct: 5, maxAdvancePct: 150 },
+      { name: "B-1", minDownPaymentPct: 5, maxAdvancePct: 150 },
+      { name: "B-2", minDownPaymentPct: 10, maxAdvancePct: 140 },
+    ] }),
+    compensation: Object.freeze({ type: "percent", min: 4, max: 11 }),
+    requiredDocuments: Object.freeze(["last 2 years audited/reviewed financials or business tax returns", "interim statements"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - APPLICATION QUALIFIER / AUTO-DECLINE: FICO min 550; TIB < 2 years requires 640+ FICO; must have 3+ years industry experience; bankruptcy (discharged or dismissed) in last 3 years (5 for startups); charge-off in last 3 years (5 for startups); felony conviction within last 10 years; foreclosure in last 3 years (5 for startups); repossession in last 3 years (5 for startups); NMEF account in collections or poor pay history; no FICO score generated on Experian; tax liens > $5K reviewed case-by-case; ANY late child support payment in last 12 months is an automatic decline.
 - Finance amounts: $15K–$300K app only; $15K–$200K app only for startups; $300K+ requires last 2 years audited/reviewed financials or business tax returns plus interim statements.
@@ -672,6 +716,9 @@ SCHEMA MAPPING: equipment, $15,000–$300,000, minCreditScore 550, TIB 0, all 50
     minTimeInBusinessMonths: null,
     acceptedStates: ALL_US_STATES,
     contactEmail: null,
+    turnaroundBusinessDaysMin: 2,
+    turnaroundBusinessDaysMax: 10,
+    requiredDocuments: Object.freeze(["last two year-end financial statements", "current YTD financial statements", "prior YTD comparable financial statements", "project description"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - Largest independent mid-to-large-ticket direct lender in the US. Deal size $250K–$25MM+; term 24–60 months; operating and capital leases; no blanket liens; no financial covenants; equipment, software, and soft-cost financing; international funding for US-based companies.
 - Credit requirements: audited or reviewed financial statements (or internals with tax returns); positive cash flow; profitable in two of the last three years; if not profitable, positive EBITDA in most recent YE and YTD, or a compelling turnaround story.
@@ -715,6 +762,14 @@ SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditSc
     minTimeInBusinessMonths: 0,
     acceptedStates: Object.freeze(ALL_US_STATES.filter((state) => !["AK", "HI", "LA"].includes(state))),
     contactEmail: "submit@maximcc.com",
+    pricing: Object.freeze({ minRatePct: 18.5, maxRatePct: 55, maxAdvancePct: 80, tiers: [
+      { name: "B1", minRatePct: 18.5, maxRatePct: 31, minDownPaymentPct: 10 },
+      { name: "C1", minRatePct: 29.5, maxRatePct: 40, minDownPaymentPct: 25 },
+      { name: "D2", minRatePct: 44, maxRatePct: 55, minDownPaymentPct: 40 },
+    ] }),
+    compensation: Object.freeze({ type: "points", min: 5, max: 15 }),
+    requiredDocuments: Object.freeze(["application", "last 3 months complete business bank statements", "equipment invoice/specifications", "dealer invoice/quote", "equipment spec sheet"]),
+    equipmentRestrictions: Object.freeze(["Mercedes Benz engines", "Cat-13 engines", "2019 International ProStars without Cummins ISX engines", "medium duty MaxxForce 7 & 9 engines", "private-party sales", "rebuilt, rebranded or salvaged titles", "open tax liens over $10K", "auto charge-offs or repossessions"]),
     minMonthlyRevenue: null,
     programEligibilityRules: Object.freeze([
       Object.freeze({ programType: "working_capital", requiresCollateral: true }),
@@ -760,6 +815,7 @@ SCHEMA MAPPING: programs equipment + working_capital (structured/secured only); 
     minTimeInBusinessMonths: 12,
     acceptedStates: Object.freeze(ALL_US_STATES.filter((state) => !["PR", "HI", "CA", "AK"].includes(state))),
     contactEmail: "iso@fenixcapitalfunding.com",
+    requiredDocuments: Object.freeze(["signed and dated application for each owner", "3 months business bank statements", "voided check", "driver's licence", "proof of ownership", "future-receivables confirmation", "proof of citizenship", "bank verification", "Persona ID verification"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - THE BOX: 1st–5th positions and reverse consolidations; max funding $250k for MCAs and $375k for reverses; max term 15 months (60 weeks); daily, weekly and bi-weekly payments; straight buyouts up to $100k; EPAs included in every contract; sweet spot 2nd–3rd position behind reputable A-paper funders; renewals as early as 25% paid in, plus add-ons; max holdback 30% total.
 - BASIC REQUIREMENTS: TIB minimum 1 year; credit score minimum 500 preferred (exceptions with MCA history); revenue ≥ $20k monthly excluding transfers, returns and international wires; negative days up to 5 per month; minimum 4 deposits per month; ownership minimum 67%; no open bankruptcies or defaults.
@@ -815,6 +871,12 @@ export function newLenderSeedToInsertValues(seed: NewLenderSeed) {
     requiresFinancialStatements: "requiresFinancialStatements" in seed
       ? seed.requiresFinancialStatements
       : false,
+    pricing: "pricing" in seed ? seed.pricing : null,
+    requiredDocuments: "requiredDocuments" in seed ? [...seed.requiredDocuments] : [],
+    equipmentRestrictions: "equipmentRestrictions" in seed ? [...seed.equipmentRestrictions] : [],
+    turnaroundBusinessDaysMin: "turnaroundBusinessDaysMin" in seed ? seed.turnaroundBusinessDaysMin : null,
+    turnaroundBusinessDaysMax: "turnaroundBusinessDaysMax" in seed ? seed.turnaroundBusinessDaysMax : null,
+    compensation: "compensation" in seed ? seed.compensation : null,
     truckingRules: "truckingRules" in seed ? [...seed.truckingRules] : null,
     industryTimeInBusinessOverrides: "industryTimeInBusinessOverrides" in seed
       ? [...seed.industryTimeInBusinessOverrides]

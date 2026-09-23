@@ -27,7 +27,11 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Deep health check — DB connectivity, integration config presence, job run summaries
  */
+export const getHealthDeepResponseRevisionRegExp = new RegExp('^[0-9a-f]{40}$');
+
+
 export const GetHealthDeepResponse = zod.object({
+  "revision": zod.string().regex(getHealthDeepResponseRevisionRegExp).describe('Full git commit SHA embedded when the API bundle was built.'),
   "status": zod.enum(['ok', 'degraded']).optional(),
   "db": zod.enum(['ok', 'fail']).optional(),
   "integrations": zod.object({
@@ -3311,7 +3315,8 @@ export const ListDealsResponse = zod.object({
 }),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "approvalExpiresOn": zod.coerce.date().nullish()
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -3464,7 +3469,8 @@ export const GetDealResponse = zod.object({
 }),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "approvalExpiresOn": zod.coerce.date().nullish()
 }).and(zod.object({
   "lead": zod.record(zod.string(), zod.unknown()).nullish(),
   "activity": zod.array(zod.object({
@@ -3632,7 +3638,8 @@ export const UpdateDealResponse = zod.object({
 }),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "approvalExpiresOn": zod.coerce.date().nullish()
 })
 
 
@@ -3744,7 +3751,8 @@ export const ArchiveDealResponse = zod.object({
 }),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "approvalExpiresOn": zod.coerce.date().nullish()
 })
 
 
@@ -3927,7 +3935,8 @@ export const SaveDealRatePointsResponse = zod.object({
 }),zod.null()]).optional(),
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
-}),zod.null()]).optional().describe('User who performed the most recent activity')
+}),zod.null()]).optional().describe('User who performed the most recent activity'),
+  "approvalExpiresOn": zod.coerce.date().nullish()
 }),
   "gmTarget": zod.enum(['approxGm', 'actualGm']),
   "calculation": zod.object({

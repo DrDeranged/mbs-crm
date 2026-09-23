@@ -3039,6 +3039,10 @@ export type DeepHealthResponseSchema = {
 export type DeepHealthResponseJobs = { [key: string]: unknown };
 
 export interface DeepHealthResponse {
+  /**
+     * Full git commit SHA embedded when the API bundle was built.
+     * @pattern ^[0-9a-f]{40}$
+     */
   revision: string;
   status?: DeepHealthResponseStatus;
   db?: DeepHealthResponseDb;
@@ -3144,6 +3148,8 @@ export interface Deal {
   lastActivityAt?: string | null;
   /** User who performed the most recent activity */
   lastActivityActor?: User | null;
+  /** @nullable */
+  approvalExpiresOn?: string | null;
 }
 
 export type DealApprovalContractType = typeof DealApprovalContractType[keyof typeof DealApprovalContractType];

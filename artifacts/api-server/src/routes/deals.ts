@@ -21,6 +21,7 @@ import {
   dealApprovalsTable,
   documentsTable,
   lendersTable,
+  tasksTable,
 } from "@workspace/db";
 import { db } from "@workspace/db";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
@@ -119,6 +120,7 @@ function toApi(
     lastActivityActor: latestActivity?.user
       ? userToApi(latestActivity.user)
       : null,
+    approvalExpiresOn: (deal as any).approvalExpiresOn ?? null,
   };
 }
 
@@ -290,9 +292,18 @@ router.get("/deals", async (req, res): Promise<void> => {
     "deal",
     rows.map((deal) => deal.id),
   );
+  const approvalRows = rows.length === 0 ? [] : await db
+    .selectDistinctOn([dealApprovalsTable.dealId], {
+      dealId: dealApprovalsTable.dealId,
+      expiresOn: dealApprovalsTable.expiresOn,
+    })
+    .from(dealApprovalsTable)
+    .where(inArray(dealApprovalsTable.dealId, rows.map((deal) => deal.id)))
+    .orderBy(dealApprovalsTable.dealId, desc(dealApprovalsTable.createdAt), desc(dealApprovalsTable.id));
+  const approvalExpiryByDeal = new Map(approvalRows.map((row) => [row.dealId, row.expiresOn]));
   res.json({
     deals: rows.map((deal) =>
-      toApi(deal, deal.assignedUser, latestActivities.get(deal.id)),
+      toApi(Object.assign(deal, { approvalExpiresOn: approvalExpiryByDeal.get(deal.id) }), deal.assignedUser, latestActivities.get(deal.id)),
     ),
     total,
     page,
@@ -504,10 +515,14 @@ router.get("/deals/:id", async (req, res, next): Promise<void> => {
     with: { user: true },
     orderBy: [asc(activityLogTable.createdAt), asc(activityLogTable.id)],
   });
+  const latestApproval = await db.query.dealApprovalsTable.findFirst({
+    where: eq(dealApprovalsTable.dealId, id),
+    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
+  });
   const latestActivity =
     activity.length > 0 ? activity[activity.length - 1] : null;
   res.json({
-    ...toApi(deal, deal.assignedUser, latestActivity),
+    ...toApi(Object.assign(deal, { approvalExpiresOn: latestApproval?.expiresOn }), deal.assignedUser, latestActivity),
     lead: deal.lead ?? null,
     activity: activity.map((entry) => ({
       ...entry,
@@ -833,6 +848,43 @@ function approvalToApi(approval: any) {
   };
 }
 
+export async function createApprovalExpiryReminder(
+  database: Pick<typeof db, "transaction">,
+  deal: Pick<typeof dealsTable.$inferSelect, "id" | "leadId" | "assignedTo" | "dealName">,
+  expiresOn: string,
+): Promise<void> {
+  if (!deal.leadId || !deal.assignedTo) return;
+  const expiry = new Date(`${expiresOn}T00:00:00.000Z`);
+  expiry.setUTCDate(expiry.getUTCDate() - 7);
+  const dueDate = expiry.toISOString().slice(0, 10);
+  const reminderTitle = "Follow up on expiring approval";
+  await database.transaction(async (tx: any) => {
+    await tx
+      .select({ id: dealsTable.id })
+      .from(dealsTable)
+      .where(eq(dealsTable.id, deal.id))
+      .for("update");
+    const existingReminder = await tx.query.tasksTable.findFirst({
+      where: and(
+        eq(tasksTable.leadId, deal.leadId!),
+        eq(tasksTable.userId, deal.assignedTo!),
+        eq(tasksTable.title, reminderTitle),
+        eq(tasksTable.dueDate, dueDate),
+      ),
+    });
+    if (!existingReminder) {
+      await tx.insert(tasksTable).values({
+        leadId: deal.leadId!,
+        userId: deal.assignedTo!,
+        title: reminderTitle,
+        description: `Approval captured for ${deal.dealName} expires on ${expiresOn}.`,
+        dueDate,
+        isCompleted: false,
+      });
+    }
+  });
+}
+
 async function findAccessibleDeal(id: number, user: typeof usersTable.$inferSelect) {
   const deal = await db.query.dealsTable.findFirst({ where: eq(dealsTable.id, id) });
   if (!deal || !canAccessDeal(user, deal)) return null;
@@ -906,6 +958,9 @@ router.post("/deals/:id/approvals", async (req, res): Promise<void> => {
     approvalDocumentId: parsed.data.approvalDocumentId ?? null,
     createdBy: user.id,
   }).returning();
+  // Create the reminder once, at capture time—not during page rendering. The
+  // deal-row lock serializes concurrent captures without needing a migration.
+  await createApprovalExpiryReminder(db, deal, approval.expiresOn);
   await logActivity({
     userId: user.id,
     leadId: deal.leadId,

@@ -365,6 +365,34 @@ test("seed insert mapping carries explicit contacts and position caps without na
   assert.equal(thoroInsert.contactEmail, null);
 });
 
+test("supported document fields are populated only where the packet states them", () => {
+  const seed = (name: string) => newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((item) => item.name === name)!);
+  const maxim = seed("Maxim Commercial Capital");
+  assert.equal((maxim.pricing as { maxAdvancePct?: number } | null)?.maxAdvancePct, 80);
+  assert.deepEqual(maxim.compensation, { type: "points", min: 5, max: 15 });
+  assert.ok((maxim.requiredDocuments as string[]).includes("last 3 months complete business bank statements"));
+  assert.ok((maxim.equipmentRestrictions as string[]).includes("Mercedes Benz engines"));
+  assert.deepEqual(
+    (newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((item) => item.name === "North Mill Equipment Finance (NMEF)")!).pricing as { tiers: unknown[] }).tiers[0],
+    { name: "A-1", minDownPaymentPct: 0, maxAdvancePct: 175 },
+  );
+  assert.deepEqual(
+    (newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((item) => item.name === "Maxim Commercial Capital")!).pricing as { tiers: unknown[] }).tiers[0],
+    { name: "B1", minRatePct: 18.5, maxRatePct: 31, minDownPaymentPct: 10 },
+  );
+
+  const captech = seed("CapTech Financial");
+  assert.equal(captech.turnaroundBusinessDaysMin, 2);
+  assert.equal(captech.turnaroundBusinessDaysMax, 10);
+  assert.equal((captech as { compensation: unknown }).compensation, null);
+
+  const ophelia = seed("Ophelia Capital Group");
+  assert.equal((ophelia as { pricing: unknown }).pricing, null);
+  assert.equal((ophelia as { requiredDocuments: string[] }).requiredDocuments.length, 0);
+  const fenix = seed("Fenix Capital Funding");
+  assert.ok((fenix.requiredDocuments as string[]).includes("3 months business bank statements"));
+});
+
 test("the pure exact-name planner is idempotent and preserves existing names", () => {
   assert.deepEqual(planNewLenderSeeds([]), {
     toCreate: NEW_LENDER_SEEDS,

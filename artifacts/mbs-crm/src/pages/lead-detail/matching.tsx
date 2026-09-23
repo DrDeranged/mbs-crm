@@ -14,7 +14,6 @@ import { filterDeclinedMatches } from "@/lib/lenderSubmissions";
 import { useCreateUnderwritingCorrection, useUnderwritingProfile, underwritingProfileKey, type UnderwritingFact } from "@/lib/underwriting-api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function apiErrorDetails(error: any, fallback: string) {
   const data = error?.data;
@@ -44,7 +43,6 @@ export function LeadLenderMatch() {
   // Expandable criteria state — track which match cards are expanded
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
-  const [sortPerspective, setSortPerspective] = useState("approvalProbability");
   const [correctionFact, setCorrectionFact] = useState<UnderwritingFact | null>(null);
   const [correctionValue, setCorrectionValue] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
@@ -114,9 +112,14 @@ export function LeadLenderMatch() {
     submissions ?? [],
     showDeclined,
   ).sort((a: any, b: any) => {
-    const group = Number(a.matchGroup === "super_broker") - Number(b.matchGroup === "super_broker");
-    if (group) return group;
-    return Number(b.rankingDimensions?.[sortPerspective] ?? -1) - Number(a.rankingDimensions?.[sortPerspective] ?? -1);
+    const verdictRank = (value: string) => value === "Likely" ? 0 : value === "Possible" ? 1 : 2;
+    const verdict = verdictRank(a.verdict) - verdictRank(b.verdict);
+    if (verdict) return verdict;
+    const approval = Number(b.rankingDimensions?.approvalProbability ?? -1) - Number(a.rankingDimensions?.approvalProbability ?? -1);
+    if (approval) return approval;
+    const points = Number(b.points ?? -1) - Number(a.points ?? -1);
+    if (points) return points;
+    return Number(a.turnaround?.max ?? 999) - Number(b.turnaround?.max ?? 999);
   });
 
   const saveCorrection = () => {
@@ -246,17 +249,7 @@ export function LeadLenderMatch() {
           <p className="text-xs text-muted-foreground mt-0.5">Run the engine to find the best lenders for this deal</p>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={sortPerspective} onValueChange={setSortPerspective}>
-            <SelectTrigger className="h-8 w-[190px] text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="approvalProbability">Approval probability</SelectItem>
-              <SelectItem value="customerPricing">Customer pricing</SelectItem>
-              <SelectItem value="fundingSpeed">Funding speed</SelectItem>
-              <SelectItem value="mbsPayout">MBS payout</SelectItem>
-              <SelectItem value="documentationBurden">Documentation burden</SelectItem>
-              <SelectItem value="overallStructure">Overall structure</SelectItem>
-            </SelectContent>
-          </Select>
+          <Badge variant="outline" className="text-[10px]">Ranked: approval → points → speed</Badge>
           <Button
           size="sm"
           onClick={handleRunMatch}
@@ -294,7 +287,7 @@ export function LeadLenderMatch() {
              return (
                <div key={m.id}>
                {m.matchGroup === "super_broker" && (idx === 0 || (activeMatches[idx - 1] as any)?.matchGroup !== "super_broker") && <div className="pt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Super-broker options</div>}
-               <div className={`rounded-xl border p-3 space-y-2 ${idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
+                 <div className={`rounded-xl border p-3 space-y-2 ${m.verdict === "Excluded" ? "border-red-200 bg-red-50/30" : idx === 0 ? "border-[#1F4E79]/30 bg-blue-50/30" : "bg-white"}`}>
                 <div className="flex items-start justify-between">
                   <button
                     className="flex items-center gap-2 text-left flex-1 min-w-0"
@@ -305,7 +298,10 @@ export function LeadLenderMatch() {
                       {idx + 1}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-medium text-sm text-slate-800 truncate">{lenderName}</div>
+                       <div className="flex items-center gap-2">
+                         <div className="font-medium text-sm text-slate-800 truncate">{lenderName}</div>
+                         <Badge variant="outline" className={`text-[10px] ${m.verdict === "Likely" ? "bg-green-50 text-green-700 border-green-200" : m.verdict === "Excluded" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>{m.verdict ?? "Possible"}</Badge>
+                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round((m.lender?.priorityWeight ?? 5) / 2) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
@@ -314,7 +310,7 @@ export function LeadLenderMatch() {
                       </div>
                     </div>
                   </button>
-                  {canSubmit ? (
+                   {canSubmit && m.verdict !== "Excluded" ? (
                     <Button
                       size="sm"
                       variant="outline"
@@ -329,6 +325,14 @@ export function LeadLenderMatch() {
                     </Badge>
                   ) : null}
                 </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 text-[10px]">
+                    <div className="rounded bg-slate-50 border px-2 py-1"><span className="text-slate-500">Reason</span><div className="font-medium text-slate-700">{m.reason ?? "Documented criteria available"}</div></div>
+                    <div className="rounded bg-slate-50 border px-2 py-1"><span className="text-slate-500">Tier / down</span><div className="font-medium text-slate-700">{m.expectedTier ?? "—"}{m.downPayment ?? (m.downPaymentPct != null ? `${m.downPaymentPct}%` : "")}{m.downPayment || m.downPaymentPct != null ? " down" : ""}</div></div>
+                    <div className="rounded bg-slate-50 border px-2 py-1"><span className="text-slate-500">Points</span><div className="font-medium text-slate-700">{m.points == null ? "—" : `${m.points} pts`}</div></div>
+                    <div className="rounded bg-slate-50 border px-2 py-1"><span className="text-slate-500">Turnaround</span><div className="font-medium text-slate-700">{m.turnaround ? `${m.turnaround.min ?? "?"}–${m.turnaround.max ?? "?"} days` : "—"}</div></div>
+                  </div>
+                  {m.verdict === "Excluded" && m.exclusions?.length > 0 && <div className="rounded bg-red-50 border border-red-100 px-2 py-1 text-[10px] text-red-700"><span className="font-medium">Excluded:</span> {m.exclusions.join(" · ")}</div>}
+                  {m.needsBeforeSubmit?.length > 0 && <div className="rounded bg-amber-50 border border-amber-100 px-2 py-1 text-[10px] text-amber-800"><span className="font-medium">Needs before submit:</span> {m.needsBeforeSubmit.join(", ")}</div>}
                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 text-center">
                    {[
                      ["Approval", m.rankingDimensions?.approvalProbability],

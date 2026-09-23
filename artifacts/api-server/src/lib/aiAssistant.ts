@@ -5,8 +5,14 @@ import {
   companiesTable,
   lenderMatchesTable,
   leadsTable,
+  bankStatementExtractionsTable,
 } from "@workspace/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
+import {
+  buildLenderAiCandidatesFromMatches,
+  buildLenderAiContext,
+  validateLenderRecommendationText,
+} from "./lenderAiContext";
 
 const anthropic = new Anthropic({
   baseURL: process.env["AI_INTEGRATIONS_ANTHROPIC_BASE_URL"],
@@ -74,7 +80,8 @@ export async function buildLeadContext(leadId: number): Promise<string> {
       tasks: { orderBy: (t, { asc }) => [asc(t.isCompleted), asc(t.dueDate)], limit: 10 },
       communications: { orderBy: (t, { desc }) => [desc(t.createdAt)], limit: 8 },
       emailSends: { orderBy: (t, { desc }) => [desc(t.createdAt)], limit: 5 },
-      lenderMatches: { with: { lender: true }, orderBy: (t, { desc }) => [desc(t.matchScore)], limit: 5 },
+       lenderMatches: { with: { lender: true }, orderBy: (t, { desc }) => [desc(t.matchScore)], limit: 5 },
+       documents: true,
     },
   });
 
@@ -160,11 +167,32 @@ export async function buildLeadContext(leadId: number): Promise<string> {
   lines.push(``, `# Current Lender-Match State`);
   if (lead.lenderMatches.length > 0) {
     for (const m of lead.lenderMatches) {
-      lines.push(`- ${m.lender.name} (match score ${m.matchScore}/100)`);
+      lines.push(`- ${m.lender.name}`);
     }
   } else {
     lines.push(`No lender matches have been calculated yet.`);
   }
+  const statementTypes = await db.query.bankStatementExtractionsTable.findMany({
+    where: eq(bankStatementExtractionsTable.leadId, leadId),
+  });
+  const lenderDocuments = [
+    ...lead.documents,
+    ...statementTypes.map((statement) => ({
+      category: "bank_statement",
+      label: null,
+      accountType: typeof statement.rawExtractionJson === "object" && statement.rawExtractionJson
+        ? String((statement.rawExtractionJson as Record<string, unknown>)["accountType"] ?? "")
+        : "",
+    })),
+  ];
+  const lenderAiCandidates = buildLenderAiCandidatesFromMatches(lead.lenderMatches, lenderDocuments);
+  lines.push(
+    ``,
+    `# Grounded Lender Assistant Context`,
+    `Use criteriaBreakdown, provenance, stipulations, points, and documentGaps below. ` +
+      `Unknown dimensions are omitted and must not be ranked or inferred.`,
+    JSON.stringify(buildLenderAiContext(lenderAiCandidates)),
+  );
 
   const openTasks = lead.tasks.filter((t) => !t.isCompleted);
   if (openTasks.length > 0) {
@@ -509,13 +537,36 @@ HARD RULES:
 - Never promise approval, funding, rates, terms, eligibility, or a lender decision.
 - Never invent missing facts, lender criteria, activity, or financial figures.
 - If important data is missing, recommend qualifying that data.
-- Include 2 or 3 concrete actions. When lender matches exist, explain which recorded match is worth reviewing and why based only on its recorded score. When no match exists, recommend reviewing or running the existing matching workflow rather than claiming a fit.
+- Include 2 or 3 concrete actions. Every action must cite an exact criterion name from criteriaBreakdown. If any document gap is supplied, every action must cite the exact gap too. When lender matches exist, explain which recorded match is worth reviewing based only on its recorded criteria. When no match exists, recommend reviewing or running the existing matching workflow rather than claiming a fit.
 - Return ONLY valid JSON with this exact structure:
 {"actions":["<action 1>","<action 2>","<action 3>"]}
 - Do not include markdown or any text outside the JSON object.`;
 
 export async function generateNextBestAction(leadId: number): Promise<NextBestAction> {
   const context = await buildLeadContext(leadId);
+  const groundedLead = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.id, leadId),
+    with: {
+      lenderMatches: { with: { lender: true } },
+      documents: true,
+    },
+  });
+  if (!groundedLead) throw new Error("Lead not found");
+  const groundedStatements = await db.query.bankStatementExtractionsTable.findMany({
+    where: eq(bankStatementExtractionsTable.leadId, leadId),
+  });
+  const lenderAiContext = buildLenderAiContext(
+    buildLenderAiCandidatesFromMatches(groundedLead.lenderMatches, [
+      ...groundedLead.documents,
+      ...groundedStatements.map((statement) => ({
+        category: "bank_statement",
+        label: null,
+        accountType: typeof statement.rawExtractionJson === "object" && statement.rawExtractionJson
+          ? String((statement.rawExtractionJson as Record<string, unknown>)["accountType"] ?? "")
+          : "",
+      })),
+    ]),
+  );
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 8192,
@@ -533,10 +584,11 @@ export async function generateNextBestAction(leadId: number): Promise<NextBestAc
     : [];
   const validActions = parsedActions.length >= 2
     && parsedActions.every((item) => item.length <= 600 && !containsProhibitedPromise(item));
+  const groundedActions = validActions ? validateLenderRecommendationText(parsedActions, lenderAiContext) : null;
 
-  if (validActions) {
+  if (groundedActions) {
     return {
-      actions: parsedActions,
+      actions: groundedActions,
       generatedAt: new Date().toISOString(),
     };
   }
@@ -561,15 +613,21 @@ export async function generateNextBestAction(leadId: number): Promise<NextBestAc
     lead.company?.timeInBusinessMonths == null ? "time in business" : null,
     lead.company?.annualRevenue == null ? "annual revenue" : null,
   ].filter((field): field is string => field !== null);
+  const fallbackCriterion = lenderAiContext.candidates[0]?.criteriaBreakdown[0]?.criterion;
+  const fallbackGap = lenderAiContext.candidates.flatMap((candidate) => candidate.documentGaps)[0];
+  const citation = (action: string) =>
+    fallbackCriterion
+      ? `${action} [Criterion: ${fallbackCriterion}]${fallbackGap ? ` [Document gap: ${fallbackGap}]` : ""}`
+      : action;
   const fallbackActions = [
     missingFields.length > 0
       ? `Qualify the missing ${missingFields.join(", ")} and record the verified details before advancing lender review.`
       : "Confirm the existing qualification details are current and identify any remaining underwriting gaps.",
     lead.lenderMatches[0]
-      ? `Review the recorded ${lead.lenderMatches[0].lender.name} match and its ${lead.lenderMatches[0].matchScore}/100 score; treat it as a recommendation for manual review, not an approval or rate promise.`
+      ? `Review the recorded ${lead.lenderMatches[0].lender.name} match against its documented criteria; treat it as a recommendation for manual review, not an approval or rate promise.`
       : "After the lead profile is complete, review or run the existing lender-matching workflow; no current lender match is recorded.",
     `Plan a manual outreach conversation focused on the ${lead.applicationType.replace(/_/g, " ")} need and the missing qualification details; do not auto-send a message.`,
-  ];
+  ].map(citation);
 
   return {
     actions: fallbackActions,

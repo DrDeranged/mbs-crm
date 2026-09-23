@@ -640,6 +640,14 @@ export default function DealsPage() {
                                     Archived
                                   </Badge>
                                 )}
+                                {deal.approvalExpiresOn && (() => {
+                                  const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
+                                  return days <= 14 && (
+                                    <Badge variant="outline" className={cn("text-[9px] px-1 py-0 h-4", days < 0 ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-700")}>
+                                      Approval expires {days < 0 ? "overdue" : `in ${days}d`}
+                                    </Badge>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
