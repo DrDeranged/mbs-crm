@@ -67,3 +67,11 @@ EOF
 ```
 
 **Why:** The Replit GitHub connector OAuth token lives in the connector proxy and is injected server-side by `ReplitConnectors`. The `GITHUB_PERSONAL_ACCESS_TOKEN` env var is a Replit platform token that doesn't work for git-over-HTTPS push. The `gitPush()` callback and `listConnections("github")` both fail because the GitHub connector binding requires a git-aware credential that isn't exposed through those paths.
+
+## Large accumulated pushes
+
+When many committed paths must be synchronized, upload blobs at fewer than 10 connector requests per second and retry HTTP 429 after `Retry-After`. Build Git tree objects directory-by-directory from `git ls-tree`, then create the root commit; a single large incremental or 800-path root tree can time out or return `GitRPC::BadObjectState`.
+
+**Why:** The connector enforces a per-Repl request rate, and GitHub's tree endpoint can reject large flat payloads or complex accumulated rename/delete sets.
+
+**How to apply:** Read bytes from `HEAD` with `git show HEAD:<path>` so uncommitted changes are excluded. After updating the branch ref, compare the GitHub commit's tree SHA with `git rev-parse HEAD^{tree}`.

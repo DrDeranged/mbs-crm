@@ -47,7 +47,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getStatusColor } from "./campaigns";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { format } from "date-fns";
-import { isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
+import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
 
 const campaignSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -140,6 +140,7 @@ export default function CampaignDetailPage() {
 
   const { data, isLoading } = useGetCampaign(id, { query: { enabled: !!id, queryKey: getGetCampaignQueryKey(id) } });
   const campaign = data?.campaign;
+  const approvedAudience = data?.approvedAudience;
   
   const { data: results } = useGetCampaignResults(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignResultsQueryKey(id) } });
   const { data: templates } = useListEmailTemplates();
@@ -161,6 +162,11 @@ export default function CampaignDetailPage() {
 
   const [activeTab, setActiveTab] = useState("content");
   const [testEmail, setTestEmail] = useState("");
+  const [validationResult, setValidationResult] = useState<
+    | { state: "success"; toEmail: string; eligibleCount: number; validatedAt: string; message: string }
+    | { state: "error"; toEmail: string; validatedAt: string; message: string }
+    | null
+  >(null);
   
   const [previewedVersion, setPreviewedVersion] = useState<number | null>(null);
   const [claimsAffirmed, setClaimsAffirmed] = useState(false);
@@ -197,7 +203,8 @@ export default function CampaignDetailPage() {
     }
   });
 
-  const isDirty = form.formState.isDirty;
+  const currentFormValues = form.watch();
+  const isDirty = campaign ? campaignValuesChanged(currentFormValues, normalizeCampaign(campaign)) : false;
 
   const initialized = useRef<string | null>(null);
   useEffect(() => {
@@ -302,6 +309,7 @@ export default function CampaignDetailPage() {
       onSuccess: () => {
         toast.success("Campaign approved for launch");
         queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) });
+        setActiveTab("review");
       },
       onError: (err: any) => toast.error(getErrorMsg(err, "Failed to approve campaign"))
     });
@@ -322,9 +330,22 @@ export default function CampaignDetailPage() {
       toast.error("Enter a test email address");
       return;
     }
-    dryRunTest.mutate({ id, data: { toEmail: testEmail } }, {
-      onSuccess: () => toast.success("Provider-free validation triggered"),
-      onError: (err: any) => toast.error(getErrorMsg(err, "Validation failed"))
+    const testedAddress = testEmail.trim();
+    setValidationResult(null);
+    dryRunTest.mutate({ id, data: { toEmail: testedAddress } }, {
+      onSuccess: (result) => setValidationResult({
+        state: "success",
+        toEmail: result.toEmail,
+        eligibleCount: result.eligibleCount,
+        validatedAt: result.validatedAt,
+        message: result.message,
+      }),
+      onError: (err: any) => setValidationResult({
+        state: "error",
+        toEmail: testedAddress,
+        validatedAt: new Date().toISOString(),
+        message: getErrorMsg(err, "Validation failed"),
+      })
     });
   };
 
@@ -334,8 +355,8 @@ export default function CampaignDetailPage() {
       return;
     }
 
-    if (needsPreview || !previewAudience.data?.previewToken) {
-      toast.error("A fresh preview is required before launching.");
+    if (!canConfirmCampaignLaunch({ status: campaign?.status ?? "", dirty: isDirty, approvedAudience })) {
+      toast.error("An unchanged campaign and non-empty approved audience snapshot are required before launching.");
       return;
     }
 
@@ -469,8 +490,28 @@ export default function CampaignDetailPage() {
     createdFrom: "", createdTo: "", minAmount: "", maxAmount: "",
   }, { shouldDirty: true });
   const requiresEmailTemplate = campaign.channel === "email" || campaign.channel === "email_sms";
-  const hasInactiveTemplate = requiresEmailTemplate && selectedTemplate && !selectedTemplate.isActive;
-  const canApprove = !isDirty && !needsPreview && claimsAffirmed && !hasInactiveTemplate;
+  const previewIsFresh = !needsPreview;
+  const readiness = getCampaignReadiness({
+    status: campaign.status,
+    dirty: isDirty,
+    previewFresh: previewIsFresh,
+    eligibleCount: previewAudience.data?.counts.eligible,
+    requiresEmailTemplate,
+    hasTemplate: Boolean(selectedTemplate),
+    templateActive: Boolean(selectedTemplate?.isActive),
+    claimsAffirmed,
+  });
+  const canApprove = readiness.ready;
+  const emptyAudienceMessage = previewIsFresh && previewAudience.data?.counts.eligible === 0
+    ? explainEmptyAudience(previewAudience.data.totalMatching, previewAudience.data.counts.excluded)
+    : null;
+  const performReadinessAction = (action: string) => {
+    if (action === "save") form.handleSubmit(onSubmit)();
+    if (action === "preview") handlePreview();
+    if (action === "content") setActiveTab("content");
+    if (action === "audience") setActiveTab("audience");
+    if (action === "affirm") document.getElementById("campaign-affirmation")?.focus();
+  };
 
   const safeguards = [
     "Email suppression and unsubscribe checks remain enforced",
@@ -525,14 +566,12 @@ export default function CampaignDetailPage() {
           {campaign.status === "draft" && (
             <div className="flex items-center gap-2">
               <Button 
-                onClick={handleApprove} 
-                disabled={!canApprove || approveCampaign.isPending} 
+                onClick={() => canApprove ? handleApprove() : setActiveTab("review")}
+                disabled={approveCampaign.isPending}
                 variant="secondary" 
-                className={!canApprove ? "opacity-50 cursor-not-allowed" : ""}
-                title={!canApprove ? "Please save changes, select an active template, run a fresh preview, and affirm claims before approving." : ""}
               >
                 <ShieldCheck className="mr-2 h-4 w-4" />
-                Approve Campaign
+                {canApprove ? "Approve Campaign" : `Review ${readiness.blockers.length} blocker${readiness.blockers.length === 1 ? "" : "s"}`}
               </Button>
             </div>
           )}
@@ -552,7 +591,7 @@ export default function CampaignDetailPage() {
                 {[
                   ["Content", Boolean(form.watch("emailTemplateId") !== "__none__" || !requiresEmailTemplate)],
                   ["Attachment", true], ["Audience", activeFilters.length > 0],
-                  ["Preview", !needsPreview], ["Approval", campaign.status === "approved"], ["Launch", ["scheduled", "running", "completed"].includes(campaign.status)],
+                  ["Preview", campaign.status === "approved" || !needsPreview], ["Approval", campaign.status === "approved"], ["Launch", ["scheduled", "running", "completed"].includes(campaign.status)],
                 ].map(([label, complete], index) => (
                   <div key={String(label)} className={`rounded-lg border px-3 py-2 ${complete ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "bg-slate-50 text-slate-500"}`}>
                     <span className="mr-1 font-semibold">{index + 1}.</span>{label}
@@ -1005,6 +1044,15 @@ export default function CampaignDetailPage() {
                               <p className="flex justify-between border-b pb-1"><span>SMS Eligible</span> <strong>{previewAudience.data.counts.smsEligible}</strong></p>
                               <p className="flex justify-between border-b pb-1"><span>Email Capacity Left</span> <strong>{previewAudience.data.counts.emailCapacityRemaining}</strong></p>
                             </div>
+                            {emptyAudienceMessage && (
+                              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                                <p className="font-semibold">Empty audience — approval and launch are blocked.</p>
+                                <p className="mt-1">{emptyAudienceMessage}</p>
+                                <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setActiveTab("audience")}>
+                                  Adjust audience filters
+                                </Button>
+                              </div>
+                            )}
                             {previewAudience.data.exclusions.length > 0 && (
                               <div className="mt-4 border rounded-lg overflow-hidden">
                                 <div className="bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500 border-b">Sample Exclusions</div>
@@ -1042,31 +1090,86 @@ export default function CampaignDetailPage() {
                             onChange={e => setTestEmail(e.target.value)} 
                           />
                           <Button type="button" onClick={handleTest} disabled={dryRunTest.isPending} variant="secondary">
-                            Run Validation
+                            {dryRunTest.isPending ? "Validating..." : "Run Validation"}
                           </Button>
+                        </div>
+                        <div aria-live="polite">
+                          {dryRunTest.isPending && (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                              Validating content and audience for <strong>{testEmail.trim()}</strong>. No email will be sent.
+                            </div>
+                          )}
+                          {!dryRunTest.isPending && validationResult?.state === "success" && (
+                            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                              <p className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Validation passed</p>
+                              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                                <dt>Email delivery</dt><dd className="font-medium">No email was sent</dd>
+                                <dt>Tested address</dt><dd className="font-medium break-all">{validationResult.toEmail}</dd>
+                                <dt>Eligible audience</dt><dd className="font-medium">{validationResult.eligibleCount}</dd>
+                                <dt>Validated</dt><dd className="font-medium">{format(new Date(validationResult.validatedAt), "PPp")}</dd>
+                              </dl>
+                              <p className="mt-2 text-xs">{validationResult.message}</p>
+                            </div>
+                          )}
+                          {!dryRunTest.isPending && validationResult?.state === "error" && (
+                            <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                              <p className="flex items-center gap-2 font-semibold"><AlertTriangle className="h-4 w-4" />Validation failed</p>
+                              <p className="mt-1">No email was sent. Tested address: <strong>{validationResult.toEmail}</strong></p>
+                              <p className="mt-1">{validationResult.message}</p>
+                              <p className="mt-1 text-xs">{format(new Date(validationResult.validatedAt), "PPp")}</p>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
 
                     <Card>
                       <CardHeader>
-                        <CardTitle>Schedule & Launch</CardTitle>
-                        <CardDescription>Finalize your campaign launch configuration.</CardDescription>
+                        <CardTitle>{campaign.status === "approved" ? "Schedule & Launch" : "Approval readiness"}</CardTitle>
+                        <CardDescription>{campaign.status === "approved" ? "Approval is complete. Choose the next launch action." : "Complete every requirement below to approve this campaign."}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {campaign.status !== "approved" ? (
-                          <div className="rounded-lg border bg-slate-50 p-6 text-center text-slate-500">
-                            <ShieldCheck className="mx-auto mb-2 h-8 w-8 opacity-20" />
-                            <p>Campaign must be approved before launching.</p>
-                            {needsPreview && <p className="text-xs text-amber-600 mt-2">Requires a fresh audience preview.</p>}
-                            {isDirty && <p className="text-xs text-amber-600 mt-2">Requires saving changes.</p>}
-                            {isFinancingCampaign && !claimsAffirmed && <p className="text-xs text-amber-600 mt-2">Requires affirming financing claims.</p>}
-                            {hasInactiveTemplate && <p className="text-xs text-red-600 mt-2 font-medium">An active email template is required for approval.</p>}
+                        {campaign.status === "draft" ? (
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              {readiness.blockers.length === 0 ? (
+                                <p className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
+                                  <CheckCircle2 className="h-4 w-4" />All approval requirements are complete.
+                                </p>
+                              ) : readiness.blockers.map((blocker) => (
+                                <div key={blocker.code} className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+                                  <span className="flex gap-2 text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{blocker.label}</span>
+                                  {blocker.action !== "none" && (
+                                    <Button type="button" variant="outline" size="sm" onClick={() => performReadinessAction(blocker.action)}
+                                      disabled={(blocker.action === "save" && updateCampaign.isPending) || (blocker.action === "preview" && (previewAudience.isPending || isDirty))}>
+                                      {blocker.action === "save" ? "Save" : blocker.action === "preview" ? "Calculate" : blocker.action === "content" ? "Choose template" : blocker.action === "audience" ? "Edit filters" : "Affirm below"}
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <div className="rounded-lg border bg-slate-50 p-3">
+                              <div className="flex items-start gap-2">
+                                <Checkbox id="campaign-affirmation" checked={claimsAffirmed} onCheckedChange={(checked) => setClaimsAffirmed(Boolean(checked))} />
+                                <Label htmlFor="campaign-affirmation" className="text-sm leading-5">
+                                  {isFinancingCampaign
+                                    ? "I affirm the financing claims are accurate, approved for this audience, and the intended recipients have valid channel consent."
+                                    : "I affirm this campaign meets all compliance requirements and is approved for this audience."}
+                                </Label>
+                              </div>
+                            </div>
+                            <Button type="button" className="w-full" onClick={handleApprove} disabled={!canApprove || approveCampaign.isPending}>
+                              <ShieldCheck className="mr-2 h-4 w-4" />{approveCampaign.isPending ? "Approving..." : "Approve and continue to launch"}
+                            </Button>
                           </div>
-                        ) : needsPreview ? (
+                        ) : campaign.status !== "approved" ? (
+                          <div className="rounded-lg border bg-slate-50 p-6 text-center text-slate-500">
+                            This campaign is {campaign.status}. Launch actions are unavailable.
+                          </div>
+                        ) : !canConfirmCampaignLaunch({ status: campaign.status, dirty: isDirty, approvedAudience }) ? (
                           <div className="rounded-lg border bg-amber-50 p-6 text-center text-amber-800">
                             <AlertTriangle className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                            <p>Audience preview is stale. Calculate a fresh preview before launching.</p>
+                            <p>{isDirty ? "Save or discard changes before launching; saving requires re-approval." : "Approved audience is unavailable or empty. Refresh the campaign or edit and approve a new non-empty preview."}</p>
                           </div>
                         ) : (
                           <div className="space-y-4">
@@ -1096,8 +1199,9 @@ export default function CampaignDetailPage() {
                               </Button>
                             </div>
                             <p className="text-xs text-slate-500 text-center">
-                              Launch requests require final confirmation of audience counts.
+                              Counts are from the immutable audience snapshot recorded at approval. Suppression and consent are checked again before delivery.
                             </p>
+                            <p className="text-center text-sm font-medium">{approvedAudience?.eligible} approved eligible · {approvedAudience?.excluded} excluded</p>
                           </div>
                         )}
                       </CardContent>
@@ -1115,21 +1219,6 @@ export default function CampaignDetailPage() {
                           {safeguards.map((item) => <p key={item} className="flex gap-2 text-slate-600"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />{item}</p>)}
                         </div>
 
-                        {!isFinancingCampaign && campaign.status === "draft" && (
-                          <div className="rounded-lg bg-amber-50 p-4 border border-amber-200 mt-4">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox 
-                                id="affirm-claims-basic" 
-                                checked={claimsAffirmed}
-                                onCheckedChange={(c) => setClaimsAffirmed(!!c)}
-                              />
-                              <Label htmlFor="affirm-claims-basic" className="text-sm font-medium leading-none text-amber-900">
-                                I affirm this campaign meets all compliance requirements and is approved for launch.
-                              </Label>
-                            </div>
-                          </div>
-                        )}
-
                         {isFinancingCampaign && (
                           <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
                             <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
@@ -1141,18 +1230,7 @@ export default function CampaignDetailPage() {
                               <li>Approve eligible equipment/soft-cost language and confirm the intended audience has valid channel consent.</li>
                               <li>Approve final sender, launch date/time, and controlled first batch.</li>
                             </ul>
-                            {campaign.status === "draft" && (
-                              <div className="flex items-center space-x-2 pt-2 border-t border-amber-200/50">
-                                <Checkbox 
-                                  id="affirm-claims" 
-                                  checked={claimsAffirmed}
-                                  onCheckedChange={(c) => setClaimsAffirmed(!!c)}
-                                />
-                                <Label htmlFor="affirm-claims" className="text-sm font-medium leading-none text-amber-900">
-                                  I affirm these claims are accurate and approved for this audience. (Recorded by server)
-                                </Label>
-                              </div>
-                            )}
+                            <p className="border-t border-amber-200/50 pt-2 text-xs">The required affirmation is recorded with approval in the Approval readiness card above.</p>
                           </div>
                         )}
                       </CardContent>
@@ -1281,15 +1359,15 @@ export default function CampaignDetailPage() {
               
               <div className="grid grid-cols-3 gap-2 text-center pt-2">
                 <div>
-                  <div className="text-xl font-bold text-slate-900">{previewAudience.data?.counts?.eligible || 0}</div>
+                  <div className="text-xl font-bold text-slate-900">{approvedAudience?.eligible ?? "—"}</div>
                   <div className="text-[10px] text-slate-500 font-semibold uppercase">Eligible</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-slate-900">{previewAudience.data?.counts?.excluded || 0}</div>
+                  <div className="text-xl font-bold text-slate-900">{approvedAudience?.excluded ?? "—"}</div>
                   <div className="text-[10px] text-slate-500 font-semibold uppercase">Excluded</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-slate-900">{previewAudience.data?.counts?.emailCapacityRemaining || 0}</div>
+                  <div className="text-xl font-bold text-slate-900">{approvedAudience?.emailCapacityRemaining ?? "—"}</div>
                   <div className="text-[10px] text-slate-500 font-semibold uppercase">Capacity Left</div>
                 </div>
               </div>
@@ -1317,7 +1395,7 @@ export default function CampaignDetailPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setLaunchDialogOpen(false)}>Cancel</Button>
-            <Button onClick={confirmLaunch} disabled={launchCampaign.isPending}>
+            <Button onClick={confirmLaunch} disabled={launchCampaign.isPending || !canConfirmCampaignLaunch({ status: campaign.status, dirty: isDirty, approvedAudience })}>
               {launchCampaign.isPending ? "Submitting..." : `Confirm & ${launchMode === "live" ? "Launch" : "Schedule"}`}
             </Button>
           </DialogFooter>

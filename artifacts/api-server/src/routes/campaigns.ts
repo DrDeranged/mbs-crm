@@ -37,6 +37,7 @@ import {
 } from "../lib/campaignCore";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { campaignSourceBytes } from "./collateral";
+import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender } from "../lib/campaignReadiness";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -313,7 +314,10 @@ router.get("/campaigns/:id", async (req, res): Promise<void> => {
   const campaign = await getCampaign(campaignId);
   if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
   const launches = await db.select().from(campaignLaunchesTable).where(eq(campaignLaunchesTable.campaignId, campaignId)).orderBy(desc(campaignLaunchesTable.createdAt));
-  res.json({ campaign, launches });
+  const [approval] = await db.select().from(campaignApprovalsTable).where(and(
+    eq(campaignApprovalsTable.campaignId, campaignId), eq(campaignApprovalsTable.contentVersion, campaign.version),
+  )).orderBy(desc(campaignApprovalsTable.approvedAt)).limit(1);
+  res.json({ campaign, launches, approvedAudience: approvedAudienceSummary(campaign.status, campaign.version, approval) });
 });
 
 router.post("/campaigns", async (req, res): Promise<void> => {
@@ -487,6 +491,9 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
   if (!preview || preview.contentHash !== contentHash) {
     res.status(409).json({ error: "Preview is missing, expired, or no longer matches campaign content" }); return;
   }
+  if (!hasEligibleCampaignAudience(preview.counts)) {
+    res.status(409).json({ error: "Campaign cannot be approved because the current preview has no eligible recipients" }); return;
+  }
   const [updated] = await db.transaction(async (tx) => {
     const [claimed] = await tx.update(campaignsTable).set({ status: "approved", updatedAt: new Date() })
       .where(and(eq(campaignsTable.id, campaignId), eq(campaignsTable.version, campaign.version), eq(campaignsTable.status, "draft"))).returning();
@@ -515,9 +522,19 @@ router.post("/campaigns/:id/test", async (req, res): Promise<void> => {
   if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
   const body = z.object({ toEmail: z.string().trim().email() }).safeParse(req.body);
   if (!body.success) { res.status(400).json({ error: "A valid internal test email is required" }); return; }
+  if (isSmsLaunchUnsupported(campaign.channel)) { res.status(422).json({ error: "Provider-free email validation requires an email-only campaign" }); return; }
+  let content: Awaited<ReturnType<typeof campaignContent>>;
+  try {
+    content = await campaignContent(campaign);
+  } catch {
+    res.status(409).json({ error: "Campaign creative is unavailable for validation" }); return;
+  }
+  const variables = buildVariables({ email: body.data.toEmail }, null);
+  const error = validateCampaignRender(content.emailTemplate, (value) => renderTemplate(value, variables));
+  if (error) { res.status(409).json({ error }); return; }
   const preview = await audiencePreview(campaign);
   await audit(campaignId, user.id, "test_dry_run", campaign.status, campaign.status, { toEmail: body.data.toEmail });
-  res.json({ mode: "dry_run", toEmail: body.data.toEmail, eligibleCount: preview.counts.eligible, message: "No provider message was sent. Use Launch Campaign after approval to deliver." });
+  res.json(buildCampaignValidationResult({ toEmail: body.data.toEmail, eligibleCount: preview.counts.eligible }));
 });
 
 router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
@@ -577,6 +594,9 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   }
   const snapshotEligible = snapshotRecipients.filter((entry: any) => entry.target);
   const snapshotExcluded = snapshotRecipients.filter((entry: any) => entry.reason != null);
+  if (!hasEligibleCampaignAudience(snapshotCounts) || snapshotEligible.length <= 0) {
+    res.status(409).json({ error: "Campaign cannot be launched because its approved audience has no eligible recipients" }); return;
+  }
   const scheduled = input.scheduledAt && input.scheduledAt > new Date();
   const leaseToken = input.mode === "live" && !scheduled ? randomUUID() : null;
   const leaseExpiresAt = leaseToken ? new Date(Date.now() + 10 * 60 * 1000) : null;

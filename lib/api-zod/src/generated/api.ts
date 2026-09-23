@@ -7770,7 +7770,12 @@ export const GetCampaignResponse = zod.object({
   "startedAt": zod.coerce.date().nullish(),
   "completedAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
-}))
+})),
+  "approvedAudience": zod.object({
+  "eligible": zod.number(),
+  "excluded": zod.number(),
+  "emailCapacityRemaining": zod.number()
+}).optional()
 })
 
 
@@ -7962,6 +7967,18 @@ export const DryRunCampaignTestParams = zod.object({
 
 export const DryRunCampaignTestBody = zod.object({
   "toEmail": zod.string().email()
+})
+
+export const dryRunCampaignTestResponseEligibleCountMin = 0;
+
+
+
+export const DryRunCampaignTestResponse = zod.object({
+  "mode": zod.enum(['dry_run']),
+  "toEmail": zod.string().email(),
+  "eligibleCount": zod.number().min(dryRunCampaignTestResponseEligibleCountMin),
+  "validatedAt": zod.coerce.date(),
+  "message": zod.string()
 })
 
 

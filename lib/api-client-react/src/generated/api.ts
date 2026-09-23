@@ -61,6 +61,8 @@ import type {
   CampaignPreview,
   CampaignResults,
   CampaignUploadedFlyer,
+  CampaignValidationInput,
+  CampaignValidationResult,
   CaptureCreditConsent201,
   CaptureCreditConsentBody,
   CollateralEmailInput,
@@ -99,7 +101,6 @@ import type {
   DripSequenceDetail,
   DripSequenceInput,
   DripSequenceStep,
-  DryRunCampaignTestBody,
   DuplicateResponse,
   EmailDeliverySettings,
   EmailDeliverySettingsUpdate,
@@ -15815,15 +15816,15 @@ export const getDryRunCampaignTestUrl = (id: number,) => {
 }
 
 export const dryRunCampaignTest = async (id: number,
-    dryRunCampaignTestBody: DryRunCampaignTestBody, options?: RequestInit): Promise<void> => {
+    campaignValidationInput: CampaignValidationInput, options?: RequestInit): Promise<CampaignValidationResult> => {
 
-  return customFetch<void>(getDryRunCampaignTestUrl(id),
+  return customFetch<CampaignValidationResult>(getDryRunCampaignTestUrl(id),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      dryRunCampaignTestBody,)
+      campaignValidationInput,)
   }
 );}
 
@@ -15831,8 +15832,8 @@ export const dryRunCampaignTest = async (id: number,
 
 
 export const getDryRunCampaignTestMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<DryRunCampaignTestBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<DryRunCampaignTestBody>}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<CampaignValidationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<CampaignValidationInput>}, TContext> => {
 
 const mutationKey = ['dryRunCampaignTest'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -15844,7 +15845,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dryRunCampaignTest>>, {id: number;data: BodyType<DryRunCampaignTestBody>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dryRunCampaignTest>>, {id: number;data: BodyType<CampaignValidationInput>}> = (props) => {
           const {id,data} = props ?? {};
 
           return  dryRunCampaignTest(id,data,requestOptions)
@@ -15858,15 +15859,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type DryRunCampaignTestMutationResult = NonNullable<Awaited<ReturnType<typeof dryRunCampaignTest>>>
-    export type DryRunCampaignTestMutationBody = BodyType<DryRunCampaignTestBody>
+    export type DryRunCampaignTestMutationBody = BodyType<CampaignValidationInput>
     export type DryRunCampaignTestMutationError = ErrorType<unknown>
 
     export const useDryRunCampaignTest = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<DryRunCampaignTestBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dryRunCampaignTest>>, TError,{id: number;data: BodyType<CampaignValidationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof dryRunCampaignTest>>,
         TError,
-        {id: number;data: BodyType<DryRunCampaignTestBody>},
+        {id: number;data: BodyType<CampaignValidationInput>},
         TContext
       > => {
       return useMutation(getDryRunCampaignTestMutationOptions(options));

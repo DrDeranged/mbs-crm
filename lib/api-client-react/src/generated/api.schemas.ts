@@ -265,9 +265,16 @@ export interface CampaignLaunchResult {
   preview?: CampaignPreview;
 }
 
+export interface CampaignApprovedAudience {
+  eligible: number;
+  excluded: number;
+  emailCapacityRemaining: number;
+}
+
 export interface CampaignDetail {
   campaign: Campaign;
   launches: CampaignLaunch[];
+  approvedAudience?: CampaignApprovedAudience;
 }
 
 export interface ApproveCampaignInput {
@@ -275,6 +282,26 @@ export interface ApproveCampaignInput {
   previewToken: string;
   claimsAffirmed: true;
   approvalType?: string;
+}
+
+export interface CampaignValidationInput {
+  toEmail: string;
+}
+
+export type CampaignValidationResultMode = typeof CampaignValidationResultMode[keyof typeof CampaignValidationResultMode];
+
+
+export const CampaignValidationResultMode = {
+  dry_run: 'dry_run',
+} as const;
+
+export interface CampaignValidationResult {
+  mode: CampaignValidationResultMode;
+  toEmail: string;
+  /** @minimum 0 */
+  eligibleCount: number;
+  validatedAt: string;
+  message: string;
 }
 
 export type CampaignLaunchInputMode = typeof CampaignLaunchInputMode[keyof typeof CampaignLaunchInputMode];
@@ -4559,9 +4586,5 @@ includeDrafts?: boolean;
 
 export type RenderCollateralTemplateParams = {
 repId?: number;
-};
-
-export type DryRunCampaignTestBody = {
-  toEmail: string;
 };
 

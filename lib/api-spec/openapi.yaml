@@ -4816,8 +4816,8 @@ paths:
       operationId: dryRunCampaignTest
       tags: [campaigns]
       parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [toEmail], properties: { toEmail: { type: string, format: email } } } } } }
-      responses: { "200": { description: Dry run result } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignValidationInput" } } } }
+      responses: { "200": { description: Provider-free validation result, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignValidationResult" } } } } }
   /campaigns/{id}/launch:
     post:
       operationId: launchCampaign
@@ -5057,6 +5057,14 @@ components:
       properties:
         campaign: { $ref: "#/components/schemas/Campaign" }
         launches: { type: array, items: { $ref: "#/components/schemas/CampaignLaunch" } }
+        approvedAudience: { $ref: "#/components/schemas/CampaignApprovedAudience" }
+    CampaignApprovedAudience:
+      type: object
+      required: [eligible, excluded, emailCapacityRemaining]
+      properties:
+        eligible: { type: integer }
+        excluded: { type: integer }
+        emailCapacityRemaining: { type: integer }
     CampaignPreview:
       type: object
       required: [totalMatching, eligible, exclusions, counts, previewToken]
@@ -5075,6 +5083,20 @@ components:
         previewToken: { type: string, minLength: 10 }
         claimsAffirmed: { type: boolean, enum: [true] }
         approvalType: { type: string, default: content_and_audience }
+    CampaignValidationInput:
+      type: object
+      required: [toEmail]
+      properties:
+        toEmail: { type: string, format: email }
+    CampaignValidationResult:
+      type: object
+      required: [mode, toEmail, eligibleCount, validatedAt, message]
+      properties:
+        mode: { type: string, enum: [dry_run] }
+        toEmail: { type: string, format: email }
+        eligibleCount: { type: integer, minimum: 0 }
+        validatedAt: { type: string, format: date-time }
+        message: { type: string }
     CampaignLaunchInput:
       type: object
       required: [idempotencyKey]

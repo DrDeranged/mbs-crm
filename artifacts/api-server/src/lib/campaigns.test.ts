@@ -21,6 +21,7 @@ import {
   campaignPlainText,
   minimalCampaignHtml,
 } from "./campaignCore";
+import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender } from "./campaignReadiness";
 
 test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "admin" }), true);
@@ -115,6 +116,46 @@ test("approval requires the current hash and explicit claims affirmation", () =>
   assert.equal(hasCurrentApproval(approval, 2, campaignContentHash({ body: "approved" })), true);
   assert.equal(hasCurrentApproval({ ...approval, claimsAffirmed: false }, 2, approval.contentHash), false);
   assert.equal(hasCurrentApproval(approval, 2, campaignContentHash({ body: "edited" })), false);
+});
+
+test("approval and launch reject empty or malformed eligible audience counts", () => {
+  assert.equal(hasEligibleCampaignAudience({ eligible: 1 }), true);
+  assert.equal(hasEligibleCampaignAudience({ eligible: 0 }), false);
+  assert.equal(hasEligibleCampaignAudience(null), false);
+  assert.equal(hasEligibleCampaignAudience({ eligible: "1" }), false);
+});
+
+test("provider-free validation reports no-send, tested address, audience count, and timestamp", () => {
+  assert.deepEqual(buildCampaignValidationResult({
+    toEmail: "manager@example.com",
+    eligibleCount: 7,
+    validatedAt: new Date("2026-09-22T23:00:00.000Z"),
+  }), {
+    mode: "dry_run",
+    toEmail: "manager@example.com",
+    eligibleCount: 7,
+    validatedAt: "2026-09-22T23:00:00.000Z",
+    message: "No provider message was sent. Use Launch Campaign after approval to deliver.",
+  });
+});
+
+test("provider-free validation rejects inactive or missing content and exercises rendering", () => {
+  assert.match(validateCampaignRender(null, (value) => value) ?? "", /active email template/);
+  assert.match(validateCampaignRender({ subject: "Hi", bodyHtml: "Body", isActive: false }, (value) => value) ?? "", /active email template/);
+  assert.match(validateCampaignRender({ subject: "Hi", bodyHtml: " ", isActive: true }, (value) => value) ?? "", /subject and body/);
+  const rendered: string[] = [];
+  assert.equal(validateCampaignRender({ subject: "Hi {{lead_email}}", bodyHtml: "<p>Hello</p>", isActive: true }, (value) => {
+    rendered.push(value);
+    return value.replace("{{lead_email}}", "qa@example.com");
+  }), null);
+  assert.deepEqual(rendered, ["Hi {{lead_email}}", "<p>Hello</p>"]);
+});
+
+test("approved audience remains the launch source after reload or newer preview changes", () => {
+  const approval = { contentVersion: 3, invalidatedAt: null, snapshot: { counts: { eligible: 5, excluded: 2, emailCapacityRemaining: 20 } } };
+  assert.deepEqual(approvedAudienceSummary("approved", 3, approval), { eligible: 5, excluded: 2, emailCapacityRemaining: 20 });
+  assert.equal(approvedAudienceSummary("draft", 4, approval), null);
+  assert.equal(approvedAudienceSummary("approved", 3, { ...approval, invalidatedAt: new Date() }), null);
 });
 
 test("assigned representative reply-to contract preserves routing", () => {
