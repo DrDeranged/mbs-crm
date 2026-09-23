@@ -20,3 +20,17 @@ credit rule: the lender specification wins; never waive a rule to make a test pa
 **How to apply:** Derive fixture lender criteria from canonical packet mappings.
 Record any required borrower assumptions explicitly. Compare JSON rules by
 semantic value rather than serialization order: PostgreSQL jsonb can reorder keys.
+
+Historical approvals mentioned in a lender packet are evidence for that named
+deal only, not a default tier, down payment, or points quote for other leads.
+If the current lead lacks the facts needed to determine a tier or deal-specific
+commission, leave that dimension unknown rather than using the packet's example
+or the lender's highest possible payout.
+
+**Why:** A packet can cite a successful approval and a maximum commission side
+by side; treating either as a generic quote makes unrelated deals look more
+favorable than the documented terms support.
+
+**How to apply:** Prefer a captured approval linked to the specific deal and
+documented deal-size/program caps. Otherwise surface the documented range
+without claiming a precise deal value.

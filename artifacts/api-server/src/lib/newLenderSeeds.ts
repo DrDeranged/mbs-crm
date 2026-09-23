@@ -684,7 +684,10 @@ SCHEMA MAPPING: mapped working_capital + MCA, $5,000–$150,000, minCreditScore 
       { name: "B-2", minDownPaymentPct: 10, maxAdvancePct: 140 },
     ] }),
     compensation: Object.freeze({ type: "percent", min: 4, max: 11 }),
-    requiredDocuments: Object.freeze(["last 2 years audited/reviewed financials or business tax returns", "interim statements"]),
+    // The packet only requires these statements above $300K; the app-only
+    // program seeded here is capped at $300K. Preserve the conditional
+    // stipulation in notes rather than showing a false pre-submit gap.
+    requiredDocuments: Object.freeze([]),
     notes: `SOURCE STATEMENTS (verbatim):
 - APPLICATION QUALIFIER / AUTO-DECLINE: FICO min 550; TIB < 2 years requires 640+ FICO; must have 3+ years industry experience; bankruptcy (discharged or dismissed) in last 3 years (5 for startups); charge-off in last 3 years (5 for startups); felony conviction within last 10 years; foreclosure in last 3 years (5 for startups); repossession in last 3 years (5 for startups); NMEF account in collections or poor pay history; no FICO score generated on Experian; tax liens > $5K reviewed case-by-case; ANY late child support payment in last 12 months is an automatic decline.
 - Finance amounts: $15K–$300K app only; $15K–$200K app only for startups; $300K+ requires last 2 years audited/reviewed financials or business tax returns plus interim statements.
@@ -768,7 +771,7 @@ SCHEMA MAPPING: working_capital + MCA, min $250,000, maxAmount null, minCreditSc
       { name: "D2", minRatePct: 44, maxRatePct: 55, minDownPaymentPct: 40 },
     ] }),
     compensation: Object.freeze({ type: "points", min: 5, max: 15 }),
-    requiredDocuments: Object.freeze(["application", "last 3 months complete business bank statements", "equipment invoice/specifications", "dealer invoice/quote", "equipment spec sheet"]),
+    requiredDocuments: Object.freeze(["application", "last 3 months complete business bank statements", "equipment invoice/quote and specifications"]),
     equipmentRestrictions: Object.freeze(["Mercedes Benz engines", "Cat-13 engines", "2019 International ProStars without Cummins ISX engines", "medium duty MaxxForce 7 & 9 engines", "private-party sales", "rebuilt, rebranded or salvaged titles", "open tax liens over $10K", "auto charge-offs or repossessions"]),
     minMonthlyRevenue: null,
     programEligibilityRules: Object.freeze([
@@ -815,7 +818,9 @@ SCHEMA MAPPING: programs equipment + working_capital (structured/secured only); 
     minTimeInBusinessMonths: 12,
     acceptedStates: Object.freeze(ALL_US_STATES.filter((state) => !["PR", "HI", "CA", "AK"].includes(state))),
     contactEmail: "iso@fenixcapitalfunding.com",
-    requiredDocuments: Object.freeze(["signed and dated application for each owner", "3 months business bank statements", "voided check", "driver's licence", "proof of ownership", "future-receivables confirmation", "proof of citizenship", "bank verification", "Persona ID verification"]),
+    // Contract/funding-stage conditions remain in notes; they are not
+    // required before an initial submission.
+    requiredDocuments: Object.freeze(["signed and dated application for each owner", "3 months business bank statements"]),
     notes: `SOURCE STATEMENTS (verbatim):
 - THE BOX: 1st–5th positions and reverse consolidations; max funding $250k for MCAs and $375k for reverses; max term 15 months (60 weeks); daily, weekly and bi-weekly payments; straight buyouts up to $100k; EPAs included in every contract; sweet spot 2nd–3rd position behind reputable A-paper funders; renewals as early as 25% paid in, plus add-ons; max holdback 30% total.
 - BASIC REQUIREMENTS: TIB minimum 1 year; credit score minimum 500 preferred (exceptions with MCA history); revenue ≥ $20k monthly excluding transfers, returns and international wires; negative days up to 5 per month; minimum 4 deposits per month; ownership minimum 67%; no open bankruptcies or defaults.

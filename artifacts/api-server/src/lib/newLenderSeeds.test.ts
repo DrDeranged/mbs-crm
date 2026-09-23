@@ -371,6 +371,7 @@ test("supported document fields are populated only where the packet states them"
   assert.equal((maxim.pricing as { maxAdvancePct?: number } | null)?.maxAdvancePct, 80);
   assert.deepEqual(maxim.compensation, { type: "points", min: 5, max: 15 });
   assert.ok((maxim.requiredDocuments as string[]).includes("last 3 months complete business bank statements"));
+  assert.equal((maxim.requiredDocuments as string[]).length, 3);
   assert.ok((maxim.equipmentRestrictions as string[]).includes("Mercedes Benz engines"));
   assert.deepEqual(
     (newLenderSeedToInsertValues(NEW_LENDER_SEEDS.find((item) => item.name === "North Mill Equipment Finance (NMEF)")!).pricing as { tiers: unknown[] }).tiers[0],
@@ -391,6 +392,15 @@ test("supported document fields are populated only where the packet states them"
   assert.equal((ophelia as { requiredDocuments: string[] }).requiredDocuments.length, 0);
   const fenix = seed("Fenix Capital Funding");
   assert.ok((fenix.requiredDocuments as string[]).includes("3 months business bank statements"));
+  assert.deepEqual(fenix.requiredDocuments, [
+    "signed and dated application for each owner",
+    "3 months business bank statements",
+  ]);
+  assert.deepEqual(
+    seed("North Mill Equipment Finance (NMEF)").requiredDocuments,
+    [],
+    "Financials are required only above the app-only program's $300K cap",
+  );
 });
 
 test("the pure exact-name planner is idempotent and preserves existing names", () => {
