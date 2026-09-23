@@ -1132,6 +1132,9 @@ export default function CampaignDetailPage() {
                         {campaign.status === "draft" ? (
                           <div className="space-y-4">
                             <div className="space-y-2">
+                              <p className="rounded-lg border bg-slate-50 p-3 text-sm font-medium text-slate-700">
+                                Attachment: {selectedFlyer?.name || "none"}
+                              </p>
                               {readiness.blockers.length === 0 ? (
                                 <p className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
                                   <CheckCircle2 className="h-4 w-4" />All approval requirements are complete.
