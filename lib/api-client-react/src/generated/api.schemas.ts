@@ -3039,6 +3039,7 @@ export type DeepHealthResponseSchema = {
 export type DeepHealthResponseJobs = { [key: string]: unknown };
 
 export interface DeepHealthResponse {
+  revision: string;
   status?: DeepHealthResponseStatus;
   db?: DeepHealthResponseDb;
   integrations?: DeepHealthResponseIntegrations;

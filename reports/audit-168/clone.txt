@@ -1,0 +1,9 @@
+
+> workspace@0.0.0 db:clone-prod /home/runner/workspace
+> pnpm --silent --dir scripts exec tsx ./src/dbCloneProd.ts
+
+DB clone source: schema-only
+Public base tables: 31
+Public columns: 320
+Schema migrations ledger rows: 0
+DB CLONE PASS

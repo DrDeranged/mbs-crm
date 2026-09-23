@@ -1,0 +1,63 @@
+
+> workspace@0.0.0 smoke /home/runner/workspace
+> playwright test --config playwright.smoke.config.ts
+
+[WebServer] (node:5318) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5330) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5366) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 
+[WebServer]   dist/chunks/runtime-HCV6TH4X.mjs               15.2mb ⚠️
+[WebServer]   dist/chunks/chunk-ASHFO75Z.mjs                  2.9mb ⚠️
+[WebServer]   dist/chunks/esm-JJSRRVUZ.mjs                  992.6kb
+[WebServer]   dist/chunks/chunk-TJJS3D2A.mjs                117.7kb
+[WebServer]   dist/pino-pretty.mjs                           84.6kb
+[WebServer]   dist/chunks/chunk-RICIZEEN.mjs                 51.8kb
+[WebServer]   dist/chunks/chunk-RIS63LTX.mjs                 21.9kb
+[WebServer]   dist/chunks/chunk-CIXCNFVN.mjs                 10.0kb
+[WebServer]   dist/pino-worker.mjs                            9.1kb
+[WebServer]   dist/index.mjs                                  4.7kb
+[WebServer]   dist/thread-stream-worker.mjs                   4.2kb
+[WebServer]   dist/chunks/chunk-R5GPNPTX.mjs                  3.8kb
+[WebServer]   dist/chunks/chunk-ATFS5275.mjs                  3.5kb
+[WebServer]   dist/chunks/chunk-KKR2HMRO.mjs                  2.6kb
+[WebServer]   dist/chunks/chunk-OUD2LORY.mjs                  2.6kb
+[WebServer]   dist/chunks/chunk-5AX5I6WE.mjs                  2.4kb
+[WebServer]   dist/chunks/getMachineId-win-IBLM3IE2.mjs       2.0kb
+[WebServer]   dist/chunks/getMachineId-darwin-HFMRGTA6.mjs    1.8kb
+[WebServer]   dist/chunks/getMachineId-bsd-UN3MRJQ5.mjs       1.8kb
+[WebServer]   dist/chunks/chunk-EFSD5NGP.mjs                  1.8kb
+[WebServer]   ...and 36 more output files...
+[WebServer] 
+[WebServer] ⚡ Done in 2721ms
+[WebServer] (node:5427) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5440) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] src/components/ui/tooltip.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/sheet.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/dropdown-menu.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/label.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/select.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/command.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:5346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:5728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/smoke.spec.ts:3:5 › production smoke paths (11.4s)
+
+  1 passed (46.5s)

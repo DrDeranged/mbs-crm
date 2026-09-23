@@ -1,0 +1,70 @@
+
+> @workspace/mbs-crm-mobile@0.0.0 build /home/runner/workspace/artifacts/mbs-crm-mobile
+> node scripts/build.js
+
+Building static Expo Go deployment...
+Preparing build directories...
+Build: 1790180032468-5634
+Clearing Metro cache...
+Cache cleared
+Starting Metro...
+Setting EXPO_PUBLIC_DOMAIN=8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev
+Setting EXPO_PUBLIC_REPL_ID=8b2f0d46-c34b-495e-bca0-bc5f10c647fc:iyoa3kkr
+[Metro] Starting project at /home/runner/workspace/artifacts/mbs-crm-mobile
+[Metro] React Compiler enabled
+[Metro] Starting Metro Bundler
+Metro ready
+Downloading bundles and manifests...
+This may take several minutes for production builds...
+Fetching ios bundle...
+Downloading: http://localhost:8082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=ios&dev=false&hot=false&lazy=false&minify=true
+[Metro] Waiting on http://localhost:8082
+Logs for your project will appear below.
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+[Metro] | (node:6086) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 16.0% (12/63)
+[Metro] | (node:6094) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:6113) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:6093) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:6106) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:6087) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓░░░░░░░░░░░░ 27.3% (174/333)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 63.8% (504/631)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 71.1% (624/740)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 72.2% (676/921)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 72.2% (732/969)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 72.2% ( 803/1081)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 79.3% (1090/1224)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 88.4% (1406/1503)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.0% (1778/1815)
+[Metro] iOS Bundled 39283ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1840 modules)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1840/1840)
+ios bundle ready
+Fetching android bundle...
+Downloading: http://localhost:8082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=android&dev=false&hot=false&lazy=false&minify=true
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓░░░░░░░░░░░░ 28.6% (503/941)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 54.3% ( 892/1210)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 82.4% (1397/1548)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 97.7% (1802/1823)
+[Metro] Android Bundled 17851ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1836 modules)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1836/1836)
+android bundle ready
+Fetching ios manifest...
+Fetching android manifest...
+ios manifest ready
+android manifest ready
+All downloads completed successfully
+Processing assets...
+Found 49 unique asset(s)
+Copying assets...
+Copied 49 assets
+Updated bundle URLs
+Updating manifests and creating landing page...
+Manifests updated
+Build complete! Deploy to: https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev

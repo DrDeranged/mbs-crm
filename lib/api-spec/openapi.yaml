@@ -7976,8 +7976,12 @@ components:
 
     DeepHealthResponse:
       type: object
-      required: [pdf, schema]
+      required: [pdf, schema, revision]
       properties:
+        revision:
+          type: string
+          description: Full git commit SHA embedded when the API bundle was built.
+          pattern: '^[0-9a-f]{40}$'
         status:
           type: string
           enum: [ok, degraded]

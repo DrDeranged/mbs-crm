@@ -178,7 +178,8 @@ test("workspace corpus has the expected baseline and migration counts", { concur
   const result = await lintMigrationDependencies();
   assert.equal(result.baselineTables, 31);
   assert.equal(result.baselineColumns, 320);
-  assert.equal(result.migrationsChecked, 54);
+  const migrationNames = await readdir(path.resolve(import.meta.dirname, "../../lib/db/migrations"));
+  assert.equal(result.migrationsChecked, numberMigrations(migrationNames).length);
   assert.ok(result.tableReferencesChecked > 0);
   assert.ok(result.columnReferencesChecked > 0);
 });

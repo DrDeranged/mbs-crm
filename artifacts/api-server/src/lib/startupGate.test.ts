@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer, type RequestListener } from "node:http";
 import test from "node:test";
 import { createStartupGate } from "./startupGate";
+import { buildRevision, REVISION_HEADER } from "./buildRevision";
 
 async function withGate(
   run: (baseUrl: string, gate: ReturnType<typeof createStartupGate>) => Promise<void>,
@@ -25,6 +26,7 @@ test("startup gate keeps deployment liveness healthy while booting", async () =>
     for (const path of ["/api", "/api/healthz"]) {
       const response = await fetch(`${baseUrl}${path}`);
       assert.equal(response.status, 200);
+      assert.equal(response.headers.get(REVISION_HEADER), buildRevision);
       assert.deepEqual(await response.json(), { status: "ok", phase: "booting" });
     }
   });
@@ -69,9 +71,11 @@ test("failed initialization stays observable and does not admit business traffic
 
     const deepHealth = await fetch(`${baseUrl}/api/health/deep`);
     assert.equal(deepHealth.status, 503);
+    assert.equal(deepHealth.headers.get(REVISION_HEADER), buildRevision);
     assert.equal(deepHealth.headers.get("retry-after"), "5");
     assert.deepEqual(await deepHealth.json(), {
       status: "degraded",
+      revision: buildRevision,
       phase: "failed",
       initialization: "failed",
     });

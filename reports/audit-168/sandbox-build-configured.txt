@@ -1,0 +1,16 @@
+
+> @workspace/mockup-sandbox@2.0.0 build /home/runner/workspace/artifacts/mockup-sandbox
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 34 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                       4.44 kB │ gzip:  1.24 kB
+dist/assets/index-D_8KxOhv.css       94.70 kB │ gzip: 15.62 kB
+dist/assets/DirectionB-DiIyFWST.js    9.26 kB │ gzip:  2.42 kB
+dist/assets/DirectionC-BYD2p0H_.js   10.43 kB │ gzip:  2.78 kB
+dist/assets/DirectionA-BBxuL_CG.js   11.50 kB │ gzip:  2.85 kB
+dist/assets/index-DkGJX4T2.js       189.18 kB │ gzip: 60.01 kB
+✓ built in 1.89s

@@ -1,4 +1,5 @@
 import type { RequestListener } from "node:http";
+import { buildRevision, REVISION_HEADER } from "./buildRevision";
 
 export type StartupPhase = "booting" | "ready" | "failed";
 
@@ -43,6 +44,7 @@ export function createStartupGate(): StartupGate {
   let applicationListener: RequestListener | null = null;
 
   const handler: RequestListener = (req, res) => {
+    res.setHeader(REVISION_HEADER, buildRevision);
     if (phase === "ready" && applicationListener) {
       applicationListener(req, res);
       return;
@@ -64,6 +66,7 @@ export function createStartupGate(): StartupGate {
         503,
         {
           status: "degraded",
+          revision: buildRevision,
           phase,
           initialization: phase === "failed" ? "failed" : "in_progress",
         },

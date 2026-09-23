@@ -18,6 +18,7 @@ import { db } from "@workspace/db";
 import { errorLogTable } from "@workspace/db";
 import { getSafeUserId } from "./lib/requestAuth";
 import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
+import { buildRevision, REVISION_HEADER } from "./lib/buildRevision";
 
 initSentry();
 
@@ -49,8 +50,9 @@ function observeHttp5xx(req: Request, res: Response, error?: unknown): void {
 app.set("trust proxy", 1);
 
 // Attach a unique request id to every request
-export const requestIdMiddleware = (req: Request, _res: Response, next: NextFunction) => {
+export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
   req.requestId = crypto.randomUUID();
+  res.setHeader(REVISION_HEADER, buildRevision);
   next();
 };
 app.use(requestIdMiddleware);

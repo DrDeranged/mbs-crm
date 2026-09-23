@@ -8,6 +8,7 @@ import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth } from "../lib/integrationHealth";
 import { getClerkHealth } from "../lib/clerkHealth";
 import { getBootSchemaFailure } from "../lib/schemaBoot";
+import { buildRevision } from "../lib/buildRevision";
 
 const router: IRouter = Router();
 
@@ -149,6 +150,7 @@ router.get("/health/deep", async (_req, res) => {
     !schema.failed;
   res.status(healthy ? 200 : 503).json({
     status: healthy ? "ok" : "degraded",
+    revision: buildRevision,
     db: dbOk ? "ok" : "fail",
     schema,
     integrations,

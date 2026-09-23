@@ -1,0 +1,14 @@
+Observed 2026-09-23 UTC. Read-only baseline (no deployment performed).
+workspace HEAD at audit start and report preparation:
+7a5417afd75f147c5221487cb23c0af3893817ec
+observed git ls-remote origin HEAD refs/heads/main:
+ba14949adf9a7863916140b9ddc71c291064f9f8 HEAD
+ba14949adf9a7863916140b9ddc71c291064f9f8 refs/heads/main
+git merge-base --is-ancestor workspace HEAD remote main: exit 1
+Deployment status lookup: active, successful, public VM.
+Public URL from deployment service: https://app.my-business-solutions.com
+Live web/API immutable commit header or payload: not observed; parity unverified.
+Production read-only SQL counts: 524 leads, 2 draft campaigns, 0 campaign launches.
+Development read-only SQL counts: 12 leads, 2 draft campaigns, 0 campaign launches.
+Live /api/health/deep: HTTP 200; database ok; migrations applied 55, pending [], failed null.
+No production authenticated business-data read or write performed.

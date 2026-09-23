@@ -1,0 +1,36 @@
+https://app.my-business-solutions.com /api/ 200 headers [('Etag', 'W/"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg"')]
+  body {"status":"ok"}
+https://app.my-business-solutions.com /api/healthz 200 headers [('Etag', 'W/"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg"')]
+  body {"status":"ok"}
+https://app.my-business-solutions.com /api/health/deep 200 headers [('Etag', 'W/"3c7-6Ve9v3DwNIFiJGDkxdw4sNMH+zw"')]
+  health {'status': 'ok', 'db': 'ok', 'schema': {'applied': 55, 'pending': [], 'failed': None}, 'jobs': {'drip': {'lastRanAt': '2026-09-23T15:59:58.063Z', 'status': 'success', 'itemsProcessed': 0}, 'task-reminder': {'lastRanAt': '2026-09-23T09:55:13.103Z', 'status': 'success', 'itemsProcessed': 0}, 'renewal': {'lastRanAt': '2026-09-23T13:19:58.355Z', 'status': 'success', 'itemsProcessed': 0}}, 'timestamp': '2026-09-23T16:08:50.979Z'}
+https://app.my-business-solutions.com /api/applications/consent-text 200 headers [('Etag', 'W/"935-1f+ubCTGtdb9ySsDzeonTF2Z7to"')]
+https://app.my-business-solutions.com /api/applications/status/not-a-real-token 404 headers [('Etag', 'W/"21-wnbqkAG5XJdplnuhB/13g71amWE"')]
+  body {"error":"Application not found"}
+https://app.my-business-solutions.com /api/leads 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://app.my-business-solutions.com /api/campaigns 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://app.my-business-solutions.com /api/me 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://app.my-business-solutions.com /apply 200 headers []
+https://app.my-business-solutions.com /apply/status 200 headers []
+https://app.my-business-solutions.com /campaigns 200 headers []
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/ 200 headers [('Etag', 'W/"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg"')]
+  body {"status":"ok"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/healthz 200 headers [('Etag', 'W/"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg"')]
+  body {"status":"ok"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/health/deep 200 headers [('Etag', 'W/"398-pLwOz5JNX5Jz1Fh33JXX8BjzuPc"')]
+  health {'status': 'ok', 'db': 'ok', 'schema': {'applied': 55, 'pending': [], 'failed': None}, 'jobs': {'drip': {'lastRanAt': '2026-09-23T16:07:47.324Z', 'status': 'success', 'itemsProcessed': 0}, 'task-reminder': {'lastRanAt': '2026-09-20T09:47:16.173Z', 'status': 'success', 'itemsProcessed': 0}, 'renewal': {'lastRanAt': '2026-09-23T16:07:47.386Z', 'status': 'success', 'itemsProcessed': 0}}, 'timestamp': '2026-09-23T16:08:52.535Z'}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/applications/consent-text 200 headers [('Etag', 'W/"935-1f+ubCTGtdb9ySsDzeonTF2Z7to"')]
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/applications/status/not-a-real-token 404 headers [('Etag', 'W/"21-wnbqkAG5XJdplnuhB/13g71amWE"')]
+  body {"error":"Application not found"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/leads 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/campaigns 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /api/me 401 headers [('Etag', 'W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"')]
+  body {"error":"Unauthorized"}
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /apply 200 headers [('Etag', 'W/"e71d-sSPKjUTdWnclhNZPbqzq7JCQsIE"')]
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /apply/status 200 headers [('Etag', 'W/"e71d-sSPKjUTdWnclhNZPbqzq7JCQsIE"')]
+https://8b2f0d46-c34b-495e-bca0-bc5f10c647fc-00-p08p12y4kgvr-iyoa3kkr.worf.replit.dev /campaigns 200 headers [('Etag', 'W/"e71d-sSPKjUTdWnclhNZPbqzq7JCQsIE"')]

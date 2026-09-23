@@ -1,0 +1,19 @@
+
+> workspace@0.0.0 lint:migrations /home/runner/workspace
+> pnpm --filter @workspace/scripts run lint:migrations && pnpm --filter @workspace/scripts run lint:migration-dependencies
+
+
+> @workspace/scripts@0.0.0 lint:migrations /home/runner/workspace/scripts
+> tsx ./src/lint-migrations.ts
+
+Migration idempotency lint passed.
+
+> @workspace/scripts@0.0.0 lint:migration-dependencies /home/runner/workspace/scripts
+> tsx ./src/lint-migration-dependencies.ts
+
+baseline tables: 31
+baseline columns: 320
+migrations checked: 55
+table references checked: 145
+column references checked: 306
+MIGRATION DEPENDENCY LINT PASS
