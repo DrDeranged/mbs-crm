@@ -12,7 +12,7 @@ Use `@replit/connectors-sdk` (`ReplitConnectors.proxy("github", ...)`) from a sh
 **Repo:** `DrDeranged/mbs-crm`
 
 ## What does NOT work
-- `git push origin main` — no `origin` remote; HTTPS token rotation breaks auth
+- `git push origin main` — an `origin` remote may exist, but HTTPS token rotation breaks auth
 - `gitPush({ provider: "github" })` callback — returns `NO_CREDENTIALS`
 - `listConnections("github")` inside CodeExecution impure — returns `[]`
 - `proxyFetch` / `getClient` as CodeExecution globals — `ReferenceError: not defined`
