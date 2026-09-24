@@ -1,3 +1,5 @@
+import { validateEmailTemplate } from "../routes/email";
+
 export function hasEligibleCampaignAudience(counts: unknown): boolean {
   if (!counts || typeof counts !== "object") return false;
   const eligible = (counts as { eligible?: unknown }).eligible;
@@ -28,6 +30,12 @@ export function validateCampaignRender(
   return null;
 }
 
+export function validateCampaignMergeTokens(template: { subject: string; bodyHtml: string } | null): string | null {
+  if (!template) return "An active email template is required";
+  const unknown = validateEmailTemplate(template.subject, template.bodyHtml);
+  return unknown.length ? `Unknown merge token(s): ${[...new Set(unknown)].map((token) => `{{${token}}}`).join(", ")}` : null;
+}
+
 export function approvedAudienceSummary(
   status: string,
   version: number,
@@ -35,7 +43,13 @@ export function approvedAudienceSummary(
 ) {
   if (status !== "approved" || !approval || approval.contentVersion !== version || approval.invalidatedAt) return null;
   const snapshot = approval.snapshot as { counts?: unknown } | null;
-  const counts = snapshot?.counts as { eligible?: unknown; excluded?: unknown; emailCapacityRemaining?: unknown } | undefined;
+  const counts = snapshot?.counts as { eligible?: unknown; excluded?: unknown; emailCapacityRemaining?: unknown; emailToday?: unknown; emailQueuedNextBusinessDay?: unknown } | undefined;
   if (!hasEligibleCampaignAudience(counts) || typeof counts?.excluded !== "number") return null;
-  return { eligible: counts.eligible as number, excluded: counts.excluded, emailCapacityRemaining: typeof counts.emailCapacityRemaining === "number" ? counts.emailCapacityRemaining : 0 };
+  return {
+    eligible: counts.eligible as number,
+    excluded: counts.excluded,
+    emailCapacityRemaining: typeof counts.emailCapacityRemaining === "number" ? counts.emailCapacityRemaining : 0,
+    emailToday: typeof counts.emailToday === "number" ? counts.emailToday : counts.eligible as number,
+    emailQueuedNextBusinessDay: typeof counts.emailQueuedNextBusinessDay === "number" ? counts.emailQueuedNextBusinessDay : 0,
+  };
 }

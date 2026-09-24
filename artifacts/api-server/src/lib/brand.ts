@@ -3,6 +3,8 @@ import path from "node:path";
 
 export const BRAND_LOGO_PATH = "/api/brand/logo.png";
 export const BRAND_LOGO_REVERSE_PATH = "/api/brand/logo-reverse.png";
+/** The externally hosted mark used in every outbound email. */
+export const EMAIL_BRAND_LOGO_URL = "https://my-business-solutions.com/brand/mbs-logo-green-slash.png";
 
 const assetCandidates = (filename: string): string[] => {
   const root = typeof __dirname === "string" ? __dirname : process.cwd();
@@ -61,13 +63,15 @@ export function getBrandLogoReverseUrl(baseUrl?: string): string {
 export function createBrandEmailHeader(logoUrl: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" data-mbs-brand-header="true" style="margin:0 0 24px;border-collapse:collapse;background:#ffffff;border-bottom:1px solid #e2e8f0;">
   <tr><td style="padding:20px 24px;text-align:left;">
-    <img src="${logoUrl}" alt="My Business Solutions logo" width="116" style="display:block;width:116px;height:auto;border:0;outline:none;text-decoration:none;" />
+    <img src="${logoUrl}" alt="My Business Solutions logo" width="116" height="51" style="display:block;width:116px;height:51px;border:0;outline:none;text-decoration:none;" />
   </td></tr>
 </table>`;
 }
 
 export function ensureBrandEmailHeader(bodyHtml: string, baseUrl?: string): string {
-  const header = createBrandEmailHeader(getBrandLogoUrl(baseUrl));
+  // Email clients must be able to fetch this without relying on the API host.
+  // Keep baseUrl in the signature for callers, but intentionally do not use it.
+  const header = createBrandEmailHeader(EMAIL_BRAND_LOGO_URL);
   if (bodyHtml.includes("__MBS_BRAND_EMAIL_HEADER__")) return bodyHtml.replaceAll("__MBS_BRAND_EMAIL_HEADER__", header);
   return bodyHtml.includes('data-mbs-brand-header="true"') ? bodyHtml : `${header}${bodyHtml}`;
 }

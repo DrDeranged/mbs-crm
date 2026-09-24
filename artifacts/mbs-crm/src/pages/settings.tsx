@@ -76,7 +76,7 @@ export default function Settings() {
   const [savingCompany, setSavingCompany] = useState(false);
   const [emailSendingEnabled, setEmailSendingEnabled] = useState(false);
   const [bulkEmailPerMinute, setBulkEmailPerMinute] = useState("60");
-  const [bulkEmailPerDay, setBulkEmailPerDay] = useState("75");
+  const [bulkEmailPerDay, setBulkEmailPerDay] = useState("60");
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
   const [partnerTextingEnabled, setPartnerTextingEnabled] = useState(true);
   const [savingPartnerTexting, setSavingPartnerTexting] = useState(false);
@@ -118,7 +118,7 @@ export default function Settings() {
         const text = (key: string) => typeof data[key] === "string" ? data[key] as string : "";
         setEmailSendingEnabled(data.emailSendingEnabled === true);
         setBulkEmailPerMinute(String(data.bulkEmailPerMinute ?? 60));
-        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? 75));
+        setBulkEmailPerDay(String(data.bulkEmailPerDay ?? 60));
         return setCompanyForm({
         companyName: text("companyName"),
         companyEmail: text("companyEmail"),

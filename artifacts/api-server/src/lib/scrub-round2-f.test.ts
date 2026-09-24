@@ -192,7 +192,7 @@ test("invalid webhook signatures return 401 before any delivery or suppression m
   }
 });
 
-test("authenticated webhook route applies terminal status, suppression, and activity for every suppressing event", async () => {
+test("signed webhook route suppresses the matched lead for every H event", async () => {
   const expected = {
     bounce: { status: "bounced", action: "email_bounced" },
     dropped: { status: "bounced", action: "email_bounced" },
@@ -203,6 +203,7 @@ test("authenticated webhook route applies terminal status, suppression, and acti
     const updates: Array<Record<string, unknown>> = [];
     const suppressed: string[] = [];
     const activities: Array<{ action: string; event: unknown }> = [];
+    const lead = { id: 42, email: "recipient@example.test", isUnsubscribed: false };
     const send = {
       id: 9, leadId: 42, userId: 3, subject: "Subject",
       toEmail: "recipient@example.test", status: "sent" as const,
@@ -210,7 +211,10 @@ test("authenticated webhook route applies terminal status, suppression, and acti
     const repository = {
       insertEvent: async () => true,
       findSend: async () => send,
-      suppressRecipient: async (email: string) => { suppressed.push(email); },
+      suppressRecipient: async (email: string) => {
+        suppressed.push(email);
+        if (email === lead.email) lead.isUnsubscribed = true;
+      },
       updateSend: async (_send: typeof send, updatesForSend: Record<string, unknown>) => { updates.push(updatesForSend); },
       hasActivity: async () => false,
       logActivity: async (_send: typeof send, action: string, details: Record<string, unknown>) => {
@@ -220,20 +224,28 @@ test("authenticated webhook route applies terminal status, suppression, and acti
     const app = express();
     app.use(express.json());
     app.post("/sendgrid/webhook", createSendGridWebhookHandler({
-      verifySignature: () => true,
+      verifySignature: (request) => Boolean(
+        request.headers["x-twilio-email-event-webhook-signature"]
+        && request.headers["x-twilio-email-event-webhook-timestamp"],
+      ),
       processEvents: (events) => processSendGridWebhookEvents(events, repository),
     }));
     const server = await listen(app);
     try {
       const response = await fetch(`${server.url}/sendgrid/webhook`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-twilio-email-event-webhook-signature": `test-signature-${event}`,
+          "x-twilio-email-event-webhook-timestamp": "1700000000",
+        },
         body: JSON.stringify({ event, email: send.toEmail, sg_message_id: "mocked-message-id", sg_event_id: event }),
       });
       assert.equal(response.status, 200, event);
       assert.deepEqual(await response.json(), { ok: true, processed: 1, ignored: 0 }, event);
       assert.equal(updates[0]?.status, effect.status, event);
       assert.deepEqual(suppressed, [send.toEmail], event);
+      assert.equal(lead.isUnsubscribed, true, event);
       assert.deepEqual(activities, [{ action: effect.action, event }], event);
     } finally {
       await server.close();
@@ -280,7 +292,7 @@ test("admin test-send route sends fixed CEO message from funding address and ret
   }
 });
 
-test("shared locked daily bulk/drip reservation allows 75 combined attempts and denies the rest", async () => {
+test("shared locked daily bulk/drip reservation allows 60 combined attempts and denies the rest", async () => {
   let used = 0;
   let tail = Promise.resolve();
   const repository = {
@@ -295,22 +307,22 @@ test("shared locked daily bulk/drip reservation allows 75 combined attempts and 
         release?.();
       }
     },
-    getLimit: async () => 75,
+    getLimit: async () => 60,
     getUsed: async () => used,
     create: async () => ++used,
   };
   const attempts = await Promise.all(
-    Array.from({ length: 76 }, (_, index) =>
+    Array.from({ length: 61 }, (_, index) =>
       reserveDailyMarketingEmail(repository).then((result) => ({
         source: index % 2 === 0 ? "bulk" : "drip",
         result,
       })),
     ),
   );
-  assert.equal(attempts.filter(({ result }) => result !== null).length, 75);
-  assert.equal(attempts.filter(({ source, result }) => source === "bulk" && result !== null).length, 38);
-  assert.equal(attempts.filter(({ source, result }) => source === "drip" && result !== null).length, 37);
-  assert.equal(used, 75);
+  assert.equal(attempts.filter(({ result }) => result !== null).length, 60);
+  assert.equal(attempts.filter(({ source, result }) => source === "bulk" && result !== null).length, 30);
+  assert.equal(attempts.filter(({ source, result }) => source === "drip" && result !== null).length, 30);
+  assert.equal(used, 60);
 });
 
 test("bulk and drip production call sites opt into the shared 75-message reservation", async () => {
@@ -318,7 +330,7 @@ test("bulk and drip production call sites opt into the shared 75-message reserva
   const dripJob = await readFile(new URL("./dripJob.ts", import.meta.url), "utf8");
   assert.match(emailRoute, /deliveryKind:\s*"bulk"/);
   assert.match(dripJob, /deliveryKind:\s*"drip"/);
-  assert.match(emailRoute, /bulkEmailPerDay\s*\?\?\s*75/);
+  assert.match(emailRoute, /bulkEmailPerDay\s*\?\?\s*60/);
   assert.match(emailRoute, /reserveDailyMarketingEmail/);
 });
 

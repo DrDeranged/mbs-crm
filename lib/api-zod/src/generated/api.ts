@@ -804,7 +804,7 @@ export const getEmailDeliverySettingsResponseEmailSendingEnabledDefault = false;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
-export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
 
 
@@ -835,7 +835,7 @@ export const updateEmailDeliverySettingsResponseEmailSendingEnabledDefault = fal
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
-export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 75;
+export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
 
 
@@ -7629,6 +7629,7 @@ export const DownloadSharedCollateralParams = zod.object({
 })
 
 
+export const listCampaignsResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
 
@@ -7645,6 +7646,7 @@ export const ListCampaignsResponseItem = zod.object({
   "channel": zod.enum(['email', 'sms', 'email_sms']),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(listCampaignsResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
@@ -7676,6 +7678,7 @@ export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
 
 
 
+export const createCampaignBodyReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const createCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const createCampaignBodyFlyerTwoSizeMax = 15728640;
 
@@ -7690,6 +7693,7 @@ export const CreateCampaignBody = zod.object({
   "description": zod.string().nullish(),
   "channel": zod.enum(['email', 'sms', 'email_sms']).optional(),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(createCampaignBodyReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
@@ -7739,6 +7743,7 @@ export const GetCampaignParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const getCampaignResponseCampaignReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const getCampaignResponseCampaignFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const getCampaignResponseCampaignFlyerTwoSizeMax = 15728640;
 
@@ -7756,6 +7761,7 @@ export const GetCampaignResponse = zod.object({
   "channel": zod.enum(['email', 'sms', 'email_sms']),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(getCampaignResponseCampaignReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
@@ -7812,6 +7818,7 @@ export const UpdateCampaignParams = zod.object({
 })
 
 
+export const updateCampaignBodyReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const updateCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignBodyFlyerTwoSizeMax = 15728640;
 
@@ -7826,6 +7833,7 @@ export const UpdateCampaignBody = zod.object({
   "description": zod.string().nullish(),
   "channel": zod.enum(['email', 'sms', 'email_sms']).optional(),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(updateCampaignBodyReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
@@ -7852,6 +7860,7 @@ export const UpdateCampaignBody = zod.object({
   "ownerId": zod.number().optional()
 })
 
+export const updateCampaignResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const updateCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignResponseFlyerTwoSizeMax = 15728640;
 
@@ -7868,6 +7877,7 @@ export const UpdateCampaignResponse = zod.object({
   "channel": zod.enum(['email', 'sms', 'email_sms']),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(updateCampaignResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
@@ -7922,7 +7932,9 @@ export const PreviewCampaignAudienceResponse = zod.object({
   "excluded": zod.number(),
   "emailEligible": zod.number(),
   "smsEligible": zod.number(),
-  "emailCapacityRemaining": zod.number()
+  "emailCapacityRemaining": zod.number(),
+  "emailToday": zod.number(),
+  "emailQueuedNextBusinessDay": zod.number()
 }),
   "previewToken": zod.string(),
   "previewId": zod.number().optional(),
@@ -7944,6 +7956,7 @@ export const ApproveCampaignBody = zod.object({
   "approvalType": zod.string().default(approveCampaignBodyApprovalTypeDefault)
 })
 
+export const approveCampaignResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const approveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const approveCampaignResponseFlyerTwoSizeMax = 15728640;
 
@@ -7960,6 +7973,7 @@ export const ApproveCampaignResponse = zod.object({
   "channel": zod.enum(['email', 'sms', 'email_sms']),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
   "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(approveCampaignResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),

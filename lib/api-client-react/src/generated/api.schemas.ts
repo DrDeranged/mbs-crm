@@ -94,6 +94,7 @@ export interface Campaign {
   channel: CampaignChannel;
   status: CampaignStatus;
   emailTemplateId?: number | null;
+  replyToEmail: string;
   smsBody?: string | null;
   flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
   audienceRules: CampaignAudienceRules;
@@ -117,6 +118,7 @@ export interface CampaignInput {
   description?: string | null;
   channel?: CampaignInputChannel;
   emailTemplateId?: number | null;
+  replyToEmail?: string;
   smsBody?: string | null;
   flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
   audienceRules?: CampaignAudienceRules;
@@ -209,6 +211,8 @@ export interface CampaignPreviewCounts {
   emailEligible: number;
   smsEligible: number;
   emailCapacityRemaining: number;
+  emailToday: number;
+  emailQueuedNextBusinessDay: number;
 }
 
 export type CampaignLaunchMode = typeof CampaignLaunchMode[keyof typeof CampaignLaunchMode];

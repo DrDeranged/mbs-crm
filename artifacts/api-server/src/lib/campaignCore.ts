@@ -57,6 +57,38 @@ export function campaignPlainText(bodyHtml: string): string {
     .trim();
 }
 
+export const CAMPAIGN_LOGO_URL = "https://my-business-solutions.com/brand/mbs-logo-green-slash.png";
+
+export const DEFAULT_CAMPAIGN_REPLY_TO = "nate@my-business-solutions.com";
+
+export function nextBusinessDayInNewYork(now: Date): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(now).reduce<Record<string, string>>((out, part) => {
+    out[part.type] = part.value;
+    return out;
+  }, {});
+  const next = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), 13));
+  do next.setUTCDate(next.getUTCDate() + 1); while ([0, 6].includes(next.getUTCDay()));
+  return next;
+}
+
+export function deferEligibleRecipients<T extends { status: string; availableAt?: Date | null }>(
+  rows: T[], availableAt: Date,
+): T[] {
+  return rows.map((row) => row.status === "eligible" ? { ...row, status: "deferred", availableAt } : row);
+}
+
+export function selectDueResumeCandidates<T extends { status: string; availableAt?: Date | null }>(
+  rows: T[], now: Date,
+): T[] {
+  return rows.filter((row) => row.status === "deferred" && (!row.availableAt || row.availableAt <= now));
+}
+
+export function isFutureCampaignSchedule(scheduledAt: Date | null | undefined, now = new Date()): boolean {
+  return Boolean(scheduledAt && scheduledAt > now);
+}
+
 export function minimalCampaignHtml(text: string): string {
   const escaped = text
     .replace(/&/g, "&amp;")
@@ -64,8 +96,25 @@ export function minimalCampaignHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-  return escaped.split(/\n{2,}/).map((paragraph) =>
-    `<p>${paragraph.replace(/\n/g, "<br>")}</p>`).join("");
+  return `<p><img src="${CAMPAIGN_LOGO_URL}" alt="My Business Solutions" width="160" height="40"></p>` +
+    escaped.split(/\n{2,}/).map((paragraph) =>
+      `<p>${paragraph.replace(/\n/g, "<br>")}</p>`).join("");
+}
+
+/** Merge tokens supported by the campaign renderer.  Keep this deliberately
+ * strict: silently leaving a token in a live message is worse than blocking
+ * approval. */
+export const CAMPAIGN_MERGE_TOKENS = [
+  "lead_first_name", "lead_last_name", "lead_company", "lead_email",
+  "lead_phone", "rep_name", "rep_phone", "rep_email",
+] as const;
+
+export function unknownCampaignMergeTokens(value: string): string[] {
+  const unknown = new Set<string>();
+  for (const match of value.matchAll(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g)) {
+    if (!(CAMPAIGN_MERGE_TOKENS as readonly string[]).includes(match[1])) unknown.add(match[1]);
+  }
+  return [...unknown];
 }
 
 export function assignedRepReplyTo(rep: { name?: string | null; email?: string | null } | null | undefined): { name?: string; email?: string } | undefined {
@@ -155,7 +204,7 @@ export function classifyEmailRecipient(input: {
   suppressed: boolean;
   capacityAvailable: boolean;
 }): "missing_contact_info" | "duplicate_email" | "email_unsubscribed_or_suppressed" | "daily_email_capacity" | "eligible" {
-  if (!input.email?.trim()) return "missing_contact_info";
+  if (!input.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return "missing_contact_info";
   if (input.duplicate) return "duplicate_email";
   if (input.unsubscribed || input.suppressed) return "email_unsubscribed_or_suppressed";
   if (!input.capacityAvailable) return "daily_email_capacity";

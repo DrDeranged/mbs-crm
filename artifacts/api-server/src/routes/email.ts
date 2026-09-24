@@ -42,6 +42,40 @@ const templateBody = z.object({
   senderMode: z.enum(["default", "assigned_rep"]).optional(),
   isActive: z.boolean().optional(),
 });
+export const EMAIL_MERGE_TOKENS = [
+  "lead_first_name", "lead_last_name", "lead_company", "lead_email", "lead_phone",
+  "rep_name", "rep_phone", "rep_email", "lender_name", "requested_amount", "application_type",
+  "brand_email_header", "unsubscribe_link", "mailing_address",
+] as const;
+export const EMAIL_MERGE_TOKEN_DOCUMENTATION = {
+  lead_first_name: "{{lead_first_name}}",
+  lead_last_name: "{{lead_last_name}}",
+  lead_company: "{{lead_company}}",
+  lead_email: "{{lead_email}}",
+  lead_phone: "{{lead_phone}}",
+  rep_name: "{{rep_name}}",
+  rep_phone: "{{rep_phone}}",
+  rep_email: "{{rep_email}}",
+  brand_email_header: "{{brand_email_header}}",
+  unsubscribe_link: "{{unsubscribe_link}} (resolved per-send)",
+  mailing_address: "{{mailing_address}}",
+} as const;
+const EMAIL_MERGE_TOKEN_SET = new Set<string>(EMAIL_MERGE_TOKENS);
+export function validateEmailTemplateTokens(value: string): string[] {
+  const unknown = new Set<string>();
+  for (const match of value.matchAll(/\{\{([^{}]+)\}\}/g)) {
+    if (!EMAIL_MERGE_TOKEN_SET.has(match[1])) unknown.add(match[1]);
+  }
+  return [...unknown];
+}
+export function validateEmailTemplate(subject: string, bodyHtml: string): string[] {
+  return [...new Set([...validateEmailTemplateTokens(subject), ...validateEmailTemplateTokens(bodyHtml)])];
+}
+/** Short alias for campaign approval and other non-route callers. */
+export const validateTemplateTokens = validateEmailTemplateTokens;
+export function containsDataImageUri(value: string): boolean {
+  return /data:image\/[a-z0-9.+-]+(?:;[^,\s]*)?,/i.test(value);
+}
 const templateUpdateBody = templateBody.partial().refine(
   (value) => Object.keys(value).length > 0,
   { message: "At least one template field is required" },
@@ -215,16 +249,31 @@ function escapeHtml(value: string): string {
 }
 
 function renderTemplate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  const companyless = !vars.lead_company?.trim()
+    ? template.replace(/\bfor\s+{{lead_company}}(?:'s)?/gi, "").replace(/{{lead_company}}(?:'s)?/gi, "")
+    : template;
+  const rendered = companyless.replace(/\{\{(\w+)\}\}/g, (_, key) => {
     if (key === "brand_email_header") return "__MBS_BRAND_EMAIL_HEADER__";
+    if (key === "unsubscribe_link") return "__MBS_UNSUBSCRIBE_LINK__";
+    if (key === "mailing_address") return escapeHtml(EMAIL_COMPLIANCE_ADDRESS);
+    if (key === "lead_first_name" && !vars[key]?.trim()) return "there";
     const raw = vars[key];
     return raw == null ? "" : escapeHtml(String(raw));
   });
+  return rendered.replace(/[ \t]{2,}/g, " ");
 }
 
 function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEmail: string, includeOpenPixel = true): string {
+  const token = makeUnsubToken(sendId, toEmail);
+  const signedUnsubscribeUrl = `${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}`;
+  // Never trust a template's unsubscribe URL: it may be unsigned or belong
+  // to another send. Replace every unsubscribe anchor before click wrapping.
+  const sanitizedBody = bodyHtml.replace(
+    /<a\b([^>]*\bhref=["'][^"']*\/api\/email\/unsubscribe[^"']*["'][^>]*)>[\s\S]*?<\/a>/gi,
+    `<a href="${signedUnsubscribeUrl}" style="color:#999">Unsubscribe</a>`,
+  ).replace(/(?:__MBS_UNSUBSCRIBE_LINK__\s*){2,}/g, "__MBS_UNSUBSCRIBE_LINK__");
   // Wrap hrefs in click-tracking redirect
-  const withClicks = bodyHtml.replace(
+  const withClicks = sanitizedBody.replace(
     /href="([^"#][^"]*)"/gi,
     (_, url) => {
       let parsed: URL;
@@ -243,19 +292,51 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
     }
   );
   // Signed unsubscribe link — token is HMAC-SHA256(secret, sendId:email)
-  const token = makeUnsubToken(sendId, toEmail);
   const openToken = makeTrackingToken(sendId, "open");
   const pixel = `<img src="${baseUrl}/api/email/track/open/${sendId}?token=${openToken}" width="1" height="1" alt="" style="display:none" />`;
-  const unsubLink = `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">
-    <a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>
-    <br><span>${EMAIL_COMPLIANCE_ADDRESS}</span>
-  </p>`;
-  return `${withClicks}${unsubLink}${includeOpenPixel ? pixel : ""}`;
+  const consent = "You're receiving this as a business owner who may benefit from equipment or working-capital financing.";
+  const unsubscribe = `<a href="${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}" style="color:#999">Unsubscribe</a>`;
+  let resolved = withClicks.replaceAll("__MBS_UNSUBSCRIBE_LINK__", unsubscribe);
+  let unsubscribeSeen = false;
+  resolved = resolved.replace(/<a\b[^>]*>Unsubscribe<\/a>/gi, (match) => {
+    if (unsubscribeSeen) return "";
+    unsubscribeSeen = true;
+    return match;
+  });
+  const dedupe = (value: string, needle: string): string => {
+    let seen = false;
+    return value.replace(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), (match) => {
+      if (seen) return "";
+      seen = true;
+      return match;
+    });
+  };
+  resolved = dedupe(resolved, EMAIL_COMPLIANCE_ADDRESS);
+  resolved = dedupe(resolved, consent);
+  const missing: string[] = [];
+  if (!resolved.includes(EMAIL_COMPLIANCE_ADDRESS)) missing.push(`<span>${EMAIL_COMPLIANCE_ADDRESS}</span>`);
+  if (!/(?:\/|%2f)api(?:\/|%2f)email(?:\/|%2f)unsubscribe\b/i.test(resolved)) missing.push(unsubscribe);
+  if (!resolved.includes(consent)) missing.push(`<span>${consent}</span>`);
+  const footer = missing.length
+    ? `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">${missing.join("<br>")}</p>`
+    : "";
+  return `${resolved}${footer}${includeOpenPixel ? pixel : ""}`;
 }
 
 function injectPlainCompliance(bodyText: string, sendId: number, baseUrl: string, toEmail: string): string {
   const token = makeUnsubToken(sendId, toEmail);
-  return `${bodyText.trim()}\n\nUnsubscribe: ${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}\n${EMAIL_COMPLIANCE_ADDRESS}`;
+  const consent = "You're receiving this as a business owner who may benefit from equipment or working-capital financing.";
+  const unsubscribe = `Unsubscribe: ${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}`;
+  const signedUrl = `${baseUrl}/api/email/unsubscribe?id=${sendId}&email=${encodeURIComponent(toEmail)}&token=${token}`;
+  const resolved = bodyText
+    .replace(/(?:Unsubscribe:\s*)?https?:\/\/[^\s<]*\/api\/email\/unsubscribe[^\s<]*/gi, `Unsubscribe: ${signedUrl}`)
+    .replace(/(?:__MBS_UNSUBSCRIBE_LINK__\s*){2,}/g, "__MBS_UNSUBSCRIBE_LINK__")
+    .replaceAll("__MBS_UNSUBSCRIBE_LINK__", unsubscribe);
+  const missing: string[] = [];
+  if (!/\/api\/email\/unsubscribe\b/i.test(resolved)) missing.push(unsubscribe);
+  if (!resolved.includes(EMAIL_COMPLIANCE_ADDRESS)) missing.push(EMAIL_COMPLIANCE_ADDRESS);
+  if (!resolved.includes(consent)) missing.push(consent);
+  return missing.length ? `${resolved.trim()}\n\n${missing.join("\n")}` : resolved.trim();
 }
 
 function startOfUtcDay(now = new Date()): Date {
@@ -270,7 +351,7 @@ export async function getDailyMarketingEmailCapacity(): Promise<{
   const [settings] = await db.select({
     bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
   }).from(companySettingsTable).limit(1);
-  const limit = Math.max(1, Math.min(100_000, settings?.bulkEmailPerDay ?? 75));
+  const limit = Math.max(1, Math.min(100_000, settings?.bulkEmailPerDay ?? 60));
   const [row] = await db.select({ count: sql<number>`count(*)` })
     .from(emailSendsTable)
     .where(and(
@@ -331,6 +412,8 @@ export async function sendTrackedEmailToProvider({
     disposition?: "attachment" | "inline";
   }>;
   minimalNoImages?: boolean;
+  /** Campaigns may explicitly select their operational Reply-To. */
+  replyToEmail?: string;
 }) {
   const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail, !minimalNoImages);
   const text = bodyText ? injectPlainCompliance(bodyText, sendId, baseUrl, toEmail) : undefined;
@@ -372,12 +455,22 @@ async function doSendEmail(params: {
   minimalNoImages?: boolean;
   campaignId?: number | null;
   campaignLaunchId?: number | null;
+  /** Optional operational Reply-To override (used by campaigns). */
+  replyToEmail?: string;
 }): Promise<{ send: any; error?: string; configurationReason?: string; deliveryOutcome?: "definite_failure" | "uncertain" }> {
+  if (containsDataImageUri(params.subject) || containsDataImageUri(params.bodyHtml) || (params.bodyText && containsDataImageUri(params.bodyText))) {
+    return { send: null, error: "Email templates cannot contain data:image URIs; use the hosted brand logo URL instead", deliveryOutcome: "definite_failure" };
+  }
+  const invalidTokens = validateEmailTemplate(params.subject, params.bodyHtml);
+  if (invalidTokens.length) {
+    return { send: null, error: `Template contains unrecognized merge token(s): ${invalidTokens.join(", ")}`, deliveryOutcome: "definite_failure" };
+  }
   const [emailSettings] = await db.select({
     emailSendingEnabled: companySettingsTable.emailSendingEnabled,
   }).from(companySettingsTable).limit(1);
   const emailSendingEnabled = emailSettings?.emailSendingEnabled ?? false;
-  const repEmail = params.rep?.email?.trim() || "";
+  const repEmail = params.replyToEmail?.trim()
+    || (params.campaignId ? "nate@my-business-solutions.com" : params.rep?.email?.trim() || "");
   const from = {
     email: FROM_EMAIL,
     name: FROM_NAME,
@@ -412,7 +505,7 @@ async function doSendEmail(params: {
         const [settings] = await tx.select({
           bulkEmailPerDay: companySettingsTable.bulkEmailPerDay,
         }).from(companySettingsTable).limit(1);
-        return settings?.bulkEmailPerDay ?? 75;
+        return settings?.bulkEmailPerDay ?? 60;
       },
       getUsed: async (tx) => {
         const [row] = await tx.select({ count: sql<number>`count(*)` })
@@ -776,10 +869,14 @@ router.post("/email/bulk", async (req: Request, res: Response) => {
   }
   for (const leadId of leadIds) {
     const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
-    if (!lead || !lead.email || lead.isUnsubscribed || await isEmailSuppressed(lead?.email || "")) {
+    if (!lead || !lead.email || !VALID_EMAIL.test(lead.email.trim()) || lead.isUnsubscribed || await isEmailSuppressed(lead?.email || "")) {
       if (lead?.isUnsubscribed) skipped.push(leadId);
       failed++;
-      failures.push({ leadId, error: !lead ? "Lead not found" : !lead.email ? "Lead has no email address" : "Lead is unsubscribed" });
+      failures.push({
+        leadId,
+        error: !lead ? "Lead not found" : !lead.email ? "Lead has no email address"
+          : !VALID_EMAIL.test(lead.email.trim()) ? "Lead has an invalid email address" : "Lead is unsubscribed",
+      });
       continue;
     }
     const rep = lead.assignedRepId
@@ -874,6 +971,16 @@ router.post("/email/templates", async (req: Request, res: Response) => {
   const body = templateBody.safeParse(req.body);
   if (!body.success) return invalidInput(res, body);
   const { name, subject, bodyHtml, programType, senderMode, isActive } = body.data;
+  if (containsDataImageUri(subject) || containsDataImageUri(bodyHtml)) {
+    return void res.status(400).json({ error: "Email templates cannot contain data:image URIs; use the hosted brand logo URL instead" });
+  }
+  const invalidTokens = validateEmailTemplate(subject, bodyHtml);
+  if (invalidTokens.length) {
+    return void res.status(400).json({
+      error: `Unrecognized merge token(s): ${invalidTokens.join(", ")}`,
+      allowedTokens: EMAIL_MERGE_TOKENS,
+    });
+  }
 
   const [template] = await db.insert(emailTemplatesTable).values({
     name,
@@ -904,6 +1011,18 @@ router.put("/email/templates/:id", async (req: Request, res: Response) => {
   if (!existing) return void res.status(404).json({ error: "Not found" });
   if (!canManageMarketingResource(user, existing.ownerId)) {
     return void res.status(403).json({ error: "You can only edit templates you created" });
+  }
+  const nextSubject = body.data.subject ?? existing.subject;
+  const nextBodyHtml = body.data.bodyHtml ?? existing.bodyHtml;
+  if (containsDataImageUri(nextSubject) || containsDataImageUri(nextBodyHtml)) {
+    return void res.status(400).json({ error: "Email templates cannot contain data:image URIs; use the hosted brand logo URL instead" });
+  }
+  const invalidTokens = validateEmailTemplate(nextSubject, nextBodyHtml);
+  if (invalidTokens.length) {
+    return void res.status(400).json({
+      error: `Unrecognized merge token(s): ${invalidTokens.join(", ")}`,
+      allowedTokens: EMAIL_MERGE_TOKENS,
+    });
   }
 
   const [updated] = await db.update(emailTemplatesTable)
@@ -1140,8 +1259,8 @@ function templateToApi(t: any) {
 
 // Auth-independent starter seed used by both the legacy endpoint and the
 // ordered production closeout.
-export async function seedStarterEmail(actorId: number) {
-  const STARTER_TEMPLATES = [
+export function getStarterEmailTemplates() {
+  const STARTER_EMAIL_TEMPLATES = [
     {
       name: "Application Received",
       programType: null as string | null,
@@ -1293,7 +1412,11 @@ export async function seedStarterEmail(actorId: number) {
     },
   ];
 
-  return seedStarterEmailData(actorId, STARTER_TEMPLATES);
+  return STARTER_EMAIL_TEMPLATES;
+}
+
+export async function seedStarterEmail(actorId: number) {
+  return seedStarterEmailData(actorId, getStarterEmailTemplates());
 }
 
 // POST /email/seed-starter — admin only, idempotent

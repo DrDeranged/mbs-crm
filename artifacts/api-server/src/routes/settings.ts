@@ -102,8 +102,8 @@ router.get("/settings/company", async (req: Request, res: Response) => {
     ...settings,
     emailSendingEnabled: settings.emailSendingEnabled ?? false,
     bulkEmailPerMinute: settings.bulkEmailPerMinute ?? 60,
-    bulkEmailPerDay: settings.bulkEmailPerDay ?? 75,
-  } : { emailSendingEnabled: false, bulkEmailPerMinute: 60, bulkEmailPerDay: 75 });
+    bulkEmailPerDay: settings.bulkEmailPerDay ?? 60,
+  } : { emailSendingEnabled: false, bulkEmailPerMinute: 60, bulkEmailPerDay: 60 });
 });
 
 router.put("/settings/company", async (req: Request, res: Response) => {

@@ -11,6 +11,7 @@ import {
 } from "@workspace/db";
 import { captureException } from "./sentry";
 import { eq, and } from "drizzle-orm";
+import { z } from "zod/v4";
 import { doSendEmail, renderTemplate, buildVariables } from "../routes/email";
 import { logActivity } from "./activityHelper";
 import { logger } from "./logger";
@@ -99,12 +100,15 @@ export async function runDripJob(): Promise<void> {
             .where(eq(dripEnrollmentsTable.id, enrollment.id));
           continue;
         }
-        if (!lead || !lead.email || lead.isUnsubscribed || (lead.email && await isEmailSuppressed(lead.email))) {
+        if (!lead || !lead.email || !z.string().email().safeParse(lead.email.trim()).success ||
+            lead.isUnsubscribed || await isEmailSuppressed(lead.email)) {
           const skipReason = !lead
             ? "lead_not_found"
             : !lead.email
               ? "no_email_address"
-              : "unsubscribed_tcpa_opt_out";
+              : !z.string().email().safeParse(lead.email.trim()).success
+                ? "invalid_email_address"
+                : "unsubscribed_tcpa_opt_out";
           // Log the consent-based skip to activity_log
           await logActivity({
             userId: null,

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   BRAND_LOGO_PATH,
   BRAND_LOGO_REVERSE_PATH,
+  EMAIL_BRAND_LOGO_URL,
   createBrandEmailHeader,
   ensureBrandEmailHeader,
   getBrandLogoPng,
@@ -25,6 +26,9 @@ test("email and flyer branding use the hosted light mark and non-legacy alt", ()
   const email = createBrandEmailHeader(url);
   assert.match(email, new RegExp(`${BRAND_LOGO_PATH.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   assert.match(email, /alt="My Business Solutions logo"/);
-  assert.match(ensureBrandEmailHeader("__MBS_BRAND_EMAIL_HEADER__", "https://app.example.test"), /logo\.png/);
+  const rendered = ensureBrandEmailHeader("__MBS_BRAND_EMAIL_HEADER__", "https://app.example.test");
+  assert.match(rendered, new RegExp(EMAIL_BRAND_LOGO_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(rendered, /width="116" height="51"/);
+  assert.doesNotMatch(rendered, /data:image/i);
   assert.match(ensureFlyerBranding('<div class="logo"></div>', "https://app.example.test"), /My Business Solutions logo/);
 });

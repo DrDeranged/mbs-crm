@@ -4903,7 +4903,7 @@ components:
   schemas:
     Campaign:
       type: object
-      required: [id, name, channel, status, audienceRules, ownerId, createdBy, version]
+      required: [id, name, channel, status, replyToEmail, audienceRules, ownerId, createdBy, version]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -4911,6 +4911,7 @@ components:
         channel: { type: string, enum: [email, sms, email_sms] }
         status: { type: string, enum: [draft, approved, scheduled, running, paused, completed, cancelled, failed] }
         emailTemplateId: { type: integer, nullable: true }
+        replyToEmail: { type: string, format: email, default: nate@my-business-solutions.com }
         smsBody: { type: string, nullable: true }
         flyer:
           oneOf:
@@ -4929,6 +4930,7 @@ components:
         description: { type: string, nullable: true }
         channel: { type: string, enum: [email, sms, email_sms] }
         emailTemplateId: { type: integer, nullable: true }
+        replyToEmail: { type: string, format: email, default: nate@my-business-solutions.com }
         smsBody: { type: string, nullable: true }
         flyer:
           oneOf:
@@ -5018,13 +5020,15 @@ components:
         reason: { type: string }
     CampaignPreviewCounts:
       type: object
-      required: [eligible, excluded, emailEligible, smsEligible, emailCapacityRemaining]
+      required: [eligible, excluded, emailEligible, smsEligible, emailCapacityRemaining, emailToday, emailQueuedNextBusinessDay]
       properties:
         eligible: { type: integer }
         excluded: { type: integer }
         emailEligible: { type: integer }
         smsEligible: { type: integer }
         emailCapacityRemaining: { type: integer }
+        emailToday: { type: integer }
+        emailQueuedNextBusinessDay: { type: integer }
     CampaignLaunch:
       type: object
       required: [id, campaignId, idempotencyKey, requestedBy, mode, status, eligibleCount, excludedCount, sentCount, failedCount, createdAt]
@@ -5842,7 +5846,7 @@ components:
           type: integer
           minimum: 1
           maximum: 100000
-          default: 75
+          default: 60
           description: Shared daily maximum for bulk and drip delivery attempts
 
     EmailDeliverySettingsUpdate:

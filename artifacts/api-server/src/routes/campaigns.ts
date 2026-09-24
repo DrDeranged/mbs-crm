@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
-import { and, asc, desc, eq, gte, inArray, lte, or, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, or, isNull, isNotNull } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   campaignsTable,
@@ -34,10 +34,11 @@ import {
   buildCampaignFlyerAttachment,
   campaignPlainText,
   minimalCampaignHtml,
+  isFutureCampaignSchedule,
 } from "../lib/campaignCore";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { campaignSourceBytes } from "./collateral";
-import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender } from "../lib/campaignReadiness";
+import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignMergeTokens, validateCampaignRender } from "../lib/campaignReadiness";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -77,12 +78,23 @@ const campaignBody = z.object({
   flyer: flyerSchema.optional(),
   audienceRules: rulesSchema.optional(),
   ownerId: id.optional(),
+  replyToEmail: z.string().trim().email().optional(),
 });
 const launchBody = z.object({
   idempotencyKey: z.string().trim().min(8).max(200),
   mode: z.enum(["live", "dry_run"]).default("live"),
   scheduledAt: z.coerce.date().nullable().optional(),
 });
+const DEFAULT_REPLY_TO = "nate@my-business-solutions.com";
+
+function nextBusinessDay(now = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(now).reduce<Record<string, string>>((out, part) => { out[part.type] = part.value; return out; }, {});
+  const date = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), 13));
+  do date.setUTCDate(date.getUTCDate() + 1);
+  while ([0, 6].includes(date.getUTCDay()));
+  return date;
+}
 const presetBody = z.object({
   name: z.string().trim().min(1).max(120),
   rules: rulesSchema,
@@ -199,7 +211,10 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
           duplicate: Boolean(email && seenEmails.has(email)),
           unsubscribed: lead.isUnsubscribed,
           suppressed: Boolean(email && await isEmailSuppressed(email)),
-          capacityAvailable: emailEligibleCount < emailCapacity.remaining,
+          // Capacity controls dispatch, not audience eligibility. Overflow is
+          // retained in the approved snapshot and queued for the next
+          // business day rather than being silently excluded.
+          capacityAvailable: true,
         });
         if (emailReason !== "eligible") { exclusions.push({ leadId: lead.id, channel, reason: emailReason }); continue; }
         if (!email) continue;
@@ -232,6 +247,8 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
       emailEligible: eligible.filter((entry) => entry.channel === "email").length,
       smsEligible: 0,
       emailCapacityRemaining: emailCapacity.remaining,
+      emailToday: Math.min(emailEligibleCount, emailCapacity.remaining),
+      emailQueuedNextBusinessDay: Math.max(0, emailEligibleCount - emailCapacity.remaining),
     },
   };
 }
@@ -243,6 +260,7 @@ async function campaignContent(campaign: typeof campaignsTable.$inferSelect) {
   const resolvedFlyer = await resolveCampaignFlyer(campaign.flyer);
   return {
     channel: campaign.channel,
+    replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO,
     audienceRules: campaign.audienceRules ?? {},
     smsBody: campaign.smsBody ?? null,
     flyer: flyerSnapshot(resolvedFlyer),
@@ -252,6 +270,13 @@ async function campaignContent(campaign: typeof campaignsTable.$inferSelect) {
       senderMode: template.senderMode, isActive: template.isActive,
     } : null,
   };
+}
+
+async function campaignTemplateTokenError(templateId: number | null | undefined, channel: string): Promise<string | null> {
+  if (!["email", "email_sms"].includes(channel) || !templateId) return null;
+  const [template] = await db.select({ subject: emailTemplatesTable.subject, bodyHtml: emailTemplatesTable.bodyHtml })
+    .from(emailTemplatesTable).where(eq(emailTemplatesTable.id, templateId)).limit(1);
+  return validateCampaignMergeTokens(template ?? null);
 }
 
 async function reconcileCampaignRecipient(input: {
@@ -326,6 +351,8 @@ router.post("/campaigns", async (req, res): Promise<void> => {
   const parsed = campaignBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  const tokenError = await campaignTemplateTokenError(data.emailTemplateId, data.channel ?? "email");
+  if (tokenError) { res.status(400).json({ error: tokenError }); return; }
   const flyerError = await validateUploadedFlyer(data.flyer, user);
   if (flyerError) { res.status(400).json({ error: flyerError }); return; }
   const [created] = await db.insert(campaignsTable).values({
@@ -337,6 +364,7 @@ router.post("/campaigns", async (req, res): Promise<void> => {
     flyer: data.flyer ?? null,
     audienceRules: data.audienceRules ?? {},
     ownerId: data.ownerId ?? user.id,
+    replyToEmail: data.replyToEmail ?? DEFAULT_REPLY_TO,
     createdBy: user.id,
   }).returning();
   await audit(created.id, user.id, "created", null, "draft");
@@ -354,9 +382,16 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
   const parsed = campaignBody.partial().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  if (data.emailTemplateId !== undefined || data.channel !== undefined) {
+    const tokenError = await campaignTemplateTokenError(
+      data.emailTemplateId === undefined ? campaign.emailTemplateId : data.emailTemplateId,
+      data.channel === undefined ? campaign.channel : data.channel,
+    );
+    if (tokenError) { res.status(400).json({ error: tokenError }); return; }
+  }
   const flyerError = await validateUploadedFlyer(data.flyer, user);
   if (flyerError) { res.status(flyerError.includes("belong") ? 403 : 400).json({ error: flyerError }); return; }
-  const contentChanged = ["name", "channel", "emailTemplateId", "smsBody", "flyer", "audienceRules"].some((key) => key in data);
+  const contentChanged = ["name", "channel", "emailTemplateId", "smsBody", "flyer", "audienceRules", "replyToEmail"].some((key) => key in data);
   const [updated] = await db.update(campaignsTable).set({
     ...(data.name === undefined ? {} : { name: data.name }),
     ...(data.description === undefined ? {} : { description: data.description }),
@@ -366,6 +401,7 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
     ...(data.flyer === undefined ? {} : { flyer: data.flyer }),
     ...(data.audienceRules === undefined ? {} : { audienceRules: data.audienceRules }),
     ...(data.ownerId === undefined ? {} : { ownerId: data.ownerId }),
+    ...(data.replyToEmail === undefined ? {} : { replyToEmail: data.replyToEmail }),
     ...(contentChanged ? { version: campaign.version + 1, status: "draft" as const, scheduledAt: null } : {}),
     updatedAt: new Date(),
   }).where(and(eq(campaignsTable.id, campaignId), eq(campaignsTable.version, campaign.version), eq(campaignsTable.status, campaign.status))).returning();
@@ -481,6 +517,10 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
   if (["email", "email_sms"].includes(campaign.channel) && (!content.emailTemplate || !content.emailTemplate.isActive)) {
     res.status(409).json({ error: "An active email template is required before approval" }); return;
   }
+  const tokenError = ["email", "email_sms"].includes(campaign.channel)
+    ? validateCampaignMergeTokens(content.emailTemplate)
+    : null;
+  if (tokenError) { res.status(409).json({ error: tokenError }); return; }
   const contentHash = campaignContentHash(content);
   const [preview] = await db.select().from(campaignAudiencePreviewsTable).where(and(
     eq(campaignAudiencePreviewsTable.previewToken, body.data.previewToken),
@@ -502,7 +542,7 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
       campaignId, approvalType: body.data.approvalType, contentVersion: campaign.version,
       approvedBy: user.id, contentHash, previewId: preview.id, claimsAffirmed: true,
       snapshot: {
-        campaign: { channel: campaign.channel, audienceRules: campaign.audienceRules, smsBody: campaign.smsBody, flyer: content.flyer },
+        campaign: { channel: campaign.channel, replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO, audienceRules: campaign.audienceRules, smsBody: campaign.smsBody, flyer: content.flyer },
         template: content.emailTemplate, counts: preview.counts, recipients: preview.recipientsSnapshot,
       },
     });
@@ -547,6 +587,9 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   const parsed = launchBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid launch" }); return; }
   const input = parsed.data;
+  if (isFutureCampaignSchedule(input.scheduledAt)) {
+    res.status(422).json({ error: "Scheduled campaigns are not delivered automatically — launch manually at send time." }); return;
+  }
   const existing = await db.select().from(campaignLaunchesTable).where(eq(campaignLaunchesTable.idempotencyKey, input.idempotencyKey)).limit(1);
   let launch = existing[0];
   const resuming = Boolean(launch && launch.campaignId === campaignId &&
@@ -597,7 +640,7 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   if (!hasEligibleCampaignAudience(snapshotCounts) || snapshotEligible.length <= 0) {
     res.status(409).json({ error: "Campaign cannot be launched because its approved audience has no eligible recipients" }); return;
   }
-  const scheduled = input.scheduledAt && input.scheduledAt > new Date();
+  const scheduled = false;
   const leaseToken = input.mode === "live" && !scheduled ? randomUUID() : null;
   const leaseExpiresAt = leaseToken ? new Date(Date.now() + 10 * 60 * 1000) : null;
   if (resuming) {
@@ -679,6 +722,17 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   let sent = 0;
   let failed = 0;
   for (const recipient of snapshotEligible) {
+    const capacity = await getDailyMarketingEmailCapacity();
+    if (capacity.remaining <= 0) {
+      const availableAt = nextBusinessDay();
+      await db.update(campaignRecipientsTable).set({ status: "deferred", availableAt })
+        .where(and(eq(campaignRecipientsTable.launchId, launch.id), eq(campaignRecipientsTable.status, "eligible")));
+      await db.update(campaignLaunchesTable).set({
+        executionLeaseToken: null, executionLeaseExpiresAt: null,
+      }).where(eq(campaignLaunchesTable.id, launch.id));
+      res.status(200).json({ launch, sent, failed, deferred: snapshotEligible.length - sent - failed, availableAt, resume: "Manually relaunch with the same idempotency key on or after availableAt." });
+      return;
+    }
     const claimResult = await db.transaction(async (tx): Promise<{ outcome: "claimed" | "already_processed" | "lease_lost"; recipient?: typeof campaignRecipientsTable.$inferSelect }> => {
       const [heartbeat] = await tx.update(campaignLaunchesTable).set({
         executionLeaseExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
@@ -690,12 +744,13 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
       if (!state || state.status !== "running") return { outcome: "lease_lost" };
       const [claimed] = await tx.update(campaignRecipientsTable).set({ status: "queued" })
         .where(and(eq(campaignRecipientsTable.launchId, launch.id), eq(campaignRecipientsTable.leadId, recipient.leadId),
-          eq(campaignRecipientsTable.channel, recipient.channel), eq(campaignRecipientsTable.status, "eligible"))).returning();
+          eq(campaignRecipientsTable.channel, recipient.channel), inArray(campaignRecipientsTable.status, ["eligible", "deferred"]),
+          or(isNull(campaignRecipientsTable.availableAt), lte(campaignRecipientsTable.availableAt, new Date())))).returning();
       if (claimed) return { outcome: "claimed", recipient: claimed };
-      const [existingRecipient] = await tx.select({ status: campaignRecipientsTable.status })
+      const [existingRecipient] = await tx.select({ status: campaignRecipientsTable.status, availableAt: campaignRecipientsTable.availableAt })
         .from(campaignRecipientsTable).where(and(eq(campaignRecipientsTable.launchId, launch.id),
           eq(campaignRecipientsTable.leadId, recipient.leadId), eq(campaignRecipientsTable.channel, recipient.channel))).limit(1);
-      return existingRecipient && existingRecipient.status !== "eligible"
+      return existingRecipient && (existingRecipient.status !== "eligible" || existingRecipient.availableAt)
         ? { outcome: "already_processed" } : { outcome: "lease_lost" };
     });
     if (claimResult.outcome === "lease_lost") {
@@ -714,26 +769,35 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
     }
     const lead = (await db.select().from(leadsTable).where(eq(leadsTable.id, recipient.leadId)).limit(1))[0];
     const target = recipient.target as string;
-    if (!lead?.email || lead.isUnsubscribed || await isEmailSuppressed(target)) {
+    const currentEmail = lead?.email?.trim().toLowerCase();
+    const invalidEmail = !currentEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail) ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target);
+    const emailChanged = !invalidEmail && currentEmail !== target.toLowerCase();
+    if (invalidEmail || emailChanged || lead?.isUnsubscribed || await isEmailSuppressed(target)) {
       failed++;
-      const reconciled = await reconcileCampaignRecipient({ launchId: launch.id, campaignId, recipientId: claimedRecipient.id, leaseToken: leaseToken!, status: "excluded", reason: lead?.isUnsubscribed ? "unsubscribed" : "email_suppressed" });
+      const reason = invalidEmail ? "invalid_email" : emailChanged ? "email_changed" :
+        lead?.isUnsubscribed ? "unsubscribed" : "email_suppressed";
+      const reconciled = await reconcileCampaignRecipient({ launchId: launch.id, campaignId, recipientId: claimedRecipient.id, leaseToken: leaseToken!, status: "excluded", reason });
       if (!reconciled) break;
       continue;
     }
     const rep = lead.assignedRepId ? (await db.select().from(usersTable).where(eq(usersTable.id, lead.assignedRepId)).limit(1))[0] : null;
     const vars = buildVariables(lead, rep);
+    // Campaign copy should address an unknown first name naturally.
+    if (!vars.lead_first_name.trim()) vars.lead_first_name = "there";
     const renderedBody = renderTemplate(template.bodyHtml, vars);
     const bodyText = campaignPlainText(renderedBody);
     const withoutAttachment = !resolvedFlyer;
     let result;
     try {
-      result = await doSendEmail({
+       result = await doSendEmail({
       leadId: lead.id, userId: user.id, templateId: template.id,
       subject: renderTemplate(template.subject, vars),
       bodyHtml: withoutAttachment ? minimalCampaignHtml(bodyText) : renderedBody,
       bodyText,
       toEmail: target, baseUrl: getPublicBaseUrl(), senderMode: template.senderMode as "default" | "assigned_rep",
       deliveryKind: "bulk", campaignId, campaignLaunchId: launch.id, rep: rep ?? undefined,
+        replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO,
        attachments,
        minimalNoImages: withoutAttachment,
       });
@@ -748,10 +812,31 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
       const reconciled = await reconcileCampaignRecipient({ launchId: launch.id, campaignId, recipientId: claimedRecipient.id, leaseToken: leaseToken!, status: "sent", emailSendId: result.send.id });
       if (!reconciled) break;
     } else {
+      if (result.error?.toLowerCase().includes("daily") && result.error.toLowerCase().includes("allowance")) {
+        const availableAt = nextBusinessDay();
+        await db.update(campaignRecipientsTable).set({ status: "deferred", availableAt })
+          .where(eq(campaignRecipientsTable.id, claimedRecipient.id));
+        await db.update(campaignRecipientsTable).set({ status: "deferred", availableAt })
+          .where(and(eq(campaignRecipientsTable.launchId, launch.id), eq(campaignRecipientsTable.status, "eligible")));
+        await db.update(campaignLaunchesTable).set({ executionLeaseToken: null, executionLeaseExpiresAt: null })
+          .where(eq(campaignLaunchesTable.id, launch.id));
+        res.status(200).json({ launch, sent, failed, deferred: true, availableAt, resume: "Manually relaunch with the same idempotency key on or after availableAt." });
+        return;
+      }
       failed++;
       const reconciled = await reconcileCampaignRecipient({ launchId: launch.id, campaignId, recipientId: claimedRecipient.id, leaseToken: leaseToken!, status: "failed", reason: result.error ?? "send_failed" });
       if (!reconciled) break;
     }
+  }
+  const [deferred] = await db.select({ availableAt: campaignRecipientsTable.availableAt })
+    .from(campaignRecipientsTable)
+    .where(and(eq(campaignRecipientsTable.launchId, launch.id), eq(campaignRecipientsTable.status, "deferred"), isNotNull(campaignRecipientsTable.availableAt)))
+    .orderBy(asc(campaignRecipientsTable.availableAt)).limit(1);
+  if (deferred?.availableAt && deferred.availableAt > new Date()) {
+    await db.update(campaignLaunchesTable).set({ executionLeaseToken: null, executionLeaseExpiresAt: null })
+      .where(eq(campaignLaunchesTable.id, launch.id));
+    res.status(200).json({ launch, sent, failed, deferred: true, availableAt: deferred.availableAt, resume: "Manually relaunch with the same idempotency key on or after availableAt." });
+    return;
   }
   const ledger = await db.select({
     status: campaignRecipientsTable.status,
@@ -761,7 +846,7 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   const cumulativeEligible = ledger.filter((row) => row.status === "eligible").length;
   const uncertain = ledger.filter((row) => row.status === "queued").length;
   const cumulativeFailed = ledger.filter((row) => row.status === "failed" ||
-    (row.status === "excluded" && ["unsubscribed", "email_suppressed"].includes(row.exclusionReason ?? ""))).length;
+    (row.status === "excluded" && ["unsubscribed", "email_suppressed", "invalid_email", "email_changed"].includes(row.exclusionReason ?? ""))).length;
   const [currentLaunch] = await db.select().from(campaignLaunchesTable).where(eq(campaignLaunchesTable.id, launch.id)).limit(1);
   const finalStatus = uncertain > 0 || cumulativeEligible > 0 || (cumulativeFailed > 0 && cumulativeSent === 0) ? "failed" : "completed";
   const [completed] = await db.update(campaignLaunchesTable)
@@ -806,11 +891,16 @@ router.get("/campaigns/:id/results", async (req, res): Promise<void> => {
   if (!campaignId) { res.status(400).json({ error: "Invalid campaign id" }); return; }
   const launches = await db.select().from(campaignLaunchesTable).where(eq(campaignLaunchesTable.campaignId, campaignId)).orderBy(desc(campaignLaunchesTable.createdAt));
   const recipients = await db.select().from(campaignRecipientsTable).where(eq(campaignRecipientsTable.campaignId, campaignId));
+  const deferred = recipients.filter((row) => row.status === "deferred");
+  const nextAvailableAt = deferred.map((row) => row.availableAt).filter((value): value is Date => Boolean(value))
+    .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
   res.json({ launches, counts: {
     eligible: recipients.filter((row) => row.status !== "excluded").length,
     excluded: recipients.filter((row) => row.status === "excluded").length,
     sent: recipients.filter((row) => row.status === "sent").length,
     failed: recipients.filter((row) => row.status === "failed").length,
+    deferred: deferred.length,
+    nextAvailableAt,
   }});
 });
 

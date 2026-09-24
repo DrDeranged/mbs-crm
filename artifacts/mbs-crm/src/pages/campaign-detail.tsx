@@ -55,6 +55,7 @@ const campaignSchema = z.object({
   channel: z.enum(["email", "sms", "email_sms"]),
   emailTemplateId: z.string().optional().nullable(),
   smsBody: z.string().optional().nullable(),
+  replyToEmail: z.string().email("Enter a valid Reply-To email address"),
   flyer: z.any().nullable().optional(),
   audienceRules: z.object({
     statuses: z.array(z.string()).optional(),
@@ -111,6 +112,7 @@ const normalizeCampaign = (campaign: any): CampaignFormValues => {
     channel: (campaign.channel as any) || "email",
     emailTemplateId: campaign.emailTemplateId ? String(campaign.emailTemplateId) : "__none__",
     smsBody: campaign.smsBody || "",
+    replyToEmail: campaign.replyToEmail || "nate@my-business-solutions.com",
     flyer: campaign.flyer || null,
     audienceRules: {
       statuses: campaign.audienceRules?.statuses || [],
@@ -189,6 +191,7 @@ export default function CampaignDetailPage() {
       channel: "email",
       emailTemplateId: "__none__",
       smsBody: "",
+      replyToEmail: "nate@my-business-solutions.com",
       flyer: null,
       audienceRules: {
         statuses: [],
@@ -393,6 +396,17 @@ export default function CampaignDetailPage() {
         queryClient.invalidateQueries({ queryKey: getGetCampaignResultsQueryKey(id) });
       },
       onError: (err: any) => toast.error(getErrorMsg(err, "Failed to launch campaign"))
+    });
+  };
+
+  const resumeDeferredLaunch = (idempotencyKey: string) => {
+    launchCampaign.mutate({ id, data: { idempotencyKey, mode: "live" } }, {
+      onSuccess: () => {
+        toast.success("Deferred recipients resumed manually.");
+        queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) });
+        queryClient.invalidateQueries({ queryKey: getGetCampaignResultsQueryKey(id) });
+      },
+      onError: (err: any) => toast.error(getErrorMsg(err, "Could not resume deferred recipients")),
     });
   };
 
@@ -696,6 +710,18 @@ export default function CampaignDetailPage() {
                                 </FormItem>
                               )}
                             />
+                             <FormField
+                               control={form.control}
+                               name="replyToEmail"
+                               render={({ field }) => (
+                                 <FormItem className="mt-4">
+                                   <FormLabel>Reply-To</FormLabel>
+                                   <FormControl><Input {...field} type="email" placeholder="nate@my-business-solutions.com" /></FormControl>
+                                   <FormDescription>Replies for this campaign go to this address.</FormDescription>
+                                   <FormMessage />
+                                 </FormItem>
+                               )}
+                             />
                           </CardContent>
                         </Card>
                       )}
@@ -1043,6 +1069,8 @@ export default function CampaignDetailPage() {
                               <p className="flex justify-between border-b pb-1"><span>Email Eligible</span> <strong>{previewAudience.data.counts.emailEligible}</strong></p>
                               <p className="flex justify-between border-b pb-1"><span>SMS Eligible</span> <strong>{previewAudience.data.counts.smsEligible}</strong></p>
                               <p className="flex justify-between border-b pb-1"><span>Email Capacity Left</span> <strong>{previewAudience.data.counts.emailCapacityRemaining}</strong></p>
+                              <p className="flex justify-between border-b pb-1"><span>Send today</span> <strong>{(previewAudience.data.counts as any).emailToday ?? previewAudience.data.counts.emailEligible}</strong></p>
+                              <p className="flex justify-between border-b pb-1"><span>Queue next business day</span> <strong>{(previewAudience.data.counts as any).emailQueuedNextBusinessDay ?? 0}</strong></p>
                             </div>
                             {emptyAudienceMessage && (
                               <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
@@ -1191,10 +1219,8 @@ export default function CampaignDetailPage() {
                               <Button 
                                 type="button" 
                                 variant="outline" 
-                                onClick={() => {
-                                  setLaunchMode("scheduled");
-                                  setLaunchDialogOpen(true);
-                                }} 
+                                disabled
+                                title="Scheduled campaigns are not delivered automatically — launch manually at send time."
                                 className="flex-1"
                               >
                                 <Calendar className="mr-2 h-4 w-4" />
@@ -1203,6 +1229,9 @@ export default function CampaignDetailPage() {
                             </div>
                             <p className="text-xs text-slate-500 text-center">
                               Counts are from the immutable audience snapshot recorded at approval. Suppression and consent are checked again before delivery.
+                            </p>
+                            <p className="text-center text-xs font-medium text-amber-700">
+                              Scheduled campaigns are not delivered automatically — launch manually at send time.
                             </p>
                             <p className="text-center text-sm font-medium">{approvedAudience?.eligible} approved eligible · {approvedAudience?.excluded} excluded</p>
                           </div>
@@ -1290,6 +1319,10 @@ export default function CampaignDetailPage() {
                             <div className="text-3xl font-bold text-slate-900">{results.counts.excluded}</div>
                             <div className="text-xs text-slate-500 font-medium uppercase mt-1">Excluded</div>
                           </div>
+                          <div className="text-center">
+                            <div className="text-3xl font-bold text-amber-700">{(results.counts as any).deferred ?? 0}</div>
+                            <div className="text-xs text-slate-500 font-medium uppercase mt-1">Queued next business day</div>
+                          </div>
                         </div>
 
                         <div className="space-y-4">
@@ -1305,6 +1338,7 @@ export default function CampaignDetailPage() {
                                     <th className="px-4 py-3 font-medium">Mode</th>
                                     <th className="px-4 py-3 font-medium">Status</th>
                                     <th className="px-4 py-3 font-medium">Sent</th>
+                                    <th className="px-4 py-3 font-medium">Resume</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y">
@@ -1314,6 +1348,17 @@ export default function CampaignDetailPage() {
                                       <td className="px-4 py-3"><Badge variant="outline">{l.mode}</Badge></td>
                                       <td className="px-4 py-3 capitalize">{l.status}</td>
                                       <td className="px-4 py-3">{l.sentCount}</td>
+                                      <td className="px-4 py-3">
+                                        {(results.counts as any).deferred > 0 && l.status === "running" && l.idempotencyKey && (() => {
+                                          const dueAt = (results.counts as any).nextAvailableAt ? new Date((results.counts as any).nextAvailableAt) : null;
+                                          const due = !dueAt || dueAt <= new Date();
+                                          return <Button size="sm" variant="outline" disabled={!due || launchCampaign.isPending}
+                                            title={due ? "Resume deferred recipients" : `Available ${dueAt?.toLocaleString()}`}
+                                            onClick={() => resumeDeferredLaunch(l.idempotencyKey)}>
+                                            {due ? "Resume queued" : "Not due"}
+                                          </Button>;
+                                        })()}
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>

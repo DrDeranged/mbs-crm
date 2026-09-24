@@ -30,7 +30,7 @@ export const companySettingsTable = pgTable(
     partnerTextingEnabled: boolean("partner_texting_enabled").notNull().default(true),
     bulkEmailPerMinute: integer("bulk_email_per_minute").notNull().default(60),
     /** Shared daily allowance for marketing bulk and drip delivery attempts. */
-    bulkEmailPerDay: integer("bulk_email_per_day").notNull().default(75),
+    bulkEmailPerDay: integer("bulk_email_per_day").notNull().default(60),
     usfaSheetId: text("usfa_sheet_id"),
     usfaSheetTab: text("usfa_sheet_tab").notNull().default("Sheet1"),
     usfaConsentConfirmed: boolean("usfa_consent_confirmed").notNull().default(false),

@@ -20,8 +20,13 @@ import {
   buildCampaignFlyerAttachment,
   campaignPlainText,
   minimalCampaignHtml,
+  nextBusinessDayInNewYork,
+  deferEligibleRecipients,
+  selectDueResumeCandidates,
+  DEFAULT_CAMPAIGN_REPLY_TO,
+  isFutureCampaignSchedule,
 } from "./campaignCore";
-import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender } from "./campaignReadiness";
+import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender, validateCampaignMergeTokens } from "./campaignReadiness";
 
 test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "admin" }), true);
@@ -30,13 +35,43 @@ test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "pending" }), false);
 });
 
-test("campaign without a flyer produces plain text and image-free minimal HTML", () => {
+test("campaign without a flyer produces plain text and one remote logo HTML alternative", () => {
   const text = campaignPlainText('<div><img src="logo.png"><h2>Hello &amp; welcome</h2><p>Call us today.</p></div>');
   const html = minimalCampaignHtml(text);
   assert.equal(text, "Hello & welcome\nCall us today.");
-  assert.doesNotMatch(html, /<img|src=/i);
+  assert.match(html, /<img[^>]+src="https:\/\/my-business-solutions\.com\/brand\/mbs-logo-green-slash\.png"/i);
+  assert.equal((html.match(/https:\/\/my-business-solutions\.com\/brand\/mbs-logo-green-slash\.png/g) ?? []).length, 1);
   assert.match(html, /Hello &amp; welcome/);
   assert.equal(buildCampaignFlyerAttachment(null), undefined);
+});
+
+test("daily overflow is deferred to the next New York business day", () => {
+  const friday = new Date("2026-01-16T20:00:00.000Z");
+  const due = nextBusinessDayInNewYork(friday);
+  assert.equal(due.toISOString(), "2026-01-19T13:00:00.000Z");
+  const rows = deferEligibleRecipients([
+    { id: 1, status: "eligible" }, { id: 2, status: "eligible" }, { id: 3, status: "sent" },
+  ], due);
+  assert.deepEqual(rows.map((row) => row.status), ["deferred", "deferred", "sent"]);
+  assert.deepEqual(selectDueResumeCandidates(rows, new Date("2026-01-19T12:59:59.000Z")), []);
+  assert.deepEqual(selectDueResumeCandidates(rows, due).map((row) => row.id), [1, 2]);
+});
+
+test("future scheduled launches are rejected when no delivery worker exists", () => {
+  const now = new Date("2026-01-19T12:00:00.000Z");
+  assert.equal(isFutureCampaignSchedule(new Date("2026-01-19T13:00:00.000Z"), now), true);
+  assert.equal(isFutureCampaignSchedule(new Date("2026-01-19T11:00:00.000Z"), now), false);
+  assert.equal(isFutureCampaignSchedule(null, now), false);
+});
+
+test("resume candidates exclude sent, uncertain, and early deferred rows", () => {
+  const now = new Date("2026-01-20T13:00:00.000Z");
+  assert.deepEqual(selectDueResumeCandidates([
+    { id: 1, status: "sent", availableAt: null },
+    { id: 2, status: "queued", availableAt: null },
+    { id: 3, status: "deferred", availableAt: new Date("2026-01-21T13:00:00.000Z") },
+    { id: 4, status: "deferred", availableAt: now },
+  ], now).map((row) => row.id), [4]);
 });
 
 test("audience classification preserves actionable email exclusion reasons", () => {
@@ -87,6 +122,17 @@ test("campaign content hashes are stable and change when approved template conte
     ...base,
     flyer: { source: "built_in", key: "equipment_financing", name: "Equipment Financing", contentType: "image/png" },
   }));
+});
+
+test("campaign Reply-To defaults and participates in approval hash", () => {
+  const base = { channel: "email", replyToEmail: DEFAULT_CAMPAIGN_REPLY_TO, body: "approved" };
+  assert.equal(DEFAULT_CAMPAIGN_REPLY_TO, "nate@my-business-solutions.com");
+  assert.notEqual(campaignContentHash(base), campaignContentHash({ ...base, replyToEmail: "manager@example.com" }));
+});
+
+test("approval blocks unknown merge tokens before any provider send", () => {
+  assert.equal(validateCampaignMergeTokens({ subject: "Hi {{lead_first_name}}", bodyHtml: "Thanks {{lead_company}}" }), null);
+  assert.match(validateCampaignMergeTokens({ subject: "Hi {{unknown_token}}", bodyHtml: "Body" }) ?? "", /unknown_token/);
 });
 
 test("campaign flyer delivery uses the approved immutable creative", () => {
@@ -153,7 +199,9 @@ test("provider-free validation rejects inactive or missing content and exercises
 
 test("approved audience remains the launch source after reload or newer preview changes", () => {
   const approval = { contentVersion: 3, invalidatedAt: null, snapshot: { counts: { eligible: 5, excluded: 2, emailCapacityRemaining: 20 } } };
-  assert.deepEqual(approvedAudienceSummary("approved", 3, approval), { eligible: 5, excluded: 2, emailCapacityRemaining: 20 });
+  assert.deepEqual(approvedAudienceSummary("approved", 3, approval), {
+    eligible: 5, excluded: 2, emailCapacityRemaining: 20, emailToday: 5, emailQueuedNextBusinessDay: 0,
+  });
   assert.equal(approvedAudienceSummary("draft", 4, approval), null);
   assert.equal(approvedAudienceSummary("approved", 3, { ...approval, invalidatedAt: new Date() }), null);
 });

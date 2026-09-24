@@ -16,6 +16,7 @@ export const campaignsTable = pgTable("campaigns", {
   channel: text("channel", { enum: CAMPAIGN_CHANNELS }).notNull().default("email"),
   status: text("status", { enum: CAMPAIGN_STATUSES }).notNull().default("draft"),
   emailTemplateId: integer("email_template_id"),
+  replyToEmail: text("reply_to_email").notNull().default("nate@my-business-solutions.com"),
   smsBody: text("sms_body"),
   flyer: jsonb("flyer"),
   audienceRules: jsonb("audience_rules").notNull().default({}),
@@ -120,6 +121,7 @@ export const campaignRecipientsTable = pgTable("campaign_recipients", {
   channel: text("channel").notNull(),
   status: text("status", { enum: CAMPAIGN_RECIPIENT_STATUSES }).notNull().default("eligible"),
   exclusionReason: text("exclusion_reason"),
+  availableAt: timestamp("available_at", { withTimezone: true }),
   emailSendId: integer("email_send_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
