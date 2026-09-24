@@ -5,7 +5,7 @@ import { jobRunsTable, emailSendsTable, emailWebhookEventsTable } from "@workspa
 import { getMigrationStatus } from "@workspace/db";
 import { desc, eq, sql } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
-import { getIntegrationHealth } from "../lib/integrationHealth";
+import { getIntegrationHealth, getTwilioTelephonyHealth } from "../lib/integrationHealth";
 import { getClerkHealth } from "../lib/clerkHealth";
 import { getBootSchemaFailure } from "../lib/schemaBoot";
 import { buildRevision } from "../lib/buildRevision";
@@ -64,13 +64,14 @@ router.get("/health/deep", async (_req, res) => {
   }
 
   // 2. Integration presence (booleans only, no secret values)
-  const [detailedIntegrations, clerk] = await Promise.all([
+  const [detailedIntegrations, clerk, twilioTelephony] = await Promise.all([
     getIntegrationHealth(),
     getClerkHealth(),
+    getTwilioTelephonyHealth(),
   ]) as [{
     twilio: object;
     sendgrid: object;
-  }, Awaited<ReturnType<typeof getClerkHealth>>];
+  }, Awaited<ReturnType<typeof getClerkHealth>>, Awaited<ReturnType<typeof getTwilioTelephonyHealth>>];
   let sendgridDelivery: {
     configured: boolean;
     fromEmail: string;
@@ -108,6 +109,7 @@ router.get("/health/deep", async (_req, res) => {
   }
   const integrations = {
     ...detailedIntegrations,
+    twilioTelephony,
     clerk,
     sendgrid: sendgridDelivery,
     experian: !!(process.env.EXPERIAN_CLIENT_ID || process.env.EXPERIAN_CLIENT_SECRET),

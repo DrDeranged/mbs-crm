@@ -35,6 +35,8 @@ export const companySettingsTable = pgTable(
     usfaSheetTab: text("usfa_sheet_tab").notNull().default("Sheet1"),
     usfaConsentConfirmed: boolean("usfa_consent_confirmed").notNull().default(false),
     usfaWebhookEnabled: boolean("usfa_webhook_enabled").notNull().default(false),
+    voiceCallerId: text("voice_caller_id").default("+19088608507"),
+    smsSenderNumber: text("sms_sender_number").default("+19088608507"),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [

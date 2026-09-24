@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createIntegrationHealthProbe,
+  buildTelephonyNumberHealth,
   getTwilioFailureReason,
 } from "./integrationHealth";
 
@@ -54,4 +55,35 @@ test("times out token mint with a safe reason", async () => {
   });
   const result: any = await probe();
   assert.equal(result.twilio.voiceToken, "fail:timeout");
+});
+
+test("lists both owned numbers when both roles use the business line", () => {
+  const result = buildTelephonyNumberHealth([
+    { sid: "PN1", phoneNumber: "+19088608507", friendlyName: "Business" },
+    { sid: "PN2", phoneNumber: "+19084987548", friendlyName: "Secondary" },
+  ], { voiceCallerId: "+19088608507", smsSenderNumber: "+19088608507" });
+  assert.equal(result.length, 2);
+  assert.deepEqual(result.map((number) => number.configuredRoles), [
+    { voice: true, sms: true },
+    { voice: false, sms: false },
+  ]);
+});
+
+test("reports split configured roles across owned numbers", () => {
+  const result = buildTelephonyNumberHealth([
+    { sid: "PN1", phoneNumber: "+19088608507", friendlyName: "Voice" },
+    { sid: "PN2", phoneNumber: "+19084987548", friendlyName: "SMS" },
+  ], { voiceCallerId: "+19088608507", smsSenderNumber: "+19084987548" });
+  assert.deepEqual(result.map((number) => number.configuredRoles), [
+    { voice: true, sms: false },
+    { voice: false, sms: true },
+  ]);
+});
+
+test("keeps selected sender role visible when the sender is unowned", () => {
+  const result = buildTelephonyNumberHealth([
+    { sid: "PN1", phoneNumber: "+19088608507", friendlyName: "Voice" },
+  ], { voiceCallerId: "+19088608507", smsSenderNumber: "+19084987548" });
+  assert.equal(result[1].owned, false);
+  assert.deepEqual(result[1].configuredRoles, { voice: false, sms: true });
 });

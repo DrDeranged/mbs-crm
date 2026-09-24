@@ -78,6 +78,11 @@ export default function Settings() {
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
   const [partnerTextingEnabled, setPartnerTextingEnabled] = useState(true);
   const [savingPartnerTexting, setSavingPartnerTexting] = useState(false);
+  const [telephonySettings, setTelephonySettings] = useState({ voiceCallerId: "", smsSenderNumber: "" });
+  const [ownedTelephonyNumbers, setOwnedTelephonyNumbers] = useState<Array<{ sid: string; phoneNumber: string; friendlyName: string }>>([]);
+  const [loadingTelephony, setLoadingTelephony] = useState(false);
+  const [telephonyError, setTelephonyError] = useState<string | null>(null);
+  const [savingTelephony, setSavingTelephony] = useState(false);
   const [sendGridTestAddress, setSendGridTestAddress] = useState("");
   const [sendingSendGridTest, setSendingSendGridTest] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<{
@@ -120,6 +125,58 @@ export default function Settings() {
       .then((data: { enabled?: boolean }) => setPartnerTextingEnabled(data.enabled !== false))
       .catch(() => {});
   }, [me]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    setLoadingTelephony(true);
+    setTelephonyError(null);
+    Promise.all([
+      fetch(`${apiBase}/settings/telephony`, { credentials: "include" }),
+      fetch(`${apiBase}/settings/telephony/owned-numbers`, { credentials: "include" }),
+    ]).then(async ([settingsResponse, numbersResponse]) => {
+      const settingsPayload = await settingsResponse.json().catch(() => ({}));
+      const numbersPayload = await numbersResponse.json().catch(() => []);
+      if (!settingsResponse.ok) throw new Error(settingsPayload.error || "Unable to load telephony settings.");
+      if (!numbersResponse.ok) throw new Error(numbersPayload.error || "Unable to load owned phone numbers.");
+      if (cancelled) return;
+      setTelephonySettings({
+        voiceCallerId: typeof settingsPayload.voiceCallerId === "string" ? settingsPayload.voiceCallerId : "",
+        smsSenderNumber: typeof settingsPayload.smsSenderNumber === "string" ? settingsPayload.smsSenderNumber : "",
+      });
+      const numbers = Array.isArray(numbersPayload) ? numbersPayload : numbersPayload.numbers;
+      setOwnedTelephonyNumbers(Array.isArray(numbers) ? numbers : []);
+    }).catch((error) => {
+      if (!cancelled) setTelephonyError(error instanceof Error ? error.message : "Unable to load telephony settings.");
+    }).finally(() => {
+      if (!cancelled) setLoadingTelephony(false);
+    });
+    return () => { cancelled = true; };
+  }, [isAdmin, apiBase]);
+
+  const saveTelephony = async () => {
+    setSavingTelephony(true);
+    setTelephonyError(null);
+    try {
+      const response = await fetch(`${apiBase}/settings/telephony`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(telephonySettings),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Unable to save telephony settings.");
+      setTelephonySettings({
+        voiceCallerId: typeof payload.voiceCallerId === "string" ? payload.voiceCallerId : telephonySettings.voiceCallerId,
+        smsSenderNumber: typeof payload.smsSenderNumber === "string" ? payload.smsSenderNumber : telephonySettings.smsSenderNumber,
+      });
+      toast({ title: "Telephony settings saved" });
+    } catch (error) {
+      setTelephonyError(error instanceof Error ? error.message : "Unable to save telephony settings.");
+    } finally {
+      setSavingTelephony(false);
+    }
+  };
 
   const savePartnerTexting = async (enabled: boolean) => {
     setPartnerTextingEnabled(enabled);
@@ -697,6 +754,57 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-[#1F4E79]" />
+                Telephony
+              </CardTitle>
+              <CardDescription>Choose which owned Twilio numbers are used for browser calls and outbound SMS.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingTelephony ? (
+                <div className="space-y-3 max-w-2xl">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : telephonyError && ownedTelephonyNumbers.length === 0 ? (
+                <p className="text-sm text-destructive" role="alert">{telephonyError}</p>
+              ) : ownedTelephonyNumbers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No Twilio phone numbers are available for this account.</p>
+              ) : (
+                <div className="grid gap-5 sm:grid-cols-2 max-w-2xl">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-caller-id">Browser call caller ID</label>
+                    <Select value={telephonySettings.voiceCallerId || undefined} onValueChange={(value) => setTelephonySettings((current) => ({ ...current, voiceCallerId: value }))}>
+                      <SelectTrigger id="voice-caller-id" className="w-full"><SelectValue placeholder="Select a phone number" /></SelectTrigger>
+                      <SelectContent>
+                        {ownedTelephonyNumbers.map((number) => <SelectItem key={number.sid} value={number.phoneNumber}>{number.phoneNumber}{number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="sms-sender-number">SMS sender number</label>
+                    <Select value={telephonySettings.smsSenderNumber || undefined} onValueChange={(value) => setTelephonySettings((current) => ({ ...current, smsSenderNumber: value }))}>
+                      <SelectTrigger id="sms-sender-number" className="w-full"><SelectValue placeholder="Select a phone number" /></SelectTrigger>
+                      <SelectContent>
+                        {ownedTelephonyNumbers.map((number) => <SelectItem key={number.sid} value={number.phoneNumber}>{number.phoneNumber}{number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+                    <Button onClick={saveTelephony} disabled={savingTelephony} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                      {savingTelephony ? "Saving…" : "Save telephony settings"}
+                    </Button>
+                    {telephonyError && <span className="text-sm text-destructive" role="alert">{telephonyError}</span>}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {isAdmin && (
           <Card>

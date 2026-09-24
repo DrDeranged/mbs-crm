@@ -10,6 +10,8 @@ import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification } from "../lib/notify";
 import { logger } from "../lib/logger";
 import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
+import { getTelephonySettings } from "../lib/telephonySettings";
+import { approvedTwilioNumbers, isOwnedInboundNumber, selectVoiceCallerId } from "../lib/telephonyRouting";
 
 const router = Router();
 export const twilioTokenRouter = Router();
@@ -20,6 +22,11 @@ const TWILIO_PHONE = process.env["TWILIO_PHONE_NUMBER"];
 const TWIML_APP_SID = process.env["TWILIO_TWIML_APP_SID"];
 const API_KEY = process.env["TWILIO_API_KEY"];
 const API_SECRET = process.env["TWILIO_API_SECRET"];
+
+async function routingNumbers() {
+  const settings = await getTelephonySettings();
+  return { settings, numbers: approvedTwilioNumbers };
+}
 const twilioPayload = z.object({
   To: z.string().optional(),
   to: z.string().optional(),
@@ -108,6 +115,7 @@ router.post("/twilio/voice", async (req, res) => {
   const to = body.To || body.to || "";
   const callSid = body.CallSid || "";
   const fromClient = body.From || "";
+  const settings = await getTelephonySettings();
 
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
@@ -122,7 +130,7 @@ router.post("/twilio/voice", async (req, res) => {
   const recordingCb = absUrl(req, "/api/twilio/voice/recording");
 
   const dial = twiml.dial({
-    callerId: TWILIO_PHONE || fromClient,
+    callerId: selectVoiceCallerId(settings.voiceCallerId, fromClient),
     record: "record-from-ringing",
     recordingStatusCallback: recordingCb,
     recordingStatusCallbackMethod: "POST",
@@ -149,7 +157,7 @@ router.post("/twilio/voice", async (req, res) => {
     userId,
     type: "call",
     direction: "outbound",
-    fromNumber: TWILIO_PHONE || fromClient,
+    fromNumber: selectVoiceCallerId(settings.voiceCallerId, fromClient),
     toNumber: to,
     status: "initiated",
     twilioSid: callSid,
@@ -167,13 +175,23 @@ router.post("/twilio/voice/inbound", async (req, res) => {
   if (!body) return;
 
   const from = body.From || "";
+  const to = body.To || body.to || "";
   const callSid = body.CallSid || "";
+  const { numbers } = await routingNumbers();
 
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
 
   const statusCb = absUrl(req, "/api/twilio/voice/status");
   const recordingCb = absUrl(req, "/api/twilio/voice/recording");
+
+  // Twilio can retain old webhook URLs after a number is moved between
+  // accounts. A signed callback is still acknowledged, but must not ring an
+  // agent unless its destination is one of our owned numbers.
+  if (!isOwnedInboundNumber(to, numbers)) {
+    twiml.say("This number is not configured for inbound calls.");
+    return void res.type("text/xml").send(twiml.toString());
+  }
 
   const lead = await db.query.leadsTable.findFirst({
     where: and(isNotNull(leadsTable.phone), eq(leadsTable.phone, from)),
@@ -239,7 +257,7 @@ router.post("/twilio/voice/inbound", async (req, res) => {
     type: "call",
     direction: "inbound",
     fromNumber: from,
-    toNumber: TWILIO_PHONE || "",
+    toNumber: to,
     status: "ringing",
     twilioSid: callSid,
   });
@@ -326,9 +344,17 @@ router.post("/twilio/sms/inbound", async (req, res) => {
   const body = payload.Body || "";
   const smsSid = payload.SmsSid || payload.MessageSid || "";
 
-  const lead = await db.query.leadsTable.findFirst({
-    where: and(isNotNull(leadsTable.phone), eq(leadsTable.phone, from)),
-  });
+  const { numbers } = await routingNumbers();
+  const MessagingResponse = twilio.twiml.MessagingResponse;
+  const twiml = new MessagingResponse();
+  if (!isOwnedInboundNumber(to, numbers)) {
+    return void res.type("text/xml").send(twiml.toString());
+  }
+  const lead = isOwnedInboundNumber(to, numbers)
+    ? await db.query.leadsTable.findFirst({
+        where: and(isNotNull(leadsTable.phone), eq(leadsTable.phone, from)),
+      })
+    : undefined;
   const partnerContact = await db.query.partnerContactsTable.findFirst({
     where: eq(partnerContactsTable.phone, from),
   });
@@ -373,8 +399,6 @@ router.post("/twilio/sms/inbound", async (req, res) => {
     }
   }
 
-  const MessagingResponse = twilio.twiml.MessagingResponse;
-  const twiml = new MessagingResponse();
   res.type("text/xml").send(twiml.toString());
 });
 

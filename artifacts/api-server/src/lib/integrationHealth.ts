@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { getTelephonySettings, listOwnedTwilioNumbers } from "./telephonySettings";
 
 export type TwilioFailureReason =
   | "missing:TWILIO_ACCOUNT_SID"
@@ -115,3 +116,153 @@ export function createIntegrationHealthProbe({
 }
 
 export const getIntegrationHealth = createIntegrationHealthProbe();
+
+type TelephonyNumberHealth = {
+  phoneNumber: string;
+  sid: string;
+  owned: boolean;
+  configuredRoles: { voice: boolean; sms: boolean };
+  messagingServiceMembership: "member" | "not_member" | "unknown";
+};
+type TelephonyHealthResult = {
+  status: "ok" | "degraded" | "unknown";
+  messagingServiceSidConfigured: boolean;
+  numbers: TelephonyNumberHealth[];
+  error?: string;
+};
+
+const REQUIRED_TELEPHONY_NUMBERS = ["+19088608507", "+19084987548"] as const;
+
+export function buildTelephonyNumberHealth(
+  owned: Array<{ sid: string; phoneNumber: string; friendlyName: string }>,
+  settings: { voiceCallerId: string; smsSenderNumber: string },
+): TelephonyNumberHealth[] {
+  const ownedByPhone = new Map(owned.map((number) => [number.phoneNumber, number]));
+  return REQUIRED_TELEPHONY_NUMBERS.map((phoneNumber) => {
+    const number = ownedByPhone.get(phoneNumber);
+    return {
+    phoneNumber,
+    sid: number?.sid ?? "",
+    owned: Boolean(number),
+    configuredRoles: {
+      voice: phoneNumber === settings.voiceCallerId,
+      sms: phoneNumber === settings.smsSenderNumber,
+    },
+    messagingServiceMembership: "unknown",
+  };
+  });
+}
+
+/**
+ * Read-only provider inspection for the deep health endpoint. This intentionally
+ * reports presence and relationship state only; no Twilio response or credential
+ * is returned to callers.
+ */
+export async function getTwilioTelephonyHealth(
+  env = process.env,
+  timeoutMs = 5_000,
+): Promise<TelephonyHealthResult> {
+  const accountSid = env["TWILIO_ACCOUNT_SID"];
+  const authToken = env["TWILIO_AUTH_TOKEN"];
+  const apiKey = env["TWILIO_API_KEY"];
+  const apiSecret = env["TWILIO_API_SECRET"];
+  const serviceSid = env["TWILIO_MESSAGING_SERVICE_SID"];
+  if (!accountSid || !(authToken || (apiKey && apiSecret))) {
+    return {
+      status: "unknown",
+      messagingServiceSidConfigured: Boolean(serviceSid),
+      numbers: buildTelephonyNumberHealth([], { voiceCallerId: "", smsSenderNumber: "" }),
+      error: "Twilio credentials are not configured",
+    };
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const inspection: Promise<TelephonyHealthResult> = (async () => {
+   try {
+    const settings = await getTelephonySettings();
+    const owned = await listOwnedTwilioNumbers();
+    // Include every account-owned number, including numbers not selected in
+    // settings, so secondary lines are visible in health diagnostics.
+    const numbers = buildTelephonyNumberHealth(owned, settings);
+    const client = apiKey && apiSecret
+      ? twilio(apiKey, apiSecret, { accountSid })
+      : twilio(accountSid, authToken);
+    const withTimeout = async <T>(promise: Promise<T>): Promise<T> => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<T>((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), timeoutMs); }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+    const memberships = new Map<string, Set<string>>();
+    const services = serviceSid
+      ? [{ sid: serviceSid }]
+      : await withTimeout(client.messaging.v1.services.list({ limit: 20 }));
+    // A bounded list cannot prove non-membership when it reaches its limit.
+    let membershipInspectionFailed = !serviceSid && services.length >= 20;
+    for (const service of services) {
+      try {
+        const members = await withTimeout(client.messaging.v1.services(service.sid).phoneNumbers.list({ limit: 100 }));
+        if (members.length >= 100) membershipInspectionFailed = true;
+        for (const member of members) {
+          const phone = (member as unknown as { phoneNumber?: string; phone_number?: string }).phoneNumber
+            ?? (member as unknown as { phone_number?: string }).phone_number;
+          if (phone) {
+            const set = memberships.get(phone) ?? new Set<string>();
+            set.add(service.sid);
+            memberships.set(phone, set);
+          }
+        }
+      } catch {
+        // An individual service may be inaccessible; preserve unknown state.
+        membershipInspectionFailed = true;
+      }
+    }
+    for (const number of numbers) {
+      const member = memberships.get(number.phoneNumber);
+      number.messagingServiceMembership = member
+        ? (serviceSid ? (member.has(serviceSid) ? "member" : "not_member") : "member")
+        : (membershipInspectionFailed ? "unknown" : "not_member");
+    }
+    const requiredNumbersReady = numbers.every((number) =>
+      number.owned && number.messagingServiceMembership === "member"
+      && (!number.configuredRoles.voice || number.owned)
+      && (!number.configuredRoles.sms || number.owned),
+    );
+    const selectedRolesReady = numbers.some((number) => number.configuredRoles.voice && number.owned && number.messagingServiceMembership === "member")
+      && numbers.some((number) => number.configuredRoles.sms && number.owned && number.messagingServiceMembership === "member");
+    const status = numbers.some((number) => number.messagingServiceMembership === "unknown")
+      ? "unknown" : requiredNumbersReady && selectedRolesReady ? "ok" : "degraded";
+    return { status, messagingServiceSidConfigured: Boolean(serviceSid), numbers };
+   } catch (error) {
+    return {
+      status: "unknown",
+      messagingServiceSidConfigured: Boolean(serviceSid),
+      numbers: buildTelephonyNumberHealth([], { voiceCallerId: "", smsSenderNumber: "" }),
+      error: error instanceof Error && error.message === "timeout" ? "Twilio inspection timed out" : "Twilio inspection failed",
+    };
+   }
+  })();
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
+    });
+    return await Promise.race([inspection, timeout]);
+  } catch (error) {
+    return {
+      status: "unknown",
+      messagingServiceSidConfigured: Boolean(serviceSid),
+      numbers: REQUIRED_TELEPHONY_NUMBERS.map((phoneNumber) => ({
+        phoneNumber, sid: "", owned: false,
+        configuredRoles: { voice: false, sms: false },
+        messagingServiceMembership: "unknown" as const,
+      })),
+      error: error instanceof Error && error.message === "timeout" ? "Twilio inspection timed out" : "Twilio inspection failed",
+    };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}

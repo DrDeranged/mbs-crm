@@ -2,12 +2,14 @@ import { Router, type Request } from "express";
 import twilio from "twilio";
 import { db } from "@workspace/db";
 import { communicationsTable, leadsTable, usersTable, lendersTable, partnerContactsTable, companySettingsTable } from "@workspace/db";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte, lte, inArray } from "drizzle-orm";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 import { getLeadSmsEligibility } from "../lib/smsEligibility";
+import { getTelephonySettings } from "../lib/telephonySettings";
+import { APPROVED_TWILIO_NUMBERS, selectSmsSender } from "../lib/telephonyRouting";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -40,7 +42,6 @@ function invalidInput(res: import("express").Response, parsed: z.ZodSafeParseErr
   res.status(400).json({ error: `Invalid ${field}` });
 }
 
-const TWILIO_PHONE = process.env["TWILIO_PHONE_NUMBER"];
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
 const AUTH_TOKEN = process.env["TWILIO_AUTH_TOKEN"];
 
@@ -125,7 +126,8 @@ router.post("/leads/:id/sms", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;
 
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !TWILIO_PHONE) {
+  const settings = await getTelephonySettings();
+  if (!ACCOUNT_SID || !AUTH_TOKEN || !settings.smsSenderNumber) {
     return void res.status(503).json({ error: "Twilio not configured" });
   }
 
@@ -165,9 +167,23 @@ router.post("/leads/:id/sms", async (req, res) => {
   if (!bodyInput.success) return invalidInput(res, bodyInput);
   const { body } = bodyInput.data;
 
+  // Replies must stay on the number the lead contacted. Otherwise use the
+  // configured outbound sender (never accept a client-provided sender).
+  const inbound = await db.query.communicationsTable.findFirst({
+    where: and(
+      eq(communicationsTable.leadId, leadId),
+      eq(communicationsTable.type, "sms"),
+      eq(communicationsTable.direction, "inbound"),
+      eq(communicationsTable.fromNumber, lead.phone),
+      inArray(communicationsTable.toNumber, [...APPROVED_TWILIO_NUMBERS]),
+    ),
+    orderBy: [desc(communicationsTable.createdAt)],
+  });
+  const owned = new Set<string>(APPROVED_TWILIO_NUMBERS);
+  const replyNumber = selectSmsSender(settings.smsSenderNumber, inbound?.toNumber, owned);
   const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
   const message = await client.messages.create({
-    from: TWILIO_PHONE,
+    from: replyNumber,
     to: lead.phone,
     body: body.trim(),
     statusCallback: absUrl(req, "/api/twilio/sms/status"),
@@ -178,7 +194,7 @@ router.post("/leads/:id/sms", async (req, res) => {
     userId: user.id,
     type: "sms",
     direction: "outbound",
-    fromNumber: TWILIO_PHONE,
+    fromNumber: replyNumber,
     toNumber: lead.phone,
     body: body.trim(),
     status: message.status,
@@ -208,7 +224,8 @@ router.post("/leads/:id/sms", async (req, res) => {
 router.post("/partners/:partnerId/contacts/:contactId/sms", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !TWILIO_PHONE) {
+  const telephonySettings = await getTelephonySettings();
+  if (!ACCOUNT_SID || !AUTH_TOKEN || !telephonySettings.smsSenderNumber) {
     return void res.status(503).json({ error: "Twilio not configured" });
   }
   const partnerId = positiveId.safeParse(req.params.partnerId);
@@ -224,10 +241,25 @@ router.post("/partners/:partnerId/contacts/:contactId/sms", async (req, res) => 
   if (!contact) return void res.status(404).json({ error: "Partner contact not found" });
   if (!contact.phone) return void res.status(400).json({ error: "Partner contact has no phone number" });
   if (contact.smsOptedOut) return void res.status(422).json({ error: "sms_opted_out", message: "Partner contact has sent STOP and cannot receive SMS." });
+  const inbound = await db.query.communicationsTable.findFirst({
+    where: and(
+      eq(communicationsTable.partnerId, partnerId.data),
+      eq(communicationsTable.type, "sms"),
+      eq(communicationsTable.direction, "inbound"),
+      eq(communicationsTable.fromNumber, contact.phone),
+      inArray(communicationsTable.toNumber, [...APPROVED_TWILIO_NUMBERS]),
+    ),
+    orderBy: [desc(communicationsTable.createdAt)],
+  });
+  const senderNumber = selectSmsSender(
+    telephonySettings.smsSenderNumber,
+    inbound?.toNumber,
+    new Set(APPROVED_TWILIO_NUMBERS),
+  );
   let message: any;
   try {
     message = await twilio(ACCOUNT_SID, AUTH_TOKEN).messages.create({
-      from: TWILIO_PHONE,
+      from: senderNumber,
       to: contact.phone,
       body: bodyInput.data.body.trim(),
       statusCallback: absUrl(req, "/api/twilio/sms/status"),
@@ -245,7 +277,7 @@ router.post("/partners/:partnerId/contacts/:contactId/sms", async (req, res) => 
     userId: user.id,
     type: "sms",
     direction: "outbound",
-    fromNumber: TWILIO_PHONE,
+    fromNumber: senderNumber,
     toNumber: contact.phone,
     body: bodyInput.data.body.trim(),
     status: message.status,

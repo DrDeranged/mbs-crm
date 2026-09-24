@@ -6,8 +6,27 @@ import { eq } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { DEFAULT_ROUTING_SETTINGS } from "../lib/leadRouting";
+import {
+  getTelephonySettings,
+  isValidE164,
+  listOwnedTwilioNumbers,
+} from "../lib/telephonySettings";
 
 const router: IRouter = Router();
+
+const TelephonySettingsBody = z.object({
+  voiceCallerId: z.string().trim().nullable().optional(),
+  smsSenderNumber: z.string().trim().nullable().optional(),
+}).strict().refine((body) => Object.keys(body).length > 0, {
+  message: "At least one setting must be provided",
+}).superRefine((body, ctx) => {
+  for (const field of ["voiceCallerId", "smsSenderNumber"] as const) {
+    const value = body[field];
+    if (value !== undefined && value !== null && !isValidE164(value)) {
+      ctx.addIssue({ code: "custom", path: [field], message: "Must be a valid E.164 number" });
+    }
+  }
+});
 
 const RoutingSettingsBody = z.object({
   routing: z.object({
@@ -303,6 +322,69 @@ router.put("/settings/partner-texting", async (req: Request, res: Response) => {
     : await db.insert(companySettingsTable).values({ partnerTextingEnabled: enabled.data }).returning();
   await logActivity({ userId: user.id, action: "partner_texting_setting_updated", entityType: "company_settings", entityId: result.id, details: { enabled: enabled.data } });
   res.json({ enabled: result.partnerTextingEnabled });
+});
+
+router.get("/settings/telephony", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  res.json(await getTelephonySettings());
+});
+
+router.get("/settings/telephony/owned-numbers", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  try {
+    res.json(await listOwnedTwilioNumbers());
+  } catch {
+    res.status(503).json({ error: "Twilio owned-number lookup unavailable" });
+  }
+});
+
+router.put("/settings/telephony", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  const parsed = TelephonySettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path.join(".") || "body";
+    return void res.status(400).json({ error: `Invalid ${field}` });
+  }
+
+  let owned: Awaited<ReturnType<typeof listOwnedTwilioNumbers>>;
+  try {
+    owned = await listOwnedTwilioNumbers();
+  } catch {
+    return void res.status(503).json({ error: "Twilio owned-number lookup unavailable" });
+  }
+  const ownedNumbers = new Set(owned.map((number) => number.phoneNumber));
+  for (const field of ["voiceCallerId", "smsSenderNumber"] as const) {
+    const value = parsed.data[field];
+    if (value !== undefined && value !== null && !ownedNumbers.has(value)) {
+      return void res.status(400).json({ error: `${field} must be an owned Twilio number` });
+    }
+  }
+
+  const [existing] = await db.select({ id: companySettingsTable.id }).from(companySettingsTable).limit(1);
+  const fields = {
+    ...(parsed.data.voiceCallerId !== undefined ? { voiceCallerId: parsed.data.voiceCallerId } : {}),
+    ...(parsed.data.smsSenderNumber !== undefined ? { smsSenderNumber: parsed.data.smsSenderNumber } : {}),
+    updatedAt: new Date(),
+  };
+  if (existing) {
+    await db.update(companySettingsTable).set(fields).where(eq(companySettingsTable.id, existing.id));
+  } else {
+    await db.insert(companySettingsTable).values(fields);
+  }
+  await logActivity({
+    userId: user.id,
+    action: "telephony_settings_updated",
+    entityType: "company_settings",
+    entityId: existing?.id ?? 0,
+    details: { fields: Object.keys(parsed.data) },
+  });
+  res.json(await getTelephonySettings());
 });
 
 export default router;
