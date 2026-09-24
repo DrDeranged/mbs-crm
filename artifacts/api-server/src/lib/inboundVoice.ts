@@ -97,6 +97,9 @@ export function buildInboundVoiceTwiML(options: VoicePromptOptions & {
       action: `${options.baseUrl}/api/twilio/voice/dial-result`,
       method: "POST",
       answerOnBridge: true,
+      record: "record-from-answer",
+      recordingStatusCallback: `${options.baseUrl}/api/twilio/voice/recording`,
+      recordingStatusCallbackMethod: "POST",
     } as any);
     for (const rep of options.targets) {
       const callback = `${options.baseUrl}/api/twilio/voice/status?repId=${rep.id}&parentCallSid=${encodeURIComponent(options.callSid)}`;

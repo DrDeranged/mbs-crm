@@ -41,6 +41,8 @@ describe("inbound routing targets", () => {
     };
     const known = buildInboundVoiceTwiML({ ...options, targets: selectRingTargets(reps, 2, "assigned-rep-first") });
     assert.match(known, /<Dial[^>]*timeout="20"/);
+    assert.match(known, /<Dial[^>]*record="record-from-answer"/);
+    assert.match(known, /recordingStatusCallback="https:\/\/example.com\/api\/twilio\/voice\/recording"/);
     assert.match(known, /<Number[^>]*>\+19173996578<\/Number>/);
     assert.match(known, /<Client[^>]*>user_2<\/Client>/);
     assert.doesNotMatch(known, /\+16022455425/);
