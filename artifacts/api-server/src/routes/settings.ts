@@ -2,7 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { requireUser } from "../lib/authHelpers";
 import { db } from "@workspace/db";
 import { companySettingsTable, usersTable } from "@workspace/db";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { DEFAULT_ROUTING_SETTINGS } from "../lib/leadRouting";
@@ -11,6 +11,9 @@ import {
   isValidE164,
   listOwnedTwilioNumbers,
 } from "../lib/telephonySettings";
+import { ObjectStorageService } from "../lib/objectStorage";
+import { createGreetingUploadGrant, isValidGreetingMp3, verifyGreetingUploadGrant, type GreetingKind } from "../lib/telephonyGreeting";
+import { randomUUID } from "node:crypto";
 
 const router: IRouter = Router();
 
@@ -24,7 +27,10 @@ const TelephonySettingsBody = z.object({
   voiceHolidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
   voiceGreeting: z.string().trim().min(1).optional(),
   voiceAfterHoursGreeting: z.string().trim().min(1).optional(),
-  voiceRoutingMode: z.enum(["assigned-rep-first", "ring-all"]).optional(),
+  voiceRoutingMode: z.enum(["assigned-rep-first", "ring-all", "priority-list"]).optional(),
+  voicePriorityRepIds: z.array(z.number().int().positive()).max(100)
+    .refine((ids) => new Set(ids).size === ids.length, "Priority reps must be unique").optional(),
+  missedCallTextBackEnabled: z.boolean().optional(),
   voicemailRecipients: z.array(z.string().email()).min(1).optional(),
   forwardingNumbers: z.array(z.object({
     userId: z.number().int().positive(),
@@ -346,7 +352,7 @@ router.get("/settings/telephony", async (req: Request, res: Response) => {
     db.select({
       id: usersTable.id, name: usersTable.name, email: usersTable.email,
       role: usersTable.role, isActive: usersTable.isActive, forwardingNumber: usersTable.forwardingNumber,
-    }).from(usersTable).orderBy(usersTable.name),
+    }).from(usersTable).where(and(eq(usersTable.isActive, true), isNull(usersTable.mergedInto))).orderBy(usersTable.name),
   ]);
   res.json({
     ...settings,
@@ -357,9 +363,80 @@ router.get("/settings/telephony", async (req: Request, res: Response) => {
     voiceGreeting: settings.voiceGreeting ?? "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.",
     voiceAfterHoursGreeting: settings.voiceAfterHoursGreeting ?? "Thanks for calling My Business Solutions. Our office is currently closed. Please leave your name, business name, and phone number, and we'll return your call the next business day.",
     voiceRoutingMode: settings.voiceRoutingMode ?? "assigned-rep-first",
+    voicePriorityRepIds: settings.voicePriorityRepIds ?? [],
+    missedCallTextBackEnabled: settings.missedCallTextBackEnabled ?? false,
     voicemailRecipients: settings.voicemailRecipients ?? ["funding@my-business-solutions.com"],
     users,
   });
+});
+
+function greetingKind(value: string): GreetingKind | null {
+  return value === "business" || value === "after-hours" ? value : null;
+}
+
+router.post("/settings/telephony/greetings/:kind/upload-url", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  const kind = greetingKind(String(req.params.kind));
+  const info = z.object({ name: z.string().regex(/\.mp3$/i), size: z.number().int().min(1).max(2 * 1024 * 1024), contentType: z.literal("audio/mpeg") }).safeParse(req.body);
+  if (!kind || !info.success) return void res.status(400).json({ error: "MP3 greeting must be at most 2 MB" });
+  try {
+    const { uploadUrl, objectPath } = await new ObjectStorageService().getTelephonyGreetingUploadURL();
+    res.json({ uploadUrl, objectPath, grant: createGreetingUploadGrant(objectPath, kind, user.id) });
+  } catch (error) {
+    req.log.error({ err: error }, "Greeting upload URL unavailable");
+    res.status(503).json({ error: "Greeting upload unavailable" });
+  }
+});
+
+router.post("/settings/telephony/greetings/:kind/complete", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  const kind = greetingKind(String(req.params.kind));
+  const parsed = z.object({
+    objectPath: z.string().regex(/^\/objects\/telephony\/greetings\/staging\/[0-9a-f-]{36}\.mp3$/),
+    grant: z.string(),
+  }).safeParse(req.body);
+  if (!kind || !parsed.success || !verifyGreetingUploadGrant(parsed.data.grant, parsed.data.objectPath, kind, user.id)) {
+    return void res.status(400).json({ error: "Invalid or expired greeting upload" });
+  }
+  try {
+    const storage = new ObjectStorageService();
+    const metadata = await storage.getObjectEntityMetadata(parsed.data.objectPath);
+    if (metadata.contentType !== "audio/mpeg" || metadata.size < 1 || metadata.size > 2 * 1024 * 1024) {
+      return void res.status(400).json({ error: "Greeting must be a valid MP3 under 2 MB" });
+    }
+    const audio = await storage.readObjectEntity(parsed.data.objectPath, 2 * 1024 * 1024);
+    if (!isValidGreetingMp3(audio.bytes, audio.contentType) || audio.size !== audio.bytes.length) {
+      return void res.status(400).json({ error: "Greeting must be a valid MP3 under 2 MB" });
+    }
+    const finalPath = `/objects/telephony/greetings/${randomUUID()}.mp3`;
+    await storage.saveObjectEntity(finalPath, audio.bytes, "audio/mpeg");
+    const field = kind === "business" ? "voiceGreetingAudioPath" : "voiceAfterHoursGreetingAudioPath";
+    const [existing] = await db.select({ id: companySettingsTable.id }).from(companySettingsTable).limit(1);
+    if (existing) await db.update(companySettingsTable).set({ [field]: finalPath, updatedAt: new Date() }).where(eq(companySettingsTable.id, existing.id));
+    else await db.insert(companySettingsTable).values({ [field]: finalPath });
+    await logActivity({ userId: user.id, action: "telephony_greeting_uploaded", entityType: "company_settings", entityId: existing?.id ?? 0, details: { kind } });
+    res.json({ objectPath: finalPath });
+  } catch (error) {
+    req.log.error({ err: error }, "Greeting upload verification failed");
+    res.status(503).json({ error: "Greeting upload verification unavailable" });
+  }
+});
+
+router.delete("/settings/telephony/greetings/:kind", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
+  const kind = greetingKind(String(req.params.kind));
+  if (!kind) return void res.status(400).json({ error: "Invalid greeting" });
+  const field = kind === "business" ? "voiceGreetingAudioPath" : "voiceAfterHoursGreetingAudioPath";
+  const [existing] = await db.select({ id: companySettingsTable.id }).from(companySettingsTable).limit(1);
+  if (existing) await db.update(companySettingsTable).set({ [field]: null, updatedAt: new Date() }).where(eq(companySettingsTable.id, existing.id));
+  await logActivity({ userId: user.id, action: "telephony_greeting_removed", entityType: "company_settings", entityId: existing?.id ?? 0, details: { kind } });
+  res.json({ ok: true });
 });
 
 router.get("/settings/telephony/owned-numbers", async (req: Request, res: Response) => {
@@ -407,14 +484,21 @@ router.put("/settings/telephony", async (req: Request, res: Response) => {
       }
     }
     const matchedUsers = await db
-      .select({ id: usersTable.id, role: usersTable.role, isActive: usersTable.isActive })
+      .select({ id: usersTable.id, role: usersTable.role, isActive: usersTable.isActive, mergedInto: usersTable.mergedInto })
       .from(usersTable)
       .where(inArray(usersTable.id, ids));
     if (matchedUsers.length !== ids.length) {
       return void res.status(400).json({ error: "forwardingNumbers may only target existing users" });
     }
-    if (matchedUsers.some((row) => !row.isActive || !["rep", "manager", "admin"].includes(row.role))) {
+    if (matchedUsers.some((row) => !row.isActive || row.mergedInto != null || !["rep", "manager", "admin"].includes(row.role))) {
       return void res.status(400).json({ error: "forwardingNumbers may only target active authorized users" });
+    }
+  }
+  if (parsed.data.voicePriorityRepIds?.length) {
+    const reps = await db.select({ id: usersTable.id, role: usersTable.role, isActive: usersTable.isActive, mergedInto: usersTable.mergedInto, forwardingNumber: usersTable.forwardingNumber })
+      .from(usersTable).where(inArray(usersTable.id, parsed.data.voicePriorityRepIds));
+    if (reps.length !== parsed.data.voicePriorityRepIds.length || reps.some((rep) => rep.role !== "rep" || !rep.isActive || rep.mergedInto != null)) {
+      return void res.status(400).json({ error: "Priority list must contain active, non-merged reps" });
     }
   }
 
@@ -429,6 +513,8 @@ router.put("/settings/telephony", async (req: Request, res: Response) => {
     ...(parsed.data.voiceGreeting !== undefined ? { voiceGreeting: parsed.data.voiceGreeting } : {}),
     ...(parsed.data.voiceAfterHoursGreeting !== undefined ? { voiceAfterHoursGreeting: parsed.data.voiceAfterHoursGreeting } : {}),
     ...(parsed.data.voiceRoutingMode !== undefined ? { voiceRoutingMode: parsed.data.voiceRoutingMode } : {}),
+    ...(parsed.data.voicePriorityRepIds !== undefined ? { voicePriorityRepIds: parsed.data.voicePriorityRepIds } : {}),
+    ...(parsed.data.missedCallTextBackEnabled !== undefined ? { missedCallTextBackEnabled: parsed.data.missedCallTextBackEnabled } : {}),
     ...(parsed.data.voicemailRecipients !== undefined ? { voicemailRecipients: parsed.data.voicemailRecipients } : {}),
     updatedAt: new Date(),
   };
@@ -454,7 +540,7 @@ router.put("/settings/telephony", async (req: Request, res: Response) => {
     db.select({
       id: usersTable.id, name: usersTable.name, email: usersTable.email,
       role: usersTable.role, isActive: usersTable.isActive, forwardingNumber: usersTable.forwardingNumber,
-    }).from(usersTable).orderBy(usersTable.name),
+    }).from(usersTable).where(and(eq(usersTable.isActive, true), isNull(usersTable.mergedInto))).orderBy(usersTable.name),
   ]);
   res.json({ ...updatedSettings, users: updatedUsers });
 });

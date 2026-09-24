@@ -136,6 +136,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/dashboard/summary` | `routes/dashboard.ts:57` | `M` | reps rejected |
 | GET | `/api/dashboard/rep` | `routes/dashboard.ts:99` | `L` | rep path forces requested rep id to `user.id` |
 | GET | `/api/dashboard/my-tasks` | `routes/dashboard.ts:146` | `L` | reps filter returned task leads by `lead.assignedRepId === user.id`; managers/admins use `tasksTable.userId === user.id` |
+| GET | `/api/dashboard/calls` | `routes/dashboard.ts` | `L` | reps see assigned leads only; overdue voicemail phones are lead-scoped |
 | GET | `/api/analytics/unassigned-inbound-count` | `routes/analytics.ts:31` | `A` | reps rejected |
 | GET | `/api/analytics/summary` | `routes/analytics.ts:63` | `L` | rep forces `effectiveRepId = user.id` and `assignedRepId === user.id` |
 | GET | `/api/analytics/pipeline` | `routes/analytics.ts:153` | `L` | rep forces `effectiveRepId = user.id` |
@@ -212,6 +213,12 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PUT | `/api/settings/lead-distribution` | `routes/settings.ts:160` | `A` | reps rejected |
 | GET | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
 | PUT | `/api/settings/partner-texting` | `routes/settings.ts` | `A` | reps rejected |
+| GET | `/api/settings/telephony` | `routes/settings.ts` | `A` | active, non-merged forwarding users only |
+| GET | `/api/settings/telephony/owned-numbers` | `routes/settings.ts` | `A` | Twilio-owned numbers only |
+| PUT | `/api/settings/telephony` | `routes/settings.ts` | `A` | validates owned numbers, routing and active users |
+| POST | `/api/settings/telephony/greetings/:kind/upload-url` | `routes/settings.ts` | `A` | admin-only short-lived MP3 upload URL |
+| POST | `/api/settings/telephony/greetings/:kind/complete` | `routes/settings.ts` | `A` | admin-only grant and actual MP3 validation |
+| DELETE | `/api/settings/telephony/greetings/:kind` | `routes/settings.ts` | `A` | admin-only audio removal; retains text fallback |
 | GET | `/api/admin/errors` | `routes/adminErrors.ts:10` | `A` | reps rejected |
 | GET | `/api/admin/migrations/status` | `routes/adminMigrations.ts:12` | `A` | reps rejected |
 | POST | `/api/admin/migrations/apply` | `routes/adminMigrations.ts:32` | `A` | reps rejected |

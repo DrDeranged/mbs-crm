@@ -172,20 +172,9 @@ router.post("/leads/:id/sms", async (req, res) => {
   if (!bodyInput.success) return invalidInput(res, bodyInput);
   const { body } = bodyInput.data;
 
-  // Replies must stay on the number the lead contacted. Otherwise use the
-  // configured outbound sender (never accept a client-provided sender).
-  const inbound = await db.query.communicationsTable.findFirst({
-    where: and(
-      eq(communicationsTable.leadId, leadId),
-      eq(communicationsTable.type, "sms"),
-      eq(communicationsTable.direction, "inbound"),
-      eq(communicationsTable.fromNumber, lead.phone),
-      inArray(communicationsTable.toNumber, [...APPROVED_TWILIO_NUMBERS]),
-    ),
-    orderBy: [desc(communicationsTable.createdAt)],
-  });
-  const owned = new Set<string>(APPROVED_TWILIO_NUMBERS);
-  const replyNumber = selectSmsSender(settings.smsSenderNumber, inbound?.toNumber, owned);
+  // Lead texting always uses the configured sender. Inbound routing must not
+  // override the sender for this consent-gated CRM action.
+  const replyNumber = settings.smsSenderNumber;
   const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
   const message = await client.messages.create({
     from: replyNumber,

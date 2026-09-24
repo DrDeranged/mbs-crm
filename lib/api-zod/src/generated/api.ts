@@ -2808,6 +2808,25 @@ export const GetDashboardSummaryResponse = zod.object({
 
 
 /**
+ * @summary Calls today and overdue voicemails visible to the current user
+ */
+export const GetDashboardCallsResponse = zod.object({
+  "inboundCount": zod.number(),
+  "answeredCount": zod.number(),
+  "voicemailCount": zod.number(),
+  "averageCallbackBusinessMinutes": zod.number().nullish(),
+  "overdueVoicemails": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "leadName": zod.string(),
+  "companyName": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "arrivedAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Rep-specific dashboard (my leads, tasks due, recent activity)
  */
 export const GetRepDashboardResponse = zod.object({

@@ -95,6 +95,7 @@ test("production-partial partner recovery reaches the current migration head", a
         "058_telephony_business_defaults.sql",
         "059_inbound_voice_settings.sql",
         "060_inbound_voice_array_defaults.sql",
+        "061_telephony_completion.sql",
     ];
     const evidence = {
       applied: report.applied,

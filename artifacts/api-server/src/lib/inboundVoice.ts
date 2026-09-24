@@ -41,15 +41,24 @@ export interface RingTarget {
   forwardingNumber: string | null;
   isActive: boolean;
   role: string;
+  mergedInto?: number | null;
 }
 
 export function selectRingTargets(
   reps: RingTarget[],
   assignedRepId: number | null,
-  mode: "assigned-rep-first" | "ring-all",
+  mode: "assigned-rep-first" | "ring-all" | "priority-list",
+  priorityRepIds: number[] = [],
 ): RingTarget[] {
   const active = reps.filter((rep) =>
-    rep.isActive && ["rep", "manager", "admin"].includes(rep.role) && Boolean(rep.forwardingNumber));
+    rep.isActive && rep.mergedInto == null && ["rep", "manager", "admin"].includes(rep.role) && Boolean(rep.forwardingNumber));
+  if (mode === "priority-list") {
+    const eligible = new Map(active.filter((rep) => rep.role === "rep").map((rep) => [rep.id, rep]));
+    return [...new Set(priorityRepIds)].flatMap((id) => {
+      const rep = eligible.get(id);
+      return rep ? [rep] : [];
+    });
+  }
   if (mode === "assigned-rep-first" && assignedRepId != null) {
     const assigned = active.find((rep) => rep.id === assignedRepId);
     if (assigned) return [assigned];
@@ -57,10 +66,18 @@ export function selectRingTargets(
   return active.filter((rep) => rep.role === "rep");
 }
 
+export function nextPriorityTarget(targets: RingTarget[], attempt: number, dialStatus: string): RingTarget | null {
+  if (!Number.isInteger(attempt) || attempt < 0 || attempt >= targets.length) return null;
+  if (dialStatus === "completed" || dialStatus === "answered") return null;
+  return targets[attempt + 1] ?? null;
+}
+
 export interface VoicePromptOptions {
   baseUrl: string;
   greeting: string;
   afterHoursGreeting: string;
+  greetingAudioUrl?: string;
+  afterHoursGreetingAudioUrl?: string;
 }
 
 export function appendVoiceMessage(
@@ -68,7 +85,9 @@ export function appendVoiceMessage(
   options: VoicePromptOptions,
   afterHours: boolean,
 ): void {
-  response.say({ voice: "Polly.Joanna" } as any,
+  const audio = afterHours ? options.afterHoursGreetingAudioUrl : options.greetingAudioUrl;
+  if (audio) response.play(audio);
+  else response.say({ voice: "Polly.Joanna" } as any,
     afterHours ? options.afterHoursGreeting : options.greeting);
   response.record({
     maxLength: 120,
@@ -88,20 +107,22 @@ export function buildInboundVoiceTwiML(options: VoicePromptOptions & {
   targets: RingTarget[];
   callerId: string;
   callSid: string;
+  routingMode?: "assigned-rep-first" | "ring-all" | "priority-list";
+  priorityAttempt?: number;
 }): string {
   const response = new twilio.twiml.VoiceResponse();
   if (options.open && options.targets.length) {
     const dial = response.dial({
-      timeout: 20,
+      timeout: options.routingMode === "priority-list" ? 15 : 20,
       callerId: options.callerId,
-      action: `${options.baseUrl}/api/twilio/voice/dial-result`,
+      action: `${options.baseUrl}/api/twilio/voice/dial-result${options.routingMode === "priority-list" ? `?attempt=${options.priorityAttempt ?? 0}` : ""}`,
       method: "POST",
       answerOnBridge: true,
       record: "record-from-answer",
       recordingStatusCallback: `${options.baseUrl}/api/twilio/voice/recording`,
       recordingStatusCallbackMethod: "POST",
     } as any);
-    for (const rep of options.targets) {
+    for (const rep of options.routingMode === "priority-list" ? options.targets.slice(0, 1) : options.targets) {
       const callback = `${options.baseUrl}/api/twilio/voice/status?repId=${rep.id}&parentCallSid=${encodeURIComponent(options.callSid)}`;
       dial.number({
         statusCallback: callback,

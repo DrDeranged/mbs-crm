@@ -31,6 +31,7 @@ import {
   ChevronUp,
   Loader2,
   AlertCircle,
+  MessageSquare,
 } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -47,7 +48,7 @@ const OUTCOME_LABELS: Record<CallOutcome, string> = {
 };
 
 export function SoftphoneWidget() {
-  const { pendingNumber, autoCall, pendingLeadId, clearPending } = useContext(SoftphoneContext);
+  const { pendingNumber, autoCall, pendingLeadId, clearPending, currentLead, openTextComposer } = useContext(SoftphoneContext);
   const queryClient = useQueryClient();
   const { data: currentUser } = useGetMe();
 
@@ -524,6 +525,19 @@ export function SoftphoneWidget() {
                 {error}
               </div>
             )}
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+                disabled={!currentLead?.smsEligible || !currentLead.phone}
+                title={!currentLead?.smsEligible || !currentLead.phone ? "SMS consent not on file." : "Text current lead"}
+                onClick={() => currentLead && openTextComposer(currentLead.id)}
+              >
+                <MessageSquare className="h-3.5 w-3.5 mr-1" /> Text
+              </Button>
+            </div>
 
             {/* Incoming call alert */}
             {isIncoming && incomingInfo && (

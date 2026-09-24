@@ -1773,6 +1773,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
 
+  /dashboard/calls:
+    get:
+      operationId: getDashboardCalls
+      tags: [dashboard]
+      summary: Calls today and overdue voicemails visible to the current user
+      responses:
+        "200":
+          description: Calls dashboard card
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardCalls"
+
   /dashboard/rep:
     get:
       operationId: getRepDashboard
@@ -6300,6 +6313,41 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RepCount"
+
+    DashboardCalls:
+      type: object
+      required: [inboundCount, answeredCount, voicemailCount, overdueVoicemails]
+      properties:
+        inboundCount:
+          type: integer
+        answeredCount:
+          type: integer
+        voicemailCount:
+          type: integer
+        averageCallbackBusinessMinutes:
+          type: integer
+          nullable: true
+        overdueVoicemails:
+          type: array
+          items:
+            type: object
+            required: [id, leadId, leadName, arrivedAt]
+            properties:
+              id:
+                type: integer
+              leadId:
+                type: integer
+              leadName:
+                type: string
+              companyName:
+                type: string
+                nullable: true
+              phone:
+                type: string
+                nullable: true
+              arrivedAt:
+                type: string
+                format: date-time
 
     LeadsByStatus:
       type: object

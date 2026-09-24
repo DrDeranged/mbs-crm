@@ -12,7 +12,8 @@ import { logger } from "../lib/logger";
 import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
 import { getTelephonySettings } from "../lib/telephonySettings";
 import { approvedTwilioNumbers, isOwnedInboundNumber, selectVoiceCallerId } from "../lib/telephonyRouting";
-import { appendVoiceMessage, buildInboundVoiceTwiML, isWithinVoiceHours, selectRingTargets } from "../lib/inboundVoice";
+import { appendVoiceMessage, buildInboundVoiceTwiML, isWithinVoiceHours, nextPriorityTarget, selectRingTargets } from "../lib/inboundVoice";
+import { resolveGreetingAudioUrl } from "../lib/telephonyGreeting";
 import { handleVoicemailComplete, handleMissedCall, handleRecordingComplete } from "../lib/voicemail";
 
 const router = Router();
@@ -211,12 +212,16 @@ async function handleInboundVoice(
     voiceHolidays: [], voiceGreeting: "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.",
     voiceAfterHoursGreeting: "Thanks for calling My Business Solutions. Our office is currently closed. Leave a message and we'll return your call the next business day.",
     voiceRoutingMode: "assigned-rep-first" as const,
+    voicePriorityRepIds: [] as number[],
+    voiceGreetingAudioPath: null as string | null,
+    voiceAfterHoursGreetingAudioPath: null as string | null,
   };
   const open = isWithinVoiceHours(effective);
   const reps = open ? await db.query.usersTable.findMany({
     where: eq(usersTable.isActive, true),
   }) : [];
-  const targets = open ? selectRingTargets(reps, lead?.assignedRepId ?? null, effective.voiceRoutingMode) : [];
+  const targets = open ? selectRingTargets(reps, lead?.assignedRepId ?? null, effective.voiceRoutingMode, effective.voicePriorityRepIds) : [];
+  const audioUrl = await resolveGreetingAudioUrl(open ? effective.voiceGreetingAudioPath : effective.voiceAfterHoursGreetingAudioPath);
 
   // Twilio may retry the initial request; do not create duplicate call logs.
   if (callSid) {
@@ -239,7 +244,8 @@ async function handleInboundVoice(
     baseUrl: absUrl(req, ""),
     greeting: effective.voiceGreeting,
     afterHoursGreeting: effective.voiceAfterHoursGreeting,
-    open, targets, callerId: to, callSid,
+    ...(open ? { greetingAudioUrl: audioUrl } : { afterHoursGreetingAudioUrl: audioUrl }),
+    open, targets, callerId: to, callSid, routingMode: effective.voiceRoutingMode,
   }));
 }
 
@@ -272,10 +278,28 @@ router.post("/twilio/voice/dial-result", async (req, res): Promise<void> => {
     }
     if (call && status !== "completed" && status !== "answered") {
       const [settings] = await db.select().from(companySettingsTable).limit(1);
+      const attempt = Number(req.query["attempt"]);
+      if (settings?.voiceRoutingMode === "priority-list" && Number.isInteger(attempt) && attempt >= 0 && attempt < 100
+        && isWithinVoiceHours(settings, call.createdAt)) {
+        const reps = await db.query.usersTable.findMany({ where: eq(usersTable.isActive, true) });
+        const ordered = selectRingTargets(reps, null, "priority-list", settings.voicePriorityRepIds);
+        const next = nextPriorityTarget(ordered, attempt, status);
+        if (next) {
+          res.type("text/xml").send(buildInboundVoiceTwiML({
+            baseUrl: absUrl(req, ""), greeting: settings.voiceGreeting,
+            afterHoursGreeting: settings.voiceAfterHoursGreeting,
+            open: true, targets: [next], callerId: call.toNumber || "",
+            callSid, routingMode: "priority-list", priorityAttempt: attempt + 1,
+          }));
+          return;
+        }
+      }
+      const greetingAudioUrl = await resolveGreetingAudioUrl(settings?.voiceGreetingAudioPath);
       appendVoiceMessage(twiml, {
         baseUrl: absUrl(req, ""),
         greeting: settings?.voiceGreeting ?? "Thanks for calling My Business Solutions. Please leave a message.",
         afterHoursGreeting: settings?.voiceAfterHoursGreeting ?? "Our office is currently closed. Please leave a message.",
+        greetingAudioUrl,
       }, false);
     }
   }

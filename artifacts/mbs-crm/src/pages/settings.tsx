@@ -21,6 +21,7 @@ import { RAY_IDENTITY_REQUEST } from "@/lib/repChooser";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { useNotificationSettings } from "@/hooks/use-notification-settings";
 import { canSubmitUserMerge, getEligibleMergeSources, getEligibleMergeTargets, getMergeSourceState } from "@/lib/mergeUserOptions";
+import { TelephonyGreetingUpload } from "@/components/telephony-greeting-upload";
 
 export default function Settings() {
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -83,11 +84,14 @@ export default function Settings() {
     voiceCallerId: "", smsSenderNumber: "", voiceHoursStart: "08:00", voiceHoursEnd: "18:00",
     voiceBusinessDays: [1, 2, 3, 4, 5] as number[], voiceHolidays: [] as string[],
     voiceGreeting: "", voiceAfterHoursGreeting: "", voiceRoutingMode: "assigned-rep-first",
+    voicePriorityRepIds: [] as number[], missedCallTextBackEnabled: false,
     voicemailRecipients: ["funding@my-business-solutions.com"] as string[],
     forwardingNumbers: [] as Array<{ userId: number; forwardingNumber: string | null }>,
   });
   const [ownedTelephonyNumbers, setOwnedTelephonyNumbers] = useState<Array<{ sid: string; phoneNumber: string; friendlyName: string }>>([]);
-  const [telephonyUsers, setTelephonyUsers] = useState<Array<{ id: number; name: string | null; email: string; role: string; isActive: boolean }>>([]);
+  const [telephonyUsers, setTelephonyUsers] = useState<Array<{ id: number; name: string | null; email: string; role: string; isActive: boolean; forwardingNumber: string | null }>>([]);
+  const [greetingAudio, setGreetingAudio] = useState<{ business: string | null; "after-hours": string | null }>({ business: null, "after-hours": null });
+  const [priorityCandidate, setPriorityCandidate] = useState("");
   const [loadingTelephony, setLoadingTelephony] = useState(false);
   const [telephonyError, setTelephonyError] = useState<string | null>(null);
   const [savingTelephony, setSavingTelephony] = useState(false);
@@ -158,6 +162,8 @@ export default function Settings() {
         voiceGreeting: settingsPayload.voiceGreeting ?? "",
         voiceAfterHoursGreeting: settingsPayload.voiceAfterHoursGreeting ?? "",
         voiceRoutingMode: settingsPayload.voiceRoutingMode ?? "assigned-rep-first",
+        voicePriorityRepIds: Array.isArray(settingsPayload.voicePriorityRepIds) ? settingsPayload.voicePriorityRepIds : [],
+        missedCallTextBackEnabled: settingsPayload.missedCallTextBackEnabled === true,
         voicemailRecipients: Array.isArray(settingsPayload.voicemailRecipients) ? settingsPayload.voicemailRecipients : ["funding@my-business-solutions.com"],
         forwardingNumbers: Array.isArray(settingsPayload.users)
           ? settingsPayload.users
@@ -165,6 +171,10 @@ export default function Settings() {
               u.isActive && ["rep", "manager", "admin"].includes(u.role ?? ""))
             .map((u: { id: number; forwardingNumber?: string | null }) => ({ userId: u.id, forwardingNumber: u.forwardingNumber ?? null }))
           : [],
+      });
+      setGreetingAudio({
+        business: settingsPayload.voiceGreetingAudioPath ?? null,
+        "after-hours": settingsPayload.voiceAfterHoursGreetingAudioPath ?? null,
       });
       setTelephonyUsers(Array.isArray(settingsPayload.users) ? settingsPayload.users : []);
       const numbers = Array.isArray(numbersPayload) ? numbersPayload : numbersPayload.numbers;
@@ -824,9 +834,47 @@ export default function Settings() {
                       <SelectContent>
                         <SelectItem value="assigned-rep-first">Assigned rep first</SelectItem>
                         <SelectItem value="ring-all">Ring all active reps</SelectItem>
+                        <SelectItem value="priority-list">Priority list (15 seconds each)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  {telephonySettings.voiceRoutingMode === "priority-list" && (
+                    <div className="sm:col-span-2 space-y-3">
+                      <label className="text-sm font-medium">Priority ring order</label>
+                      <p className="text-xs text-muted-foreground">Reps ring one at a time for 15 seconds, then voicemail. Reps without a forwarding number are skipped.</p>
+                      {telephonySettings.voicePriorityRepIds.map((id, index) => {
+                        const rep = telephonyUsers.find((candidate) => candidate.id === id);
+                        return <div key={id} className="flex flex-wrap items-center gap-2 text-sm">
+                          <span className="min-w-44">{index + 1}. {rep?.name || rep?.email || `Rep ${id}`}</span>
+                          <Button type="button" variant="outline" size="sm" disabled={index === 0} onClick={() => setTelephonySettings((c) => {
+                            const ids = [...c.voicePriorityRepIds]; [ids[index - 1], ids[index]] = [ids[index]!, ids[index - 1]!];
+                            return { ...c, voicePriorityRepIds: ids };
+                          })}>Up</Button>
+                          <Button type="button" variant="outline" size="sm" disabled={index === telephonySettings.voicePriorityRepIds.length - 1} onClick={() => setTelephonySettings((c) => {
+                            const ids = [...c.voicePriorityRepIds]; [ids[index], ids[index + 1]] = [ids[index + 1]!, ids[index]!];
+                            return { ...c, voicePriorityRepIds: ids };
+                          })}>Down</Button>
+                          <Button type="button" variant="outline" size="sm" onClick={() => setTelephonySettings((c) => ({ ...c, voicePriorityRepIds: c.voicePriorityRepIds.filter((value) => value !== id) }))}>Remove</Button>
+                        </div>;
+                      })}
+                      <div className="flex items-center gap-2">
+                        <Select value={priorityCandidate} onValueChange={setPriorityCandidate}>
+                          <SelectTrigger className="w-60"><SelectValue placeholder="Select a rep" /></SelectTrigger>
+                          <SelectContent>
+                            {telephonyUsers.filter((u) => u.role === "rep" && !telephonySettings.voicePriorityRepIds.includes(u.id)).map((u) =>
+                              <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" variant="outline" disabled={!priorityCandidate} onClick={() => {
+                          const id = Number(priorityCandidate);
+                          if (telephonyUsers.some((u) => u.id === id && u.role === "rep")) {
+                            setTelephonySettings((c) => ({ ...c, voicePriorityRepIds: [...c.voicePriorityRepIds, id] }));
+                          }
+                          setPriorityCandidate("");
+                        }}>Add rep</Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="sm:col-span-2 space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Business days</label>
                     <div className="flex flex-wrap gap-3">
@@ -850,10 +898,12 @@ export default function Settings() {
                   <div className="sm:col-span-2 space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-greeting">Voicemail greeting</label>
                     <Textarea id="voice-greeting" value={telephonySettings.voiceGreeting} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceGreeting: e.target.value }))} rows={3} />
+                    <TelephonyGreetingUpload apiBase={apiBase} kind="business" label="Voicemail greeting audio" objectPath={greetingAudio.business} onChange={(path) => setGreetingAudio((current) => ({ ...current, business: path }))} />
                   </div>
                   <div className="sm:col-span-2 space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-after-hours-greeting">After-hours greeting</label>
                     <Textarea id="voice-after-hours-greeting" value={telephonySettings.voiceAfterHoursGreeting} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceAfterHoursGreeting: e.target.value }))} rows={3} />
+                    <TelephonyGreetingUpload apiBase={apiBase} kind="after-hours" label="After-hours greeting audio" objectPath={greetingAudio["after-hours"]} onChange={(path) => setGreetingAudio((current) => ({ ...current, "after-hours": path }))} />
                   </div>
                   <div className="sm:col-span-2 space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-holidays">Holidays (YYYY-MM-DD, one per line)</label>
@@ -887,6 +937,14 @@ export default function Settings() {
                         {ownedTelephonyNumbers.map((number) => <SelectItem key={number.sid} value={number.phoneNumber}>{number.phoneNumber}{number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}</SelectItem>)}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="sm:col-span-2 flex items-center justify-between gap-3 border-t pt-4">
+                    <div>
+                      <label className="text-sm font-medium" htmlFor="missed-call-text-back">Missed-call text-back</label>
+                      <p className="text-xs text-muted-foreground">Off by default. Text eligible known callers once per day after an unanswered business-hours call.</p>
+                    </div>
+                    <Switch id="missed-call-text-back" checked={telephonySettings.missedCallTextBackEnabled}
+                      onCheckedChange={(checked) => setTelephonySettings((c) => ({ ...c, missedCallTextBackEnabled: checked }))} />
                   </div>
                   <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
                     <Button onClick={saveTelephony} disabled={savingTelephony} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">

@@ -17,11 +17,46 @@ import { ObjectStorageService } from "./objectStorage";
 import { logActivity } from "./activityHelper";
 import { createNotification } from "./notify";
 import { logger } from "./logger";
+import { getLeadSmsEligibility } from "./smsEligibility";
+import { isUsfaMarketingBlocked } from "./intake/usfaCompliance";
+import { getTelephonySettings } from "./telephonySettings";
+import { isWithinVoiceHours, newYorkBusinessTime } from "./inboundVoice";
 
 const PLAYBACK_TTL_SECONDS = 15 * 60;
 const FUNDING_EMAIL = "funding@my-business-solutions.com";
 const DEFAULT_GREETING =
   "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.";
+export const MISSED_CALL_TEXT =
+  "Sorry we missed your call — a My Business Solutions rep will call you back shortly. Reply STOP to opt out.";
+
+export function missedCallTextBackClaimKey(leadId: number, callTime: Date): string {
+  return `missed-call-text-back:${leadId}:${newYorkBusinessTime(callTime).date}`;
+}
+
+export function shouldSendMissedCallTextBack(input: {
+  enabled: boolean;
+  hasRecording: boolean;
+  callOutcome: string | null;
+  callTime: Date;
+  voiceSettings: {
+    voiceHoursStart: string;
+    voiceHoursEnd: string;
+    voiceBusinessDays: number[];
+    voiceHolidays: string[];
+  };
+  smsEligible: boolean;
+  usfaBlocked: boolean;
+  twilioConfigured: boolean;
+}): boolean {
+  return input.enabled
+    && !input.hasRecording
+    && input.callOutcome !== "voicemail"
+    && input.callOutcome !== "connected"
+    && isWithinVoiceHours(input.voiceSettings, input.callTime)
+    && input.smsEligible
+    && !input.usfaBlocked
+    && input.twilioConfigured;
+}
 
 export type VoicemailCompleteInput = {
   callSid: string;
@@ -378,7 +413,7 @@ export async function handleVoicemailComplete(input: VoicemailCompleteInput): Pr
 
 export async function handleMissedCall({ callSid }: { callSid: string }): Promise<boolean> {
   const communication = await db.query.communicationsTable.findFirst({ where: eq(communicationsTable.twilioSid, callSid) });
-  if (!communication?.leadId || communication.callOutcome === "voicemail") return false;
+  if (!communication?.leadId || communication.callOutcome === "voicemail" || communication.callOutcome === "connected") return false;
   const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, communication.leadId) });
   if (!lead) return false;
   const alreadyLogged = await db.query.activityLogTable.findFirst({
@@ -394,6 +429,97 @@ export async function handleMissedCall({ callSid }: { callSid: string }): Promis
       });
       if (!existingTask) await db.insert(tasksTable).values({ leadId: lead.id, userId: lead.assignedRepId, title: "Return missed call", description: "A known lead called and there was no answer.", dueDate: await dueBusinessDate() });
     }
+  }
+
+  // Text-back is an independent, opt-in side effect. Missed-call logging and
+  // the return-call task above must survive every SMS guard/provider failure.
+  try {
+    const settings = await getTelephonySettings();
+    const rawSettings = settings as Record<string, unknown>;
+    const voiceSettings = {
+      voiceHoursStart: String(rawSettings.voiceHoursStart ?? "08:00"),
+      voiceHoursEnd: String(rawSettings.voiceHoursEnd ?? "18:00"),
+      voiceBusinessDays: (rawSettings.voiceBusinessDays as number[] | null) ?? [1, 2, 3, 4, 5],
+      voiceHolidays: (rawSettings.voiceHolidays as string[] | null) ?? [],
+    };
+    const smsEligible = shouldSendMissedCallTextBack({
+      enabled: rawSettings.missedCallTextBackEnabled === true,
+      hasRecording: Boolean(communication.recordingSid),
+      callOutcome: communication.callOutcome,
+      callTime: communication.createdAt,
+      voiceSettings,
+      smsEligible: (await getLeadSmsEligibility(db, lead.id)).eligible,
+      usfaBlocked: await isUsfaMarketingBlocked(db, lead.leadSource),
+      twilioConfigured: Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && settings.smsSenderNumber),
+    });
+    if (smsEligible) {
+    const callDay = newYorkBusinessTime(communication.createdAt).date;
+    const claimKey = missedCallTextBackClaimKey(lead.id, communication.createdAt);
+    const claim = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${claimKey}))`);
+      const [existing] = await tx.select().from(idempotencyKeysTable).where(and(
+        eq(idempotencyKeysTable.key, claimKey),
+        eq(idempotencyKeysTable.endpoint, "twilio.missed-call-text-back"),
+      )).limit(1);
+      if (existing) {
+        const payload = (existing.resultPayload ?? {}) as { state?: string; twilioSid?: string };
+        return { acquired: false, sentSid: payload.state === "sent" ? payload.twilioSid : undefined };
+      }
+      const [claim] = await tx.insert(idempotencyKeysTable).values({
+        key: claimKey,
+        endpoint: "twilio.missed-call-text-back",
+        resultPayload: { leadId: lead.id, callSid, date: callDay, state: "claimed" },
+      }).onConflictDoNothing({
+        target: [idempotencyKeysTable.key, idempotencyKeysTable.endpoint],
+      }).returning({ id: idempotencyKeysTable.id });
+      return { acquired: Boolean(claim) };
+    });
+    if (claim.acquired || claim.sentSid) {
+      try {
+        let sid = claim.sentSid;
+        let status = "sent";
+        if (!sid) {
+          const client = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
+          const message = await client.messages.create({
+            from: settings.smsSenderNumber!,
+            to: lead.phone!,
+            body: MISSED_CALL_TEXT,
+          });
+          sid = message.sid;
+          status = message.status;
+          const [claimRow] = await db.select().from(idempotencyKeysTable).where(and(
+            eq(idempotencyKeysTable.key, claimKey),
+            eq(idempotencyKeysTable.endpoint, "twilio.missed-call-text-back"),
+          )).limit(1);
+          if (claimRow) await db.update(idempotencyKeysTable).set({
+            resultPayload: { leadId: lead.id, callSid, date: callDay, state: "sent", twilioSid: sid },
+          }).where(eq(idempotencyKeysTable.id, claimRow.id));
+        }
+        const existingSms = await db.query.communicationsTable.findFirst({ where: eq(communicationsTable.twilioSid, sid) });
+        if (!existingSms) await db.insert(communicationsTable).values({
+          leadId: lead.id, userId: lead.assignedRepId, type: "sms", direction: "outbound",
+          fromNumber: settings.smsSenderNumber, toNumber: lead.phone, body: MISSED_CALL_TEXT,
+          status, twilioSid: sid,
+        });
+        const sentActivity = await db.query.activityLogTable.findFirst({ where: and(
+          eq(activityLogTable.entityType, "communication"), eq(activityLogTable.entityId, callSid),
+          eq(activityLogTable.action, "missed_call_text_back_sent"),
+        ) });
+        if (!sentActivity) {
+          await logActivity({
+            userId: lead.assignedRepId, leadId: lead.id, action: "missed_call_text_back_sent",
+            entityType: "communication", entityId: callSid, details: { callSid, date: callDay, twilioSid: sid },
+          });
+        }
+      } catch (error) {
+        // The claim remains durable when Twilio has an unknown outcome. Never
+        // retry automatically and risk sending a second text.
+        logger.warn({ err: error, leadId: lead.id, callSid }, "Missed-call text-back delivery failed");
+      }
+    }
+  }
+  } catch (error) {
+    logger.warn({ err: error, leadId: lead.id, callSid }, "Missed-call text-back guard/reconciliation failed");
   }
   return !alreadyLogged;
 }

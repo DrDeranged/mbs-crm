@@ -78,20 +78,11 @@ test("the real API router has a gate before every private mutation", async () =>
 
   const registrations = walkRouter(apiRouter);
   const allRegistrations = [...walkRouter(bootCriticalRouter), ...registrations];
-  assert.equal(allRegistrations.length, 244, "update this audited count when registering a route");
+  assert.equal(allRegistrations.length, 248, "update this audited count when registering a route");
   const matrix = await readFile(new URL("../../../../docs/AUTH_MATRIX.md", import.meta.url), "utf8");
   const documentedRoutes = [...matrix.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| `([^`]+)` \|/gm)]
     .map(([, method, path]) => `${method} ${path}`)
     .sort();
-  // These routes were introduced with the telephony admin settings surface;
-  // keep them in this audited expectation until the generated matrix catches
-  // up. They must remain administrator-only in settings.ts.
-  documentedRoutes.push(
-    "GET /api/settings/telephony",
-    "GET /api/settings/telephony/owned-numbers",
-    "PUT /api/settings/telephony",
-  );
-  documentedRoutes.sort();
   const runtimeRoutes = allRegistrations
     .map(({ method, path }) => `${method} /api${path}`)
     .sort();

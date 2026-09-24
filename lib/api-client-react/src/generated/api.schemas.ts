@@ -1409,6 +1409,23 @@ export interface DashboardSummary {
   repCounts: RepCount[];
 }
 
+export type DashboardCallsOverdueVoicemailsItem = {
+  id: number;
+  leadId: number;
+  leadName: string;
+  companyName?: string | null;
+  phone?: string | null;
+  arrivedAt: string;
+};
+
+export interface DashboardCalls {
+  inboundCount: number;
+  answeredCount: number;
+  voicemailCount: number;
+  averageCallbackBusinessMinutes?: number | null;
+  overdueVoicemails: DashboardCallsOverdueVoicemailsItem[];
+}
+
 export interface LeadsByStatus {
   status?: string;
   count?: number;

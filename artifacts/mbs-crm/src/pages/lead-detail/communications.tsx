@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserDisplayName } from "@/lib/utils";
@@ -138,7 +138,16 @@ export function LeadCommunications() {
   const { id: leadId, lead } = useLeadDetail();
   const leadPhone = lead?.phone;
   const leadEmail = lead?.email;
-  const { dial } = useContext(SoftphoneContext);
+  const { dial, pendingTextLeadId, clearTextComposer } = useContext(SoftphoneContext);
+  const smsComposerRef = useRef<HTMLTextAreaElement>(null);
+  const [smsBody, setSmsBody] = useState("");
+  const [activeCompose, setActiveCompose] = useState<"sms" | "email">("sms");
+  useEffect(() => {
+    if (pendingTextLeadId !== leadId) return;
+    setActiveCompose("sms");
+    requestAnimationFrame(() => smsComposerRef.current?.focus());
+    clearTextComposer();
+  }, [pendingTextLeadId, leadId, clearTextComposer]);
   const { data: comms, isLoading: commsLoading } = useListCommunications(leadId, { query: { queryKey: getListCommunicationsQueryKey(leadId) } });
   const { data: emails, isLoading: emailsLoading } = useListLeadEmails(leadId, { query: { queryKey: getListLeadEmailsQueryKey(leadId) } });
   const { data: templates } = useListEmailTemplates();
@@ -148,8 +157,6 @@ export function LeadCommunications() {
   const { toast } = useToast();
   const previewEmailTemplate = usePreviewEmailTemplate();
   const generateDraft = useGenerateAiDraft();
-  const [smsBody, setSmsBody] = useState("");
-  const [activeCompose, setActiveCompose] = useState<"sms" | "email">("sms");
   const [emailMode, setEmailMode] = useState<"template" | "freeform">("template");
   const [emailTemplateId, setEmailTemplateId] = useState<string>("");
   const [emailSubject, setEmailSubject] = useState("");
@@ -393,6 +400,7 @@ export function LeadCommunications() {
             </div>
             <div className="flex gap-2">
               <Textarea
+                ref={smsComposerRef}
                 value={smsBody}
                 onChange={(e) => setSmsBody(e.target.value)}
                 placeholder="Type an SMS message…"

@@ -79,6 +79,7 @@ import type {
   CreateWorkflowRuleBody,
   CreditComplianceLogResponse,
   CreditPullResult,
+  DashboardCalls,
   DashboardSummary,
   Deal,
   DealActivity,
@@ -5383,6 +5384,83 @@ export function useGetDashboardSummary<TData = Awaited<ReturnType<typeof getDash
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetDashboardSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDashboardCallsUrl = () => {
+
+
+
+
+  return `/api/dashboard/calls`
+}
+
+/**
+ * @summary Calls today and overdue voicemails visible to the current user
+ */
+export const getDashboardCalls = async ( options?: RequestInit): Promise<DashboardCalls> => {
+
+  return customFetch<DashboardCalls>(getGetDashboardCallsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardCallsQueryKey = () => {
+    return [
+    `/api/dashboard/calls`
+    ] as const;
+    }
+
+
+export const getGetDashboardCallsQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardCalls>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardCalls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardCallsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardCalls>>> = ({ signal }) => getDashboardCalls({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardCalls>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardCallsQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardCalls>>>
+export type GetDashboardCallsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Calls today and overdue voicemails visible to the current user
+ */
+
+export function useGetDashboardCalls<TData = Awaited<ReturnType<typeof getDashboardCalls>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardCalls>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardCallsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

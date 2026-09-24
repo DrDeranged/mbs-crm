@@ -140,6 +140,31 @@ export class ObjectStorageService {
     };
   }
 
+  async getTelephonyGreetingUploadURL(): Promise<{ uploadUrl: string; objectPath: string }> {
+    // The upload grant only permits writing a staging object. Playback uses a
+    // server-owned copy so an unexpired PUT URL cannot replace approved audio.
+    const entityPath = `telephony/greetings/staging/${randomUUID()}.mp3`;
+    const { bucketName, objectName } = parseObjectPath(`${this.getPrivateObjectDir()}/${entityPath}`);
+    return {
+      uploadUrl: await signObjectURL({ bucketName, objectName, method: "PUT", ttlSec: 900 }),
+      objectPath: `/objects/${entityPath}`,
+    };
+  }
+
+  async getTelephonyGreetingPlaybackURL(objectPath: string): Promise<string> {
+    if (!/^\/objects\/telephony\/greetings\/[0-9a-f-]{36}\.mp3$/.test(objectPath)) {
+      throw new ObjectNotFoundError();
+    }
+    const metadata = await this.getObjectEntityMetadata(objectPath);
+    if (metadata.size < 1 || metadata.size > 2 * 1024 * 1024 || metadata.contentType !== "audio/mpeg") {
+      throw new Error("Greeting audio must be an MP3 under 2 MB");
+    }
+    const { bucketName, objectName } = parseObjectPath(
+      `${this.getPrivateObjectDir()}/${objectPath.slice("/objects/".length)}`,
+    );
+    return signObjectURL({ bucketName, objectName, method: "GET", ttlSec: 900 });
+  }
+
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
@@ -175,9 +200,14 @@ export class ObjectStorageService {
     };
   }
 
-  async readObjectEntity(objectPath: string): Promise<{ bytes: Buffer; contentType: string; size: number; generation: string }> {
+  async readObjectEntity(objectPath: string, maxBytes?: number): Promise<{ bytes: Buffer; contentType: string; size: number; generation: string }> {
     const file = await this.getObjectEntityFile(objectPath);
-    const [[metadata], [bytes]] = await Promise.all([file.getMetadata(), file.download()]);
+    // A signed staging PUT may still be valid while we verify the upload.
+    // Cap the download itself so a changed/oversized object cannot exhaust API memory.
+    const [[metadata], [bytes]] = await Promise.all([
+      file.getMetadata(),
+      maxBytes === undefined ? file.download() : file.download({ start: 0, end: maxBytes }),
+    ]);
     return {
       bytes,
       contentType: String(metadata.contentType || "application/octet-stream"),

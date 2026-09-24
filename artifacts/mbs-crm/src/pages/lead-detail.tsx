@@ -1,3 +1,4 @@
+import { useContext, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DetailLoadError } from "@/components/detail-load-error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import { LeadFinancials } from "./lead-detail/financials";
 import { LeadCredit } from "./lead-detail/credit";
 import { LeadConsent } from "./lead-detail/consent";
 import { getQueryErrorStatus } from "@/lib/query-error";
+import { SoftphoneContext } from "@/components/softphone-context";
 
 function LeadDetailContent() {
   const {
@@ -27,6 +29,14 @@ function LeadDetailContent() {
     isAdmin,
     retry,
   } = useLeadDetail();
+  const { pendingTextLeadId } = useContext(SoftphoneContext);
+  const [selectedTab, setSelectedTab] = useState("info");
+
+  useEffect(() => {
+    if (pendingTextLeadId && pendingTextLeadId === lead?.id) {
+      setSelectedTab("communications");
+    }
+  }, [pendingTextLeadId, lead?.id]);
 
   if (isLoading) {
     return <div className="p-8 space-y-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-[400px] w-full" /></div>;
@@ -55,7 +65,7 @@ function LeadDetailContent() {
         <LeadSummary />
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="info" className="w-full">
+           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
             <div className="overflow-x-auto">
             <TabsList className="flex w-max min-w-full bg-white shadow-sm border p-1 gap-0.5 h-auto rounded-lg">
               <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>

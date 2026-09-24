@@ -20,6 +20,8 @@ import {
   useAssignLead,
   useListDeals,
   getListDealsQueryKey,
+  useGetDashboardCalls,
+  getGetDashboardCallsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,7 +33,7 @@ import {
   LineChart, Line, Cell,
 } from "recharts";
 import {
-  Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity,
+  Users, CheckCircle2, Clock, TrendingUp, DollarSign, Activity, PhoneCall,
   Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks, Briefcase, BarChart2
 } from "lucide-react";
 import { Link } from "wouter";
@@ -40,6 +42,8 @@ import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYea
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { DASHBOARD_EMPTY_STATES } from "@/lib/dashboardEmptyStates";
+import { SoftphoneContext } from "@/components/softphone-context";
+import { useContext } from "react";
 
 const BRAND = "#1F4E79";
 const TEAL = "#0D9488";
@@ -325,6 +329,54 @@ function StaleLeadQueue() {
   );
 }
 
+function CallsTodayCard() {
+  const { dial } = useContext(SoftphoneContext);
+  const { data, isLoading } = useGetDashboardCalls({
+    query: { queryKey: getGetDashboardCallsQueryKey(), staleTime: 30_000 },
+  });
+  const minutes = data?.averageCallbackBusinessMinutes;
+  return (
+    <Card className="mb-6" data-testid="card-calls-today">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <PhoneCall className="h-4 w-4 text-[#1F4E79]" /> Calls today
+        </CardTitle>
+        <CardDescription>Inbound calls, response mix, and voicemails waiting for a callback.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? <Skeleton className="h-16 w-full" /> : (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div><p className="text-xs text-muted-foreground">Inbound</p><p className="text-2xl font-bold">{data?.inboundCount ?? 0}</p></div>
+              <div><p className="text-xs text-muted-foreground">Answered</p><p className="text-2xl font-bold text-emerald-700">{data?.answeredCount ?? 0}</p></div>
+              <div><p className="text-xs text-muted-foreground">Voicemail</p><p className="text-2xl font-bold">{data?.voicemailCount ?? 0}</p></div>
+              <div><p className="text-xs text-muted-foreground">Avg callback</p><p className="text-2xl font-bold">{minutes == null ? "—" : `${Math.round(minutes / 60 * 10) / 10}h`}</p></div>
+            </div>
+            {!!data?.overdueVoicemails.length && (
+              <div className="mt-5 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-red-700">Voicemails older than 4 business hours</p>
+                {data.overdueVoicemails.map((voicemail) => (
+                  <div key={voicemail.id} className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-3 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-red-900">{voicemail.leadName}</p>
+                      <p className="text-xs text-red-700">{new Date(voicemail.arrivedAt).toLocaleString()} · callback overdue</p>
+                    </div>
+                    {voicemail.phone && (
+                      <Button size="sm" variant="outline" className="border-red-300 text-red-800 hover:bg-red-100" onClick={() => dial(voicemail.phone!, { autoCall: true, leadId: voicemail.leadId })}>
+                        <PhoneCall className="mr-1.5 h-3.5 w-3.5" /> Call
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const [preset, setPreset] = useState<DateRangePreset>("ytd");
   const [customRange, setCustomRange] = useState<DateRange>({
@@ -466,6 +518,7 @@ export default function Dashboard() {
       </div>
 
       <DailyBriefingCard />
+      <CallsTodayCard />
       {isAdmin && <StaleLeadQueue />}
       <Card className="mb-6" data-testid="card-expiring-approvals">
         <CardHeader>

@@ -1,14 +1,17 @@
 import { Router, type IRouter } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { db } from "@workspace/db";
-import { jobRunsTable, emailSendsTable, emailWebhookEventsTable } from "@workspace/db";
+import { jobRunsTable, emailSendsTable, emailWebhookEventsTable, companySettingsTable, usersTable } from "@workspace/db";
 import { getMigrationStatus } from "@workspace/db";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { getPdfHealth } from "../lib/pdfHealth";
 import { getIntegrationHealth, getTwilioTelephonyHealth } from "../lib/integrationHealth";
 import { getClerkHealth } from "../lib/clerkHealth";
 import { getBootSchemaFailure } from "../lib/schemaBoot";
 import { buildRevision } from "../lib/buildRevision";
+import { isWithinVoiceHours } from "../lib/inboundVoice";
+import { resolveGreetingAudioUrl } from "../lib/telephonyGreeting";
+import { isValidE164 } from "../lib/telephonySettings";
 
 const router: IRouter = Router();
 
@@ -119,6 +122,34 @@ router.get("/health/deep", async (_req, res) => {
     ),
   };
 
+  let telephony: {
+    routingMode: string;
+    businessHoursStatus: "open" | "closed";
+    greetingSource: "tts" | "audio";
+    forwardingNumberCount: number;
+  } | null = null;
+  if (dbOk) {
+    try {
+      const [settings, forwarding] = await Promise.all([
+        db.select().from(companySettingsTable).limit(1),
+        db.select({ number: usersTable.forwardingNumber, role: usersTable.role }).from(usersTable)
+          .where(and(eq(usersTable.isActive, true), isNull(usersTable.mergedInto), isNotNull(usersTable.forwardingNumber))),
+      ]);
+      const current = settings[0];
+      const open = current ? isWithinVoiceHours(current) : false;
+      const audioPath = open ? current?.voiceGreetingAudioPath : current?.voiceAfterHoursGreetingAudioPath;
+      telephony = {
+        routingMode: current?.voiceRoutingMode ?? "assigned-rep-first",
+        businessHoursStatus: open ? "open" : "closed",
+        greetingSource: await resolveGreetingAudioUrl(audioPath) ? "audio" : "tts",
+        forwardingNumberCount: forwarding.filter((rep) =>
+          ["rep", "manager", "admin"].includes(rep.role) && Boolean(rep.number && isValidE164(rep.number))).length,
+      };
+    } catch {
+      // Health inspection must remain available if telephony tables are pending migration.
+    }
+  }
+
   // 3. Last job run per job
   let jobSummary: Record<string, object> = {};
   try {
@@ -156,6 +187,7 @@ router.get("/health/deep", async (_req, res) => {
     db: dbOk ? "ok" : "fail",
     schema,
     integrations,
+    telephony,
     pdf: await getPdfHealth(),
     jobs: jobSummary,
     uptimeSeconds: Math.floor(process.uptime()),

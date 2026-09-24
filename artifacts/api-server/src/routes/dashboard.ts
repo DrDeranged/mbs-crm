@@ -1,10 +1,27 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
-import { leadsTable, tasksTable, activityLogTable, usersTable } from "@workspace/db";
-import { eq, desc, and, gte, lte, sql, isNull } from "drizzle-orm";
+import { leadsTable, tasksTable, activityLogTable, usersTable, communicationsTable, companySettingsTable } from "@workspace/db";
+import { eq, desc, and, gte, lte, sql, isNull, or, inArray } from "drizzle-orm";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
+import { newYorkBusinessTime } from "../lib/inboundVoice";
+import { calculateDashboardCalls } from "../lib/dashboardCalls";
 
 const router: IRouter = Router();
+
+function nyMidnight(now: Date): Date {
+  const { date } = newYorkBusinessTime(now);
+  // Derive the offset from noon in the target date so DST transitions do not
+  // shift the reporting boundary by an hour.
+  const [year, month, day] = date.split("-").map(Number);
+  const noon = new Date(Date.UTC(year!, month! - 1, day!, 12));
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit",
+    day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(noon);
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? 0);
+  const offset = noon.getTime() - Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"));
+  return new Date(Date.UTC(year!, month! - 1, day!) + offset);
+}
 
 function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable.$inferSelect | null) {
   return {
@@ -94,6 +111,98 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
       count: r.count,
     })),
   });
+});
+
+/** Calls-today operational card. Phone numbers are returned only for leads
+ * visible to this user (reps are restricted by lead ownership). */
+router.get("/dashboard/calls", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  if (!["admin", "manager", "rep"].includes(user.role)) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  const todayStart = nyMidnight(new Date());
+  const leadRows = await db.query.leadsTable.findMany({
+    where: user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined,
+    columns: { id: true, firstName: true, lastName: true, companyName: true, phone: true },
+  });
+  const leadIds = leadRows.map((lead) => lead.id);
+  const ownershipClause = user.role === "rep"
+    ? (leadIds.length ? inArray(communicationsTable.leadId, leadIds) : sql`false`)
+    : undefined;
+  const inbound = await db.query.communicationsTable.findMany({
+    where: and(
+      eq(communicationsTable.type, "call"),
+      eq(communicationsTable.direction, "inbound"),
+      gte(communicationsTable.createdAt, todayStart),
+      ownershipClause,
+    ),
+  });
+  if (!leadIds.length) return void res.json({
+    inboundCount: inbound.length,
+    answeredCount: inbound.filter((call) =>
+      call.callOutcome !== "voicemail" &&
+      (call.callOutcome === "connected" || call.status === "completed" || call.status === "answered"),
+    ).length,
+    voicemailCount: inbound.filter((call) => call.status === "voicemail" || call.callOutcome === "voicemail").length,
+    averageCallbackBusinessMinutes: null,
+    overdueVoicemails: [],
+  });
+  const voicemailRows = await db.query.communicationsTable.findMany({
+    where: and(
+      eq(communicationsTable.type, "call"),
+      eq(communicationsTable.direction, "inbound"),
+       or(eq(communicationsTable.status, "voicemail"), eq(communicationsTable.callOutcome, "voicemail")),
+      inArray(communicationsTable.leadId, leadIds),
+    ),
+    orderBy: [desc(communicationsTable.createdAt)],
+  });
+  const callbacks = await db.query.communicationsTable.findMany({
+    where: and(
+      eq(communicationsTable.type, "call"),
+      eq(communicationsTable.direction, "outbound"),
+      inArray(communicationsTable.leadId, leadIds),
+    ),
+    orderBy: [desc(communicationsTable.createdAt)],
+    with: { user: true },
+  });
+  const callbackActivities = await db.query.activityLogTable.findMany({
+    where: and(
+      eq(activityLogTable.action, "call_completed_outbound"),
+      inArray(activityLogTable.leadId, leadIds),
+    ),
+  });
+  const activityByCommunicationId = new Map(
+    callbackActivities.map((activity) => [
+      String(activity.entityId),
+      {
+        at: activity.createdAt,
+        status: String((activity.details as Record<string, unknown> | null)?.status ?? ""),
+      },
+    ]),
+  );
+  const [settings] = await db.select({
+    voiceHoursStart: companySettingsTable.voiceHoursStart,
+    voiceHoursEnd: companySettingsTable.voiceHoursEnd,
+    voiceBusinessDays: companySettingsTable.voiceBusinessDays,
+    voiceHolidays: companySettingsTable.voiceHolidays,
+  }).from(companySettingsTable).limit(1);
+  const effective = settings ?? { voiceHoursStart: "08:00", voiceHoursEnd: "18:00", voiceBusinessDays: [1, 2, 3, 4, 5], voiceHolidays: [] };
+  const result = calculateDashboardCalls(
+    inbound as any,
+    voicemailRows as any,
+    callbacks.map((callback) => ({
+      ...callback,
+      userRole: (callback as any).user?.role ?? null,
+      callbackActivityAt: activityByCommunicationId.get(String(callback.id))?.at ?? null,
+      callbackActivityStatus: activityByCommunicationId.get(String(callback.id))?.status ?? null,
+    })) as any,
+    leadRows,
+    effective,
+    new Date(),
+  );
+  res.json(result);
 });
 
 router.get("/dashboard/rep", async (req: Request, res: Response) => {

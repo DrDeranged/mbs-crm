@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildInboundVoiceTwiML, isWithinVoiceHours, selectRingTargets } from "./inboundVoice";
+import { buildInboundVoiceTwiML, isWithinVoiceHours, nextPriorityTarget, selectRingTargets } from "./inboundVoice";
 
 const hours = {
   voiceHoursStart: "08:00", voiceHoursEnd: "18:00",
@@ -63,5 +63,34 @@ describe("inbound routing targets", () => {
     assert.match(xml, /Closed; leave a message/);
     assert.match(xml, /<Record[^>]*maxLength="120"/);
     assert.match(xml, /transcribe="true"/);
+  });
+  it("rings priority reps sequentially, skipping inactive, merged, and unforwarded users", () => {
+    const ordered = selectRingTargets([
+      ...reps, { id: 6, forwardingNumber: "+12125550123", isActive: true, role: "rep", mergedInto: 1 },
+    ], null, "priority-list", [3, 6, 2, 4, 1]);
+    assert.deepEqual(ordered.map((rep) => rep.id), [2, 1]);
+    const base = { baseUrl: "https://example.com", greeting: "Leave a message",
+      afterHoursGreeting: "We're closed", open: true, callerId: "+19088608507",
+      callSid: "CA00000000000000000000000000000000", routingMode: "priority-list" as const };
+    const first = buildInboundVoiceTwiML({ ...base, targets: ordered, priorityAttempt: 0 });
+    assert.match(first, /timeout="15"/);
+    assert.match(first, /dial-result\?attempt=0/);
+    assert.match(first, /\+19173996578/);
+    assert.doesNotMatch(first, /\+16022455425/);
+    assert.equal(nextPriorityTarget(ordered, 0, "no-answer")?.id, 1);
+    assert.equal(nextPriorityTarget(ordered, 0, "completed"), null);
+    assert.equal(nextPriorityTarget(ordered, 1, "no-answer"), null);
+    const second = buildInboundVoiceTwiML({ ...base, targets: [ordered[1]!], priorityAttempt: 1 });
+    assert.match(second, /dial-result\?attempt=1/);
+  });
+  it("uses audio when available and falls back to written greeting otherwise", () => {
+    const base = { baseUrl: "https://example.com", greeting: "Business text", afterHoursGreeting: "Closed text",
+      open: false, targets: [], callerId: "+19088608507", callSid: "CA00000000000000000000000000000000" };
+    const audio = buildInboundVoiceTwiML({ ...base, afterHoursGreetingAudioUrl: "https://storage.googleapis.com/signed.mp3" });
+    assert.match(audio, /<Play>https:\/\/storage.googleapis.com\/signed.mp3<\/Play>/);
+    assert.doesNotMatch(audio, /Closed text/);
+    const tts = buildInboundVoiceTwiML(base);
+    assert.match(tts, /Closed text/);
+    assert.doesNotMatch(tts, /<Play>/);
   });
 });
