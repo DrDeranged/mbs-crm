@@ -36,3 +36,4 @@
 - [Expo tabs auth boundary](expo-tabs-auth-boundary.md) — guard the tabs layout before rendering children; a root-layout redirect alone can briefly mount protected queries.
 - [Migration-model parity](migration-model-parity.md) — parity checks must include operational tables; exclusions can hide destructive schema drift.
 - [Approved campaign assets](approved-campaign-assets.md) — approvals must bind flyer bytes, not client metadata; launch re-verifies digest/generation and sends the approved attachment.
+- [Telephony default precedence](telephony-defaults.md) — legacy single-number configuration may be the secondary line; backfill explicit business-line defaults before falling back to it.
