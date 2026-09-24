@@ -20,6 +20,9 @@ const equivalentDefaultStatements = new Set([
   `ALTER TABLE "lenders" ALTER COLUMN "prohibited_industries" SET DEFAULT '{}';`,
   `ALTER TABLE "lenders" ALTER COLUMN "equipment_restrictions" SET DEFAULT '{}';`,
   `ALTER TABLE "lenders" ALTER COLUMN "required_documents" SET DEFAULT '{}';`,
+  // Drizzle Kit repeatedly proposes the same empty-array default even when
+  // Postgres has the matching '{}'::text[] default after migration.
+  `ALTER TABLE "company_settings" ALTER COLUMN "voice_holidays" SET DEFAULT '{}';`,
   `ALTER TABLE "deal_approvals" ALTER COLUMN "down_payment" SET DEFAULT 0;`,
 ]);
 

@@ -1,8 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireUser } from "../lib/authHelpers";
 import { db } from "@workspace/db";
-import { companySettingsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { companySettingsTable, usersTable } from "@workspace/db";
+import { eq, inArray } from "drizzle-orm";
 import { logActivity } from "../lib/activityHelper";
 import { z } from "zod/v4";
 import { DEFAULT_ROUTING_SETTINGS } from "../lib/leadRouting";
@@ -17,6 +17,19 @@ const router: IRouter = Router();
 const TelephonySettingsBody = z.object({
   voiceCallerId: z.string().trim().nullable().optional(),
   smsSenderNumber: z.string().trim().nullable().optional(),
+  voiceHoursStart: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).optional(),
+  voiceHoursEnd: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).optional(),
+  voiceBusinessDays: z.array(z.number().int().min(0).max(6)).min(1).max(7)
+    .refine((days) => new Set(days).size === days.length, "Days must be unique").optional(),
+  voiceHolidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  voiceGreeting: z.string().trim().min(1).optional(),
+  voiceAfterHoursGreeting: z.string().trim().min(1).optional(),
+  voiceRoutingMode: z.enum(["assigned-rep-first", "ring-all"]).optional(),
+  voicemailRecipients: z.array(z.string().email()).min(1).optional(),
+  forwardingNumbers: z.array(z.object({
+    userId: z.number().int().positive(),
+    forwardingNumber: z.string().trim().nullable(),
+  })).optional(),
 }).strict().refine((body) => Object.keys(body).length > 0, {
   message: "At least one setting must be provided",
 }).superRefine((body, ctx) => {
@@ -328,7 +341,25 @@ router.get("/settings/telephony", async (req: Request, res: Response) => {
   const user = await requireUser(req, res);
   if (!user) return;
   if (user.role !== "admin") return void res.status(403).json({ error: "Forbidden" });
-  res.json(await getTelephonySettings());
+  const [settings, users] = await Promise.all([
+    getTelephonySettings(),
+    db.select({
+      id: usersTable.id, name: usersTable.name, email: usersTable.email,
+      role: usersTable.role, isActive: usersTable.isActive, forwardingNumber: usersTable.forwardingNumber,
+    }).from(usersTable).orderBy(usersTable.name),
+  ]);
+  res.json({
+    ...settings,
+    voiceHoursStart: settings.voiceHoursStart ?? "08:00",
+    voiceHoursEnd: settings.voiceHoursEnd ?? "18:00",
+    voiceBusinessDays: settings.voiceBusinessDays ?? [1, 2, 3, 4, 5],
+    voiceHolidays: settings.voiceHolidays ?? [],
+    voiceGreeting: settings.voiceGreeting ?? "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.",
+    voiceAfterHoursGreeting: settings.voiceAfterHoursGreeting ?? "Thanks for calling My Business Solutions. Our office is currently closed. Please leave your name, business name, and phone number, and we'll return your call the next business day.",
+    voiceRoutingMode: settings.voiceRoutingMode ?? "assigned-rep-first",
+    voicemailRecipients: settings.voicemailRecipients ?? ["funding@my-business-solutions.com"],
+    users,
+  });
 });
 
 router.get("/settings/telephony/owned-numbers", async (req: Request, res: Response) => {
@@ -365,17 +396,51 @@ router.put("/settings/telephony", async (req: Request, res: Response) => {
       return void res.status(400).json({ error: `${field} must be an owned Twilio number` });
     }
   }
+  if (parsed.data.forwardingNumbers) {
+    const ids = parsed.data.forwardingNumbers.map((entry) => entry.userId);
+    if (new Set(ids).size !== ids.length) {
+      return void res.status(400).json({ error: "forwardingNumbers must not contain duplicate user IDs" });
+    }
+    for (const entry of parsed.data.forwardingNumbers) {
+      if (entry.forwardingNumber !== null && !isValidE164(entry.forwardingNumber)) {
+        return void res.status(400).json({ error: `Invalid forwarding number for user ${entry.userId}` });
+      }
+    }
+    const matchedUsers = await db
+      .select({ id: usersTable.id, role: usersTable.role, isActive: usersTable.isActive })
+      .from(usersTable)
+      .where(inArray(usersTable.id, ids));
+    if (matchedUsers.length !== ids.length) {
+      return void res.status(400).json({ error: "forwardingNumbers may only target existing users" });
+    }
+    if (matchedUsers.some((row) => !row.isActive || !["rep", "manager", "admin"].includes(row.role))) {
+      return void res.status(400).json({ error: "forwardingNumbers may only target active authorized users" });
+    }
+  }
 
   const [existing] = await db.select({ id: companySettingsTable.id }).from(companySettingsTable).limit(1);
   const fields = {
     ...(parsed.data.voiceCallerId !== undefined ? { voiceCallerId: parsed.data.voiceCallerId } : {}),
     ...(parsed.data.smsSenderNumber !== undefined ? { smsSenderNumber: parsed.data.smsSenderNumber } : {}),
+    ...(parsed.data.voiceHoursStart !== undefined ? { voiceHoursStart: parsed.data.voiceHoursStart } : {}),
+    ...(parsed.data.voiceHoursEnd !== undefined ? { voiceHoursEnd: parsed.data.voiceHoursEnd } : {}),
+    ...(parsed.data.voiceBusinessDays !== undefined ? { voiceBusinessDays: parsed.data.voiceBusinessDays } : {}),
+    ...(parsed.data.voiceHolidays !== undefined ? { voiceHolidays: parsed.data.voiceHolidays } : {}),
+    ...(parsed.data.voiceGreeting !== undefined ? { voiceGreeting: parsed.data.voiceGreeting } : {}),
+    ...(parsed.data.voiceAfterHoursGreeting !== undefined ? { voiceAfterHoursGreeting: parsed.data.voiceAfterHoursGreeting } : {}),
+    ...(parsed.data.voiceRoutingMode !== undefined ? { voiceRoutingMode: parsed.data.voiceRoutingMode } : {}),
+    ...(parsed.data.voicemailRecipients !== undefined ? { voicemailRecipients: parsed.data.voicemailRecipients } : {}),
     updatedAt: new Date(),
   };
   if (existing) {
     await db.update(companySettingsTable).set(fields).where(eq(companySettingsTable.id, existing.id));
   } else {
     await db.insert(companySettingsTable).values(fields);
+  }
+  if (parsed.data.forwardingNumbers) {
+    for (const entry of parsed.data.forwardingNumbers) {
+      await db.update(usersTable).set({ forwardingNumber: entry.forwardingNumber, updatedAt: new Date() }).where(eq(usersTable.id, entry.userId));
+    }
   }
   await logActivity({
     userId: user.id,
@@ -384,7 +449,14 @@ router.put("/settings/telephony", async (req: Request, res: Response) => {
     entityId: existing?.id ?? 0,
     details: { fields: Object.keys(parsed.data) },
   });
-  res.json(await getTelephonySettings());
+  const [updatedSettings, updatedUsers] = await Promise.all([
+    getTelephonySettings(),
+    db.select({
+      id: usersTable.id, name: usersTable.name, email: usersTable.email,
+      role: usersTable.role, isActive: usersTable.isActive, forwardingNumber: usersTable.forwardingNumber,
+    }).from(usersTable).orderBy(usersTable.name),
+  ]);
+  res.json({ ...updatedSettings, users: updatedUsers });
 });
 
 export default router;

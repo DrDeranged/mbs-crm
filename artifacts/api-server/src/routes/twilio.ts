@@ -1,8 +1,8 @@
-import { Router, type Request } from "express";
+import { Router, type Request, type Response } from "express";
 import twilio from "twilio";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
-import { communicationsTable, leadsTable, usersTable, partnerContactsTable } from "@workspace/db";
+import { communicationsTable, leadsTable, usersTable, partnerContactsTable, companySettingsTable } from "@workspace/db";
 import { eq, and, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
@@ -12,6 +12,8 @@ import { logger } from "../lib/logger";
 import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
 import { getTelephonySettings } from "../lib/telephonySettings";
 import { approvedTwilioNumbers, isOwnedInboundNumber, selectVoiceCallerId } from "../lib/telephonyRouting";
+import { appendVoiceMessage, buildInboundVoiceTwiML, isWithinVoiceHours, selectRingTargets } from "../lib/inboundVoice";
+import { handleVoicemailComplete, handleMissedCall, handleRecordingComplete } from "../lib/voicemail";
 
 const router = Router();
 export const twilioTokenRouter = Router();
@@ -38,6 +40,10 @@ const twilioPayload = z.object({
   DialCallDuration: z.string().optional(),
   RecordingSid: z.string().optional(),
   RecordingUrl: z.string().url().optional(),
+  RecordingDuration: z.string().optional(),
+  RecordingStatus: z.string().optional(),
+  TranscriptionText: z.string().optional(),
+  TranscriptionStatus: z.string().optional(),
   Body: z.string().optional(),
   SmsSid: z.string().optional(),
   MessageSid: z.string().optional(),
@@ -115,6 +121,12 @@ router.post("/twilio/voice", async (req, res) => {
   const to = body.To || body.to || "";
   const callSid = body.CallSid || "";
   const fromClient = body.From || "";
+  // The same TwiML application is attached to both PSTN numbers and browser
+  // clients. A public PSTN caller must never be handled as an outbound dial.
+  if (!fromClient.startsWith("client:user_")) {
+    await handleInboundVoice(req, res, body);
+    return;
+  }
   const settings = await getTelephonySettings();
 
   const VoiceResponse = twilio.twiml.VoiceResponse;
@@ -166,14 +178,11 @@ router.post("/twilio/voice", async (req, res) => {
   res.type("text/xml").send(twiml.toString());
 });
 
-// POST /api/twilio/voice/inbound — inbound call routing TwiML
-router.post("/twilio/voice/inbound", async (req, res) => {
-  if (!validateTwilioSignature(req)) {
-    return void res.status(403).send("Forbidden");
-  }
-  const body = parseTwilioPayload(req, res);
-  if (!body) return;
-
+async function handleInboundVoice(
+  req: Request,
+  res: Response,
+  body: z.infer<typeof twilioPayload>,
+): Promise<void> {
   const from = body.From || "";
   const to = body.To || body.to || "";
   const callSid = body.CallSid || "";
@@ -182,15 +191,13 @@ router.post("/twilio/voice/inbound", async (req, res) => {
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
 
-  const statusCb = absUrl(req, "/api/twilio/voice/status");
-  const recordingCb = absUrl(req, "/api/twilio/voice/recording");
-
   // Twilio can retain old webhook URLs after a number is moved between
   // accounts. A signed callback is still acknowledged, but must not ring an
   // agent unless its destination is one of our owned numbers.
   if (!isOwnedInboundNumber(to, numbers)) {
     twiml.say("This number is not configured for inbound calls.");
-    return void res.type("text/xml").send(twiml.toString());
+    res.type("text/xml").send(twiml.toString());
+    return;
   }
 
   const lead = await db.query.leadsTable.findFirst({
@@ -198,71 +205,120 @@ router.post("/twilio/voice/inbound", async (req, res) => {
     with: { assignedRep: true },
   });
 
-  const dial = twiml.dial({
-    timeout: 20,
-    record: "record-from-ringing",
-    recordingStatusCallback: recordingCb,
-    recordingStatusCallbackMethod: "POST",
-    action: statusCb,
-  } as any);
+  const [settings] = await db.select().from(companySettingsTable).limit(1);
+  const effective = settings ?? {
+    voiceHoursStart: "08:00", voiceHoursEnd: "18:00", voiceBusinessDays: [1, 2, 3, 4, 5],
+    voiceHolidays: [], voiceGreeting: "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.",
+    voiceAfterHoursGreeting: "Thanks for calling My Business Solutions. Our office is currently closed. Leave a message and we'll return your call the next business day.",
+    voiceRoutingMode: "assigned-rep-first" as const,
+  };
+  const open = isWithinVoiceHours(effective);
+  const reps = open ? await db.query.usersTable.findMany({
+    where: eq(usersTable.isActive, true),
+  }) : [];
+  const targets = open ? selectRingTargets(reps, lead?.assignedRepId ?? null, effective.voiceRoutingMode) : [];
 
-  let targetUserId: number | null = null;
-  let targetMobile: string | null = null;
-
-  if (lead?.assignedRepId) {
-    targetUserId = lead.assignedRepId;
-    const rep = await db.query.usersTable.findFirst({
-      where: eq(usersTable.id, lead.assignedRepId),
+  // Twilio may retry the initial request; do not create duplicate call logs.
+  if (callSid) {
+    const existing = await db.query.communicationsTable.findFirst({
+      where: eq(communicationsTable.twilioSid, callSid),
     });
-    targetMobile = rep?.mobileNumber ?? null;
-
-    // Ring browser client
-    dial.client({
-      statusCallback: statusCb,
-      statusCallbackMethod: "POST",
-    } as any, `user_${lead.assignedRepId}`);
-
-    // Also ring mobile if configured (simultaneous ring for offline fallback)
-    if (targetMobile) {
-      dial.number({
-        statusCallback: statusCb,
-        statusCallbackMethod: "POST",
-      } as any, targetMobile);
-    }
-  } else {
-    // No assigned rep — find first admin and ring their client + mobile
-    const admin = await db.query.usersTable.findFirst({
-      where: eq(usersTable.role, "admin"),
+    if (!existing) await db.insert(communicationsTable).values({
+      leadId: lead?.id ?? null,
+      userId: null,
+      type: "call",
+      direction: "inbound",
+      fromNumber: from,
+      toNumber: to,
+      status: open && targets.length ? "ringing" : "voicemail",
+      twilioSid: callSid,
     });
-    if (admin) {
-      targetUserId = admin.id;
-      dial.client({
-        statusCallback: statusCb,
-        statusCallbackMethod: "POST",
-      } as any, `user_${admin.id}`);
-      if (admin.mobileNumber) {
-        dial.number({
-          statusCallback: statusCb,
-          statusCallbackMethod: "POST",
-        } as any, admin.mobileNumber);
-      }
-    } else {
-      twiml.say("No available agent. Please try again later.");
-    }
   }
 
-  await db.insert(communicationsTable).values({
-    leadId: lead?.id ?? null,
-    userId: targetUserId,
-    type: "call",
-    direction: "inbound",
-    fromNumber: from,
-    toNumber: to,
-    status: "ringing",
-    twilioSid: callSid,
-  });
+  res.type("text/xml").send(buildInboundVoiceTwiML({
+    baseUrl: absUrl(req, ""),
+    greeting: effective.voiceGreeting,
+    afterHoursGreeting: effective.voiceAfterHoursGreeting,
+    open, targets, callerId: to, callSid,
+  }));
+}
 
+router.post("/twilio/voice/inbound", async (req, res): Promise<void> => {
+  if (!validateTwilioSignature(req)) { res.status(403).send("Forbidden"); return; }
+  const body = parseTwilioPayload(req, res);
+  if (body) await handleInboundVoice(req, res, body);
+});
+
+router.post("/twilio/voice/dial-result", async (req, res): Promise<void> => {
+  if (!validateTwilioSignature(req)) { res.status(403).send("Forbidden"); return; }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
+  const twiml = new twilio.twiml.VoiceResponse();
+  const status = body.DialCallStatus || "";
+  const callSid = body.CallSid || "";
+  if (callSid) {
+    const [call] = await db.update(communicationsTable).set({
+      status: status || "completed",
+      durationSeconds: Number.parseInt(body.DialCallDuration || "0", 10) || null,
+      callOutcome: status === "completed" || status === "answered" ? "connected" : "no_answer",
+      updatedAt: new Date(),
+    }).where(and(eq(communicationsTable.twilioSid, callSid), eq(communicationsTable.direction, "inbound"))).returning();
+    if (call && status === "completed" && !call.leadId && call.fromNumber) {
+      const existing = await db.query.leadsTable.findFirst({ where: eq(leadsTable.phone, call.fromNumber) });
+      const lead = existing ?? (await db.insert(leadsTable).values({
+        phone: call.fromNumber, firstName: "Inbound", lastName: "Caller", leadSource: "inbound-call",
+      }).returning())[0];
+      await db.update(communicationsTable).set({ leadId: lead.id }).where(eq(communicationsTable.id, call.id));
+    }
+    if (call && status !== "completed" && status !== "answered") {
+      const [settings] = await db.select().from(companySettingsTable).limit(1);
+      appendVoiceMessage(twiml, {
+        baseUrl: absUrl(req, ""),
+        greeting: settings?.voiceGreeting ?? "Thanks for calling My Business Solutions. Please leave a message.",
+        afterHoursGreeting: settings?.voiceAfterHoursGreeting ?? "Our office is currently closed. Please leave a message.",
+      }, false);
+    }
+  }
   res.type("text/xml").send(twiml.toString());
+});
+
+router.post("/twilio/voice/voicemail-finished", async (req, res): Promise<void> => {
+  if (!validateTwilioSignature(req)) { res.status(403).send("Forbidden"); return; }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
+  if (body.CallSid && (!body.RecordingSid || (body.RecordingDuration != null && Number(body.RecordingDuration) === 0))) {
+    await handleMissedCall({ callSid: body.CallSid });
+  }
+  const twiml = new twilio.twiml.VoiceResponse();
+  twiml.say({ voice: "Polly.Joanna" } as any, "Thank you. Goodbye.");
+  res.type("text/xml").send(twiml.toString());
+});
+
+router.post("/twilio/voice/voicemail-complete", async (req, res): Promise<void> => {
+  if (!validateTwilioSignature(req)) { res.status(403).send("Forbidden"); return; }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
+  if (body.RecordingStatus === "completed" && body.CallSid && body.RecordingSid && body.RecordingUrl) {
+    await handleVoicemailComplete({
+      callSid: body.CallSid, recordingSid: body.RecordingSid,
+      recordingUrl: body.RecordingUrl, recordingDuration: body.RecordingDuration,
+    });
+  }
+  res.json({ ok: true });
+});
+
+router.post("/twilio/voice/transcription", async (req, res): Promise<void> => {
+  if (!validateTwilioSignature(req)) { res.status(403).send("Forbidden"); return; }
+  const body = parseTwilioPayload(req, res);
+  if (!body) return;
+  if (body.CallSid && body.RecordingSid && body.TranscriptionStatus === "completed") {
+    await handleVoicemailComplete({
+      callSid: body.CallSid, recordingSid: body.RecordingSid,
+      transcriptionText: body.TranscriptionText ?? "",
+      transcriptionStatus: body.TranscriptionStatus,
+    });
+  }
+  res.json({ ok: true });
 });
 
 // POST /api/twilio/voice/status — call status callback
@@ -278,6 +334,14 @@ router.post("/twilio/voice/status", async (req, res) => {
   const duration = body.CallDuration || body.DialCallDuration || "0";
 
   if (callSid) {
+    const repId = Number(req.query["repId"]);
+    const parentCallSid = String(req.query["parentCallSid"] ?? "");
+    if (Number.isInteger(repId) && repId > 0 && /^CA[a-f0-9]{32}$/i.test(parentCallSid)
+      && ["in-progress", "answered", "completed"].includes(status)) {
+      const rep = await db.query.usersTable.findFirst({ where: and(eq(usersTable.id, repId), eq(usersTable.isActive, true)) });
+      if (rep) await db.update(communicationsTable).set({ userId: rep.id, updatedAt: new Date() })
+        .where(and(eq(communicationsTable.twilioSid, parentCallSid), eq(communicationsTable.direction, "inbound")));
+    }
     const [updated] = await db
       .update(communicationsTable)
       .set({
@@ -317,15 +381,11 @@ router.post("/twilio/voice/recording", async (req, res) => {
 
   const callSid = body.CallSid || "";
   const recordingSid = body.RecordingSid || "";
-  const recordingUrl = body.RecordingUrl
-    ? `${body.RecordingUrl}.mp3`
-    : "";
-
-  if (callSid && recordingSid) {
-    await db
-      .update(communicationsTable)
-      .set({ recordingSid, recordingUrl, updatedAt: new Date() })
-      .where(eq(communicationsTable.twilioSid, callSid));
+  if (callSid && recordingSid && body.RecordingUrl && body.RecordingStatus === "completed") {
+    await handleRecordingComplete({
+      callSid, recordingSid, recordingUrl: body.RecordingUrl,
+      recordingDuration: body.RecordingDuration,
+    });
   }
 
   res.json({ ok: true });

@@ -10,6 +10,7 @@ import { requireUser } from "../lib/authHelpers";
 import { db } from "@workspace/db";
 import { documentsTable, leadsTable } from "@workspace/db";
 import { z } from "zod/v4";
+import { verifyVoicemailPlaybackToken } from "../lib/voicemail";
 
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
@@ -109,6 +110,48 @@ router.get("/storage/public-objects/*filePath", async (req: Request, res: Respon
 });
 
 /**
+ * Authenticated, short-lived playback for inbound voicemail recordings.
+ * The token is an HMAC over the document id and expiry; the lead ownership
+ * check below remains authoritative even if a token is disclosed.
+ */
+router.get("/storage/voicemail-playback/:token", async (req: Request, res: Response) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  const documentId = verifyVoicemailPlaybackToken(req.params.token as string);
+  if (!documentId) {
+    res.status(404).json({ error: "Playback link expired or invalid" });
+    return;
+  }
+  try {
+    const doc = await db.query.documentsTable.findFirst({ where: eq(documentsTable.id, documentId) });
+    if (!doc || (!doc.label?.startsWith("Voicemail ") && !doc.label?.startsWith("Call recording "))) {
+      res.status(404).json({ error: "Recording not found" });
+      return;
+    }
+    const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, doc.leadId) });
+    if (!lead || (user.role === "rep" && lead.assignedRepId !== user.id)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    const file = await objectStorageService.getObjectEntityFile(`/objects/${doc.fileKey}`);
+    const response = await objectStorageService.downloadObject(file, 0);
+    res.status(response.status);
+    response.headers.forEach((value, key) => res.setHeader(key, value));
+    res.setHeader("Content-Disposition", `inline; filename="${doc.filename.replace(/["\\\r\n]/g, "_")}"`);
+    res.setHeader("Cache-Control", "private, no-store");
+    if (response.body) Readable.fromWeb(response.body as ReadableStream<Uint8Array>).pipe(res);
+    else res.end();
+  } catch (error) {
+    if (error instanceof ObjectNotFoundError) {
+      res.status(404).json({ error: "Recording not found" });
+      return;
+    }
+    req.log.error({ err: error }, "Error serving voicemail playback");
+    res.status(500).json({ error: "Failed to serve voicemail playback" });
+  }
+});
+
+/**
  * GET /storage/objects/*
  *
  * Serve object entities from PRIVATE_OBJECT_DIR.
@@ -125,6 +168,10 @@ router.get("/storage/objects/*path", async (req: Request, res: Response) => {
 
     // Deny-by-default: only serve paths that match a known authorized pattern.
     // Currently the only private objects are lead documents.
+    if (/^leads\/\d+\/documents\/(?:voicemail|call-recording)-[^/]+\.mp3$/i.test(wildcardPath)) {
+      res.status(404).json({ error: "Recording playback must use a signed URL" });
+      return;
+    }
     const leadDocMatch = wildcardPath.match(/^leads\/(\d+)\/documents\/.+/);
     const campaignFlyerMatch = wildcardPath.match(/^campaigns\/(\d+)\/.+/);
     if (leadDocMatch) {

@@ -10,6 +10,7 @@ import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 import { getLeadSmsEligibility } from "../lib/smsEligibility";
 import { getTelephonySettings } from "../lib/telephonySettings";
 import { APPROVED_TWILIO_NUMBERS, selectSmsSender } from "../lib/telephonyRouting";
+import { createVoicemailPlaybackToken } from "../lib/voicemail";
 
 function absUrl(req: Request, path: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || "https";
@@ -67,7 +68,11 @@ function commToApi(comm: any) {
     toNumber: comm.toNumber,
     body: comm.body,
     durationSeconds: comm.durationSeconds,
-    recordingUrl: comm.recordingUrl,
+    // Generate a fresh, short-lived signed URL whenever the call log is read.
+    // Never return old provider URLs or an unsigned object-storage path.
+    recordingUrl: typeof comm.recordingUrl === "string" && /^\/api\/documents\/\d+\/download$/.test(comm.recordingUrl)
+      ? `/api/storage/voicemail-playback/${createVoicemailPlaybackToken(Number(comm.recordingUrl.match(/\d+/)?.[0]))}`
+      : null,
     recordingSid: comm.recordingSid,
     status: comm.status,
     twilioSid: comm.twilioSid,

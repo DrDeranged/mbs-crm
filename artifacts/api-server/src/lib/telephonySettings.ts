@@ -24,18 +24,18 @@ export function resolveTelephonySettings(
   };
 }
 
-export async function getTelephonySettings(): Promise<{
+export async function getTelephonySettings(): Promise<Record<string, unknown> & {
   voiceCallerId: string;
   smsSenderNumber: string;
 }> {
   const [settings] = await db
-    .select({
-      voiceCallerId: companySettingsTable.voiceCallerId,
-      smsSenderNumber: companySettingsTable.smsSenderNumber,
-    })
+    .select()
     .from(companySettingsTable)
     .limit(1);
-  return resolveTelephonySettings(settings);
+  return {
+    ...(settings ?? {}),
+    ...resolveTelephonySettings(settings),
+  };
 }
 
 export async function listOwnedTwilioNumbers(): Promise<Array<{

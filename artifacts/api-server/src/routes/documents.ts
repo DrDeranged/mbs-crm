@@ -9,6 +9,7 @@ import { logActivity } from "../lib/activityHelper";
 import { ListDocumentsParams, DownloadDocumentParams } from "@workspace/api-zod";
 import { isDocumentCategory } from "../lib/documentsCategory";
 import { documentContentDisposition } from "../lib/documentDownload";
+import { createVoicemailPlaybackToken } from "../lib/voicemail";
 
 type Database = typeof db;
 export type DocumentsRouteDependencies = {
@@ -52,6 +53,12 @@ function docToApi(doc: typeof documentsTable.$inferSelect, uploader?: any) {
     label: doc.label,
     createdAt: doc.createdAt.toISOString(),
   };
+}
+
+function isCallRecording(doc: typeof documentsTable.$inferSelect): boolean {
+  return /^voicemail-|^call-recording-/i.test(doc.filename)
+    || doc.label?.startsWith("Voicemail ") === true
+    || doc.label?.startsWith("Call recording ") === true;
 }
 
 export function createDocumentsRouter(dependencies: DocumentsRouteDependencies = {}): IRouter {
@@ -227,6 +234,15 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
     const { objectStorageClient } = await import("../lib/objectStorage");
     const bucket = objectStorageClient.bucket(bucketId);
     const file = bucket.file(doc.fileKey);
+    if (isCallRecording(doc)) {
+      const playbackUrl = `/api/storage/voicemail-playback/${createVoicemailPlaybackToken(doc.id)}`;
+      if (req.query.direct === "true") {
+        res.redirect(307, playbackUrl);
+        return;
+      }
+      res.json({ downloadUrl: playbackUrl, filename: doc.filename });
+      return;
+    }
     if (req.query.direct === "true") {
       const [contents] = await file.download();
       res

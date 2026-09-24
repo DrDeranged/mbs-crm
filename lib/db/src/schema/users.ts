@@ -24,6 +24,7 @@ export const usersTable = pgTable(
     role: text("role", { enum: ["admin", "manager", "rep", "pending"] }).notNull().default("pending"),
     isActive: boolean("is_active").notNull().default(true),
     mobileNumber: text("mobile_number"),
+    forwardingNumber: text("forwarding_number"),
     pushToken: text("push_token"),
     mergedInto: integer("merged_into_user_id").references(
       (): AnyPgColumn => usersTable.id,

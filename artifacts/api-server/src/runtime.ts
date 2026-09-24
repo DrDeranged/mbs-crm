@@ -12,6 +12,7 @@ import { closeBrowser } from "./lib/renderPdf";
 import { installProcessErrorHandlers } from "./lib/processHandlers";
 import { startUsfaPoller } from "./lib/intake/usfaPoller";
 import { startUsfaApplicationPoller } from "./lib/intake/usfaApplicationPoller";
+import { reconcileInboundVoicemailCalls } from "./lib/voicemail";
 
 installProcessErrorHandlers();
 
@@ -80,6 +81,10 @@ function startBackgroundJobs(): void {
   }, reminderIntervalMs));
   intervals.push(startUsfaPoller());
   intervals.push(startUsfaApplicationPoller());
+  const reconcileVoicemail = () => reconcileInboundVoicemailCalls().catch((err) =>
+    logger.error({ err }, "Inbound voicemail reconciliation error"));
+  timeouts.push(setTimeout(reconcileVoicemail, 30_000));
+  intervals.push(setInterval(reconcileVoicemail, 60_000));
 
   const renewalIntervalMs = 24 * 60 * 60 * 1000;
   runRenewalJob().catch((err) =>

@@ -67,6 +67,10 @@ export const PUBLIC_MUTATION_PATHS = new Set([
   "/twilio/voice/inbound",
   "/twilio/voice/status",
   "/twilio/voice/recording",
+  "/twilio/voice/dial-result",
+  "/twilio/voice/voicemail-finished",
+  "/twilio/voice/voicemail-complete",
+  "/twilio/voice/transcription",
   "/twilio/sms/inbound",
   "/twilio/sms/status",
 ]);

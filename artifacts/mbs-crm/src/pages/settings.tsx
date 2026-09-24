@@ -8,6 +8,7 @@ import { UserRole, UserUpdateRole, type RoutingSettingsMode } from "@workspace/a
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName } from "@/lib/utils";
@@ -78,8 +79,15 @@ export default function Settings() {
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
   const [partnerTextingEnabled, setPartnerTextingEnabled] = useState(true);
   const [savingPartnerTexting, setSavingPartnerTexting] = useState(false);
-  const [telephonySettings, setTelephonySettings] = useState({ voiceCallerId: "", smsSenderNumber: "" });
+  const [telephonySettings, setTelephonySettings] = useState({
+    voiceCallerId: "", smsSenderNumber: "", voiceHoursStart: "08:00", voiceHoursEnd: "18:00",
+    voiceBusinessDays: [1, 2, 3, 4, 5] as number[], voiceHolidays: [] as string[],
+    voiceGreeting: "", voiceAfterHoursGreeting: "", voiceRoutingMode: "assigned-rep-first",
+    voicemailRecipients: ["funding@my-business-solutions.com"] as string[],
+    forwardingNumbers: [] as Array<{ userId: number; forwardingNumber: string | null }>,
+  });
   const [ownedTelephonyNumbers, setOwnedTelephonyNumbers] = useState<Array<{ sid: string; phoneNumber: string; friendlyName: string }>>([]);
+  const [telephonyUsers, setTelephonyUsers] = useState<Array<{ id: number; name: string | null; email: string; role: string; isActive: boolean }>>([]);
   const [loadingTelephony, setLoadingTelephony] = useState(false);
   const [telephonyError, setTelephonyError] = useState<string | null>(null);
   const [savingTelephony, setSavingTelephony] = useState(false);
@@ -143,7 +151,22 @@ export default function Settings() {
       setTelephonySettings({
         voiceCallerId: typeof settingsPayload.voiceCallerId === "string" ? settingsPayload.voiceCallerId : "",
         smsSenderNumber: typeof settingsPayload.smsSenderNumber === "string" ? settingsPayload.smsSenderNumber : "",
+        voiceHoursStart: settingsPayload.voiceHoursStart ?? "08:00",
+        voiceHoursEnd: settingsPayload.voiceHoursEnd ?? "18:00",
+        voiceBusinessDays: Array.isArray(settingsPayload.voiceBusinessDays) ? settingsPayload.voiceBusinessDays : [1, 2, 3, 4, 5],
+        voiceHolidays: Array.isArray(settingsPayload.voiceHolidays) ? settingsPayload.voiceHolidays : [],
+        voiceGreeting: settingsPayload.voiceGreeting ?? "",
+        voiceAfterHoursGreeting: settingsPayload.voiceAfterHoursGreeting ?? "",
+        voiceRoutingMode: settingsPayload.voiceRoutingMode ?? "assigned-rep-first",
+        voicemailRecipients: Array.isArray(settingsPayload.voicemailRecipients) ? settingsPayload.voicemailRecipients : ["funding@my-business-solutions.com"],
+        forwardingNumbers: Array.isArray(settingsPayload.users)
+          ? settingsPayload.users
+            .filter((u: { id: number; forwardingNumber?: string | null; isActive?: boolean; role?: string }) =>
+              u.isActive && ["rep", "manager", "admin"].includes(u.role ?? ""))
+            .map((u: { id: number; forwardingNumber?: string | null }) => ({ userId: u.id, forwardingNumber: u.forwardingNumber ?? null }))
+          : [],
       });
+      setTelephonyUsers(Array.isArray(settingsPayload.users) ? settingsPayload.users : []);
       const numbers = Array.isArray(numbersPayload) ? numbersPayload : numbersPayload.numbers;
       setOwnedTelephonyNumbers(Array.isArray(numbers) ? numbers : []);
     }).catch((error) => {
@@ -167,6 +190,7 @@ export default function Settings() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Unable to save telephony settings.");
       setTelephonySettings({
+        ...telephonySettings,
         voiceCallerId: typeof payload.voiceCallerId === "string" ? payload.voiceCallerId : telephonySettings.voiceCallerId,
         smsSenderNumber: typeof payload.smsSenderNumber === "string" ? payload.smsSenderNumber : telephonySettings.smsSenderNumber,
       });
@@ -785,6 +809,76 @@ export default function Settings() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-hours-start">Business hours (America/New_York)</label>
+                    <div className="flex items-center gap-2">
+                      <Input id="voice-hours-start" type="time" value={telephonySettings.voiceHoursStart} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceHoursStart: e.target.value }))} />
+                      <span className="text-muted-foreground">to</span>
+                      <Input type="time" value={telephonySettings.voiceHoursEnd} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceHoursEnd: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-routing-mode">Inbound routing</label>
+                    <Select value={telephonySettings.voiceRoutingMode} onValueChange={(value) => setTelephonySettings((c) => ({ ...c, voiceRoutingMode: value }))}>
+                      <SelectTrigger id="voice-routing-mode"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="assigned-rep-first">Assigned rep first</SelectItem>
+                        <SelectItem value="ring-all">Ring all active reps</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Business days</label>
+                    <div className="flex flex-wrap gap-3">
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                        <label key={day} className="flex items-center gap-1.5 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={telephonySettings.voiceBusinessDays.includes(index)}
+                            onChange={(e) => setTelephonySettings((c) => ({
+                              ...c,
+                              voiceBusinessDays: e.target.checked
+                                ? [...c.voiceBusinessDays, index].sort((a, b) => a - b)
+                                : c.voiceBusinessDays.filter((value) => value !== index),
+                            }))}
+                          />
+                          {day}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-greeting">Voicemail greeting</label>
+                    <Textarea id="voice-greeting" value={telephonySettings.voiceGreeting} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceGreeting: e.target.value }))} rows={3} />
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-after-hours-greeting">After-hours greeting</label>
+                    <Textarea id="voice-after-hours-greeting" value={telephonySettings.voiceAfterHoursGreeting} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceAfterHoursGreeting: e.target.value }))} rows={3} />
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-holidays">Holidays (YYYY-MM-DD, one per line)</label>
+                    <Textarea id="voice-holidays" value={telephonySettings.voiceHolidays.join("\n")} onChange={(e) => setTelephonySettings((c) => ({ ...c, voiceHolidays: e.target.value.split(/\r?\n|,/).map((v) => v.trim()).filter(Boolean) }))} rows={2} />
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Voicemail recipients (comma-separated)</label>
+                    <Input value={telephonySettings.voicemailRecipients.join(", ")} onChange={(e) => setTelephonySettings((c) => ({ ...c, voicemailRecipients: e.target.value.split(",").map((v) => v.trim()).filter(Boolean) }))} />
+                  </div>
+                  {telephonyUsers.filter((u) => u.isActive && (u.role === "rep" || u.role === "manager" || u.role === "admin")).length > 0 && (
+                    <div className="sm:col-span-2 space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">Rep forwarding numbers (E.164)</label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {telephonyUsers.filter((u) => u.isActive && (u.role === "rep" || u.role === "manager" || u.role === "admin")).map((u) => {
+                          const entry = telephonySettings.forwardingNumbers.find((n) => n.userId === u.id);
+                          return <div key={u.id} className="flex items-center gap-2">
+                            <span className="text-sm min-w-32">{u.name || u.email}</span>
+                            <Input type="tel" placeholder="+15551234567" value={entry?.forwardingNumber ?? ""} onChange={(e) => setTelephonySettings((c) => ({
+                              ...c, forwardingNumbers: [...c.forwardingNumbers.filter((n) => n.userId !== u.id), { userId: u.id, forwardingNumber: e.target.value.trim() || null }],
+                            }))} />
+                          </div>;
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="sms-sender-number">SMS sender number</label>
                     <Select value={telephonySettings.smsSenderNumber || undefined} onValueChange={(value) => setTelephonySettings((current) => ({ ...current, smsSenderNumber: value }))}>

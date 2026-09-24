@@ -67,6 +67,11 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/twilio/voice/inbound` | `routes/twilio.ts:147` | `T` | provider callback; assignment is read from matched lead |
 | POST | `/api/twilio/voice/status` | `routes/twilio.ts:234` | `T` | provider callback |
 | POST | `/api/twilio/voice/recording` | `routes/twilio.ts:274` | `T` | provider callback |
+| POST | `/api/twilio/voice/dial-result` | `routes/twilio.ts` | `T` | signed provider callback; unanswered calls proceed to voicemail |
+| POST | `/api/twilio/voice/voicemail-finished` | `routes/twilio.ts` | `T` | signed provider callback; detects empty recordings |
+| POST | `/api/twilio/voice/voicemail-complete` | `routes/twilio.ts` | `T` | signed provider callback; private recording and follow-up |
+| POST | `/api/twilio/voice/transcription` | `routes/twilio.ts` | `T` | signed provider callback; transcription update |
+| GET | `/api/storage/voicemail-playback/:token` | `routes/storage.ts` | `C` | authenticated and signed playback, lead access enforced |
 | POST | `/api/twilio/sms/inbound` | `routes/twilio.ts:296` | `T` | provider callback; assignment is read from matched lead |
 | POST | `/api/twilio/sms/status` | `routes/twilio.ts:350` | `T` | provider callback |
 | POST | `/api/leads/:id/calls/log` | `routes/communications.ts:56` | `L` | `lead.assignedRepId === user.id` for reps |

@@ -78,7 +78,7 @@ test("the real API router has a gate before every private mutation", async () =>
 
   const registrations = walkRouter(apiRouter);
   const allRegistrations = [...walkRouter(bootCriticalRouter), ...registrations];
-  assert.equal(allRegistrations.length, 239, "update this audited count when registering a route");
+  assert.equal(allRegistrations.length, 244, "update this audited count when registering a route");
   const matrix = await readFile(new URL("../../../../docs/AUTH_MATRIX.md", import.meta.url), "utf8");
   const documentedRoutes = [...matrix.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| `([^`]+)` \|/gm)]
     .map(([, method, path]) => `${method} ${path}`)
@@ -159,6 +159,30 @@ test("creator-owned resources reject other reps", async () => {
   assert.equal(canAccessCreatorOwnedRecord(otherRep, 17), false);
   assert.equal(canAccessCreatorOwnedRecord(ownRep, null), false);
   assert.equal(canAccessCreatorOwnedRecord(manager, 17), true);
+});
+
+test("unsigned inbound voice and voicemail callbacks are rejected before routing or storage", async () => {
+  const { twilioProviderRouter } = await import("../routes/twilio");
+  const app = express();
+  app.use(express.urlencoded({ extended: false }));
+  app.use("/api", twilioProviderRouter);
+  const server = await listen(app);
+  try {
+    for (const path of [
+      "/twilio/voice", "/twilio/voice/inbound", "/twilio/voice/dial-result",
+      "/twilio/voice/voicemail-finished", "/twilio/voice/voicemail-complete",
+      "/twilio/voice/transcription", "/twilio/voice/recording",
+    ]) {
+      const response = await fetch(`${server.url}/api${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: "CallSid=CA00000000000000000000000000000000&From=%2B19085551212&To=%2B19088608507",
+      });
+      assert.equal(response.status, 403, `${path} must reject unsigned requests`);
+    }
+  } finally {
+    await server.close();
+  }
 });
 
 test("a rep cannot self-assign a lead", async () => {

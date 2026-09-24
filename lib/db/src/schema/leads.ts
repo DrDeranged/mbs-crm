@@ -17,7 +17,7 @@ export const LEAD_STATUSES = [
 ] as const;
 
 export const APPLICATION_TYPES = ["equipment", "working_capital"] as const;
-export const LEAD_SOURCES = ["website", "referral", "import", "manual", "qr-card", "usfundadvisor"] as const;
+export const LEAD_SOURCES = ["website", "referral", "import", "manual", "qr-card", "usfundadvisor", "inbound-call"] as const;
 
 export const leadsTable = pgTable(
   "leads",
