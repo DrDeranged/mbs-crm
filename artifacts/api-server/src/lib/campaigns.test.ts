@@ -27,6 +27,7 @@ import {
   isFutureCampaignSchedule,
 } from "./campaignCore";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender, validateCampaignMergeTokens } from "./campaignReadiness";
+import { EMAIL_BRAND_LOGO_URL } from "./brand";
 
 test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "admin" }), true);
@@ -39,8 +40,8 @@ test("campaign without a flyer produces plain text and one remote logo HTML alte
   const text = campaignPlainText('<div><img src="logo.png"><h2>Hello &amp; welcome</h2><p>Call us today.</p></div>');
   const html = minimalCampaignHtml(text);
   assert.equal(text, "Hello & welcome\nCall us today.");
-  assert.match(html, /<img[^>]+src="https:\/\/my-business-solutions\.com\/brand\/mbs-logo-green-slash\.png"/i);
-  assert.equal((html.match(/https:\/\/my-business-solutions\.com\/brand\/mbs-logo-green-slash\.png/g) ?? []).length, 1);
+  assert.ok(html.includes(`<img src="${EMAIL_BRAND_LOGO_URL}"`));
+  assert.equal(html.split(EMAIL_BRAND_LOGO_URL).length - 1, 1);
   assert.match(html, /Hello &amp; welcome/);
   assert.equal(buildCampaignFlyerAttachment(null), undefined);
 });

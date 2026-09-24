@@ -4,7 +4,7 @@ import path from "node:path";
 export const BRAND_LOGO_PATH = "/api/brand/logo.png";
 export const BRAND_LOGO_REVERSE_PATH = "/api/brand/logo-reverse.png";
 /** The externally hosted mark used in every outbound email. */
-export const EMAIL_BRAND_LOGO_URL = "https://my-business-solutions.com/brand/mbs-logo-green-slash.png";
+export const EMAIL_BRAND_LOGO_URL = "https://app.my-business-solutions.com/brand/mbs-logo-green-slash.png";
 
 const assetCandidates = (filename: string): string[] => {
   const root = typeof __dirname === "string" ? __dirname : process.cwd();

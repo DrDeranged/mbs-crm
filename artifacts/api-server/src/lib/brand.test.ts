@@ -32,3 +32,11 @@ test("email and flyer branding use the hosted light mark and non-legacy alt", ()
   assert.doesNotMatch(rendered, /data:image/i);
   assert.match(ensureFlyerBranding('<div class="logo"></div>', "https://app.example.test"), /My Business Solutions logo/);
 });
+
+test("configured email logo URL returns HTTP 200 when online", {
+  skip: process.env["RUN_ONLINE_TESTS"] !== "1" ? "Set RUN_ONLINE_TESTS=1 to check live hosting" : false,
+}, async () => {
+  const response = await fetch(EMAIL_BRAND_LOGO_URL, { signal: AbortSignal.timeout(15_000) });
+  assert.equal(response.status, 200, `Logo URL ${EMAIL_BRAND_LOGO_URL} returned HTTP ${response.status}`);
+  assert.match(response.headers.get("content-type") ?? "", /^image\/png\b/i);
+});

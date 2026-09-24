@@ -2,6 +2,7 @@ export type CampaignChannel = "email" | "sms" | "email_sms";
 export type CampaignStatus = "draft" | "approved" | "scheduled" | "running" | "paused" | "completed" | "cancelled" | "failed";
 
 import { createHash } from "node:crypto";
+import { EMAIL_BRAND_LOGO_URL } from "./brand";
 
 /** Stable JSON encoding prevents object key ordering from changing an approval hash. */
 export function stableJson(value: unknown): string {
@@ -57,7 +58,7 @@ export function campaignPlainText(bodyHtml: string): string {
     .trim();
 }
 
-export const CAMPAIGN_LOGO_URL = "https://my-business-solutions.com/brand/mbs-logo-green-slash.png";
+export const CAMPAIGN_LOGO_URL = EMAIL_BRAND_LOGO_URL;
 
 export const DEFAULT_CAMPAIGN_REPLY_TO = "nate@my-business-solutions.com";
 
