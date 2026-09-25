@@ -249,9 +249,17 @@ function escapeHtml(value: string): string {
 }
 
 function renderTemplate(template: string, vars: Record<string, string>): string {
+  // Old saved templates may predate the corrected public contact details.
+  // Normalize only template-owned text, before merging recipient/rep values.
+  const publicTemplate = template
+    .replace(new RegExp("support" + "@mybusiness" + "solutions\\.com", "gi"), "funding@my-business-solutions.com")
+    .replace(new RegExp("rep@mybusiness" + "solutions\\.com", "gi"), "funding@my-business-solutions.com")
+    .replace(new RegExp("tel:\\+1800" + "5550000", "gi"), "tel:+19088608507")
+    .replace(/\(?800\)?[ -]?555[ -]?0000/g, "(908) 860-8507")
+    .replace(/\(?800\)?[ -]?000[ -]?0000/g, "(908) 860-8507");
   const companyless = !vars.lead_company?.trim()
-    ? template.replace(/\bfor\s+{{lead_company}}(?:'s)?/gi, "").replace(/{{lead_company}}(?:'s)?/gi, "")
-    : template;
+    ? publicTemplate.replace(/\bfor\s+{{lead_company}}(?:'s)?/gi, "").replace(/{{lead_company}}(?:'s)?/gi, "")
+    : publicTemplate;
   const rendered = companyless.replace(/\{\{(\w+)\}\}/g, (_, key) => {
     if (key === "brand_email_header") return "__MBS_BRAND_EMAIL_HEADER__";
     if (key === "unsubscribe_link") return "__MBS_UNSUBSCRIBE_LINK__";
@@ -317,6 +325,9 @@ function injectTracking(bodyHtml: string, sendId: number, baseUrl: string, toEma
   if (!resolved.includes(EMAIL_COMPLIANCE_ADDRESS)) missing.push(`<span>${EMAIL_COMPLIANCE_ADDRESS}</span>`);
   if (!/(?:\/|%2f)api(?:\/|%2f)email(?:\/|%2f)unsubscribe\b/i.test(resolved)) missing.push(unsubscribe);
   if (!resolved.includes(consent)) missing.push(`<span>${consent}</span>`);
+  if (!resolved.includes("funding@my-business-solutions.com")) {
+    missing.push('<span>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</span>');
+  }
   const footer = missing.length
     ? `<p style="font-size:11px;color:#999;margin-top:24px;text-align:center">${missing.join("<br>")}</p>`
     : "";
@@ -336,6 +347,9 @@ function injectPlainCompliance(bodyText: string, sendId: number, baseUrl: string
   if (!/\/api\/email\/unsubscribe\b/i.test(resolved)) missing.push(unsubscribe);
   if (!resolved.includes(EMAIL_COMPLIANCE_ADDRESS)) missing.push(EMAIL_COMPLIANCE_ADDRESS);
   if (!resolved.includes(consent)) missing.push(consent);
+  if (!resolved.includes("funding@my-business-solutions.com")) {
+    missing.push("Questions? Call (908) 860-8507 or email funding@my-business-solutions.com.");
+  }
   return missing.length ? `${resolved.trim()}\n\n${missing.join("\n")}` : resolved.trim();
 }
 
@@ -716,7 +730,7 @@ router.get("/email/unsubscribe", async (req, res) => {
     return void res.status(400).send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc">
       <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
       <h2>Invalid unsubscribe link</h2>
-      <p>This link appears to be malformed or expired. Please contact support.</p>
+      <p>This link appears to be malformed or expired. Contact <a href="tel:+19088608507">(908) 860-8507</a> or <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>
     </body></html>`);
   }
 
@@ -726,6 +740,7 @@ router.get("/email/unsubscribe", async (req, res) => {
       <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
       <h2>Invalid unsubscribe link</h2>
       <p>This unsubscribe link is invalid or has been tampered with.</p>
+      <p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>
     </body></html>`);
   }
 
@@ -737,6 +752,7 @@ router.get("/email/unsubscribe", async (req, res) => {
       <img src="${logo}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
       <h2>Invalid unsubscribe link</h2>
       <p>This unsubscribe link is invalid.</p>
+      <p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>
     </body></html>`);
   }
 
@@ -752,6 +768,7 @@ router.get("/email/unsubscribe", async (req, res) => {
     <img src="${getBrandLogoUrl()}" alt="My Business Solutions logo" width="116" style="display:block;margin:0 auto 32px;width:116px;height:auto" />
     <h2>You've been unsubscribed</h2>
     <p>You will no longer receive marketing emails from MBS.</p>
+    <p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>
   </body></html>`);
 });
 
@@ -1270,7 +1287,8 @@ export function getStarterEmailTemplates() {
 <p>{{rep_name}} has been assigned as your dedicated specialist and will personally review your application and reach out within one business day to discuss next steps.</p>
 <p>In the meantime, if you have any questions or need to provide additional information, please don't hesitate to reply to this email.</p>
 <p>We look forward to working with you.</p>
-<p>Warm regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+<p>Warm regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>
+<p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>`,
     },
     {
       name: "Initial Follow-Up",
@@ -1280,7 +1298,8 @@ export function getStarterEmailTemplates() {
 <p>I wanted to follow up on the financing application we received for {{lead_company}}. My name is {{rep_name}} and I'm your point of contact throughout this process.</p>
 <p>I'm happy to answer any questions you may have and walk you through the next steps so everything moves forward smoothly. Whether you'd prefer to reply here or schedule a quick call, I'm available at your convenience.</p>
 <p>Looking forward to hearing from you.</p>
-<p>Best,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+<p>Best,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>
+<p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>`,
     },
     {
       name: "Document Request",
@@ -1294,7 +1313,8 @@ export function getStarterEmailTemplates() {
 <p>If you've already provided any of these, no need to resend — we'll note what's already on file.</p>
 <p>Submitting these documents helps our team complete the review and move toward a decision faster. Your information is handled securely and kept strictly confidential.</p>
 <p>Please reply to this email with the documents attached, or let me know if you have any questions about what's needed.</p>
-<p>Thank you,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+<p>Thank you,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>
+<p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>`,
     },
     {
       name: "Working Capital Program",
@@ -1334,7 +1354,8 @@ export function getStarterEmailTemplates() {
 <p>I wanted to touch base with a brief update on {{lead_company}}'s application. Rest assured, your file is actively being worked on and our team is focused on moving things forward.</p>
 <p>As always, {{rep_name}} is your dedicated point of contact and is here to help with any questions or concerns along the way. Please don't hesitate to reach out at {{rep_email}}.</p>
 <p>We appreciate your patience and will be in touch with further updates shortly.</p>
-<p>Best regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>`,
+<p>Best regards,<br>{{rep_name}}<br>{{rep_email}}<br>My Business Solutions</p>
+<p>Questions? Call <a href="tel:+19088608507">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com">funding@my-business-solutions.com</a>.</p>`,
     },
     {
       name: "Approved",

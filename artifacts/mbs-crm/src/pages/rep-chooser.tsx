@@ -39,6 +39,10 @@ export default function RepChooser() {
           <Link href={repChooserApplyHref(rep, slug, basePath, invite)} className="block w-full rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Continue</Link>
         </div>
         {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-[#0E2A47] underline underline-offset-2">Prefer a paper application? Download PDF</a>}
+        <p className="text-xs text-gray-500">
+          Questions? Call <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
+          <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
+        </p>
       </section>
     </main>
   );

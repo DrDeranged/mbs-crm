@@ -478,7 +478,10 @@ export default function ApplyPage() {
               <p className="font-mono font-bold text-[#1F4E79] text-lg">MBS-{String(confirmedLeadId).padStart(5, "0")}</p>
             </div>
           )}
-          <p className="text-xs text-gray-400">Questions? Call us at (800) 000-0000</p>
+          <p className="text-xs text-gray-500">
+            Questions? Call <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
+            <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
+          </p>
         </div>
       </div>
     );
@@ -502,6 +505,11 @@ export default function ApplyPage() {
 
           {/* Body */}
           <div className="px-6 py-6 space-y-5">
+            <p className="text-xs text-gray-500">
+              Questions about your application? Call{" "}
+              <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
+              <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
+            </p>
 
             {/* ── Step 1: Product selection ── */}
             {step === 1 && (

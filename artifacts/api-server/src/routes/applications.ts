@@ -597,7 +597,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
           <a href="${statusUrl}" style="display:inline-block;background:#1F4E79;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">Check Application Status</a>
 
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;" />
-          <p style="margin:0;font-size:12px;color:#94a3b8;">Questions? Contact us at <a href="tel:+19088608507" style="color:#1F4E79;">(908) 860-8507</a> or reply to this email.</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Questions? Call <a href="tel:+19088608507" style="color:#1F4E79;">(908) 860-8507</a> or email <a href="mailto:funding@my-business-solutions.com" style="color:#1F4E79;">funding@my-business-solutions.com</a>.</p>
         </td></tr>
       </table>
     </td></tr>

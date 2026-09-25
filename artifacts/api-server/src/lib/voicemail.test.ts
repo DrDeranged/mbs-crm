@@ -19,7 +19,7 @@ test("voicemail playback tokens reject tampering and expiry", () => {
 test("missed-call text-back has the exact opt-out copy and uses the New York call date", () => {
   assert.equal(
     MISSED_CALL_TEXT,
-    "Sorry we missed your call — a My Business Solutions rep will call you back shortly. Reply STOP to opt out.",
+    "Sorry we missed your call — a My Business Solutions rep will call you back shortly. Questions? Call (908) 860-8507 or email funding@my-business-solutions.com. Reply STOP to opt out.",
   );
   const beforeMidnight = new Date("2025-01-07T04:59:00.000Z");
   const afterMidnight = new Date("2025-01-07T05:01:00.000Z");

@@ -235,7 +235,7 @@ export default function ApplicationStatus() {
         {/* Contact section */}
         <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5">
           <h3 className="font-semibold text-slate-800 mb-1">Questions? We're here to help.</h3>
-          <p className="text-sm text-slate-500 mb-4">Contact your rep directly or reach out to our support team.</p>
+          <p className="text-sm text-slate-500 mb-4">Contact your rep directly or reach out to our funding team.</p>
           <div className="flex flex-wrap gap-4">
             <a
               href="tel:+19088608507"

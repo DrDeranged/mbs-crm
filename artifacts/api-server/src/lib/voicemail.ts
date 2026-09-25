@@ -27,7 +27,7 @@ const FUNDING_EMAIL = "funding@my-business-solutions.com";
 const DEFAULT_GREETING =
   "Thanks for calling My Business Solutions. Please leave your name, business name, and phone number, and a representative will call you back within one business day.";
 export const MISSED_CALL_TEXT =
-  "Sorry we missed your call — a My Business Solutions rep will call you back shortly. Reply STOP to opt out.";
+  "Sorry we missed your call — a My Business Solutions rep will call you back shortly. Questions? Call (908) 860-8507 or email funding@my-business-solutions.com. Reply STOP to opt out.";
 
 export function missedCallTextBackClaimKey(leadId: number, callTime: Date): string {
   return `missed-call-text-back:${leadId}:${newYorkBusinessTime(callTime).date}`;
