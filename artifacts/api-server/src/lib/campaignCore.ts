@@ -204,12 +204,44 @@ export function classifyEmailRecipient(input: {
   unsubscribed: boolean;
   suppressed: boolean;
   capacityAvailable: boolean;
-}): "missing_contact_info" | "duplicate_email" | "email_unsubscribed_or_suppressed" | "daily_email_capacity" | "eligible" {
+}): "missing_contact_info" | "duplicate_email" | "email_unsubscribed" | "email_suppressed" | "daily_email_capacity" | "eligible" {
   if (!input.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) return "missing_contact_info";
   if (input.duplicate) return "duplicate_email";
-  if (input.unsubscribed || input.suppressed) return "email_unsubscribed_or_suppressed";
+  if (input.unsubscribed) return "email_unsubscribed";
+  if (input.suppressed) return "email_suppressed";
   if (!input.capacityAvailable) return "daily_email_capacity";
   return "eligible";
+}
+
+export type CampaignRecipientOrigin = "filtered" | "picked";
+
+/** Manual selections without explicit filters form a picked-only audience. */
+export function includeCampaignFilterMatches(filterCount: number, pickedCount: number): boolean {
+  return filterCount > 0 || pickedCount === 0;
+}
+
+/** Combines matching and manually picked IDs; a manual pick takes origin precedence. */
+export function unionCampaignAudience<T extends { id: number }>(
+  filterMatches: T[],
+  pickedLeads: T[],
+): Array<T & { origin: CampaignRecipientOrigin }> {
+  const byId = new Map<number, T & { origin: CampaignRecipientOrigin }>();
+  for (const lead of filterMatches) byId.set(lead.id, { ...lead, origin: "filtered" });
+  for (const lead of pickedLeads) byId.set(lead.id, { ...lead, origin: "picked" });
+  return [...byId.values()].sort((a, b) => a.id - b.id);
+}
+
+export function campaignExclusionReasonCounts(exclusions: Array<{ reason: string; channel?: string }>) {
+  const counts = { noEmail: 0, unsubscribed: 0, suppressed: 0, alreadySent: 0, duplicate: 0, other: 0 };
+  for (const { reason, channel } of exclusions) {
+    if (reason === "missing_contact_info" && (channel == null || channel === "email")) counts.noEmail++;
+    else if (reason === "email_unsubscribed" || reason.includes("unsubscribed")) counts.unsubscribed++;
+    else if (reason === "email_suppressed" || reason.includes("suppressed")) counts.suppressed++;
+    else if (reason === "already_sent") counts.alreadySent++;
+    else if (reason === "duplicate_email" || reason === "duplicate_phone") counts.duplicate++;
+    else counts.other++;
+  }
+  return counts;
 }
 
 export function classifySmsRecipient(input: {

@@ -13,11 +13,11 @@ test("audience rules serialize guided control values into the API contract", () 
   assert.deepEqual(serializeAudienceRules({
     statuses: ["new_lead"], programTypes: ["equipment"], assignedRepId: "42",
     leadSources: ["website"], createdFrom: "2026-01-01", createdTo: "",
-    minAmount: "10000", maxAmount: "",
+    minAmount: "10000", maxAmount: "", pickedLeadIds: [18, 24, 18],
   }), {
     statuses: ["new_lead"], programTypes: ["equipment"], assignedRepId: 42,
     leadSources: ["website"], createdFrom: "2026-01-01", createdTo: null,
-    minAmount: 10000, maxAmount: null,
+    minAmount: 10000, maxAmount: null, pickedLeadIds: [18, 24],
   });
 });
 

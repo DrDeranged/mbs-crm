@@ -274,6 +274,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/collateral/shared/:token` | `routes/collateral.ts` | H | seven-day HMAC signed render URL |
 | GET | `/api/campaigns` | `routes/campaigns.ts` | A | manager/admin campaign list |
 | POST | `/api/campaigns` | `routes/campaigns.ts` | A | manager/admin campaign creation |
+| GET | `/api/campaigns/lead-picker` | `routes/campaigns.ts` | A | manager/admin searchable campaign lead choices |
+| POST | `/api/campaigns/lead-picker/resolve` | `routes/campaigns.ts` | A | manager/admin details for selected campaign leads |
 | GET | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign detail |
 | PATCH | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign update |
 | POST | `/api/campaigns/:id/duplicate` | `routes/campaigns.ts` | A | manager/admin campaign duplication |

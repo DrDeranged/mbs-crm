@@ -50,6 +50,7 @@ import { getApiBaseUrl } from "@/lib/apiBase";
 import { format } from "date-fns";
 import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
 import { campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
+import { CampaignLeadPicker } from "@/components/campaign-lead-picker";
 
 const campaignSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -68,6 +69,7 @@ const campaignSchema = z.object({
     createdTo: z.string().optional().nullable(),
     minAmount: z.string().optional().nullable(),
     maxAmount: z.string().optional().nullable(),
+    pickedLeadIds: z.array(z.number().int()).optional(),
   })
 });
 
@@ -121,6 +123,7 @@ const normalizeCampaign = (campaign: any): CampaignFormValues => {
       createdTo: campaign.audienceRules?.createdTo || "",
       minAmount: campaign.audienceRules?.minAmount != null ? String(campaign.audienceRules.minAmount) : "",
       maxAmount: campaign.audienceRules?.maxAmount != null ? String(campaign.audienceRules.maxAmount) : "",
+      pickedLeadIds: Array.isArray(campaign.audienceRules?.pickedLeadIds) ? campaign.audienceRules.pickedLeadIds.map(Number).filter(Number.isInteger) : [],
     }
   };
 };
@@ -203,6 +206,7 @@ export default function CampaignDetailPage() {
         createdTo: "",
         minAmount: "",
         maxAmount: "",
+        pickedLeadIds: [],
       }
     }
   });
@@ -418,7 +422,7 @@ export default function CampaignDetailPage() {
     if (presetId === "none") return;
     const preset = presets?.find(p => p.id === Number(presetId));
     if (preset) {
-      form.setValue("audienceRules", preset.rules as any, { shouldDirty: true });
+      form.setValue("audienceRules", { ...(preset.rules as any), pickedLeadIds: form.getValues("audienceRules.pickedLeadIds") || [] }, { shouldDirty: true });
       toast.success(`Applied preset: ${preset.name}`);
     }
   };
@@ -503,6 +507,7 @@ export default function CampaignDetailPage() {
   const clearAllFilters = () => form.setValue("audienceRules", {
     statuses: [], programTypes: [], assignedRepId: "__none__", leadSources: [],
     createdFrom: "", createdTo: "", minAmount: "", maxAmount: "",
+    pickedLeadIds: audienceRules.pickedLeadIds || [],
   }, { shouldDirty: true });
   const requiresEmailTemplate = campaign.channel === "email" || campaign.channel === "email_sms";
   const previewIsFresh = !needsPreview;
@@ -909,13 +914,17 @@ export default function CampaignDetailPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="grid gap-6 md:grid-cols-2">
+                      <CampaignLeadPicker
+                        selectedIds={audienceRules.pickedLeadIds || []}
+                        onChange={(pickedLeadIds) => form.setValue("audienceRules.pickedLeadIds", pickedLeadIds, { shouldDirty: true })}
+                      />
                       <div className="md:col-span-2">
                         <div className="mb-2 flex items-center justify-between">
                           <p className="text-sm font-medium">Active filters <span className="text-slate-500">({activeFilters.length})</span></p>
                           {activeFilters.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={clearAllFilters}>Clear all</Button>}
                         </div>
                         <div className="flex min-h-10 flex-wrap gap-2 rounded-lg border bg-slate-50 p-2">
-                          {activeFilters.length === 0 ? <span className="px-2 py-1 text-sm text-slate-500">No filters — all leads will be evaluated.</span> :
+                          {activeFilters.length === 0 ? <span className="px-2 py-1 text-sm text-slate-500">{audienceRules.pickedLeadIds?.length ? "No filters — only manually picked leads will be evaluated." : "No filters or picks — all leads will be evaluated."}</span> :
                             activeFilters.map((filter) => <Badge key={filter.key} variant="secondary" className="gap-1 py-1">{filter.label}<button type="button" onClick={filter.clear} aria-label={`Clear ${filter.label}`}><X className="h-3 w-3" /></button></Badge>)}
                         </div>
                       </div>
@@ -1049,11 +1058,46 @@ export default function CampaignDetailPage() {
                         </div>
                         {isDirty && (
                           <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800 border border-amber-200">
-                            <strong>Unsaved changes:</strong> Please save the campaign before calculating the audience.
+                            <strong>Unsaved changes:</strong> The current audience preview is stale. Save the campaign before calculating a fresh preview.
                           </div>
                         )}
                         {previewAudience.data && !isDirty ? (
                           <div className="space-y-4 mt-2">
+                            {(() => {
+                              const extendedCounts = previewAudience.data.counts as typeof previewAudience.data.counts & {
+                                filterMatches?: number;
+                                pickedAdded?: number;
+                                reasonCounts?: { noEmail?: number; unsubscribed?: number; suppressed?: number; alreadySent?: number; duplicate?: number; other?: number };
+                              };
+                              const reasons = [
+                                ["noEmail", "Missing email address"],
+                                ["unsubscribed", "Unsubscribed"],
+                                ["suppressed", "Suppressed"],
+                                ["alreadySent", "Already sent this campaign"],
+                                ["duplicate", "Duplicate recipient"],
+                                ["other", "Other exclusion"],
+                              ] as const;
+                              return (
+                                <>
+                                  {(extendedCounts.filterMatches != null || extendedCounts.pickedAdded != null) && (
+                                    <div className="rounded-lg border bg-white p-3 text-sm">
+                                      {extendedCounts.filterMatches != null && <p className="flex justify-between"><span>Matched by audience filters</span><strong>{extendedCounts.filterMatches}</strong></p>}
+                                      {extendedCounts.pickedAdded != null && <p className="mt-1 flex justify-between"><span>Manually picked leads added</span><strong>{extendedCounts.pickedAdded}</strong></p>}
+                                    </div>
+                                  )}
+                                  {extendedCounts.reasonCounts && (
+                                    <div className="rounded-lg border p-3">
+                                      <p className="mb-2 text-sm font-semibold">Exclusion reasons</p>
+                                      <div className="space-y-1 text-sm text-slate-600">
+                                        {reasons.map(([key, label]) => (
+                                          <p key={key} className="flex justify-between"><span>{label}</span><strong>{extendedCounts.reasonCounts?.[key] ?? 0}</strong></p>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
                             {needsPreview && (
                               <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800 border border-amber-200">
                                 <strong>Stale preview:</strong> You have saved changes since the last preview. Click Calculate to refresh.

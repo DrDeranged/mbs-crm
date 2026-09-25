@@ -17,9 +17,11 @@ export function serializeAudienceRules(rules: {
   createdTo?: string | null;
   minAmount?: string | null;
   maxAmount?: string | null;
+  pickedLeadIds?: number[];
 }) {
   return {
     ...rules,
+    pickedLeadIds: [...new Set((rules.pickedLeadIds || []).map(Number).filter(Number.isInteger))],
     assignedRepId: !rules.assignedRepId || rules.assignedRepId === "__none__" ? null : Number(rules.assignedRepId),
     createdFrom: rules.createdFrom || null,
     createdTo: rules.createdTo || null,

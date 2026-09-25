@@ -25,6 +25,9 @@ import {
   selectDueResumeCandidates,
   DEFAULT_CAMPAIGN_REPLY_TO,
   isFutureCampaignSchedule,
+  unionCampaignAudience,
+  campaignExclusionReasonCounts,
+  includeCampaignFilterMatches,
 } from "./campaignCore";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender, validateCampaignMergeTokens } from "./campaignReadiness";
 import { EMAIL_BRAND_LOGO_URL } from "./brand";
@@ -78,9 +81,52 @@ test("resume candidates exclude sent, uncertain, and early deferred rows", () =>
 test("audience classification preserves actionable email exclusion reasons", () => {
   assert.equal(classifyEmailRecipient({ email: null, duplicate: false, unsubscribed: false, suppressed: false, capacityAvailable: true }), "missing_contact_info");
   assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: true, unsubscribed: false, suppressed: false, capacityAvailable: true }), "duplicate_email");
-  assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: false, unsubscribed: true, suppressed: false, capacityAvailable: true }), "email_unsubscribed_or_suppressed");
-  assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: false, unsubscribed: false, suppressed: true, capacityAvailable: true }), "email_unsubscribed_or_suppressed");
+  assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: false, unsubscribed: true, suppressed: false, capacityAvailable: true }), "email_unsubscribed");
+  assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: false, unsubscribed: false, suppressed: true, capacityAvailable: true }), "email_suppressed");
   assert.equal(classifyEmailRecipient({ email: "x@example.com", duplicate: false, unsubscribed: false, suppressed: false, capacityAvailable: false }), "daily_email_capacity");
+});
+
+test("campaign audience union deduplicates IDs, prioritizes picked origin, and sorts by ID", () => {
+  const audience = unionCampaignAudience(
+    [{ id: 8, name: "filter" }, { id: 3, name: "both" }],
+    [{ id: 3, name: "picked" }, { id: 10, name: "picked only" }],
+  );
+  assert.deepEqual(audience, [
+    { id: 3, name: "picked", origin: "picked" },
+    { id: 8, name: "filter", origin: "filtered" },
+    { id: 10, name: "picked only", origin: "picked" },
+  ]);
+});
+
+test("campaign exclusion breakdown distinguishes consent, suppression, prior sends and duplicates", () => {
+  assert.deepEqual(campaignExclusionReasonCounts([
+    { reason: "missing_contact_info" },
+    { reason: "email_unsubscribed" },
+    { reason: "email_suppressed" },
+    { reason: "already_sent" },
+    { reason: "duplicate_email" },
+    { reason: "application_sms_consent_required" },
+  ]), { noEmail: 1, unsubscribed: 1, suppressed: 1, alreadySent: 1, duplicate: 1, other: 1 });
+});
+
+test("a picked lead outside the filters is included but suppression excludes it with a visible reason", () => {
+  const [picked] = unionCampaignAudience(
+    [{ id: 5, email: "matched@example.com" }],
+    [{ id: 27, email: "suppressed@example.com" }],
+  ).filter((lead) => lead.id === 27);
+  assert.equal(picked.origin, "picked");
+  const reason = classifyEmailRecipient({
+    email: picked.email, duplicate: false, unsubscribed: false,
+    suppressed: true, capacityAvailable: true,
+  });
+  assert.equal(reason, "email_suppressed");
+  assert.equal(campaignExclusionReasonCounts([{ reason, channel: "email" }]).suppressed, 1);
+});
+
+test("manual picks without filters never expand into an all-leads campaign", () => {
+  assert.equal(includeCampaignFilterMatches(0, 2), false);
+  assert.equal(includeCampaignFilterMatches(1, 2), true);
+  assert.equal(includeCampaignFilterMatches(0, 0), true);
 });
 
 test("SMS preview explains missing, duplicate, consent, and unsupported launch outcomes", () => {

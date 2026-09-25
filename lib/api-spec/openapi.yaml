@@ -4790,6 +4790,48 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/components/schemas/CampaignUploadedFlyer" } }
+  /campaigns/lead-picker:
+    get:
+      operationId: searchCampaignLeadPicker
+      tags: [campaigns]
+      summary: Search leads for manual campaign audience selection
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 1000, default: 25 } }
+      responses:
+        "200":
+          description: Paged compact lead choices
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [leads, total, page, limit]
+                properties:
+                  leads: { type: array, items: { $ref: "#/components/schemas/CampaignLeadPickerLead" } }
+                  total: { type: integer }
+                  page: { type: integer }
+                  limit: { type: integer }
+  /campaigns/lead-picker/resolve:
+    post:
+      operationId: resolveCampaignLeadPicker
+      tags: [campaigns]
+      summary: Resolve compact lead details for saved manual picks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids]
+              properties:
+                ids: { type: array, maxItems: 1000, uniqueItems: true, items: { type: integer, minimum: 1 } }
+      responses:
+        "200":
+          description: Resolved leads, sorted by ID
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CampaignLeadPickerLead" } }
   /campaigns/{id}:
     parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
     get:
@@ -4814,7 +4856,9 @@ paths:
       operationId: previewCampaignAudience
       tags: [campaigns]
       parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
-      responses: { "200": { description: Audience preview, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignPreview" } } } } }
+      responses:
+        "200": { description: Audience preview, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignPreview" } } } }
+        "400": { description: Selected manual lead ID no longer exists }
   /campaigns/{id}/approve:
     post:
       operationId: approveCampaign
@@ -4950,6 +4994,22 @@ components:
         createdTo: { type: string, format: date-time, nullable: true }
         minAmount: { type: integer, minimum: 0, nullable: true }
         maxAmount: { type: integer, minimum: 0, nullable: true }
+        pickedLeadIds:
+          type: array
+          maxItems: 1000
+          uniqueItems: true
+          description: Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.
+          items: { type: integer, minimum: 1 }
+    CampaignLeadPickerLead:
+      type: object
+      required: [id, leadSource]
+      properties:
+        id: { type: integer, minimum: 1 }
+        firstName: { type: string, nullable: true }
+        lastName: { type: string, nullable: true }
+        companyName: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        leadSource: { type: string }
     CampaignBuiltInFlyer:
       type: object
       required: [source, key, name, contentType]
@@ -5007,20 +5067,22 @@ components:
         rules: { $ref: "#/components/schemas/CampaignAudienceRules" }
     CampaignEligibleRecipient:
       type: object
-      required: [leadId, channel]
+      required: [leadId, channel, origin]
       properties:
         leadId: { type: integer }
         channel: { type: string, enum: [email, sms] }
+        origin: { type: string, enum: [filtered, picked] }
     CampaignExclusion:
       type: object
-      required: [leadId, channel, reason]
+      required: [leadId, channel, reason, origin]
       properties:
         leadId: { type: integer }
         channel: { type: string, enum: [email, sms] }
         reason: { type: string }
+        origin: { type: string, enum: [filtered, picked] }
     CampaignPreviewCounts:
       type: object
-      required: [eligible, excluded, emailEligible, smsEligible, emailCapacityRemaining, emailToday, emailQueuedNextBusinessDay]
+      required: [eligible, excluded, emailEligible, smsEligible, emailCapacityRemaining, emailToday, emailQueuedNextBusinessDay, filterMatches, pickedAdded, reasonCounts]
       properties:
         eligible: { type: integer }
         excluded: { type: integer }
@@ -5029,6 +5091,18 @@ components:
         emailCapacityRemaining: { type: integer }
         emailToday: { type: integer }
         emailQueuedNextBusinessDay: { type: integer }
+        filterMatches: { type: integer }
+        pickedAdded: { type: integer }
+        reasonCounts:
+          type: object
+          required: [noEmail, unsubscribed, suppressed, alreadySent, duplicate, other]
+          properties:
+            noEmail: { type: integer }
+            unsubscribed: { type: integer }
+            suppressed: { type: integer }
+            alreadySent: { type: integer }
+            duplicate: { type: integer }
+            other: { type: integer }
     CampaignLaunch:
       type: object
       required: [id, campaignId, idempotencyKey, requestedBy, mode, status, eligibleCount, excludedCount, sentCount, failedCount, createdAt]

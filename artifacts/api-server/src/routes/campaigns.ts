@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
-import { and, asc, desc, eq, gte, inArray, lte, or, isNull, isNotNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   campaignsTable,
@@ -35,10 +35,14 @@ import {
   campaignPlainText,
   minimalCampaignHtml,
   isFutureCampaignSchedule,
+  unionCampaignAudience,
+  campaignExclusionReasonCounts,
+  includeCampaignFilterMatches,
 } from "../lib/campaignCore";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { campaignSourceBytes } from "./collateral";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignMergeTokens, validateCampaignRender } from "../lib/campaignReadiness";
+import { sanitizeLikeInput } from "../lib/sanitize";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -68,6 +72,7 @@ const rulesSchema = z.object({
   createdTo: z.coerce.date().nullable().optional(),
   minAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   maxAmount: z.coerce.number().int().nonnegative().nullable().optional(),
+  pickedLeadIds: z.array(z.number().int().positive()).max(1000).refine((ids) => new Set(ids).size === ids.length, "pickedLeadIds must be unique").optional(),
 });
 const campaignBody = z.object({
   name: z.string().trim().min(1).max(160),
@@ -192,18 +197,47 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
   if (rules.createdTo) conditions.push(lte(leadsTable.createdAt, rules.createdTo));
   if (rules.minAmount != null) conditions.push(gte(leadsTable.requestedAmount, rules.minAmount));
   if (rules.maxAmount != null) conditions.push(lte(leadsTable.requestedAmount, rules.maxAmount));
-  const leads = await db.select().from(leadsTable)
-    .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(asc(leadsTable.id));
+  const pickedIds = rules.pickedLeadIds ?? [];
+  // No filter plus manual picks means picked-only, not an accidental all-leads send.
+  const filterMatches = includeCampaignFilterMatches(conditions.length, pickedIds.length)
+    ? await db.select().from(leadsTable)
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(asc(leadsTable.id))
+    : [];
+  const pickedLeads = pickedIds.length
+    ? await db.select().from(leadsTable).where(inArray(leadsTable.id, pickedIds)).orderBy(asc(leadsTable.id))
+    : [];
+  const foundPickedIds = new Set(pickedLeads.map((lead) => lead.id));
+  const missingPickedLeadIds = pickedIds.filter((leadId) => !foundPickedIds.has(leadId));
+  if (missingPickedLeadIds.length) {
+    const error = new Error(`Selected lead IDs no longer exist: ${missingPickedLeadIds.join(", ")}`);
+    Object.assign(error, { statusCode: 400 });
+    throw error;
+  }
+  const leads = unionCampaignAudience(filterMatches, pickedLeads);
+  const filterMatchIds = new Set(filterMatches.map((lead) => lead.id));
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
   const channelsForCampaign = requestedChannels(campaign.channel);
-  const exclusions: Array<{ leadId: number; channel: string; reason: string }> = [];
-  const eligible: Array<{ leadId: number; channel: "email" | "sms"; target: string }> = [];
+  const exclusions: Array<{ leadId: number; channel: string; reason: string; origin: "filtered" | "picked" }> = [];
+  const eligible: Array<{ leadId: number; channel: "email" | "sms"; target: string; origin: "filtered" | "picked" }> = [];
   const emailCapacity = await getDailyMarketingEmailCapacity();
+  const alreadySentRows = leads.length ? await db.select({
+    leadId: campaignRecipientsTable.leadId,
+    channel: campaignRecipientsTable.channel,
+  }).from(campaignRecipientsTable).where(and(
+    eq(campaignRecipientsTable.campaignId, campaign.id),
+    eq(campaignRecipientsTable.status, "sent"),
+    inArray(campaignRecipientsTable.leadId, leads.map((lead) => lead.id)),
+  )) : [];
+  const alreadySent = new Set(alreadySentRows.map((row) => `${row.leadId}:${row.channel}`));
   let emailEligibleCount = 0;
   for (const lead of leads) {
     for (const channel of channelsForCampaign) {
+      if (alreadySent.has(`${lead.id}:${channel}`)) {
+        exclusions.push({ leadId: lead.id, channel, reason: "already_sent", origin: lead.origin });
+        continue;
+      }
       if (channel === "email") {
         const email = lead.email?.trim().toLowerCase();
         const emailReason = classifyEmailRecipient({
@@ -216,11 +250,11 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
           // business day rather than being silently excluded.
           capacityAvailable: true,
         });
-        if (emailReason !== "eligible") { exclusions.push({ leadId: lead.id, channel, reason: emailReason }); continue; }
+        if (emailReason !== "eligible") { exclusions.push({ leadId: lead.id, channel, reason: emailReason, origin: lead.origin }); continue; }
         if (!email) continue;
         seenEmails.add(email);
         emailEligibleCount++;
-        eligible.push({ leadId: lead.id, channel, target: email });
+        eligible.push({ leadId: lead.id, channel, target: email, origin: lead.origin });
       } else {
         const phone = lead.phone?.trim();
         const sms = await getLeadSmsEligibility(db, lead.id);
@@ -230,10 +264,10 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
           eligible: sms.eligible,
           reason: sms.reason,
         });
-        if (smsReason !== "sms_launch_not_supported") { exclusions.push({ leadId: lead.id, channel, reason: smsReason }); continue; }
+        if (smsReason !== "sms_launch_not_supported") { exclusions.push({ leadId: lead.id, channel, reason: smsReason, origin: lead.origin }); continue; }
         if (!phone) continue;
         seenPhones.add(phone);
-        exclusions.push({ leadId: lead.id, channel, reason: "sms_launch_not_supported" });
+        exclusions.push({ leadId: lead.id, channel, reason: "sms_launch_not_supported", origin: lead.origin });
       }
     }
   }
@@ -249,6 +283,9 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
       emailCapacityRemaining: emailCapacity.remaining,
       emailToday: Math.min(emailEligibleCount, emailCapacity.remaining),
       emailQueuedNextBusinessDay: Math.max(0, emailEligibleCount - emailCapacity.remaining),
+      filterMatches: filterMatches.length,
+      pickedAdded: pickedLeads.filter((lead) => !filterMatchIds.has(lead.id)).length,
+      reasonCounts: campaignExclusionReasonCounts(exclusions),
     },
   };
 }
@@ -312,6 +349,59 @@ router.get("/campaigns", async (req, res): Promise<void> => {
   if (!user) return;
   const rows = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.updatedAt));
   res.json(rows);
+});
+
+const leadPickerQuerySchema = z.object({
+  search: z.string().trim().max(200).optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(1000).default(25),
+}).strict();
+const leadPickerResolveSchema = z.object({
+  ids: z.array(z.number().int().positive()).max(1000)
+    .refine((ids) => new Set(ids).size === ids.length, "ids must be unique"),
+}).strict();
+const compactLeadSelection = {
+  id: leadsTable.id,
+  firstName: leadsTable.firstName,
+  lastName: leadsTable.lastName,
+  companyName: leadsTable.companyName,
+  email: leadsTable.email,
+  leadSource: leadsTable.leadSource,
+};
+
+router.get("/campaigns/lead-picker", async (req, res): Promise<void> => {
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  const parsed = leadPickerQuerySchema.safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid lead picker query", details: parsed.error.flatten() }); return; }
+  const { search, page, limit } = parsed.data;
+  const pattern = search ? `%${sanitizeLikeInput(search)}%` : "";
+  const searchCondition = search
+    ? or(
+      ilike(leadsTable.firstName, pattern),
+      ilike(leadsTable.lastName, pattern),
+      sql`concat_ws(' ', ${leadsTable.firstName}, ${leadsTable.lastName}) ilike ${pattern}`,
+      ilike(leadsTable.companyName, pattern),
+      ilike(leadsTable.email, pattern),
+      ilike(leadsTable.leadSource, pattern),
+    )
+    : undefined;
+  const [totalRow] = await db.select({ total: count() }).from(leadsTable).where(searchCondition);
+  const leads = await db.select(compactLeadSelection).from(leadsTable)
+    .where(searchCondition).orderBy(asc(leadsTable.id)).limit(limit).offset((page - 1) * limit);
+  res.json({ leads, total: totalRow?.total ?? 0, page, limit });
+});
+
+router.post("/campaigns/lead-picker/resolve", async (req, res): Promise<void> => {
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  const parsed = leadPickerResolveSchema.safeParse(req.body ?? {});
+  if (!parsed.success) { res.status(400).json({ error: "Invalid lead IDs", details: parsed.error.flatten() }); return; }
+  const leads = parsed.data.ids.length
+    ? await db.select(compactLeadSelection).from(leadsTable)
+      .where(inArray(leadsTable.id, parsed.data.ids)).orderBy(asc(leadsTable.id))
+    : [];
+  res.json(leads);
 });
 
 router.get("/campaign-flyers", async (req, res): Promise<void> => {
@@ -438,15 +528,22 @@ router.post("/campaigns/:id/preview", async (req, res): Promise<void> => {
   if (!campaignId) { res.status(400).json({ error: "Invalid campaign id" }); return; }
   const campaign = await getCampaign(campaignId);
   if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
-  const preview = await audiencePreview(campaign);
+  let preview: Awaited<ReturnType<typeof audiencePreview>>;
+  try {
+    preview = await audiencePreview(campaign);
+  } catch (error) {
+    const statusCode = Number((error as { statusCode?: number }).statusCode);
+    if (statusCode === 400) { res.status(400).json({ error: (error as Error).message }); return; }
+    throw error;
+  }
   const content = await campaignContent(campaign);
   const contentHash = campaignContentHash(content);
   const [stored] = await db.insert(campaignAudiencePreviewsTable).values({
     previewToken: randomUUID(), campaignId, campaignVersion: campaign.version,
     requestedBy: user.id, contentHash, counts: preview.counts,
     recipientsSnapshot: [
-      ...preview.eligible.map((entry) => ({ leadId: entry.leadId, channel: entry.channel, target: entry.target })),
-      ...preview.exclusions.map((entry) => ({ leadId: entry.leadId, channel: entry.channel, reason: entry.reason })),
+      ...preview.eligible.map((entry) => ({ leadId: entry.leadId, channel: entry.channel, target: entry.target, origin: entry.origin })),
+      ...preview.exclusions.map((entry) => ({ leadId: entry.leadId, channel: entry.channel, reason: entry.reason, origin: entry.origin })),
     ],
   }).returning();
   res.json({ ...preview, previewToken: stored.previewToken, previewId: stored.id, contentHash });
