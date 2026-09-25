@@ -22,6 +22,7 @@ import {
   useDeleteCampaignAudiencePreset,
   getListCampaignAudiencePresetsQueryKey,
   useListUsers,
+  useGetAnalyticsSources,
   useListCampaignFlyers,
 } from "@workspace/api-client-react";
 import { 
@@ -48,6 +49,7 @@ import { getStatusColor } from "./campaigns";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { format } from "date-fns";
 import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
+import { campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
 
 const campaignSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -75,10 +77,6 @@ const STATUS_OPTIONS = [
   ["new_lead", "New lead"], ["contacted", "Contacted"], ["application_received", "Application received"],
   ["submitted_to_underwriting", "Submitted to underwriting"],
   ["approved", "Approved"], ["funded", "Funded"], ["declined", "Declined"], ["follow_up", "Follow up"],
-] as const;
-const SOURCE_OPTIONS = [
-  ["manual", "Manual"], ["website", "Website"], ["referral", "Referral"],
-  ["import", "Imported"], ["qr-card", "QR card"], ["usfundadvisor", "US Fund Advisor"],
 ] as const;
 const PROGRAM_OPTIONS = [["equipment", "Equipment financing"], ["working_capital", "Working capital"]] as const;
 
@@ -147,7 +145,10 @@ export default function CampaignDetailPage() {
   const { data: results } = useGetCampaignResults(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignResultsQueryKey(id) } });
   const { data: templates } = useListEmailTemplates();
   const { data: presets } = useListCampaignAudiencePresets({ query: { queryKey: getListCampaignAudiencePresetsQueryKey() } });
-  const { data: users } = useListUsers();
+  const { data: users } = useListUsers({ isActive: true });
+  const { data: sourceData, isPending: sourcesPending, isError: sourcesError, refetch: refetchSources } = useGetAnalyticsSources();
+  const sourceOptions = campaignSourceOptions(sourceData);
+  const repOptions = campaignRepOptions(users);
   const { data: uploadedFlyers } = useListCampaignFlyers();
 
   const updateCampaign = useUpdateCampaign();
@@ -491,9 +492,9 @@ export default function CampaignDetailPage() {
   const isColdListAudience = (audienceRules.leadSources || []).some((source) => source === "import" || source === "purchased");
   const activeFilters = [
     ...(audienceRules.statuses || []).map((value) => ({ key: `status:${value}`, label: STATUS_OPTIONS.find(([key]) => key === value)?.[1] || value, clear: () => form.setValue("audienceRules.statuses", (audienceRules.statuses || []).filter((item) => item !== value), { shouldDirty: true }) })),
-    ...(audienceRules.leadSources || []).map((value) => ({ key: `source:${value}`, label: SOURCE_OPTIONS.find(([key]) => key === value)?.[1] || value, clear: () => form.setValue("audienceRules.leadSources", (audienceRules.leadSources || []).filter((item) => item !== value), { shouldDirty: true }) })),
+    ...(audienceRules.leadSources || []).map((value) => ({ key: `source:${value}`, label: sourceOptions.find(([key]) => key === value)?.[1] || value, clear: () => form.setValue("audienceRules.leadSources", (audienceRules.leadSources || []).filter((item) => item !== value), { shouldDirty: true }) })),
     ...(audienceRules.programTypes || []).map((value) => ({ key: `program:${value}`, label: PROGRAM_OPTIONS.find(([key]) => key === value)?.[1] || value, clear: () => form.setValue("audienceRules.programTypes", (audienceRules.programTypes || []).filter((item) => item !== value), { shouldDirty: true }) })),
-    ...(audienceRules.assignedRepId && audienceRules.assignedRepId !== "__none__" ? [{ key: "rep", label: `Rep: ${users?.find((u) => String(u.id) === audienceRules.assignedRepId)?.name || "Selected"}`, clear: () => form.setValue("audienceRules.assignedRepId", "__none__", { shouldDirty: true }) }] : []),
+    ...(audienceRules.assignedRepId && audienceRules.assignedRepId !== "__none__" ? [{ key: "rep", label: `Rep: ${repOptions.find((u) => String(u.id) === audienceRules.assignedRepId)?.name || "Selected"}`, clear: () => form.setValue("audienceRules.assignedRepId", "__none__", { shouldDirty: true }) }] : []),
     ...(audienceRules.createdFrom ? [{ key: "from", label: `From ${audienceRules.createdFrom}`, clear: () => form.setValue("audienceRules.createdFrom", "", { shouldDirty: true }) }] : []),
     ...(audienceRules.createdTo ? [{ key: "to", label: `To ${audienceRules.createdTo}`, clear: () => form.setValue("audienceRules.createdTo", "", { shouldDirty: true }) }] : []),
     ...(audienceRules.minAmount ? [{ key: "min", label: `Min $${Number(audienceRules.minAmount).toLocaleString()}`, clear: () => form.setValue("audienceRules.minAmount", "", { shouldDirty: true }) }] : []),
@@ -935,7 +936,10 @@ export default function CampaignDetailPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Lead Sources</FormLabel>
-                            <FormControl><GuidedMultiSelect label="Lead sources" value={field.value} options={SOURCE_OPTIONS} onChange={field.onChange} /></FormControl>
+                            <FormControl><GuidedMultiSelect label="Lead sources" value={field.value} options={sourceOptions} onChange={field.onChange} /></FormControl>
+                            {sourcesPending && <FormDescription>Loading lead sources…</FormDescription>}
+                            {sourcesError && <FormDescription>Could not load lead sources. <button type="button" className="underline" onClick={() => void refetchSources()}>Retry</button></FormDescription>}
+                            {!sourcesPending && !sourcesError && sourceOptions.length === 0 && <FormDescription>No lead sources found.</FormDescription>}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -963,10 +967,10 @@ export default function CampaignDetailPage() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="__none__">Any Rep (No filter)</SelectItem>
-                                {users?.map(u => (
+                                {repOptions.map(u => (
                                   <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>
                                 ))}
-                                {field.value && field.value !== "__none__" && users && !users.some(u => String(u.id) === field.value) && (
+                                {field.value && field.value !== "__none__" && users && !repOptions.some(u => String(u.id) === field.value) && (
                                   <SelectItem value={field.value} disabled>Unknown Rep ({field.value})</SelectItem>
                                 )}
                               </SelectContent>

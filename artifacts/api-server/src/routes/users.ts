@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { usersTable, retiredRepSlugsTable, userIdentitiesTable, adminAuditLogTable, activityLogTable } from "@workspace/db";
-import { eq, and, inArray, ne, sql } from "drizzle-orm";
+import { eq, and, inArray, isNull, ne, sql } from "drizzle-orm";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListUsersQueryParams, UpdateUserParams, UpdateUserBody } from "@workspace/api-zod";
@@ -112,6 +112,7 @@ router.get("/users", async (req: Request, res: Response) => {
       ? and(
           params.data.role ? eq(usersTable.role, params.data.role) : undefined,
           params.data.isActive === undefined ? undefined : eq(usersTable.isActive, params.data.isActive),
+          params.data.isActive === true ? isNull(usersTable.mergedInto) : undefined,
         )
       : undefined,
     orderBy: (t, { asc }) => [asc(t.name)],
