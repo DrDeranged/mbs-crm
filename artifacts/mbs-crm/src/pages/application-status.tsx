@@ -238,18 +238,18 @@ export default function ApplicationStatus() {
           <p className="text-sm text-slate-500 mb-4">Contact your rep directly or reach out to our support team.</p>
           <div className="flex flex-wrap gap-4">
             <a
-              href="tel:+18005550000"
+              href="tel:+19088608507"
               className="flex items-center gap-2 text-sm text-[#1F4E79] hover:underline font-medium"
             >
               <Phone className="h-4 w-4" />
-              (800) 555-0000
+              (908) 860-8507
             </a>
             <a
-              href="mailto:support@mybusinesssolutions.com"
+              href="mailto:funding@my-business-solutions.com"
               className="flex items-center gap-2 text-sm text-[#1F4E79] hover:underline font-medium"
             >
               <Mail className="h-4 w-4" />
-              support@mybusinesssolutions.com
+              funding@my-business-solutions.com
             </a>
           </div>
         </div>
