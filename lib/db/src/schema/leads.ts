@@ -28,6 +28,7 @@ export const leadsTable = pgTable(
     email: text("email"),
     phone: text("phone"),
     companyName: text("company_name"),
+    vertical: text("vertical"),
     ein: text("ein"),
     applicationType: text("application_type", { enum: APPLICATION_TYPES }).notNull().default("working_capital"),
     status: text("status", { enum: LEAD_STATUSES }).notNull().default("new_lead"),

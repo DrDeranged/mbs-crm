@@ -51,6 +51,7 @@ import { format } from "date-fns";
 import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
 import { campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
 import { CampaignLeadPicker } from "@/components/campaign-lead-picker";
+import { CampaignLibraryFlyerPicker } from "@/components/campaign-library-flyer-picker";
 
 const campaignSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -60,6 +61,7 @@ const campaignSchema = z.object({
   smsBody: z.string().optional().nullable(),
   replyToEmail: z.string().email("Enter a valid Reply-To email address"),
   flyer: z.any().nullable().optional(),
+  flyerDeliveryMode: z.enum(["attach", "link"]),
   audienceRules: z.object({
     statuses: z.array(z.string()).optional(),
     programTypes: z.array(z.string()).optional(),
@@ -114,6 +116,7 @@ const normalizeCampaign = (campaign: any): CampaignFormValues => {
     smsBody: campaign.smsBody || "",
     replyToEmail: campaign.replyToEmail || "nate@my-business-solutions.com",
     flyer: campaign.flyer || null,
+    flyerDeliveryMode: campaign.flyerDeliveryMode || "attach",
     audienceRules: {
       statuses: campaign.audienceRules?.statuses || [],
       programTypes: campaign.audienceRules?.programTypes || [],
@@ -197,6 +200,7 @@ export default function CampaignDetailPage() {
       smsBody: "",
       replyToEmail: "nate@my-business-solutions.com",
       flyer: null,
+      flyerDeliveryMode: "link",
       audienceRules: {
         statuses: [],
         programTypes: [],
@@ -489,6 +493,7 @@ export default function CampaignDetailPage() {
   });
   const selectedTemplate = templates?.find(t => String(t.id) === form.watch("emailTemplateId"));
   const selectedFlyer = form.watch("flyer") as any;
+  const flyerDeliveryMode = form.watch("flyerDeliveryMode");
   const selectedFlyerUrl = selectedFlyer?.source === "built_in"
     ? `${getApiBaseUrl()}/collateral/campaign-assets/${selectedFlyer.key === "equipment_financing" ? "equipment-financing" : "working-capital"}`
     : selectedFlyer?.objectPath ? `${getApiBaseUrl()}/storage${selectedFlyer.objectPath}` : null;
@@ -763,6 +768,25 @@ export default function CampaignDetailPage() {
                       <CardDescription>Choose an MBS design or upload a reusable flyer. Changing the flyer requires a new preview and approval.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
+                      <FormField
+                        control={form.control}
+                        name="flyerDeliveryMode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Flyer delivery</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                              <SelectContent>
+                                <SelectItem value="link">Link — signed, expiring flyer URL (default)</SelectItem>
+                                <SelectItem value="attach">Attach — include the flyer file</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>Link mode requires a flyer from the collateral library. Attach mode keeps the current file attachment behavior.</FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                      <CampaignLibraryFlyerPicker selected={selectedFlyer?.source === "library" ? selectedFlyer : null}
+                        onSelect={(flyer) => form.setValue("flyer", flyer, { shouldDirty: true })} />
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {[
                           { key: "equipment_financing" as const, name: "Equipment Financing", slug: "equipment-financing" },
@@ -813,7 +837,7 @@ export default function CampaignDetailPage() {
                       {uploadError && <p role="alert" className="text-sm text-red-600">{uploadError}</p>}
                       {selectedFlyer && (
                         <div className="flex items-center gap-4 rounded-xl border bg-slate-50 p-4">
-                          {selectedFlyer.contentType === "application/pdf" ? <FileText className="h-10 w-10 text-red-500" /> :
+                          {selectedFlyer.source === "library" || selectedFlyer.contentType === "application/pdf" ? <FileText className="h-10 w-10 text-red-500" /> :
                             <img src={selectedFlyerUrl || ""} alt="" className="h-20 w-14 rounded object-cover" />}
                           <div className="min-w-0 flex-1"><p className="font-semibold">Selected creative</p><p className="truncate text-sm text-slate-500">{selectedFlyer.name}</p></div>
                           <Button type="button" variant="ghost" size="icon" aria-label="Clear selected flyer" onClick={() => form.setValue("flyer", null, { shouldDirty: true })}><X className="h-4 w-4" /></Button>
@@ -821,10 +845,15 @@ export default function CampaignDetailPage() {
                       )}
                       {!selectedFlyer && (
                         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-                          Attachment: none. This campaign will send a plain-text message with a minimal HTML alternative and no images or attachments.
+                          Flyer: none. This campaign will send without a flyer attachment or link.
                         </div>
                       )}
-                      {selectedFlyer && isColdListAudience && (
+                      {selectedFlyer && flyerDeliveryMode === "link" && selectedFlyer.source !== "library" && (
+                        <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                          This flyer cannot be linked. Choose a collateral library flyer or change delivery to Attach before saving.
+                        </div>
+                      )}
+                      {selectedFlyer && flyerDeliveryMode === "attach" && isColdListAudience && (
                         <div role="alert" className="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
                           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                           Attachments on cold outreach are commonly filtered as spam.
@@ -1054,7 +1083,7 @@ export default function CampaignDetailPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="mb-4 rounded-lg border bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
-                          Attachment: {selectedFlyer?.name || "none"}
+                          Flyer delivery: {flyerDeliveryMode === "link" ? "Link (signed, expiring URL)" : "Attach"} · {selectedFlyer?.name || "no flyer"}
                         </div>
                         {isDirty && (
                           <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800 border border-amber-200">
@@ -1209,7 +1238,7 @@ export default function CampaignDetailPage() {
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <p className="rounded-lg border bg-slate-50 p-3 text-sm font-medium text-slate-700">
-                                Attachment: {selectedFlyer?.name || "none"}
+                                Flyer delivery: {flyerDeliveryMode === "link" ? "Link (signed, expiring URL)" : "Attach"} · {selectedFlyer?.name || "no flyer"}
                               </p>
                               {readiness.blockers.length === 0 ? (
                                 <p className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
@@ -1293,7 +1322,7 @@ export default function CampaignDetailPage() {
                       </CardHeader>
                       <CardContent className="space-y-4 text-sm">
                         <div className="rounded-lg border bg-slate-50 px-3 py-2 font-medium text-slate-700">
-                          Approval attachment: {selectedFlyer?.name || "none"}
+                          Approval flyer delivery: {flyerDeliveryMode === "link" ? "Link (signed, expiring URL)" : "Attach"} · {selectedFlyer?.name || "no flyer"}
                         </div>
                         <div className="space-y-2 mb-4">
                           {safeguards.map((item) => <p key={item} className="flex gap-2 text-slate-600"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />{item}</p>)}

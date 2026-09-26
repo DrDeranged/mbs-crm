@@ -34,6 +34,7 @@ const LEAD_FIELDS = [
   { value: "ein", label: "EIN / Tax ID" },
   { value: "application_type", label: "Financing Type" },
   { value: "lead_source", label: "Lead Source" },
+  { value: "vertical", label: "Vertical" },
   { value: "industry", label: "Industry" },
   { value: "state", label: "State" },
 ];
@@ -47,6 +48,7 @@ const AUTO_MAP: Record<string, string> = {
   ein: "ein", tax_id: "ein",
   application_type: "application_type", "financing type": "application_type",
   lead_source: "lead_source", source: "lead_source",
+  vertical: "vertical", business_vertical: "vertical", "industry vertical": "vertical",
   industry: "industry",
   state: "state",
 };

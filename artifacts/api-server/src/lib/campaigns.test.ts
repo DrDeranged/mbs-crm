@@ -18,6 +18,10 @@ import {
   selectResumeClaimOutcome,
   approvedFlyerMatches,
   buildCampaignFlyerAttachment,
+  campaignFlyerAttachments,
+  campaignFlyerLinkMarker,
+  renderCampaignFlyerLink,
+  vendorVertical,
   campaignPlainText,
   minimalCampaignHtml,
   nextBusinessDayInNewYork,
@@ -31,6 +35,7 @@ import {
 } from "./campaignCore";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender, validateCampaignMergeTokens } from "./campaignReadiness";
 import { EMAIL_BRAND_LOGO_URL } from "./brand";
+import { renderTemplate } from "../routes/email";
 
 test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "admin" }), true);
@@ -47,6 +52,37 @@ test("campaign without a flyer produces plain text and one remote logo HTML alte
   assert.equal(html.split(EMAIL_BRAND_LOGO_URL).length - 1, 1);
   assert.match(html, /Hello &amp; welcome/);
   assert.equal(buildCampaignFlyerAttachment(null), undefined);
+});
+
+test("Link sends no attachment and renders an expiring URL in both email alternatives; Attach is unchanged", () => {
+  const flyer = { bytes: Buffer.from("approved bytes"), name: "Vendor.pdf", contentType: "application/pdf" };
+  assert.equal(campaignFlyerAttachments(flyer, "link"), undefined);
+  assert.deepEqual(campaignFlyerAttachments(flyer, "attach"), buildCampaignFlyerAttachment(flyer));
+  const url = "https://example.com/api/collateral/flyers/public/signed?expires=123&sig=abc";
+  const body = renderTemplate("Hi {{first_name|there}},\n\n{{flyer_link}}", {
+    first_name: "", flyer_link: campaignFlyerLinkMarker(),
+  });
+  const rendered = renderCampaignFlyerLink(body, url);
+  assert.match(rendered.bodyText, /Hi there,/);
+  assert.ok(rendered.bodyText.includes(url));
+  assert.match(rendered.bodyHtml, /<a href="https:\/\/example\.com\/api\/collateral\/flyers\/public\/signed\?expires=123&amp;sig=abc">View our vendor program →<\/a>/);
+  assert.ok(!rendered.bodyHtml.includes(campaignFlyerLinkMarker()));
+  assert.ok(!renderCampaignFlyerLink(body, null).bodyText.includes("View our vendor program"));
+  assert.equal(validateCampaignMergeTokens({ subject: "Financing for your {{vertical}} buyers", bodyHtml: body.replace("there", "{{first_name|there}}") }), null);
+});
+
+test("vendor vertical mappings use imported lead vertical first and default to equipment", () => {
+  assert.equal(vendorVertical("yellow_iron"), "heavy equipment");
+  assert.equal(vendorVertical(null, "Construction"), "heavy equipment");
+  assert.equal(vendorVertical("trucking"), "truck and trailer");
+  assert.equal(vendorVertical(null, "Restaurants"), "restaurant equipment");
+  assert.equal(vendorVertical(null, "Generators"), "generator");
+  assert.equal(vendorVertical("amusement"), "equipment");
+  assert.equal(vendorVertical(null, null), "equipment");
+  assert.equal(vendorVertical("trucking", "Restaurants"), "truck and trailer");
+  assert.equal(renderTemplate("Financing for your {{vertical}} buyers", { vertical: vendorVertical("trucking") }), "Financing for your truck and trailer buyers");
+  assert.equal(renderTemplate("If a buyer at {{company}} ever stalls on financing", { company: "" }),
+    "If a buyer ever stalls on financing");
 });
 
 test("daily overflow is deferred to the next New York business day", () => {

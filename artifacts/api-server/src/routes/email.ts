@@ -24,6 +24,7 @@ import { ensureBrandEmailHeader, getBrandLogoPng, getBrandLogoReversePng, getBra
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 import { seedStarterEmailData } from "../lib/productionMaintenance";
+import { vendorVertical } from "../lib/campaignCore";
 import { logger } from "../lib/logger";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
@@ -46,6 +47,7 @@ export const EMAIL_MERGE_TOKENS = [
   "lead_first_name", "lead_last_name", "lead_company", "lead_email", "lead_phone",
   "rep_name", "rep_phone", "rep_email", "lender_name", "requested_amount", "application_type",
   "brand_email_header", "unsubscribe_link", "mailing_address",
+  "first_name|there", "company", "vertical", "flyer_link",
 ] as const;
 export const EMAIL_MERGE_TOKEN_DOCUMENTATION = {
   lead_first_name: "{{lead_first_name}}",
@@ -232,6 +234,10 @@ function buildVariables(lead: any, rep: any, extras: Record<string, unknown> = {
     lead_company: lead?.companyName || "",
     lead_email: lead?.email || "",
     lead_phone: lead?.phone || "",
+    first_name: lead?.firstName || "",
+    company: lead?.companyName || "",
+    vertical: vendorVertical(lead?.vertical, lead?.industry),
+    flyer_link: "",
     rep_name: rep?.name || "",
     rep_phone: rep?.mobileNumber || "",
     rep_email: rep?.email || "",
@@ -260,13 +266,16 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
   const companyless = !vars.lead_company?.trim()
     ? publicTemplate.replace(/\bfor\s+{{lead_company}}(?:'s)?/gi, "").replace(/{{lead_company}}(?:'s)?/gi, "")
     : publicTemplate;
-  const rendered = companyless.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  const withoutMissingCompany = !vars.company?.trim()
+    ? companyless.replace(/\bat\s+{{company}}\s*/gi, "")
+    : companyless;
+  const rendered = withoutMissingCompany.replace(/\{\{\s*(\w+)(?:\|([^{}]+))?\s*\}\}/g, (_, key: string, fallback?: string) => {
     if (key === "brand_email_header") return "__MBS_BRAND_EMAIL_HEADER__";
     if (key === "unsubscribe_link") return "__MBS_UNSUBSCRIBE_LINK__";
     if (key === "mailing_address") return escapeHtml(EMAIL_COMPLIANCE_ADDRESS);
     if (key === "lead_first_name" && !vars[key]?.trim()) return "there";
     const raw = vars[key];
-    return raw == null ? "" : escapeHtml(String(raw));
+    return raw == null || !String(raw).trim() ? (fallback ? escapeHtml(fallback.trim()) : "") : escapeHtml(String(raw));
   });
   return rendered.replace(/[ \t]{2,}/g, " ");
 }

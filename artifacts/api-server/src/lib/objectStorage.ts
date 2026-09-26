@@ -140,6 +140,15 @@ export class ObjectStorageService {
     };
   }
 
+  async getCollateralFlyerUploadURL(userId: number): Promise<{ uploadUrl: string; objectPath: string }> {
+    const entityPath = `collateral-flyers/staging/${userId}/${randomUUID()}`;
+    const { bucketName, objectName } = parseObjectPath(`${this.getPrivateObjectDir()}/${entityPath}`);
+    return {
+      uploadUrl: await signObjectURL({ bucketName, objectName, method: "PUT", ttlSec: 900 }),
+      objectPath: `/objects/${entityPath}`,
+    };
+  }
+
   async getTelephonyGreetingUploadURL(): Promise<{ uploadUrl: string; objectPath: string }> {
     // The upload grant only permits writing a staging object. Playback uses a
     // server-owned copy so an unexpired PUT URL cannot replace approved audio.

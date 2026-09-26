@@ -11,6 +11,8 @@ import {
   campaignAuditEventsTable,
   campaignLaunchesTable,
   campaignRecipientsTable,
+  collateralTemplatesTable,
+  companiesTable,
   emailTemplatesTable,
   leadsTable,
   usersTable,
@@ -31,16 +33,17 @@ import {
   isSmsLaunchUnsupported,
   campaignContentHash,
   approvedFlyerMatches,
-  buildCampaignFlyerAttachment,
-  campaignPlainText,
-  minimalCampaignHtml,
+  campaignFlyerAttachments,
+  campaignFlyerLinkMarker,
+  renderCampaignFlyerLink,
+  vendorVertical,
   isFutureCampaignSchedule,
   unionCampaignAudience,
   campaignExclusionReasonCounts,
   includeCampaignFilterMatches,
 } from "../lib/campaignCore";
 import { ObjectStorageService } from "../lib/objectStorage";
-import { campaignSourceBytes } from "./collateral";
+import { campaignSourceBytes, buildSignedCampaignFlyerUrl } from "./collateral";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignMergeTokens, validateCampaignRender } from "../lib/campaignReadiness";
 import { sanitizeLikeInput } from "../lib/sanitize";
 
@@ -62,6 +65,11 @@ const flyerSchema = z.discriminatedUnion("source", [
     contentType: z.enum(["image/png", "image/jpeg", "image/webp", "application/pdf"]),
     size: z.number().int().positive().max(15 * 1024 * 1024),
   }),
+  z.object({
+    source: z.literal("library"),
+    templateId: id,
+    name: z.string().trim().min(1).max(255),
+  }),
 ]).nullable();
 const rulesSchema = z.object({
   statuses: z.array(z.string()).max(20).optional(),
@@ -81,6 +89,7 @@ const campaignBody = z.object({
   emailTemplateId: id.nullable().optional(),
   smsBody: z.string().trim().max(1600).nullable().optional(),
   flyer: flyerSchema.optional(),
+  flyerDeliveryMode: z.enum(["attach", "link"]).optional(),
   audienceRules: rulesSchema.optional(),
   ownerId: id.optional(),
   replyToEmail: z.string().trim().email().optional(),
@@ -91,6 +100,12 @@ const launchBody = z.object({
   scheduledAt: z.coerce.date().nullable().optional(),
 });
 const DEFAULT_REPLY_TO = "nate@my-business-solutions.com";
+
+function flyerModeError(flyer: z.infer<typeof flyerSchema> | undefined, mode: "attach" | "link"): string | null {
+  return mode === "link" && flyer && flyer.source !== "library"
+    ? "Link delivery requires a flyer from the collateral library. Select one or choose Attach."
+    : null;
+}
 
 function nextBusinessDay(now = new Date()): Date {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" })
@@ -109,7 +124,16 @@ async function validateUploadedFlyer(
   flyer: z.infer<typeof flyerSchema> | undefined,
   user: { id: number; role: string },
 ): Promise<string | null> {
-  if (!flyer || flyer.source !== "uploaded") return null;
+  if (!flyer) return null;
+  if (flyer.source === "library") {
+    const [item] = await db.select().from(collateralTemplatesTable).where(eq(collateralTemplatesTable.id, flyer.templateId)).limit(1);
+    if (!item || item.category !== "flyer" || item.status !== "published" ||
+      !item.assetSha256 || !item.assetGeneration || !item.sourceKey.startsWith("/objects/")) {
+      return "Selected library flyer is unavailable";
+    }
+    return null;
+  }
+  if (flyer.source !== "uploaded") return null;
   if (!flyer.objectPath.startsWith(`/objects/campaigns/${user.id}/`) && user.role !== "admin") {
     return "Uploaded flyer does not belong to the current user";
   }
@@ -125,8 +149,9 @@ async function validateUploadedFlyer(
 }
 
 type ResolvedCampaignFlyer = {
-  source: "built_in" | "uploaded";
+  source: "built_in" | "uploaded" | "library";
   key?: "equipment_financing" | "working_capital";
+  templateId?: number;
   objectPath?: string;
   name: string;
   contentType: string;
@@ -150,6 +175,25 @@ async function resolveCampaignFlyer(raw: unknown): Promise<ResolvedCampaignFlyer
       size: bytes.length,
       digest: createHash("sha256").update(bytes).digest("hex"),
       generation: "built-in",
+    };
+  }
+  if (flyer.source === "library") {
+    const [item] = await db.select().from(collateralTemplatesTable).where(eq(collateralTemplatesTable.id, flyer.templateId)).limit(1);
+    if (!item || item.status !== "published" || item.category !== "flyer" ||
+      !item.assetSha256 || !item.assetGeneration || !item.sourceKey.startsWith("/objects/")) {
+      throw new Error("APPROVED_FLYER_UNAVAILABLE");
+    }
+    const stored = await objectStorage.readObjectEntity(item.sourceKey);
+    const digest = createHash("sha256").update(stored.bytes).digest("hex");
+    if (!["image/png", "application/pdf"].includes(stored.contentType) ||
+      stored.contentType !== item.assetContentType || stored.size !== item.assetSize ||
+      stored.generation !== item.assetGeneration || digest !== item.assetSha256) {
+      throw new Error("APPROVED_FLYER_CHANGED");
+    }
+    return {
+      source: "library", templateId: item.id, objectPath: item.sourceKey,
+      name: item.name, ...stored,
+      digest,
     };
   }
   const stored = await objectStorage.readObjectEntity(flyer.objectPath);
@@ -300,6 +344,7 @@ async function campaignContent(campaign: typeof campaignsTable.$inferSelect) {
     replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO,
     audienceRules: campaign.audienceRules ?? {},
     smsBody: campaign.smsBody ?? null,
+    flyerDeliveryMode: campaign.flyerDeliveryMode,
     flyer: flyerSnapshot(resolvedFlyer),
     emailTemplate: template ? {
       id: template.id, updatedAt: template.updatedAt?.toISOString() ?? null,
@@ -441,6 +486,8 @@ router.post("/campaigns", async (req, res): Promise<void> => {
   const parsed = campaignBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  const modeError = flyerModeError(data.flyer, data.flyerDeliveryMode ?? "link");
+  if (modeError) { res.status(400).json({ error: modeError }); return; }
   const tokenError = await campaignTemplateTokenError(data.emailTemplateId, data.channel ?? "email");
   if (tokenError) { res.status(400).json({ error: tokenError }); return; }
   const flyerError = await validateUploadedFlyer(data.flyer, user);
@@ -452,6 +499,7 @@ router.post("/campaigns", async (req, res): Promise<void> => {
     emailTemplateId: data.emailTemplateId ?? null,
     smsBody: data.smsBody ?? null,
     flyer: data.flyer ?? null,
+    flyerDeliveryMode: data.flyerDeliveryMode ?? "link",
     audienceRules: data.audienceRules ?? {},
     ownerId: data.ownerId ?? user.id,
     replyToEmail: data.replyToEmail ?? DEFAULT_REPLY_TO,
@@ -472,6 +520,11 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
   const parsed = campaignBody.partial().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  const modeError = flyerModeError(
+    data.flyer === undefined ? flyerSchema.parse(campaign.flyer) : data.flyer,
+    data.flyerDeliveryMode ?? campaign.flyerDeliveryMode,
+  );
+  if (modeError) { res.status(400).json({ error: modeError }); return; }
   if (data.emailTemplateId !== undefined || data.channel !== undefined) {
     const tokenError = await campaignTemplateTokenError(
       data.emailTemplateId === undefined ? campaign.emailTemplateId : data.emailTemplateId,
@@ -481,7 +534,7 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
   }
   const flyerError = await validateUploadedFlyer(data.flyer, user);
   if (flyerError) { res.status(flyerError.includes("belong") ? 403 : 400).json({ error: flyerError }); return; }
-  const contentChanged = ["name", "channel", "emailTemplateId", "smsBody", "flyer", "audienceRules", "replyToEmail"].some((key) => key in data);
+  const contentChanged = ["name", "channel", "emailTemplateId", "smsBody", "flyer", "flyerDeliveryMode", "audienceRules", "replyToEmail"].some((key) => key in data);
   const [updated] = await db.update(campaignsTable).set({
     ...(data.name === undefined ? {} : { name: data.name }),
     ...(data.description === undefined ? {} : { description: data.description }),
@@ -489,6 +542,7 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
     ...(data.emailTemplateId === undefined ? {} : { emailTemplateId: data.emailTemplateId }),
     ...(data.smsBody === undefined ? {} : { smsBody: data.smsBody }),
     ...(data.flyer === undefined ? {} : { flyer: data.flyer }),
+    ...(data.flyerDeliveryMode === undefined ? {} : { flyerDeliveryMode: data.flyerDeliveryMode }),
     ...(data.audienceRules === undefined ? {} : { audienceRules: data.audienceRules }),
     ...(data.ownerId === undefined ? {} : { ownerId: data.ownerId }),
     ...(data.replyToEmail === undefined ? {} : { replyToEmail: data.replyToEmail }),
@@ -514,7 +568,7 @@ router.post("/campaigns/:id/duplicate", async (req, res): Promise<void> => {
   const name = z.object({ name: z.string().trim().min(1).max(160).optional() }).parse(req.body ?? {}).name ?? `${campaign.name} Copy`;
   const [copy] = await db.insert(campaignsTable).values({
     name, description: campaign.description, channel: campaign.channel, status: "draft",
-    emailTemplateId: campaign.emailTemplateId, smsBody: campaign.smsBody, flyer: campaign.flyer, audienceRules: campaign.audienceRules,
+    emailTemplateId: campaign.emailTemplateId, smsBody: campaign.smsBody, flyer: campaign.flyer, flyerDeliveryMode: campaign.flyerDeliveryMode, audienceRules: campaign.audienceRules,
     ownerId: user.id, createdBy: user.id,
   }).returning();
   await audit(copy.id, user.id, "duplicated", null, "draft", { sourceCampaignId: campaign.id });
@@ -537,6 +591,8 @@ router.post("/campaigns/:id/preview", async (req, res): Promise<void> => {
     throw error;
   }
   const content = await campaignContent(campaign);
+  const modeError = flyerModeError(flyerSchema.parse(campaign.flyer), campaign.flyerDeliveryMode);
+  if (modeError) { res.status(409).json({ error: modeError }); return; }
   const contentHash = campaignContentHash(content);
   const [stored] = await db.insert(campaignAudiencePreviewsTable).values({
     previewToken: randomUUID(), campaignId, campaignVersion: campaign.version,
@@ -611,6 +667,8 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
   }).safeParse(req.body ?? {});
   if (!body.success) { res.status(400).json({ error: "A current previewToken and claimsAffirmed=true are required" }); return; }
   const content = await campaignContent(campaign);
+  const modeError = flyerModeError(flyerSchema.parse(campaign.flyer), campaign.flyerDeliveryMode);
+  if (modeError) { res.status(409).json({ error: modeError }); return; }
   if (["email", "email_sms"].includes(campaign.channel) && (!content.emailTemplate || !content.emailTemplate.isActive)) {
     res.status(409).json({ error: "An active email template is required before approval" }); return;
   }
@@ -639,7 +697,7 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
       campaignId, approvalType: body.data.approvalType, contentVersion: campaign.version,
       approvedBy: user.id, contentHash, previewId: preview.id, claimsAffirmed: true,
       snapshot: {
-        campaign: { channel: campaign.channel, replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO, audienceRules: campaign.audienceRules, smsBody: campaign.smsBody, flyer: content.flyer },
+        campaign: { channel: campaign.channel, replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO, audienceRules: campaign.audienceRules, smsBody: campaign.smsBody, flyer: content.flyer, flyerDeliveryMode: campaign.flyerDeliveryMode },
         template: content.emailTemplate, counts: preview.counts, recipients: preview.recipientsSnapshot,
       },
     });
@@ -718,11 +776,13 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
   }
   if (!hasCurrentApproval(approval[0], campaign.version, currentHash)) { res.status(409).json({ error: "Campaign requires approval for its current content and audience" }); return; }
   const approvalSnapshot = (approval[0]?.snapshot ?? {}) as any;
+  const modeError = flyerModeError(flyerSchema.parse(campaign.flyer), campaign.flyerDeliveryMode);
+  if (modeError) { res.status(409).json({ error: modeError }); return; }
   const approvedFlyer = approvalSnapshot?.campaign?.flyer;
   if (!approvedFlyerMatches(approvedFlyer, flyerSnapshot(resolvedFlyer))) {
     res.status(409).json({ error: "Campaign flyer no longer matches the approved creative" }); return;
   }
-  const attachments = buildCampaignFlyerAttachment(resolvedFlyer);
+  const attachments = campaignFlyerAttachments(resolvedFlyer, campaign.flyerDeliveryMode);
   const snapshotRecipients = approvalSnapshot.recipients;
   const snapshotCounts = approvalSnapshot.counts;
   if (!Array.isArray(snapshotRecipients) || !snapshotCounts ||
@@ -882,21 +942,34 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
     const vars = buildVariables(lead, rep);
     // Campaign copy should address an unknown first name naturally.
     if (!vars.lead_first_name.trim()) vars.lead_first_name = "there";
+    const [company] = await db.select({ industry: companiesTable.industry }).from(companiesTable)
+      .where(eq(companiesTable.leadId, lead.id)).limit(1);
+    vars.first_name = lead.firstName?.trim() || "";
+    vars.company = lead.companyName?.trim() || "";
+    vars.vertical = vendorVertical(lead.vertical, company?.industry);
+    vars.flyer_link = campaignFlyerLinkMarker();
+    const linkUrl = campaign.flyerDeliveryMode === "link" && resolvedFlyer?.source === "library"
+      ? buildSignedCampaignFlyerUrl({
+        templateId: resolvedFlyer.templateId!, objectPath: resolvedFlyer.objectPath!,
+        digest: resolvedFlyer.digest, generation: resolvedFlyer.generation,
+        name: resolvedFlyer.name, contentType: resolvedFlyer.contentType as "image/png" | "application/pdf",
+      }, 7 * 24 * 60 * 60)
+      : null;
     const renderedBody = renderTemplate(template.bodyHtml, vars);
-    const bodyText = campaignPlainText(renderedBody);
+    const { bodyText, bodyHtml } = renderCampaignFlyerLink(renderedBody, linkUrl);
     const withoutAttachment = !resolvedFlyer;
     let result;
     try {
        result = await doSendEmail({
       leadId: lead.id, userId: user.id, templateId: template.id,
       subject: renderTemplate(template.subject, vars),
-      bodyHtml: withoutAttachment ? minimalCampaignHtml(bodyText) : renderedBody,
+      bodyHtml,
       bodyText,
       toEmail: target, baseUrl: getPublicBaseUrl(), senderMode: template.senderMode as "default" | "assigned_rep",
       deliveryKind: "bulk", campaignId, campaignLaunchId: launch.id, rep: rep ?? undefined,
         replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO,
        attachments,
-       minimalNoImages: withoutAttachment,
+        minimalNoImages: withoutAttachment,
       });
     } catch (error) {
       failed++;

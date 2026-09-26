@@ -7,6 +7,7 @@ import { leadsTable, companiesTable } from "@workspace/db";
 import { or, ilike } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
+import { normalizeLeadVertical, parseCsvRows, resolveLeadImportValue, type ParsedLeadImportRow } from "../lib/leadImport";
 
 const router: IRouter = Router();
 const columnMappingSchema = z.record(z.string(), z.string());
@@ -32,9 +33,7 @@ const upload = multer({
   },
 });
 
-type ParsedRow = Record<string, string>;
-
-async function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): Promise<{ headers: string[]; rows: ParsedRow[] }> {
+async function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): Promise<{ headers: string[]; rows: ParsedLeadImportRow[] }> {
   const isExcel =
     mimetype.includes("spreadsheetml") ||
     mimetype.includes("ms-excel") ||
@@ -66,7 +65,7 @@ async function parseBuffer(buffer: Buffer, mimetype: string, originalname: strin
     });
   } else {
     const text = buffer.toString("utf-8");
-    rawRows = csvToRows(text);
+    rawRows = parseCsvRows(text);
   }
 
   if (rawRows.length === 0) return { headers: [], rows: [] };
@@ -74,8 +73,8 @@ async function parseBuffer(buffer: Buffer, mimetype: string, originalname: strin
   const headers = Object.keys(rawRows[0]).map((h) =>
     h.toLowerCase().replace(/\s+/g, "_"),
   );
-  const rows: ParsedRow[] = rawRows.map((r) => {
-    const out: ParsedRow = {};
+  const rows: ParsedLeadImportRow[] = rawRows.map((r) => {
+    const out: ParsedLeadImportRow = {};
     headers.forEach((h, i) => {
       out[h] = String(Object.values(r)[i] ?? "");
     });
@@ -83,42 +82,6 @@ async function parseBuffer(buffer: Buffer, mimetype: string, originalname: strin
   });
 
   return { headers, rows };
-}
-
-function csvToRows(text: string): Record<string, string>[] {
-  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n");
-  if (lines.length < 2) return [];
-
-  const parseLine = (line: string): string[] => {
-    const fields: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-        else { inQuotes = !inQuotes; }
-      } else if (ch === "," && !inQuotes) {
-        fields.push(current.trim());
-        current = "";
-      } else {
-        current += ch;
-      }
-    }
-    fields.push(current.trim());
-    return fields;
-  };
-
-  const headers = parseLine(lines[0]);
-  const rows: Record<string, string>[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const values = parseLine(lines[i]);
-    const row: Record<string, string> = {};
-    headers.forEach((h, idx) => { row[h] = values[idx] ?? ""; });
-    rows.push(row);
-  }
-  return rows;
 }
 
 /**
@@ -203,22 +166,8 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     }
   }
 
-  const resolve = (row: ParsedRow, ...candidates: string[]): string => {
-    for (const c of candidates) {
-      // Check inverted mapping: canonical field -> file column header
-      const mappedCol = invertedMapping[c];
-      if (mappedCol && row[mappedCol] !== undefined && row[mappedCol] !== "") return row[mappedCol];
-      // Fall back to direct column name lookup (handles auto-detected matches)
-      if (row[c] !== undefined && row[c] !== "") return row[c];
-      // Case-insensitive / whitespace-normalized fallback
-      const normalized = c.toLowerCase().replace(/[\s_]/g, "");
-      const key = Object.keys(row).find(
-        (k) => k.toLowerCase().replace(/[\s_]/g, "") === normalized,
-      );
-      if (key && row[key] !== undefined && row[key] !== "") return row[key];
-    }
-    return "";
-  };
+  const resolve = (row: ParsedLeadImportRow, ...candidates: string[]) =>
+    resolveLeadImportValue(row, invertedMapping, ...candidates);
 
   let imported = 0;
   let skipped = 0;
@@ -234,6 +183,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     const phone = resolve(row, "phone", "phone_number") || null;
     const companyName = resolve(row, "company_name", "company", "business_name") || null;
     const ein = resolve(row, "ein", "tax_id") || null;
+    const vertical = normalizeLeadVertical(resolve(row, "vertical", "business_vertical", "industry_vertical"));
 
     if (!firstName && !lastName && !email) {
       skipped++;
@@ -275,6 +225,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
         email,
         phone,
         companyName,
+        vertical,
         ein,
         applicationType: appType as any,
         leadSource: leadSource as any,

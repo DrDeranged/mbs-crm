@@ -4691,6 +4691,90 @@ paths:
       tags: [documents]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplateInput" } } } }
       responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CollateralTemplate" } } } } }
+  /collateral/flyers:
+    get:
+      operationId: listCollateralFlyers
+      tags: [documents]
+      summary: Filter published library flyers by campaign category, vertical, audience, and representative
+      parameters:
+        - { name: category, in: query, schema: { type: string, enum: [equipment_financing, working_capital] } }
+        - { name: vertical, in: query, schema: { type: string, enum: [yellow_iron, trucking, restaurants, amusement, general] } }
+        - { name: audience, in: query, schema: { type: string, enum: [end_user, vendor] } }
+        - { name: repId, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        "200": { description: Filtered flyer library, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CollateralFlyer" } } } } }
+  /collateral/flyers/upload-urls:
+    post:
+      operationId: requestCollateralFlyerUploadUrls
+      tags: [documents]
+      summary: Admin-only staging upload URLs for PNG/PDF flyers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: object
+                    required: [originalFilename, size, contentType]
+                    properties:
+                      originalFilename: { type: string }
+                      size: { type: integer, minimum: 1, maximum: 15728640 }
+                      contentType: { type: string, enum: [image/png, application/pdf] }
+      responses:
+        "200": { description: Presigned upload URLs, content: { application/json: { schema: { type: object, properties: { uploads: { type: array, items: { type: object } } } } } } }
+  /collateral/flyers/register:
+    post:
+      operationId: registerCollateralFlyers
+      tags: [documents]
+      summary: Admin-only registration of validated immutable library flyers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: object
+                    required: [objectPath, name, originalFilename, category, vertical, audience]
+                    properties:
+                      objectPath: { type: string }
+                      name: { type: string }
+                      originalFilename: { type: string }
+                      category: { type: string, enum: [equipment_financing, working_capital] }
+                      vertical: { type: string, enum: [yellow_iron, trucking, restaurants, amusement, general] }
+                      audience: { type: string, enum: [end_user, vendor] }
+                      repId: { type: integer, nullable: true }
+      responses:
+        "201": { description: Registered flyers, content: { application/json: { schema: { type: object, properties: { templates: { type: array, items: { $ref: "#/components/schemas/CollateralFlyer" } } } } } } }
+  /collateral/flyers/{id}/public-url:
+    get:
+      operationId: createCollateralFlyerPublicUrl
+      tags: [documents]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: Signed expiring flyer URL, content: { application/json: { schema: { type: object, properties: { url: { type: string, format: uri }, expiresAt: { type: string, format: date-time }, expiresInSeconds: { type: integer } } } } } }
+  /collateral/flyers/public/{token}:
+    get:
+      operationId: downloadSignedCollateralFlyer
+      tags: [documents]
+      security: []
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Verified flyer PNG or PDF }
+        "403": { description: Invalid or expired link }
   /collateral/templates/{id}:
     get:
       operationId: getCollateralTemplate
@@ -4947,7 +5031,7 @@ components:
   schemas:
     Campaign:
       type: object
-      required: [id, name, channel, status, replyToEmail, audienceRules, ownerId, createdBy, version]
+      required: [id, name, channel, status, replyToEmail, flyerDeliveryMode, audienceRules, ownerId, createdBy, version]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -4957,10 +5041,12 @@ components:
         emailTemplateId: { type: integer, nullable: true }
         replyToEmail: { type: string, format: email, default: nate@my-business-solutions.com }
         smsBody: { type: string, nullable: true }
+        flyerDeliveryMode: { type: string, enum: [attach, link], description: Existing campaigns retain Attach; new campaigns default to Link. }
         flyer:
           oneOf:
             - { $ref: "#/components/schemas/CampaignBuiltInFlyer" }
             - { $ref: "#/components/schemas/CampaignUploadedFlyer" }
+            - { $ref: "#/components/schemas/CampaignLibraryFlyer" }
           nullable: true
         audienceRules: { $ref: "#/components/schemas/CampaignAudienceRules" }
         ownerId: { type: integer }
@@ -4976,10 +5062,12 @@ components:
         emailTemplateId: { type: integer, nullable: true }
         replyToEmail: { type: string, format: email, default: nate@my-business-solutions.com }
         smsBody: { type: string, nullable: true }
+        flyerDeliveryMode: { type: string, enum: [attach, link], default: link }
         flyer:
           oneOf:
             - { $ref: "#/components/schemas/CampaignBuiltInFlyer" }
             - { $ref: "#/components/schemas/CampaignUploadedFlyer" }
+            - { $ref: "#/components/schemas/CampaignLibraryFlyer" }
           nullable: true
         audienceRules: { $ref: "#/components/schemas/CampaignAudienceRules" }
         ownerId: { type: integer }
@@ -5027,6 +5115,26 @@ components:
         name: { type: string }
         contentType: { type: string, enum: [image/png, image/jpeg, image/webp, application/pdf] }
         size: { type: integer, minimum: 1, maximum: 15728640 }
+    CampaignLibraryFlyer:
+      type: object
+      required: [source, templateId, name]
+      properties:
+        source: { type: string, const: library }
+        templateId: { type: integer, minimum: 1 }
+        name: { type: string }
+    CollateralFlyer:
+      type: object
+      required: [templateId, objectPath, name, contentType, size, category, vertical, audience]
+      properties:
+        templateId: { type: integer }
+        objectPath: { type: string }
+        name: { type: string }
+        contentType: { type: string, enum: [image/png, application/pdf] }
+        size: { type: integer }
+        category: { type: string, enum: [equipment_financing, working_capital] }
+        vertical: { type: string, enum: [yellow_iron, trucking, restaurants, amusement, general] }
+        audience: { type: string, enum: [end_user, vendor] }
+        repId: { type: integer, nullable: true }
     CampaignFlyerUploadInput:
       type: object
       required: [name, size, contentType]
@@ -5648,6 +5756,9 @@ components:
           type: ["string", "null"]
         companyName:
           type: ["string", "null"]
+        vertical:
+          type: ["string", "null"]
+          description: Vertical supplied during lead import; free text is preserved when not a known vertical.
         ein:
           type: ["string", "null"]
         applicationType:
@@ -5783,6 +5894,8 @@ components:
           type: string
         companyName:
           type: string
+        vertical:
+          type: ["string", "null"]
         ein:
           type: string
         applicationType:

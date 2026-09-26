@@ -9,12 +9,57 @@ import {
   campaignAssetPaths,
   campaignSourceBytes,
   canAccessCollateralRender,
+  buildSignedCampaignFlyerUrl,
+  detectCollateralFlyerContentType,
   listCollateralTemplatesHandler,
+  normalizeCollateralFlyerDisplayName,
   recordCollateralEmailDelivery,
   sendCollateralEmail,
 } from "./collateral";
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+test("collateral library detects only PNG/PDF bytes and normalizes flyer display names", () => {
+  const png = Buffer.alloc(24);
+  PNG_SIGNATURE.copy(png);
+  png.write("IHDR", 12, "ascii");
+  png.writeUInt32BE(640, 16);
+  png.writeUInt32BE(360, 20);
+  assert.equal(detectCollateralFlyerContentType(png), "image/png");
+  assert.equal(detectCollateralFlyerContentType(Buffer.from("%PDF-1.7\n%%EOF")), "application/pdf");
+  assert.throws(() => detectCollateralFlyerContentType(Buffer.from("not a flyer")), /valid PNG or PDF/);
+  assert.equal(normalizeCollateralFlyerDisplayName("Rahmare Equipment Flyer"), "Ray Davis Equipment Flyer");
+  assert.equal(normalizeCollateralFlyerDisplayName("Equipment Flyer", "Rahmare-vendor.png"), "Equipment Flyer — Ray Davis");
+  assert.equal(normalizeCollateralFlyerDisplayName("Equipment Flyer", "vendor.png"), "Equipment Flyer");
+});
+
+test("campaign flyer helper returns an absolute signed URL for a bounded short-lived immutable asset", () => {
+  const url = buildSignedCampaignFlyerUrl({
+    templateId: 42,
+    objectPath: "/objects/collateral-library/123e4567-e89b-12d3-a456-426614174000",
+    digest: "a".repeat(64),
+    generation: "171234567890",
+    name: "Approved Flyer",
+    contentType: "application/pdf",
+  }, 7 * 24 * 60 * 60);
+  assert.match(url, /^https?:\/\/[^/]+\/api\/collateral\/flyers\/public\/[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+  assert.throws(() => buildSignedCampaignFlyerUrl({
+    templateId: 42,
+    objectPath: "/objects/uploads/mutable",
+    digest: "a".repeat(64),
+    generation: "1",
+    name: "Bad",
+    contentType: "image/png",
+  }), /Invalid approved campaign flyer/);
+  assert.throws(() => buildSignedCampaignFlyerUrl({
+    templateId: 42,
+    objectPath: "/objects/collateral-library/123e4567-e89b-12d3-a456-426614174000",
+    digest: "a".repeat(64),
+    generation: "1",
+    name: "Bad",
+    contentType: "image/png",
+  }, 7 * 24 * 60 * 60 + 1), /Invalid approved campaign flyer/);
+});
 
 test("campaign collateral resolves independently of the process working directory", async () => {
   const originalCwd = process.cwd();

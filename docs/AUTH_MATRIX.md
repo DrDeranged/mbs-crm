@@ -258,6 +258,11 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/admin/production-closeout` | `routes/adminProductionCloseout.ts:32` | `A` | reps rejected |
 
 | GET | `/api/collateral/templates` | `routes/collateral.ts` | U | published templates; admins may include drafts |
+| GET | `/api/collateral/flyers` | `routes/collateral.ts` | U | filterable published flyer library |
+| POST | `/api/collateral/flyers/upload-urls` | `routes/collateral.ts` | A | admin-only bulk flyer staging upload URLs |
+| POST | `/api/collateral/flyers/register` | `routes/collateral.ts` | A | admin-only verified immutable flyer registration |
+| GET | `/api/collateral/flyers/:id/public-url` | `routes/collateral.ts` | U | authenticated signed expiring flyer URL |
+| GET | `/api/collateral/flyers/public/:token` | `routes/collateral.ts` | H | public signed, expiring, digest-verified flyer |
 | GET | `/api/collateral/campaign-assets/:slug` | `routes/collateral.ts` | U | authenticated review preview for draft campaign artwork |
 | GET | `/api/collateral/campaign-assets/:slug/download` | `routes/collateral.ts` | U | authenticated original PNG download for draft campaign artwork |
 | POST | `/api/collateral/templates` | `routes/collateral.ts` | A | admin template creation |

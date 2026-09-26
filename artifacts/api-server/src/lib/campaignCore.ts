@@ -31,6 +31,52 @@ export function buildCampaignFlyerAttachment(flyer: {
   }];
 }
 
+export type CampaignFlyerDeliveryMode = "attach" | "link";
+
+export function campaignFlyerAttachments(flyer: Parameters<typeof buildCampaignFlyerAttachment>[0], mode: CampaignFlyerDeliveryMode) {
+  return mode === "attach" ? buildCampaignFlyerAttachment(flyer) : undefined;
+}
+
+/** Imported verticals take priority over free-form company industry text. */
+export function vendorVertical(vertical?: string | null, industry?: string | null): string {
+  const input = (vertical?.trim() || industry?.trim() || "").toLowerCase().replace(/[_/-]+/g, " ");
+  if (/yellow iron|construction|heavy equipment/.test(input)) return "heavy equipment";
+  if (/truck|trailer/.test(input)) return "truck and trailer";
+  if (/restaurant|food service/.test(input)) return "restaurant equipment";
+  if (/generator/.test(input)) return "generator";
+  return "equipment";
+}
+
+const FLYER_LINK_MARKER = "__MBS_CAMPAIGN_FLYER_LINK__";
+export function campaignFlyerLinkMarker(): string { return FLYER_LINK_MARKER; }
+
+function escapeCampaignHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/** The same approved link appears in both the plain-text and HTML alternatives. */
+export function renderCampaignFlyerLink(renderedBody: string, flyerUrl: string | null): { bodyText: string; bodyHtml: string } {
+  const textLink = flyerUrl ? `View our vendor program → ${flyerUrl}` : "";
+  const htmlLink = flyerUrl ? `<a href="${escapeCampaignHtml(flyerUrl)}">View our vendor program →</a>` : "";
+  const hasMarker = renderedBody.includes(FLYER_LINK_MARKER);
+  const text = campaignPlainText(renderedBody);
+  const bodyText = (hasMarker ? text.replaceAll(FLYER_LINK_MARKER, textLink) : `${text}${textLink ? `\n\n${textLink}` : ""}`)
+    .replace(/\n{3,}/g, "\n\n").trim();
+  const hasHtml = /<\/?[a-z][\s>]/i.test(renderedBody);
+  if (!hasHtml) {
+    // Preserve paragraphs in the plain-text vendor template, and make the HTML alternative clickable.
+    const markerText = hasMarker ? text : `${text}${htmlLink ? `\n\n${FLYER_LINK_MARKER}` : ""}`;
+    return {
+      bodyText,
+      bodyHtml: minimalCampaignHtml(markerText.replace(/\n{3,}/g, "\n\n").trim()).replaceAll(FLYER_LINK_MARKER, htmlLink),
+    };
+  }
+  return {
+    bodyText,
+    bodyHtml: (hasMarker ? renderedBody.replaceAll(FLYER_LINK_MARKER, htmlLink) : `${renderedBody}${htmlLink ? `<p>${htmlLink}</p>` : ""}`),
+  };
+}
+
 export function approvedFlyerMatches(
   approved: { digest?: string; generation?: string } | null | undefined,
   current: { digest?: string; generation?: string } | null | undefined,
@@ -108,12 +154,14 @@ export function minimalCampaignHtml(text: string): string {
 export const CAMPAIGN_MERGE_TOKENS = [
   "lead_first_name", "lead_last_name", "lead_company", "lead_email",
   "lead_phone", "rep_name", "rep_phone", "rep_email",
+  "first_name|there", "company", "vertical", "flyer_link",
 ] as const;
 
 export function unknownCampaignMergeTokens(value: string): string[] {
   const unknown = new Set<string>();
-  for (const match of value.matchAll(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g)) {
-    if (!(CAMPAIGN_MERGE_TOKENS as readonly string[]).includes(match[1])) unknown.add(match[1]);
+  for (const match of value.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
+    const token = match[1].trim();
+    if (!(CAMPAIGN_MERGE_TOKENS as readonly string[]).includes(token)) unknown.add(token);
   }
   return [...unknown];
 }

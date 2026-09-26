@@ -8,6 +8,9 @@ import { usersTable } from "./users";
 export const COLLATERAL_CATEGORIES = ["flyer", "one_pager", "application", "letter", "other"] as const;
 export const COLLATERAL_KINDS = ["html", "image_overlay"] as const;
 export const COLLATERAL_STATUSES = ["draft", "published"] as const;
+export const COLLATERAL_FLYER_CATEGORIES = ["equipment_financing", "working_capital"] as const;
+export const COLLATERAL_FLYER_VERTICALS = ["yellow_iron", "trucking", "restaurants", "amusement", "general"] as const;
+export const COLLATERAL_FLYER_AUDIENCES = ["end_user", "vendor"] as const;
 
 export const collateralTemplatesTable = pgTable(
   "collateral_templates",
@@ -18,6 +21,15 @@ export const collateralTemplatesTable = pgTable(
     kind: text("kind", { enum: COLLATERAL_KINDS }).notNull(),
     sourceKey: text("source_key").notNull(),
     status: text("status", { enum: COLLATERAL_STATUSES }).notNull().default("draft"),
+    campaignCategory: text("campaign_category", { enum: COLLATERAL_FLYER_CATEGORIES }),
+    vertical: text("vertical", { enum: COLLATERAL_FLYER_VERTICALS }),
+    audience: text("audience", { enum: COLLATERAL_FLYER_AUDIENCES }),
+    repUserId: integer("rep_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+    originalFilename: text("original_filename"),
+    assetSha256: text("asset_sha256"),
+    assetContentType: text("asset_content_type"),
+    assetGeneration: text("asset_generation"),
+    assetSize: integer("asset_size"),
     createdBy: integer("created_by").references(() => usersTable.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -35,8 +47,21 @@ export const collateralTemplatesTable = pgTable(
       "collateral_templates_status_check",
       sql`${table.status} IN ('draft', 'published')`,
     ),
+    check(
+      "collateral_templates_campaign_category_check",
+      sql`${table.campaignCategory} IS NULL OR ${table.campaignCategory} IN ('equipment_financing', 'working_capital')`,
+    ),
+    check(
+      "collateral_templates_vertical_check",
+      sql`${table.vertical} IS NULL OR ${table.vertical} IN ('yellow_iron', 'trucking', 'restaurants', 'amusement', 'general')`,
+    ),
+    check(
+      "collateral_templates_audience_check",
+      sql`${table.audience} IS NULL OR ${table.audience} IN ('end_user', 'vendor')`,
+    ),
     index("collateral_templates_status_idx").on(table.status),
     index("collateral_templates_category_idx").on(table.category),
+    index("collateral_templates_flyer_filters_idx").on(table.campaignCategory, table.vertical, table.audience, table.repUserId),
   ],
 );
 

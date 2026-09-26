@@ -3,10 +3,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Router, type Request, type Response } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import sgMail from "@sendgrid/mail";
 import {
+  COLLATERAL_FLYER_AUDIENCES, COLLATERAL_FLYER_CATEGORIES, COLLATERAL_FLYER_VERTICALS,
   collateralRendersTable, collateralTemplatesTable, leadsTable, usersTable,
 } from "@workspace/db";
 import { db } from "@workspace/db";
@@ -14,7 +15,7 @@ import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { renderCollateral, renderFinanceApplicationCollateral, FINANCE_APPLICATION_SOURCE_KEY } from "../lib/collateralPersonalization";
 import { enrichApplicationPdfRep } from "../lib/applicationPdf";
-import { ObjectStorageService } from "../lib/objectStorage";
+import { ObjectNotFoundError, ObjectStorageService } from "../lib/objectStorage";
 import { getPublicBaseUrl } from "../lib/brand";
 import {
   canEmailCollateralToLead,
@@ -34,9 +35,64 @@ const collateralTemplatesQuery = z.object({
     z.enum(["true", "1", "false", "0"]).transform((value) => value === "true" || value === "1"),
   ]).optional().default(false),
 });
-const secret = process.env.SESSION_SECRET || "development-collateral-secret";
+const secret = process.env.SESSION_SECRET ?? "";
+function signingSecret(): string {
+  if (!secret) throw new Error("SESSION_SECRET is required for collateral links");
+  return secret;
+}
 const objectStorage = new ObjectStorageService();
-const signed = (value: string) => `${value}.${crypto.createHmac("sha256", secret).update(value).digest("hex")}`;
+const signed = (value: string) => `${value}.${crypto.createHmac("sha256", signingSecret()).update(value).digest("hex")}`;
+const MAX_COLLATERAL_FLYER_BYTES = 15 * 1024 * 1024;
+const MAX_COLLATERAL_FLYER_BATCH = 50;
+const COLLATERAL_FLYER_PUBLIC_TTL_SECONDS = 15 * 60;
+type CampaignFlyerTokenPayload = {
+  templateId: number;
+  objectPath: string;
+  digest: string;
+  generation: string;
+  name: string;
+  contentType: "image/png" | "application/pdf";
+  expiresAt: number;
+};
+
+export type SignedCampaignFlyerInput = Omit<CampaignFlyerTokenPayload, "expiresAt">;
+
+export function buildSignedCampaignFlyerUrl(
+  input: SignedCampaignFlyerInput,
+  ttlSeconds = COLLATERAL_FLYER_PUBLIC_TTL_SECONDS,
+): string {
+  if (!Number.isInteger(input.templateId) || input.templateId < 1 ||
+      !/^\/objects\/collateral-library\/[0-9a-f-]{36}$/.test(input.objectPath) ||
+      !/^[a-f0-9]{64}$/i.test(input.digest) || !input.generation ||
+      !["image/png", "application/pdf"].includes(input.contentType) ||
+      !Number.isInteger(ttlSeconds) || ttlSeconds < 1 || ttlSeconds > 7 * 24 * 60 * 60) {
+    throw new Error("Invalid approved campaign flyer link input");
+  }
+  const payload: CampaignFlyerTokenPayload = { ...input, expiresAt: Date.now() + ttlSeconds * 1000 };
+  const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = crypto.createHmac("sha256", signingSecret()).update(encoded).digest("base64url");
+  return `${getPublicBaseUrl()}/api/collateral/flyers/public/${encoded}.${signature}`;
+}
+
+export function normalizeCollateralFlyerDisplayName(name: string, filename?: string | null): string {
+  if (/rahmare/i.test(name)) return name.replace(/rahmare/gi, "Ray Davis");
+  if (filename && /rahmare/i.test(filename)) return `${name} — Ray Davis`;
+  return name;
+}
+
+export function detectCollateralFlyerContentType(bytes: Buffer): "image/png" | "application/pdf" {
+  const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  if (bytes.length >= 24 && bytes.subarray(0, 8).equals(pngSignature) &&
+      bytes.subarray(12, 16).toString("ascii") === "IHDR" &&
+      bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0) {
+    return "image/png";
+  }
+  if (bytes.length >= 10 && bytes.subarray(0, 5).toString("ascii") === "%PDF-" &&
+      bytes.subarray(Math.max(0, bytes.length - 1024)).includes(Buffer.from("%%EOF"))) {
+    return "application/pdf";
+  }
+  throw new Error("Flyer bytes must be a valid PNG or PDF");
+}
 const CAMPAIGN_SOURCES: Record<string, string> = {
   "mbs://campaign/working-capital": "working-capital.png",
   "mbs://campaign/equipment-financing": "equipment-financing.png",
@@ -230,6 +286,234 @@ router.get("/collateral/templates", listCollateralTemplatesHandler({
     .where(includeDrafts ? undefined : eq(collateralTemplatesTable.status, "published"))
     .orderBy(desc(collateralTemplatesTable.updatedAt)),
 }));
+const flyerUploadRequest = z.object({
+  files: z.array(z.object({
+    originalFilename: z.string().trim().min(1).max(255),
+    size: z.number().int().positive().max(MAX_COLLATERAL_FLYER_BYTES),
+    contentType: z.enum(["image/png", "application/pdf"]),
+  })).min(1).max(MAX_COLLATERAL_FLYER_BATCH),
+});
+const flyerRegistration = z.object({
+  items: z.array(z.object({
+    objectPath: z.string().min(1),
+    name: z.string().trim().min(1).max(255),
+    originalFilename: z.string().trim().min(1).max(255),
+    category: z.enum(COLLATERAL_FLYER_CATEGORIES),
+    vertical: z.enum(COLLATERAL_FLYER_VERTICALS),
+    audience: z.enum(COLLATERAL_FLYER_AUDIENCES),
+    repId: z.number().int().positive().nullable().optional(),
+  })).min(1).max(MAX_COLLATERAL_FLYER_BATCH),
+});
+const flyerListQuery = z.object({
+  category: z.enum(COLLATERAL_FLYER_CATEGORIES).optional(),
+  vertical: z.enum(COLLATERAL_FLYER_VERTICALS).optional(),
+  audience: z.enum(COLLATERAL_FLYER_AUDIENCES).optional(),
+  repId: z.coerce.number().int().positive().optional(),
+});
+
+router.post("/collateral/flyers/upload-urls", async (req, res) => {
+  const u = await user(req, res);
+  if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const parsed = flyerUploadRequest.safeParse(req.body);
+  if (!parsed.success) return void res.status(400).json({ error: "Upload files must be PNG or PDF, up to 15 MB each; maximum 50 files" });
+  try {
+    const uploads = await Promise.all(parsed.data.files.map(async (item, index) => ({
+      index,
+      originalFilename: item.originalFilename,
+      size: item.size,
+      contentType: item.contentType,
+      ...(await objectStorage.getCollateralFlyerUploadURL(u.id)),
+    })));
+    res.json({ uploads });
+  } catch (error) {
+    req.log.error({ err: error }, "Error generating collateral flyer upload URLs");
+    res.status(500).json({ error: "Failed to generate flyer upload URLs" });
+  }
+});
+
+router.post("/collateral/flyers/register", async (req, res) => {
+  const u = await user(req, res);
+  if (!u || !isAdmin(u)) return void res.status(403).json({ error: "Admin access required" });
+  const parsed = flyerRegistration.safeParse(req.body);
+  if (!parsed.success) return void res.status(400).json({ error: "Invalid flyer registration request" });
+  const seenPaths = new Set<string>();
+  for (const item of parsed.data.items) {
+    const stagingPath = new RegExp(`^/objects/collateral-flyers/staging/${u.id}/[0-9a-f-]{36}$`);
+    if (!stagingPath.test(item.objectPath) || seenPaths.has(item.objectPath)) {
+      return void res.status(400).json({ error: "Each flyer must reference a unique upload created for this admin" });
+    }
+    seenPaths.add(item.objectPath);
+  }
+  try {
+    const verified = [];
+    for (const item of parsed.data.items) {
+      const uploaded = await objectStorage.readObjectEntity(item.objectPath, MAX_COLLATERAL_FLYER_BYTES);
+      if (uploaded.size < 1 || uploaded.size > MAX_COLLATERAL_FLYER_BYTES || uploaded.bytes.length !== uploaded.size) {
+        return void res.status(400).json({ error: "Uploaded flyer size is invalid or exceeds 15 MB" });
+      }
+      const contentType = detectCollateralFlyerContentType(uploaded.bytes);
+      if (contentType !== "image/png" && contentType !== "application/pdf") {
+        return void res.status(400).json({ error: "Flyer bytes must be PNG or PDF" });
+      }
+      if (item.repId != null && !await db.query.usersTable.findFirst({ where: eq(usersTable.id, item.repId) })) {
+        return void res.status(400).json({ error: `Rep user ${item.repId} was not found` });
+      }
+      verified.push({ item, bytes: uploaded.bytes, contentType });
+    }
+
+    const templates = [];
+    for (const { item, bytes, contentType } of verified) {
+      const objectPath = `/objects/collateral-library/${crypto.randomUUID()}`;
+      const digest = crypto.createHash("sha256").update(bytes).digest("hex");
+      await objectStorage.saveObjectEntity(objectPath, bytes, contentType);
+      const finalAsset = await objectStorage.readObjectEntity(objectPath, MAX_COLLATERAL_FLYER_BYTES);
+      if (finalAsset.size !== bytes.length || finalAsset.generation === "" ||
+          crypto.createHash("sha256").update(finalAsset.bytes).digest("hex") !== digest) {
+        throw new Error("Server-owned flyer copy failed integrity verification");
+      }
+      const [template] = await db.insert(collateralTemplatesTable).values({
+        name: item.name,
+        category: "flyer",
+        kind: "image_overlay",
+        sourceKey: objectPath,
+        status: "published",
+        campaignCategory: item.category,
+        vertical: item.vertical,
+        audience: item.audience,
+        repUserId: item.repId ?? null,
+        originalFilename: item.originalFilename,
+        assetSha256: digest,
+        assetContentType: contentType,
+        assetGeneration: finalAsset.generation,
+        assetSize: bytes.length,
+        createdBy: u.id,
+      }).returning();
+      if (!template) throw new Error("Flyer registration failed");
+      templates.push(template);
+    }
+    res.status(201).json({ templates: templates.map((template) => ({
+      templateId: template.id,
+      objectPath: template.sourceKey,
+      name: normalizeCollateralFlyerDisplayName(template.name, template.originalFilename),
+      contentType: template.assetContentType,
+      size: template.assetSize,
+      category: template.campaignCategory,
+      vertical: template.vertical,
+      audience: template.audience,
+      repId: template.repUserId,
+    })) });
+  } catch (error) {
+    if (error instanceof ObjectNotFoundError) return void res.status(400).json({ error: "Uploaded staging flyer was not found" });
+    req.log.error({ err: error }, "Error verifying or registering collateral flyers");
+    res.status(400).json({ error: error instanceof Error ? error.message : "Flyer registration failed" });
+  }
+});
+
+router.get("/collateral/flyers", async (req, res) => {
+  const u = await user(req, res);
+  if (!u) return;
+  const parsed = flyerListQuery.safeParse(req.query);
+  if (!parsed.success) return void res.status(400).json({ error: "Invalid flyer filter" });
+  const filters: any[] = [
+    eq(collateralTemplatesTable.category, "flyer"),
+    eq(collateralTemplatesTable.kind, "image_overlay"),
+    eq(collateralTemplatesTable.status, "published"),
+    isNotNull(collateralTemplatesTable.campaignCategory),
+  ];
+  if (parsed.data.category) filters.push(eq(collateralTemplatesTable.campaignCategory, parsed.data.category));
+  if (parsed.data.vertical) filters.push(eq(collateralTemplatesTable.vertical, parsed.data.vertical));
+  if (parsed.data.audience) filters.push(eq(collateralTemplatesTable.audience, parsed.data.audience));
+  if (parsed.data.repId) filters.push(eq(collateralTemplatesTable.repUserId, parsed.data.repId));
+  const rows = await db.select().from(collateralTemplatesTable).where(and(...filters)).orderBy(desc(collateralTemplatesTable.updatedAt));
+  res.json(rows.map((template) => ({
+    templateId: template.id,
+    objectPath: template.sourceKey,
+    name: normalizeCollateralFlyerDisplayName(template.name, template.originalFilename),
+    contentType: template.assetContentType,
+    size: template.assetSize,
+    category: template.campaignCategory,
+    vertical: template.vertical,
+    audience: template.audience,
+    repId: template.repUserId,
+  })));
+});
+
+router.get("/collateral/flyers/:id/public-url", async (req, res) => {
+  const u = await user(req, res);
+  if (!u) return;
+  const id = Number(req.params.id);
+  const template = Number.isInteger(id) && id > 0
+    ? await db.query.collateralTemplatesTable.findFirst({ where: eq(collateralTemplatesTable.id, id) })
+    : null;
+  if (!template || template.category !== "flyer" || template.status !== "published" ||
+      !template.campaignCategory || !template.assetSha256 || !template.assetGeneration ||
+      !template.assetContentType || !template.assetSize) {
+    return void res.status(404).json({ error: "Published library flyer not found" });
+  }
+  const expiresAt = Date.now() + COLLATERAL_FLYER_PUBLIC_TTL_SECONDS * 1000;
+  const url = buildSignedCampaignFlyerUrl({
+    templateId: template.id,
+    objectPath: template.sourceKey,
+    digest: template.assetSha256,
+    generation: template.assetGeneration,
+    name: normalizeCollateralFlyerDisplayName(template.name, template.originalFilename),
+    contentType: template.assetContentType as "image/png" | "application/pdf",
+  }, COLLATERAL_FLYER_PUBLIC_TTL_SECONDS);
+  res.json({ url, expiresAt: new Date(expiresAt).toISOString(), expiresInSeconds: COLLATERAL_FLYER_PUBLIC_TTL_SECONDS });
+});
+
+router.get("/collateral/flyers/public/:token", async (req, res) => {
+  if (!secret) return void res.status(503).json({ error: "Collateral links are not configured" });
+  const [encoded, signature] = String(req.params.token).split(".");
+  if (!encoded || !signature) return void res.status(403).json({ error: "Flyer link expired or invalid" });
+  const expected = crypto.createHmac("sha256", secret).update(encoded).digest();
+  let supplied: Buffer;
+  try { supplied = Buffer.from(signature, "base64url"); } catch { return void res.status(403).json({ error: "Flyer link expired or invalid" }); }
+  if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
+    return void res.status(403).json({ error: "Flyer link expired or invalid" });
+  }
+  let payload: CampaignFlyerTokenPayload;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as CampaignFlyerTokenPayload;
+  } catch { return void res.status(403).json({ error: "Flyer link expired or invalid" }); }
+  if (!payload || !Number.isInteger(payload.templateId) || payload.expiresAt <= Date.now() ||
+      !/^\/objects\/collateral-library\/[0-9a-f-]{36}$/.test(payload.objectPath) ||
+      !/^[a-f0-9]{64}$/i.test(payload.digest) ||
+      !["image/png", "application/pdf"].includes(payload.contentType)) {
+    return void res.status(403).json({ error: "Flyer link expired or invalid" });
+  }
+  const template = await db.query.collateralTemplatesTable.findFirst({
+    where: eq(collateralTemplatesTable.id, payload.templateId),
+  });
+  if (!template || template.category !== "flyer" || template.status !== "published" ||
+      !template.campaignCategory || template.sourceKey !== payload.objectPath ||
+      template.assetSha256 !== payload.digest || template.assetGeneration !== payload.generation ||
+      template.assetContentType !== payload.contentType ||
+      (template.name !== payload.name &&
+        normalizeCollateralFlyerDisplayName(template.name, template.originalFilename) !== payload.name)) {
+    return void res.status(404).json({ error: "Approved flyer not found" });
+  }
+  try {
+    const asset = await objectStorage.readObjectEntity(payload.objectPath, MAX_COLLATERAL_FLYER_BYTES);
+    const actualDigest = crypto.createHash("sha256").update(asset.bytes).digest("hex");
+    if (asset.generation !== payload.generation || asset.size !== template.assetSize ||
+        asset.bytes.length !== asset.size || actualDigest !== payload.digest ||
+        detectCollateralFlyerContentType(asset.bytes) !== payload.contentType) {
+      return void res.status(409).json({ error: "Approved flyer integrity check failed" });
+    }
+    const extension = payload.contentType === "image/png" ? "png" : "pdf";
+    const displayName = normalizeCollateralFlyerDisplayName(template.name, template.originalFilename);
+    const filename = `${displayName.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "") || "flyer"}.${extension}`;
+    res.type(payload.contentType)
+      .set("Content-Disposition", `inline; filename="${filename}"`)
+      .set("Cache-Control", "public, max-age=60")
+      .send(asset.bytes);
+  } catch (error) {
+    if (error instanceof ObjectNotFoundError) return void res.status(404).json({ error: "Approved flyer not found" });
+    req.log.error({ err: error }, "Error serving signed campaign flyer");
+    res.status(503).json({ error: "Approved flyer unavailable" });
+  }
+});
 router.get("/collateral/campaign-assets/:slug", campaignAssetHandler("inline"));
 router.get("/collateral/campaign-assets/:slug/download", campaignAssetHandler("attachment"));
 
@@ -261,9 +545,15 @@ router.post("/collateral/templates", async (req, res) => {
 router.patch("/collateral/templates/:id", async (req, res) => {
   const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
   const patch = templateBody.partial().safeParse(req.body); if (!patch.success) return void res.status(400).json({ error: "Invalid template" });
+  const templateId = Number(req.params.id);
   const [row] = await db.update(collateralTemplatesTable).set({ ...patch.data, updatedAt: new Date() })
-    .where(eq(collateralTemplatesTable.id, Number(req.params.id))).returning();
-  if (!row) return void res.status(404).json({ error: "Template not found" });
+    .where(and(eq(collateralTemplatesTable.id, templateId),
+      sql`NOT (${collateralTemplatesTable.category} = 'flyer' AND ${collateralTemplatesTable.status} = 'published' AND ${collateralTemplatesTable.assetSha256} IS NOT NULL)`)).returning();
+  if (!row) {
+    const [existing] = await db.select({ id: collateralTemplatesTable.id }).from(collateralTemplatesTable)
+      .where(eq(collateralTemplatesTable.id, templateId)).limit(1);
+    return void res.status(existing ? 409 : 404).json({ error: existing ? "Published library flyers are immutable" : "Template not found" });
+  }
   res.json(row);
 });
 router.post("/collateral/templates/:id/publish", async (req, res) => {
@@ -273,7 +563,15 @@ router.post("/collateral/templates/:id/publish", async (req, res) => {
 });
 router.post("/collateral/templates/:id/archive", async (req, res) => {
   const u = await user(req, res); if (!u || !canManageCollateralTemplates(u)) return void res.status(403).json({ error: "Admin access required" });
-  const [row] = await db.update(collateralTemplatesTable).set({ status: "draft", updatedAt: new Date() }).where(eq(collateralTemplatesTable.id, Number(req.params.id))).returning();
+  const templateId = Number(req.params.id);
+  const [row] = await db.update(collateralTemplatesTable).set({ status: "draft", updatedAt: new Date() })
+    .where(and(eq(collateralTemplatesTable.id, templateId),
+      sql`NOT (${collateralTemplatesTable.category} = 'flyer' AND ${collateralTemplatesTable.status} = 'published' AND ${collateralTemplatesTable.assetSha256} IS NOT NULL)`)).returning();
+  if (!row) {
+    const [existing] = await db.select({ id: collateralTemplatesTable.id }).from(collateralTemplatesTable)
+      .where(eq(collateralTemplatesTable.id, templateId)).limit(1);
+    return void res.status(existing ? 409 : 404).json({ error: existing ? "Published library flyers cannot be archived while signed links may be active" : "Template not found" });
+  }
   res.json(row);
 });
 
