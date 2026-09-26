@@ -40,3 +40,4 @@
 - [Inbound voice callback lifecycle](inbound-voice-callbacks.md) — a caller hangup may skip Record action, and transcription can precede or follow recording; reconcile durably before finalizing.
 - [Postgres array default parity](postgres-array-default-parity.md) — Drizzle Kit can propose the same empty text-array default after migration; verify physical default before filtering exact false drift.
 - [Immutable greeting uploads](immutable-greeting-uploads.md) — validate staged MP3 bytes, then publish a server-owned copy; a signed PUT can replace staging until expiry.
+- [Applied seed migration lint](applied-seed-migration-lint.md) — when valid SQL trips static lint after a dev seed was applied, fix the lint gap instead of rewriting the migration checksum.

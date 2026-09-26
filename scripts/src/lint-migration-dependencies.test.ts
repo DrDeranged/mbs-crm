@@ -94,6 +94,20 @@ test("quoted public names, aliases, CTEs, and non-dynamic DO pass", { concurrenc
   assert.equal(result.migrationsChecked, 1);
 });
 
+test("CTE column lists in INSERT seeds are not treated as missing tables", { concurrency: false }, async () => {
+  const result = await lintFixture({
+    "001_bundled.sql": `
+      CREATE TABLE flyers (source_key text, size integer);
+      WITH bundled(source_key, size) AS (
+        VALUES ('mbs://campaign/vendor-equipment-trucking', 173962)
+      )
+      INSERT INTO flyers (source_key, size)
+      SELECT bundled.source_key, bundled.size FROM bundled;
+    `,
+  });
+  assert.equal(result.migrationsChecked, 1);
+});
+
 test("dynamic DO SQL is rejected before migration execution", { concurrency: false }, async () => {
   for (const sql of [
     "DO $$ BEGIN EXECUTE 'CREATE TABLE should_not_run(id int)'; END $$;",

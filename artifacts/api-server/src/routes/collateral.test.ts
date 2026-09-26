@@ -3,6 +3,7 @@ import test from "node:test";
 import express from "express";
 import { createServer } from "node:http";
 import { stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import analyticsRouter from "./analytics";
 import {
   campaignAssetHandler,
@@ -11,8 +12,10 @@ import {
   canAccessCollateralRender,
   buildSignedCampaignFlyerUrl,
   detectCollateralFlyerContentType,
+  isBundledVendorFlyer,
   listCollateralTemplatesHandler,
   normalizeCollateralFlyerDisplayName,
+  readLibraryFlyerAsset,
   recordCollateralEmailDelivery,
   sendCollateralEmail,
 } from "./collateral";
@@ -59,6 +62,41 @@ test("campaign flyer helper returns an absolute signed URL for a bounded short-l
     name: "Bad",
     contentType: "image/png",
   }, 7 * 24 * 60 * 60 + 1), /Invalid approved campaign flyer/);
+  assert.throws(() => buildSignedCampaignFlyerUrl({
+    templateId: 42, objectPath: "mbs://campaign/equipment-financing",
+    digest: "a".repeat(64), generation: "built-in",
+    name: "Unregistered built-in", contentType: "image/png",
+  }), /Invalid approved campaign flyer/);
+});
+
+test("four vendor flyers are bundled as pinned PNGs without replacing the original two built-ins", async () => {
+  const approved = [
+    ["yellow-iron", "b06fb1de80e77e9174f43c028dbc18a35df254c090130c8e09958484ee77826d", 173267],
+    ["trucking", "b1484648fde8e255e352d9cd6bc772fd52b70910c195ce6658a1bb5f784b11ed", 173962],
+    ["restaurants", "3478e2ee8b2e5e795ebf9feee21a93fbc3d21d54bc21f693f491961afb086632", 185410],
+    ["amusement", "879215ac98cfa18a132b331a5a21d3529721c26aaf1f6e4fb682f47589851579", 173436],
+  ] as const;
+  for (const [vertical, digest, size] of approved) {
+    const sourceKey = `mbs://campaign/vendor-equipment-${vertical}`;
+    assert.equal(isBundledVendorFlyer(sourceKey), true);
+    const asset = await readLibraryFlyerAsset(sourceKey);
+    assert.equal(asset.contentType, "image/png");
+    assert.equal(asset.size, size);
+    assert.equal(asset.generation, "built-in");
+    assert.equal(createHash("sha256").update(asset.bytes).digest("hex"), digest);
+    assert.match(buildSignedCampaignFlyerUrl({
+      templateId: 42, objectPath: sourceKey, digest,
+      generation: asset.generation, name: "Bundled vendor flyer", contentType: "image/png",
+    }), /\/api\/collateral\/flyers\/public\//);
+    assert.throws(() => buildSignedCampaignFlyerUrl({
+      templateId: 42, objectPath: sourceKey, digest,
+      generation: "mutable", name: "Bad", contentType: "image/png",
+    }), /Invalid approved campaign flyer/);
+  }
+  for (const key of ["equipment-financing", "working-capital"]) {
+    assert.equal(isBundledVendorFlyer(`mbs://campaign/${key}`), false);
+    assert((await campaignSourceBytes(`mbs://campaign/${key}`))?.length);
+  }
 });
 
 test("campaign collateral resolves independently of the process working directory", async () => {

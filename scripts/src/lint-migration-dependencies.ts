@@ -102,7 +102,7 @@ export function analyzeMigrationSql(sql: string): MigrationSqlAnalysis {
   };
   const name = (value: string) => parts(value).table;
   const ctes = new Set<string>();
-  for (const m of clean.matchAll(new RegExp(String.raw`(?:\bWITH\s+(?:RECURSIVE\s+)?|,)\s*(${relation})\s+AS\s*\(`, "gi"))) ctes.add(name(m[1]));
+  for (const m of clean.matchAll(new RegExp(String.raw`(?:\bWITH\s+(?:RECURSIVE\s+)?|,)\s*(${relation})(?:\s*\(\s*${relation}(?:\s*,\s*${relation})*\s*\))?\s+AS\s*\(`, "gi"))) ctes.add(name(m[1]));
   for (const m of clean.matchAll(new RegExp(String.raw`\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(${relation})`, "gi"))) operations.push({ kind: "create", table: name(m[1]) });
   for (const m of clean.matchAll(new RegExp(String.raw`\b(?:ALTER\s+TABLE|CREATE\s+(?:UNIQUE\s+)?INDEX[\s\S]*?\bON|REFERENCES|FROM|JOIN|UPDATE|INTO|DELETE\s+FROM)\s+(${relation})`, "gi"))) {
     const parsed = parts(m[1]);

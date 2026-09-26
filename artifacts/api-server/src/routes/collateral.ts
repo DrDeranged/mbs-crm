@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Router, type Request, type Response } from "express";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import sgMail from "@sendgrid/mail";
 import {
@@ -45,6 +45,19 @@ const signed = (value: string) => `${value}.${crypto.createHmac("sha256", signin
 const MAX_COLLATERAL_FLYER_BYTES = 15 * 1024 * 1024;
 const MAX_COLLATERAL_FLYER_BATCH = 50;
 const COLLATERAL_FLYER_PUBLIC_TTL_SECONDS = 15 * 60;
+const BUNDLED_VENDOR_FLYERS: Record<string, string> = {
+  "mbs://campaign/vendor-equipment-yellow-iron": "vendor-equipment-yellow-iron.png",
+  "mbs://campaign/vendor-equipment-trucking": "vendor-equipment-trucking.png",
+  "mbs://campaign/vendor-equipment-restaurants": "vendor-equipment-restaurants.png",
+  "mbs://campaign/vendor-equipment-amusement": "vendor-equipment-amusement.png",
+};
+export function isBundledVendorFlyer(sourceKey: string): boolean {
+  return Object.hasOwn(BUNDLED_VENDOR_FLYERS, sourceKey);
+}
+function validCampaignFlyerLocation(objectPath: string, generation: string, contentType: string): boolean {
+  return /^\/objects\/collateral-library\/[0-9a-f-]{36}$/.test(objectPath) ||
+    (isBundledVendorFlyer(objectPath) && generation === "built-in" && contentType === "image/png");
+}
 type CampaignFlyerTokenPayload = {
   templateId: number;
   objectPath: string;
@@ -62,7 +75,7 @@ export function buildSignedCampaignFlyerUrl(
   ttlSeconds = COLLATERAL_FLYER_PUBLIC_TTL_SECONDS,
 ): string {
   if (!Number.isInteger(input.templateId) || input.templateId < 1 ||
-      !/^\/objects\/collateral-library\/[0-9a-f-]{36}$/.test(input.objectPath) ||
+      !validCampaignFlyerLocation(input.objectPath, input.generation, input.contentType) ||
       !/^[a-f0-9]{64}$/i.test(input.digest) || !input.generation ||
       !["image/png", "application/pdf"].includes(input.contentType) ||
       !Number.isInteger(ttlSeconds) || ttlSeconds < 1 || ttlSeconds > 7 * 24 * 60 * 60) {
@@ -96,6 +109,7 @@ export function detectCollateralFlyerContentType(bytes: Buffer): "image/png" | "
 const CAMPAIGN_SOURCES: Record<string, string> = {
   "mbs://campaign/working-capital": "working-capital.png",
   "mbs://campaign/equipment-financing": "equipment-financing.png",
+  ...BUNDLED_VENDOR_FLYERS,
 };
 
 export function campaignAssetPaths(
@@ -119,6 +133,15 @@ export async function campaignSourceBytes(sourceKey: string): Promise<Buffer | n
     }
   }
   return null;
+}
+
+export async function readLibraryFlyerAsset(sourceKey: string): Promise<{
+  bytes: Buffer; contentType: string; size: number; generation: string;
+}> {
+  if (!isBundledVendorFlyer(sourceKey)) return objectStorage.readObjectEntity(sourceKey, MAX_COLLATERAL_FLYER_BYTES);
+  const bytes = await campaignSourceBytes(sourceKey);
+  if (!bytes) throw new ObjectNotFoundError();
+  return { bytes, contentType: detectCollateralFlyerContentType(bytes), size: bytes.length, generation: "built-in" };
 }
 
 export type CollateralMailClient = {
@@ -414,6 +437,17 @@ router.get("/collateral/flyers", async (req, res) => {
   if (!u) return;
   const parsed = flyerListQuery.safeParse(req.query);
   if (!parsed.success) return void res.status(400).json({ error: "Invalid flyer filter" });
+  // A fresh install may apply the seed before Nate's account is provisioned.
+  // Reconcile only those four rows when his account becomes available.
+  const [nate] = await db.select({ id: usersTable.id }).from(usersTable)
+    .where(eq(usersTable.email, "nate@my-business-solutions.com")).limit(1);
+  if (nate) {
+    await db.update(collateralTemplatesTable).set({ repUserId: nate.id })
+      .where(and(
+        inArray(collateralTemplatesTable.sourceKey, Object.keys(BUNDLED_VENDOR_FLYERS)),
+        isNull(collateralTemplatesTable.repUserId),
+      ));
+  }
   const filters: any[] = [
     eq(collateralTemplatesTable.category, "flyer"),
     eq(collateralTemplatesTable.kind, "image_overlay"),
@@ -477,7 +511,7 @@ router.get("/collateral/flyers/public/:token", async (req, res) => {
     payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as CampaignFlyerTokenPayload;
   } catch { return void res.status(403).json({ error: "Flyer link expired or invalid" }); }
   if (!payload || !Number.isInteger(payload.templateId) || payload.expiresAt <= Date.now() ||
-      !/^\/objects\/collateral-library\/[0-9a-f-]{36}$/.test(payload.objectPath) ||
+      !validCampaignFlyerLocation(payload.objectPath, payload.generation, payload.contentType) ||
       !/^[a-f0-9]{64}$/i.test(payload.digest) ||
       !["image/png", "application/pdf"].includes(payload.contentType)) {
     return void res.status(403).json({ error: "Flyer link expired or invalid" });
@@ -494,7 +528,7 @@ router.get("/collateral/flyers/public/:token", async (req, res) => {
     return void res.status(404).json({ error: "Approved flyer not found" });
   }
   try {
-    const asset = await objectStorage.readObjectEntity(payload.objectPath, MAX_COLLATERAL_FLYER_BYTES);
+    const asset = await readLibraryFlyerAsset(payload.objectPath);
     const actualDigest = crypto.createHash("sha256").update(asset.bytes).digest("hex");
     if (asset.generation !== payload.generation || asset.size !== template.assetSize ||
         asset.bytes.length !== asset.size || actualDigest !== payload.digest ||

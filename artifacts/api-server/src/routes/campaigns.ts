@@ -43,7 +43,7 @@ import {
   includeCampaignFilterMatches,
 } from "../lib/campaignCore";
 import { ObjectStorageService } from "../lib/objectStorage";
-import { campaignSourceBytes, buildSignedCampaignFlyerUrl } from "./collateral";
+import { campaignSourceBytes, buildSignedCampaignFlyerUrl, isBundledVendorFlyer, readLibraryFlyerAsset } from "./collateral";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignMergeTokens, validateCampaignRender } from "../lib/campaignReadiness";
 import { sanitizeLikeInput } from "../lib/sanitize";
 
@@ -128,7 +128,8 @@ async function validateUploadedFlyer(
   if (flyer.source === "library") {
     const [item] = await db.select().from(collateralTemplatesTable).where(eq(collateralTemplatesTable.id, flyer.templateId)).limit(1);
     if (!item || item.category !== "flyer" || item.status !== "published" ||
-      !item.assetSha256 || !item.assetGeneration || !item.sourceKey.startsWith("/objects/")) {
+      !item.assetSha256 || !item.assetGeneration ||
+      (!item.sourceKey.startsWith("/objects/") && !isBundledVendorFlyer(item.sourceKey))) {
       return "Selected library flyer is unavailable";
     }
     return null;
@@ -180,10 +181,11 @@ async function resolveCampaignFlyer(raw: unknown): Promise<ResolvedCampaignFlyer
   if (flyer.source === "library") {
     const [item] = await db.select().from(collateralTemplatesTable).where(eq(collateralTemplatesTable.id, flyer.templateId)).limit(1);
     if (!item || item.status !== "published" || item.category !== "flyer" ||
-      !item.assetSha256 || !item.assetGeneration || !item.sourceKey.startsWith("/objects/")) {
+      !item.assetSha256 || !item.assetGeneration ||
+      (!item.sourceKey.startsWith("/objects/") && !isBundledVendorFlyer(item.sourceKey))) {
       throw new Error("APPROVED_FLYER_UNAVAILABLE");
     }
-    const stored = await objectStorage.readObjectEntity(item.sourceKey);
+    const stored = await readLibraryFlyerAsset(item.sourceKey);
     const digest = createHash("sha256").update(stored.bytes).digest("hex");
     if (!["image/png", "application/pdf"].includes(stored.contentType) ||
       stored.contentType !== item.assetContentType || stored.size !== item.assetSize ||
