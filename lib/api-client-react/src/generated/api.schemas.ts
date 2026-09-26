@@ -28,6 +28,17 @@ export const CampaignStatus = {
   failed: 'failed',
 } as const;
 
+/**
+ * Existing campaigns retain Attach; new campaigns default to Link.
+ */
+export type CampaignFlyerDeliveryMode = typeof CampaignFlyerDeliveryMode[keyof typeof CampaignFlyerDeliveryMode];
+
+
+export const CampaignFlyerDeliveryMode = {
+  attach: 'attach',
+  link: 'link',
+} as const;
+
 export type CampaignBuiltInFlyerKey = typeof CampaignBuiltInFlyerKey[keyof typeof CampaignBuiltInFlyerKey];
 
 
@@ -66,6 +77,13 @@ export interface CampaignUploadedFlyer {
   size: number;
 }
 
+export interface CampaignLibraryFlyer {
+  source: 'library';
+  /** @minimum 1 */
+  templateId: number;
+  name: string;
+}
+
 export type CampaignAudienceRulesProgramTypesItem = typeof CampaignAudienceRulesProgramTypesItem[keyof typeof CampaignAudienceRulesProgramTypesItem];
 
 
@@ -85,6 +103,11 @@ export interface CampaignAudienceRules {
   minAmount?: number | null;
   /** @minimum 0 */
   maxAmount?: number | null;
+  /**
+     * Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.
+     * @maxItems 1000
+     */
+  pickedLeadIds?: number[];
 }
 
 export interface Campaign {
@@ -96,7 +119,9 @@ export interface Campaign {
   emailTemplateId?: number | null;
   replyToEmail: string;
   smsBody?: string | null;
-  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
+  /** Existing campaigns retain Attach; new campaigns default to Link. */
+  flyerDeliveryMode: CampaignFlyerDeliveryMode;
+  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | CampaignLibraryFlyer | null;
   audienceRules: CampaignAudienceRules;
   ownerId: number;
   createdBy: number;
@@ -112,6 +137,14 @@ export const CampaignInputChannel = {
   email_sms: 'email_sms',
 } as const;
 
+export type CampaignInputFlyerDeliveryMode = typeof CampaignInputFlyerDeliveryMode[keyof typeof CampaignInputFlyerDeliveryMode];
+
+
+export const CampaignInputFlyerDeliveryMode = {
+  attach: 'attach',
+  link: 'link',
+} as const;
+
 export interface CampaignInput {
   /** @minLength 1 */
   name: string;
@@ -120,9 +153,67 @@ export interface CampaignInput {
   emailTemplateId?: number | null;
   replyToEmail?: string;
   smsBody?: string | null;
-  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | null;
+  flyerDeliveryMode?: CampaignInputFlyerDeliveryMode;
+  flyer?: CampaignBuiltInFlyer | CampaignUploadedFlyer | CampaignLibraryFlyer | null;
   audienceRules?: CampaignAudienceRules;
   ownerId?: number;
+}
+
+export interface CampaignLeadPickerLead {
+  /** @minimum 1 */
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  companyName?: string | null;
+  email?: string | null;
+  leadSource: string;
+}
+
+export type CollateralFlyerContentType = typeof CollateralFlyerContentType[keyof typeof CollateralFlyerContentType];
+
+
+export const CollateralFlyerContentType = {
+  'image/png': 'image/png',
+  'application/pdf': 'application/pdf',
+} as const;
+
+export type CollateralFlyerCategory = typeof CollateralFlyerCategory[keyof typeof CollateralFlyerCategory];
+
+
+export const CollateralFlyerCategory = {
+  equipment_financing: 'equipment_financing',
+  working_capital: 'working_capital',
+} as const;
+
+export type CollateralFlyerVertical = typeof CollateralFlyerVertical[keyof typeof CollateralFlyerVertical];
+
+
+export const CollateralFlyerVertical = {
+  yellow_iron: 'yellow_iron',
+  trucking: 'trucking',
+  restaurants: 'restaurants',
+  amusement: 'amusement',
+  general: 'general',
+} as const;
+
+export type CollateralFlyerAudience = typeof CollateralFlyerAudience[keyof typeof CollateralFlyerAudience];
+
+
+export const CollateralFlyerAudience = {
+  end_user: 'end_user',
+  vendor: 'vendor',
+} as const;
+
+export interface CollateralFlyer {
+  templateId: number;
+  objectPath: string;
+  name: string;
+  contentType: CollateralFlyerContentType;
+  size: number;
+  category: CollateralFlyerCategory;
+  vertical: CollateralFlyerVertical;
+  audience: CollateralFlyerAudience;
+  repId?: number | null;
 }
 
 export type CampaignFlyerUploadInputContentType = typeof CampaignFlyerUploadInputContentType[keyof typeof CampaignFlyerUploadInputContentType];
@@ -186,9 +277,18 @@ export const CampaignEligibleRecipientChannel = {
   sms: 'sms',
 } as const;
 
+export type CampaignEligibleRecipientOrigin = typeof CampaignEligibleRecipientOrigin[keyof typeof CampaignEligibleRecipientOrigin];
+
+
+export const CampaignEligibleRecipientOrigin = {
+  filtered: 'filtered',
+  picked: 'picked',
+} as const;
+
 export interface CampaignEligibleRecipient {
   leadId: number;
   channel: CampaignEligibleRecipientChannel;
+  origin: CampaignEligibleRecipientOrigin;
 }
 
 export type CampaignExclusionChannel = typeof CampaignExclusionChannel[keyof typeof CampaignExclusionChannel];
@@ -199,11 +299,29 @@ export const CampaignExclusionChannel = {
   sms: 'sms',
 } as const;
 
+export type CampaignExclusionOrigin = typeof CampaignExclusionOrigin[keyof typeof CampaignExclusionOrigin];
+
+
+export const CampaignExclusionOrigin = {
+  filtered: 'filtered',
+  picked: 'picked',
+} as const;
+
 export interface CampaignExclusion {
   leadId: number;
   channel: CampaignExclusionChannel;
   reason: string;
+  origin: CampaignExclusionOrigin;
 }
+
+export type CampaignPreviewCountsReasonCounts = {
+  noEmail: number;
+  unsubscribed: number;
+  suppressed: number;
+  alreadySent: number;
+  duplicate: number;
+  other: number;
+};
 
 export interface CampaignPreviewCounts {
   eligible: number;
@@ -213,6 +331,9 @@ export interface CampaignPreviewCounts {
   emailCapacityRemaining: number;
   emailToday: number;
   emailQueuedNextBusinessDay: number;
+  filterMatches: number;
+  pickedAdded: number;
+  reasonCounts: CampaignPreviewCountsReasonCounts;
 }
 
 export type CampaignLaunchMode = typeof CampaignLaunchMode[keyof typeof CampaignLaunchMode];
@@ -603,10 +724,23 @@ export type AdminUsfaIntakeResponseCounts = {
 
 export interface AdminUsfaIntakeResponse {
   settings: AdminUsfaIntakeResponseSettings;
+  /** Service-account secret presence only; credentials are never returned */
+  serviceAccountConfigured: boolean;
   counts: AdminUsfaIntakeResponseCounts;
   logs: UsfaIntakeLog[];
   page: number;
   limit: number;
+}
+
+export interface UsfaConnectionTestResponse {
+  ok: boolean;
+  /**
+     * Number of returned header cells on success
+     * @minimum 0
+     */
+  columnCount?: number;
+  /** Sanitized configuration or Google access error on failure */
+  error?: string;
 }
 
 export interface AnalyticsSummary {
@@ -894,6 +1028,11 @@ export interface Lead {
   phone?: string | null;
   /** @nullable */
   companyName?: string | null;
+  /**
+     * Vertical supplied during lead import; free text is preserved when not a known vertical.
+     * @nullable
+     */
+  vertical?: string | null;
   /** @nullable */
   ein?: string | null;
   applicationType: LeadApplicationType;
@@ -1100,6 +1239,8 @@ export interface LeadInput {
   email?: string;
   phone?: string;
   companyName?: string;
+  /** @nullable */
+  vertical?: string | null;
   ein?: string;
   applicationType?: LeadInputApplicationType;
   /** Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user */
@@ -4612,7 +4753,159 @@ export type ListCollateralTemplatesParams = {
 includeDrafts?: boolean;
 };
 
+export type ListCollateralFlyersParams = {
+category?: ListCollateralFlyersCategory;
+vertical?: ListCollateralFlyersVertical;
+audience?: ListCollateralFlyersAudience;
+/**
+ * @minimum 1
+ */
+repId?: number;
+};
+
+export type ListCollateralFlyersCategory = typeof ListCollateralFlyersCategory[keyof typeof ListCollateralFlyersCategory];
+
+
+export const ListCollateralFlyersCategory = {
+  equipment_financing: 'equipment_financing',
+  working_capital: 'working_capital',
+} as const;
+
+export type ListCollateralFlyersVertical = typeof ListCollateralFlyersVertical[keyof typeof ListCollateralFlyersVertical];
+
+
+export const ListCollateralFlyersVertical = {
+  yellow_iron: 'yellow_iron',
+  trucking: 'trucking',
+  restaurants: 'restaurants',
+  amusement: 'amusement',
+  general: 'general',
+} as const;
+
+export type ListCollateralFlyersAudience = typeof ListCollateralFlyersAudience[keyof typeof ListCollateralFlyersAudience];
+
+
+export const ListCollateralFlyersAudience = {
+  end_user: 'end_user',
+  vendor: 'vendor',
+} as const;
+
+export type RequestCollateralFlyerUploadUrlsBodyFilesItemContentType = typeof RequestCollateralFlyerUploadUrlsBodyFilesItemContentType[keyof typeof RequestCollateralFlyerUploadUrlsBodyFilesItemContentType];
+
+
+export const RequestCollateralFlyerUploadUrlsBodyFilesItemContentType = {
+  'image/png': 'image/png',
+  'application/pdf': 'application/pdf',
+} as const;
+
+export type RequestCollateralFlyerUploadUrlsBodyFilesItem = {
+  originalFilename: string;
+  /**
+     * @minimum 1
+     * @maximum 15728640
+     */
+  size: number;
+  contentType: RequestCollateralFlyerUploadUrlsBodyFilesItemContentType;
+};
+
+export type RequestCollateralFlyerUploadUrlsBody = {
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  files: RequestCollateralFlyerUploadUrlsBodyFilesItem[];
+};
+
+export type RequestCollateralFlyerUploadUrls200UploadsItem = { [key: string]: unknown };
+
+export type RequestCollateralFlyerUploadUrls200 = {
+  uploads?: RequestCollateralFlyerUploadUrls200UploadsItem[];
+};
+
+export type RegisterCollateralFlyersBodyItemsItemCategory = typeof RegisterCollateralFlyersBodyItemsItemCategory[keyof typeof RegisterCollateralFlyersBodyItemsItemCategory];
+
+
+export const RegisterCollateralFlyersBodyItemsItemCategory = {
+  equipment_financing: 'equipment_financing',
+  working_capital: 'working_capital',
+} as const;
+
+export type RegisterCollateralFlyersBodyItemsItemVertical = typeof RegisterCollateralFlyersBodyItemsItemVertical[keyof typeof RegisterCollateralFlyersBodyItemsItemVertical];
+
+
+export const RegisterCollateralFlyersBodyItemsItemVertical = {
+  yellow_iron: 'yellow_iron',
+  trucking: 'trucking',
+  restaurants: 'restaurants',
+  amusement: 'amusement',
+  general: 'general',
+} as const;
+
+export type RegisterCollateralFlyersBodyItemsItemAudience = typeof RegisterCollateralFlyersBodyItemsItemAudience[keyof typeof RegisterCollateralFlyersBodyItemsItemAudience];
+
+
+export const RegisterCollateralFlyersBodyItemsItemAudience = {
+  end_user: 'end_user',
+  vendor: 'vendor',
+} as const;
+
+export type RegisterCollateralFlyersBodyItemsItem = {
+  objectPath: string;
+  name: string;
+  originalFilename: string;
+  category: RegisterCollateralFlyersBodyItemsItemCategory;
+  vertical: RegisterCollateralFlyersBodyItemsItemVertical;
+  audience: RegisterCollateralFlyersBodyItemsItemAudience;
+  repId?: number | null;
+};
+
+export type RegisterCollateralFlyersBody = {
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  items: RegisterCollateralFlyersBodyItemsItem[];
+};
+
+export type RegisterCollateralFlyers201 = {
+  templates?: CollateralFlyer[];
+};
+
+export type CreateCollateralFlyerPublicUrl200 = {
+  url?: string;
+  expiresAt?: string;
+  expiresInSeconds?: number;
+};
+
 export type RenderCollateralTemplateParams = {
 repId?: number;
+};
+
+export type SearchCampaignLeadPickerParams = {
+/**
+ * @maxLength 200
+ */
+search?: string;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 1000
+ */
+limit?: number;
+};
+
+export type SearchCampaignLeadPicker200 = {
+  leads: CampaignLeadPickerLead[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export type ResolveCampaignLeadPickerBody = {
+  /** @maxItems 1000 */
+  ids: number[];
 };
 

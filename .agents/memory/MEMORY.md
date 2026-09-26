@@ -25,7 +25,6 @@
 - [Lender delivery safety](lender-delivery-safety.md) — exact PDFs remain private and immutable; uncertain email outcomes must retain a durable retry barrier.
 - [Parallel Git index ownership](parallel-git-index.md) — serialize staging and history edits; a HEAD check followed by amend races with concurrent helper commits.
 - [Orval whitespace drift](orval-whitespace-drift.md) — verification-only codegen can add blank lines to the generated React client; inspect and discard whitespace-only drift.
-- [Orval input-resolution failure](orval-input-resolution.md) — Orval 8.9.1 currently cleans generated folders, then rejects valid YAML targets; restore outputs after failed runs.
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
 - [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
 - [Published API fingerprints](published-api-fingerprints.md) — verify server revisions from a live response/header; a current static bundle does not prove the matching API build shipped.

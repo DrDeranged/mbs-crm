@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { USFA_HEADERS } from "./usfa";
-import { createUsfaStatementTasks, validateUsfaHeaders, runUsfaSheetPoll } from "./usfaPoller";
+import { createUsfaStatementTasks, validateUsfaHeaders, runUsfaSheetPoll, testUsfaSheetConnection } from "./usfaPoller";
 import { claimUsfaInvite } from "../../routes/usfaPrefill";
 
 test("USFA poller requires every exact vendor header", () => {
@@ -22,6 +22,38 @@ test("USFA poller is safely disarmed when service-account secret is absent", asy
     if (prior === undefined) delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     else process.env.GOOGLE_SERVICE_ACCOUNT_JSON = prior;
   }
+});
+
+test("USFA connection test reads only the configured header row and counts returned columns", async () => {
+  let calls = 0;
+  const result = await testUsfaSheetConnection(" sheet-id ", "O'Brien", {
+    rawCredentials: JSON.stringify({ client_email: "service@example.com", private_key: "private-material" }),
+    readHeader: async (credentials, id, range) => {
+      calls++;
+      assert.equal(credentials.client_email, "service@example.com");
+      assert.equal(id, "sheet-id");
+      assert.equal(range, "'O''Brien'!1:1");
+      return ["Id", "Name", "Email", ""];
+    },
+  });
+  assert.deepEqual(result, { ok: true, columnCount: 4 });
+  assert.equal(calls, 1);
+});
+
+test("USFA connection test fails safely for missing configuration and sanitizes provider auth errors", async () => {
+  assert.deepEqual(await testUsfaSheetConnection(null, "Sheet1", { rawCredentials: "" }),
+    { ok: false, error: "Save a Sheet ID before testing the connection." });
+  assert.deepEqual(await testUsfaSheetConnection("sheet-id", "Sheet1", { rawCredentials: "" }),
+    { ok: false, error: "Google service account is absent." });
+  assert.deepEqual(await testUsfaSheetConnection("sheet-id", "Sheet1", { rawCredentials: "not JSON" }),
+    { ok: false, error: "Google service account credentials are invalid." });
+  const denied = await testUsfaSheetConnection("sheet-id", "Sheet1", {
+    rawCredentials: JSON.stringify({ client_email: "service@example.com", private_key: "private-material" }),
+    readHeader: async () => { throw { response: { status: 403 }, message: "private-material must not appear" }; },
+  });
+  assert.equal(denied.ok, false);
+  assert.match(denied.ok ? "" : denied.error, /authentication or access was denied/);
+  assert.doesNotMatch(JSON.stringify(denied), /private-material/);
 });
 
 type FakeTaskTransaction = {

@@ -142,6 +142,25 @@ paths:
         "401": { description: Unauthorized }
         "403": { description: Forbidden }
 
+  /admin/usfa-intake/test-connection:
+    post:
+      operationId: testAdminUsfaConnection
+      tags: [admin]
+      summary: Read the saved USFA Google Sheet header row using the service account (admin only)
+      responses:
+        "200":
+          description: Header row read successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaConnectionTestResponse" }
+        "400":
+          description: Connection configuration or Google access failed; provider details are sanitized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaConnectionTestResponse" }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+
   /intake/usfa:
     post:
       operationId: receiveUsfaWebhook
@@ -5440,7 +5459,7 @@ components:
         headerValid: { type: boolean }
     AdminUsfaIntakeResponse:
       type: object
-      required: [settings, counts, logs, page, limit]
+      required: [settings, serviceAccountConfigured, counts, logs, page, limit]
       properties:
         settings:
           type: object
@@ -5450,6 +5469,7 @@ components:
             usfaSheetTab: { type: string }
             usfaConsentConfirmed: { type: boolean }
             usfaWebhookEnabled: { type: boolean }
+        serviceAccountConfigured: { type: boolean, description: Service-account secret presence only; credentials are never returned }
         counts:
           type: object
           required: [total, ok, dup, error, lastRun]
@@ -5464,6 +5484,13 @@ components:
           items: { $ref: "#/components/schemas/UsfaIntakeLog" }
         page: { type: integer }
         limit: { type: integer }
+    UsfaConnectionTestResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+        columnCount: { type: integer, minimum: 0, description: Number of returned header cells on success }
+        error: { type: string, description: Sanitized configuration or Google access error on failure }
     AnalyticsSummary:
       type: object
       required: [totalLeads, allTimeTotalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]

@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db, companySettingsTable, usfaIntakeLogTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
-import { runUsfaSheetPoll } from "../lib/intake/usfaPoller";
+import { runUsfaSheetPoll, testUsfaSheetConnection } from "../lib/intake/usfaPoller";
 
 const router = Router();
 
@@ -38,6 +38,7 @@ router.get("/admin/usfa-intake", async (req, res): Promise<void> => {
       usfaConsentConfirmed: settings?.usfaConsentConfirmed ?? false,
       usfaWebhookEnabled: settings?.usfaWebhookEnabled ?? false,
     },
+    serviceAccountConfigured: Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim()),
     counts: {
       total: Number(counts?.total ?? 0), ok: Number(counts?.ok ?? 0),
       dup: Number(counts?.dup ?? 0), error: Number(counts?.error ?? 0),
@@ -47,6 +48,16 @@ router.get("/admin/usfa-intake", async (req, res): Promise<void> => {
     page,
     limit,
   });
+});
+
+router.post("/admin/usfa-intake/test-connection", async (req, res): Promise<void> => {
+  if (!(await admin(req, res))) return;
+  const [settings] = await db.select({
+    usfaSheetId: companySettingsTable.usfaSheetId,
+    usfaSheetTab: companySettingsTable.usfaSheetTab,
+  }).from(companySettingsTable).limit(1);
+  const result = await testUsfaSheetConnection(settings?.usfaSheetId ?? null, settings?.usfaSheetTab ?? "Sheet1");
+  res.status(result.ok ? 200 : 400).json(result);
 });
 
 router.post("/admin/usfa-intake/run", async (req, res): Promise<void> => {

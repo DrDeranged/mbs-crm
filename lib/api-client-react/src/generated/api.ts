@@ -58,6 +58,7 @@ import type {
   CampaignInput,
   CampaignLaunchInput,
   CampaignLaunchResult,
+  CampaignLeadPickerLead,
   CampaignPreview,
   CampaignResults,
   CampaignUploadedFlyer,
@@ -67,6 +68,7 @@ import type {
   CaptureCreditConsentBody,
   CollateralEmailInput,
   CollateralEmailResult,
+  CollateralFlyer,
   CollateralLink,
   CollateralRender,
   CollateralTemplate,
@@ -75,6 +77,7 @@ import type {
   CommActivity,
   Communication,
   CommunicationMetrics,
+  CreateCollateralFlyerPublicUrl200,
   CreateLeadSubmissionBody,
   CreateWorkflowRuleBody,
   CreditComplianceLogResponse,
@@ -159,6 +162,7 @@ import type {
   LenderPackageConfigResponse,
   LenderSubmission,
   LenderSubmissionUpdate,
+  ListCollateralFlyersParams,
   ListCollateralTemplatesParams,
   ListDealsParams,
   ListEmailTemplatesParams,
@@ -191,13 +195,20 @@ import type {
   PushSubscriptionDelete,
   PushSubscriptionInput,
   RecalculateLeadScore200,
+  RegisterCollateralFlyers201,
+  RegisterCollateralFlyersBody,
   RenderCollateralTemplateParams,
   RenewalOpportunity,
   RepDashboard,
   RepPerformance,
+  RequestCollateralFlyerUploadUrls200,
+  RequestCollateralFlyerUploadUrlsBody,
+  ResolveCampaignLeadPickerBody,
   RetireRepSlugBody,
   RetireRepSlugRequest,
   RunLenderMatch200,
+  SearchCampaignLeadPicker200,
+  SearchCampaignLeadPickerParams,
   SeededDealReassignmentResponse,
   SendPartnerContactSmsBody,
   SendTestEmail201,
@@ -236,6 +247,7 @@ import type {
   User,
   UserUpdate,
   UsfaApplicationLink,
+  UsfaConnectionTestResponse,
   UsfaPollResult,
   UsfaPrefill,
   UsfaWebhookPayload,
@@ -654,6 +666,76 @@ export function useGetAdminUsfaIntake<TData = Awaited<ReturnType<typeof getAdmin
 
 
 
+
+export const getTestAdminUsfaConnectionUrl = () => {
+
+
+
+
+  return `/api/admin/usfa-intake/test-connection`
+}
+
+/**
+ * @summary Read the saved USFA Google Sheet header row using the service account (admin only)
+ */
+export const testAdminUsfaConnection = async ( options?: RequestInit): Promise<UsfaConnectionTestResponse> => {
+
+  return customFetch<UsfaConnectionTestResponse>(getTestAdminUsfaConnectionUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTestAdminUsfaConnectionMutationOptions = <TError = ErrorType<UsfaConnectionTestResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testAdminUsfaConnection>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testAdminUsfaConnection>>, TError,void, TContext> => {
+
+const mutationKey = ['testAdminUsfaConnection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testAdminUsfaConnection>>, void> = () => {
+
+
+          return  testAdminUsfaConnection(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestAdminUsfaConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof testAdminUsfaConnection>>>
+
+    export type TestAdminUsfaConnectionMutationError = ErrorType<UsfaConnectionTestResponse | void>
+
+    /**
+ * @summary Read the saved USFA Google Sheet header row using the service account (admin only)
+ */
+export const useTestAdminUsfaConnection = <TError = ErrorType<UsfaConnectionTestResponse | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testAdminUsfaConnection>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof testAdminUsfaConnection>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getTestAdminUsfaConnectionMutationOptions(options));
+    }
 
 export const getReceiveUsfaWebhookUrl = () => {
 
@@ -14572,6 +14654,374 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateCollateralTemplateMutationOptions(options));
     }
 
+export const getListCollateralFlyersUrl = (params?: ListCollateralFlyersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/collateral/flyers?${stringifiedParams}` : `/api/collateral/flyers`
+}
+
+/**
+ * @summary Filter published library flyers by campaign category, vertical, audience, and representative
+ */
+export const listCollateralFlyers = async (params?: ListCollateralFlyersParams, options?: RequestInit): Promise<CollateralFlyer[]> => {
+
+  return customFetch<CollateralFlyer[]>(getListCollateralFlyersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCollateralFlyersQueryKey = (params?: ListCollateralFlyersParams,) => {
+    return [
+    `/api/collateral/flyers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCollateralFlyersQueryOptions = <TData = Awaited<ReturnType<typeof listCollateralFlyers>>, TError = ErrorType<unknown>>(params?: ListCollateralFlyersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCollateralFlyers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCollateralFlyersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCollateralFlyers>>> = ({ signal }) => listCollateralFlyers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCollateralFlyers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCollateralFlyersQueryResult = NonNullable<Awaited<ReturnType<typeof listCollateralFlyers>>>
+export type ListCollateralFlyersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Filter published library flyers by campaign category, vertical, audience, and representative
+ */
+
+export function useListCollateralFlyers<TData = Awaited<ReturnType<typeof listCollateralFlyers>>, TError = ErrorType<unknown>>(
+ params?: ListCollateralFlyersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCollateralFlyers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCollateralFlyersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRequestCollateralFlyerUploadUrlsUrl = () => {
+
+
+
+
+  return `/api/collateral/flyers/upload-urls`
+}
+
+/**
+ * @summary Admin-only staging upload URLs for PNG/PDF flyers
+ */
+export const requestCollateralFlyerUploadUrls = async (requestCollateralFlyerUploadUrlsBody: RequestCollateralFlyerUploadUrlsBody, options?: RequestInit): Promise<RequestCollateralFlyerUploadUrls200> => {
+
+  return customFetch<RequestCollateralFlyerUploadUrls200>(getRequestCollateralFlyerUploadUrlsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      requestCollateralFlyerUploadUrlsBody,)
+  }
+);}
+
+
+
+
+export const getRequestCollateralFlyerUploadUrlsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>, TError,{data: BodyType<RequestCollateralFlyerUploadUrlsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>, TError,{data: BodyType<RequestCollateralFlyerUploadUrlsBody>}, TContext> => {
+
+const mutationKey = ['requestCollateralFlyerUploadUrls'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>, {data: BodyType<RequestCollateralFlyerUploadUrlsBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestCollateralFlyerUploadUrls(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestCollateralFlyerUploadUrlsMutationResult = NonNullable<Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>>
+    export type RequestCollateralFlyerUploadUrlsMutationBody = BodyType<RequestCollateralFlyerUploadUrlsBody>
+    export type RequestCollateralFlyerUploadUrlsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Admin-only staging upload URLs for PNG/PDF flyers
+ */
+export const useRequestCollateralFlyerUploadUrls = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>, TError,{data: BodyType<RequestCollateralFlyerUploadUrlsBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestCollateralFlyerUploadUrls>>,
+        TError,
+        {data: BodyType<RequestCollateralFlyerUploadUrlsBody>},
+        TContext
+      > => {
+      return useMutation(getRequestCollateralFlyerUploadUrlsMutationOptions(options));
+    }
+
+export const getRegisterCollateralFlyersUrl = () => {
+
+
+
+
+  return `/api/collateral/flyers/register`
+}
+
+/**
+ * @summary Admin-only registration of validated immutable library flyers
+ */
+export const registerCollateralFlyers = async (registerCollateralFlyersBody: RegisterCollateralFlyersBody, options?: RequestInit): Promise<RegisterCollateralFlyers201> => {
+
+  return customFetch<RegisterCollateralFlyers201>(getRegisterCollateralFlyersUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      registerCollateralFlyersBody,)
+  }
+);}
+
+
+
+
+export const getRegisterCollateralFlyersMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerCollateralFlyers>>, TError,{data: BodyType<RegisterCollateralFlyersBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerCollateralFlyers>>, TError,{data: BodyType<RegisterCollateralFlyersBody>}, TContext> => {
+
+const mutationKey = ['registerCollateralFlyers'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerCollateralFlyers>>, {data: BodyType<RegisterCollateralFlyersBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerCollateralFlyers(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterCollateralFlyersMutationResult = NonNullable<Awaited<ReturnType<typeof registerCollateralFlyers>>>
+    export type RegisterCollateralFlyersMutationBody = BodyType<RegisterCollateralFlyersBody>
+    export type RegisterCollateralFlyersMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Admin-only registration of validated immutable library flyers
+ */
+export const useRegisterCollateralFlyers = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerCollateralFlyers>>, TError,{data: BodyType<RegisterCollateralFlyersBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof registerCollateralFlyers>>,
+        TError,
+        {data: BodyType<RegisterCollateralFlyersBody>},
+        TContext
+      > => {
+      return useMutation(getRegisterCollateralFlyersMutationOptions(options));
+    }
+
+export const getCreateCollateralFlyerPublicUrlUrl = (id: number,) => {
+
+
+
+
+  return `/api/collateral/flyers/${id}/public-url`
+}
+
+export const createCollateralFlyerPublicUrl = async (id: number, options?: RequestInit): Promise<CreateCollateralFlyerPublicUrl200> => {
+
+  return customFetch<CreateCollateralFlyerPublicUrl200>(getCreateCollateralFlyerPublicUrlUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateCollateralFlyerPublicUrlQueryKey = (id: number,) => {
+    return [
+    `/api/collateral/flyers/${id}/public-url`
+    ] as const;
+    }
+
+
+export const getCreateCollateralFlyerPublicUrlQueryOptions = <TData = Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCreateCollateralFlyerPublicUrlQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>> = ({ signal }) => createCollateralFlyerPublicUrl(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CreateCollateralFlyerPublicUrlQueryResult = NonNullable<Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>>
+export type CreateCollateralFlyerPublicUrlQueryError = ErrorType<unknown>
+
+
+
+export function useCreateCollateralFlyerPublicUrl<TData = Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof createCollateralFlyerPublicUrl>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCreateCollateralFlyerPublicUrlQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDownloadSignedCollateralFlyerUrl = (token: string,) => {
+
+
+
+
+  return `/api/collateral/flyers/public/${token}`
+}
+
+export const downloadSignedCollateralFlyer = async (token: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDownloadSignedCollateralFlyerUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadSignedCollateralFlyerQueryKey = (token: string,) => {
+    return [
+    `/api/collateral/flyers/public/${token}`
+    ] as const;
+    }
+
+
+export const getDownloadSignedCollateralFlyerQueryOptions = <TData = Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>, TError = ErrorType<void>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadSignedCollateralFlyerQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>> = ({ signal }) => downloadSignedCollateralFlyer(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadSignedCollateralFlyerQueryResult = NonNullable<Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>>
+export type DownloadSignedCollateralFlyerQueryError = ErrorType<void>
+
+
+
+export function useDownloadSignedCollateralFlyer<TData = Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>, TError = ErrorType<void>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadSignedCollateralFlyer>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadSignedCollateralFlyerQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetCollateralTemplateUrl = (id: number,) => {
 
 
@@ -15554,6 +16004,161 @@ export function useListCampaignFlyers<TData = Awaited<ReturnType<typeof listCamp
 
 
 
+export const getSearchCampaignLeadPickerUrl = (params?: SearchCampaignLeadPickerParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/campaigns/lead-picker?${stringifiedParams}` : `/api/campaigns/lead-picker`
+}
+
+/**
+ * @summary Search leads for manual campaign audience selection
+ */
+export const searchCampaignLeadPicker = async (params?: SearchCampaignLeadPickerParams, options?: RequestInit): Promise<SearchCampaignLeadPicker200> => {
+
+  return customFetch<SearchCampaignLeadPicker200>(getSearchCampaignLeadPickerUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchCampaignLeadPickerQueryKey = (params?: SearchCampaignLeadPickerParams,) => {
+    return [
+    `/api/campaigns/lead-picker`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchCampaignLeadPickerQueryOptions = <TData = Awaited<ReturnType<typeof searchCampaignLeadPicker>>, TError = ErrorType<unknown>>(params?: SearchCampaignLeadPickerParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchCampaignLeadPicker>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchCampaignLeadPickerQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchCampaignLeadPicker>>> = ({ signal }) => searchCampaignLeadPicker(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchCampaignLeadPicker>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SearchCampaignLeadPickerQueryResult = NonNullable<Awaited<ReturnType<typeof searchCampaignLeadPicker>>>
+export type SearchCampaignLeadPickerQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Search leads for manual campaign audience selection
+ */
+
+export function useSearchCampaignLeadPicker<TData = Awaited<ReturnType<typeof searchCampaignLeadPicker>>, TError = ErrorType<unknown>>(
+ params?: SearchCampaignLeadPickerParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchCampaignLeadPicker>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSearchCampaignLeadPickerQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getResolveCampaignLeadPickerUrl = () => {
+
+
+
+
+  return `/api/campaigns/lead-picker/resolve`
+}
+
+/**
+ * @summary Resolve compact lead details for saved manual picks
+ */
+export const resolveCampaignLeadPicker = async (resolveCampaignLeadPickerBody: ResolveCampaignLeadPickerBody, options?: RequestInit): Promise<CampaignLeadPickerLead[]> => {
+
+  return customFetch<CampaignLeadPickerLead[]>(getResolveCampaignLeadPickerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      resolveCampaignLeadPickerBody,)
+  }
+);}
+
+
+
+
+export const getResolveCampaignLeadPickerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveCampaignLeadPicker>>, TError,{data: BodyType<ResolveCampaignLeadPickerBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resolveCampaignLeadPicker>>, TError,{data: BodyType<ResolveCampaignLeadPickerBody>}, TContext> => {
+
+const mutationKey = ['resolveCampaignLeadPicker'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resolveCampaignLeadPicker>>, {data: BodyType<ResolveCampaignLeadPickerBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  resolveCampaignLeadPicker(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResolveCampaignLeadPickerMutationResult = NonNullable<Awaited<ReturnType<typeof resolveCampaignLeadPicker>>>
+    export type ResolveCampaignLeadPickerMutationBody = BodyType<ResolveCampaignLeadPickerBody>
+    export type ResolveCampaignLeadPickerMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Resolve compact lead details for saved manual picks
+ */
+export const useResolveCampaignLeadPicker = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveCampaignLeadPicker>>, TError,{data: BodyType<ResolveCampaignLeadPickerBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resolveCampaignLeadPicker>>,
+        TError,
+        {data: BodyType<ResolveCampaignLeadPickerBody>},
+        TContext
+      > => {
+      return useMutation(getResolveCampaignLeadPickerMutationOptions(options));
+    }
+
 export const getGetCampaignUrl = (id: number,) => {
 
 
@@ -15777,7 +16382,7 @@ export const previewCampaignAudience = async (id: number, options?: RequestInit)
 
 
 
-export const getPreviewCampaignAudienceMutationOptions = <TError = ErrorType<unknown>,
+export const getPreviewCampaignAudienceMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewCampaignAudience>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof previewCampaignAudience>>, TError,{id: number}, TContext> => {
 
@@ -15806,9 +16411,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PreviewCampaignAudienceMutationResult = NonNullable<Awaited<ReturnType<typeof previewCampaignAudience>>>
 
-    export type PreviewCampaignAudienceMutationError = ErrorType<unknown>
+    export type PreviewCampaignAudienceMutationError = ErrorType<void>
 
-    export const usePreviewCampaignAudience = <TError = ErrorType<unknown>,
+    export const usePreviewCampaignAudience = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewCampaignAudience>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof previewCampaignAudience>>,

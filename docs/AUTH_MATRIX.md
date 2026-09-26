@@ -46,6 +46,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/intake/usfa` | `routes/usfaIntake.ts:46` | `W` | provider callback; mapper and dedupe rules determine the target lead |
 | GET | `/api/public/reps/:slug/usfa-prefill/:token` | `routes/usfaPrefill.ts:76` | `P` | opaque slug-bound token; returns only initial SSN/DOB prefill with no-store and synchronous PII audit |
 | GET | `/api/admin/usfa-intake` | `routes/adminUsfaIntake.ts:19` | `A` | admin-only intake status and receipt log |
+| POST | `/api/admin/usfa-intake/test-connection` | `routes/adminUsfaIntake.ts` | `A` | admin-only read of the configured Sheet header; returns a sanitized result |
 | POST | `/api/admin/usfa-intake/run` | `routes/adminUsfaIntake.ts:52` | `A` | admin-only read of the configured Sheet |
 | POST | `/api/admin/usfa-intake/:id/reprocess` | `routes/adminUsfaIntake.ts:58` | `A` | admin-only retry of one intake receipt |
 | POST | `/api/leads/:id/usfa-application-link` | `routes/usfaPrefill.ts:66` | `L` | assigned reps only; admins may mint for any USFA lead |

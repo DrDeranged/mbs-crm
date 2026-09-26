@@ -27,8 +27,7 @@ export type UsfaRunResult = {
   headerValid: boolean;
 };
 
-function serviceAccountCredentials(): Record<string, string> | null {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+function serviceAccountCredentials(raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON): Record<string, string> | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw);
@@ -42,6 +41,46 @@ function serviceAccountCredentials(): Record<string, string> | null {
 export function validateUsfaHeaders(row: unknown[]): boolean {
   const headers = new Set(row.map((value) => String(value ?? "").trim()));
   return USFA_HEADERS.every((header) => headers.has(header));
+}
+
+type UsfaHeaderReader = (credentials: Record<string, string>, sheetId: string, range: string) => Promise<unknown[]>;
+
+async function readUsfaHeader(credentials: Record<string, string>, sheetId: string, range: string): Promise<unknown[]> {
+  const auth = new google.auth.GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"] });
+  const sheets = google.sheets({ version: "v4", auth });
+  const response = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range });
+  return response.data.values?.[0] ?? [];
+}
+
+export async function testUsfaSheetConnection(
+  sheetId: string | null,
+  tab: string,
+  options: { rawCredentials?: string; readHeader?: UsfaHeaderReader } = {},
+): Promise<{ ok: true; columnCount: number } | { ok: false; error: string }> {
+  if (!sheetId?.trim()) return { ok: false, error: "Save a Sheet ID before testing the connection." };
+  if (!tab.trim() || tab.length > 100 || /[\x00-\x1f]/.test(tab) || sheetId.length > 256) {
+    return { ok: false, error: "The saved Sheet ID or Tab is invalid." };
+  }
+  const raw = options.rawCredentials === undefined ? process.env.GOOGLE_SERVICE_ACCOUNT_JSON : options.rawCredentials;
+  if (!raw?.trim()) return { ok: false, error: "Google service account is absent." };
+  const credentials = serviceAccountCredentials(raw);
+  if (!credentials) return { ok: false, error: "Google service account credentials are invalid." };
+  try {
+    const range = `'${tab.replaceAll("'", "''")}'!1:1`;
+    const headers = await (options.readHeader ?? readUsfaHeader)(credentials, sheetId.trim(), range);
+    return { ok: true, columnCount: headers.length };
+  } catch (error) {
+    // Google errors can contain request details. Only return classified errors,
+    // never the provider's raw message or the service-account JSON.
+    const providerError = error as { code?: string | number; response?: { status?: number }; message?: string };
+    const status = Number(providerError.response?.status ?? providerError.code);
+    if (status === 401 || status === 403 || /invalid_grant|unauthorized|permission|credential/i.test(providerError.message ?? "")) {
+      return { ok: false, error: "Google authentication or access was denied. Verify the service account and share the sheet with it." };
+    }
+    if (status === 404) return { ok: false, error: "Google Sheet or Tab not found, or the sheet is not shared with the service account." };
+    if (status === 400) return { ok: false, error: "Google rejected the Sheet ID or Tab. Check the saved settings." };
+    return { ok: false, error: `Could not read the Google Sheet header${Number.isInteger(status) ? ` (HTTP ${status})` : ""}.` };
+  }
 }
 
 type UsfaTaskTransaction = {

@@ -128,6 +128,7 @@ export const GetAdminUsfaIntakeResponse = zod.object({
   "usfaConsentConfirmed": zod.boolean(),
   "usfaWebhookEnabled": zod.boolean()
 }),
+  "serviceAccountConfigured": zod.boolean().describe('Service-account secret presence only; credentials are never returned'),
   "counts": zod.object({
   "total": zod.number(),
   "ok": zod.number(),
@@ -146,6 +147,20 @@ export const GetAdminUsfaIntakeResponse = zod.object({
 })),
   "page": zod.number(),
   "limit": zod.number()
+})
+
+
+/**
+ * @summary Read the saved USFA Google Sheet header row using the service account (admin only)
+ */
+export const testAdminUsfaConnectionResponseColumnCountMin = 0;
+
+
+
+export const TestAdminUsfaConnectionResponse = zod.object({
+  "ok": zod.boolean(),
+  "columnCount": zod.number().min(testAdminUsfaConnectionResponseColumnCountMin).optional().describe('Number of returned header cells on success'),
+  "error": zod.string().optional().describe('Sanitized configuration or Google access error on failure')
 })
 
 
@@ -890,6 +905,7 @@ export const ListLeadsResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -1040,6 +1056,7 @@ export const CreateLeadBody = zod.object({
   "email": zod.string().optional(),
   "phone": zod.string().optional(),
   "companyName": zod.string().optional(),
+  "vertical": zod.string().nullish(),
   "ein": zod.string().optional(),
   "applicationType": zod.enum(['equipment', 'working_capital']).optional(),
   "assignedRepId": zod.number().optional().describe('Optional assignment; only managers\/admins may provide this, and the destination must be an active eligible user'),
@@ -1318,6 +1335,7 @@ export const GetLeadResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -1680,6 +1698,7 @@ export const UpdateLeadResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -1857,6 +1876,7 @@ export const ChangeLeadStatusResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -2011,6 +2031,7 @@ export const AssignLeadResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -2665,6 +2686,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -2837,6 +2859,7 @@ export const GetRepDashboardResponse = zod.object({
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "companyName": zod.string().nullish(),
+  "vertical": zod.string().nullish().describe('Vertical supplied during lead import; free text is preserved when not a known vertical.'),
   "ein": zod.string().nullish(),
   "applicationType": zod.enum(['equipment', 'working_capital']),
   "status": zod.enum(['new_lead', 'contacted', 'application_received', 'submitted_to_underwriting', 'approved', 'funded', 'declined', 'follow_up']),
@@ -7470,6 +7493,93 @@ export const CreateCollateralTemplateBody = zod.object({
 })
 
 
+/**
+ * @summary Filter published library flyers by campaign category, vertical, audience, and representative
+ */
+
+
+
+export const ListCollateralFlyersQueryParams = zod.object({
+  "category": zod.enum(['equipment_financing', 'working_capital']).optional(),
+  "vertical": zod.enum(['yellow_iron', 'trucking', 'restaurants', 'amusement', 'general']).optional(),
+  "audience": zod.enum(['end_user', 'vendor']).optional(),
+  "repId": zod.coerce.number().min(1).optional()
+})
+
+export const ListCollateralFlyersResponseItem = zod.object({
+  "templateId": zod.number(),
+  "objectPath": zod.string(),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'application/pdf']),
+  "size": zod.number(),
+  "category": zod.enum(['equipment_financing', 'working_capital']),
+  "vertical": zod.enum(['yellow_iron', 'trucking', 'restaurants', 'amusement', 'general']),
+  "audience": zod.enum(['end_user', 'vendor']),
+  "repId": zod.number().nullish()
+})
+export const ListCollateralFlyersResponse = zod.array(ListCollateralFlyersResponseItem)
+
+
+/**
+ * @summary Admin-only staging upload URLs for PNG/PDF flyers
+ */
+export const requestCollateralFlyerUploadUrlsBodyFilesItemSizeMax = 15728640;
+
+export const requestCollateralFlyerUploadUrlsBodyFilesMax = 50;
+
+
+
+export const RequestCollateralFlyerUploadUrlsBody = zod.object({
+  "files": zod.array(zod.object({
+  "originalFilename": zod.string(),
+  "size": zod.number().min(1).max(requestCollateralFlyerUploadUrlsBodyFilesItemSizeMax),
+  "contentType": zod.enum(['image/png', 'application/pdf'])
+})).min(1).max(requestCollateralFlyerUploadUrlsBodyFilesMax)
+})
+
+export const RequestCollateralFlyerUploadUrlsResponse = zod.object({
+  "uploads": zod.array(zod.object({
+
+}).passthrough()).optional()
+})
+
+
+/**
+ * @summary Admin-only registration of validated immutable library flyers
+ */
+export const registerCollateralFlyersBodyItemsMax = 50;
+
+
+
+export const RegisterCollateralFlyersBody = zod.object({
+  "items": zod.array(zod.object({
+  "objectPath": zod.string(),
+  "name": zod.string(),
+  "originalFilename": zod.string(),
+  "category": zod.enum(['equipment_financing', 'working_capital']),
+  "vertical": zod.enum(['yellow_iron', 'trucking', 'restaurants', 'amusement', 'general']),
+  "audience": zod.enum(['end_user', 'vendor']),
+  "repId": zod.number().nullish()
+})).min(1).max(registerCollateralFlyersBodyItemsMax)
+})
+
+
+export const CreateCollateralFlyerPublicUrlParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateCollateralFlyerPublicUrlResponse = zod.object({
+  "url": zod.string().url().optional(),
+  "expiresAt": zod.coerce.date().optional(),
+  "expiresInSeconds": zod.number().optional()
+})
+
+
+export const DownloadSignedCollateralFlyerParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+
 
 
 
@@ -7633,9 +7743,13 @@ export const listCampaignsResponseReplyToEmailDefault = `nate@my-business-soluti
 export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
 
+
 export const listCampaignsResponseAudienceRulesMinAmountMin = 0;
 
 export const listCampaignsResponseAudienceRulesMaxAmountMin = 0;
+
+
+export const listCampaignsResponseAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7648,6 +7762,7 @@ export const ListCampaignsResponseItem = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(listCampaignsResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7659,6 +7774,10 @@ export const ListCampaignsResponseItem = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(listCampaignsResponseFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7668,7 +7787,8 @@ export const ListCampaignsResponseItem = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(listCampaignsResponseAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(listCampaignsResponseAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(listCampaignsResponseAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignsResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -7679,12 +7799,17 @@ export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
 
 
 export const createCampaignBodyReplyToEmailDefault = `nate@my-business-solutions.com`;
+export const createCampaignBodyFlyerDeliveryModeDefault = `link`;
 export const createCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const createCampaignBodyFlyerTwoSizeMax = 15728640;
+
 
 export const createCampaignBodyAudienceRulesMinAmountMin = 0;
 
 export const createCampaignBodyAudienceRulesMaxAmountMin = 0;
+
+
+export const createCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7695,6 +7820,7 @@ export const CreateCampaignBody = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(createCampaignBodyReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).default(createCampaignBodyFlyerDeliveryModeDefault),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7706,6 +7832,10 @@ export const CreateCampaignBody = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(createCampaignBodyFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7715,7 +7845,8 @@ export const CreateCampaignBody = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(createCampaignBodyAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(createCampaignBodyAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(createCampaignBodyAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }).optional(),
   "ownerId": zod.number().optional()
 })
@@ -7739,6 +7870,68 @@ export const ListCampaignFlyersResponseItem = zod.object({
 export const ListCampaignFlyersResponse = zod.array(ListCampaignFlyersResponseItem)
 
 
+/**
+ * @summary Search leads for manual campaign audience selection
+ */
+export const searchCampaignLeadPickerQuerySearchMax = 200;
+
+export const searchCampaignLeadPickerQueryPageDefault = 1;
+
+export const searchCampaignLeadPickerQueryLimitDefault = 25;
+export const searchCampaignLeadPickerQueryLimitMax = 1000;
+
+
+
+export const SearchCampaignLeadPickerQueryParams = zod.object({
+  "search": zod.coerce.string().max(searchCampaignLeadPickerQuerySearchMax).optional(),
+  "page": zod.coerce.number().min(1).default(searchCampaignLeadPickerQueryPageDefault),
+  "limit": zod.coerce.number().min(1).max(searchCampaignLeadPickerQueryLimitMax).default(searchCampaignLeadPickerQueryLimitDefault)
+})
+
+
+
+
+export const SearchCampaignLeadPickerResponse = zod.object({
+  "leads": zod.array(zod.object({
+  "id": zod.number().min(1),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish(),
+  "companyName": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "leadSource": zod.string()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "limit": zod.number()
+})
+
+
+/**
+ * @summary Resolve compact lead details for saved manual picks
+ */
+
+export const resolveCampaignLeadPickerBodyIdsMax = 1000;
+
+
+
+export const ResolveCampaignLeadPickerBody = zod.object({
+  "ids": zod.array(zod.number().min(1)).max(resolveCampaignLeadPickerBodyIdsMax)
+})
+
+
+
+
+export const ResolveCampaignLeadPickerResponseItem = zod.object({
+  "id": zod.number().min(1),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish(),
+  "companyName": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "leadSource": zod.string()
+})
+export const ResolveCampaignLeadPickerResponse = zod.array(ResolveCampaignLeadPickerResponseItem)
+
+
 export const GetCampaignParams = zod.object({
   "id": zod.coerce.number()
 })
@@ -7747,9 +7940,13 @@ export const getCampaignResponseCampaignReplyToEmailDefault = `nate@my-business-
 export const getCampaignResponseCampaignFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const getCampaignResponseCampaignFlyerTwoSizeMax = 15728640;
 
+
 export const getCampaignResponseCampaignAudienceRulesMinAmountMin = 0;
 
 export const getCampaignResponseCampaignAudienceRulesMaxAmountMin = 0;
+
+
+export const getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7763,6 +7960,7 @@ export const GetCampaignResponse = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(getCampaignResponseCampaignReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7774,6 +7972,10 @@ export const GetCampaignResponse = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(getCampaignResponseCampaignFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7783,7 +7985,8 @@ export const GetCampaignResponse = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -7819,12 +8022,17 @@ export const UpdateCampaignParams = zod.object({
 
 
 export const updateCampaignBodyReplyToEmailDefault = `nate@my-business-solutions.com`;
+export const updateCampaignBodyFlyerDeliveryModeDefault = `link`;
 export const updateCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignBodyFlyerTwoSizeMax = 15728640;
+
 
 export const updateCampaignBodyAudienceRulesMinAmountMin = 0;
 
 export const updateCampaignBodyAudienceRulesMaxAmountMin = 0;
+
+
+export const updateCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7835,6 +8043,7 @@ export const UpdateCampaignBody = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(updateCampaignBodyReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).default(updateCampaignBodyFlyerDeliveryModeDefault),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7846,6 +8055,10 @@ export const UpdateCampaignBody = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(updateCampaignBodyFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7855,7 +8068,8 @@ export const UpdateCampaignBody = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignBodyAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(updateCampaignBodyAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(updateCampaignBodyAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }).optional(),
   "ownerId": zod.number().optional()
 })
@@ -7864,9 +8078,13 @@ export const updateCampaignResponseReplyToEmailDefault = `nate@my-business-solut
 export const updateCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignResponseFlyerTwoSizeMax = 15728640;
 
+
 export const updateCampaignResponseAudienceRulesMinAmountMin = 0;
 
 export const updateCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+export const updateCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7879,6 +8097,7 @@ export const UpdateCampaignResponse = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(updateCampaignResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7890,6 +8109,10 @@ export const UpdateCampaignResponse = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(updateCampaignResponseFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7899,7 +8122,8 @@ export const UpdateCampaignResponse = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignResponseAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(updateCampaignResponseAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(updateCampaignResponseAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -7920,12 +8144,14 @@ export const PreviewCampaignAudienceResponse = zod.object({
   "totalMatching": zod.number(),
   "eligible": zod.array(zod.object({
   "leadId": zod.number(),
-  "channel": zod.enum(['email', 'sms'])
+  "channel": zod.enum(['email', 'sms']),
+  "origin": zod.enum(['filtered', 'picked'])
 })),
   "exclusions": zod.array(zod.object({
   "leadId": zod.number(),
   "channel": zod.enum(['email', 'sms']),
-  "reason": zod.string()
+  "reason": zod.string(),
+  "origin": zod.enum(['filtered', 'picked'])
 })),
   "counts": zod.object({
   "eligible": zod.number(),
@@ -7934,7 +8160,17 @@ export const PreviewCampaignAudienceResponse = zod.object({
   "smsEligible": zod.number(),
   "emailCapacityRemaining": zod.number(),
   "emailToday": zod.number(),
-  "emailQueuedNextBusinessDay": zod.number()
+  "emailQueuedNextBusinessDay": zod.number(),
+  "filterMatches": zod.number(),
+  "pickedAdded": zod.number(),
+  "reasonCounts": zod.object({
+  "noEmail": zod.number(),
+  "unsubscribed": zod.number(),
+  "suppressed": zod.number(),
+  "alreadySent": zod.number(),
+  "duplicate": zod.number(),
+  "other": zod.number()
+})
 }),
   "previewToken": zod.string(),
   "previewId": zod.number().optional(),
@@ -7960,9 +8196,13 @@ export const approveCampaignResponseReplyToEmailDefault = `nate@my-business-solu
 export const approveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const approveCampaignResponseFlyerTwoSizeMax = 15728640;
 
+
 export const approveCampaignResponseAudienceRulesMinAmountMin = 0;
 
 export const approveCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+export const approveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -7975,6 +8215,7 @@ export const ApproveCampaignResponse = zod.object({
   "emailTemplateId": zod.number().nullish(),
   "replyToEmail": zod.string().email().default(approveCampaignResponseReplyToEmailDefault),
   "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
   "flyer": zod.union([zod.object({
   "source": zod.literal("built_in"),
   "key": zod.enum(['equipment_financing', 'working_capital']),
@@ -7986,6 +8227,10 @@ export const ApproveCampaignResponse = zod.object({
   "name": zod.string(),
   "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
   "size": zod.number().min(1).max(approveCampaignResponseFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
   "statuses": zod.array(zod.string()).optional(),
@@ -7995,7 +8240,8 @@ export const ApproveCampaignResponse = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(approveCampaignResponseAudienceRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(approveCampaignResponseAudienceRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(approveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(approveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -8084,6 +8330,9 @@ export const listCampaignAudiencePresetsResponseRulesMinAmountMin = 0;
 export const listCampaignAudiencePresetsResponseRulesMaxAmountMin = 0;
 
 
+export const listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax = 1000;
+
+
 
 export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "id": zod.number(),
@@ -8096,7 +8345,8 @@ export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdAt": zod.coerce.date(),
@@ -8111,6 +8361,9 @@ export const createCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 export const createCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 
 
+export const createCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
+
+
 
 export const CreateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1),
@@ -8122,7 +8375,8 @@ export const CreateCampaignAudiencePresetBody = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 })
 })
 
@@ -8137,6 +8391,9 @@ export const updateCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 export const updateCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 
 
+export const updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
+
+
 
 export const UpdateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1).optional(),
@@ -8148,13 +8405,17 @@ export const UpdateCampaignAudiencePresetBody = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }).optional()
 })
 
 export const updateCampaignAudiencePresetResponseRulesMinAmountMin = 0;
 
 export const updateCampaignAudiencePresetResponseRulesMaxAmountMin = 0;
+
+
+export const updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax = 1000;
 
 
 
@@ -8169,7 +8430,8 @@ export const UpdateCampaignAudiencePresetResponse = zod.object({
   "createdFrom": zod.coerce.date().nullish(),
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMinAmountMin).nullish(),
-  "maxAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMaxAmountMin).nullish()
+  "maxAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
 }),
   "ownerId": zod.number(),
   "createdAt": zod.coerce.date(),
