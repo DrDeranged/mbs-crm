@@ -58,11 +58,11 @@ test("USFA connection test fails safely for missing configuration and sanitizes 
 
 type FakeTaskTransaction = {
   inserts: Array<Record<string, unknown>>;
-  select: () => { from: () => { where: () => Promise<Array<{ id: number }>> } };
+  select: () => { from: () => { where: () => { limit: () => Promise<Array<{ id: number }>> } } };
   insert: () => { values: (value: Record<string, unknown>) => Promise<void> };
 };
 
-function fakeTaskTransaction(adminIds: number[]): FakeTaskTransaction {
+function fakeTaskTransaction(): FakeTaskTransaction {
   const inserts: Array<Record<string, unknown>> = [];
   return {
     inserts,
@@ -70,7 +70,7 @@ function fakeTaskTransaction(adminIds: number[]): FakeTaskTransaction {
       return {
         from() {
           return {
-            where: async () => adminIds.map((id) => ({ id })),
+            where: () => ({ limit: async () => inserts.length ? [{ id: 1 }] : [] }),
           };
         },
       };
@@ -81,22 +81,20 @@ function fakeTaskTransaction(adminIds: number[]): FakeTaskTransaction {
   };
 }
 
-test("USFA statement tasks target the assigned rep, every admin, or an explicit admin queue", async () => {
+test("USFA import creates exactly one task per lead, assigned to the rep or the shared admin queue", async () => {
   const plan = {
     title: "Download bank statements from USFA dashboard and upload as Bank statement" as const,
     statementCount: 2,
   };
-  const assigned = fakeTaskTransaction([8, 9]);
+  const assigned = fakeTaskTransaction();
   assert.equal(await createUsfaStatementTasks(assigned, 41, 7, plan), 1);
   assert.deepEqual(assigned.inserts.map((row) => row.userId), [7]);
-
-  const admins = fakeTaskTransaction([8, 9]);
-  assert.equal(await createUsfaStatementTasks(admins, 42, null, plan), 2);
-  assert.deepEqual(admins.inserts.map((row) => row.userId), [8, 9]);
-
-  const queue = fakeTaskTransaction([]);
+  assert.equal(await createUsfaStatementTasks(assigned, 41, 7, plan), 0);
+  assert.equal(assigned.inserts.length, 1);
+  const queue = fakeTaskTransaction();
   assert.equal(await createUsfaStatementTasks(queue, 43, null, plan), 1);
-  assert.equal(queue.inserts[0]?.userId, null);
+  assert.deepEqual(queue.inserts.map((row) => row.userId), [null]);
+  assert.ok(queue.inserts[0]?.dueDate);
 });
 
 test("USFA ingestion commits before global admin notification and persists duplicate intake history", async () => {

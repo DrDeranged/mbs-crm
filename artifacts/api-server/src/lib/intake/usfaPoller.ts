@@ -7,7 +7,6 @@ import {
   companySettingsTable,
   leadsTable,
   tasksTable,
-  usersTable,
   usfaIntakeLogTable,
   usfaIntakePrefillTable,
 } from "@workspace/db";
@@ -94,26 +93,20 @@ export async function createUsfaStatementTasks(
   assignedRepId: number | null,
   taskPlan: NonNullable<ReturnType<typeof mapUsfaRow>["taskPlan"]>,
 ): Promise<number> {
+  const existing = await tx.select({ id: tasksTable.id }).from(tasksTable)
+    .where(and(eq(tasksTable.leadId, leadId), eq(tasksTable.title, taskPlan.title))).limit(1);
+  if (existing.length) return 0;
   const values = {
     leadId,
     title: taskPlan.title,
-    description: `${taskPlan.statementCount} statement link(s) require download from the USFA dashboard.`,
+    description: taskPlan.statementCount
+      ? `${taskPlan.statementCount} statement link(s) require download from the USFA dashboard.`
+      : "Check the USFA dashboard for bank statements and upload them here.",
     isCompleted: false,
+    dueDate: new Date().toISOString().slice(0, 10),
   };
-  if (assignedRepId != null) {
-    await tx.insert(tasksTable).values({ ...values, userId: assignedRepId });
-    return 1;
-  }
-  const admins = await tx.select({ id: usersTable.id }).from(usersTable)
-    .where(and(eq(usersTable.role, "admin"), eq(usersTable.isActive, true)));
-  if (admins.length > 0) {
-    for (const admin of admins) {
-      await tx.insert(tasksTable).values({ ...values, userId: admin.id });
-    }
-    return admins.length;
-  }
-  // user_id is nullable for the administrator queue until an admin exists.
-  await tx.insert(tasksTable).values({ ...values, userId: null });
+  // Null user_id is the shared admin queue. Never create one copy per admin.
+  await tx.insert(tasksTable).values({ ...values, userId: assignedRepId });
   return 1;
 }
 
@@ -193,11 +186,10 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
           reapplication: true,
           externalId: mapped.externalId,
           statementLinks: mapped.metadata.statementLinks,
+          statementLinksBySlot: mapped.metadata.statementLinksBySlot,
         },
       });
-      if (mapped.taskPlan) {
-        await createUsfaStatementTasks(tx, existing.id, existing.assignedRepId, mapped.taskPlan);
-      }
+      await createUsfaStatementTasks(tx, existing.id, existing.assignedRepId, mapped.taskPlan);
       await tx.insert(usfaIntakeLogTable).values({
         externalId: mapped.externalId, rowNumber, leadId: existing.id, status: "dup",
         metadata: {
@@ -234,9 +226,7 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
       userId: null, leadId: lead.id, action: "usfa_note", entityType: "lead",
       entityId: String(lead.id), details: { comments: mapped.metadata.comments, source: "usfundadvisor" },
     });
-    if (mapped.taskPlan) {
-      await createUsfaStatementTasks(tx, lead.id, lead.assignedRepId, mapped.taskPlan);
-    }
+    await createUsfaStatementTasks(tx, lead.id, lead.assignedRepId, mapped.taskPlan);
     await tx.insert(usfaIntakeLogTable).values({
       externalId: mapped.externalId, rowNumber, leadId: lead.id, status: "ok",
       metadata: mapped.metadata,
@@ -266,7 +256,9 @@ export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {
   const sheets = google.sheets({ version: "v4", auth });
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: settings.usfaSheetId,
-    range: `${settings.usfaSheetTab || "Sheet1"}!A:AB`,
+    // Use the entire tab: an A:AB cutoff silently omits statement columns
+    // if the vendor inserts columns before STATEMENT(A)–(D).
+    range: `'${(settings.usfaSheetTab || "Sheet1").replaceAll("'", "''")}'`,
   });
   const values = response.data.values ?? [];
   const headers = (values[0] ?? []).map(String);

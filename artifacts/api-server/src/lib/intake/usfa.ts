@@ -8,6 +8,10 @@ export const USFA_HEADERS = [
 
 export type UsfaHeader = (typeof USFA_HEADERS)[number];
 export type UsfaRow = Partial<Record<UsfaHeader, unknown>> & Record<string, unknown>;
+export const USFA_STATEMENT_SLOTS = ["A", "B", "C", "D"] as const;
+export type UsfaStatementSlot = (typeof USFA_STATEMENT_SLOTS)[number];
+export type UsfaStatementLink = { slot: UsfaStatementSlot; url: string };
+export const USFA_STATEMENT_TASK_TITLE = "Download bank statements from USFA dashboard and upload as Bank statement";
 
 export type UsfaMappedLead = {
   externalId: string;
@@ -50,12 +54,13 @@ export type UsfaMappedLead = {
     phoneInvalid: boolean;
     einWasShort: boolean;
     statementLinks: string[];
+    statementLinksBySlot: UsfaStatementLink[];
     comments: string[];
   };
   taskPlan: {
-    title: "Download bank statements from USFA dashboard and upload as Bank statement";
+    title: typeof USFA_STATEMENT_TASK_TITLE;
     statementCount: number;
-  } | null;
+  };
   dedupePlan: {
     externalId: string;
     email: string | null;
@@ -71,6 +76,13 @@ const text = (value: unknown): string | null => {
   const result = String(value).trim();
   return result ? result : null;
 };
+
+export function getUsfaStatementLinks(row: UsfaRow): UsfaStatementLink[] {
+  return USFA_STATEMENT_SLOTS.flatMap((slot) => {
+    const url = text(row[`STATEMENT(${slot})`]);
+    return url ? [{ slot, url }] : [];
+  });
+}
 
 const stripFloat = (value: unknown): string | null => {
   const result = text(value);
@@ -160,8 +172,8 @@ export function mapUsfaRow(row: UsfaRow, now = new Date()): UsfaMappedLead {
   const einResult = ein(row.EIN);
   const scoreResult = score(row["Credit Score"]);
   const revenueResult = revenue(row.REVENUE);
-  const statementLinks = ["STATEMENT(A)", "STATEMENT(B)", "STATEMENT(C)", "STATEMENT(D)"]
-    .map((header) => text(row[header])).filter((link): link is string => Boolean(link));
+  const statementLinksBySlot = getUsfaStatementLinks(row);
+  const statementLinks = statementLinksBySlot.map(({ url }) => url);
   const comments = ["Comment / feedback", "Comment 2", "Comment 3"]
     .map((header) => text(row[header])).filter((comment): comment is string => Boolean(comment));
   const email = text(row.Email)?.toLowerCase() ?? null;
@@ -176,6 +188,7 @@ export function mapUsfaRow(row: UsfaRow, now = new Date()): UsfaMappedLead {
     phoneInvalid: Boolean(primaryPhone && primaryPhone.length !== 10),
     einWasShort: einResult.wasShort,
     statementLinks,
+    statementLinksBySlot,
     comments,
   };
   return {
@@ -213,10 +226,10 @@ export function mapUsfaRow(row: UsfaRow, now = new Date()): UsfaMappedLead {
       ? { ssn: stripFloat(row.SSN), dob: text(row.DOB) }
       : null,
     metadata,
-    taskPlan: statementLinks.length ? {
-      title: "Download bank statements from USFA dashboard and upload as Bank statement",
+    taskPlan: {
+      title: USFA_STATEMENT_TASK_TITLE,
       statementCount: statementLinks.length,
-    } : null,
+    },
     dedupePlan: {
       externalId,
       email,

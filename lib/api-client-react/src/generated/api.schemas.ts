@@ -743,6 +743,53 @@ export interface UsfaConnectionTestResponse {
   error?: string;
 }
 
+export type UsfaRepairEntryTaskAction = typeof UsfaRepairEntryTaskAction[keyof typeof UsfaRepairEntryTaskAction];
+
+
+export const UsfaRepairEntryTaskAction = {
+  created: 'created',
+  collapsed: 'collapsed',
+  updated: 'updated',
+  unchanged: 'unchanged',
+} as const;
+
+export interface UsfaRepairEntry {
+  leadId: number;
+  storedLinkCount: number;
+  /** @nullable */
+  sheetLinkCount: number | null;
+  linksUpdated: boolean;
+  taskAction: UsfaRepairEntryTaskAction;
+  /** @minimum 0 */
+  removedTaskCount: number;
+  taskCompleted: boolean;
+  error?: string;
+}
+
+export interface UsfaRepairResponse {
+  leads: UsfaRepairEntry[];
+}
+
+export type UsfaStatementLinkSlot = typeof UsfaStatementLinkSlot[keyof typeof UsfaStatementLinkSlot];
+
+
+export const UsfaStatementLinkSlot = {
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+} as const;
+
+export interface UsfaStatementLink {
+  slot?: UsfaStatementLinkSlot;
+  url: string;
+}
+
+export interface UsfaStatementLinksResponse {
+  links: UsfaStatementLink[];
+  storedLinkCount: number;
+}
+
 export interface AnalyticsSummary {
   /** Total leads created in the selected date range, regardless of lead source or status */
   totalLeads: number;

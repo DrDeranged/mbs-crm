@@ -13,6 +13,17 @@ type Intake = {
   logs: Array<{ id: number; externalId: string; rowNumber: number; ingestedAt: string; leadId: number | null; status: string; error: string | null }>;
 };
 
+type UsfaRepairLeadReport = {
+  leadId: number;
+  storedLinkCount: number;
+  sheetLinkCount: number | null;
+  linksUpdated: boolean;
+  taskAction: "created" | "collapsed" | "updated" | "unchanged";
+  removedTaskCount: number;
+  taskCompleted: boolean;
+  error?: string;
+};
+
 export default function AdminUsfaIntake() {
   const { data: me, isLoading: meLoading } = useGetMe();
   const [data, setData] = useState<Intake | null>(null);
@@ -21,6 +32,8 @@ export default function AdminUsfaIntake() {
   const [sheetId, setSheetId] = useState("");
   const [sheetTab, setSheetTab] = useState("Sheet1");
   const [connectionDirty, setConnectionDirty] = useState(false);
+  const [repairReport, setRepairReport] = useState<UsfaRepairLeadReport[] | null>(null);
+  const [repairError, setRepairError] = useState("");
   const load = async () => {
     const response = await fetch(`${getApiBaseUrl()}/admin/usfa-intake`, { credentials: "include" });
     if (response.ok) setData(await response.json());
@@ -99,13 +112,84 @@ export default function AdminUsfaIntake() {
       await load();
     } finally { setBusy(false); }
   };
+  const repairUsfaLeads = async () => {
+    setBusy(true);
+    setMessage("");
+    setRepairError("");
+    setRepairReport(null);
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/admin/usfa-intake/repair`, {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        setRepairError(result?.error ?? "Unable to repair USFA leads.");
+        return;
+      }
+      if (!Array.isArray(result?.leads)) {
+        setRepairError("The repair request returned an unexpected response.");
+        return;
+      }
+      setRepairReport(result.leads as UsfaRepairLeadReport[]);
+      setMessage(`Repair completed for ${result.leads.length} lead${result.leads.length === 1 ? "" : "s"}.`);
+    } catch {
+      setRepairError("Unable to repair USFA leads. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Administration</p><h1 className="text-3xl font-bold text-[#0E2A47]">USFA Intake</h1><p className="mt-1 text-sm text-muted-foreground">Read-only Google Sheet poll and idempotent row receipts.</p></div>
-        <Button onClick={() => void run("/admin/usfa-intake/run")} disabled={busy}><Play className="mr-2 h-4 w-4" />Run now</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => void repairUsfaLeads()} disabled={busy} data-testid="button-repair-usfa-leads">
+            {busy ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}
+            Repair USFA leads
+          </Button>
+          <Button onClick={() => void run("/admin/usfa-intake/run")} disabled={busy}><Play className="mr-2 h-4 w-4" />Run now</Button>
+        </div>
       </div>
       {message && <div role="status" aria-live="polite" className="rounded-lg border bg-muted/30 p-3 text-sm">{message}</div>}
+      {repairError && <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{repairError}</div>}
+      {repairReport && (
+        <Card>
+          <CardHeader><CardTitle>USFA repair report</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto p-0">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b bg-muted/30">
+                <tr>
+                  <th className="p-3">Lead</th>
+                  <th className="p-3">Stored links</th>
+                  <th className="p-3">Sheet links</th>
+                  <th className="p-3">Links updated</th>
+                  <th className="p-3">Statement task</th>
+                  <th className="p-3">Duplicates removed</th>
+                  <th className="p-3">Complete</th>
+                  <th className="p-3">Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                {repairReport.map((report) => (
+                  <tr key={report.leadId} className="border-b last:border-0" data-testid={`row-usfa-repair-${report.leadId}`}>
+                    <td className="p-3 font-mono">{report.leadId}</td>
+                    <td className="p-3">{report.storedLinkCount}</td>
+                    <td className="p-3">{report.sheetLinkCount ?? "Unavailable"}</td>
+                    <td className="p-3">{report.linksUpdated ? "Yes" : "No"}</td>
+                    <td className="p-3 capitalize">{report.taskAction}</td>
+                    <td className="p-3">{report.removedTaskCount}</td>
+                    <td className="p-3">{report.taskCompleted ? "Yes" : "No"}</td>
+                    <td className="p-3 text-destructive">{report.error || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!repairReport.length && <div className="p-6 text-center text-muted-foreground">No USFA leads required repair.</div>}
+          </CardContent>
+        </Card>
+      )}
       <div className="grid gap-4 sm:grid-cols-4">
         {data && [["Total", data.counts.total], ["Imported", data.counts.ok], ["Duplicates", data.counts.dup], ["Errors", data.counts.error]].map(([label, value]) => <Card key={label as string}><CardContent className="p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></CardContent></Card>)}
       </div>

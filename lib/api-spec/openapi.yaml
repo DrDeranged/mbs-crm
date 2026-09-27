@@ -161,6 +161,22 @@ paths:
         "401": { description: Unauthorized }
         "403": { description: Forbidden }
 
+  /admin/usfa-intake/repair:
+    post:
+      operationId: repairAdminUsfaLeads
+      tags: [admin]
+      summary: Re-read USFA Sheet rows, restore links, and reconcile one statement task per USFA lead
+      responses:
+        "200":
+          description: Per-lead reconciliation results; a second run is idempotent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaRepairResponse" }
+        "400": { description: Sheet or service account not configured }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "502": { description: Sheet could not be read }
+
   /intake/usfa:
     post:
       operationId: receiveUsfaWebhook
@@ -1524,6 +1540,27 @@ paths:
                 $ref: "#/components/schemas/Document"
         "400":
           description: Invalid file or unsupported type
+
+  /leads/{id}/usfa-statements:
+    get:
+      operationId: listUsfaStatements
+      tags: [documents]
+      summary: List safe USFA dashboard links for a lead the user can access
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Statement links from the USFA intake receipt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsfaStatementLinksResponse" }
+        "400": { description: Invalid lead ID }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "404": { description: USFA lead not found }
 
   /documents/{docId}:
     patch:
@@ -5491,6 +5528,39 @@ components:
         ok: { type: boolean }
         columnCount: { type: integer, minimum: 0, description: Number of returned header cells on success }
         error: { type: string, description: Sanitized configuration or Google access error on failure }
+    UsfaRepairEntry:
+      type: object
+      required: [leadId, storedLinkCount, sheetLinkCount, linksUpdated, taskAction, removedTaskCount, taskCompleted]
+      properties:
+        leadId: { type: integer }
+        storedLinkCount: { type: integer }
+        sheetLinkCount: { type: ["integer", "null"] }
+        linksUpdated: { type: boolean }
+        taskAction: { type: string, enum: [created, collapsed, updated, unchanged] }
+        removedTaskCount: { type: integer, minimum: 0 }
+        taskCompleted: { type: boolean }
+        error: { type: string }
+    UsfaRepairResponse:
+      type: object
+      required: [leads]
+      properties:
+        leads:
+          type: array
+          items: { $ref: "#/components/schemas/UsfaRepairEntry" }
+    UsfaStatementLink:
+      type: object
+      required: [url]
+      properties:
+        slot: { type: string, enum: [A, B, C, D] }
+        url: { type: string, format: uri }
+    UsfaStatementLinksResponse:
+      type: object
+      required: [links, storedLinkCount]
+      properties:
+        links:
+          type: array
+          items: { $ref: "#/components/schemas/UsfaStatementLink" }
+        storedLinkCount: { type: integer }
     AnalyticsSummary:
       type: object
       required: [totalLeads, allTimeTotalLeads, totalApplications, totalApprovals, totalFundings, conversionRate]

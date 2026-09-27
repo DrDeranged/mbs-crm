@@ -250,6 +250,8 @@ import type {
   UsfaConnectionTestResponse,
   UsfaPollResult,
   UsfaPrefill,
+  UsfaRepairResponse,
+  UsfaStatementLinksResponse,
   UsfaWebhookPayload,
   UsfaWebhookResponse,
   VapidPublicKey,
@@ -735,6 +737,76 @@ export const useTestAdminUsfaConnection = <TError = ErrorType<UsfaConnectionTest
         TContext
       > => {
       return useMutation(getTestAdminUsfaConnectionMutationOptions(options));
+    }
+
+export const getRepairAdminUsfaLeadsUrl = () => {
+
+
+
+
+  return `/api/admin/usfa-intake/repair`
+}
+
+/**
+ * @summary Re-read USFA Sheet rows, restore links, and reconcile one statement task per USFA lead
+ */
+export const repairAdminUsfaLeads = async ( options?: RequestInit): Promise<UsfaRepairResponse> => {
+
+  return customFetch<UsfaRepairResponse>(getRepairAdminUsfaLeadsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRepairAdminUsfaLeadsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof repairAdminUsfaLeads>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof repairAdminUsfaLeads>>, TError,void, TContext> => {
+
+const mutationKey = ['repairAdminUsfaLeads'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof repairAdminUsfaLeads>>, void> = () => {
+
+
+          return  repairAdminUsfaLeads(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RepairAdminUsfaLeadsMutationResult = NonNullable<Awaited<ReturnType<typeof repairAdminUsfaLeads>>>
+
+    export type RepairAdminUsfaLeadsMutationError = ErrorType<void>
+
+    /**
+ * @summary Re-read USFA Sheet rows, restore links, and reconcile one statement task per USFA lead
+ */
+export const useRepairAdminUsfaLeads = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof repairAdminUsfaLeads>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof repairAdminUsfaLeads>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRepairAdminUsfaLeadsMutationOptions(options));
     }
 
 export const getReceiveUsfaWebhookUrl = () => {
@@ -4571,6 +4643,83 @@ export const useUploadDocument = <TError = ErrorType<void>,
       > => {
       return useMutation(getUploadDocumentMutationOptions(options));
     }
+
+export const getListUsfaStatementsUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/usfa-statements`
+}
+
+/**
+ * @summary List safe USFA dashboard links for a lead the user can access
+ */
+export const listUsfaStatements = async (id: number, options?: RequestInit): Promise<UsfaStatementLinksResponse> => {
+
+  return customFetch<UsfaStatementLinksResponse>(getListUsfaStatementsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListUsfaStatementsQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/usfa-statements`
+    ] as const;
+    }
+
+
+export const getListUsfaStatementsQueryOptions = <TData = Awaited<ReturnType<typeof listUsfaStatements>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsfaStatements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsfaStatementsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsfaStatements>>> = ({ signal }) => listUsfaStatements(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUsfaStatements>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsfaStatementsQueryResult = NonNullable<Awaited<ReturnType<typeof listUsfaStatements>>>
+export type ListUsfaStatementsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List safe USFA dashboard links for a lead the user can access
+ */
+
+export function useListUsfaStatements<TData = Awaited<ReturnType<typeof listUsfaStatements>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsfaStatements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsfaStatementsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getUpdateDocumentCategoryUrl = (docId: number,) => {
 

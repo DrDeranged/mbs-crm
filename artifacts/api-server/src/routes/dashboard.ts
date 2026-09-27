@@ -268,11 +268,6 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
     ? eq(leadsTable.assignedRepId, user.id)
     : undefined;
 
-  const taskBaseWhere = (extraWhere: any) =>
-    user.role === "rep"
-      ? and(eq(tasksTable.isCompleted, false), extraWhere)
-      : and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere);
-
   const withRepJoin = async (extraWhere: any) => {
     if (user.role === "rep") {
       return db.query.tasksTable.findMany({
@@ -281,7 +276,9 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
       }).then((rows) => rows.filter((t) => (t as any).lead?.assignedRepId === user.id));
     }
     return db.query.tasksTable.findMany({
-      where: and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
+      where: and(user.role === "admin"
+        ? or(eq(tasksTable.userId, user.id), isNull(tasksTable.userId))
+        : eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
       with: { assignedUser: true },
     });
   };

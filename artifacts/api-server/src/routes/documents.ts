@@ -1,5 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
+import { randomUUID } from "node:crypto";
 import path from "path";
 import { db } from "@workspace/db";
 import { documentsTable, leadsTable } from "@workspace/db";
@@ -10,6 +11,7 @@ import { ListDocumentsParams, DownloadDocumentParams } from "@workspace/api-zod"
 import { isDocumentCategory } from "../lib/documentsCategory";
 import { documentContentDisposition } from "../lib/documentDownload";
 import { createVoicemailPlaybackToken } from "../lib/voicemail";
+import { completeUsfaTaskIfReady, lockUsfaStatementUpload } from "../lib/intake/usfaTaskCompletion";
 
 type Database = typeof db;
 export type DocumentsRouteDependencies = {
@@ -127,23 +129,28 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
 
   try {
     const ext = path.extname(req.file.originalname);
-    const fileKey = `leads/${leadId}/documents/${Date.now()}${ext}`;
+    const fileKey = `leads/${leadId}/documents/${randomUUID()}${ext}`;
     const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID ?? "";
     const { objectStorageClient } = await import("../lib/objectStorage");
     const bucket = objectStorageClient.bucket(bucketId);
     const file = bucket.file(fileKey);
     await file.save(req.file.buffer, { contentType: req.file.mimetype });
 
-    const [doc] = await database.insert(documentsTable).values({
-      leadId,
-      userId: user.id,
-      filename: req.file.originalname,
-      fileKey,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size,
-      category,
-      label: typeof req.body?.label === "string" ? req.body.label : null,
-    }).returning();
+    const { doc, taskCompleted } = await database.transaction(async (tx) => {
+      await lockUsfaStatementUpload(tx, leadId, lead.leadSource, category);
+      const [doc] = await tx.insert(documentsTable).values({
+        leadId,
+        userId: user.id,
+        filename: req.file!.originalname,
+        fileKey,
+        fileType: req.file!.mimetype,
+        fileSize: req.file!.size,
+        category,
+        label: typeof req.body?.label === "string" ? req.body.label : null,
+      }).returning();
+      const taskCompleted = await completeUsfaTaskIfReady(tx, leadId, lead.leadSource, category);
+      return { doc, taskCompleted };
+    });
 
     await activityLogger({
       userId: user.id,
@@ -152,6 +159,14 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
       entityType: "document",
       entityId: doc.id,
       details: { filename: req.file.originalname, category },
+    });
+    if (taskCompleted) await activityLogger({
+      userId: user.id,
+      leadId,
+      action: "usfa_bank_statements_completed",
+      entityType: "lead",
+      entityId: leadId,
+      details: { threshold: 3 },
     });
 
     res.status(201).json(docToApi(doc, user));

@@ -3,6 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db, companySettingsTable, usfaIntakeLogTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
 import { runUsfaSheetPoll, testUsfaSheetConnection } from "../lib/intake/usfaPoller";
+import { repairUsfaLeads } from "../lib/intake/usfaRepair";
 
 const router = Router();
 
@@ -58,6 +59,26 @@ router.post("/admin/usfa-intake/test-connection", async (req, res): Promise<void
   }).from(companySettingsTable).limit(1);
   const result = await testUsfaSheetConnection(settings?.usfaSheetId ?? null, settings?.usfaSheetTab ?? "Sheet1");
   res.status(result.ok ? 200 : 400).json(result);
+});
+
+router.post("/admin/usfa-intake/repair", async (req, res): Promise<void> => {
+  const user = await admin(req, res);
+  if (!user) return;
+  try {
+    res.json(await repairUsfaLeads(undefined, undefined, user.id));
+  } catch (error) {
+    // Never return or log raw Google errors: they may include Sheet URLs.
+    const safe = error instanceof Error && [
+      "Sheet ID is not configured.",
+      "Google service account is not configured.",
+      "Google service account credentials are invalid.",
+      "The USFA Sheet is missing required headers.",
+    ].includes(error.message) ? error.message : null;
+    req.log.warn("USFA repair could not read its source Sheet");
+    res.status(safe ? 400 : 502).json({
+      error: safe ?? "Could not read the USFA Sheet. Check service account access and the saved Sheet settings.",
+    });
+  }
 });
 
 router.post("/admin/usfa-intake/run", async (req, res): Promise<void> => {

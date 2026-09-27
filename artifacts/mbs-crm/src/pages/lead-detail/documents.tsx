@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
+import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,11 @@ import {
   type DocumentCategory,
   getListDocumentsQueryKey,
   getListLeadActivityQueryKey,
+  getListTasksQueryKey,
   useGetLeadApplication,
   useGetMe,
   useListDocuments,
+  useListTasks,
   useUpdateDocumentCategory,
   useUploadDocument,
 } from "@workspace/api-client-react";
@@ -24,6 +27,18 @@ import { useLeadDetail } from "./context";
 import { lenderPackageFailureTitle } from "@/lib/lenderPackageError";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
+const usfaStatementSlots = ["A", "B", "C", "D"] as const;
+type UsfaStatementLink = { slot?: typeof usfaStatementSlots[number]; url: string };
+
+function safeUsfaHref(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "usfundadvisor.ai" && !url.username && !url.password
+      ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 
 const documentCategoryOptions: Array<{ value: DocumentCategory; label: string }> = [
   { value: "bank_statement", label: "Bank statement" },
@@ -40,9 +55,10 @@ function inferDocumentCategory(filename: string): DocumentCategory {
 
 // Documents Tab
 export function LeadDocuments() {
-  const { id: leadId } = useLeadDetail();
+  const { id: leadId, lead } = useLeadDetail();
   const { data: me } = useGetMe();
   const { data: documents, isLoading } = useListDocuments(leadId, { query: { queryKey: getListDocumentsQueryKey(leadId) } });
+  const taskQuery = useListTasks(leadId, { query: { queryKey: getListTasksQueryKey(leadId) } });
   const { data: application, isLoading: applicationLoading } = useGetLeadApplication(leadId);
   const uploadDocument = useUploadDocument();
   const updateDocumentCategory = useUpdateDocumentCategory();
@@ -54,6 +70,43 @@ export function LeadDocuments() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("other");
   const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
+  const [isUploadingStatements, setIsUploadingStatements] = useState(false);
+  const [statementLinks, setStatementLinks] = useState<UsfaStatementLink[]>([]);
+  const [statementLinksLoading, setStatementLinksLoading] = useState(false);
+  const [statementLinksError, setStatementLinksError] = useState("");
+  const isUsfaLead = lead?.leadSource === "usfundadvisor";
+
+  useEffect(() => {
+    if (!isUsfaLead) {
+      setStatementLinks([]);
+      setStatementLinksError("");
+      return;
+    }
+
+    const controller = new AbortController();
+    setStatementLinks([]);
+    setStatementLinksLoading(true);
+    setStatementLinksError("");
+    fetch(`${apiBase}/leads/${leadId}/usfa-statements`, {
+      credentials: "include",
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        const result = await response.json() as { links?: UsfaStatementLink[]; storedLinkCount?: number };
+        setStatementLinks(Array.isArray(result.links) ? result.links : []);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setStatementLinksError(error instanceof Error ? error.message : "Could not load USFA statements.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setStatementLinksLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [isUsfaLead, leadId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,6 +144,58 @@ export function LeadDocuments() {
       },
     );
   };
+
+  const handleStatementDrop = useCallback(async (files: File[]) => {
+    if (!files.length || isUploadingStatements || uploadDocument.isPending) return;
+    setIsUploadingStatements(true);
+    let uploadedCount = 0;
+    try {
+      for (const file of files) {
+        await uploadDocument.mutateAsync({ id: leadId, data: { file, category: "bank_statement" } });
+        uploadedCount += 1;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) }),
+        queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(leadId) }),
+        queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) }),
+      ]);
+      const latestDocuments = queryClient.getQueryData<NonNullable<typeof documents>>(getListDocumentsQueryKey(leadId)) ?? documents ?? [];
+      const totalBankStatements = latestDocuments.filter((document) => document.category === "bank_statement").length;
+      const refreshedTasks = queryClient.getQueryData<NonNullable<typeof taskQuery.data>>(getListTasksQueryKey(leadId)) ?? [];
+      const statementTask = refreshedTasks.find((task) => /bank statement/i.test(task.title));
+      const autoCompletionDescription = statementTask?.isCompleted
+        ? "The bank-statement task is complete."
+        : totalBankStatements >= 3
+          ? "Three or more bank statements are on file; the task is not yet marked complete."
+          : `${totalBankStatements} of 3 bank statements are on file; the auto-completion threshold has not been reached.`;
+      toast({
+        title: `${uploadedCount} bank statement${uploadedCount === 1 ? "" : "s"} uploaded`,
+        description: autoCompletionDescription,
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "An upload failed.";
+      toast({
+        title: uploadedCount ? `${uploadedCount} of ${files.length} statements uploaded` : "Statement upload failed",
+        description: `${reason}${uploadedCount ? " Remaining files were not uploaded." : ""}`,
+        variant: "destructive",
+      });
+      if (uploadedCount) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) }),
+          queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(leadId) }),
+          queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(leadId) }),
+        ]);
+      }
+    } finally {
+      setIsUploadingStatements(false);
+    }
+  }, [documents, isUploadingStatements, leadId, queryClient, toast, uploadDocument]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (files) => { void handleStatementDrop(files); },
+    multiple: true,
+    disabled: isUploadingStatements || uploadDocument.isPending,
+  });
 
   const handleDownload = async (docId: number, filename: string) => {
     try {
@@ -227,6 +332,65 @@ export function LeadDocuments() {
           </div>
         </div>
       </div>
+
+      {isUsfaLead && (
+        <section className="space-y-3 rounded-md border bg-white p-4 shadow-sm" aria-label="USFA statements">
+          <div>
+            <h4 className="font-medium">USFA statements</h4>
+            <p className="text-sm text-muted-foreground">Statements stored from the USFA dashboard.</p>
+          </div>
+          {statementLinksLoading ? (
+            <div className="space-y-2" aria-label="Loading USFA statements">
+              <Skeleton className="h-9 w-40" />
+              <Skeleton className="h-9 w-40" />
+            </div>
+          ) : statementLinksError ? (
+            <p role="alert" className="text-sm text-destructive">Could not load USFA statements: {statementLinksError}</p>
+          ) : statementLinks.length ? (
+            <div className="flex flex-wrap gap-2">
+              {usfaStatementSlots.map((slot) => {
+                const statement = statementLinks.find((link) => link.slot === slot);
+                if (!statement) return null;
+                const safeHref = safeUsfaHref(statement.url);
+                return safeHref ? (
+                  <Button key={slot} asChild size="sm" variant="outline" data-testid={`link-usfa-statement-${slot.toLowerCase()}`}>
+                    <a href={safeHref} target="_blank" rel="noopener noreferrer">
+                      Statement {slot} — Open in USFA dashboard
+                    </a>
+                  </Button>
+                ) : null;
+              })}
+              {statementLinks.filter((statement) => !statement.slot).map((statement, index) => {
+                const safeHref = safeUsfaHref(statement.url);
+                return safeHref ? (
+                  <Button key={`unlabeled-${index}`} asChild size="sm" variant="outline"
+                    data-testid={`link-usfa-statement-unlabeled-${index + 1}`}>
+                    <a href={safeHref} target="_blank" rel="noopener noreferrer">
+                      Statement link {index + 1} — Open in USFA dashboard
+                    </a>
+                  </Button>
+                ) : null;
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No USFA statements are currently linked.</p>
+          )}
+          <div
+            {...getRootProps({
+              className: `cursor-pointer rounded-md border border-dashed p-5 text-center text-sm transition-colors ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/30 hover:bg-muted/30"} ${isUploadingStatements ? "cursor-wait opacity-60" : ""}`,
+              "data-testid": "dropzone-usfa-statements",
+            })}
+          >
+            <input {...getInputProps()} data-testid="input-usfa-statements" />
+            <UploadCloud className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+            {isUploadingStatements
+              ? "Uploading statements…"
+              : isDragActive
+                ? "Drop bank statements here"
+                : "Drag and drop multiple bank statements here, or click to select files"}
+          </div>
+        </section>
+      )}
 
       <div className="rounded-md border bg-white shadow-sm overflow-hidden">
         {isLoading ? (

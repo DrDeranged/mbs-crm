@@ -106,3 +106,21 @@ test("comments, alternate phone, and statement metadata never fetch or embed sta
   assert.equal(result.taskPlan?.title, "Download bank statements from USFA dashboard and upload as Bank statement");
   assert.equal(JSON.stringify(result).includes("statement contents"), false);
 });
+
+test("mapper preserves all four Sheet statement links and creates one task even with no links", () => {
+  const links = {
+    "STATEMENT(A)": "https://usfundadvisor.ai/a",
+    "STATEMENT(B)": "https://usfundadvisor.ai/b",
+    "STATEMENT(C)": "https://usfundadvisor.ai/c",
+    "STATEMENT(D)": "https://usfundadvisor.ai/d",
+  };
+  const mapped = mapUsfaRow({ Id: "all-four", ...links });
+  assert.equal(mapped.metadata.statementLinks.length, 4);
+  assert.deepEqual(mapped.metadata.statementLinksBySlot.map(({ slot }) => slot), ["A", "B", "C", "D"]);
+  assert.equal(mapped.taskPlan.statementCount, 4);
+  const withoutLinks = mapUsfaRow({ Id: "none" });
+  assert.deepEqual(withoutLinks.metadata.statementLinks, []);
+  assert.equal(withoutLinks.taskPlan.statementCount, 0);
+  assert.deepEqual(mapUsfaRow({ Id: "one", "STATEMENT(D)": links["STATEMENT(D)"] })
+    .metadata.statementLinksBySlot.map(({ slot }) => slot), ["D"]);
+});

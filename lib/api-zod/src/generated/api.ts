@@ -165,6 +165,27 @@ export const TestAdminUsfaConnectionResponse = zod.object({
 
 
 /**
+ * @summary Re-read USFA Sheet rows, restore links, and reconcile one statement task per USFA lead
+ */
+export const repairAdminUsfaLeadsResponseLeadsItemRemovedTaskCountMin = 0;
+
+
+
+export const RepairAdminUsfaLeadsResponse = zod.object({
+  "leads": zod.array(zod.object({
+  "leadId": zod.number(),
+  "storedLinkCount": zod.number(),
+  "sheetLinkCount": zod.number().nullable(),
+  "linksUpdated": zod.boolean(),
+  "taskAction": zod.enum(['created', 'collapsed', 'updated', 'unchanged']),
+  "removedTaskCount": zod.number().min(repairAdminUsfaLeadsResponseLeadsItemRemovedTaskCountMin),
+  "taskCompleted": zod.boolean(),
+  "error": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary Receive a dormant HMAC-authenticated USFA lead webhook
  */
 
@@ -2433,6 +2454,22 @@ export const UploadDocumentBody = zod.object({
   "file": zod.instanceof(File),
   "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
   "label": zod.string().optional()
+})
+
+
+/**
+ * @summary List safe USFA dashboard links for a lead the user can access
+ */
+export const ListUsfaStatementsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListUsfaStatementsResponse = zod.object({
+  "links": zod.array(zod.object({
+  "slot": zod.enum(['A', 'B', 'C', 'D']).optional(),
+  "url": zod.string().url()
+})),
+  "storedLinkCount": zod.number()
 })
 
 
