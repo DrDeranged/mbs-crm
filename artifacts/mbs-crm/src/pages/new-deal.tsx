@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, DollarSign } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -124,23 +125,23 @@ export default function NewDeal() {
 
                   <div className="space-y-1.5">
                     <Label>Associated lead (optional)</Label>
-                    <Select
+                    <SearchableSelect
+                      options={[
+                        { value: "none", label: "No associated lead" },
+                        ...leads.map((l: any) => ({
+                          value: String(l.id),
+                          label: `${l.firstName} ${l.lastName}${l.companyName ? ` (${l.companyName})` : ""}`,
+                        })),
+                      ]}
                       value={formData.leadId || "none"}
-                      onValueChange={v => {
-                        setFormData(f => ({...f, leadId: v === "none" ? "" : v}));
-                        if (v) setErrors(prev => ({ ...prev, leadId: "" }));
+                      onValueChange={value => {
+                        setFormData(f => ({...f, leadId: value === "none" ? "" : value}));
+                        if (value) setErrors(prev => ({ ...prev, leadId: "" }));
                       }}
-                    >
-                      <SelectTrigger className="bg-white"><SelectValue placeholder="Select a lead..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No associated lead</SelectItem>
-                        {leads.map((l: any) => (
-                          <SelectItem key={l.id} value={String(l.id)}>
-                            {l.firstName} {l.lastName} {l.companyName ? `(${l.companyName})` : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Select a lead..."
+                      searchPlaceholder="Search leads…"
+                      className="bg-white"
+                    />
                     {errors.leadId && <p className="text-[13px] text-red-500">{errors.leadId}</p>}
                   </div>
                 </div>
@@ -157,13 +158,17 @@ export default function NewDeal() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Assigned rep</Label>
-                    <Select value={formData.assignedTo} onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}>
-                      <SelectTrigger className="bg-white"><SelectValue placeholder="Unassigned" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={[
+                        { value: "unassigned", label: "Unassigned" },
+                        ...(users ?? []).map(u => ({ value: String(u.id), label: getUserDisplayName(u) })),
+                      ]}
+                      value={formData.assignedTo}
+                      onValueChange={value => setFormData(f => ({...f, assignedTo: value}))}
+                      placeholder="Unassigned"
+                      searchPlaceholder="Search reps…"
+                      className="bg-white"
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Requested amount</Label>

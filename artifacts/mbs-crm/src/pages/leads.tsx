@@ -12,6 +12,7 @@ import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -618,19 +619,22 @@ export default function Leads() {
         </Select>
 
         {usersData && usersData.length > 0 && (
-          <Select value={repId || "all"} onValueChange={handleRepChange}>
-            <SelectTrigger className="w-full sm:w-[160px] bg-white">
-              <SelectValue placeholder="Rep" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Reps</SelectItem>
-              {usersData.map((rep) => (
-                <SelectItem key={rep.id} value={String(rep.id)}>
-                  {getUserDisplayName(rep)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={repId || "all"}
+            onValueChange={handleRepChange}
+            placeholder="Rep"
+            ariaLabel="Filter by representative"
+            className="w-full bg-white sm:w-[160px]"
+            options={[
+              { value: "all", label: "All Reps" },
+              ...usersData.map((rep) => ({
+                value: String(rep.id),
+                label: getUserDisplayName(rep),
+                detail: rep.email || undefined,
+                keywords: [rep.email, rep.name].filter(Boolean).join(" "),
+              })),
+            ]}
+          />
         )}
 
         <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as ListLeadsSortOrder)}>
@@ -1018,20 +1022,20 @@ export default function Leads() {
                   <TableCell className="text-sm">
                     {isStaleView && isManagerOrAdmin ? (
                       <div onClick={(event) => event.stopPropagation()}>
-                        <Select
-                          value={lead.assignedRepId ? String(lead.assignedRepId) : undefined}
+                        <SearchableSelect
+                          value={lead.assignedRepId ? String(lead.assignedRepId) : ""}
                           onValueChange={(repId) => handleSingleAssign(lead.id, repId)}
                           disabled={bulkAssign.isPending}
-                        >
-                          <SelectTrigger className="h-8 w-[160px] text-xs">
-                            <SelectValue placeholder="Assign rep…" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {usersData?.map((rep) => (
-                              <SelectItem key={rep.id} value={String(rep.id)}>{getUserDisplayName(rep)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          placeholder="Assign rep…"
+                          ariaLabel={`Assign representative for lead ${lead.id}`}
+                          className="h-8 w-[160px] text-xs"
+                          options={(usersData ?? []).map((rep) => ({
+                            value: String(rep.id),
+                            label: getUserDisplayName(rep),
+                            detail: rep.email || undefined,
+                            keywords: [rep.email, rep.name].filter(Boolean).join(" "),
+                          }))}
+                        />
                       </div>
                     ) : (
                       <Link href={`/leads/${lead.id}`} className="block w-full font-semibold text-[#0E2A47]">
@@ -1133,18 +1137,19 @@ export default function Leads() {
 
           {usersData && usersData.length > 0 && (
             <>
-              <Select value={bulkRepId} onValueChange={setBulkRepId}>
-                <SelectTrigger className="h-8 w-[150px] text-xs">
-                  <SelectValue placeholder="Assign To…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {usersData.map((rep) => (
-                    <SelectItem key={rep.id} value={String(rep.id)}>
-                      {getUserDisplayName(rep)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={bulkRepId}
+                onValueChange={setBulkRepId}
+                placeholder="Assign To…"
+                ariaLabel="Bulk assign representative"
+                className="h-8 w-[150px] text-xs"
+                options={usersData.map((rep) => ({
+                  value: String(rep.id),
+                  label: getUserDisplayName(rep),
+                  detail: rep.email || undefined,
+                  keywords: [rep.email, rep.name].filter(Boolean).join(" "),
+                }))}
+              />
               <Button
                 size="sm"
                 className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"

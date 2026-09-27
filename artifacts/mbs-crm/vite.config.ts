@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { randomUUID } from "node:crypto";
 
 const rawPort = process.env.PORT;
 
@@ -26,9 +27,25 @@ if (!basePath) {
   );
 }
 
+// One identifier per generated HTML shell; it changes even when the entry
+// script hash happens to stay the same (for example, after a worker-only fix).
+const buildId = randomUUID();
+
 export default defineConfig({
   base: basePath,
   plugins: [
+    {
+      name: "mbs-build-id",
+      transformIndexHtml: {
+        order: "post",
+        handler(html) {
+          return html.replace(
+            "</head>",
+            `    <meta name="mbs-build-id" content="${buildId}" />\n  </head>`,
+          );
+        },
+      },
+    },
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),

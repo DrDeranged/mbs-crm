@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { InlineListError } from "@/components/inline-list-error";
 import { useToast } from "@/hooks/use-toast";
 import { getApiBaseUrl, resolveApiUrl } from "@/lib/apiBase";
@@ -589,15 +590,21 @@ export default function Documents() {
       {admin && reps.length > 0 && (
         <div className="max-w-sm space-y-1.5">
           <label className="text-sm font-medium">Preview version for</label>
-          <Select value={repId} onValueChange={setRepId}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="me">My version</SelectItem>
-              {reps.map((rep) => (
-                <SelectItem key={rep.id} value={String(rep.id)}>{rep.name || rep.email}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={repId}
+            onValueChange={setRepId}
+            placeholder="Preview version for"
+            ariaLabel="Preview version for representative"
+            options={[
+              { value: "me", label: "My version" },
+              ...reps.map((rep) => ({
+                value: String(rep.id),
+                label: rep.name || rep.email,
+                detail: rep.email,
+                keywords: [rep.name, rep.email].filter(Boolean).join(" "),
+              })),
+            ]}
+          />
         </div>
       )}
 

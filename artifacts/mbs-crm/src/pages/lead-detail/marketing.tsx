@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { CheckCircle2, FileDown, Loader2, Megaphone, Send } from "lucide-react";
 import { getDownloadFlyerUrl, useEmailFlyer, useGenerateFlyer, useListFlyerTemplates } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
@@ -117,22 +117,22 @@ export function LeadMarketing() {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">Flyer Template</Label>
-            <Select value={selectedTemplateId} onValueChange={handleTemplateChange}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="Choose a template..." /></SelectTrigger>
-              <SelectContent>
-                {sortedTemplates.map((t: any) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    {t.name}
-                    {t.programType === leadProgramType && <span className="ml-1.5 text-xs text-[#1F4E79] font-medium">★</span>}
-                    {t.programType !== "general" && (
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        ({t.programType === "working_capital" ? "Working Capital" : "Equipment"})
-                      </span>
-                    )}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="h-9"
+              ariaLabel="Flyer Template"
+              value={selectedTemplateId}
+              onValueChange={handleTemplateChange}
+              placeholder="Choose a template..."
+              options={sortedTemplates.map((t: any) => ({
+                value: String(t.id),
+                label: t.name,
+                detail: [
+                  t.programType === leadProgramType ? "★ Best match" : "",
+                  t.programType !== "general" ? (t.programType === "working_capital" ? "Working Capital" : "Equipment") : "",
+                ].filter(Boolean).join(" · ") || undefined,
+                keywords: [t.programType ?? "", t.programType === "working_capital" ? "working capital" : t.programType === "equipment" ? "equipment" : ""],
+              }))}
+            />
           </div>
 
           {selectedTemplate && (
@@ -143,17 +143,14 @@ export function LeadMarketing() {
                   <div key={f.key} className="space-y-1">
                     <Label className="text-xs">{f.label}</Label>
                     {f.type === "select" && Array.isArray(f.options) && f.options.length > 0 ? (
-                      <Select
+                      <SearchableSelect
+                        className="h-8 text-xs"
+                        ariaLabel={f.label}
+                        placeholder={f.defaultValue ?? `Select ${f.label}`}
                         value={fieldValues[f.key] ?? f.defaultValue ?? ""}
                         onValueChange={(v) => setFieldValues((prev) => ({ ...prev, [f.key]: v }))}
-                      >
-                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {f.options.map((opt: string) => (
-                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        options={f.options.map((opt: string) => ({ value: opt, label: opt }))}
+                      />
                     ) : (
                       <Input
                         type={f.type === "number" ? "number" : "text"}

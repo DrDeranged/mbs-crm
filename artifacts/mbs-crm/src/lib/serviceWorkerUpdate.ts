@@ -4,6 +4,10 @@ export type ServiceWorkerLike = {
   addEventListener: (type: "statechange", listener: () => void) => void;
 };
 
+export function buildIdFromHtml(html: string): string | null {
+  return html.match(/<meta\s+name="mbs-build-id"\s+content="([^"]+)"/i)?.[1] ?? null;
+}
+
 /**
  * Installs the browser's deterministic "new worker is ready" transition.
  * Keeping the controller check here makes update behavior testable without

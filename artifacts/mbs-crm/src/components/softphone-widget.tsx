@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
+import { createTwilioTokenLifecycle, isRecoverableTwilioDeviceError } from "@/lib/twilioDeviceLifecycle";
 
 type WidgetState = "idle" | "calling" | "active" | "incoming";
 type CallOutcome = "connected" | "voicemail" | "no_answer" | "wrong_number" | "busy";
@@ -64,6 +65,8 @@ export function SoftphoneWidget() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deviceRef = useRef<Device | null>(null);
+  const tokenLifecycleRef = useRef<ReturnType<typeof createTwilioTokenLifecycle> | null>(null);
+  const removeDeviceListenersRef = useRef<(() => void) | null>(null);
   const autoCallPending = useRef(false);
   // Tracks the lead ID for the current/last call — set from context on dial, cleared on manual/incoming call
   const activeLeadIdRef = useRef<number | undefined>(undefined);
@@ -90,47 +93,101 @@ export function SoftphoneWidget() {
   const updateComm = useUpdateCommunication();
   const createTask = useCreateTask();
 
-  const { mutate: fetchToken } = useGetTwilioToken({
-    mutation: {
-      onSuccess: (data) => {
-        initDevice(data.token);
-      },
+  const { mutateAsync: requestTwilioToken } = useGetTwilioToken();
+
+  const initDevice = useCallback((token: string) => {
+    tokenLifecycleRef.current?.dispose();
+    removeDeviceListenersRef.current?.();
+    removeDeviceListenersRef.current = null;
+    if (deviceRef.current) {
+      deviceRef.current.destroy();
+    }
+    const dev = new Device(token, { logLevel: 1, codecPreferences: ["opus", "pcmu"] as any });
+    const lifecycle = createTwilioTokenLifecycle({
+      fetchToken: async () => (await requestTwilioToken()).token,
+      getDevice: () => deviceRef.current,
       onError: (requestError: any) => {
         const reason = requestError?.response?.data?.reason;
         setError(currentUser?.role === "admin" && reason
           ? `Twilio unavailable: ${reason}`
           : "Twilio calling is currently unavailable.");
+        setState("idle");
+        setIncomingInfo(null);
+        setActiveCall(null);
+        setMuted(false);
+        setCallSeconds(0);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        tokenLifecycleRef.current?.dispose();
+        tokenLifecycleRef.current = null;
+        removeDeviceListenersRef.current?.();
+        removeDeviceListenersRef.current = null;
+        deviceRef.current?.destroy();
+        deviceRef.current = null;
+        setDevice(null);
       },
-    },
-  });
+    });
 
-  const initDevice = useCallback((token: string) => {
-    if (deviceRef.current) {
-      deviceRef.current.destroy();
-    }
-    const dev = new Device(token, { logLevel: 1, codecPreferences: ["opus", "pcmu"] as any });
-
-    dev.on("incoming", (call: Call) => {
+    const onIncoming = (call: Call) => {
       const from = call.parameters["From"] ?? "Unknown";
       setIncomingInfo({ from, callObj: call });
       setState("incoming");
       setMinimized(false);
-    });
+    };
 
-    dev.on("error", (err: any) => {
+    const onTokenWillExpire = () => {
+      void lifecycle.onTokenWillExpire();
+    };
+
+    const onError = (err: any) => {
+      if (isRecoverableTwilioDeviceError(err)) {
+        void lifecycle.onRecoverableError();
+        return;
+      }
       setError(err?.message ?? "Device error");
       setState("idle");
-    });
+    };
+    dev.on("incoming", onIncoming);
+    dev.on("tokenWillExpire", onTokenWillExpire);
+    dev.on("error", onError);
+    removeDeviceListenersRef.current = () => {
+      dev.removeListener("incoming", onIncoming);
+      dev.removeListener("tokenWillExpire", onTokenWillExpire);
+      dev.removeListener("error", onError);
+    };
 
-    dev.register();
+    tokenLifecycleRef.current = lifecycle;
     deviceRef.current = dev;
     setDevice(dev);
-  }, []);
+    void dev.register().catch((err: any) => {
+      if (isRecoverableTwilioDeviceError(err)) {
+        void lifecycle.onRecoverableError();
+      } else {
+        setError(err?.message ?? "Device registration failed");
+      }
+    });
+  }, [currentUser?.role, requestTwilioToken]);
 
   useEffect(() => {
-    fetchToken();
+    let cancelled = false;
+    requestTwilioToken().then((data) => {
+      if (!cancelled) initDevice(data.token);
+    }).catch((requestError: any) => {
+      if (cancelled) return;
+      const reason = requestError?.response?.data?.reason;
+      setError(currentUser?.role === "admin" && reason
+        ? `Twilio unavailable: ${reason}`
+        : "Twilio calling is currently unavailable.");
+    });
     return () => {
+      cancelled = true;
+      tokenLifecycleRef.current?.dispose();
+      removeDeviceListenersRef.current?.();
+      removeDeviceListenersRef.current = null;
       deviceRef.current?.destroy();
+      deviceRef.current = null;
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);

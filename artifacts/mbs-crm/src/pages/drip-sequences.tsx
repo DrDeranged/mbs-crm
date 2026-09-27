@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Zap, GitBranch, Trash2, GripVertical, ChevronDown, ChevronRight, ChevronUp, Clock, Mail } from "lucide-react";
@@ -200,16 +201,14 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
                 {i + 1}
               </div>
               <div className="flex-1 flex items-center gap-2 min-w-0 flex-wrap">
-                <Select value={step.templateId} onValueChange={(v) => updateStep(i, "templateId", v)} disabled={!canEdit}>
-                  <SelectTrigger className="flex-1 min-w-[160px] h-8 text-xs">
-                    <SelectValue placeholder="Select template…" />
-                  </SelectTrigger>
-                  <SelectContent className="z-[var(--z-dialog-popover)]">
-                    {activeTemplates.map((t: any) => (
-                      <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={step.templateId}
+                  onValueChange={(v) => updateStep(i, "templateId", v)}
+                  placeholder="Select template…"
+                  disabled={!canEdit}
+                  className="flex-1 min-w-[160px] h-8 text-xs"
+                  options={activeTemplates.map((t: any) => ({ value: String(t.id), label: t.name }))}
+                />
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Clock className="h-3 w-3 text-slate-400" />
                   <Input

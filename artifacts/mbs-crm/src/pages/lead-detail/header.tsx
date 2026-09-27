@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Building2, Mail, User, Link2 } from "lucide-react";
 import { getGetLeadQueryKey, getListLeadActivityQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
@@ -45,22 +46,20 @@ export function LeadAssignmentPicker() {
   };
 
   return (
-    <Select
-      value={lead.assignedRepId ? String(lead.assignedRepId) : undefined}
+    <SearchableSelect
+      value={lead.assignedRepId ? String(lead.assignedRepId) : ""}
       onValueChange={handleAssign}
       disabled={assignLead.isPending}
-    >
-      <SelectTrigger className="w-[190px] bg-white font-medium shadow-sm">
-        <SelectValue placeholder="Assign to rep…" />
-      </SelectTrigger>
-      <SelectContent>
-        {reps.map((rep) => (
-          <SelectItem key={rep.id} value={String(rep.id)}>
-            {getUserDisplayName(rep)}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      placeholder="Assign to rep…"
+      ariaLabel="Assign lead to representative"
+      className="w-[190px] bg-white font-medium shadow-sm"
+      options={reps.map((rep) => ({
+        value: String(rep.id),
+        label: getUserDisplayName(rep),
+        detail: rep.email || undefined,
+        keywords: [rep.email, rep.name].filter(Boolean).join(" "),
+      }))}
+    />
   );
 }
 

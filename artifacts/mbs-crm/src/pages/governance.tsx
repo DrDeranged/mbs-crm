@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, Download, ChevronLeft, ChevronRight, Trash2, Eye, FileText, AlertTriangle, RefreshCw } from "lucide-react";
@@ -221,15 +222,22 @@ export default function Governance() {
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">User</label>
-              <Select value={filterUserId} onValueChange={setFilterUserId}>
-                <SelectTrigger className="h-8 text-sm w-40">
-                  <SelectValue placeholder="All users" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All users</SelectItem>
-                  {users?.map((u: any) => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={filterUserId}
+                onValueChange={setFilterUserId}
+                placeholder="All users"
+                ariaLabel="Filter by user"
+                className="h-8 text-sm w-40"
+                options={[
+                  { value: "all", label: "All users" },
+                  ...(users ?? []).map((u: any) => ({
+                    value: String(u.id),
+                    label: getUserDisplayName(u),
+                    detail: u.email || undefined,
+                    keywords: [u.email, u.name].filter(Boolean).join(" "),
+                  })),
+                ]}
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Category</label>

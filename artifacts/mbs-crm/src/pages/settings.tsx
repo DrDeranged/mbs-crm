@@ -3,6 +3,7 @@ import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpda
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserRole, UserUpdateRole, type RoutingSettingsMode } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
@@ -812,12 +813,17 @@ export default function Settings() {
                 <div className="grid gap-5 sm:grid-cols-2 max-w-2xl">
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-caller-id">Browser call caller ID</label>
-                    <Select value={telephonySettings.voiceCallerId || undefined} onValueChange={(value) => setTelephonySettings((current) => ({ ...current, voiceCallerId: value }))}>
-                      <SelectTrigger id="voice-caller-id" className="w-full"><SelectValue placeholder="Select a phone number" /></SelectTrigger>
-                      <SelectContent>
-                        {ownedTelephonyNumbers.map((number) => <SelectItem key={number.sid} value={number.phoneNumber}>{number.phoneNumber}{number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={ownedTelephonyNumbers.map((number) => ({
+                        value: number.phoneNumber,
+                        label: `${number.phoneNumber}${number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}`,
+                      }))}
+                      value={telephonySettings.voiceCallerId}
+                      onValueChange={(value) => setTelephonySettings((current) => ({ ...current, voiceCallerId: value }))}
+                      placeholder="Select a phone number"
+                      searchPlaceholder="Search phone numbers…"
+                      ariaLabel="Browser call caller ID"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="voice-hours-start">Business hours (America/New_York)</label>
@@ -858,13 +864,17 @@ export default function Settings() {
                         </div>;
                       })}
                       <div className="flex items-center gap-2">
-                        <Select value={priorityCandidate} onValueChange={setPriorityCandidate}>
-                          <SelectTrigger className="w-60"><SelectValue placeholder="Select a rep" /></SelectTrigger>
-                          <SelectContent>
-                            {telephonyUsers.filter((u) => u.role === "rep" && !telephonySettings.voicePriorityRepIds.includes(u.id)).map((u) =>
-                              <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                          options={telephonyUsers.filter((u) => u.role === "rep" && !telephonySettings.voicePriorityRepIds.includes(u.id)).map((u) => ({
+                            value: String(u.id),
+                            label: u.name || u.email,
+                          }))}
+                          value={priorityCandidate}
+                          onValueChange={setPriorityCandidate}
+                          placeholder="Select a rep"
+                          searchPlaceholder="Search reps…"
+                          className="w-60"
+                        />
                         <Button type="button" variant="outline" disabled={!priorityCandidate} onClick={() => {
                           const id = Number(priorityCandidate);
                           if (telephonyUsers.some((u) => u.id === id && u.role === "rep")) {
@@ -931,12 +941,17 @@ export default function Settings() {
                   )}
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-muted-foreground" htmlFor="sms-sender-number">SMS sender number</label>
-                    <Select value={telephonySettings.smsSenderNumber || undefined} onValueChange={(value) => setTelephonySettings((current) => ({ ...current, smsSenderNumber: value }))}>
-                      <SelectTrigger id="sms-sender-number" className="w-full"><SelectValue placeholder="Select a phone number" /></SelectTrigger>
-                      <SelectContent>
-                        {ownedTelephonyNumbers.map((number) => <SelectItem key={number.sid} value={number.phoneNumber}>{number.phoneNumber}{number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={ownedTelephonyNumbers.map((number) => ({
+                        value: number.phoneNumber,
+                        label: `${number.phoneNumber}${number.friendlyName && number.friendlyName !== number.phoneNumber ? ` — ${number.friendlyName}` : ""}`,
+                      }))}
+                      value={telephonySettings.smsSenderNumber}
+                      onValueChange={(value) => setTelephonySettings((current) => ({ ...current, smsSenderNumber: value }))}
+                      placeholder="Select a phone number"
+                      searchPlaceholder="Search phone numbers…"
+                      ariaLabel="SMS sender number"
+                    />
                   </div>
                   <div className="sm:col-span-2 flex items-center justify-between gap-3 border-t pt-4">
                     <div>
@@ -1401,26 +1416,33 @@ export default function Settings() {
                       No active pending users are eligible to merge.
                     </div>
                   ) : (
-                    <Select value={mergeSourceId} onValueChange={setMergeSourceId}>
-                      <SelectTrigger aria-label="Stray pending user"><SelectValue placeholder="Choose source" /></SelectTrigger>
-                      <SelectContent>
-                        {mergeSources.map((user) => (
-                          <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={mergeSources.map((user) => ({
+                        value: String(user.id),
+                        label: getUserDisplayName(user, user.email),
+                      }))}
+                      value={mergeSourceId}
+                      onValueChange={setMergeSourceId}
+                      placeholder="Choose source"
+                      searchPlaceholder="Search users…"
+                      ariaLabel="Stray pending user"
+                    />
                   )}
                 </div>
                 <div className="min-w-[190px]">
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Real active user</label>
-                  <Select value={mergeTargetId} onValueChange={setMergeTargetId} disabled={loadingUsers || usersError || mergeTargets.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="Choose target" /></SelectTrigger>
-                    <SelectContent>
-                      {mergeTargets.map((user) => (
-                        <SelectItem key={user.id} value={String(user.id)}>{getUserDisplayName(user, user.email)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={mergeTargets.map((user) => ({
+                      value: String(user.id),
+                      label: getUserDisplayName(user, user.email),
+                    }))}
+                    value={mergeTargetId}
+                    onValueChange={setMergeTargetId}
+                    placeholder="Choose target"
+                    searchPlaceholder="Search users…"
+                    disabled={loadingUsers || usersError || mergeTargets.length === 0}
+                    ariaLabel="Real active user"
+                  />
                 </div>
                 <Button variant="outline" disabled={mergePending || !canMergeUsers} onClick={() => void mergeUsers()}>
                   {mergePending ? "Merging…" : "Merge user"}

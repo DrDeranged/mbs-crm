@@ -41,3 +41,5 @@
 - [Immutable greeting uploads](immutable-greeting-uploads.md) — validate staged MP3 bytes, then publish a server-owned copy; a signed PUT can replace staging until expiry.
 - [Applied seed migration lint](applied-seed-migration-lint.md) — when valid SQL trips static lint after a dev seed was applied, fix the lint gap instead of rewriting the migration checksum.
 - [JSONB semantic equality](jsonb-semantic-equality.md) — compare stored JSONB object fields, not stringified key order, when an action must be idempotent.
+- [Cmdk listbox IDs](cmdk-listbox-ids.md) — CommandList generates its own ID; don't point a surrounding trigger at a caller-supplied list ID.
+- [Published PWA asset fallbacks](pwa-asset-fallbacks.md) — static hosting may serve 200 HTML for removed JS chunks; reject it before caching and recover stale route imports.

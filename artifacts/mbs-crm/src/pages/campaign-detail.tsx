@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -84,17 +85,31 @@ const STATUS_OPTIONS = [
 ] as const;
 const PROGRAM_OPTIONS = [["equipment", "Equipment financing"], ["working_capital", "Working capital"]] as const;
 
-function GuidedMultiSelect({ value = [], options, onChange, label }: {
+function GuidedMultiSelect({ value = [], options, onChange, label, searchable = false }: {
   value?: string[];
   options: readonly (readonly [string, string])[];
   onChange: (value: string[]) => void;
   label: string;
+  searchable?: boolean;
 }) {
+  const [query, setQuery] = useState("");
+  const visibleOptions = searchable
+    ? options.filter(([, text]) => text.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
+    : options;
   return (
     <fieldset className="rounded-lg border bg-white p-3">
       <legend className="px-1 text-sm font-medium">{label}</legend>
+      {searchable && (
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={`Search ${label.toLowerCase()}...`}
+          aria-label={`Search ${label.toLowerCase()}`}
+          className="mb-2"
+        />
+      )}
       <div className="grid max-h-44 gap-1 overflow-auto sm:grid-cols-2">
-        {options.map(([key, text]) => (
+        {visibleOptions.map(([key, text]) => (
           <label key={key} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-50">
             <Checkbox checked={value.includes(key)} onCheckedChange={(checked) =>
               onChange(checked ? [...value, key] : value.filter((item) => item !== key))
@@ -700,22 +715,24 @@ export default function CampaignDetailPage() {
                               name="emailTemplateId"
                               render={({ field }) => (
                                 <FormItem>
-                                  <Select onValueChange={field.onChange} value={field.value || "__none__"}>
-                                    <FormControl>
-                                      <SelectTrigger><SelectValue placeholder="Select a template" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="__none__">None / Custom</SelectItem>
-                                      {templates?.map(t => (
-                                        <SelectItem key={t.id} value={String(t.id)}>
-                                          {t.name} {!t.isActive && "(Inactive)"}
-                                        </SelectItem>
-                                      ))}
-                                      {field.value && field.value !== "__none__" && templates && !templates.some(t => String(t.id) === field.value) && (
-                                        <SelectItem value={field.value} disabled>Unknown Template ({field.value})</SelectItem>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
+                                  <FormControl>
+                                    <SearchableSelect
+                                      value={field.value || "__none__"}
+                                      onValueChange={field.onChange}
+                                      placeholder="Select a template"
+                                      searchPlaceholder="Search templates..."
+                                      options={[
+                                        { value: "__none__", label: "None / Custom" },
+                                        ...(templates || []).map((t) => ({
+                                          value: String(t.id),
+                                          label: `${t.name}${!t.isActive ? " (Inactive)" : ""}`,
+                                        })),
+                                        ...(field.value && field.value !== "__none__" && templates && !templates.some((t) => String(t.id) === field.value)
+                                          ? [{ value: field.value, label: `Unknown Template (${field.value})`, disabled: true }]
+                                          : []),
+                                      ]}
+                                    />
+                                  </FormControl>
                                   <FormDescription>Select an approved template from the library.</FormDescription>
                                   <FormMessage />
                                 </FormItem>
@@ -871,19 +888,17 @@ export default function CampaignDetailPage() {
                         <CardDescription>Define criteria for leads to be included in this campaign.</CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Select onValueChange={handleApplyPreset} value={selectedPresetId}>
-                          <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Apply saved preset..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Custom Rules</SelectItem>
-                            {presets?.map(p => (
-                              <SelectItem key={p.id} value={String(p.id)}>
-                                {p.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                          value={selectedPresetId}
+                          onValueChange={handleApplyPreset}
+                          placeholder="Apply saved preset..."
+                          searchPlaceholder="Search presets..."
+                          className="w-[200px]"
+                          options={[
+                            { value: "none", label: "Custom Rules" },
+                            ...(presets || []).map((preset) => ({ value: String(preset.id), label: preset.name })),
+                          ]}
+                        />
                         {selectedPresetId !== "none" && (
                           <>
                             <Button 
@@ -974,7 +989,7 @@ export default function CampaignDetailPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Lead Sources</FormLabel>
-                            <FormControl><GuidedMultiSelect label="Lead sources" value={field.value} options={sourceOptions} onChange={field.onChange} /></FormControl>
+                            <FormControl><GuidedMultiSelect label="Lead sources" value={field.value} options={sourceOptions} onChange={field.onChange} searchable /></FormControl>
                             {sourcesPending && <FormDescription>Loading lead sources…</FormDescription>}
                             {sourcesError && <FormDescription>Could not load lead sources. <button type="button" className="underline" onClick={() => void refetchSources()}>Retry</button></FormDescription>}
                             {!sourcesPending && !sourcesError && sourceOptions.length === 0 && <FormDescription>No lead sources found.</FormDescription>}
@@ -999,20 +1014,21 @@ export default function CampaignDetailPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Assigned Rep</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || "__none__"}>
-                              <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Any Rep" /></SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="__none__">Any Rep (No filter)</SelectItem>
-                                {repOptions.map(u => (
-                                  <SelectItem key={u.id} value={String(u.id)}>{u.name || u.email}</SelectItem>
-                                ))}
-                                {field.value && field.value !== "__none__" && users && !repOptions.some(u => String(u.id) === field.value) && (
-                                  <SelectItem value={field.value} disabled>Unknown Rep ({field.value})</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <SearchableSelect
+                                value={field.value || "__none__"}
+                                onValueChange={field.onChange}
+                                placeholder="Any Rep"
+                                searchPlaceholder="Search reps..."
+                                options={[
+                                  { value: "__none__", label: "Any Rep (No filter)" },
+                                  ...repOptions.map((user) => ({ value: String(user.id), label: user.name || user.email })),
+                                  ...(field.value && field.value !== "__none__" && users && !repOptions.some((user) => String(user.id) === field.value)
+                                    ? [{ value: field.value, label: `Unknown Rep (${field.value})`, disabled: true }]
+                                    : []),
+                                ]}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

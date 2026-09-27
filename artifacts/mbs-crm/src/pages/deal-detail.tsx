@@ -18,6 +18,7 @@ import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -305,13 +306,16 @@ export default function DealDetail() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Assigned rep</Label>
-                    <Select value={formData.assignedTo} onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {users?.map(u => <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={formData.assignedTo}
+                      onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}
+                      placeholder=""
+                      className="bg-white"
+                      options={[
+                        { value: "unassigned", label: "Unassigned" },
+                        ...(users ?? []).map(u => ({ value: String(u.id), label: getUserDisplayName(u) })),
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Amount</Label>
@@ -415,7 +419,7 @@ export default function DealDetail() {
               {approvalOpen && (
                 <div className="grid grid-cols-2 gap-4">
                   {(lendersQuery.isError || lendersList.malformed) && <div className="col-span-2"><InlineListError title="Couldn’t load lenders" status={lendersQuery.isError ? getQueryErrorStatus(lendersQuery.error) : 200} detail={lendersList.malformed ? "The server returned an unexpected lender response." : undefined} onRetry={() => void lendersQuery.refetch()} /></div>}
-                  <div className="col-span-2 space-y-1.5"><Label>Lender</Label><Select value={approvalForm.lenderId} onValueChange={(value) => setApprovalForm((f) => ({ ...f, lenderId: value }))}><SelectTrigger><SelectValue placeholder="Select lender" /></SelectTrigger><SelectContent>{lenders.map((lender) => <SelectItem key={lender.id} value={String(lender.id)}>{lender.name}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="col-span-2 space-y-1.5"><Label>Lender</Label><SearchableSelect value={approvalForm.lenderId} onValueChange={(value) => setApprovalForm((f) => ({ ...f, lenderId: value }))} placeholder="Select lender" options={lenders.map((lender) => ({ value: String(lender.id), label: lender.name }))} /></div>
                   <div className="space-y-1.5"><Label>Contract type</Label><Select value={approvalForm.contractType} onValueChange={(value) => setApprovalForm((f) => ({ ...f, contractType: value }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="EFA">EFA</SelectItem><SelectItem value="lease">Lease</SelectItem><SelectItem value="loan">Loan</SelectItem></SelectContent></Select></div>
                   <div className="space-y-1.5"><Label>Tier</Label><Input value={approvalForm.tier} onChange={(e) => setApprovalForm((f) => ({ ...f, tier: e.target.value }))} placeholder="A" /></div>
                   <div className="space-y-1.5"><Label>Advance</Label><Input type="number" step="0.01" value={approvalForm.advance} onChange={(e) => setApprovalForm((f) => ({ ...f, advance: e.target.value }))} /></div>

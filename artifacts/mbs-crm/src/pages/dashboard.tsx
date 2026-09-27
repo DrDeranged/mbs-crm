@@ -37,7 +37,7 @@ import {
   Download, X, ArrowUpDown, ArrowUp, ArrowDown, Calendar, RefreshCw, Plus, Sparkles, ListChecks, Briefcase, BarChart2
 } from "lucide-react";
 import { Link } from "wouter";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { format, startOfMonth, endOfMonth, subMonths, startOfQuarter, startOfYear } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -308,12 +308,20 @@ function StaleLeadQueue() {
                     <p className="text-xs text-muted-foreground">{lead.daysIdle} idle day{lead.daysIdle === 1 ? "" : "s"} · Current owner: {lead.assignedRep?.name || "Unassigned"}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Select value={assignees[lead.id] ?? ""} onValueChange={(value) => setAssignees((current) => ({ ...current, [lead.id]: value }))}>
-                      <SelectTrigger className="w-44" data-testid={`select-stale-assignee-${lead.id}`}><SelectValue placeholder="New owner" /></SelectTrigger>
-                      <SelectContent>
-                        {reps.map((rep) => <SelectItem key={rep.id} value={String(rep.id)}>{rep.name || rep.email}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={assignees[lead.id] ?? ""}
+                      onValueChange={(value) => setAssignees((current) => ({ ...current, [lead.id]: value }))}
+                      placeholder="New owner"
+                      ariaLabel={`New owner for ${label}`}
+                      className="w-44"
+                      testId={`select-stale-assignee-${lead.id}`}
+                      options={reps.map((rep) => ({
+                        value: String(rep.id),
+                        label: rep.name || rep.email || "User",
+                        detail: rep.email || undefined,
+                        keywords: [rep.name, rep.email].filter(Boolean).join(" "),
+                      }))}
+                    />
                     <Button size="sm" data-testid={`button-reassign-stale-${lead.id}`} onClick={() => reassign(lead.id)} disabled={assignLead.isPending}>
                       Reassign
                     </Button>

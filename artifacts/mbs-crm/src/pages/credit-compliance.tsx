@@ -3,7 +3,7 @@ import { useGetMe, useGetCreditComplianceLog, getGetCreditComplianceLogQueryKey,
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, Download, ChevronLeft, ChevronRight } from "lucide-react";
@@ -100,17 +100,22 @@ export default function CreditCompliance() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rep</label>
-              <Select value={repId} onValueChange={setRepId}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="All Reps" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Reps</SelectItem>
-                  {users?.map((u) => (
-                    <SelectItem key={u.id} value={String(u.id)}>{getUserDisplayName(u)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={repId}
+                onValueChange={setRepId}
+                placeholder="All Reps"
+                ariaLabel="Filter by representative"
+                className="w-44"
+                options={[
+                  { value: "all", label: "All Reps" },
+                  ...(users ?? []).map((u) => ({
+                    value: String(u.id),
+                    label: getUserDisplayName(u),
+                    detail: u.email || undefined,
+                    keywords: [u.email, u.name].filter(Boolean).join(" "),
+                  })),
+                ]}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lead ID</label>

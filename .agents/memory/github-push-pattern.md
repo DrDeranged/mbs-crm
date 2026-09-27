@@ -70,6 +70,10 @@ EOF
 
 ## Large accumulated pushes
 
+Before constructing a new remote commit, compare the current remote tree with the local baseline. Connector-created GitHub commits may include fixes absent from local HEAD; base the new tree on the **remote** tree and upload only intentional local changes. Never replace the remote tree wholesale merely because the local checkout is ahead in other files.
+
+**Why:** The development checkout and published GitHub branch can diverge after connector-based pushes; replacing the whole tree would silently remove remote-only fixes.
+
 When many committed paths must be synchronized, upload blobs at fewer than 10 connector requests per second and retry HTTP 429 after `Retry-After`. Build Git tree objects directory-by-directory from `git ls-tree`, then create the root commit; a single large incremental or 800-path root tree can time out or return `GitRPC::BadObjectState`.
 
 **Why:** The connector enforces a per-Repl request rate, and GitHub's tree endpoint can reject large flat payloads or complex accumulated rename/delete sets.
