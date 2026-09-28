@@ -15,6 +15,7 @@ import { logger } from "../logger";
 import { notifyAllAdmins } from "../notify";
 import { selectNextInboundAssigneeInTransaction } from "../leadDistribution";
 import { mapUsfaRow, USFA_HEADERS, type UsfaRow } from "./usfa";
+import { createUsfaPollerRunTracker, usfaPollerDisarmedReason } from "./usfaPollerHealth";
 
 export type UsfaRunResult = {
   status: "ok" | "skipped";
@@ -247,7 +248,9 @@ export async function ingestUsfaRow(row: UsfaRow, rowNumber = 0): Promise<{ stat
   return { status: outcome.status, leadId: outcome.leadId };
 }
 
-export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {
+const pollerRun = createUsfaPollerRunTracker();
+
+async function runUsfaSheetPollInternal(): Promise<UsfaRunResult> {
   const credentials = serviceAccountCredentials();
   if (!credentials) return { status: "skipped", reason: "GOOGLE_SERVICE_ACCOUNT_JSON is not configured", processed: 0, skipped: 0, duplicates: 0, errors: 0, headerValid: false };
   const [settings] = await db.select().from(companySettingsTable).limit(1);
@@ -285,10 +288,46 @@ export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {
   return result;
 }
 
+export async function runUsfaSheetPoll(): Promise<UsfaRunResult> {
+  pollerRun.start();
+  try {
+    const result = await runUsfaSheetPollInternal();
+    const itemsProcessed = result.processed + result.skipped + result.duplicates + result.errors;
+    pollerRun.finish(
+      result.status === "skipped" ? "skipped" : result.errors > 0 ? "degraded" : "ok",
+      itemsProcessed,
+    );
+    return result;
+  } catch (error) {
+    pollerRun.fail();
+    throw error;
+  }
+}
+
+export async function getUsfaSheetPollerHealth() {
+  let configurationReason: string | null = null;
+  if (!serviceAccountCredentials()) {
+    configurationReason = "Google service account credentials are not configured or invalid";
+  } else {
+    try {
+      const [settings] = await db.select({ usfaSheetId: companySettingsTable.usfaSheetId })
+        .from(companySettingsTable).limit(1);
+      if (!settings?.usfaSheetId?.trim()) configurationReason = "USFA Sheet ID is not configured";
+    } catch {
+      configurationReason = "Saved USFA Sheet settings could not be loaded";
+    }
+  }
+  const reason = usfaPollerDisarmedReason(
+    process.env.DISABLE_BACKGROUND_JOBS === "true",
+    configurationReason,
+  );
+  return pollerRun.snapshot(reason === null, reason);
+}
+
 export function startUsfaPoller(): ReturnType<typeof setInterval> {
   const interval = setInterval(() => {
     runUsfaSheetPoll().catch((error) => logger.error({ err: error }, "USFA sheet poll failed"));
   }, 5 * 60 * 1000);
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) logger.info("USFA sheet poller disarmed: GOOGLE_SERVICE_ACCOUNT_JSON is not configured");
+  if (!serviceAccountCredentials()) logger.info("USFA sheet poller disarmed: Google service account credentials are not configured or invalid");
   return interval;
 }

@@ -5,6 +5,7 @@ import { getApiBaseUrl } from "@/lib/apiBase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { usfaConnectionInputValues, usfaConnectionLoadStatus } from "@/lib/usfaIntakeSettings";
 
 type Intake = {
   settings: { usfaSheetId: string | null; usfaSheetTab: string; usfaConsentConfirmed: boolean; usfaWebhookEnabled: boolean };
@@ -32,18 +33,39 @@ export default function AdminUsfaIntake() {
   const [sheetId, setSheetId] = useState("");
   const [sheetTab, setSheetTab] = useState("Sheet1");
   const [connectionDirty, setConnectionDirty] = useState(false);
+  const [connectionLoading, setConnectionLoading] = useState(true);
+  const [connectionLoadError, setConnectionLoadError] = useState<{ status: number | null } | null>(null);
   const [repairReport, setRepairReport] = useState<UsfaRepairLeadReport[] | null>(null);
   const [repairError, setRepairError] = useState("");
-  const load = async () => {
-    const response = await fetch(`${getApiBaseUrl()}/admin/usfa-intake`, { credentials: "include" });
-    if (response.ok) setData(await response.json());
+  const load = async (reloadConnection = false): Promise<boolean> => {
+    setConnectionLoading(true);
+    setConnectionLoadError(null);
+    let responseStatus: number | null = null;
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/admin/usfa-intake`, { credentials: "include" });
+      responseStatus = response.status;
+      if (!response.ok) {
+        setConnectionLoadError({ status: response.status });
+        return false;
+      }
+      const nextData = await response.json() as Intake;
+      setData(nextData);
+      if (reloadConnection || !connectionDirty) {
+        const connection = usfaConnectionInputValues(nextData.settings);
+        setSheetId(connection.sheetId);
+        setSheetTab(connection.sheetTab);
+        setConnectionDirty(false);
+      }
+      setConnectionLoadError(null);
+      return true;
+    } catch {
+      setConnectionLoadError({ status: responseStatus });
+      return false;
+    } finally {
+      setConnectionLoading(false);
+    }
   };
-  useEffect(() => { if (me?.role === "admin") void load(); }, [me?.role]);
-  useEffect(() => {
-    if (!data || connectionDirty) return;
-    setSheetId(data.settings.usfaSheetId ?? "");
-    setSheetTab(data.settings.usfaSheetTab);
-  }, [data?.settings.usfaSheetId, data?.settings.usfaSheetTab, connectionDirty]);
+  useEffect(() => { if (me?.role === "admin") void load(true); }, [me?.role]);
   if (meLoading) return <div className="p-8">Loading…</div>;
   if (me?.role !== "admin") return <div className="p-8 text-red-600">Admin access required.</div>;
   const saveConnection = async () => {
@@ -56,11 +78,11 @@ export default function AdminUsfaIntake() {
       });
       const result = await response.json();
       if (!response.ok) { setMessage(result.error ?? "Unable to save the sheet settings."); return; }
-      setData(current => current ? {
-        ...current, settings: { ...current.settings, usfaSheetId: result.usfaSheetId, usfaSheetTab: result.usfaSheetTab },
-      } : current);
-      setConnectionDirty(false);
-      setMessage("Sheet connection settings saved.");
+      if (await load(true)) {
+        setMessage("Sheet connection settings saved.");
+      } else {
+        setMessage("Settings were saved, but the saved values could not be reloaded. Refresh to try again.");
+      }
     } catch {
       setMessage("Unable to save the sheet settings.");
     } finally { setBusy(false); }
@@ -194,7 +216,19 @@ export default function AdminUsfaIntake() {
         {data && [["Total", data.counts.total], ["Imported", data.counts.ok], ["Duplicates", data.counts.dup], ["Errors", data.counts.error]].map(([label, value]) => <Card key={label as string}><CardContent className="p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></CardContent></Card>)}
       </div>
       <Card><CardHeader><CardTitle>Connection</CardTitle></CardHeader><CardContent className="space-y-4 text-sm">
-        {!data ? <p className="text-muted-foreground">Loading connection settings…</p> : <>
+        {connectionLoadError && (
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive">
+            <span>Unable to load USFA connection settings ({usfaConnectionLoadStatus(connectionLoadError.status)}).</span>
+            <Button size="sm" variant="outline" onClick={() => void load(true)} disabled={connectionLoading}>Retry</Button>
+          </div>
+        )}
+        {!data
+          ? connectionLoading
+            ? <p role="status" className="text-muted-foreground">Loading connection settings…</p>
+            : connectionLoadError
+              ? null
+              : <p className="text-muted-foreground">No saved USFA settings are available.</p>
+          : <>
           <div className="grid gap-2 sm:grid-cols-2">
             <div><span className="text-muted-foreground">Google service account:</span> {data.serviceAccountConfigured ? "Present" : "Absent"}</div>
             <div><span className="text-muted-foreground">Last row activity:</span> {data.counts.lastRun ? new Date(data.counts.lastRun).toLocaleString() : "Never"}</div>

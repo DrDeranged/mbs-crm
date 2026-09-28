@@ -3,6 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, documentsTable, leadsTable, usfaApplicationEmailLogTable, usfaIntakeLogTable } from "@workspace/db";
 import { objectStorageClient } from "../objectStorage";
 import { logger } from "../logger";
+import { createUsfaPollerRunTracker, usfaPollerDisarmedReason } from "./usfaPollerHealth";
 
 const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 const DEFAULT_FUNDING_ADDRESS = "funding@my-business-solutions.com";
@@ -195,7 +196,9 @@ export type UsfaApplicationRunResult = {
   errors: number;
 };
 
-export async function runUsfaApplicationPoll(options: { gmail?: GmailClient } = {}): Promise<UsfaApplicationRunResult> {
+const pollerRun = createUsfaPollerRunTracker();
+
+async function runUsfaApplicationPollInternal(options: { gmail?: GmailClient } = {}): Promise<UsfaApplicationRunResult> {
   const client = options.gmail || serviceGmail();
   if (!client) return { status: "skipped", reason: "Gmail service-account delegation is not configured", listed: 0, attached: 0, pending: 0, expired: 0, errors: 0 };
   const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
@@ -264,11 +267,40 @@ export async function runUsfaApplicationPoll(options: { gmail?: GmailClient } = 
   return result;
 }
 
+export async function runUsfaApplicationPoll(options: { gmail?: GmailClient } = {}): Promise<UsfaApplicationRunResult> {
+  pollerRun.start();
+  try {
+    const result = await runUsfaApplicationPollInternal(options);
+    pollerRun.finish(
+      result.status === "skipped" ? "skipped" : result.errors > 0 ? "degraded" : "ok",
+      result.listed,
+    );
+    return result;
+  } catch (error) {
+    pollerRun.fail();
+    throw error;
+  }
+}
+
+export function getUsfaApplicationPollerHealth() {
+  let configurationReason: string | null = null;
+  if (!credentials()) {
+    configurationReason = "Google Workspace delegation credentials are not configured or invalid";
+  } else if (!process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID) {
+    configurationReason = "Object Storage is not configured";
+  }
+  const reason = usfaPollerDisarmedReason(
+    process.env.DISABLE_BACKGROUND_JOBS === "true",
+    configurationReason,
+  );
+  return pollerRun.snapshot(reason === null, reason);
+}
+
 export function startUsfaApplicationPoller(): ReturnType<typeof setInterval> {
   const interval = setInterval(() => {
     runUsfaApplicationPoll().catch((error) => logger.error({ err: error }, "USFA application email poll failed"));
   }, 5 * 60 * 1000);
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON || !process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID) {
+  if (!credentials() || !process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID) {
     logger.info("USFA application poller disarmed: Gmail delegation or Object Storage is not configured");
   }
   return interval;

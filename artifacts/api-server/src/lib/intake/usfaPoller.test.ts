@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { USFA_HEADERS } from "./usfa";
-import { createUsfaStatementTasks, validateUsfaHeaders, runUsfaSheetPoll, testUsfaSheetConnection } from "./usfaPoller";
+import { createUsfaStatementTasks, getUsfaSheetPollerHealth, validateUsfaHeaders, runUsfaSheetPoll, testUsfaSheetConnection } from "./usfaPoller";
 import { claimUsfaInvite } from "../../routes/usfaPrefill";
 
 test("USFA poller requires every exact vendor header", () => {
@@ -18,6 +18,12 @@ test("USFA poller is safely disarmed when service-account secret is absent", asy
     const result = await runUsfaSheetPoll();
     assert.equal(result.status, "skipped");
     assert.match(result.reason ?? "", /GOOGLE_SERVICE_ACCOUNT_JSON/);
+    const health = await getUsfaSheetPollerHealth();
+    assert.equal(health.armed, false);
+    assert.equal(health.reason, "Google service account credentials are not configured or invalid");
+    assert.equal(health.status, "skipped");
+    assert.equal(typeof health.lastRanAt, "string");
+    assert.equal(health.itemsProcessed, 0);
   } finally {
     if (prior === undefined) delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     else process.env.GOOGLE_SERVICE_ACCOUNT_JSON = prior;

@@ -12,6 +12,9 @@ import { buildRevision } from "../lib/buildRevision";
 import { isWithinVoiceHours } from "../lib/inboundVoice";
 import { resolveGreetingAudioUrl } from "../lib/telephonyGreeting";
 import { isValidE164 } from "../lib/telephonySettings";
+import { getUsfaSheetPollerHealth } from "../lib/intake/usfaPoller";
+import { getUsfaApplicationPollerHealth } from "../lib/intake/usfaApplicationPoller";
+import { hasUnhealthyArmedUsfaPoller, usfaPollerJobSummary } from "../lib/intake/usfaPollerHealth";
 
 const router: IRouter = Router();
 
@@ -152,6 +155,12 @@ router.get("/health/deep", async (_req, res) => {
 
   // 3. Last job run per job
   let jobSummary: Record<string, object> = {};
+  const [usfaSheetPoller, usfaApplicationPoller] = await Promise.all([
+    getUsfaSheetPollerHealth(),
+    getUsfaApplicationPollerHealth(),
+  ]);
+  Object.assign(jobSummary, usfaPollerJobSummary(usfaSheetPoller, usfaApplicationPoller));
+  const usfaPollerFailed = hasUnhealthyArmedUsfaPoller(usfaSheetPoller, usfaApplicationPoller);
   try {
     const jobNames = ["drip", "task-reminder", "renewal"];
     const rows = await Promise.all(
@@ -180,7 +189,8 @@ router.get("/health/deep", async (_req, res) => {
 
   const healthy = dbOk &&
     schema.pending.length === 0 &&
-    !schema.failed;
+    !schema.failed &&
+    !usfaPollerFailed;
   res.status(healthy ? 200 : 503).json({
     status: healthy ? "ok" : "degraded",
     revision: buildRevision,

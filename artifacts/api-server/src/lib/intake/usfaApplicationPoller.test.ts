@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decodeGmailBase64, extractUsfaEmailIdentity, extractUsfaPdf, listAllMessages, usfaDocumentFileKey } from "./usfaApplicationPoller";
+import { decodeGmailBase64, extractUsfaEmailIdentity, extractUsfaPdf, getUsfaApplicationPollerHealth, listAllMessages, usfaDocumentFileKey } from "./usfaApplicationPoller";
 
 const encoded = (value: string) => Buffer.from(value).toString("base64url");
 
@@ -30,11 +30,23 @@ test("delegated Gmail worker is safely disarmed without credentials", async () =
   const previous = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   const previousSubject = process.env.GOOGLE_WORKSPACE_DELEGATION_SUBJECT;
   delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const { runUsfaApplicationPoll } = await import("./usfaApplicationPoller");
-  const result = await runUsfaApplicationPoll();
-  assert.equal(result.status, "skipped");
-  if (previous) process.env.GOOGLE_SERVICE_ACCOUNT_JSON = previous;
-  if (previousSubject) process.env.GOOGLE_WORKSPACE_DELEGATION_SUBJECT = previousSubject;
+  delete process.env.GOOGLE_WORKSPACE_DELEGATION_SUBJECT;
+  try {
+    const { runUsfaApplicationPoll } = await import("./usfaApplicationPoller");
+    const result = await runUsfaApplicationPoll();
+    assert.equal(result.status, "skipped");
+    const health = getUsfaApplicationPollerHealth();
+    assert.equal(health.armed, false);
+    assert.equal(health.reason, "Google Workspace delegation credentials are not configured or invalid");
+    assert.equal(health.status, "skipped");
+    assert.equal(typeof health.lastRanAt, "string");
+    assert.equal(health.itemsProcessed, 0);
+  } finally {
+    if (previous === undefined) delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    else process.env.GOOGLE_SERVICE_ACCOUNT_JSON = previous;
+    if (previousSubject === undefined) delete process.env.GOOGLE_WORKSPACE_DELEGATION_SUBJECT;
+    else process.env.GOOGLE_WORKSPACE_DELEGATION_SUBJECT = previousSubject;
+  }
 });
 
 test("Gmail listing paginates every page without any write operation", async () => {
