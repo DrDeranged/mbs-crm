@@ -1567,6 +1567,7 @@ export interface TaskUpdate {
   description?: string;
   dueDate?: string;
   isCompleted?: boolean;
+  assignedUserId?: number;
 }
 
 export interface NewDocumentUpload {

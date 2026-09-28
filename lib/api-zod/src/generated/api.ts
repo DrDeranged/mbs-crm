@@ -2335,10 +2335,74 @@ export const UpdateTaskBody = zod.object({
   "title": zod.string().optional(),
   "description": zod.string().optional(),
   "dueDate": zod.coerce.date().optional(),
-  "isCompleted": zod.boolean().optional()
+  "isCompleted": zod.boolean().optional(),
+  "assignedUserId": zod.number().optional()
 })
 
 export const UpdateTaskResponse = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "userId": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "dueDate": zod.coerce.date().nullish(),
+  "isCompleted": zod.boolean(),
+  "completedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Partially update a task (mark complete, edit, or assign)
+ */
+export const PatchTaskParams = zod.object({
+  "taskId": zod.coerce.number()
+})
+
+export const PatchTaskBody = zod.object({
+  "title": zod.string().optional(),
+  "description": zod.string().optional(),
+  "dueDate": zod.coerce.date().optional(),
+  "isCompleted": zod.boolean().optional(),
+  "assignedUserId": zod.number().optional()
+})
+
+export const PatchTaskResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "userId": zod.number().nullish(),

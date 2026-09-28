@@ -1469,6 +1469,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "403":
+          description: Forbidden
 
   /tasks/{taskId}:
     put:
@@ -1494,6 +1496,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "403":
+          description: Forbidden
+    patch:
+      operationId: patchTask
+      tags: [tasks]
+      summary: Partially update a task (mark complete, edit, or assign)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "403":
+          description: Forbidden
 
   /leads/{id}/documents:
     get:
@@ -6473,6 +6502,8 @@ components:
           format: date
         isCompleted:
           type: boolean
+        assignedUserId:
+          type: integer
 
     Document:
       type: object

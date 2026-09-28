@@ -125,8 +125,9 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/leads/:id/notes` | `routes/notes.ts:11` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/notes` | `routes/notes.ts:47` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/tasks` | `routes/tasks.ts:26` | `L` | `lead.assignedRepId === user.id` for reps |
-| POST | `/api/leads/:id/tasks` | `routes/tasks.ts:55` | `L` | `lead.assignedRepId === user.id` for reps |
-| PUT | `/api/tasks/:taskId` | `routes/tasks.ts:103` | `L` | task lead must have `assignedRepId === user.id` for reps |
+| POST | `/api/leads/:id/tasks` | `routes/tasks.ts` | `L` | reps can assign only to self or the lead's assigned rep; managers/admins to active users |
+| PUT | `/api/tasks/:taskId` | `routes/tasks.ts` | `L` | task lead must have `assignedRepId === user.id` for reps; assignee must be authorized and active |
+| PATCH | `/api/tasks/:taskId` | `routes/tasks.ts` | `L` | same task and assignee checks as PUT |
 | GET | `/api/leads/:id/documents` | `routes/documents.ts:51` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/documents` | `routes/documents.ts:80` | `L` | `lead.assignedRepId === user.id` for reps |
 | PATCH | `/api/documents/:docId` | `routes/documents.ts:154` | `L` | document's lead must have `assignedRepId === user.id` for reps |

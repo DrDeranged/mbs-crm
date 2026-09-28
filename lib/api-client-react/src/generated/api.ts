@@ -4372,7 +4372,7 @@ export const createTask = async (id: number,
 
 
 
-export const getCreateTaskMutationOptions = <TError = ErrorType<unknown>,
+export const getCreateTaskMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTask>>, TError,{id: number;data: BodyType<TaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTask>>, TError,{id: number;data: BodyType<TaskInput>}, TContext> => {
 
@@ -4401,12 +4401,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateTaskMutationResult = NonNullable<Awaited<ReturnType<typeof createTask>>>
     export type CreateTaskMutationBody = BodyType<TaskInput>
-    export type CreateTaskMutationError = ErrorType<unknown>
+    export type CreateTaskMutationError = ErrorType<void>
 
     /**
  * @summary Add a task to a lead
  */
-export const useCreateTask = <TError = ErrorType<unknown>,
+export const useCreateTask = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTask>>, TError,{id: number;data: BodyType<TaskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof createTask>>,
@@ -4444,7 +4444,7 @@ export const updateTask = async (taskId: number,
 
 
 
-export const getUpdateTaskMutationOptions = <TError = ErrorType<unknown>,
+export const getUpdateTaskMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext> => {
 
@@ -4473,12 +4473,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateTaskMutationResult = NonNullable<Awaited<ReturnType<typeof updateTask>>>
     export type UpdateTaskMutationBody = BodyType<TaskUpdate>
-    export type UpdateTaskMutationError = ErrorType<unknown>
+    export type UpdateTaskMutationError = ErrorType<void>
 
     /**
  * @summary Update a task (mark complete, edit)
  */
-export const useUpdateTask = <TError = ErrorType<unknown>,
+export const useUpdateTask = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof updateTask>>,
@@ -4487,6 +4487,78 @@ export const useUpdateTask = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateTaskMutationOptions(options));
+    }
+
+export const getPatchTaskUrl = (taskId: number,) => {
+
+
+
+
+  return `/api/tasks/${taskId}`
+}
+
+/**
+ * @summary Partially update a task (mark complete, edit, or assign)
+ */
+export const patchTask = async (taskId: number,
+    taskUpdate: TaskUpdate, options?: RequestInit): Promise<Task> => {
+
+  return customFetch<Task>(getPatchTaskUrl(taskId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      taskUpdate,)
+  }
+);}
+
+
+
+
+export const getPatchTaskMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof patchTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext> => {
+
+const mutationKey = ['patchTask'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchTask>>, {taskId: number;data: BodyType<TaskUpdate>}> = (props) => {
+          const {taskId,data} = props ?? {};
+
+          return  patchTask(taskId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchTaskMutationResult = NonNullable<Awaited<ReturnType<typeof patchTask>>>
+    export type PatchTaskMutationBody = BodyType<TaskUpdate>
+    export type PatchTaskMutationError = ErrorType<void>
+
+    /**
+ * @summary Partially update a task (mark complete, edit, or assign)
+ */
+export const usePatchTask = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchTask>>, TError,{taskId: number;data: BodyType<TaskUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof patchTask>>,
+        TError,
+        {taskId: number;data: BodyType<TaskUpdate>},
+        TContext
+      > => {
+      return useMutation(getPatchTaskMutationOptions(options));
     }
 
 export const getListDocumentsUrl = (id: number,) => {
