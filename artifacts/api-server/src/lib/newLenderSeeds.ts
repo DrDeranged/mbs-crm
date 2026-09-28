@@ -40,11 +40,10 @@ export interface ExistingLenderMatchingBaseline {
 }
 
 /**
- * Targeted updates from the 2026-09-14 packet. These are deliberately kept
- * separate from NEW_LENDER_SEEDS: an existing lender's contacts and all
- * unlisted fields must remain untouched when this packet is applied.
+ * Targeted updates for lenders outside the canonical seed inventory.
+ * Updates for seeded lenders live on their single canonical seed entry below.
  */
-export const EXISTING_LENDER_UPDATES = Object.freeze([
+const BASE_EXISTING_LENDER_UPDATES = Object.freeze([
   Object.freeze({
     name: "Alliance Funding Group (AFG)",
     marker: AFG_TRUCKING_UPDATE_MARKER,
@@ -149,11 +148,13 @@ SCHEMA MAPPING:
       acceptedStates: YES_ACCEPTED_STATES,
     }),
   }),
-  Object.freeze({
-    name: "Dexly Finance",
-    marker: BATCH_2_LENDER_UPDATE_MARKER,
-    gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
-    notes: `2026-09-15 packet update
+] as const);
+
+const DEXLY_EXISTING_UPDATE = Object.freeze({
+  sequence: 0,
+  marker: BATCH_2_LENDER_UPDATE_MARKER,
+  gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
+  notes: `2026-09-15 packet update
 
 SOURCE STATEMENTS (verbatim):
 - Paper types: B to D (was A–D). Positions: NO LIMIT (was 1–5). Funding terms: 6 weeks to 32 weeks. Primary market: all 50 states (Texas first position only), Puerto Rico & Canada. Revenue: minimum $200,000 monthly. Repayment: daily or weekly. Origination fees: 1% to 10%.
@@ -164,36 +165,37 @@ SOURCE STATEMENTS (verbatim):
 - (September 2026 bonus structure PNG is a promotional commission bonus, not criteria — not recorded.)
 
 SCHEMA MAPPING: amounts and TIB are unchanged. Positions are no limit in source statements; structured matcher fields enforce the stated monthly-revenue and industry rules.`,
-    structuredPatch: Object.freeze({
-  restrictedIndustries: Object.freeze([
-    "auto dealership (new)", "construction", "consulting", "energy/oil & gas",
-    "hospitality — vacation rentals", "IT — software development", "law firm",
-    "real estate — development/property management", "services — staffing",
-    "transportation — passenger/trucking", "wholesale — food distribution/goods",
-  ]),
-  prohibitedIndustries: Object.freeze([
-    "auto dealership (used)", "bail bonds", "cannabis", "cash exchange",
-    "collection agency/credit repair", "financial services", "logistics/import & export",
-    "freight brokers", "real estate — brokerage", "religious services", "services — travel agency",
-  ]),
-  minMonthlyRevenue: 200_000,
-  restrictedIndustryMinMonthlyRevenue: 1_000_000,
-    }),
-    matchingBaseline: Object.freeze({
-      programTypes: Object.freeze(["working_capital", "MCA"]),
-      minAmount: 75_000,
-      maxAmount: 5_000_000,
-      minCreditScore: null,
-      minTimeInBusinessMonths: 12,
-      acceptedIndustries: Object.freeze([]),
-      acceptedStates: Object.freeze([...ALL_US_STATES, "PR"]),
-    }),
+  structuredPatch: Object.freeze({
+    restrictedIndustries: Object.freeze([
+      "auto dealership (new)", "construction", "consulting", "energy/oil & gas",
+      "hospitality — vacation rentals", "IT — software development", "law firm",
+      "real estate — development/property management", "services — staffing",
+      "transportation — passenger/trucking", "wholesale — food distribution/goods",
+    ]),
+    prohibitedIndustries: Object.freeze([
+      "auto dealership (used)", "bail bonds", "cannabis", "cash exchange",
+      "collection agency/credit repair", "financial services", "logistics/import & export",
+      "freight brokers", "real estate — brokerage", "religious services", "services — travel agency",
+    ]),
+    minMonthlyRevenue: 200_000,
+    restrictedIndustryMinMonthlyRevenue: 1_000_000,
   }),
-  Object.freeze({
-    name: "TimePayment Corp",
-    marker: BATCH_2_LENDER_UPDATE_MARKER,
-    gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
-    notes: `2026-09-15 packet update
+  matchingBaseline: Object.freeze({
+    programTypes: Object.freeze(["working_capital", "MCA"]),
+    minAmount: 75_000,
+    maxAmount: 5_000_000,
+    minCreditScore: null,
+    minTimeInBusinessMonths: 12,
+    acceptedIndustries: Object.freeze([]),
+    acceptedStates: Object.freeze([...ALL_US_STATES, "PR"]),
+  }),
+});
+
+const TIMEPAYMENT_EXISTING_UPDATE = Object.freeze({
+  sequence: 1,
+  marker: BATCH_2_LENDER_UPDATE_MARKER,
+  gateBackfillMarker: STRUCTURED_GATE_BACKFILL_MARKER,
+  notes: `2026-09-15 packet update
 
 SOURCE STATEMENTS (verbatim):
 - CREDIT TIERS (min–max total funding / yrs in business / FICO / startups? / challenged credit?): AAA $10K–$150K / 10+ / 750+ / no / no; AA $500–$150K / 5+ / 750+ / yes / no; A $500–$150K / 3+ / 725+ / yes / no; O $500–$150K / 2 / 725+ / yes / no; P $500–$50K / 5+ / 650+ / yes / no (personal credit thinner profile); P (start-up) $500–$50K / <2 / 750+ / yes / yes; S $500–$20K / <2 / 675+ / yes / yes; T $500–$20K / <2 / 650+ / yes / yes; Q $500–$10K / <2 / 625+ / yes / yes; U $500–$6K / <2 / 550–625 / yes / yes (bankruptcy history if discharged or dismissed; security deposit may be required). Mortgage or $50K+ loan history required for AAA/AA/A/O/P.
@@ -203,47 +205,45 @@ SOURCE STATEMENTS (verbatim):
 - Contacts: Caitlin Keefe 855-259-1034 caitlin.keefe@timepayment.com; Ian Mayer 866-994-7162 ian.mayer@timepayment.com; brokerdesk@timepayment.com 866-994-7260.
 
 SCHEMA MAPPING: maxAmount is $150,000 because the credit chart caps every tier at $150K total funding; minAmount remains $500. Structured matcher fields enforce the stated restricted industries; other criteria remain in source statements.`,
-    structuredPatch: Object.freeze({
-      maxAmount: 150_000,
-      restrictedIndustries: Object.freeze([
-        "consumer", "private party sales", "sale leasebacks", "working capital",
-        "permanent fixtures", "ATM", "POS/bankcard", "cannabis",
-        "computers and 100% software", "copiers", "security & monitoring", "water quality products",
-      ]),
-    }),
-    matchingBaseline: Object.freeze({
-      programTypes: Object.freeze(["equipment"]),
-      minAmount: 500,
-      maxAmount: 150_000,
-      minCreditScore: null,
-      minTimeInBusinessMonths: 0,
-      acceptedIndustries: Object.freeze([]),
-      acceptedStates: ALL_US_STATES,
-    }),
+  structuredPatch: Object.freeze({
+    maxAmount: 150_000,
+    restrictedIndustries: Object.freeze([
+      "consumer", "private party sales", "sale leasebacks", "working capital",
+      "permanent fixtures", "ATM", "POS/bankcard", "cannabis",
+      "computers and 100% software", "copiers", "security & monitoring", "water quality products",
+    ]),
   }),
-  Object.freeze({
-    name: "Keystone Equipment Finance Corp (KEF)",
-    marker: BATCH_2_LENDER_UPDATE_MARKER,
-    notes: `2026-09-15 packet update
+  matchingBaseline: Object.freeze({
+    programTypes: Object.freeze(["equipment"]),
+    minAmount: 500,
+    maxAmount: 150_000,
+    minCreditScore: null,
+    minTimeInBusinessMonths: 0,
+    acceptedIndustries: Object.freeze([]),
+    acceptedStates: ALL_US_STATES,
+  }),
+});
+
+const KEYSTONE_EXISTING_UPDATE = Object.freeze({
+  sequence: 2,
+  marker: BATCH_2_LENDER_UPDATE_MARKER,
+  notes: `2026-09-15 packet update
 
 SOURCE STATEMENTS (verbatim):
 - contract is EFA; prepayment premium .00834 × principal × remaining months; payments due 5th and 20th, 6-day grace; GPS most of the time; comp credit not required but preferred; homeownership not required but preferred; CDL requirement if business < 2 years; hard credit pull; Experian and PayNet (if necessary); minimum TIB none but experience preferred; DEAL BREAKERS: under 500 scores, post-BK delinquency. Equipment Parameters 2025: startups (≤18 mo) sleepers/day cabs 2017+ ≤599k; non-startups 2015+ ≤650k; box/reefer startups 2017+ ≤220k, non-startups 2015+ ≤299k; sprinter 2017+/175k, 2015+/220k; dump 2005+ 599k/650k; flatbed cab&chassis 2017+/220k, 2015+/299k; flatbed pickup & service 2017+/199k, 2015+/250k; trailers dry van/reefer 2017+/2015+ (reefer <20k hrs); flatbed/dropdeck 10 yrs / 15 yrs.
 
 SCHEMA MAPPING: no schema changes.`,
-    structuredPatch: Object.freeze({}),
-    matchingBaseline: Object.freeze({
-      programTypes: Object.freeze(["equipment"]),
-      minAmount: 10_000,
-      maxAmount: 150_000,
-      minCreditScore: 550,
-      minTimeInBusinessMonths: 0,
-      acceptedIndustries: Object.freeze([]),
-      acceptedStates: ALL_US_STATES,
-    }),
+  structuredPatch: Object.freeze({}),
+  matchingBaseline: Object.freeze({
+    programTypes: Object.freeze(["equipment"]),
+    minAmount: 10_000,
+    maxAmount: 150_000,
+    minCreditScore: 550,
+    minTimeInBusinessMonths: 0,
+    acceptedIndustries: Object.freeze([]),
+    acceptedStates: ALL_US_STATES,
   }),
-] as const);
-
-export type ExistingLenderUpdate = (typeof EXISTING_LENDER_UPDATES)[number];
+});
 
 /**
  * Appends a packet update without normalizing or otherwise rewriting the
@@ -277,6 +277,7 @@ export function applyExistingLenderUpdate<Row extends { notes: string | null }>(
 export const NEW_LENDER_SEEDS = Object.freeze([
   Object.freeze({
     name: "Dexly Finance",
+    existingUpdate: DEXLY_EXISTING_UPDATE,
     programTypes: Object.freeze(["working_capital", "MCA"]),
     minAmount: 75_000,
     maxAmount: 5_000_000,
@@ -439,6 +440,7 @@ SCHEMA MAPPING:
   }),
   Object.freeze({
     name: "Keystone Equipment Finance Corp (KEF)",
+    existingUpdate: KEYSTONE_EXISTING_UPDATE,
     programTypes: Object.freeze(["equipment"]),
     minAmount: 10_000,
     maxAmount: 150_000,
@@ -544,9 +546,10 @@ SCHEMA MAPPING:
   }),
   Object.freeze({
     name: "TimePayment Corp",
+    existingUpdate: TIMEPAYMENT_EXISTING_UPDATE,
     programTypes: Object.freeze(["equipment"]),
     minAmount: 500,
-    maxAmount: 1_500_000,
+    maxAmount: 150_000,
     minCreditScore: null,
     minTimeInBusinessMonths: 0,
     acceptedStates: ALL_US_STATES,
@@ -570,9 +573,10 @@ SCHEMA MAPPING:
 - Build commission into the requested amount (Equipment + Commission = Requested Funding). Min processing fee $125. Site inspections on leases > $50k. Direct debit required on leases ≥ $10k. Startups: 10% security deposit may be required.
 - Excluded industries: ATM and bankcard, cannabis, computers and 100% software, copiers, security and monitoring, water quality products.
 - Portal: InfoHub (quotes, eSign, tracking). 866-994-7260. The seeded deal "TP K1 Speed" was funded through TimePayment.
+- 2026-09-15 packet update: the credit chart caps total funding at $150,000 for every tier; this later cap supersedes the earlier $1.5MM program maximum above.
 
 SCHEMA MAPPING:
-- Mapped: equipment, $500–$1,500,000, minCreditScore null, TIB 0, all 50 states, and brokerdesk@timepayment.com.
+- Mapped: equipment, $500–$150,000 per the later credit-chart cap, minCreditScore null, TIB 0, all 50 states, and brokerdesk@timepayment.com.
 - contactName was not stated; no name is inferred.
 - minCreditScore is null because proprietary scoring is stated and no credit minimum is stated; no credit minimum is inferred.
 - TIB 0 maps startups being considered; the 'O', A, AA, and AAA TIB tiers remain in SOURCE STATEMENTS.
@@ -850,6 +854,27 @@ SCHEMA MAPPING: working_capital + MCA; max 250000 (reverse 375000 in notes); min
 ] as const);
 
 export type NewLenderSeed = (typeof NEW_LENDER_SEEDS)[number];
+
+const seededLenderUpdates = NEW_LENDER_SEEDS
+  .flatMap((seed) => "existingUpdate" in seed
+    ? [{ seed, update: seed.existingUpdate }]
+    : [])
+  .sort((left, right) => left.update.sequence - right.update.sequence);
+
+/**
+ * Existing-row updates for seeded lenders are projections of their canonical
+ * seed records, so a lender name and its current seed fields have one source.
+ * Updates for legacy lenders without seed entries remain independent records.
+ */
+export const EXISTING_LENDER_UPDATES = Object.freeze([
+  ...BASE_EXISTING_LENDER_UPDATES,
+  ...seededLenderUpdates.map(({ seed, update }) => {
+    const { sequence: _sequence, ...updateData } = update;
+    return Object.freeze({ name: seed.name, ...updateData });
+  }),
+]);
+
+export type ExistingLenderUpdate = (typeof EXISTING_LENDER_UPDATES)[number];
 
 export function newLenderSeedToInsertValues(seed: NewLenderSeed) {
   return {

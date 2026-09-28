@@ -248,12 +248,58 @@ test("seed literals have the exact mapped fields and exhaustive structured notes
   assert.equal(NEW_LENDER_SEEDS.length, 13);
 });
 
+test("new lender seeds have one entry per lender and the seed plan is idempotent", () => {
+  const names = NEW_LENDER_SEEDS.map((seed) => seed.name);
+  const distinctNames = new Set(names);
+  const updateNames = EXISTING_LENDER_UPDATES.map((update) => update.name);
+
+  assert.equal(distinctNames.size, names.length);
+  assert.equal(distinctNames.size, 13);
+  assert.equal(new Set(updateNames).size, updateNames.length);
+  for (const name of [
+    "Dexly Finance",
+    "Keystone Equipment Finance Corp (KEF)",
+    "TimePayment Corp",
+  ]) {
+    const canonicalSeeds = NEW_LENDER_SEEDS.filter((candidate) => candidate.name === name);
+    const projectedUpdates = EXISTING_LENDER_UPDATES.filter((candidate) => candidate.name === name);
+    assert.equal(canonicalSeeds.length, 1, `${name} should have one canonical lender record`);
+    assert.equal(projectedUpdates.length, 1, `${name} should have one projected existing-row update`);
+    assert.ok("existingUpdate" in canonicalSeeds[0], `${name} update metadata must live on its canonical record`);
+    assert.equal(projectedUpdates[0].notes, canonicalSeeds[0].existingUpdate.notes);
+    assert.equal(projectedUpdates[0].structuredPatch, canonicalSeeds[0].existingUpdate.structuredPatch);
+  }
+
+  const firstPlan = planNewLenderSeeds([]);
+  assert.deepEqual(firstPlan.toCreate.map((seed) => seed.name), names);
+  const secondPlan = planNewLenderSeeds(firstPlan.toCreate.map((seed) => seed.name));
+  assert.deepEqual(secondPlan.toCreate, []);
+  assert.deepEqual(secondPlan.unchangedNames, names);
+});
+
+test("a later existing-lender packet takes precedence over overlapping seed fields", () => {
+  for (const name of [
+    "Dexly Finance",
+    "Keystone Equipment Finance Corp (KEF)",
+    "TimePayment Corp",
+  ]) {
+    const seed = NEW_LENDER_SEEDS.find((candidate) => candidate.name === name);
+    const update = EXISTING_LENDER_UPDATES.find((candidate) => candidate.name === name);
+    assert.ok(seed, `missing seed ${name}`);
+    assert.ok(update, `missing later packet update ${name}`);
+
+    for (const [field, laterValue] of Object.entries(update.structuredPatch)) {
+      assert.deepEqual((seed as Record<string, unknown>)[field], laterValue, `${name}.${field} should use the later packet value`);
+    }
+  }
+});
+
 test("the Section A seed literals preserve exact mapped fields, contacts, nulls, and notes", () => {
   const expected = [
     ["Navitas Credit Corp", ["equipment"], 10_000, 350_000, 660, 24, "myapplications@navitascredit.com"],
     ["Keystone Equipment Finance Corp (KEF)", ["equipment"], 10_000, 150_000, 550, 0, "jgothers@keystoneefc.com"],
     ["Channel Partners Capital", ["working_capital", "equipment"], 10_000, 400_000, 600, 12, "newdeals@channelpartnersllc.com"],
-    ["TimePayment Corp", ["equipment"], 500, 1_500_000, null, 0, "brokerdesk@timepayment.com"],
+    ["TimePayment Corp", ["equipment"], 500, 150_000, null, 0, "brokerdesk@timepayment.com"],
     ["PEAC Solutions", ["equipment", "working_capital"], 10_000, 250_000, 640, 24, "ezucchi@PEACsolutions.com"],
     ["Luminar Capital", ["working_capital", "MCA"], 5_000, 150_000, 500, 12, "partners@luminarcapital.com"],
     ["Fenix Capital Funding", ["working_capital", "MCA"], null, 250_000, 500, 12, "iso@fenixcapitalfunding.com"],
@@ -298,6 +344,7 @@ test("the Section A seed literals preserve exact mapped fields, contacts, nulls,
 
   const timePayment = NEW_LENDER_SEEDS.find((seed) => seed.name === "TimePayment Corp")!;
   assert.equal(timePayment.minCreditScore, null);
+  assert.match(timePayment.notes, /2026-09-15 packet update: the credit chart caps total funding at \$150,000/);
   assert.match(timePayment.notes, /minCreditScore: null/);
   assert.match(timePayment.notes, /no credit minimum is inferred/);
 
@@ -472,8 +519,10 @@ test("Section B update literals preserve the exact marker, source statements, an
 
   const dexly = EXISTING_LENDER_UPDATES[3];
   assert.match(dexly.notes, /Paper types: B to D/);
+  assert.ok("minMonthlyRevenue" in dexly.structuredPatch);
   assert.equal(dexly.structuredPatch.minMonthlyRevenue, 200_000);
   const timePayment = EXISTING_LENDER_UPDATES[4];
+  assert.ok("maxAmount" in timePayment.structuredPatch);
   assert.deepEqual(timePayment.structuredPatch.maxAmount, 150_000);
   const kef = EXISTING_LENDER_UPDATES[5];
   assert.match(kef.notes, /DEAL BREAKERS: under 500 scores/);
@@ -551,7 +600,6 @@ test("production executor creates first, then applies Section B updates with onl
     "AMUR Equipment Finance",
     "Y.E.S. Leasing",
     "Dexly Finance",
-    "TimePayment Corp",
     "Keystone Equipment Finance Corp (KEF)",
   ]);
 
@@ -578,6 +626,7 @@ test("production executor creates first, then applies Section B updates with onl
     assert.equal("contactEmail" in values, event.name === "Alliance Funding Group (AFG)");
   }
   const afgValues = updateEvents.find((event) => event.name === afg.name)?.values as Record<string, unknown>;
+  assert.ok("programEligibilityRules" in EXISTING_LENDER_UPDATES[0].structuredPatch);
   assert.deepEqual(
     Object.fromEntries(Object.entries(afgValues).filter(([key]) => key !== "notes" && key !== "updatedAt")),
     {
@@ -777,7 +826,12 @@ test("prior packet inventory includes the new AFG update and three unapplied Sep
 
   const oldSeedNames = NEW_LENDER_SEEDS.slice(0, 8).map((seed) => seed.name);
   const initialRows = [
-    ...oldSeedNames.map((name, index) => migrationEquivalentSeed(name, index + 1)),
+    ...oldSeedNames.map((name, index) => {
+      const row = migrationEquivalentSeed(name, index + 1);
+      // Existing production rows predate the later $150K TimePayment cap.
+      if (name === "TimePayment Corp") row.maxAmount = 1_500_000;
+      return row;
+    }),
     priorExisting("Alliance Funding Group (AFG)", 101),
     priorExisting("AMUR Equipment Finance", 102),
     priorExisting("Y.E.S. Leasing", 103),
@@ -811,6 +865,7 @@ test("prior packet inventory includes the new AFG update and three unapplied Sep
     expectedInventory,
   );
   assert.equal(new Set([...first.createdNames, ...first.updatedNames, ...first.unchangedNames]).size, 16);
+  assert.equal(double.rows.find((row) => row.name === "TimePayment Corp")?.maxAmount, 150_000);
 
   const second = await executeLenderSeedAndUpdates(double.tx);
   assert.equal(second.created, 0);
