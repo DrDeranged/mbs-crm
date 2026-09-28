@@ -11,7 +11,8 @@ import {
 } from "./lint-migration-dependencies";
 
 test("numberMigrations is strict, sorted, and rejects aliases", () => {
-  assert.deepEqual(numberMigrations(["002_second.sql", "001_first.sql"]), [
+  assert.deepEqual(numberMigrations(["002_second.sql", "001_first.sql", "000_baseline.sql"]), [
+    { name: "000_baseline.sql", number: 0 },
     { name: "001_first.sql", number: 1 }, { name: "002_second.sql", number: 2 },
   ]);
   for (const name of [

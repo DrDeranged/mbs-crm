@@ -5,6 +5,7 @@ import {
   stopManagedCloneServer,
   type CloneConfig,
 } from "./dbCloneProd";
+import { rehearseEmptySchema } from "./empty-schema-rehearsal";
 import { assertLocalPostgresUrl, localPostgresUrl } from "./localPostgres";
 import { formatFailedLine, run } from "./process";
 
@@ -31,6 +32,7 @@ async function main(): Promise<void> {
   const targetUrl = localPostgresUrl(config.port, config.database);
   assertLocalPostgresUrl(targetUrl);
   await runManagedRehearsal(targetUrl);
+  await rehearseEmptySchema();
   console.log("MIGRATION REHEARSAL PASS");
 } catch (error) {
    console.error(formatFailedLine("MIGRATION REHEARSAL", error));

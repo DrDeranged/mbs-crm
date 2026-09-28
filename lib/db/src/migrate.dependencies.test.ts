@@ -6,7 +6,13 @@ import path from "node:path";
 import { PgDialect } from "drizzle-orm/pg-core/dialect";
 import { __testCreatedRelations, __testMissingRelation, analyzeMigrationSql, discoverMigrations, runMigrations } from "./migrate";
 
-async function migrationFixture(files: Record<string, string>, failedName?: string, error?: unknown, missing = "target_table") {
+async function migrationFixture(
+  files: Record<string, string>,
+  failedName?: string,
+  error?: unknown,
+  missing = "target_table",
+  existingApplicationTables = false,
+) {
   const directory = await mkdtemp(path.join(tmpdir(), "dependency-run-"));
   for (const [name, body] of Object.entries(files)) await writeFile(path.join(directory, name), body);
   const discovered = await discoverMigrations(directory);
@@ -30,6 +36,9 @@ async function migrationFixture(files: Record<string, string>, failedName?: stri
       operations.push(intent);
       if (intent.text.includes("SELECT name, checksum")) {
         return { rows: [...ledger].map(([name, row]) => ({ name, checksum: row.checksum, failed_at: row.failed_at, error: row.error, superseded_at: row.superseded_at })) };
+      }
+      if (intent.text.includes("information_schema.tables")) {
+        return { rows: existingApplicationTables ? [{ table_name: "users" }] : [] };
       }
       if (intent.text.includes("ON CONFLICT")) {
         const [name, checksum, error] = intent.params;
@@ -202,6 +211,22 @@ test("runMigrations reorders one unique creator, retries, and skips it later", a
     assert.deepEqual(second.applied, []);
     assert.deepEqual(second.skipped, ["001_blocker.sql", "002_creator.sql", "003_following.sql"]);
     assert.equal(report.pending.length, 0);
+  } finally { await fixture.cleanup(); }
+});
+
+test("runMigrations adopts baseline checksum on populated schemas without executing its DDL", async () => {
+  const fixture = await migrationFixture({
+    "000_baseline.sql": "CREATE TABLE IF NOT EXISTS baseline_must_not_run (id integer);",
+    "001_existing.sql": "SELECT 1;",
+  }, undefined, undefined, "target_table", true);
+  try {
+    const migrations = await discoverMigrations(fixture.directory);
+    fixture.ledger.set("001_existing", { checksum: migrations.find((entry) => entry.id === "001_existing")!.checksum });
+    const report = await runMigrations({ db: fixture.database, migrationsDir: fixture.directory });
+    assert.deepEqual(report.detected, ["000_baseline.sql"]);
+    assert.deepEqual(report.applied, []);
+    assert.equal(fixture.ledger.get("000_baseline")?.checksum, migrations.find((entry) => entry.id === "000_baseline")?.checksum);
+    assert.equal(fixture.operations.some(({ text }) => text.includes("baseline_must_not_run")), false);
   } finally { await fixture.cleanup(); }
 });
 

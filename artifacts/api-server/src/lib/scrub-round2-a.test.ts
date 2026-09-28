@@ -213,10 +213,12 @@ test("scrub A fixture reports named validation fields and creates the working-ca
   assert.equal(skipped.inserts.some((row: Insert) => row.table === usersTable), false);
 });
 
-test("scrub A migration dry-run discovers the append-only 001–022 set without writing", async () => {
+test("scrub A migration dry-run discovers baseline then the append-only 001–022 set without writing", async () => {
   const migrations = await discoverMigrations();
+  assert.equal(migrations[0]?.name, "000_baseline.sql");
   assert.deepEqual(
-    migrations.slice(0, 22).map(({ name }) => name.match(/^\d+/)?.[0]),
+    migrations.filter(({ name }) => Number(name.match(/^\d+/)?.[0]) > 0).slice(0, 22)
+      .map(({ name }) => name.match(/^\d+/)?.[0]),
     Array.from({ length: 22 }, (_, index) => String(index + 1).padStart(3, "0")),
   );
 

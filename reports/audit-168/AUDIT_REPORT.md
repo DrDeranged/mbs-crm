@@ -61,3 +61,220 @@ Each reproduction below is non-destructive unless explicitly labeled for a futur
 10. **P2 — Other real UI→DB journeys and native mobile behaviors remain uncertified.** Impact: intake, tasks, deals, documents, governance and mobile can still fail at runtime despite passing isolated tests. Reproduce the gap with this report's matrix: selected mocked handler effects pass, but no browser-to-persisted-record fixture or native device session was used; Expo web screenshot stayed at a splash frame. **Owner:** cross-product QA. **Fix:** build disposable role-owned records/files and native-device test sessions, assert visible state and database/audit changes after each permitted operation, and check error/permission behavior. Keep production business data read-only.
 
 **Evidence limits and release decision.** Isolated campaign UI→API→database execution, role-specific error/permission cases, valid public submission, production authenticated read-only pages, actual provider delivery, and native mobile journeys are **not certified**. An unauthenticated 401 and a read-only production table count cannot replace those checks. Do not publish based on this report. First clear the red preflight, preserve a full current transcript, establish published web/API revision parity, and verify critical journeys with isolated synthetic recipients and a blocked provider before reconsidering readiness.
+
+### Subsequent migration bootstrap rehearsal
+
+The migration bootstrap was subsequently added as `000_baseline.sql`, using the same 31-table/320-column pre-runner schema snapshot used by the existing schema-parity check. On an empty public schema it supplies the initial DDL. On a database with a prior numbered migration ledger entry—or any existing public application table—it records its checksum as detected/applied and does **not** execute the baseline SQL. This adoption path avoids constraint validation, index creation, and other baseline DDL on existing installations. Migration discovery and dependency lint now admit only the exact zero-numbered name `000_baseline.sql`.
+
+Focused rehearsal result: a separate temporary PostgreSQL cluster began with zero public tables, replayed all 66 discovered migrations (`000_baseline.sql` through `066_bundled_vendor_equipment_flyers.sql`), and passed complete Drizzle schema parity. It also confirmed `users.role` defaults to `'pending'::text`. A schema-populated production-clone-equivalent fixture then adopted `000` without listing it as applied SQL, reconciled numbered migrations (61 SQL files applied; ledger 66/66), and passed schema parity. After removing only the fixture's `000` ledger row to repeat adoption, the runner applied zero SQL files, restored the `000_baseline` row with SHA-256 `a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902`, and left the full application catalog unchanged: 60 tables, 710 columns, 228 constraints, and 184 indexes before/after. Production's previously captured read-only catalog evidence agrees with the default, and migration `051_users_role_default_pending.sql` plus the Drizzle model already encode it; no additional role migration was needed.
+
+The six root `reports/preflight-*.txt` transcripts are no longer tracked; they remain in the local workspace and the root-level pattern is ignored. At the time this focused migration rehearsal was first recorded, the final combined-preflight tail was still pending; the dated addendum below records that run and its failure. The focused migration rehearsal is not a substitute for a passing full preflight.
+
+## Combined maintenance preflight — 2026-09-28
+
+The full combined preflight ended **FAIL at gate 11/11 only**. The divergence comparator reported one difference: clone-only ledger row `000_baseline`; dev-only ledger rows, changed ledger rows, tables, and columns were all none. The dev ledger remained unchanged. The empty-schema 000-to-latest replay and populated-schema adoption rehearsal passed, including schema parity and unchanged application catalog signatures, as documented above. These focused passes do not convert the combined preflight into a pass. The comparator was not weakened, and this documentation update makes no database changes.
+
+Exact final 200 lines from `/tmp/maintenance-preflight-final.log` (reviewed; no credentials or PII detected):
+
+```text
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[✓] Pulling schema from database...
+Schema parity OK: SQL runner and complete Drizzle schema set match
+PREFLIGHT 7/11: built-app smoke
+
+> workspace@0.0.0 smoke /home/runner/workspace
+> playwright test --config playwright.smoke.config.ts
+
+[WebServer] (node:16824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer]
+[WebServer]   dist/chunks/runtime-GO7YRMB4.mjs               15.3mb ⚠️
+[WebServer]   dist/chunks/chunk-5JOA2WDW.mjs                  3.0mb ⚠️
+[WebServer]   dist/chunks/esm-JJSRRVUZ.mjs                  992.6kb
+[WebServer]   dist/chunks/chunk-TJJS3D2A.mjs                117.7kb
+[WebServer]   dist/pino-pretty.mjs                           84.6kb
+[WebServer]   dist/chunks/chunk-RICIZEEN.mjs                 51.8kb
+[WebServer]   dist/chunks/chunk-RIS63LTX.mjs                 21.9kb
+[WebServer]   dist/chunks/chunk-7E3CCQC2.mjs                 11.5kb
+[WebServer]   dist/pino-worker.mjs                            9.1kb
+[WebServer]   dist/index.mjs                                  4.9kb
+[WebServer]   dist/thread-stream-worker.mjs                   4.2kb
+[WebServer]   dist/chunks/chunk-R5GPNPTX.mjs                  3.8kb
+[WebServer]   dist/chunks/chunk-ATFS5275.mjs                  3.5kb
+[WebServer]   dist/chunks/chunk-KKR2HMRO.mjs                  2.6kb
+[WebServer]   dist/chunks/chunk-OUD2LORY.mjs                  2.6kb
+[WebServer]   dist/chunks/chunk-5AX5I6WE.mjs                  2.4kb
+[WebServer]   dist/chunks/getMachineId-win-IBLM3IE2.mjs       2.0kb
+[WebServer]   dist/chunks/getMachineId-darwin-HFMRGTA6.mjs    1.8kb
+[WebServer]   dist/chunks/getMachineId-bsd-UN3MRJQ5.mjs       1.8kb
+[WebServer]   dist/chunks/chunk-EFSD5NGP.mjs                  1.8kb
+[WebServer]   ...and 38 more output files...
+[WebServer]
+[WebServer] ⚡ Done in 3456ms
+[WebServer] (node:16942) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16955) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] src/components/ui/tooltip.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/sheet.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/dropdown-menu.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/label.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/select.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer] src/components/ui/command.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+[WebServer]
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:16856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:17009) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:17025) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/smoke.spec.ts:3:5 › production smoke paths (13.0s)
+
+  1 passed (52.0s)
+PREFLIGHT 8/11: migration dependency lint
+
+> workspace@0.0.0 lint:migration-dependencies /home/runner/workspace
+> pnpm --filter @workspace/scripts run lint:migration-dependencies
+
+
+> @workspace/scripts@0.0.0 lint:migration-dependencies /home/runner/workspace/scripts
+> tsx ./src/lint-migration-dependencies.ts
+
+baseline tables: 31
+baseline columns: 320
+migrations checked: 66
+table references checked: 187
+column references checked: 371
+MIGRATION DEPENDENCY LINT PASS
+PREFLIGHT 9/11: production database clone
+
+> workspace@0.0.0 db:clone-prod /home/runner/workspace
+> pnpm --silent --dir scripts exec tsx ./src/dbCloneProd.ts
+
+DB clone source: schema-only
+Public base tables: 31
+Public columns: 320
+Schema migrations ledger rows: 0
+DB CLONE PASS
+PREFLIGHT 10/11: migration rehearsal
+
+> workspace@0.0.0 migrate:rehearse /home/runner/workspace
+> pnpm --silent --dir scripts exec tsx ./src/migrate-rehearse.ts
+
+Applied names/count: 002_rep_slugs.sql, 003_deals.sql, 004_deal_intended_rep_slug.sql, 006_drip_sequence_ownership.sql, 009_email_send_failure_reason.sql, 010_email_webhook_events.sql, 011_email_rate_slots.sql, 012_application_signature.sql, 013_retired_rep_slugs.sql, 014_application_optional_fields.sql, 015_application_consent_text_version.sql, 016_user_titles.sql, 017_deal_notes_gm_split.sql, 018_lender_matcher_gates.sql, 019_document_categories.sql, 020_lender_submissions.sql, 021_lead_package_config.sql, 022_lender_submission_package_snapshots.sql, 023_routing_and_marketing_ownership.sql, 024_email_compliance_daily_budget.sql, 025_usfa_intake.sql, 026_usfa_intake_runtime_support.sql, 028_merge_going_to_funding_stage.sql, 029_deal_approvals.sql, 030_add_application_collateral.sql, 031_collateral_library.sql, 032_finance_application_collateral.sql, 033_lender_submission_review_fields.sql, 034_application_sms_consent.sql, 035_user_identities.sql, 036_partners_contacts.sql, 037_partner_flows_and_texting.sql, 038_partner_texting.sql, 039_ridgestone_partner_profile.sql, 040_release_schema_parity.sql, 041_push_notifications.sql, 042_push_delivery_ledger.sql, 043_align_push_schema.sql, 044_notification_delivery_claims.sql, 045_application_equipment_category_homeowner.sql, 046_complete_partner_contacts_recovery.sql, 047_partner_contacts_prerequisite.sql, 048_financing_campaign_draft.sql, 049_lender_underwriting_intelligence.sql, 050_lender_guideline_versions.sql, 051_users_role_default_pending.sql, 052_reusable_campaign_launcher.sql, 053_campaign_preview_approval_snapshots.sql, 054_campaign_preview_recipient_snapshots.sql, 055_campaign_launch_execution_leases.sql, 056_campaign_flyer.sql, 057_telephony_settings.sql, 058_telephony_business_defaults.sql, 059_inbound_voice_settings.sql, 060_inbound_voice_array_defaults.sql, 061_telephony_completion.sql, 062_email_readiness_daily_cap.sql, 063_lead_vertical.sql, 064_collateral_flyer_library.sql, 065_campaign_flyer_link_vendor_template.sql, 066_bundled_vendor_equipment_flyers.sql / 61
+Superseded names/count: none / 0
+Failed: none
+Ledger before/after counts: 0/66
+Added ledger rows: 000_baseline, 001_create_credit_tables, 002_rep_slugs, 003_deals, 004_deal_intended_rep_slug, 005_lead_distribution_settings, 006_drip_sequence_ownership, 007_lead_staleness_threshold, 008_email_safety_settings, 009_email_send_failure_reason, 010_email_webhook_events, 011_email_rate_slots, 012_application_signature, 013_retired_rep_slugs, 014_application_optional_fields, 015_application_consent_text_version, 016_user_titles, 017_deal_notes_gm_split, 018_lender_matcher_gates, 019_document_categories, 020_lender_submissions, 021_lead_package_config, 022_lender_submission_package_snapshots, 023_routing_and_marketing_ownership, 024_email_compliance_daily_budget, 025_usfa_intake, 026_usfa_intake_runtime_support, 028_merge_going_to_funding_stage, 029_deal_approvals, 030_add_application_collateral, 031_collateral_library, 032_finance_application_collateral, 033_lender_submission_review_fields, 034_application_sms_consent, 035_user_identities, 036_partners_contacts, 037_partner_flows_and_texting, 038_partner_texting, 039_ridgestone_partner_profile, 040_release_schema_parity, 041_push_notifications, 042_push_delivery_ledger, 043_align_push_schema, 044_notification_delivery_claims, 045_application_equipment_category_homeowner, 046_complete_partner_contacts_recovery, 047_partner_contacts_prerequisite, 048_financing_campaign_draft, 049_lender_underwriting_intelligence, 050_lender_guideline_versions, 051_users_role_default_pending, 052_reusable_campaign_launcher, 053_campaign_preview_approval_snapshots, 054_campaign_preview_recipient_snapshots, 055_campaign_launch_execution_leases, 056_campaign_flyer, 057_telephony_settings, 058_telephony_business_defaults, 059_inbound_voice_settings, 060_inbound_voice_array_defaults, 061_telephony_completion, 062_email_readiness_daily_cap, 063_lead_vertical, 064_collateral_flyer_library, 065_campaign_flyer_link_vendor_template, 066_bundled_vendor_equipment_flyers
+Changed ledger rows: none
+Removed ledger rows: none
+Applied names/count: 000_baseline.sql, 001_create_credit_tables.sql, 002_rep_slugs.sql, 003_deals.sql, 004_deal_intended_rep_slug.sql, 005_lead_distribution_settings.sql, 006_drip_sequence_ownership.sql, 007_lead_staleness_threshold.sql, 008_email_safety_settings.sql, 009_email_send_failure_reason.sql, 010_email_webhook_events.sql, 011_email_rate_slots.sql, 012_application_signature.sql, 013_retired_rep_slugs.sql, 014_application_optional_fields.sql, 015_application_consent_text_version.sql, 016_user_titles.sql, 017_deal_notes_gm_split.sql, 018_lender_matcher_gates.sql, 019_document_categories.sql, 020_lender_submissions.sql, 021_lead_package_config.sql, 022_lender_submission_package_snapshots.sql, 023_routing_and_marketing_ownership.sql, 024_email_compliance_daily_budget.sql, 025_usfa_intake.sql, 026_usfa_intake_runtime_support.sql, 028_merge_going_to_funding_stage.sql, 029_deal_approvals.sql, 030_add_application_collateral.sql, 031_collateral_library.sql, 032_finance_application_collateral.sql, 033_lender_submission_review_fields.sql, 034_application_sms_consent.sql, 035_user_identities.sql, 036_partners_contacts.sql, 037_partner_flows_and_texting.sql, 038_partner_texting.sql, 039_ridgestone_partner_profile.sql, 040_release_schema_parity.sql, 041_push_notifications.sql, 042_push_delivery_ledger.sql, 043_align_push_schema.sql, 044_notification_delivery_claims.sql, 045_application_equipment_category_homeowner.sql, 046_complete_partner_contacts_recovery.sql, 047_partner_contacts_prerequisite.sql, 048_financing_campaign_draft.sql, 049_lender_underwriting_intelligence.sql, 050_lender_guideline_versions.sql, 051_users_role_default_pending.sql, 052_reusable_campaign_launcher.sql, 053_campaign_preview_approval_snapshots.sql, 054_campaign_preview_recipient_snapshots.sql, 055_campaign_launch_execution_leases.sql, 056_campaign_flyer.sql, 057_telephony_settings.sql, 058_telephony_business_defaults.sql, 059_inbound_voice_settings.sql, 060_inbound_voice_array_defaults.sql, 061_telephony_completion.sql, 062_email_readiness_daily_cap.sql, 063_lead_vertical.sql, 064_collateral_flyer_library.sql, 065_campaign_flyer_link_vendor_template.sql, 066_bundled_vendor_equipment_flyers.sql / 66
+Superseded names/count: none / 0
+Failed: none
+Ledger before/after counts: 0/66
+Added ledger rows: 000_baseline, 001_create_credit_tables, 002_rep_slugs, 003_deals, 004_deal_intended_rep_slug, 005_lead_distribution_settings, 006_drip_sequence_ownership, 007_lead_staleness_threshold, 008_email_safety_settings, 009_email_send_failure_reason, 010_email_webhook_events, 011_email_rate_slots, 012_application_signature, 013_retired_rep_slugs, 014_application_optional_fields, 015_application_consent_text_version, 016_user_titles, 017_deal_notes_gm_split, 018_lender_matcher_gates, 019_document_categories, 020_lender_submissions, 021_lead_package_config, 022_lender_submission_package_snapshots, 023_routing_and_marketing_ownership, 024_email_compliance_daily_budget, 025_usfa_intake, 026_usfa_intake_runtime_support, 028_merge_going_to_funding_stage, 029_deal_approvals, 030_add_application_collateral, 031_collateral_library, 032_finance_application_collateral, 033_lender_submission_review_fields, 034_application_sms_consent, 035_user_identities, 036_partners_contacts, 037_partner_flows_and_texting, 038_partner_texting, 039_ridgestone_partner_profile, 040_release_schema_parity, 041_push_notifications, 042_push_delivery_ledger, 043_align_push_schema, 044_notification_delivery_claims, 045_application_equipment_category_homeowner, 046_complete_partner_contacts_recovery, 047_partner_contacts_prerequisite, 048_financing_campaign_draft, 049_lender_underwriting_intelligence, 050_lender_guideline_versions, 051_users_role_default_pending, 052_reusable_campaign_launcher, 053_campaign_preview_approval_snapshots, 054_campaign_preview_recipient_snapshots, 055_campaign_launch_execution_leases, 056_campaign_flyer, 057_telephony_settings, 058_telephony_business_defaults, 059_inbound_voice_settings, 060_inbound_voice_array_defaults, 061_telephony_completion, 062_email_readiness_daily_cap, 063_lead_vertical, 064_collateral_flyer_library, 065_campaign_flyer_link_vendor_template, 066_bundled_vendor_equipment_flyers
+Changed ledger rows: none
+Removed ledger rows: none
+[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[✓] Pulling schema from database...
+Schema parity OK: SQL runner and complete Drizzle schema set match
+EMPTY-SCHEMA users.role default: pending
+EMPTY-SCHEMA 000-TO-LATEST REHEARSAL PASS
+[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[⣻] Pulling schema from database...
+[2K[1G[⣽] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...
+[2K[1G[⣯] Pulling schema from database...
+[2K[1G[⣟] Pulling schema from database...
+[2K[1G[⡿] Pulling schema from database...
+[2K[1G[⢿] Pulling schema from database...
+[2K[1G[✓] Pulling schema from database...
+Schema parity OK: SQL runner and complete Drizzle schema set match
+POPULATED-SCHEMA initial no-ledger reconciliation: applied=61, ledger=66|1, baseline SQL skipped
+POPULATED-SCHEMA retry: applied=0, adopted=000_baseline (a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902), constraints/indexes unchanged (60/710|228|184)
+MIGRATION REHEARSAL PASS
+PREFLIGHT 11/11: database divergence
+
+> workspace@0.0.0 db:divergence /home/runner/workspace
+> pnpm --silent --dir scripts exec tsx ./src/db-divergence.ts
+
+Clone-only ledger rows: 000_baseline
+Dev-only ledger rows: none
+Changed ledger rows: none
+Clone-only tables: none
+Dev-only tables: none
+Clone-only columns: none
+Dev-only columns: none
+Changed columns: none
+DB DIVERGENCE FAILED: differences detected
+ ELIFECYCLE  Command failed with exit code 1.
+pnpm -w run db:divergence failed with exit code 1
+PREFLIGHT FAIL
+undefined
+/home/runner/workspace/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/preflight.ts
+ ELIFECYCLE  Command failed with exit code 1.
+```

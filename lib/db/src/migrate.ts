@@ -454,6 +454,25 @@ async function schemaShowsMigrationApplied(
   return true;
 }
 
+async function schemaHasExistingApplicationTables(executor: Executor): Promise<boolean> {
+  const result = await executor.execute(sql`
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_type = 'BASE TABLE'
+      AND table_name <> 'schema_migrations'
+    LIMIT 1
+  `);
+  return Boolean(result.rows?.length);
+}
+
+function ledgerShowsPriorAppliedMigration(ledger: Map<string, LedgerEntry>): boolean {
+  return [...ledger].some(([name, entry]) => {
+    const number = Number(name.match(/^(\d{3,})_/)?.[1] ?? 0);
+    return number > 0 && !entry.failedAt && !entry.error && !entry.supersededAt;
+  });
+}
+
 type LedgerEntry = {
   checksum: string;
   appliedAt?: string;
@@ -810,7 +829,16 @@ export async function runMigrations(options: {
 
     let detected: boolean;
     try {
-      detected = await schemaShowsMigrationApplied(database, migration);
+      const number = Number(migration.name.match(/^\d+/)?.[0] ?? -1);
+      if (number === 0) {
+        // 000 is a bootstrap for a genuinely empty database, not a schema
+        // repair migration. On existing installations adopt its checksum
+        // without replaying any baseline DDL or constraint validation.
+        detected = ledgerShowsPriorAppliedMigration(ledger)
+          || await schemaHasExistingApplicationTables(database);
+      } else {
+        detected = await schemaShowsMigrationApplied(database, migration);
+      }
     } catch (error) {
       report.pending.push(migration.name);
       report.migrations.push({ ...migration, status: "pending" });

@@ -21,7 +21,10 @@ export function numberMigrations(names: string[]): MigrationNumber[] {
     const match = name.match(filePattern);
     if (!match) throw new Error(`invalid migration filename: ${name}`);
     const number = Number(match[1]);
-    if (number <= 0 || !Number.isSafeInteger(number) || seen.has(number)) throw new Error(`duplicate or unsafe migration number: ${name}`);
+    if ((number === 0 && name !== "000_baseline.sql") ||
+        number < 0 || !Number.isSafeInteger(number) || seen.has(number)) {
+      throw new Error(`duplicate or unsafe migration number: ${name}`);
+    }
     seen.add(number);
     result.push({ name, number });
   }
