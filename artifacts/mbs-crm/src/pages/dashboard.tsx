@@ -44,6 +44,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DASHBOARD_EMPTY_STATES } from "@/lib/dashboardEmptyStates";
 import { SoftphoneContext } from "@/components/softphone-context";
 import { useContext } from "react";
+import { QueryErrorState } from "@/components/query-error-state";
 
 const BRAND = "#1F4E79";
 const TEAL = "#0D9488";
@@ -262,10 +263,14 @@ function StaleLeadQueue() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const staleParams = { stale: true, limit: 10, sortBy: "lastActivityAt", sortOrder: "asc" as const };
-  const { data, isLoading } = useListLeads(staleParams, {
+  const { data, isLoading, error, refetch } = useListLeads(staleParams, {
     query: { queryKey: getListLeadsQueryKey(staleParams) },
   });
-  const { data: users } = useListUsers({}, {
+  const {
+    data: users,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useListUsers({}, {
     query: { queryKey: getListUsersQueryKey() },
   });
   const assignLead = useAssignLead();
@@ -297,7 +302,25 @@ function StaleLeadQueue() {
         <CardDescription>Assigned leads with no logged activity within the configured routing window. Reassign each lead directly from this queue.</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? <Skeleton className="h-20 w-full" /> : data?.leads.length ? (
+        {error && (
+          <QueryErrorState
+            label="Stale leads"
+            error={error}
+            onRetry={() => { void refetch(); }}
+            testId="status-dashboard-stale-leads-error"
+          />
+        )}
+        {usersError && (
+          <div className="mb-3">
+            <QueryErrorState
+              label="Team members"
+              error={usersError}
+              onRetry={() => { void refetchUsers(); }}
+              testId="status-dashboard-stale-users-error"
+            />
+          </div>
+        )}
+        {isLoading ? <Skeleton className="h-20 w-full" /> : error && !data ? null : data?.leads.length ? (
           <div className="space-y-3">
             {data.leads.map((lead) => {
               const label = lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || `Lead #${lead.id}`;
@@ -339,7 +362,7 @@ function StaleLeadQueue() {
 
 function CallsTodayCard() {
   const { dial } = useContext(SoftphoneContext);
-  const { data, isLoading } = useGetDashboardCalls({
+  const { data, isLoading, error, refetch } = useGetDashboardCalls({
     query: { queryKey: getGetDashboardCallsQueryKey(), staleTime: 30_000 },
   });
   const minutes = data?.averageCallbackBusinessMinutes;
@@ -352,7 +375,14 @@ function CallsTodayCard() {
         <CardDescription>Inbound calls, response mix, and voicemails waiting for a callback.</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? <Skeleton className="h-16 w-full" /> : (
+        {error ? (
+          <QueryErrorState
+            label="Calls today"
+            error={error}
+            onRetry={() => { void refetch(); }}
+            testId="status-dashboard-calls-error"
+          />
+        ) : isLoading ? <Skeleton className="h-16 w-full" /> : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div><p className="text-xs text-muted-foreground">Inbound</p><p className="text-2xl font-bold">{data?.inboundCount ?? 0}</p></div>
@@ -398,10 +428,20 @@ export default function Dashboard() {
   const { data: currentUser, isLoading: loadingUser } = useGetMe({
     query: { queryKey: getGetMeQueryKey() },
   });
-  const { data: myTasks } = useGetMyTasks({
+  const {
+    data: myTasks,
+    isLoading: loadingMyTasks,
+    error: myTasksError,
+    refetch: refetchMyTasks,
+  } = useGetMyTasks({
     query: { queryKey: getGetMyTasksQueryKey() },
   });
-  const { data: expiringDealsResponse } = useListDeals(
+  const {
+    data: expiringDealsResponse,
+    isLoading: loadingExpiringDeals,
+    error: expiringDealsError,
+    refetch: refetchExpiringDeals,
+  } = useListDeals(
     { limit: 100, include_archived: false },
     { query: { queryKey: getListDealsQueryKey({ limit: 100, include_archived: false }), enabled: !!currentUser } },
   );
@@ -415,7 +455,11 @@ export default function Dashboard() {
   const isAdmin = currentUser?.role === "admin";
   const effectiveRepId = isRep ? currentUser?.id : selectedRepId;
 
-  const { data: unassignedInbound } = useGetUnassignedInboundCount({
+  const {
+    data: unassignedInbound,
+    error: unassignedInboundError,
+    refetch: refetchUnassignedInbound,
+  } = useGetUnassignedInboundCount({
     query: {
       queryKey: getGetUnassignedInboundCountQueryKey(),
       enabled: isAdmin,
@@ -431,20 +475,45 @@ export default function Dashboard() {
 
 
   const analyticsEnabled = !loadingUser && !!currentUser;
-  const { data: dealsAnalytics, isLoading: loadingDealsAnalytics } = useGetDealsAnalytics(queryParams, {
+  const {
+    data: dealsAnalytics,
+    isLoading: loadingDealsAnalytics,
+    error: dealsAnalyticsError,
+    refetch: refetchDealsAnalytics,
+  } = useGetDealsAnalytics(queryParams, {
     query: { queryKey: getGetDealsAnalyticsQueryKey(queryParams), enabled: analyticsEnabled },
   });
 
-  const { data: summary, isLoading: loadingSummary } = useGetAnalyticsSummary(queryParams, {
+  const {
+    data: summary,
+    isLoading: loadingSummary,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useGetAnalyticsSummary(queryParams, {
     query: { queryKey: getGetAnalyticsSummaryQueryKey(queryParams), enabled: analyticsEnabled },
   });
-  const { data: pipeline, isLoading: loadingPipeline } = useGetAnalyticsPipeline(queryParams, {
+  const {
+    data: pipeline,
+    isLoading: loadingPipeline,
+    error: pipelineError,
+    refetch: refetchPipeline,
+  } = useGetAnalyticsPipeline(queryParams, {
     query: { queryKey: getGetAnalyticsPipelineQueryKey(queryParams), enabled: analyticsEnabled },
   });
-  const { data: sources, isLoading: loadingSources } = useGetAnalyticsSources(queryParams, {
+  const {
+    data: sources,
+    isLoading: loadingSources,
+    error: sourcesError,
+    refetch: refetchSources,
+  } = useGetAnalyticsSources(queryParams, {
     query: { queryKey: getGetAnalyticsSourcesQueryKey(queryParams), enabled: analyticsEnabled },
   });
-  const { data: communications, isLoading: loadingComms } = useGetAnalyticsCommunications({
+  const {
+    data: communications,
+    isLoading: loadingComms,
+    error: communicationsError,
+    refetch: refetchCommunications,
+  } = useGetAnalyticsCommunications({
     ...queryParams,
     granularity: "daily",
   }, {
@@ -454,11 +523,21 @@ export default function Dashboard() {
     },
   });
   const repsParams = { start_date: dateRange.startDate, end_date: dateRange.endDate };
-  const { data: reps, isLoading: loadingReps } = useGetAnalyticsReps(repsParams, {
+  const {
+    data: reps,
+    isLoading: loadingReps,
+    error: repsError,
+    refetch: refetchReps,
+  } = useGetAnalyticsReps(repsParams, {
     query: { queryKey: getGetAnalyticsRepsQueryKey(repsParams), enabled: analyticsEnabled && !isRep },
   });
   const renewalsParams = effectiveRepId != null ? { rep_id: effectiveRepId } : {};
-  const { data: renewals, isLoading: loadingRenewals } = useGetAnalyticsRenewals(renewalsParams, {
+  const {
+    data: renewals,
+    isLoading: loadingRenewals,
+    error: renewalsError,
+    refetch: refetchRenewals,
+  } = useGetAnalyticsRenewals(renewalsParams, {
     query: { queryKey: getGetAnalyticsRenewalsQueryKey(renewalsParams), enabled: analyticsEnabled },
   });
 
@@ -512,7 +591,7 @@ export default function Dashboard() {
           {isAdmin && (
             <Link href="/leads" aria-label="View inbound leads needing assignment">
               <Badge variant="outline" className="cursor-pointer border-amber-200 bg-amber-50 px-3 py-1.5 text-amber-800 hover:bg-amber-100">
-                Inbound — needs assignment: {unassignedInbound?.count ?? "…"}
+                Inbound — needs assignment: {unassignedInboundError ? "Unavailable" : unassignedInbound?.count ?? "…"}
               </Badge>
             </Link>
           )}
@@ -525,6 +604,17 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {isAdmin && unassignedInboundError && (
+        <div className="mb-6">
+          <QueryErrorState
+            label="Unassigned inbound count"
+            error={unassignedInboundError}
+            onRetry={() => { void refetchUnassignedInbound(); }}
+            testId="status-dashboard-unassigned-inbound-error"
+          />
+        </div>
+      )}
+
       <DailyBriefingCard />
       <CallsTodayCard />
       {isAdmin && <StaleLeadQueue />}
@@ -536,7 +626,16 @@ export default function Dashboard() {
           <CardDescription>Capture-recorded lender approvals that need rep follow-up.</CardDescription>
         </CardHeader>
         <CardContent>
-          {expiringDeals.length ? (
+          {expiringDealsError ? (
+            <QueryErrorState
+              label="Expiring approvals"
+              error={expiringDealsError}
+              onRetry={() => { void refetchExpiringDeals(); }}
+              testId="status-dashboard-expiring-deals-error"
+            />
+          ) : loadingExpiringDeals ? (
+            <Skeleton className="h-16 w-full" />
+          ) : expiringDeals.length ? (
             <div className="space-y-2">
               {expiringDeals.map((deal) => {
                 const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
@@ -596,7 +695,7 @@ export default function Dashboard() {
       </div>
 
       {/* First-run call-to-action */}
-      {!loadingSummary && summary && summary.allTimeTotalLeads === 0 && (
+      {!loadingSummary && !summaryError && summary && summary.allTimeTotalLeads === 0 && (
           <div className="bg-[#17A567]/5 border border-[#17A567]/20 rounded-[14px] p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
            <div className="h-11 w-11 rounded-full bg-[#17A567]/10 flex items-center justify-center flex-shrink-0">
              <Users className="h-5 w-5 text-[#17A567]" />
@@ -622,46 +721,56 @@ export default function Dashboard() {
       )}
 
       {/* KPI Cards — 2 rows of 3 */}
+      {summaryError && (
+        <div className="mb-6">
+          <QueryErrorState
+            label="Dashboard summary"
+            error={summaryError}
+            onRetry={() => { void refetchSummary(); }}
+            testId="status-dashboard-summary-error"
+          />
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
         <KpiCard
           label="Leads Generated"
-          value={summary?.totalLeads ?? 0}
+          value={summaryError ? "—" : summary?.totalLeads ?? 0}
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Applications Received"
-          value={summary?.totalApplications ?? 0}
+          value={summaryError ? "—" : summary?.totalApplications ?? 0}
           icon={<CheckCircle2 className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Approvals"
-          value={summary?.totalApprovals ?? 0}
+          value={summaryError ? "—" : summary?.totalApprovals ?? 0}
           icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Fundings"
-          value={summary?.totalFundings ?? 0}
+          value={summaryError ? "—" : summary?.totalFundings ?? 0}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Revenue Generated"
-          value={formatCurrency(summary?.totalRevenue ?? 0)}
+          value={summaryError ? "—" : formatCurrency(summary?.totalRevenue ?? 0)}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Conversion Rate"
-          value={`${summary?.conversionRate ?? 0}%`}
+          value={summaryError ? "—" : `${summary?.conversionRate ?? 0}%`}
           icon={<Activity className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
         />
         <KpiCard
           label="Avg Funding Time"
-          value={summary?.avgFundingTimeDays != null ? `${summary.avgFundingTimeDays}d` : "—"}
+          value={summaryError ? "—" : summary?.avgFundingTimeDays != null ? `${summary.avgFundingTimeDays}d` : "—"}
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           loading={loadingSummary}
           title={summary?.avgFundingTimeDays == null ? "Needs live funded deals" : undefined}
@@ -674,28 +783,38 @@ export default function Dashboard() {
         <h2 className="text-lg font-semibold text-[#0E2A47] mb-3 flex items-center gap-2">
           <Briefcase className="h-5 w-5 text-muted-foreground" /> Deals Performance
         </h2>
+        {dealsAnalyticsError && (
+          <div className="mb-4">
+            <QueryErrorState
+              label="Deals performance"
+              error={dealsAnalyticsError}
+              onRetry={() => { void refetchDealsAnalytics(); }}
+              testId="status-dashboard-deals-analytics-error"
+            />
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
           <KpiCard
             label="Funded GM"
-            value={formatCurrency(dealsAnalytics?.fundedGm ?? 0)}
+            value={dealsAnalyticsError ? "—" : formatCurrency(dealsAnalytics?.fundedGm ?? 0)}
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
             loading={loadingDealsAnalytics}
           />
           <KpiCard
             label="Awaiting GM"
-            value={formatCurrency(dealsAnalytics?.awaitingGm ?? 0)}
+            value={dealsAnalyticsError ? "—" : formatCurrency(dealsAnalytics?.awaitingGm ?? 0)}
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
             loading={loadingDealsAnalytics}
           />
           <KpiCard
             label="Pipeline Value"
-            value={formatCurrency(dealsAnalytics?.pipelineValue ?? 0)}
+            value={dealsAnalyticsError ? "—" : formatCurrency(dealsAnalytics?.pipelineValue ?? 0)}
             icon={<BarChart2 className="h-4 w-4 text-muted-foreground" />}
             loading={loadingDealsAnalytics}
           />
           <KpiCard
             label="Avg Funding Time"
-            value={dealsAnalytics?.avgFundingTimeDays != null ? `${dealsAnalytics.avgFundingTimeDays}d` : "—"}
+            value={dealsAnalyticsError ? "—" : dealsAnalytics?.avgFundingTimeDays != null ? `${dealsAnalytics.avgFundingTimeDays}d` : "—"}
             icon={<Clock className="h-4 w-4 text-muted-foreground" />}
             loading={loadingDealsAnalytics}
             title={dealsAnalytics?.avgFundingTimeDays == null ? "Needs live funded deals" : undefined}
@@ -708,7 +827,9 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deals by Stage</CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingDealsAnalytics ? (
+              {dealsAnalyticsError ? (
+                <QueryErrorState label="Deals by stage" error={dealsAnalyticsError} onRetry={() => { void refetchDealsAnalytics(); }} testId="status-dashboard-deals-stage-error" />
+              ) : loadingDealsAnalytics ? (
                 <Skeleton className="h-24 w-full" />
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -728,7 +849,9 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rep Deal Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingDealsAnalytics ? (
+              {dealsAnalyticsError ? (
+                <QueryErrorState label="Rep deal performance" error={dealsAnalyticsError} onRetry={() => { void refetchDealsAnalytics(); }} testId="status-dashboard-deals-reps-error" />
+              ) : loadingDealsAnalytics ? (
                 <Skeleton className="h-24 w-full" />
               ) : dealsAnalytics?.reps?.length === 0 ? (
                 <div className="text-sm text-muted-foreground text-center py-4">No rep data</div>
@@ -788,7 +911,14 @@ export default function Dashboard() {
           </Button>
         </CardHeader>
         <CardContent>
-          {loadingPipeline ? (
+          {pipelineError ? (
+            <QueryErrorState
+              label="Pipeline funnel"
+              error={pipelineError}
+              onRetry={() => { void refetchPipeline(); }}
+              testId="status-dashboard-pipeline-error"
+            />
+          ) : loadingPipeline ? (
             <Skeleton className="h-56 w-full" />
           ) : (
             <ResponsiveContainer width="100%" height={230}>
@@ -834,7 +964,7 @@ export default function Dashboard() {
               <CardTitle className="flex items-center gap-2">
                 Renewal Opportunities
                 <Badge className="bg-[#1F4E79] hover:bg-[#1F4E79]">
-                  {loadingRenewals ? "…" : (renewals?.length ?? 0)}
+                  {renewalsError ? "!" : loadingRenewals ? "…" : (renewals?.length ?? 0)}
                 </Badge>
               </CardTitle>
               <CardDescription>Funded deals far enough into their term to re-fund</CardDescription>
@@ -842,7 +972,14 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          {loadingRenewals ? (
+          {renewalsError ? (
+            <QueryErrorState
+              label="Renewal opportunities"
+              error={renewalsError}
+              onRetry={() => { void refetchRenewals(); }}
+              testId="status-dashboard-renewals-error"
+            />
+          ) : loadingRenewals ? (
             <Skeleton className="h-24 w-full" />
           ) : !(renewals ?? []).length ? (
             <div className="h-24 flex flex-col items-center justify-center text-sm text-muted-foreground gap-1">
@@ -904,7 +1041,14 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loadingSources ? (
+            {sourcesError ? (
+              <QueryErrorState
+                label="Lead sources"
+                error={sourcesError}
+                onRetry={() => { void refetchSources(); }}
+                testId="status-dashboard-sources-error"
+              />
+            ) : loadingSources ? (
               <Skeleton className="h-52 w-full" />
             ) : !(sources ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
@@ -960,7 +1104,14 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loadingComms ? (
+            {communicationsError ? (
+              <QueryErrorState
+                label="Communication activity"
+                error={communicationsError}
+                onRetry={() => { void refetchCommunications(); }}
+                testId="status-dashboard-communications-error"
+              />
+            ) : loadingComms ? (
               <Skeleton className="h-52 w-full" />
             ) : !(communications ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
@@ -1043,7 +1194,14 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loadingReps ? (
+            {repsError ? (
+              <QueryErrorState
+                label="Rep performance"
+                error={repsError}
+                onRetry={() => { void refetchReps(); }}
+                testId="status-dashboard-reps-error"
+              />
+            ) : loadingReps ? (
               <Skeleton className="h-40 w-full" />
             ) : !sortedReps.length ? (
               <p className="text-sm text-muted-foreground text-center py-6">{DASHBOARD_EMPTY_STATES.repActivity}</p>
@@ -1123,6 +1281,16 @@ export default function Dashboard() {
           <CardDescription>Quick view of your task queue</CardDescription>
         </CardHeader>
         <CardContent>
+          {myTasksError ? (
+            <QueryErrorState
+              label="My tasks"
+              error={myTasksError}
+              onRetry={() => { void refetchMyTasks(); }}
+              testId="status-dashboard-tasks-error"
+            />
+          ) : loadingMyTasks ? (
+            <Skeleton className="h-20 w-full" />
+          ) : (
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-lg border bg-destructive/5 border-destructive/20 p-4">
               <p className="text-xs font-medium text-destructive uppercase tracking-wide mb-1">Overdue</p>
@@ -1137,6 +1305,7 @@ export default function Dashboard() {
               <p className="text-3xl font-bold">{myTasks?.dueThisWeek?.length ?? 0}</p>
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

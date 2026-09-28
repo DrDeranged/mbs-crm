@@ -59,6 +59,7 @@ import {
   readKanbanCompactPreference,
 } from "@/lib/dealBoard";
 import { createNoteSaveController } from "@/lib/noteSaveController";
+import { QueryErrorState } from "@/components/query-error-state";
 
 const STAGES = DEAL_STAGE_COLUMNS;
 
@@ -166,12 +167,16 @@ export default function DealsPage() {
     sort_by: sortBy,
     sort_order: sortOrder,
   };
-  const { data: response, isLoading } = useListDeals(listParams, {
+  const { data: response, isLoading, error: dealsError, refetch: refetchDeals } = useListDeals(listParams, {
     query: { queryKey: getListDealsQueryKey(listParams) },
   });
   const deals = response?.deals || [];
 
-  const { data: users } = useListUsers();
+  const {
+    data: users,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useListUsers();
 
   const updateDeal = useUpdateDeal();
   const seedDeals = useSeedDeals();
@@ -490,6 +495,27 @@ export default function DealsPage() {
         </div>
       </div>
 
+      {dealsError && (
+        <div className="px-6 pt-4">
+          <QueryErrorState
+            label="Deals"
+            error={dealsError}
+            onRetry={() => { void refetchDeals(); }}
+            testId="status-deals-error"
+          />
+        </div>
+      )}
+      {usersError && (
+        <div className="px-6 pt-4">
+          <QueryErrorState
+            label="Team members"
+            error={usersError}
+            onRetry={() => { void refetchUsers(); }}
+            testId="status-deal-users-error"
+          />
+        </div>
+      )}
+
       <div className="flex-1 overflow-hidden relative">
         {isLoading ? (
           <div className="p-6 grid grid-cols-4 gap-6 h-full">
@@ -497,6 +523,8 @@ export default function DealsPage() {
               <Skeleton key={i} className="h-full rounded-xl" />
             ))}
           </div>
+        ) : dealsError && !response ? (
+          null
         ) : isRep && deals.length === 0 ? (
           <div className="flex h-full items-center justify-center p-6">
             <div className="rounded-xl border border-dashed bg-white px-8 py-12 text-center shadow-sm">

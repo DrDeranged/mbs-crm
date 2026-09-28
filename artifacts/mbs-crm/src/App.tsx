@@ -11,6 +11,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
 import { getGetMeQueryKey, useGetMe, UserRole } from "@workspace/api-client-react";
+import { QueryErrorState } from "@/components/query-error-state";
 
 // Lazy-loaded pages — each becomes a separate chunk, downloaded only when first visited
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -153,15 +154,45 @@ function PendingApprovalGate() {
 }
 
 function ApprovedUserRoute({ component: Component }: { component: React.ComponentType }) {
-  const { data: me, isLoading } = useGetMe({
+  const { data: me, isLoading, isError, error, refetch } = useGetMe({
     query: {
       queryKey: getGetMeQueryKey(),
       retry: false,
     },
   });
 
-  if (isLoading || !me) {
+  if (isLoading) {
     return <PageLoader />;
+  }
+
+  if (isError) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+        <div className="w-full max-w-xl">
+          <QueryErrorState
+            label="Your account"
+            error={error}
+            onRetry={() => { void refetch(); }}
+            testId="status-current-user-error"
+          />
+        </div>
+      </main>
+    );
+  }
+
+  if (!me) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+        <div className="w-full max-w-xl">
+          <QueryErrorState
+            label="Your account"
+            error={undefined}
+            onRetry={() => { void refetch(); }}
+            testId="status-current-user-unavailable"
+          />
+        </div>
+      </main>
+    );
   }
 
   if (me.role === UserRole.pending) {

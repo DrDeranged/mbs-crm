@@ -21,6 +21,13 @@ export function getQueryErrorStatus(error: unknown): number | undefined {
   return typeof status === "number" ? status : undefined;
 }
 
+export function formatQueryErrorStatus(error: unknown): string {
+  const status = getQueryErrorStatus(error);
+  return status === undefined
+    ? "Request failed; HTTP status unavailable."
+    : `Request failed with HTTP status ${status}.`;
+}
+
 /**
  * Prefer the server's reason when available, then fall back to the client
  * error message. This is only rendered to administrators by detail pages.

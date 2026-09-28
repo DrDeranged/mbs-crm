@@ -24,6 +24,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMe
 import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { QueryErrorState } from "@/components/query-error-state";
 
 const LEAD_FIELDS = [
   { value: "__skip__", label: "— skip —" },
@@ -504,7 +505,7 @@ export default function Leads() {
     ...((staleOnly || isStaleView) ? { stale: true } : {}),
   };
 
-  const { data, isLoading } = useListLeads(queryParams, {
+  const { data, isLoading, error, refetch } = useListLeads(queryParams, {
     query: { queryKey: getListLeadsQueryKey(queryParams) },
   });
 
@@ -518,7 +519,11 @@ export default function Leads() {
     setPage(1);
   };
 
-  const { data: usersData } = useListUsers({ role: "rep", isActive: true });
+  const {
+    data: usersData,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useListUsers({ role: "rep", isActive: true });
   const allPageSelected = !!data?.leads?.length && data.leads.every((lead) => selectedIds.has(lead.id));
 
   const handleStatusChange = (val: string) => { setStatus(val === "all" ? "" : val); setPage(1); };
@@ -732,6 +737,27 @@ export default function Leads() {
         </div>
       ) : null}
 
+      {error && (
+        <div className="mb-4">
+          <QueryErrorState
+            label="Leads"
+            error={error}
+            onRetry={() => { void refetch(); }}
+            testId="status-leads-error"
+          />
+        </div>
+      )}
+      {usersError && (
+        <div className="mb-4">
+          <QueryErrorState
+            label="Available representatives"
+            error={usersError}
+            onRetry={() => { void refetchUsers(); }}
+            testId="status-lead-representatives-error"
+          />
+        </div>
+      )}
+
       {/* Mobile lead cards — visible below md breakpoint */}
       <div className="md:hidden space-y-3">
         {isLoading ? (
@@ -751,7 +777,7 @@ export default function Leads() {
               </div>
             </div>
           ))
-        ) : data?.leads.length === 0 ? (
+        ) : error && !data ? null : data?.leads.length === 0 ? (
           <div className="py-10">
             {hasFilters ? (
               <Empty>
@@ -895,6 +921,12 @@ export default function Leads() {
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                 </TableRow>
               ))
+            ) : error && !data ? (
+              <TableRow>
+                <TableCell colSpan={isManagerOrAdmin ? 11 : 10} className="py-12 text-center text-muted-foreground">
+                  Lead results are unavailable.
+                </TableCell>
+              </TableRow>
             ) : data?.leads.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={isManagerOrAdmin ? 11 : 10} className="py-0">
