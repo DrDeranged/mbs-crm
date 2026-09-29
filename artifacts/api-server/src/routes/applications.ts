@@ -22,7 +22,7 @@ import { extractBankStatement } from "../lib/ocrBankStatement";
 import { requireUser } from "../lib/authHelpers";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
-import { getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
+import { EMAIL_BRAND_LOGO_URL, getEmailAppOrigin } from "../lib/brand";
 import { resolveInboundAssignee } from "../lib/leadDistribution";
 import {
   buildSignedApplicationHtml,
@@ -568,9 +568,18 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
       // only to the stored address, and no mail is sent when it is absent.
       const confirmationRecipient = isReapplication ? lead.email : email;
       if (confirmationRecipient && lead.trackingToken) {
-        const baseUrl = getPublicBaseUrl();
+        // Never derive customer-facing email links from the API deployment host.
+        // A missing production origin is handled by the existing non-blocking
+        // confirmation guard below instead of sending a fallback URL.
+        let baseUrl: string;
+        try { baseUrl = getEmailAppOrigin(); }
+        catch (error) {
+          console.error("Confirmation email configuration invalid:", error);
+          baseUrl = "";
+        }
+        if (baseUrl) {
         const statusUrl = `${baseUrl}/apply/status`;
-        const logoUrl = getBrandLogoUrl(baseUrl);
+        const logoUrl = EMAIL_BRAND_LOGO_URL;
         const token = lead.trackingToken;
 
         const confirmationHtml = `<!DOCTYPE html>
@@ -620,6 +629,7 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         }).then(({ error }) => {
           if (error) console.error("Confirmation email failed:", error);
         }).catch((e: unknown) => console.error("Confirmation email failed:", e));
+        }
       }
 
       const successPayload: Record<string, unknown> = {

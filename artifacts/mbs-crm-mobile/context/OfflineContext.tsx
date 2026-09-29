@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@clerk/clerk-expo";
 import React, {
   createContext,
   useCallback,
@@ -8,21 +9,34 @@ import React, {
   useState,
 } from "react";
 import { AppState, AppStateStatus } from "react-native";
+import { bindQueueMutationToOwner } from "@/context/queueSecurity";
 
-interface QueuedMutation {
+export interface QueuedMutation {
   id: string;
   endpoint: string;
   method: string;
   body: unknown;
   timestamp: number;
+  ownerUserId?: string;
+  blockedReason?: "legacy_unowned" | "different_user";
 }
+
+type NewQueuedMutation = Omit<
+  QueuedMutation,
+  "id" | "timestamp" | "ownerUserId" | "blockedReason"
+>;
 
 interface OfflineContextValue {
   isOnline: boolean;
   queuedMutations: QueuedMutation[];
-  queueMutation: (mutation: Omit<QueuedMutation, "id" | "timestamp">) => Promise<void>;
+  isQueueLoaded: boolean;
+  queueMutation: (mutation: NewQueuedMutation) => Promise<void>;
   clearQueue: () => Promise<void>;
   removeFromQueue: (id: string) => Promise<void>;
+  setMutationBlocked: (
+    id: string,
+    reason: QueuedMutation["blockedReason"] | null,
+  ) => Promise<boolean>;
   isSyncing: boolean;
   setSyncing: (val: boolean) => void;
 }
@@ -30,9 +44,11 @@ interface OfflineContextValue {
 const OfflineContext = createContext<OfflineContextValue>({
   isOnline: true,
   queuedMutations: [],
+  isQueueLoaded: false,
   queueMutation: async () => {},
   clearQueue: async () => {},
   removeFromQueue: async () => {},
+  setMutationBlocked: async () => false,
   isSyncing: false,
   setSyncing: () => {},
 });
@@ -55,54 +71,100 @@ async function pingServer(): Promise<boolean> {
 }
 
 export function OfflineProvider({ children }: { children: React.ReactNode }) {
+  const { userId } = useAuth();
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [queuedMutations, setQueuedMutations] = useState<QueuedMutation[]>([]);
+  const [isQueueLoaded, setIsQueueLoaded] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const queueRef = useRef<QueuedMutation[]>([]);
+  const queueLoadedRef = useRef(false);
+  const queueOperationsRef = useRef<Promise<void>>(Promise.resolve());
 
-  const loadQueue = useCallback(async () => {
-    try {
-      const raw = await AsyncStorage.getItem(QUEUE_KEY);
-      setQueuedMutations(raw ? (JSON.parse(raw) as QueuedMutation[]) : []);
-    } catch {
-      setQueuedMutations([]);
-    }
+  const serializeQueueOperation = useCallback(<T,>(operation: () => Promise<T>): Promise<T> => {
+    const result = queueOperationsRef.current.then(operation);
+    queueOperationsRef.current = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
   }, []);
 
-  const saveQueue = useCallback(async (mutations: QueuedMutation[]) => {
-    try {
+  const readQueue = useCallback(async () => {
+    const raw = await AsyncStorage.getItem(QUEUE_KEY);
+    return raw ? (JSON.parse(raw) as QueuedMutation[]) : [];
+  }, []);
+
+  const loadQueue = useCallback(
+    () =>
+      serializeQueueOperation(async () => {
+        const list = await readQueue();
+        queueRef.current = list;
+        queueLoadedRef.current = true;
+        setQueuedMutations(list);
+        setIsQueueLoaded(true);
+      }),
+    [readQueue, serializeQueueOperation],
+  );
+
+  const saveQueue = useCallback(
+    async (mutations: QueuedMutation[]) => {
       await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(mutations));
+      queueRef.current = mutations;
       setQueuedMutations(mutations);
-    } catch {
-      // ignore
-    }
-  }, []);
+    },
+    [],
+  );
 
   const queueMutation = useCallback(
-    async (mutation: Omit<QueuedMutation, "id" | "timestamp">) => {
-      const entry: QueuedMutation = {
-        ...mutation,
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        timestamp: Date.now(),
-      };
-      const current = await AsyncStorage.getItem(QUEUE_KEY);
-      const list: QueuedMutation[] = current ? JSON.parse(current) : [];
-      await saveQueue([...list, entry]);
-    },
-    [saveQueue],
+    (mutation: NewQueuedMutation) =>
+      serializeQueueOperation(async () => {
+        if (!userId) {
+          throw new Error("Sign in before saving an offline change.");
+        }
+        if (!queueLoadedRef.current) {
+          const existing = await readQueue();
+          queueRef.current = existing;
+          queueLoadedRef.current = true;
+          setQueuedMutations(existing);
+          setIsQueueLoaded(true);
+        }
+        const entry: QueuedMutation = {
+          ...bindQueueMutationToOwner(mutation, userId),
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          timestamp: Date.now(),
+        };
+        await saveQueue([...queueRef.current, entry]);
+      }),
+    [readQueue, saveQueue, serializeQueueOperation, userId],
   );
 
   const clearQueue = useCallback(async () => {
-    await saveQueue([]);
-  }, [saveQueue]);
+    await serializeQueueOperation(() => saveQueue([]));
+  }, [saveQueue, serializeQueueOperation]);
 
   const removeFromQueue = useCallback(
-    async (id: string) => {
-      const current = await AsyncStorage.getItem(QUEUE_KEY);
-      const list: QueuedMutation[] = current ? JSON.parse(current) : [];
-      await saveQueue(list.filter((m) => m.id !== id));
-    },
-    [saveQueue],
+    (id: string) =>
+      serializeQueueOperation(() =>
+        saveQueue(queueRef.current.filter((mutation) => mutation.id !== id)),
+      ),
+    [saveQueue, serializeQueueOperation],
+  );
+
+  const setMutationBlocked = useCallback(
+    (id: string, reason: QueuedMutation["blockedReason"] | null) =>
+      serializeQueueOperation(async () => {
+        const current = queueRef.current.find((mutation) => mutation.id === id);
+        if (!current || current.blockedReason === (reason ?? undefined)) return false;
+        const updated = queueRef.current.map((mutation) => {
+          if (mutation.id !== id) return mutation;
+          const { blockedReason: _previousReason, ...entry } = mutation;
+          return reason ? { ...entry, blockedReason: reason } : entry;
+        });
+        await saveQueue(updated);
+        return true;
+      }),
+    [saveQueue, serializeQueueOperation],
   );
 
   const setSyncing = useCallback((val: boolean) => {
@@ -115,7 +177,9 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    loadQueue();
+    loadQueue().catch((error: unknown) => {
+      console.warn("Unable to load the offline sync queue.", error);
+    });
     checkConnectivity();
     checkIntervalRef.current = setInterval(checkConnectivity, 15000);
     const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
@@ -132,9 +196,11 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       value={{
         isOnline,
         queuedMutations,
+        isQueueLoaded,
         queueMutation,
         clearQueue,
         removeFromQueue,
+        setMutationBlocked,
         isSyncing,
         setSyncing,
       }}

@@ -1290,6 +1290,12 @@ export interface LeadInput {
   vertical?: string | null;
   ein?: string;
   applicationType?: LeadInputApplicationType;
+  /**
+     * Optional whole-dollar financing amount requested when creating the lead
+     * @minimum 1
+     * @maximum 2147483647
+     */
+  requestedAmount?: number;
   /** Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user */
   assignedRepId?: number;
   leadSource?: LeadInputLeadSource;

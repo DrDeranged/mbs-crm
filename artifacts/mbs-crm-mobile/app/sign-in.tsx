@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
@@ -67,112 +67,119 @@ export default function SignInScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollViewCompat
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      contentContainerStyle={[
+        styles.container,
+        {
+          paddingTop: topPad + 40,
+          paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 24,
+        },
+      ]}
+      keyboardShouldPersistTaps="handled"
+      bottomOffset={24}
+      showsVerticalScrollIndicator={false}
     >
-      <View style={[styles.container, { paddingTop: topPad + 40 }]}>
-        <View style={styles.logoArea}>
-          <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-            <Feather name="briefcase" size={28} color="#fff" />
-          </View>
-          <Text style={[styles.logoText, { color: colors.foreground }]}>MBS CRM</Text>
-          <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
-            Business Financing Platform
-          </Text>
+      <View style={styles.logoArea}>
+        <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+          <Feather name="briefcase" size={28} color="#fff" />
+        </View>
+        <Text style={[styles.logoText, { color: colors.foreground }]}>MBS CRM</Text>
+        <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
+          Business Financing Platform
+        </Text>
+      </View>
+
+      <View style={styles.form}>
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.foreground }]}>Email</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.foreground,
+              },
+            ]}
+            placeholder="you@example.com"
+            placeholderTextColor={colors.mutedForeground}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+            value={email}
+            onChangeText={(t) => { setEmail(t); setError(""); }}
+            returnKeyType="next"
+          />
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Email</Text>
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.foreground }]}>Password</Text>
+          <View style={styles.passwordWrap}>
             <TextInput
               style={[
                 styles.input,
+                styles.passwordInput,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
                   color: colors.foreground,
                 },
               ]}
-              placeholder="you@example.com"
+              placeholder="••••••••"
               placeholderTextColor={colors.mutedForeground}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              textContentType="emailAddress"
-              value={email}
-              onChangeText={(t) => { setEmail(t); setError(""); }}
-              returnKeyType="next"
+              secureTextEntry={!showPassword}
+              autoComplete="password"
+              textContentType="password"
+              value={password}
+              onChangeText={(t) => { setPassword(t); setError(""); }}
+              returnKeyType="done"
+              onSubmitEditing={handleSignIn}
             />
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Password</Text>
-            <View style={styles.passwordWrap}>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.passwordInput,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    color: colors.foreground,
-                  },
-                ]}
-                placeholder="••••••••"
-                placeholderTextColor={colors.mutedForeground}
-                secureTextEntry={!showPassword}
-                autoComplete="password"
-                textContentType="password"
-                value={password}
-                onChangeText={(t) => { setPassword(t); setError(""); }}
-                returnKeyType="done"
-                onSubmitEditing={handleSignIn}
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather
+                name={showPassword ? "eye-off" : "eye"}
+                size={18}
+                color={colors.mutedForeground}
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Feather
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={18}
-                  color={colors.mutedForeground}
-                />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
-
-          {error ? (
-            <View style={[styles.errorBox, { backgroundColor: "#FEE2E2", borderColor: "#FECACA" }]}>
-              <Feather name="alert-circle" size={14} color={colors.destructive} />
-              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
-            </View>
-          ) : null}
-
-          <TouchableOpacity
-            style={[
-              styles.signInBtn,
-              { backgroundColor: colors.primary },
-              (loading || !isLoaded) && styles.btnDisabled,
-            ]}
-            onPress={handleSignIn}
-            disabled={loading || !isLoaded}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.signInBtnText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
         </View>
 
-        <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-          Contact your administrator for access.
-        </Text>
+        {error ? (
+          <View style={[styles.errorBox, { backgroundColor: "#FEE2E2", borderColor: "#FECACA" }]}>
+            <Feather name="alert-circle" size={14} color={colors.destructive} />
+            <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+          </View>
+        ) : null}
+
+        <TouchableOpacity
+          style={[
+            styles.signInBtn,
+            { backgroundColor: colors.primary },
+            (loading || !isLoaded) && styles.btnDisabled,
+          ]}
+          onPress={handleSignIn}
+          disabled={loading || !isLoaded}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.signInBtnText}>Sign In</Text>
+          )}
+        </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+
+      <Text style={[styles.footer, { color: colors.mutedForeground }]}>
+        Contact your administrator for access.
+      </Text>
+    </KeyboardAwareScrollViewCompat>
   );
 }
 
@@ -181,9 +188,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 28,
-    paddingBottom: 40,
   },
   logoArea: {
     alignItems: "center",

@@ -15,17 +15,18 @@ import { isValidE164 } from "../lib/telephonySettings";
 import { getUsfaSheetPollerHealth } from "../lib/intake/usfaPoller";
 import { getUsfaApplicationPollerHealth } from "../lib/intake/usfaApplicationPoller";
 import { hasUnhealthyArmedUsfaPoller, usfaPollerJobSummary } from "../lib/intake/usfaPollerHealth";
+import { getEmailOriginHealth } from "../lib/brand";
 
 const router: IRouter = Router();
 
 router.get("/", (_req, res) => {
-  const data = HealthCheckResponse.parse({ status: "ok" });
-  res.json(data);
+  const healthy = getEmailOriginHealth().valid;
+  res.status(healthy ? 200 : 503).json(HealthCheckResponse.parse({ status: healthy ? "ok" : "degraded" }));
 });
 
 router.get("/healthz", (_req, res) => {
-  const data = HealthCheckResponse.parse({ status: "ok" });
-  res.json(data);
+  const healthy = getEmailOriginHealth().valid;
+  res.status(healthy ? 200 : 503).json(HealthCheckResponse.parse({ status: healthy ? "ok" : "degraded" }));
 });
 
 router.get("/health/deep", async (_req, res) => {
@@ -187,7 +188,8 @@ router.get("/health/deep", async (_req, res) => {
     // job_runs table may not exist yet — safe to skip
   }
 
-  const healthy = dbOk &&
+  const emailOrigin = getEmailOriginHealth();
+  const healthy = emailOrigin.valid && dbOk &&
     schema.pending.length === 0 &&
     !schema.failed &&
     !usfaPollerFailed;
@@ -197,6 +199,7 @@ router.get("/health/deep", async (_req, res) => {
     db: dbOk ? "ok" : "fail",
     schema,
     integrations,
+    emailOrigin,
     telephony,
     pdf: await getPdfHealth(),
     jobs: jobSummary,

@@ -19,7 +19,7 @@ integrations = ["github:1.0.0"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
-timeoutMs = 20000
+timeoutMs = 90000
 
 [[ports]]
 localPort = 8080
@@ -52,6 +52,7 @@ SENDGRID_FROM_NAME = "My Business Solutions"
 
 [userenv.production]
 ALLOWED_ORIGINS = "https://app.my-business-solutions.com,https://my-business-solutions.com,https://www.my-business-solutions.com"
+PUBLIC_APP_URL = "https://app.my-business-solutions.com"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-f3f5a47e-8f3f-4900-8d52-6ff73ad08e06"

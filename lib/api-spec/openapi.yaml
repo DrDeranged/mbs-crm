@@ -6027,6 +6027,11 @@ components:
         applicationType:
           type: string
           enum: [equipment, working_capital]
+        requestedAmount:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: Optional whole-dollar financing amount requested when creating the lead
         assignedRepId:
           type: integer
           description: Optional assignment; only managers/admins may provide this, and the destination must be an active eligible user

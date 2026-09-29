@@ -44,3 +44,4 @@
 - [Cmdk listbox IDs](cmdk-listbox-ids.md) — CommandList generates its own ID; don't point a surrounding trigger at a caller-supplied list ID.
 - [Published PWA asset fallbacks](pwa-asset-fallbacks.md) — static hosting may serve 200 HTML for removed JS chunks; reject it before caching and recover stale route imports.
 - [Baseline migration adoption](baseline-migration-adoption.md) — run migration zero only on an empty schema; existing installations adopt its checksum without replaying DDL.
+- [Offline queue ownership](offline-queue-ownership.md) — replay only entries bound to the current account; quarantine legacy ownerless entries rather than guessing their owner.

@@ -16,7 +16,7 @@ import { logActivity } from "../lib/activityHelper";
 import { renderCollateral, renderFinanceApplicationCollateral, FINANCE_APPLICATION_SOURCE_KEY } from "../lib/collateralPersonalization";
 import { enrichApplicationPdfRep } from "../lib/applicationPdf";
 import { ObjectNotFoundError, ObjectStorageService } from "../lib/objectStorage";
-import { getPublicBaseUrl } from "../lib/brand";
+import { EMAIL_BRAND_LOGO_URL, getEmailAppOrigin, getPublicBaseUrl, normalizeEmailAppUrls } from "../lib/brand";
 import {
   canEmailCollateralToLead,
   canManageCollateralTemplates,
@@ -165,13 +165,20 @@ export async function sendCollateralEmail(client: CollateralMailClient, input: {
   templateName: string;
   pdf: Buffer;
 }): Promise<void> {
+  // This delivery path does not use tracked sends; enforce the same origin
+  // policy at its own provider boundary before sending anything.
+  getEmailAppOrigin();
+  const html = normalizeEmailAppUrls(input.bodyHtml).replace(
+    /https?:\/\/[^"'\s<>]+\/api\/brand\/logo(?:-reverse)?\.png/gi,
+    EMAIL_BRAND_LOGO_URL,
+  );
   client.setApiKey(process.env.SENDGRID_API_KEY || "");
   await client.send({
     to: input.leadEmail,
     from: { email: "funding@my-business-solutions.com", name: "My Business Solutions" },
     replyTo: { email: input.repEmail, name: input.repName || input.repEmail },
     subject: input.subject,
-    html: input.bodyHtml,
+    html,
     attachments: [{
       content: input.pdf.toString("base64"),
       filename: `${input.templateName}.pdf`,

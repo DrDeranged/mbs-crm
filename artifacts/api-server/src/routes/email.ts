@@ -20,7 +20,7 @@ import {
   requireUser,
 } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { ensureBrandEmailHeader, getBrandLogoPng, getBrandLogoReversePng, getBrandLogoUrl, getPublicBaseUrl } from "../lib/brand";
+import { EMAIL_BRAND_LOGO_URL, ensureBrandEmailHeader, getBrandLogoPng, getBrandLogoReversePng, getBrandLogoUrl, getPublicBaseUrl, getEmailAppOrigin, normalizeEmailAppUrls } from "../lib/brand";
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 import { seedStarterEmailData } from "../lib/productionMaintenance";
@@ -438,8 +438,14 @@ export async function sendTrackedEmailToProvider({
   /** Campaigns may explicitly select their operational Reply-To. */
   replyToEmail?: string;
 }) {
-  const html = injectTracking(bodyHtml, sendId, baseUrl, toEmail, !minimalNoImages);
-  const text = bodyText ? injectPlainCompliance(bodyText, sendId, baseUrl, toEmail) : undefined;
+  // Never trust a caller-supplied base URL, including older campaign jobs.
+  const emailOrigin = getEmailAppOrigin();
+  const cleanHtml = normalizeEmailAppUrls(bodyHtml).replace(
+    /https?:\/\/[^"'\s<>]+\/api\/brand\/logo(?:-reverse)?\.png/gi,
+    EMAIL_BRAND_LOGO_URL,
+  );
+  const html = normalizeEmailAppUrls(injectTracking(cleanHtml, sendId, emailOrigin, toEmail, !minimalNoImages));
+  const text = bodyText ? normalizeEmailAppUrls(injectPlainCompliance(normalizeEmailAppUrls(bodyText), sendId, emailOrigin, toEmail)) : undefined;
   return provider.send({
     from,
     ...(replyTo ? { replyTo } : {}),

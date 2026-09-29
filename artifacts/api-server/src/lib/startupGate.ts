@@ -1,5 +1,6 @@
 import type { RequestListener } from "node:http";
 import { buildRevision, REVISION_HEADER } from "./buildRevision";
+import { getEmailOriginHealth } from "./brand";
 
 export type StartupPhase = "booting" | "ready" | "failed";
 
@@ -56,7 +57,8 @@ export function createStartupGate(): StartupGate {
     const isDeepHealth = path === "/api/health/deep";
 
     if (isMethodSafe && isLiveness && phase === "booting") {
-      sendJson(res, 200, { status: "ok", phase });
+      const healthy = getEmailOriginHealth().valid;
+      sendJson(res, healthy ? 200 : 503, { status: healthy ? "ok" : "degraded", phase });
       return;
     }
 

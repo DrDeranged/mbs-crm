@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useOffline } from "@/context/OfflineContext";
 import { useColors } from "@/hooks/useColors";
+import { parseRequestedAmount } from "@/lib/newLeadAmount";
 
 interface FormData {
   ownerFirstName: string;
@@ -32,9 +33,6 @@ interface FormData {
 const APPLICATION_TYPES = [
   { label: "Working Capital", value: "working_capital" },
   { label: "Equipment", value: "equipment" },
-  { label: "Real Estate", value: "real_estate" },
-  { label: "Line of Credit", value: "line_of_credit" },
-  { label: "SBA Loan", value: "sba" },
 ];
 
 function Field({
@@ -110,6 +108,11 @@ export default function NewLeadScreen() {
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       return "Please enter a valid email address.";
     }
+    try {
+      parseRequestedAmount(form.loanAmountRequested);
+    } catch {
+      return "Enter a whole-dollar loan amount between $1 and $2,147,483,647.";
+    }
     return "";
   };
 
@@ -126,6 +129,7 @@ export default function NewLeadScreen() {
       companyName: form.businessName.trim() || undefined,
       email: form.email.trim() || undefined,
       phone: form.phone.trim() || undefined,
+      requestedAmount: parseRequestedAmount(form.loanAmountRequested),
       applicationType: (form.applicationType || undefined) as "equipment" | "working_capital" | undefined,
     };
 
@@ -143,9 +147,9 @@ export default function NewLeadScreen() {
       router.push(`/lead/${created.id}`);
     } catch (err: unknown) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      const apiErr = err as { response?: { status?: number; data?: { existingLeadId?: number } } };
+      const apiErr = err as { response?: { status?: number; data?: { existing_lead_id?: number } } };
       if (apiErr?.response?.status === 409) {
-        const id = apiErr.response.data?.existingLeadId;
+        const id = apiErr.response.data?.existing_lead_id;
         setDuplicateLeadId(id ?? null);
         setError("A lead with this information already exists.");
       } else {

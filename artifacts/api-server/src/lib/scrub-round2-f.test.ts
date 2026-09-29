@@ -292,7 +292,7 @@ test("admin test-send route sends fixed CEO message from funding address and ret
   }
 });
 
-test("shared locked daily bulk/drip reservation allows 60 combined attempts and denies the rest", async () => {
+test("shared locked daily bulk/drip reservation allows 75 combined attempts and denies the rest", async () => {
   let used = 0;
   let tail = Promise.resolve();
   const repository = {
@@ -307,25 +307,25 @@ test("shared locked daily bulk/drip reservation allows 60 combined attempts and 
         release?.();
       }
     },
-    getLimit: async () => 60,
+    getLimit: async () => 75,
     getUsed: async () => used,
     create: async () => ++used,
   };
   const attempts = await Promise.all(
-    Array.from({ length: 61 }, (_, index) =>
+    Array.from({ length: 76 }, (_, index) =>
       reserveDailyMarketingEmail(repository).then((result) => ({
         source: index % 2 === 0 ? "bulk" : "drip",
         result,
       })),
     ),
   );
-  assert.equal(attempts.filter(({ result }) => result !== null).length, 60);
-  assert.equal(attempts.filter(({ source, result }) => source === "bulk" && result !== null).length, 30);
-  assert.equal(attempts.filter(({ source, result }) => source === "drip" && result !== null).length, 30);
-  assert.equal(used, 60);
+  assert.equal(attempts.filter(({ result }) => result !== null).length, 75);
+  assert.equal(attempts.filter(({ source, result }) => source === "bulk" && result !== null).length, 38);
+  assert.equal(attempts.filter(({ source, result }) => source === "drip" && result !== null).length, 37);
+  assert.equal(used, 75);
 });
 
-test("bulk and drip production call sites opt into the shared 75-message reservation", async () => {
+test("bulk and drip production call sites opt into the shared 60-message reservation", async () => {
   const emailRoute = await readFile(new URL("../routes/email.ts", import.meta.url), "utf8");
   const dripJob = await readFile(new URL("./dripJob.ts", import.meta.url), "utf8");
   assert.match(emailRoute, /deliveryKind:\s*"bulk"/);

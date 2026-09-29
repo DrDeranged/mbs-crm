@@ -278,7 +278,7 @@ export function LeadDocuments() {
       <LenderPackageBuilderDialog leadId={leadId} open={packageBuilderOpen} onOpenChange={setPackageBuilderOpen} />
       <div className="flex flex-wrap justify-between items-center gap-2">
         <h3 className="font-medium">Documents</h3>
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
           {!applicationLoading && !application?.submittedAt ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -295,7 +295,7 @@ export function LeadDocuments() {
           ) : (
             lenderPackageButton
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="relative">
             <Input
               ref={fileInputRef}

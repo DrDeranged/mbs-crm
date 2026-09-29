@@ -33,6 +33,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineProvider, useOffline } from "@/context/OfflineContext";
+import {
+  buildReplayAuthorization,
+  getQueueBlockReason,
+} from "@/context/queueSecurity";
 import { tokenCache } from "@/lib/tokenCache";
 
 SplashScreen.preventAutoHideAsync();
@@ -95,57 +99,159 @@ function PushTokenSync() {
 }
 
 function SyncWorker() {
-  const { isOnline, queuedMutations, removeFromQueue, setSyncing } = useOffline();
-  const { getToken, isSignedIn } = useAuth();
-  const wasOnline = useRef<boolean | null>(null);
+  const {
+    isOnline,
+    queuedMutations,
+    isQueueLoaded,
+    removeFromQueue,
+    setMutationBlocked,
+    setSyncing,
+  } = useOffline();
+  const { getToken, isSignedIn, userId } = useAuth();
+  const replaying = useRef(false);
+  const stateRef = useRef({
+    isOnline,
+    isQueueLoaded,
+    isSignedIn: !!isSignedIn,
+    userId,
+    queuedMutations,
+    getToken,
+    removeFromQueue,
+    setMutationBlocked,
+  });
+  stateRef.current = {
+    isOnline,
+    isQueueLoaded,
+    isSignedIn: !!isSignedIn,
+    userId,
+    queuedMutations,
+    getToken,
+    removeFromQueue,
+    setMutationBlocked,
+  };
 
   useEffect(() => {
-    const justCameOnline = wasOnline.current === false && isOnline;
-    wasOnline.current = isOnline;
-
-    if (!justCameOnline || !isSignedIn || queuedMutations.length === 0) return;
-
-    let cancelled = false;
+    if (
+      replaying.current ||
+      !isQueueLoaded ||
+      !isSignedIn ||
+      !userId ||
+      queuedMutations.length === 0
+    ) {
+      return;
+    }
 
     async function replay() {
-      setSyncing(true);
-      for (const mutation of queuedMutations) {
-        if (cancelled) break;
-        try {
-          const token = await getToken();
-          const res = await fetch(
-            `https://${process.env.EXPO_PUBLIC_DOMAIN}${mutation.endpoint}`,
-            {
-              method: mutation.method,
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+      replaying.current = true;
+      let isSyncing = false;
+      try {
+        while (
+          stateRef.current.isQueueLoaded &&
+          stateRef.current.isSignedIn &&
+          stateRef.current.userId &&
+          stateRef.current.queuedMutations.length > 0
+        ) {
+          const ownerId = stateRef.current.userId;
+          let queueChanged = false;
+          for (const entry of stateRef.current.queuedMutations) {
+            const ownerBlockReason = getQueueBlockReason(entry.ownerUserId, ownerId);
+            const blockedReason = ownerBlockReason ??
+              (entry.blockedReason === "different_user" ? null : undefined);
+            if (blockedReason === undefined || blockedReason === entry.blockedReason) continue;
+            const changed = await stateRef.current.setMutationBlocked(
+              entry.id,
+              blockedReason,
+            );
+            if (changed) {
+              queueChanged = true;
+              if (blockedReason) {
+                Alert.alert(
+                  "Queued Change Blocked",
+                  blockedReason === "legacy_unowned"
+                    ? "An older queued change has no account owner and was not sent. It remains on this device for review."
+                    : "A queued change belongs to another account and was not sent. Sign in with the account that created it to sync.",
+                );
+              }
+            }
+            stateRef.current.queuedMutations = stateRef.current.queuedMutations.map(
+              (mutation) => {
+                if (mutation.id !== entry.id) return mutation;
+                const { blockedReason: _previousReason, ...unblocked } = mutation;
+                return blockedReason
+                  ? { ...unblocked, blockedReason }
+                  : unblocked;
               },
-              body: JSON.stringify(mutation.body),
-            },
+            );
+          }
+          if (queueChanged) continue;
+
+          const mutation = stateRef.current.queuedMutations.find(
+            (entry) =>
+              entry.ownerUserId === ownerId &&
+              !entry.blockedReason,
           );
-          if (res.ok || res.status === 409) {
+          if (!mutation || !stateRef.current.isOnline) break;
+
+          try {
+            if (!isSyncing) {
+              setSyncing(true);
+              isSyncing = true;
+            }
+            const token = await stateRef.current.getToken();
+            const authorization = buildReplayAuthorization(token);
+            if (
+              !authorization ||
+              stateRef.current.userId !== ownerId ||
+              mutation.ownerUserId !== stateRef.current.userId
+            ) {
+              Alert.alert(
+                "Sync Paused",
+                "A secure sign-in token is unavailable. Your queued change remains on this device.",
+              );
+              break;
+            }
+            const res = await fetch(
+              `https://${process.env.EXPO_PUBLIC_DOMAIN}${mutation.endpoint}`,
+              {
+                method: mutation.method,
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: authorization,
+                },
+                body: JSON.stringify(mutation.body),
+              },
+            );
+            if (!res.ok && res.status !== 409) break;
             if (res.status === 409) {
               Alert.alert(
                 "Sync Conflict",
                 "A queued change conflicted with a server update and was discarded.",
               );
             }
-            await removeFromQueue(mutation.id);
+            await stateRef.current.removeFromQueue(mutation.id);
+            stateRef.current.queuedMutations =
+              stateRef.current.queuedMutations.filter((entry) => entry.id !== mutation.id);
+          } catch {
+            // Keep the failed mutation for a later retry.
+            break;
           }
-        } catch {
-          // keep in queue for next retry
         }
+      } finally {
+        replaying.current = false;
+        if (isSyncing) setSyncing(false);
       }
-      if (!cancelled) setSyncing(false);
     }
 
-    replay();
-    return () => {
-      cancelled = true;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline]);
+    void replay();
+  }, [
+    isOnline,
+    isQueueLoaded,
+    isSignedIn,
+    userId,
+    queuedMutations.length,
+    setMutationBlocked,
+    setSyncing,
+  ]);
 
   return null;
 }

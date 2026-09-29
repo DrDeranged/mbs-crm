@@ -21,6 +21,7 @@ import { getLeadSmsEligibility } from "./smsEligibility";
 import { isUsfaMarketingBlocked } from "./intake/usfaCompliance";
 import { getTelephonySettings } from "./telephonySettings";
 import { isWithinVoiceHours, newYorkBusinessTime } from "./inboundVoice";
+import { getEmailAppOrigin, normalizeEmailAppUrls } from "./brand";
 
 const PLAYBACK_TTL_SECONDS = 15 * 60;
 const FUNDING_EMAIL = "funding@my-business-solutions.com";
@@ -226,14 +227,7 @@ function stableDocumentPath(documentId: number): string {
 }
 
 function trustedAppUrl(path: string): string {
-  const configured = process.env.APP_URL || process.env.PUBLIC_APP_URL || "https://app.my-business-solutions.com";
-  const base = new URL(configured);
-  if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash) {
-    throw new Error("APP_URL must be a trusted HTTPS origin");
-  }
-  const allowed = new Set(["app.my-business-solutions.com", ...(process.env.TRUSTED_APP_HOSTS || "").split(",").map((host) => host.trim()).filter(Boolean)]);
-  if (!allowed.has(base.hostname)) throw new Error("APP_URL is not an allowed application origin");
-  return new URL(path, `${base.origin}/`).toString();
+  return new URL(path, `${getEmailAppOrigin()}/`).toString();
 }
 
 /**
@@ -295,8 +289,8 @@ async function notifyVoicemail(lead: typeof leadsTable.$inferSelect, rep: typeof
         to: toEmail,
         from: { email: process.env.SENDGRID_FROM_EMAIL?.trim() || FUNDING_EMAIL, name: "My Business Solutions" },
         subject,
-        html: body,
-        text: `Voicemail from ${lead.phone || "unknown caller"}\n\nTranscript: ${transcript || "(No transcription was returned.)"}\n\nPlay voicemail: ${link}`,
+        html: normalizeEmailAppUrls(body),
+        text: normalizeEmailAppUrls(`Voicemail from ${lead.phone || "unknown caller"}\n\nTranscript: ${transcript || "(No transcription was returned.)"}\n\nPlay voicemail: ${link}`),
         trackingSettings: { clickTracking: { enable: false, enableText: false }, openTracking: { enable: false } },
       });
     } catch (error) {

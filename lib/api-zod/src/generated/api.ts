@@ -1071,6 +1071,10 @@ export const ListLeadsResponse = zod.object({
 /**
  * @summary Create a new lead (with duplicate check)
  */
+export const createLeadBodyRequestedAmountMax = 2147483647;
+
+
+
 export const CreateLeadBody = zod.object({
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -1080,6 +1084,7 @@ export const CreateLeadBody = zod.object({
   "vertical": zod.string().nullish(),
   "ein": zod.string().optional(),
   "applicationType": zod.enum(['equipment', 'working_capital']).optional(),
+  "requestedAmount": zod.number().min(1).max(createLeadBodyRequestedAmountMax).optional().describe('Optional whole-dollar financing amount requested when creating the lead'),
   "assignedRepId": zod.number().optional().describe('Optional assignment; only managers\/admins may provide this, and the destination must be an active eligible user'),
   "leadSource": zod.enum(['website', 'referral', 'import', 'manual', 'qr-card']).optional(),
   "company": zod.object({
