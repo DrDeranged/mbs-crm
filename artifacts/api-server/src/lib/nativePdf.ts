@@ -1,7 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { readPackagedAsset } from "./packagedAsset";
 
 export const LETTER_WIDTH = 612;
 export const LETTER_HEIGHT = 792;
@@ -19,22 +18,8 @@ export type NativePdfFonts = {
 
 const interFonts = new WeakSet<object>();
 
-function assetCandidates(name: string): string[] {
-  const root = typeof __dirname === "string" ? __dirname : process.cwd();
-  return [
-    path.resolve(root, "assets", name),
-    path.resolve(root, "../src/assets", name),
-    path.resolve(process.cwd(), "src/assets", name),
-    path.resolve(process.cwd(), "dist/assets", name),
-  ];
-}
-
 async function readAsset(name: string): Promise<Buffer> {
-  let lastError: unknown;
-  for (const candidate of assetCandidates(name)) {
-    try { return await readFile(candidate); } catch (error) { lastError = error; }
-  }
-  throw lastError instanceof Error ? lastError : new Error(`Could not read PDF asset ${name}`);
+  return readPackagedAsset(name);
 }
 
 /** Embeds the light MBS logo, returning null when the optional asset is unavailable. */

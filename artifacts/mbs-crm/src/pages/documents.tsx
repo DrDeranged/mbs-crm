@@ -281,10 +281,11 @@ export default function Documents() {
 
     const preparePreview = async () => {
       try {
+        const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]);
         const query = admin && repId !== "me" ? `?repId=${repId}` : "";
         const response = await fetch(`${api}/collateral/templates/${selected.id}/render${query}`, {
           credentials: "include",
-          signal: controller.signal,
+          signal,
         });
         const payload = await response.json().catch(() => null);
         if (!response.ok) throw new Error(payload?.error || `Preview failed (${response.status})`);
@@ -293,15 +294,18 @@ export default function Documents() {
         }
 
         const prepared = payload as CollateralRender;
-        const blob = await fetchAuthenticatedBlob(resolveApiUrl(prepared.pdfUrl));
+        const blob = await fetchAuthenticatedBlob(resolveApiUrl(prepared.pdfUrl), signal);
         if (controller.signal.aborted) return;
+        if (blob.type !== "application/pdf") throw new Error("The server did not return a PDF preview");
         objectUrl = URL.createObjectURL(blob);
         setRender(prepared);
         setPreviewBlob(blob);
         setPreviewUrl(objectUrl);
       } catch (error) {
         if (!controller.signal.aborted) {
-          setRenderError(error instanceof Error ? error.message : "Could not prepare this document");
+          setRenderError(error instanceof Error && error.name === "TimeoutError"
+            ? "The preview timed out. Please try again."
+            : error instanceof Error ? error.message : "Could not prepare this document");
         }
       } finally {
         if (!controller.signal.aborted) setRendering(false);

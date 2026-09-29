@@ -12,10 +12,11 @@ export function safeDownloadFilename(value: string, fallback: string): string {
   return safe || fallback;
 }
 
-export async function fetchAuthenticatedBlob(url: string): Promise<Blob> {
+export async function fetchAuthenticatedBlob(url: string, signal?: AbortSignal): Promise<Blob> {
   const response = await fetch(url, {
     credentials: "include",
     headers: { Accept: "application/pdf,image/*,application/octet-stream" },
+    signal,
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);

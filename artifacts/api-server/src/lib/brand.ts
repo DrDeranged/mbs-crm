@@ -1,35 +1,16 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { readPackagedAsset } from "./packagedAsset";
 
 export const BRAND_LOGO_PATH = "/api/brand/logo.png";
 export const BRAND_LOGO_REVERSE_PATH = "/api/brand/logo-reverse.png";
 /** The externally hosted mark used in every outbound email. */
 export const EMAIL_BRAND_LOGO_URL = "https://app.my-business-solutions.com/brand/mbs-logo-green-slash.png";
 
-const assetCandidates = (filename: string): string[] => {
-  const root = typeof __dirname === "string" ? __dirname : process.cwd();
-  return [
-    path.resolve(root, "assets", filename),
-    path.resolve(root, "../src/assets", filename),
-    path.resolve(process.cwd(), "src/assets", filename),
-    path.resolve(process.cwd(), "dist/assets", filename),
-  ];
-};
-
-function readAsset(filename: string): Buffer {
-  const candidates = assetCandidates(filename);
-  for (const candidate of candidates) {
-    try { return readFileSync(candidate); } catch { /* try the packaged fallback */ }
-  }
-  throw new Error(`Could not read brand asset ${filename}`);
-}
-
 export function getBrandLogoPng(): Buffer {
-  return readAsset("mbs-logo-green-slash.png");
+  return readPackagedAsset("mbs-logo-green-slash.png");
 }
 
 export function getBrandLogoReversePng(): Buffer {
-  return readAsset("mbs-logo-green-slash-reverse.png");
+  return readPackagedAsset("mbs-logo-green-slash-reverse.png");
 }
 
 function normalizeBaseUrl(value: string): string {

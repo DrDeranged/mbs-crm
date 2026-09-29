@@ -8,6 +8,7 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "test": "node --test --experimental-strip-types --loader ./test-loader.mjs src/lib/*.test.ts",
+    "test:built-collateral": "pnpm run build && cd ../.. && node artifacts/api-server/test-built-collateral.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
