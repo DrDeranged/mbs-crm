@@ -29,8 +29,9 @@ test("production origin validation and boot, root and deep health", async () => 
       assert.throws(() => getEmailAppOrigin());
       for (const path of ["/api", "/api/healthz", "/api/health/deep"]) {
         const response = await fetch(`http://127.0.0.1:${address.port}${path}`);
-        assert.equal(response.status, 503, path);
-        assert.equal((await response.json() as { status: string }).status, "degraded");
+        const isDeep = path === "/api/health/deep";
+        assert.equal(response.status, isDeep ? 503 : 200, path);
+        assert.equal((await response.json() as { status: string }).status, isDeep ? "degraded" : "ok");
       }
       const gate = createStartupGate();
       let status = 0;
@@ -39,7 +40,7 @@ test("production origin validation and boot, root and deep health", async () => 
         writeHead(code: number) { status = code; },
         end() {},
       } as any);
-      assert.equal(status, 503);
+      assert.equal(status, 200);
     }
     process.env.PUBLIC_APP_URL = CANONICAL_APP_ORIGIN;
     assert.equal(getEmailOriginHealth().valid, true);

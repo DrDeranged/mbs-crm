@@ -1,98 +1,66 @@
 import { createServer } from "node:http";
+import { Worker } from "node:worker_threads";
 import { createStartupGate } from "./lib/startupGate";
+import { createRuntimeProxy } from "./lib/runtimeProxy";
+import { trackWorkerLifecycle } from "./lib/workerLifecycle";
 
-const rawPort = process.env["PORT"];
-if (!rawPort) {
-  throw new Error("PORT environment variable is required but was not provided.");
+const port = Number(process.env["PORT"]);
+if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+  throw new Error("PORT must be an integer between 1 and 65535");
 }
-
-const port = Number(rawPort);
-if (!Number.isFinite(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const startupGate = createStartupGate();
-const server = createServer(startupGate.handler);
-let stopBackgroundJobs: (() => void) | null = null;
-let disposeRuntime: (() => Promise<void>) | null = null;
+const gate = createStartupGate();
+const server = createServer(gate.handler);
+let worker: Worker | undefined;
+let lifecycle: ReturnType<typeof trackWorkerLifecycle> | undefined;
 let shuttingDown = false;
-let initialization: Promise<void> | null = null;
+let failureScheduled = false;
+
+function fail(error: string, stack?: string): void {
+  if (shuttingDown || failureScheduled) return;
+  failureScheduled = true;
+  gate.fail();
+  console.error(JSON.stringify({ level: "fatal", event: "api_initialization_failed", error, stack }));
+  // Leave diagnostic endpoints briefly reachable, then let the supervisor
+  // restart. Never accept business traffic when initialization failed.
+  setTimeout(() => void shutdown("initialization_failed", 1), 1000).unref();
+}
 
 server.once("error", (error) => {
-  console.error(JSON.stringify({
-    level: "fatal",
-    event: "api_listen_failed",
-    error: error instanceof Error ? error.message : String(error),
-  }));
+  console.error(JSON.stringify({ level: "fatal", event: "api_listen_failed", error: error.message }));
   process.exit(1);
 });
-
-server.listen(port, () => {
-  console.info(JSON.stringify({
-    level: "info",
-    event: "api_startup_listener_ready",
-    port,
-  }));
-
-  initialization = import("./runtime")
-    .then(async ({ initializeRuntime }) => {
-      const runtime = await initializeRuntime();
-      stopBackgroundJobs = runtime.stopBackgroundJobs;
-      disposeRuntime = runtime.dispose;
-      if (shuttingDown) {
-        return;
-      }
-      startupGate.activate(runtime.listener);
-      console.info(JSON.stringify({
-        level: "info",
-        event: "api_application_ready",
-        port,
-      }));
-    })
-    .catch((error) => {
-      startupGate.fail();
-      console.error(JSON.stringify({
-        level: "fatal",
-        event: "api_initialization_failed",
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      }));
-
-      // The failed gate remains available briefly for diagnostics, then the
-      // process exits so the deployment supervisor can restart or roll back
-      // instead of leaving a permanently unavailable instance alive.
-      setTimeout(() => {
-        if (shuttingDown) return;
-        server.close(() => process.exit(1));
-        setTimeout(() => process.exit(1), 5_000).unref();
-      }, 1_000).unref();
-    });
+server.listen(port, "0.0.0.0", () => {
+  console.info(JSON.stringify({ level: "info", event: "api_startup_listener_ready", port }));
+  // The parent imports no application/DB/configuration graph. Parsing and
+  // evaluating that graph in another isolate cannot stall liveness requests.
+  worker = new Worker(new URL("./runtime-worker.mjs", import.meta.url));
+  lifecycle = trackWorkerLifecycle(worker);
+  worker.on("message", (message: { type: string; port?: number; error?: string; stack?: string }) => {
+    if (message.type === "ready" && !shuttingDown && message.port) {
+      gate.activate(createRuntimeProxy(message.port));
+      console.info(JSON.stringify({ level: "info", event: "api_application_ready", port }));
+    } else if (message.type === "failed") {
+      fail(message.error ?? "Runtime initialization failed", message.stack);
+    }
+  });
+  worker.on("error", (error) => {
+    fail(error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : undefined);
+  });
+  worker.on("exit", (code) => {
+    if (!shuttingDown) fail(`Runtime worker exited unexpectedly (${code})`);
+  });
 });
 
-async function shutdown(signal: string): Promise<void> {
+async function shutdown(signal: string, exitCode = 0): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   console.info(JSON.stringify({ level: "info", event: "api_shutdown", signal }));
-
-  const forcedExit = setTimeout(() => {
-    console.error(JSON.stringify({ level: "fatal", event: "api_forced_exit" }));
-    process.exit(1);
-  }, 15_000).unref();
-
-  // Stop accepting traffic before dependencies begin shutting down. Existing
-  // requests drain through Node's normal server.close behavior.
-  const serverClosed = new Promise<void>((resolve, reject) => {
-    server.close((error) => error ? reject(error) : resolve());
-  });
-
-  await initialization?.catch(() => undefined);
-  stopBackgroundJobs?.();
-  await serverClosed;
-  await disposeRuntime?.();
+  const forcedExit = setTimeout(() => process.exit(1), 15_000).unref();
+  // Drain the public proxy before disposing the worker's dependencies.
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await lifecycle?.shutdown();
   clearTimeout(forcedExit);
-  console.info(JSON.stringify({ level: "info", event: "api_http_server_closed" }));
-  process.exit(0);
+  process.exit(exitCode);
 }
-
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 process.on("SIGINT", () => void shutdown("SIGINT"));

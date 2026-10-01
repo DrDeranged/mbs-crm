@@ -1,13 +1,17 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
-import ExcelJS from "exceljs";
 import { z } from "zod/v4";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable } from "@workspace/db";
 import { or, ilike } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
-import { normalizeLeadVertical, parseCsvRows, resolveLeadImportValue, type ParsedLeadImportRow } from "../lib/leadImport";
+import {
+  normalizeLeadVertical,
+  parseLeadImportBuffer,
+  resolveLeadImportValue,
+  type ParsedLeadImportRow,
+} from "../lib/leadImport";
 
 const router: IRouter = Router();
 const columnMappingSchema = z.record(z.string(), z.string());
@@ -33,57 +37,6 @@ const upload = multer({
   },
 });
 
-async function parseBuffer(buffer: Buffer, mimetype: string, originalname: string): Promise<{ headers: string[]; rows: ParsedLeadImportRow[] }> {
-  const isExcel =
-    mimetype.includes("spreadsheetml") ||
-    mimetype.includes("ms-excel") ||
-    originalname.endsWith(".xlsx") ||
-    originalname.endsWith(".xls");
-
-  let rawRows: Record<string, unknown>[] = [];
-
-  if (isExcel) {
-    const workbook = new ExcelJS.Workbook();
-    // @ts-expect-error — Node.js Buffer<ArrayBufferLike> vs ExcelJS Buffer type mismatch; runtime-safe
-    await workbook.xlsx.load(buffer);
-    const sheet = workbook.worksheets[0];
-    if (!sheet) return { headers: [], rows: [] };
-
-    const excelHeaders: string[] = [];
-    sheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
-      excelHeaders.push(String(cell.value ?? ""));
-    });
-
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-      const obj: Record<string, unknown> = {};
-      excelHeaders.forEach((h, i) => {
-        const cell = row.getCell(i + 1);
-        obj[h] = cell.value ?? "";
-      });
-      rawRows.push(obj);
-    });
-  } else {
-    const text = buffer.toString("utf-8");
-    rawRows = parseCsvRows(text);
-  }
-
-  if (rawRows.length === 0) return { headers: [], rows: [] };
-
-  const headers = Object.keys(rawRows[0]).map((h) =>
-    h.toLowerCase().replace(/\s+/g, "_"),
-  );
-  const rows: ParsedLeadImportRow[] = rawRows.map((r) => {
-    const out: ParsedLeadImportRow = {};
-    headers.forEach((h, i) => {
-      out[h] = String(Object.values(r)[i] ?? "");
-    });
-    return out;
-  });
-
-  return { headers, rows };
-}
-
 /**
  * POST /leads/import/preview
  *
@@ -103,7 +56,7 @@ router.post("/leads/import/preview", upload.single("file"), async (req: Request,
     return;
   }
 
-  const { headers, rows } = await parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+  const { headers, rows } = await parseLeadImportBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
   if (rows.length === 0) {
     res.status(400).json({ error: "File is empty or has no data rows" });
     return;
@@ -151,7 +104,7 @@ router.post("/leads/import", upload.single("file"), async (req: Request, res: Re
     }
   }
 
-  const { rows } = await parseBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+  const { rows } = await parseLeadImportBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
   if (rows.length === 0) {
     res.status(400).json({ error: "File is empty or has no data rows" });
     return;

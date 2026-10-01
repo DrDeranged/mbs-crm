@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowDownLeft, ArrowUpRight, Mail, MailCheck, MailOpen, MessageSquare, Phone, PhoneCall, Send, Sparkles, Zap, Loader2 } from "lucide-react";
 import { AiDraftRequestChannel, getGetLeadDripEnrollmentQueryKey, getListCommunicationsQueryKey, getListLeadActivityQueryKey, getListLeadEmailsQueryKey, useEnrollLeadInDrip, useGenerateAiDraft, useGetLeadDripEnrollment, useListCommunications, useListDripSequences, useListEmailTemplates, useListLeadEmails, usePreviewEmailTemplate, useSendEmail, useSendSms, useUnenrollLeadFromDrip } from "@workspace/api-client-react";
 import { SoftphoneContext } from "@/components/softphone-context";
+import { SafeEmailHtmlPreview } from "@/components/safe-email-html-preview";
 import { useLeadDetail } from "./context";
-import { sanitizeEmailHtml } from "@/lib/sanitizeEmailHtml";
 // Email status badge helper
 function EmailStatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -460,9 +460,9 @@ export function LeadCommunications() {
                 {showPreview && emailPreview && (
                   <div className="border rounded-md p-3 bg-slate-50 text-xs space-y-1">
                     <div className="font-semibold text-slate-700">Subject: {emailPreview.subject}</div>
-                    <div
+                    <SafeEmailHtmlPreview
+                      html={emailPreview.bodyHtml}
                       className="text-slate-600 prose prose-sm max-h-[120px] overflow-y-auto"
-                      dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(emailPreview.bodyHtml) }}
                     />
                     <button onClick={() => setShowPreview(false)} className="text-purple-600 hover:underline text-[10px] mt-1">Hide preview</button>
                   </div>

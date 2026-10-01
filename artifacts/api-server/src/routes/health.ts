@@ -20,13 +20,11 @@ import { getEmailOriginHealth } from "../lib/brand";
 const router: IRouter = Router();
 
 router.get("/", (_req, res) => {
-  const healthy = getEmailOriginHealth().valid;
-  res.status(healthy ? 200 : 503).json(HealthCheckResponse.parse({ status: healthy ? "ok" : "degraded" }));
+  res.json(HealthCheckResponse.parse({ status: "ok" }));
 });
 
 router.get("/healthz", (_req, res) => {
-  const healthy = getEmailOriginHealth().valid;
-  res.status(healthy ? 200 : 503).json(HealthCheckResponse.parse({ status: healthy ? "ok" : "degraded" }));
+  res.json(HealthCheckResponse.parse({ status: "ok" }));
 });
 
 router.get("/health/deep", async (_req, res) => {

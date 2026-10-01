@@ -1,15 +1,22 @@
-import * as SentryNode from "@sentry/node";
 import { logger } from "./logger";
 
-let initialized = false;
+type SentryModule = typeof import("@sentry/node");
+type SentryModuleLoader = () => Promise<SentryModule>;
 
-export function initSentry(): void {
-  const dsn = process.env["SENTRY_DSN"];
+let initialized = false;
+let SentryNode: SentryModule | undefined;
+
+export async function initSentry(options: {
+  env?: NodeJS.ProcessEnv;
+  loadSentry?: SentryModuleLoader;
+} = {}): Promise<void> {
+  const dsn = (options.env ?? process.env)["SENTRY_DSN"];
   if (!dsn) {
     logger.info("SENTRY_DSN not set — Sentry error tracking disabled");
     return;
   }
 
+  SentryNode = await (options.loadSentry ?? (() => import("@sentry/node")))();
   SentryNode.init({
     dsn,
     sendDefaultPii: false,
@@ -28,13 +35,14 @@ export function initSentry(): void {
 }
 
 export function captureException(err: unknown, tags?: Record<string, string>): void {
-  if (!initialized) return;
-  SentryNode.withScope((scope) => {
+  const sentryNode = SentryNode;
+  if (!initialized || !sentryNode) return;
+  sentryNode.withScope((scope) => {
     if (tags) {
       for (const [key, value] of Object.entries(tags)) {
         scope.setTag(key, value);
       }
     }
-    SentryNode.captureException(err);
+    sentryNode.captureException(err);
   });
 }

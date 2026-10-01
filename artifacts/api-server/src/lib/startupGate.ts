@@ -1,6 +1,5 @@
 import type { RequestListener } from "node:http";
 import { buildRevision, REVISION_HEADER } from "./buildRevision";
-import { getEmailOriginHealth } from "./brand";
 
 export type StartupPhase = "booting" | "ready" | "failed";
 
@@ -46,19 +45,20 @@ export function createStartupGate(): StartupGate {
 
   const handler: RequestListener = (req, res) => {
     res.setHeader(REVISION_HEADER, buildRevision);
-    if (phase === "ready" && applicationListener) {
-      applicationListener(req, res);
-      return;
-    }
-
     const path = pathname(req.url);
     const isMethodSafe = req.method === "GET" || req.method === "HEAD";
     const isLiveness = path === "/api" || path === "/api/healthz";
     const isDeepHealth = path === "/api/health/deep";
 
-    if (isMethodSafe && isLiveness && phase === "booting") {
-      const healthy = getEmailOriginHealth().valid;
-      sendJson(res, healthy ? 200 : 503, { status: healthy ? "ok" : "degraded", phase });
+    // Process liveness must not depend on configuration, DB state, or imports.
+    // Readiness and email-origin diagnostics belong to /api/health/deep.
+    if (isMethodSafe && isLiveness) {
+      sendJson(res, 200, { status: "ok", phase });
+      return;
+    }
+
+    if (phase === "ready" && applicationListener) {
+      applicationListener(req, res);
       return;
     }
 

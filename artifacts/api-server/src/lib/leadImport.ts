@@ -1,5 +1,10 @@
 export type ParsedLeadImportRow = Record<string, string>;
 
+type ExcelJSModule = typeof import("exceljs") & {
+  default?: typeof import("exceljs");
+};
+type ExcelJSLoader = () => Promise<ExcelJSModule>;
+
 export function parseCsvRows(text: string): ParsedLeadImportRow[] {
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n");
   if (lines.length < 2) return [];
@@ -34,6 +39,63 @@ export function parseCsvRows(text: string): ParsedLeadImportRow[] {
     rows.push(row);
   }
   return rows;
+}
+
+export async function parseLeadImportBuffer(
+  buffer: Buffer,
+  mimetype: string,
+  originalname: string,
+  loadExcelJS: ExcelJSLoader = () => import("exceljs"),
+): Promise<{ headers: string[]; rows: ParsedLeadImportRow[] }> {
+  const isExcel =
+    mimetype.includes("spreadsheetml") ||
+    mimetype.includes("ms-excel") ||
+    originalname.endsWith(".xlsx") ||
+    originalname.endsWith(".xls");
+
+  let rawRows: Record<string, unknown>[] = [];
+
+  if (isExcel) {
+    const importedExcelJS = await loadExcelJS();
+    const ExcelJS = importedExcelJS.default ?? importedExcelJS;
+    const workbook = new ExcelJS.Workbook();
+    // @ts-expect-error — Node.js Buffer<ArrayBufferLike> vs ExcelJS Buffer type mismatch; runtime-safe
+    await workbook.xlsx.load(buffer);
+    const sheet = workbook.worksheets[0];
+    if (!sheet) return { headers: [], rows: [] };
+
+    const excelHeaders: string[] = [];
+    sheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
+      excelHeaders.push(String(cell.value ?? ""));
+    });
+
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const obj: Record<string, unknown> = {};
+      excelHeaders.forEach((header, i) => {
+        const cell = row.getCell(i + 1);
+        obj[header] = cell.value ?? "";
+      });
+      rawRows.push(obj);
+    });
+  } else {
+    rawRows = parseCsvRows(buffer.toString("utf-8"));
+  }
+
+  if (rawRows.length === 0) return { headers: [], rows: [] };
+
+  const headers = Object.keys(rawRows[0]).map((header) =>
+    header.toLowerCase().replace(/\s+/g, "_"),
+  );
+  const rows: ParsedLeadImportRow[] = rawRows.map((row) => {
+    const out: ParsedLeadImportRow = {};
+    headers.forEach((header, index) => {
+      out[header] = String(Object.values(row)[index] ?? "");
+    });
+    return out;
+  });
+
+  return { headers, rows };
 }
 
 const CANONICAL_VERTICAL_ALIASES: Record<string, string> = {

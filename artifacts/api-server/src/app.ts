@@ -20,7 +20,7 @@ import { getSafeUserId } from "./lib/requestAuth";
 import { createHttp5xxRecorder } from "./lib/httpErrorObservation";
 import { buildRevision, REVISION_HEADER } from "./lib/buildRevision";
 
-initSentry();
+await initSentry();
 
 const app: Express = express();
 export const clerkProxyHandler = clerkProxyMiddleware();

@@ -63,9 +63,9 @@ test("failed initialization stays observable and does not admit business traffic
     gate.fail();
 
     const liveness = await fetch(`${baseUrl}/api/healthz`);
-    assert.equal(liveness.status, 503);
+    assert.equal(liveness.status, 200);
     assert.deepEqual(await liveness.json(), {
-      error: "API initialization failed",
+      status: "ok",
       phase: "failed",
     });
 
@@ -82,5 +82,20 @@ test("failed initialization stays observable and does not admit business traffic
 
     const business = await fetch(`${baseUrl}/api/leads`);
     assert.equal(business.status, 503);
+  });
+});
+
+test("liveness stays independent of production email configuration and ready listener", async () => {
+  await withGate(async (baseUrl, gate) => {
+    gate.activate((_req, res) => {
+      res.writeHead(500);
+      res.end("not a liveness handler");
+    });
+    for (const path of ["/api", "/api/", "/api/healthz"]) {
+      const response = await fetch(`${baseUrl}${path}`);
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { status: "ok", phase: "ready" });
+    }
+    assert.equal((await fetch(`${baseUrl}/api/health/deep`)).status, 500);
   });
 });

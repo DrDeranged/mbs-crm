@@ -25,6 +25,7 @@ async function buildAll() {
   await esbuild({
     entryPoints: [
       path.resolve(artifactDir, "src/index.ts"),
+      path.resolve(artifactDir, "src/runtime-worker.ts"),
       path.resolve(artifactDir, "src/lib/collateralBuildProbe.ts"),
     ],
     platform: "node",

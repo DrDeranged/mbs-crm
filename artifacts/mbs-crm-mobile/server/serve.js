@@ -48,14 +48,25 @@ function writeResponse(req, res, statusCode, headers, body) {
   res.end(body);
 }
 
-function getAppName() {
-  try {
+let landingPageDataPromise;
+
+function loadLandingPageData() {
+  if (!landingPageDataPromise) {
     const appJsonPath = path.resolve(__dirname, "..", "app.json");
-    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf-8"));
-    return appJson.expo?.name || "App Landing Page";
-  } catch {
-    return "App Landing Page";
+    landingPageDataPromise = Promise.all([
+      fs.promises.readFile(TEMPLATE_PATH, "utf-8"),
+      fs.promises
+        .readFile(appJsonPath, "utf-8")
+        .then((appJson) => JSON.parse(appJson).expo?.name || "App Landing Page")
+        .catch(() => "App Landing Page"),
+    ])
+      .then(([template, appName]) => ({ template, appName }))
+      .catch((error) => {
+        landingPageDataPromise = undefined;
+        throw error;
+      });
   }
+  return landingPageDataPromise;
 }
 
 function serveManifest(req, platform, res) {
@@ -90,17 +101,26 @@ function serveManifest(req, platform, res) {
   );
 }
 
-function serveLandingPage(req, res, landingPageTemplate, appName) {
+async function serveLandingPage(req, res) {
   const forwardedProto = req.headers["x-forwarded-proto"];
   const protocol = forwardedProto || "https";
   const host = req.headers["x-forwarded-host"] || req.headers["host"];
   const baseUrl = `${protocol}://${host}`;
   const expsUrl = `${host}`;
 
-  const html = landingPageTemplate
+  let landingPageData;
+  try {
+    landingPageData = await loadLandingPageData();
+  } catch (error) {
+    console.error(`Unable to load mobile landing page: ${error.message}`);
+    writeResponse(req, res, 500, { "content-type": "text/plain; charset=utf-8" }, "Landing page unavailable");
+    return;
+  }
+
+  const html = landingPageData.template
     .replace(/BASE_URL_PLACEHOLDER/g, baseUrl)
     .replace(/EXPS_URL_PLACEHOLDER/g, expsUrl)
-    .replace(/APP_NAME_PLACEHOLDER/g, appName);
+    .replace(/APP_NAME_PLACEHOLDER/g, landingPageData.appName);
 
   writeResponse(req, res, 200, { "content-type": "text/html; charset=utf-8" }, html);
 }
@@ -143,9 +163,6 @@ function serveStaticFile(req, urlPath, res) {
   writeResponse(req, res, 200, { "content-type": contentType }, content);
 }
 
-const landingPageTemplate = fs.readFileSync(TEMPLATE_PATH, "utf-8");
-const appName = getAppName();
-
 function createServer() {
   return http.createServer((req, res) => {
   let url;
@@ -173,7 +190,7 @@ function createServer() {
     }
 
     if (pathname === "/") {
-      return serveLandingPage(req, res, landingPageTemplate, appName);
+      return serveLandingPage(req, res);
     }
   }
 

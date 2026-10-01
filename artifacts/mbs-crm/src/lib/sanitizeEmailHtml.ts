@@ -1,4 +1,4 @@
-import DOMPurify, { type Config, type DOMPurify as DOMPurifyInstance } from "dompurify";
+import type { Config, DOMPurify as DOMPurifyInstance } from "dompurify";
 
 export const EMAIL_HTML_SANITIZE_POLICY: Config = {
   ALLOWED_TAGS: [
@@ -13,9 +13,25 @@ export const EMAIL_HTML_SANITIZE_POLICY: Config = {
   ALLOWED_URI_REGEXP: /^(?:(?:https?:|mailto:|tel:)|[/?#]|(?:[^:/?#]+(?:[/?#]|$)))/i,
 };
 
-export function sanitizeEmailHtml(
+let domPurifyPromise: Promise<Pick<DOMPurifyInstance, "sanitize">> | undefined;
+
+function loadDOMPurify(): Promise<Pick<DOMPurifyInstance, "sanitize">> {
+  if (!domPurifyPromise) {
+    domPurifyPromise = import("dompurify")
+      .then(({ default: purifier }) => purifier)
+      .catch((error: unknown) => {
+        domPurifyPromise = undefined;
+        throw error;
+      });
+  }
+  return domPurifyPromise;
+}
+
+export async function sanitizeEmailHtml(
   html: string,
-  purifier: Pick<DOMPurifyInstance, "sanitize"> = DOMPurify,
-): string {
-  return purifier.sanitize(html, EMAIL_HTML_SANITIZE_POLICY);
+  purifier?: Pick<DOMPurifyInstance, "sanitize">,
+): Promise<string> {
+  if (!html) return "";
+  const activePurifier = purifier ?? await loadDOMPurify();
+  return activePurifier.sanitize(html, EMAIL_HTML_SANITIZE_POLICY);
 }

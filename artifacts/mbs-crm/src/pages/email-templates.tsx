@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Mail, Edit2, Trash2, Eye, CheckCircle, Send, Users, Loader2, Sparkles } from "lucide-react";
 import { getUserDisplayName } from "@/lib/utils";
-import { sanitizeEmailHtml } from "@/lib/sanitizeEmailHtml";
+import { SafeEmailHtmlPreview } from "@/components/safe-email-html-preview";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -216,8 +216,9 @@ function PreviewDialog({ template }: { template: any }) {
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Subject</span>
               <p className="mt-0.5 text-sm font-medium">{previewData.subject}</p>
             </div>
-            <div className="border rounded-md p-3 bg-white prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(previewData.bodyHtml) }}
+            <SafeEmailHtmlPreview
+              html={previewData.bodyHtml}
+              className="border rounded-md p-3 bg-white prose prose-sm max-w-none"
             />
           </div>
         ) : null}

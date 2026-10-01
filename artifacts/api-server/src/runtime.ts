@@ -110,19 +110,26 @@ export async function initializeRuntime(): Promise<{
   stopBackgroundJobs: () => void;
   dispose: () => Promise<void>;
 }> {
-  await initializeSchema();
-  startBackgroundJobs();
-
-  return {
-    listener: app,
-    stopBackgroundJobs: () => {
-      intervals.forEach(clearInterval);
-      timeouts.forEach(clearTimeout);
-    },
-    dispose: async () => {
+  const stopBackgroundJobs = () => {
+    intervals.forEach(clearInterval);
+    timeouts.forEach(clearTimeout);
+  };
+  let disposed = false;
+  const dispose = async () => {
+    if (disposed) return;
+    disposed = true;
       await closeBrowser().catch((err) =>
         logger.warn({ err }, "Error closing browser during shutdown"),
       );
-    },
+      await pool.end();
   };
+  try {
+    await initializeSchema();
+    startBackgroundJobs();
+    return { listener: app, stopBackgroundJobs, dispose };
+  } catch (error) {
+    stopBackgroundJobs();
+    await dispose();
+    throw error;
+  }
 }
