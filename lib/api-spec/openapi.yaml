@@ -1920,6 +1920,7 @@ paths:
           explode: false
         - name: search
           in: query
+          description: Matches the deal name and the authorized linked lead's company/contact identity.
           schema: { type: string }
         - name: rep_id
           in: query
@@ -5882,6 +5883,15 @@ components:
           type: ["string", "null"]
         companyName:
           type: ["string", "null"]
+        contactName:
+          type: string
+          description: Trimmed full name of the lead contact, or an empty string when unavailable.
+        entityLabel:
+          type: string
+          description: Company-first identity label with a neutral fallback for missing identity.
+        businessAddress:
+          type: ["string", "null"]
+          description: Formatted business address; present on the authorized lead detail response.
         vertical:
           type: ["string", "null"]
           description: Vertical supplied during lead import; free text is preserved when not a known vertical.
@@ -6459,6 +6469,9 @@ components:
           type: integer
         leadId:
           type: integer
+        leadLabel:
+          type: ["string", "null"]
+          description: Company-first label for the task's authorized linked lead.
         userId:
           type: ["integer", "null"]
         assignedUser:
@@ -8287,6 +8300,9 @@ components:
           type: ["integer", "null"]
         leadName:
           type: ["string", "null"]
+        entityLabel:
+          type: ["string", "null"]
+          description: Company-first lead label, omitted when the lead is not visible to the recipient.
         isRead:
           type: boolean
         createdAt:
@@ -8494,11 +8510,19 @@ components:
 
     Deal:
       type: object
-      required: [id, dealName, stage, gmSplitPct, createdAt, updatedAt, isArchived]
+      required: [id, dealName, stage, gmSplitPct, createdAt, updatedAt, isArchived, entityLabel]
       properties:
         id: { type: integer }
         leadId: { type: ["integer", "null"] }
         dealName: { type: string }
+        companyName: { type: ["string", "null"] }
+        contactName: { type: ["string", "null"] }
+        contactEmail: { type: ["string", "null"] }
+        contactPhone: { type: ["string", "null"] }
+        businessAddress: { type: ["string", "null"] }
+        entityLabel:
+          type: string
+          description: Company-first linked-lead identity when visible; otherwise the neutral deal fallback.
         stage:
           type: string
           enum: [waiting_on_app, information_needed, submitted, approved, in_funding, funded, declined, dead, hold_on]
@@ -8659,10 +8683,28 @@ components:
         - $ref: "#/components/schemas/Deal"
         - type: object
           properties:
-            lead: { type: ["object", "null"], additionalProperties: true }
+            lead:
+              oneOf:
+                - $ref: "#/components/schemas/DealLeadContact"
+                - type: "null"
             activity:
               type: array
               items: { $ref: "#/components/schemas/DealActivity" }
+
+    DealLeadContact:
+      type: object
+      required: [id, entityLabel]
+      properties:
+        id: { type: integer }
+        firstName: { type: ["string", "null"] }
+        lastName: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        companyName: { type: ["string", "null"] }
+        status: { type: string }
+        assignedRepId: { type: ["integer", "null"] }
+        entityLabel: { type: string }
+        businessAddress: { type: ["string", "null"] }
 
     LeadDealConversion:
       type: object

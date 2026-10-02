@@ -24,6 +24,7 @@ type FixtureNotification = {
     firstName: string;
     lastName: string;
     companyName: string;
+    assignedRepId: number;
   };
 };
 
@@ -41,6 +42,7 @@ function notification(id: number, userId: number, leadId: number): FixtureNotifi
       firstName: "Morgan",
       lastName: "Lee",
       companyName: "Morgan Lee LLC",
+      assignedRepId: userId,
     },
   };
 }
@@ -55,7 +57,7 @@ function fixtureStore(rows: FixtureNotification[]): NotificationStore {
         if (row.userId === userId) row.isRead = true;
       });
     },
-    async list(userId, limit, offset) {
+    async list(userId, _role, limit, offset) {
       return rows
         .filter((row) => row.userId === userId)
         .slice(offset, offset + limit) as any;
@@ -120,11 +122,13 @@ for (const user of [
       const list = await fetch(`${baseUrl}/notifications?page=1&limit=20`);
       assert.equal(list.status, 200);
       const listBody = await list.json() as {
-        data: Array<{ id: number; leadId: number }>;
+        data: Array<{ id: number; leadId: number; leadName: string | null; entityLabel: string | null }>;
         total: number;
       };
       assert.equal(listBody.total, 2);
       assert.deepEqual(listBody.data.map((row) => row.leadId), [501, 502]);
+      assert.equal(listBody.data[0]?.leadName, "Morgan Lee LLC — Morgan Lee");
+      assert.equal(listBody.data[0]?.entityLabel, "Morgan Lee LLC — Morgan Lee");
       assert.equal(`/leads/${listBody.data[0].leadId}`, "/leads/501");
 
       const listWithEdgeMetadata = await fetch(

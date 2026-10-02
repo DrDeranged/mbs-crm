@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
+import { formatLeadIdentity } from "@/lib/recordIdentity";
 
 const STAGES = DEAL_STAGE_COLUMNS;
 
@@ -130,7 +131,8 @@ export default function NewDeal() {
                         { value: "none", label: "No associated lead" },
                         ...leads.map((l: any) => ({
                           value: String(l.id),
-                          label: `${l.firstName} ${l.lastName}${l.companyName ? ` (${l.companyName})` : ""}`,
+                          label: formatLeadIdentity(l),
+                          keywords: [l.companyName, l.firstName, l.lastName, l.email, l.phone].filter(Boolean).join(" "),
                         })),
                       ]}
                       value={formData.leadId || "none"}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
+import { useIsMobileWeb } from "@/hooks/use-mobile";
 import { Device, Call } from "@twilio/voice-sdk";
 import {
   useGetTwilioToken,
@@ -36,6 +37,7 @@ import {
 import { SoftphoneContext } from "./softphone-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { createTwilioTokenLifecycle, isRecoverableTwilioDeviceError } from "@/lib/twilioDeviceLifecycle";
+import { softphoneReadyForAction } from "@/lib/recordContact";
 
 type WidgetState = "idle" | "calling" | "active" | "incoming";
 type CallOutcome = "connected" | "voicemail" | "no_answer" | "wrong_number" | "busy";
@@ -49,7 +51,8 @@ const OUTCOME_LABELS: Record<CallOutcome, string> = {
 };
 
 export function SoftphoneWidget() {
-  const { pendingNumber, autoCall, pendingLeadId, clearPending, currentLead, openTextComposer } = useContext(SoftphoneContext);
+  const mobileWeb = useIsMobileWeb();
+  const { pendingNumber, autoCall, pendingLeadId, clearPending, currentLead, openTextComposer, setSoftphoneAvailable } = useContext(SoftphoneContext);
   const queryClient = useQueryClient();
   const { data: currentUser } = useGetMe();
 
@@ -60,6 +63,7 @@ export function SoftphoneWidget() {
   const [callSeconds, setCallSeconds] = useState(0);
   const [incomingInfo, setIncomingInfo] = useState<{ from: string; callObj: Call } | null>(null);
   const [device, setDevice] = useState<Device | null>(null);
+  const [deviceRegistered, setDeviceRegistered] = useState(false);
   const [activeCall, setActiveCall] = useState<Call | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,6 +75,10 @@ export function SoftphoneWidget() {
   // Tracks the lead ID for the current/last call — set from context on dial, cleared on manual/incoming call
   const activeLeadIdRef = useRef<number | undefined>(undefined);
   const callSecondsRef = useRef(0);
+
+  useEffect(() => {
+    setSoftphoneAvailable(softphoneReadyForAction(deviceRegistered, state));
+  }, [deviceRegistered, setSoftphoneAvailable, state]);
 
   // In-call notes (collapsible) — mirrored in a ref so disconnect handlers always read the latest value
   const [showInCallNotes, setShowInCallNotes] = useState(false);
@@ -96,6 +104,7 @@ export function SoftphoneWidget() {
   const { mutateAsync: requestTwilioToken } = useGetTwilioToken();
 
   const initDevice = useCallback((token: string) => {
+    setDeviceRegistered(false);
     tokenLifecycleRef.current?.dispose();
     removeDeviceListenersRef.current?.();
     removeDeviceListenersRef.current = null;
@@ -107,6 +116,7 @@ export function SoftphoneWidget() {
       fetchToken: async () => (await requestTwilioToken()).token,
       getDevice: () => deviceRef.current,
       onError: (requestError: any) => {
+        setDeviceRegistered(false);
         const reason = requestError?.response?.data?.reason;
         setError(currentUser?.role === "admin" && reason
           ? `Twilio unavailable: ${reason}`
@@ -140,8 +150,11 @@ export function SoftphoneWidget() {
     const onTokenWillExpire = () => {
       void lifecycle.onTokenWillExpire();
     };
+    const onRegistered = () => setDeviceRegistered(true);
+    const onUnregistered = () => setDeviceRegistered(false);
 
     const onError = (err: any) => {
+      setDeviceRegistered(false);
       if (isRecoverableTwilioDeviceError(err)) {
         void lifecycle.onRecoverableError();
         return;
@@ -151,10 +164,14 @@ export function SoftphoneWidget() {
     };
     dev.on("incoming", onIncoming);
     dev.on("tokenWillExpire", onTokenWillExpire);
+    dev.on("registered", onRegistered);
+    dev.on("unregistered", onUnregistered);
     dev.on("error", onError);
     removeDeviceListenersRef.current = () => {
       dev.removeListener("incoming", onIncoming);
       dev.removeListener("tokenWillExpire", onTokenWillExpire);
+      dev.removeListener("registered", onRegistered);
+      dev.removeListener("unregistered", onUnregistered);
       dev.removeListener("error", onError);
     };
 
@@ -162,6 +179,7 @@ export function SoftphoneWidget() {
     deviceRef.current = dev;
     setDevice(dev);
     void dev.register().catch((err: any) => {
+      setDeviceRegistered(false);
       if (isRecoverableTwilioDeviceError(err)) {
         void lifecycle.onRecoverableError();
       } else {
@@ -176,6 +194,7 @@ export function SoftphoneWidget() {
       if (!cancelled) initDevice(data.token);
     }).catch((requestError: any) => {
       if (cancelled) return;
+      setDeviceRegistered(false);
       const reason = requestError?.response?.data?.reason;
       setError(currentUser?.role === "admin" && reason
         ? `Twilio unavailable: ${reason}`
@@ -188,6 +207,7 @@ export function SoftphoneWidget() {
       removeDeviceListenersRef.current = null;
       deviceRef.current?.destroy();
       deviceRef.current = null;
+      setDeviceRegistered(false);
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
@@ -536,7 +556,7 @@ export function SoftphoneWidget() {
 
       {/* Softphone widget trigger */}
       {!isIncoming && minimized && (
-        <div className="fixed bottom-6 right-6 z-[var(--z-popover)] pointer-events-none">
+        <div className={`fixed z-[var(--z-popover)] pointer-events-none ${mobileWeb ? "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4" : "bottom-6 right-6"}`}>
           <button
             onClick={() => setMinimized(false)}
             className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"

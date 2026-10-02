@@ -155,6 +155,11 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
                     {!n.isRead && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-[#17A567] mt-1" />}
                   </div>
                   <p className="text-xs text-white/60 mt-0.5 line-clamp-2">{n.body}</p>
+                  {(n.entityLabel || n.leadName) && (
+                    <p className="mt-1 truncate text-[11px] font-medium text-[#8FD9BB]">
+                      {n.entityLabel || n.leadName}
+                    </p>
+                  )}
                   <p className="text-[10px] text-white/40 mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
               </button>

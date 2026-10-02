@@ -46,6 +46,132 @@ function invalidInput(res: import("express").Response, parsed: z.ZodSafeParseErr
 const ACCOUNT_SID = process.env["TWILIO_ACCOUNT_SID"];
 const AUTH_TOKEN = process.env["TWILIO_AUTH_TOKEN"];
 
+export function createSendLeadSmsHandler(dependencies: {
+  database?: any;
+  authenticate?: typeof requireUser;
+  getSettings?: typeof getTelephonySettings;
+  getEligibility?: typeof getLeadSmsEligibility;
+  isMarketingBlocked?: typeof isUsfaMarketingBlocked;
+  accountSid?: string;
+  authToken?: string;
+  sendMessage?: (input: {
+    from: string;
+    to: string;
+    body: string;
+    statusCallback: string;
+  }) => Promise<{ status: string; sid: string }>;
+  recordActivity?: typeof logActivity;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  const getSettings = dependencies.getSettings ?? getTelephonySettings;
+  const getEligibility = dependencies.getEligibility ?? getLeadSmsEligibility;
+  const isMarketingBlocked = dependencies.isMarketingBlocked ?? isUsfaMarketingBlocked;
+  const accountSid = dependencies.accountSid ?? ACCOUNT_SID;
+  const authToken = dependencies.authToken ?? AUTH_TOKEN;
+  const sendMessage = dependencies.sendMessage ?? (async (input) => {
+    const client = twilio(accountSid!, authToken!);
+    return client.messages.create(input);
+  });
+  const recordActivity = dependencies.recordActivity ?? logActivity;
+
+  return async (req: Request, res: import("express").Response): Promise<void> => {
+    const user = await authenticate(req, res);
+    if (!user) return;
+
+    const settings = await getSettings();
+    if (!accountSid || !authToken || !settings.smsSenderNumber) {
+      res.status(503).json({ error: "Twilio not configured" });
+      return;
+    }
+
+    const rawLeadId = req.params["id"];
+    const leadId = parseInt(typeof rawLeadId === "string" ? rawLeadId : "", 10);
+    if (isNaN(leadId)) {
+      res.status(400).json({ error: "Invalid lead ID" });
+      return;
+    }
+
+    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
+    if (!lead) {
+      res.status(404).json({ error: "Lead not found" });
+      return;
+    }
+    if (user.role === "rep" && lead.assignedRepId !== user.id) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    if (!lead.phone) {
+      res.status(400).json({ error: "Lead has no phone number" });
+      return;
+    }
+
+    const smsEligibility = await getEligibility(database, leadId);
+    if (!smsEligibility.eligible && smsEligibility.reason === "unsubscribed") {
+      res.status(422).json({
+        error: "consent_required",
+        message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
+      });
+      return;
+    }
+    if (!smsEligibility.eligible) {
+      res.status(422).json({
+        error: "consent_required",
+        message: `Cannot send SMS: ${smsEligibility.reason}.`,
+      });
+      return;
+    }
+    if (await isMarketingBlocked(database, lead.leadSource)) {
+      res.status(422).json({
+        error: "consent_required",
+        message: "Cannot send SMS: USFA lead SMS consent has not been confirmed by an administrator.",
+      });
+      return;
+    }
+
+    const bodyInput = sendSmsBody.safeParse(req.body);
+    if (!bodyInput.success) {
+      invalidInput(res, bodyInput);
+      return;
+    }
+    const { body } = bodyInput.data;
+    const replyNumber = settings.smsSenderNumber;
+    const message = await sendMessage({
+      from: replyNumber,
+      to: lead.phone,
+      body: body.trim(),
+      statusCallback: absUrl(req, "/api/twilio/sms/status"),
+    });
+
+    const [comm] = await database.insert(communicationsTable).values({
+      leadId,
+      userId: user.id,
+      type: "sms",
+      direction: "outbound",
+      fromNumber: replyNumber,
+      toNumber: lead.phone,
+      body: body.trim(),
+      status: message.status,
+      twilioSid: message.sid,
+    }).returning();
+
+    await recordActivity({
+      userId: user.id,
+      leadId,
+      action: "sms_sent",
+      entityType: "communication",
+      entityId: comm!.id,
+      details: { to: lead.phone, body: body.trim().slice(0, 100) },
+    });
+
+    const full = await database.query.communicationsTable.findFirst({
+      where: eq(communicationsTable.id, comm!.id),
+      with: { user: true },
+    });
+    res.status(201).json(commToApi(full));
+  };
+}
+
 function commToApi(comm: any) {
   return {
     id: comm.id,
@@ -127,90 +253,7 @@ router.post("/leads/:id/calls/log", async (req, res) => {
 });
 
 // POST /api/leads/:id/sms — send outbound SMS
-router.post("/leads/:id/sms", async (req, res) => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-
-  const settings = await getTelephonySettings();
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !settings.smsSenderNumber) {
-    return void res.status(503).json({ error: "Twilio not configured" });
-  }
-
-  const leadId = parseInt(req.params["id"]!, 10);
-  if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
-
-  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
-  if (!lead) return void res.status(404).json({ error: "Lead not found" });
-
-  if (user.role === "rep" && lead.assignedRepId !== user.id) {
-    return void res.status(403).json({ error: "Forbidden" });
-  }
-
-  if (!lead.phone) return void res.status(400).json({ error: "Lead has no phone number" });
-
-  const smsEligibility = await getLeadSmsEligibility(db, leadId);
-  if (!smsEligibility.eligible && smsEligibility.reason === "unsubscribed") {
-    return void res.status(422).json({
-      error: "consent_required",
-      message: "Cannot send SMS: lead has unsubscribed (TCPA opt-out). Update isUnsubscribed to false only with documented re-consent.",
-    });
-  }
-  if (!smsEligibility.eligible) {
-    return void res.status(422).json({
-      error: "consent_required",
-      message: `Cannot send SMS: ${smsEligibility.reason}.`,
-    });
-  }
-  if (await isUsfaMarketingBlocked(db, lead.leadSource)) {
-    return void res.status(422).json({
-      error: "consent_required",
-      message: "Cannot send SMS: USFA lead SMS consent has not been confirmed by an administrator.",
-    });
-  }
-
-  const bodyInput = sendSmsBody.safeParse(req.body);
-  if (!bodyInput.success) return invalidInput(res, bodyInput);
-  const { body } = bodyInput.data;
-
-  // Lead texting always uses the configured sender. Inbound routing must not
-  // override the sender for this consent-gated CRM action.
-  const replyNumber = settings.smsSenderNumber;
-  const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
-  const message = await client.messages.create({
-    from: replyNumber,
-    to: lead.phone,
-    body: body.trim(),
-    statusCallback: absUrl(req, "/api/twilio/sms/status"),
-  });
-
-  const [comm] = await db.insert(communicationsTable).values({
-    leadId,
-    userId: user.id,
-    type: "sms",
-    direction: "outbound",
-    fromNumber: replyNumber,
-    toNumber: lead.phone,
-    body: body.trim(),
-    status: message.status,
-    twilioSid: message.sid,
-  }).returning();
-
-  await logActivity({
-    userId: user.id,
-    leadId,
-    action: "sms_sent",
-    entityType: "communication",
-    entityId: comm!.id,
-    details: { to: lead.phone, body: body.trim().slice(0, 100) },
-  });
-
-  const full = await db.query.communicationsTable.findFirst({
-    where: eq(communicationsTable.id, comm!.id),
-    with: { user: true },
-  });
-
-  res.status(201).json(commToApi(full));
-});
+router.post("/leads/:id/sms", createSendLeadSmsHandler());
 
 // POST /api/partners/:partnerId/contacts/:contactId/sms — business-contact SMS.
 // Partner contacts are not consumer leads: no consumer consent gate is applied,

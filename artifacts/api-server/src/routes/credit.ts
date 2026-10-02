@@ -16,6 +16,7 @@ import { createNotification } from "../lib/notify";
 import { encrypt, decrypt } from "../lib/encryption";
 import { calculateLeadScore } from "../lib/leadScoring";
 import { logPiiAccess } from "../lib/piiAccess";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router = Router();
 const positiveId = z.coerce.number().int().positive();
@@ -483,7 +484,7 @@ router.get("/credit/compliance-log", async (req: Request, res: Response) => {
   const data = entries.map((e) => ({
     id: e.id,
     leadId: e.leadId,
-    leadName: e.lead ? [e.lead.firstName, e.lead.lastName].filter(Boolean).join(" ") || e.lead.companyName || `Lead #${e.leadId}` : `Lead #${e.leadId}`,
+    leadName: entityLabel(e.lead?.companyName, contactName(e.lead?.firstName, e.lead?.lastName), `Lead #${e.leadId}`),
     pulledBy: e.user ? { id: e.user.id, name: e.user.name } : null,
     date: e.createdAt,
     pullType: e.creditPull?.pullType ?? null,
@@ -531,7 +532,7 @@ router.get("/credit/compliance-log/export", async (req: Request, res: Response) 
 
   const header = ["Date", "Lead Name", "Lead ID", "Pulled By", "Pull Type", "Score", "Permissible Purpose"].map(esc).join(",");
   const rows = entries.map((e) => {
-    const leadName = e.lead ? [e.lead.firstName, e.lead.lastName].filter(Boolean).join(" ") || e.lead.companyName || `Lead #${e.leadId}` : `Lead #${e.leadId}`;
+    const leadName = entityLabel(e.lead?.companyName, contactName(e.lead?.firstName, e.lead?.lastName), `Lead #${e.leadId}`);
     const score = (e.details as Record<string, unknown> | null)?.["score"] ?? "";
     return [
       e.createdAt.toISOString(),

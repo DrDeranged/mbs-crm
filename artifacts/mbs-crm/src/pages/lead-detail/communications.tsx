@@ -139,8 +139,15 @@ export function LeadCommunications() {
   const { id: leadId, lead } = useLeadDetail();
   const leadPhone = lead?.phone;
   const leadEmail = lead?.email;
-  const { dial, pendingTextLeadId, clearTextComposer } = useContext(SoftphoneContext);
+  const {
+    dial,
+    pendingTextLeadId,
+    clearTextComposer,
+    pendingEmailLeadId,
+    clearEmailComposer,
+  } = useContext(SoftphoneContext);
   const smsComposerRef = useRef<HTMLTextAreaElement>(null);
+  const emailSubjectRef = useRef<HTMLInputElement>(null);
   const [smsBody, setSmsBody] = useState("");
   const [activeCompose, setActiveCompose] = useState<"sms" | "email">("sms");
   useEffect(() => {
@@ -149,6 +156,12 @@ export function LeadCommunications() {
     requestAnimationFrame(() => smsComposerRef.current?.focus());
     clearTextComposer();
   }, [pendingTextLeadId, leadId, clearTextComposer]);
+  useEffect(() => {
+    if (pendingEmailLeadId !== leadId) return;
+    setActiveCompose("email");
+    requestAnimationFrame(() => emailSubjectRef.current?.focus());
+    clearEmailComposer();
+  }, [pendingEmailLeadId, leadId, clearEmailComposer]);
   const { data: comms, isLoading: commsLoading } = useListCommunications(leadId, { query: { queryKey: getListCommunicationsQueryKey(leadId) } });
   const { data: emails, isLoading: emailsLoading } = useListLeadEmails(leadId, { query: { queryKey: getListLeadEmailsQueryKey(leadId) } });
   const { data: templates } = useListEmailTemplates();
@@ -505,6 +518,7 @@ export function LeadCommunications() {
                   </Popover>
                 </div>
                 <input
+                  ref={emailSubjectRef}
                   type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}

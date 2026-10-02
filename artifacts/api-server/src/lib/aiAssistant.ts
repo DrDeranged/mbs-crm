@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@workspace/db";
+import { contactName, entityLabel } from "./entityLabel";
 import {
   activityLogTable,
   companiesTable,
@@ -345,6 +346,8 @@ export async function generatePipelineDigest(scope: PipelineDigestScope): Promis
     .select({
       leadId: leadsTable.id,
       companyName: leadsTable.companyName,
+      firstName: leadsTable.firstName,
+      lastName: leadsTable.lastName,
       applicationType: leadsTable.applicationType,
       leadSource: leadsTable.leadSource,
       status: leadsTable.status,
@@ -468,7 +471,7 @@ export async function generatePipelineDigest(scope: PipelineDigestScope): Promis
           ) return null;
           return {
             leadId,
-            name: candidate.companyName || `Lead ${leadId}`,
+            name: entityLabel(candidate.companyName, contactName(candidate.firstName, candidate.lastName), `Lead #${leadId}`),
             industry: candidate.industry || "Unknown",
             why: value["why"].slice(0, 500),
           };
@@ -479,7 +482,7 @@ export async function generatePipelineDigest(scope: PipelineDigestScope): Promis
 
   const fallbackLeads: PipelineDigestLead[] = attentionCandidates.map((lead) => ({
     leadId: lead.leadId,
-    name: lead.companyName || `Lead ${lead.leadId}`,
+    name: entityLabel(lead.companyName, contactName(lead.firstName, lead.lastName), `Lead #${lead.leadId}`),
     industry: lead.industry || "Unknown",
     why: [
       lead.matchCount === 0 ? "No lender match is currently recorded." : null,

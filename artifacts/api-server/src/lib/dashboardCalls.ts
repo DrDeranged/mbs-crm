@@ -1,4 +1,5 @@
 import { newYorkBusinessTime } from "./inboundVoice";
+import { contactName, entityLabel } from "./entityLabel";
 
 export interface DashboardCallRow {
   id: number;
@@ -76,7 +77,11 @@ export function calculateDashboardCalls(
       return [{
         id: voicemail.id,
         leadId: lead.id,
-        leadName: [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.companyName || `Lead #${lead.id}`,
+        leadName: entityLabel(
+          lead.companyName,
+          contactName(lead.firstName, lead.lastName),
+          `Lead #${lead.id}`,
+        ),
         companyName: lead.companyName,
         phone: lead.phone,
         arrivedAt: voicemail.createdAt.toISOString(),

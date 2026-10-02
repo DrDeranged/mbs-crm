@@ -104,7 +104,9 @@ async function waitForApi(): Promise<void> {
   while (Date.now() < deadline) {
     try {
       const response = await fetch(`http://127.0.0.1:${apiPort}/api/healthz`);
-      if (response.ok) return;
+      // Liveness intentionally returns 200 before the application is ready.
+      // Wait for the same process to finish initializing its business routes.
+      if (response.ok && (await response.json() as { phase?: string }).phase === "ready") return;
     } catch {
       // The built server is still starting.
     }

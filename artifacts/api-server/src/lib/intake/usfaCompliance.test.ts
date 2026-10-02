@@ -16,7 +16,9 @@ test("all SMS and drip entry points recheck the shared USFA consent guard", asyn
     readFile(new URL("../dripJob.ts", import.meta.url), "utf8"),
     readFile(new URL("../../routes/leads.ts", import.meta.url), "utf8"),
   ]);
-  assert.match(communications, /isUsfaMarketingBlocked\(db, lead\.leadSource\)/);
+  assert.match(communications, /const database = dependencies\.database \?\? db/);
+  assert.match(communications, /const isMarketingBlocked = dependencies\.isMarketingBlocked \?\? isUsfaMarketingBlocked/);
+  assert.match(communications, /isMarketingBlocked\(database, lead\.leadSource\)/);
   assert.match(drip, /isUsfaMarketingBlocked\(database, lead\.leadSource\)/);
   assert.match(dripJob, /isUsfaMarketingBlocked\(db, lead\.leadSource\)/);
   assert.match(leads, /isUsfaMarketingBlocked\(db, updated\.leadSource\)/);

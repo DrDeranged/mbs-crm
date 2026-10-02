@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/searchable-select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, Mail, User, Link2 } from "lucide-react";
+import { ArrowLeft, Building2, Mail, User, Link2, Phone } from "lucide-react";
 import { getGetLeadQueryKey, getListLeadActivityQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
-import { PhoneLink } from "@/components/phone-link";
+import { EmailLink, PhoneLink } from "@/components/phone-link";
+import { contactName, formatLeadIdentity } from "@/lib/recordIdentity";
 import { useLeadDetail } from "./context";
 import { ConvertToDealDialog } from "./deals";
 import { EditLeadDialog } from "./edit-dialog";
@@ -95,7 +96,7 @@ export function HeaderCard() {
 
   return (
     <>
-      <div className="border-b bg-white shadow-sm sticky top-0 z-[var(--z-header)]">
+      <div className="border-b bg-white shadow-sm">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="mb-3">
           <Link href="/leads" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -106,25 +107,26 @@ export function HeaderCard() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 truncate">
-              {lead.firstName} {lead.lastName}
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 break-words">
+              {formatLeadIdentity(lead)}
             </h1>
-            <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              {lead.companyName && (
-                <div className="flex items-center gap-1.5">
-                  <Building2 className="h-4 w-4 text-gray-400" />
-                  {lead.companyName}
-                </div>
-              )}
-              {lead.email && (
-                <div className="flex items-center gap-1.5">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  <a href={`mailto:${lead.email}`} className="hover:underline">{lead.email}</a>
-                </div>
-              )}
-              {lead.phone && (
-                <PhoneLink phone={lead.phone} />
-              )}
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <User className="h-4 w-4 text-gray-400" />
+                <span>{contactName(lead) || "Contact name unavailable"}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Phone className="h-4 w-4 text-gray-400" />
+                {lead.phone?.trim() ? <PhoneLink phone={lead.phone.trim()} leadId={lead.id} /> : <span>Phone unavailable</span>}
+              </div>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <Mail className="h-4 w-4 shrink-0 text-gray-400" />
+                {lead.email?.trim() ? <EmailLink email={lead.email.trim()} leadId={lead.id} className="min-w-0 break-all" /> : <span>Email unavailable</span>}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Building2 className="h-4 w-4 text-gray-400" />
+                <span>{lead.businessAddress?.trim() || "Business address unavailable"}</span>
+              </div>
               {lead.lastActivityAt && (
                 <div className="text-xs">
                   Last activity {formatDistanceToNow(new Date(lead.lastActivityAt), { addSuffix: true })} · {getUserDisplayName(lead.lastActivityActor, "System")}

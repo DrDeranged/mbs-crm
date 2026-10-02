@@ -23,15 +23,35 @@ import {
   Upload,
   Briefcase,
 } from "lucide-react";
-import { useGetMe } from "@workspace/api-client-react";
+import {
+  getListDealsQueryKey,
+  getListLeadsQueryKey,
+  useGetMe,
+  useListDeals,
+  useListLeads,
+} from "@workspace/api-client-react";
+import { formatDealIdentity, formatLeadIdentity } from "@/lib/recordIdentity";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [location, navigate] = useLocation();
   const { data: me } = useGetMe();
 
   const isAdmin = me?.role === "admin";
   const isManagerOrAdmin = me?.role === "manager" || isAdmin;
+  const canSearchRecords = me?.role === "rep" || isManagerOrAdmin;
+  const searchTerm = search.trim();
+  const leadSearchParams = { search: searchTerm || undefined, limit: 8 };
+  const dealSearchParams = { search: searchTerm || undefined, page: 1, limit: 8 };
+  const { data: leadSearchData, isFetching: isSearchingLeads, error: leadSearchError } = useListLeads(leadSearchParams, {
+    query: { queryKey: getListLeadsQueryKey(leadSearchParams), enabled: open && canSearchRecords && searchTerm.length >= 2 },
+  });
+  const { data: dealSearchData, isFetching: isSearchingDeals, error: dealSearchError } = useListDeals(dealSearchParams, {
+    query: { queryKey: getListDealsQueryKey(dealSearchParams), enabled: open && canSearchRecords && searchTerm.length >= 2 },
+  });
+  const matchingLeads = leadSearchData?.leads ?? [];
+  const matchingDeals = dealSearchData?.deals ?? [];
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -58,14 +78,71 @@ export function CommandPalette() {
 
   const go = (href: string) => {
     setOpen(false);
+    setSearch("");
     navigate(href);
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search pages and actions…" />
+    <CommandDialog open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (!nextOpen) setSearch(""); }}>
+      <CommandInput value={search} onValueChange={setSearch} placeholder="Search pages, leads, deals, and actions…" />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{searchTerm.length >= 2 && (isSearchingLeads || isSearchingDeals) ? "Searching records…" : "No results found."}</CommandEmpty>
+
+        {canSearchRecords && searchTerm.length >= 2 && (
+          <>
+            {matchingLeads.length > 0 && (
+              <CommandGroup heading="Leads">
+                {matchingLeads.map((lead) => {
+                  const identity = lead.entityLabel || formatLeadIdentity(lead);
+                  return (
+                    <CommandItem
+                      key={`lead-${lead.id}`}
+                      value={`${identity} ${lead.companyName ?? ""} ${lead.contactName ?? ""} ${lead.firstName ?? ""} ${lead.lastName ?? ""} ${lead.email ?? ""} ${lead.phone ?? ""}`}
+                      onSelect={() => go(`/leads/${lead.id}`)}
+                    >
+                      <Users />
+                      <span className="min-w-0">
+                        <span className="block truncate">{identity}</span>
+                        {(lead.email || lead.phone) && <span className="block truncate text-xs text-muted-foreground">{[lead.email, lead.phone].filter(Boolean).join(" · ")}</span>}
+                      </span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            {matchingDeals.length > 0 && (
+              <CommandGroup heading="Deals">
+                {matchingDeals.map((deal) => {
+                  const identity = deal.entityLabel || formatDealIdentity(deal as any);
+                  const customDealName = deal.dealName?.trim() ?? "";
+                  return (
+                  <CommandItem
+                    key={`deal-${deal.id}`}
+                    value={`${identity} ${deal.companyName ?? ""} ${deal.contactName ?? ""} ${deal.contactEmail ?? ""} ${deal.contactPhone ?? ""} ${customDealName}`}
+                    onSelect={() => go(`/deals/${deal.id}`)}
+                  >
+                    <Briefcase />
+                    <span className="min-w-0">
+                      <span className="block truncate">{identity}</span>
+                      {customDealName && customDealName !== identity && <span className="block truncate text-xs text-muted-foreground">{customDealName}</span>}
+                    </span>
+                  </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            {!matchingLeads.length && !matchingDeals.length && (isSearchingLeads || isSearchingDeals) && (
+              <CommandGroup heading="Records"><CommandItem disabled value="searching-records">Searching records…</CommandItem></CommandGroup>
+            )}
+            {(leadSearchError || dealSearchError) && (
+              <CommandGroup heading="Record search">
+                <CommandItem disabled value={`record search error ${searchTerm}`}>
+                  Some record results could not be loaded. Try again or open the Leads and Deals lists.
+                </CommandItem>
+              </CommandGroup>
+            )}
+          </>
+        )}
 
         <CommandGroup heading="Navigation">
           <CommandItem onSelect={() => go("/dashboard")}>

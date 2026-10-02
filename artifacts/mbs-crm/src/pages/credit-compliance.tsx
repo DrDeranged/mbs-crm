@@ -168,7 +168,7 @@ export default function CreditCompliance() {
                           className="font-medium text-[#1F4E79] hover:underline"
                           onClick={(e) => { e.preventDefault(); navigate(`/leads/${entry.leadId}`); }}
                         >
-                          {entry.leadName}
+                          {(entry as any).entityLabel || entry.leadName || `Lead #${entry.leadId}`}
                         </a>
                       </td>
                       <td className="py-3 px-4">{getUserDisplayName(entry.pulledBy, "—")}</td>

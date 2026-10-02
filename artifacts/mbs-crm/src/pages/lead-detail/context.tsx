@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -26,6 +26,9 @@ type LeadDetailContextValue = {
   setFundedAmountInput: (value: string) => void;
   handleStatusChange: (newStatus: string) => void;
   handleConfirmFunded: () => void;
+  requestedAction: { action: "upload" | "edit" | "note" | "task"; sequence: number } | null;
+  requestAction: (action: "upload" | "edit" | "note" | "task") => void;
+  consumeAction: (sequence: number) => void;
 };
 
 const LeadDetailContext = createContext<LeadDetailContextValue | null>(null);
@@ -48,6 +51,15 @@ export function LeadDetailProvider({ children }: { children: ReactNode }) {
   const changeStatus = useChangeLeadStatus();
   const [fundedDialogOpen, setFundedDialogOpen] = useState(false);
   const [fundedAmountInput, setFundedAmountInput] = useState("");
+  const [requestedAction, setRequestedAction] = useState<LeadDetailContextValue["requestedAction"]>(null);
+  const actionSequence = useRef(0);
+  const requestAction = (action: "upload" | "edit" | "note" | "task") => {
+    actionSequence.current += 1;
+    setRequestedAction({ action, sequence: actionSequence.current });
+  };
+  const consumeAction = (sequence: number) => {
+    setRequestedAction((current) => current?.sequence === sequence ? null : current);
+  };
 
   const submitStatusChange = (newStatus: string, fundedAmount?: number) => {
     changeStatus.mutate(
@@ -109,6 +121,9 @@ export function LeadDetailProvider({ children }: { children: ReactNode }) {
         setFundedAmountInput,
         handleStatusChange,
         handleConfirmFunded,
+        requestedAction,
+        requestAction,
+        consumeAction,
       }}
     >
       {children}
@@ -120,4 +135,13 @@ export function useLeadDetail() {
   const context = useContext(LeadDetailContext);
   if (!context) throw new Error("useLeadDetail must be used within LeadDetailProvider");
   return context;
+}
+
+export function useLeadDetailAction(action: "upload" | "edit" | "note" | "task", onRequest: () => void) {
+  const { requestedAction, consumeAction } = useLeadDetail();
+  useEffect(() => {
+    if (requestedAction?.action !== action) return;
+    onRequest();
+    consumeAction(requestedAction.sequence);
+  }, [action, consumeAction, onRequest, requestedAction]);
 }

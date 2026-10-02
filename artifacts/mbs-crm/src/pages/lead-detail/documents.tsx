@@ -23,7 +23,7 @@ import {
 } from "@workspace/api-client-react";
 import { getLenderPackageFilename } from "@/lib/lenderPackageDownload";
 import { fetchAuthenticatedBlob, safeDownloadFilename, saveBlob } from "@/lib/fileDownload";
-import { useLeadDetail } from "./context";
+import { useLeadDetail, useLeadDetailAction } from "./context";
 import { lenderPackageFailureTitle } from "@/lib/lenderPackageError";
 import { LenderPackageBuilderDialog } from "./lender-package-builder";
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
@@ -66,6 +66,7 @@ export function LeadDocuments() {
   const { toast } = useToast();
   const packageDownloadInFlight = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const openFilePicker = useCallback(() => fileInputRef.current?.click(), []);
   const [isGeneratingPackage, setIsGeneratingPackage] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("other");
@@ -75,6 +76,7 @@ export function LeadDocuments() {
   const [statementLinksLoading, setStatementLinksLoading] = useState(false);
   const [statementLinksError, setStatementLinksError] = useState("");
   const isUsfaLead = lead?.leadSource === "usfundadvisor";
+  useLeadDetailAction("upload", openFilePicker);
 
   useEffect(() => {
     if (!isUsfaLead) {

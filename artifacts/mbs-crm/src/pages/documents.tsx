@@ -41,6 +41,7 @@ import {
   registerCampaignLibraryFlyers, requestFlyerUploadUrls,
   type FlyerAudience, type FlyerCategory, type FlyerVertical,
 } from "@/lib/campaignFlyerLibrary";
+import { formatLeadIdentity } from "@/lib/recordIdentity";
 
 const api = getApiBaseUrl();
 
@@ -65,7 +66,7 @@ type Lead = {
   id: number;
   firstName?: string | null;
   lastName?: string | null;
-  businessName?: string | null;
+  companyName?: string | null;
   email?: string | null;
 };
 
@@ -83,8 +84,7 @@ type FlyerQueueRow = {
 };
 
 function leadLabel(lead: Lead): string {
-  const person = [lead.firstName, lead.lastName].filter(Boolean).join(" ").trim();
-  return person || lead.businessName || lead.email || `Lead #${lead.id}`;
+  return formatLeadIdentity(lead);
 }
 
 function LeadPicker({
@@ -113,7 +113,7 @@ function LeadPicker({
           className="w-full justify-between font-normal"
         >
           <span className="truncate">
-            {selected ? `${leadLabel(selected)} · ${selected.email}` : "Choose a lead"}
+            {selected ? [leadLabel(selected), selected.email].filter(Boolean).join(" · ") : "Choose a lead"}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -132,7 +132,7 @@ function LeadPicker({
             {leads.map((lead) => (
               <CommandItem
                 key={lead.id}
-                value={`${leadLabel(lead)} ${lead.businessName ?? ""} ${lead.email ?? ""}`}
+                value={`${leadLabel(lead)} ${lead.companyName ?? ""} ${lead.email ?? ""}`}
                 onSelect={() => {
                   onChange(String(lead.id));
                   setOpen(false);
@@ -141,7 +141,7 @@ function LeadPicker({
                 <Check className={cn("h-4 w-4", value === String(lead.id) ? "opacity-100" : "opacity-0")} />
                 <span className="min-w-0">
                   <span className="block truncate">{leadLabel(lead)}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{lead.email}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{lead.email || "Email unavailable"}</span>
                 </span>
               </CommandItem>
             ))}

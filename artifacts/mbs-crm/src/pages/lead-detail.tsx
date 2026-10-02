@@ -20,6 +20,9 @@ import { LeadCredit } from "./lead-detail/credit";
 import { LeadConsent } from "./lead-detail/consent";
 import { getQueryErrorStatus } from "@/lib/query-error";
 import { SoftphoneContext } from "@/components/softphone-context";
+import { RecordActionBar, type RecordActionItem } from "@/components/record-action-bar";
+import { leadActionTab, type LeadDetailTab } from "@/lib/recordActions";
+import { isMobileWeb, phoneActionForDevice } from "@/lib/recordContact";
 
 function LeadDetailContent() {
   const {
@@ -29,14 +32,42 @@ function LeadDetailContent() {
     isAdmin,
     retry,
   } = useLeadDetail();
-  const { pendingTextLeadId } = useContext(SoftphoneContext);
-  const [selectedTab, setSelectedTab] = useState("info");
+  const {
+    pendingTextLeadId,
+    openTextComposer,
+    clearTextComposer,
+    pendingEmailLeadId,
+    openEmailComposer,
+    clearEmailComposer,
+    softphoneAvailable,
+    dial,
+  } = useContext(SoftphoneContext);
+  const { requestAction } = useLeadDetail();
+  const [selectedTab, setSelectedTab] = useState<LeadDetailTab>("info");
 
   useEffect(() => {
     if (pendingTextLeadId && pendingTextLeadId === lead?.id) {
       setSelectedTab("communications");
+    } else if (pendingTextLeadId && lead && pendingTextLeadId !== lead.id) {
+      clearTextComposer();
     }
-  }, [pendingTextLeadId, lead?.id]);
+  }, [pendingTextLeadId, lead?.id, clearTextComposer]);
+
+  useEffect(() => {
+    if (!lead || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const requestedEmail = params.get("compose") === "email";
+    const pendingForLead = pendingEmailLeadId === lead.id;
+    if (requestedEmail || pendingForLead) setSelectedTab("communications");
+    if (requestedEmail) {
+      if (!pendingForLead) openEmailComposer(lead.id);
+      params.delete("compose");
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+    } else if (pendingEmailLeadId && !pendingForLead) {
+      clearEmailComposer();
+    }
+  }, [lead, pendingEmailLeadId, openEmailComposer, clearEmailComposer]);
 
   if (isLoading) {
     return <div className="p-8 space-y-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-[400px] w-full" /></div>;
@@ -57,15 +88,60 @@ function LeadDetailContent() {
     );
   }
 
+  const requestTabAction = (action: "upload" | "edit" | "note" | "task") => {
+    setSelectedTab(leadActionTab(action, selectedTab));
+    requestAction(action);
+  };
+  const actions: RecordActionItem[] = [
+    { action: "upload", onClick: () => requestTabAction("upload") },
+    { action: "edit", onClick: () => requestTabAction("edit") },
+    {
+      action: "call",
+      disabled: !lead.phone?.trim(),
+      disabledReason: "Phone number unavailable.",
+      onClick: () => {
+        const phone = lead.phone?.trim();
+        if (!phone) return;
+        if (phoneActionForDevice(isMobileWeb({
+          userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+          viewportWidth: window.innerWidth,
+          pointerCoarse: window.matchMedia("(pointer: coarse)").matches,
+        }), softphoneAvailable) === "softphone") dial(phone, { autoCall: true, leadId: lead.id });
+        else window.location.href = `tel:${phone.replace(/[^\d+]/g, "")}`;
+      },
+    },
+    {
+      action: "text",
+      disabled: !lead.phone?.trim(),
+      disabledReason: "Phone number unavailable.",
+      onClick: () => {
+        openTextComposer(lead.id);
+        setSelectedTab("communications");
+      },
+    },
+    {
+      action: "email",
+      disabled: !lead.email?.trim(),
+      disabledReason: "Email address unavailable.",
+      onClick: () => {
+        openEmailComposer(lead.id);
+        setSelectedTab("communications");
+      },
+    },
+    { action: "note", onClick: () => requestTabAction("note") },
+    { action: "task", onClick: () => requestTabAction("task") },
+  ];
+
   return (
-    <div className="flex-1 overflow-auto bg-gray-50/50">
+    <div className="h-full flex-1 overflow-auto bg-gray-50/50">
+      <RecordActionBar items={actions} />
       <HeaderCard />
 
-      <div className="p-8 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="p-4 pb-28 md:p-8 md:pb-28 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <LeadSummary />
 
         <div className="lg:col-span-2">
-           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+           <Tabs value={selectedTab} onValueChange={(tab) => setSelectedTab(tab as LeadDetailTab)} className="w-full">
             <div className="overflow-x-auto">
             <TabsList className="flex w-max min-w-full bg-white shadow-sm border p-1 gap-0.5 h-auto rounded-lg">
               <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>

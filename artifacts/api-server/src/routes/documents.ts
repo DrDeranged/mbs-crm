@@ -18,6 +18,7 @@ export type DocumentsRouteDependencies = {
   database?: Database;
   authenticate?: typeof requireUser;
   activityLogger?: typeof logActivity;
+  saveUploadedFile?: (fileKey: string, contents: Buffer, contentType: string) => Promise<void>;
 };
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -67,6 +68,7 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
   const database = dependencies.database ?? db;
   const authenticate = dependencies.authenticate ?? requireUser;
   const activityLogger = dependencies.activityLogger ?? logActivity;
+  const saveUploadedFile = dependencies.saveUploadedFile;
   const router: IRouter = Router();
 
   router.get("/leads/:id/documents", async (req: Request, res: Response) => {
@@ -130,11 +132,15 @@ export function createDocumentsRouter(dependencies: DocumentsRouteDependencies =
   try {
     const ext = path.extname(req.file.originalname);
     const fileKey = `leads/${leadId}/documents/${randomUUID()}${ext}`;
-    const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID ?? "";
-    const { objectStorageClient } = await import("../lib/objectStorage");
-    const bucket = objectStorageClient.bucket(bucketId);
-    const file = bucket.file(fileKey);
-    await file.save(req.file.buffer, { contentType: req.file.mimetype });
+    if (saveUploadedFile) {
+      await saveUploadedFile(fileKey, req.file.buffer, req.file.mimetype);
+    } else {
+      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID ?? "";
+      const { objectStorageClient } = await import("../lib/objectStorage");
+      const bucket = objectStorageClient.bucket(bucketId);
+      const file = bucket.file(fileKey);
+      await file.save(req.file.buffer, { contentType: req.file.mimetype });
+    }
 
     const { doc, taskCompleted } = await database.transaction(async (tx) => {
       await lockUsfaStatementUpload(tx, leadId, lead.leadSource, category);

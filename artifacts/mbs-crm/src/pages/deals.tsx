@@ -60,6 +60,8 @@ import {
 } from "@/lib/dealBoard";
 import { createNoteSaveController } from "@/lib/noteSaveController";
 import { QueryErrorState } from "@/components/query-error-state";
+import { contactName, formatDealIdentity } from "@/lib/recordIdentity";
+import { EmailLink, PhoneLink } from "@/components/phone-link";
 
 const STAGES = DEAL_STAGE_COLUMNS;
 
@@ -604,11 +606,25 @@ export default function DealsPage() {
                         const rep = users?.find(
                           (u) => u.id === deal.assignedTo,
                         );
+                        const linkedContact = (deal as any).lead ?? (deal as any).contact;
+                        const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                        const customDealName = deal.dealName?.trim() ?? "";
+                        const personName = (deal as any).contactName || contactName(linkedContact);
+                        const companyName = (deal as any).companyName?.trim() || linkedContact?.companyName?.trim();
+                        const phone = (deal as any).contactPhone || linkedContact?.phone;
+                        const email = (deal as any).contactEmail || linkedContact?.email;
+                        const hasAuthorizedContact = Boolean(linkedContact || companyName || personName || phone);
                         return (
                           <div
                             key={deal.id}
                             draggable
-                            onDragStart={(e) => handleDragStart(e, deal)}
+                            onDragStart={(e) => {
+                              if ((e.target as HTMLElement).closest("[data-no-deal-drag]")) {
+                                e.preventDefault();
+                                return;
+                              }
+                              handleDragStart(e, deal);
+                            }}
                             className={cn(
                               "bg-white border rounded-lg shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden",
                               compactKanban ? "p-2" : "p-3",
@@ -619,12 +635,63 @@ export default function DealsPage() {
                               className="absolute inset-0 z-[var(--z-deal-card-bg)]"
                             />
                             <div className="relative z-[var(--z-deal-card-content)] pointer-events-none">
-                              <h4 className={cn(
+                              <Link
+                                href={`/deals/${deal.id}`}
+                                data-no-deal-drag
+                                draggable={false}
+                                onPointerDown={(event) => event.stopPropagation()}
+                                onDragStart={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                                className={cn(
                                 "font-semibold text-[#0E2A47] truncate whitespace-nowrap",
                                 compactKanban ? "text-xs" : "text-sm",
-                              )}>
-                                {deal.dealName}
-                              </h4>
+                                )}
+                              >
+                                {companyName || dealIdentity}
+                              </Link>
+                              {customDealName && customDealName !== dealIdentity && (
+                                <p className="mt-0.5 truncate text-[10px] text-muted-foreground" title={customDealName}>{customDealName}</p>
+                              )}
+                              {hasAuthorizedContact && (
+                                <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[10px] text-muted-foreground">
+                                  {companyName && personName && (
+                                    <Link
+                                      href={`/deals/${deal.id}`}
+                                      data-no-deal-drag
+                                      draggable={false}
+                                      onPointerDown={(event) => event.stopPropagation()}
+                                      onDragStart={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                                      className="truncate hover:underline"
+                                    >
+                                      {personName}
+                                    </Link>
+                                  )}
+                                  {phone && (
+                                    <span
+                                      data-no-deal-drag
+                                      draggable={false}
+                                      className="pointer-events-auto shrink-0"
+                                      onClick={(event) => event.stopPropagation()}
+                                      onPointerDown={(event) => event.stopPropagation()}
+                                      onDragStart={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                                    >
+                                      <PhoneLink phone={phone} leadId={deal.leadId ?? linkedContact?.id} showIcon={false} className="text-[10px]" />
+                                    </span>
+                                  )}
+                                  {!phone && <span className="truncate">Phone unavailable</span>}
+                                </div>
+                              )}
+                              {email && (
+                                <div
+                                  data-no-deal-drag
+                                  draggable={false}
+                                  className="pointer-events-auto mt-0.5 min-w-0 truncate text-[10px]"
+                                  onClick={(event) => event.stopPropagation()}
+                                  onPointerDown={(event) => event.stopPropagation()}
+                                  onDragStart={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                                >
+                                  <EmailLink email={email} leadId={deal.leadId ?? linkedContact?.id} showIcon={false} className="max-w-full truncate text-[10px]" />
+                                </div>
+                              )}
                               <div className={cn(
                                 "text-xs",
                                 compactKanban ? "mt-1 flex items-center justify-between gap-1" : "mt-2 space-y-1.5",
@@ -693,7 +760,9 @@ export default function DealsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Deal Name</TableHead>
+                    <TableHead>Deal / Contact</TableHead>
+                    <TableHead className="hidden md:table-cell">Phone</TableHead>
+                    <TableHead className="hidden md:table-cell">Email</TableHead>
                     <TableHead>Stage</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Expected GM</TableHead>
@@ -717,7 +786,7 @@ export default function DealsPage() {
                   {deals.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={10}
                         className="text-center h-32 text-muted-foreground"
                       >
                         No deals found
@@ -727,6 +796,11 @@ export default function DealsPage() {
                     deals.map((deal) => {
                       const rep = users?.find((u) => u.id === deal.assignedTo);
                       const stageObj = STAGES.find((s) => s.id === deal.stage);
+                      const linkedContact = (deal as any).lead ?? (deal as any).contact;
+                      const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                      const customDealName = deal.dealName?.trim() ?? "";
+                      const phone = (deal as any).contactPhone || linkedContact?.phone;
+                      const email = (deal as any).contactEmail || linkedContact?.email;
                       return (
                         <TableRow key={deal.id}>
                           <TableCell className="font-medium">
@@ -734,8 +808,21 @@ export default function DealsPage() {
                               href={`/deals/${deal.id}`}
                               className="text-primary hover:underline"
                             >
-                              {deal.dealName}
+                              {dealIdentity}
+                              {customDealName && customDealName !== dealIdentity && <span className="block text-xs font-normal text-muted-foreground">{customDealName}</span>}
                             </Link>
+                            {(phone || email) && (
+                              <div className="mt-1 flex flex-col gap-1 md:hidden" onClick={(event) => event.stopPropagation()}>
+                                {phone ? <PhoneLink phone={phone} leadId={deal.leadId ?? linkedContact?.id} className="text-xs" /> : <span className="text-xs text-muted-foreground">Phone unavailable</span>}
+                                {email ? <EmailLink email={email} leadId={deal.leadId ?? linkedContact?.id} className="text-xs" /> : <span className="text-xs text-muted-foreground">Email unavailable</span>}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell" onClick={(event) => event.stopPropagation()}>
+                            {phone ? <PhoneLink phone={phone} leadId={deal.leadId ?? linkedContact?.id} className="text-sm" /> : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell" onClick={(event) => event.stopPropagation()}>
+                            {email ? <EmailLink email={email} leadId={deal.leadId ?? linkedContact?.id} className="text-sm" /> : <span className="text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell>
                             <span
@@ -844,9 +931,17 @@ export default function DealsPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              You are moving <strong>{pendingFundDeal?.dealName}</strong> to
-              Funded. Please verify the final Gross Margin (GM) before
-              proceeding.
+                You are moving{" "}
+                {pendingFundDeal && (
+                  <strong>
+                    <Link href={`/deals/${pendingFundDeal.id}`} className="text-primary hover:underline">
+                      {pendingFundDeal.entityLabel || formatDealIdentity(pendingFundDeal as any)}
+                    </Link>
+                  </strong>
+                )}
+                {pendingFundDeal && pendingFundDeal.dealName !== (pendingFundDeal.entityLabel || formatDealIdentity(pendingFundDeal as any)) && (
+                  <> (<Link href={`/deals/${pendingFundDeal.id}`} className="hover:underline">{pendingFundDeal.dealName}</Link>)</>
+                )}{" "}to Funded. Please verify the final Gross Margin (GM) before proceeding.
             </p>
             <div className="space-y-2">
               <Label>Actual GM ($)</Label>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { getListLeadActivityQueryKey, getListTasksQueryKey, useCreateTask, useListTasks, useUpdateTask } from "@workspace/api-client-react";
-import { useLeadDetail } from "./context";
+import { useLeadDetail, useLeadDetailAction } from "./context";
 // Tasks Tab
 export function LeadTasks() {
   const { id: leadId } = useLeadDetail();
@@ -23,6 +23,8 @@ export function LeadTasks() {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const openTaskDialog = useCallback(() => setIsOpen(true), []);
+  useLeadDetailAction("task", openTaskDialog);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();

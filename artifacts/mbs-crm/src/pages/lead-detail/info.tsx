@@ -1,7 +1,7 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { PhoneLink } from "@/components/phone-link";
+import { EmailLink, PhoneLink } from "@/components/phone-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, BarChart3, ListChecks, RefreshCw, Sparkles } from "lucide-react";
@@ -65,8 +65,9 @@ export function LeadInfo() {
   const fields = [
     { label: "First Name", value: lead.firstName },
     { label: "Last Name", value: lead.lastName },
-    { label: "Email", value: lead.email ? <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a> : "—" },
-    { label: "Phone", value: lead.phone ? <PhoneLink phone={lead.phone} /> : "—" },
+    { label: "Email", value: lead.email ? <EmailLink email={lead.email} leadId={lead.id} showIcon={false} className="text-blue-600" /> : "—" },
+    { label: "Phone", value: lead.phone ? <PhoneLink phone={lead.phone} leadId={lead.id} /> : "—" },
+    { label: "Business Address", value: lead.businessAddress?.trim() || "—" },
     { label: "Company", value: lead.companyName || "—" },
     { label: "EIN", value: lead.ein || "—" },
     { label: "Financing Type", value: lead.applicationType?.replace(/_/g, " ") || "—" },

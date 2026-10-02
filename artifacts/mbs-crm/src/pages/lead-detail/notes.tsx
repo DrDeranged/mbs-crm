@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { getListLeadActivityQueryKey, getListNotesQueryKey, useCreateNote, useListNotes } from "@workspace/api-client-react";
-import { useLeadDetail } from "./context";
+import { useLeadDetail, useLeadDetailAction } from "./context";
 // Notes Tab
 export function LeadNotes() {
   const { id: leadId } = useLeadDetail();
@@ -16,6 +16,9 @@ export function LeadNotes() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [newNote, setNewNote] = useState("");
+  const noteInputRef = useRef<HTMLTextAreaElement>(null);
+  const focusNote = useCallback(() => requestAnimationFrame(() => noteInputRef.current?.focus()), []);
+  useLeadDetailAction("note", focusNote);
 
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +37,7 @@ export function LeadNotes() {
     <div className="space-y-6 mt-4">
       <form onSubmit={handleAddNote} className="space-y-3 bg-white p-4 rounded-lg border shadow-sm">
         <Textarea 
+          ref={noteInputRef}
           placeholder="Add a note about this deal..." 
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}

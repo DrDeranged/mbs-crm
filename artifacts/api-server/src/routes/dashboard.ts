@@ -5,6 +5,7 @@ import { eq, desc, and, gte, lte, sql, isNull, or, inArray } from "drizzle-orm";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
 import { newYorkBusinessTime } from "../lib/inboundVoice";
 import { calculateDashboardCalls } from "../lib/dashboardCalls";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router: IRouter = Router();
 
@@ -23,14 +24,25 @@ function nyMidnight(now: Date): Date {
   return new Date(Date.UTC(year!, month! - 1, day!) + offset);
 }
 
-function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable.$inferSelect | null) {
+function leadToApi(
+  lead: typeof leadsTable.$inferSelect,
+  rep?: typeof usersTable.$inferSelect | null,
+  relatedCompanyName?: string | null,
+) {
+  const companyName = lead.companyName?.trim() || relatedCompanyName?.trim() || null;
   return {
     id: lead.id,
     firstName: lead.firstName,
     lastName: lead.lastName,
     email: lead.email,
     phone: lead.phone,
-    companyName: lead.companyName,
+    companyName,
+    contactName: contactName(lead.firstName, lead.lastName),
+    entityLabel: entityLabel(
+      companyName,
+      contactName(lead.firstName, lead.lastName),
+      `Lead #${lead.id}`,
+    ),
     ein: lead.ein,
     applicationType: lead.applicationType,
     status: lead.status,
@@ -43,10 +55,19 @@ function leadToApi(lead: typeof leadsTable.$inferSelect, rep?: typeof usersTable
   };
 }
 
-function taskToApi(task: typeof tasksTable.$inferSelect, assignedUser?: typeof usersTable.$inferSelect | null) {
+function taskToApi(
+  task: typeof tasksTable.$inferSelect,
+  assignedUser?: typeof usersTable.$inferSelect | null,
+  lead?: (Pick<typeof leadsTable.$inferSelect, "id" | "firstName" | "lastName" | "companyName"> & {
+    company?: { name: string | null } | null;
+  }) | null,
+) {
   return {
     id: task.id,
     leadId: task.leadId,
+    leadLabel: lead
+      ? entityLabel(lead.companyName?.trim() || lead.company?.name?.trim(), contactName(lead.firstName, lead.lastName), `Lead #${lead.id}`)
+      : task.leadId == null ? null : `Lead #${task.leadId}`,
     userId: task.userId,
     assignedUser: assignedUser ? userToApi(assignedUser) : null,
     title: task.title,
@@ -87,7 +108,7 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
     db.query.leadsTable.findMany({
       orderBy: [desc(leadsTable.createdAt)],
       limit: 10,
-      with: { assignedRep: true },
+      with: { assignedRep: true, company: { columns: { name: true } } },
     }),
     db
       .select({
@@ -104,7 +125,7 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
 
   res.json({
     pipelineCounts: statusCounts.map((r) => ({ status: r.status, count: r.count })),
-    recentLeads: recentLeadsRaw.map((l) => leadToApi(l, (l as any).assignedRep)),
+    recentLeads: recentLeadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, (l as any).company?.name)),
     repCounts: repCountsRaw.map((r) => ({
       repId: r.repId,
        repName: getUserDisplayName({ name: r.repName, email: r.repEmail }, "Unknown"),
@@ -126,8 +147,13 @@ router.get("/dashboard/calls", async (req: Request, res: Response) => {
   const leadRows = await db.query.leadsTable.findMany({
     where: user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined,
     columns: { id: true, firstName: true, lastName: true, companyName: true, phone: true },
+    with: { company: { columns: { name: true } } },
   });
-  const leadIds = leadRows.map((lead) => lead.id);
+  const leadsForCalls = leadRows.map((lead) => ({
+    ...lead,
+    companyName: lead.companyName ?? (lead as any).company?.name ?? null,
+  }));
+  const leadIds = leadsForCalls.map((lead) => lead.id);
   const ownershipClause = user.role === "rep"
     ? (leadIds.length ? inArray(communicationsTable.leadId, leadIds) : sql`false`)
     : undefined;
@@ -198,7 +224,7 @@ router.get("/dashboard/calls", async (req: Request, res: Response) => {
       callbackActivityAt: activityByCommunicationId.get(String(callback.id))?.at ?? null,
       callbackActivityStatus: activityByCommunicationId.get(String(callback.id))?.status ?? null,
     })) as any,
-    leadRows,
+    leadsForCalls,
     effective,
     new Date(),
   );
@@ -224,12 +250,18 @@ router.get("/dashboard/rep", async (req: Request, res: Response) => {
       where: repFilter,
       orderBy: [desc(leadsTable.updatedAt)],
       limit: 10,
-      with: { assignedRep: true },
+      with: { assignedRep: true, company: { columns: { name: true } } },
     }),
     db.query.tasksTable.findMany({
       where: and(eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), eq(tasksTable.dueDate, todayStr)),
       orderBy: [desc(tasksTable.dueDate)],
-      with: { assignedUser: true },
+      with: {
+        assignedUser: true,
+        lead: {
+          columns: { id: true, firstName: true, lastName: true, companyName: true, assignedRepId: true },
+          with: { company: { columns: { name: true } } },
+        },
+      },
     }),
     db.query.activityLogTable.findMany({
       where: user.role === "rep" ? eq(activityLogTable.userId, user.id) : undefined,
@@ -245,8 +277,12 @@ router.get("/dashboard/rep", async (req: Request, res: Response) => {
   ]);
 
   res.json({
-    myLeads: myLeadsRaw.map((l) => leadToApi(l, (l as any).assignedRep)),
-    tasksDueToday: tasksDueTodayRaw.map((t) => taskToApi(t, (t as any).assignedUser)),
+    myLeads: myLeadsRaw.map((l) => leadToApi(l, (l as any).assignedRep, (l as any).company?.name)),
+    tasksDueToday: tasksDueTodayRaw.map((t) => {
+      const lead = (t as any).lead;
+      const visibleLead = user.role !== "rep" || lead?.assignedRepId === user.id ? lead : null;
+      return taskToApi(t, (t as any).assignedUser, visibleLead);
+    }),
     recentActivity: recentActivityRaw.map((a) => activityToApi(a, (a as any).user)),
     leadsByStatus: statusCountsRaw.map((r) => ({ status: r.status, count: r.count })),
   });
@@ -272,14 +308,26 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
     if (user.role === "rep") {
       return db.query.tasksTable.findMany({
         where: and(eq(tasksTable.isCompleted, false), extraWhere),
-        with: { assignedUser: true, lead: true },
+        with: {
+          assignedUser: true,
+          lead: {
+            columns: { id: true, firstName: true, lastName: true, companyName: true, assignedRepId: true },
+            with: { company: { columns: { name: true } } },
+          },
+        },
       }).then((rows) => rows.filter((t) => (t as any).lead?.assignedRepId === user.id));
     }
     return db.query.tasksTable.findMany({
       where: and(user.role === "admin"
         ? or(eq(tasksTable.userId, user.id), isNull(tasksTable.userId))
         : eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
-      with: { assignedUser: true },
+      with: {
+        assignedUser: true,
+        lead: {
+          columns: { id: true, firstName: true, lastName: true, companyName: true, assignedRepId: true },
+          with: { company: { columns: { name: true } } },
+        },
+      },
     });
   };
 
@@ -290,9 +338,9 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
   ]);
 
   res.json({
-    dueToday: dueTodayRaw.map((t) => taskToApi(t, (t as any).assignedUser)),
-    dueThisWeek: dueThisWeekRaw.map((t) => taskToApi(t, (t as any).assignedUser)),
-    overdue: overdueRaw.map((t) => taskToApi(t, (t as any).assignedUser)),
+    dueToday: dueTodayRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
+    dueThisWeek: dueThisWeekRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
+    overdue: overdueRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
   });
 });
 

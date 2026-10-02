@@ -4,6 +4,7 @@ import { notificationsTable } from "@workspace/db";
 import { eq, and, desc, count } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { z } from "zod/v4";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 export const notificationsQuery = z.object({
   page: z.coerce.number().int().positive().optional(),
@@ -30,13 +31,15 @@ type NotificationRow = typeof notificationsTable.$inferSelect & {
     firstName: string | null;
     lastName: string | null;
     companyName: string | null;
+    assignedRepId: number | null;
+    company?: { name: string | null } | null;
   } | null;
 };
 
 export type NotificationStore = {
   unreadCount(userId: number): Promise<number>;
   markAllRead(userId: number): Promise<void>;
-  list(userId: number, limit: number, offset: number): Promise<NotificationRow[]>;
+  list(userId: number, role: string, limit: number, offset: number): Promise<NotificationRow[]>;
   total(userId: number): Promise<number>;
   markRead(userId: number, id: number): Promise<void>;
 };
@@ -56,13 +59,24 @@ export function createNotificationStore(database: typeof db = db): NotificationS
         .set({ isRead: true })
         .where(and(eq(notificationsTable.userId, userId), eq(notificationsTable.isRead, false)));
     },
-    async list(userId, limit, offset) {
+    async list(userId, _role, limit, offset) {
       return database.query.notificationsTable.findMany({
         where: eq(notificationsTable.userId, userId),
         orderBy: [desc(notificationsTable.createdAt)],
         limit,
         offset,
-        with: { lead: true },
+        with: {
+          lead: {
+            columns: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+              assignedRepId: true,
+            },
+            with: { company: { columns: { name: true } } },
+          },
+        },
       }) as Promise<NotificationRow[]>;
     },
     async total(userId) {
@@ -123,7 +137,7 @@ export function createNotificationsRouter({
     const offset = (page - 1) * limit;
 
     const [rows, total] = await Promise.all([
-      store.list(user.id, limit, offset),
+      store.list(user.id, user.role, limit, offset),
       store.total(user.id),
     ]);
 
@@ -134,8 +148,23 @@ export function createNotificationsRouter({
         title: n.title,
         body: n.body,
         leadId: n.leadId,
-        leadName: n.lead
-          ? [n.lead.firstName, n.lead.lastName].filter(Boolean).join(" ") || n.lead.companyName
+        leadName: n.lead && (
+          user.role !== "rep" || n.lead.assignedRepId === user.id
+        )
+          ? entityLabel(
+              n.lead.companyName?.trim() || n.lead.company?.name?.trim(),
+              contactName(n.lead.firstName, n.lead.lastName),
+              `Lead #${n.leadId}`,
+            )
+          : null,
+        entityLabel: n.lead && (
+          user.role !== "rep" || n.lead.assignedRepId === user.id
+        )
+          ? entityLabel(
+              n.lead.companyName?.trim() || n.lead.company?.name?.trim(),
+              contactName(n.lead.firstName, n.lead.lastName),
+              `Lead #${n.leadId}`,
+            )
           : null,
         isRead: n.isRead,
         createdAt: n.createdAt.toISOString(),

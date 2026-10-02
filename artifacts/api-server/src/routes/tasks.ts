@@ -6,13 +6,23 @@ import { usersTable } from "@workspace/db";
 import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListTasksParams, CreateTaskParams, CreateTaskBody, UpdateTaskParams, UpdateTaskBody } from "@workspace/api-zod";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router: IRouter = Router();
 
-function taskToApi(task: typeof tasksTable.$inferSelect, assignedUser?: any) {
+function taskToApi(
+  task: typeof tasksTable.$inferSelect,
+  assignedUser?: any,
+  lead?: (Pick<typeof leadsTable.$inferSelect, "id" | "firstName" | "lastName" | "companyName"> & {
+    company?: { name: string | null } | null;
+  }) | null,
+) {
   return {
     id: task.id,
     leadId: task.leadId,
+    leadLabel: lead
+      ? entityLabel(lead.companyName?.trim() || lead.company?.name?.trim(), contactName(lead.firstName, lead.lastName), `Lead #${lead.id}`)
+      : task.leadId == null ? null : `Lead #${task.leadId}`,
     userId: task.userId,
     assignedUser: assignedUser ? userToApi(assignedUser) : null,
     title: task.title,
@@ -62,7 +72,10 @@ router.get("/leads/:id/tasks", async (req: Request, res: Response) => {
     return;
   }
 
-  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, params.data.id) });
+  const lead = await db.query.leadsTable.findFirst({
+    where: eq(leadsTable.id, params.data.id),
+    with: { company: { columns: { name: true } } },
+  });
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
     return;
@@ -78,7 +91,7 @@ router.get("/leads/:id/tasks", async (req: Request, res: Response) => {
     with: { assignedUser: true },
   });
 
-  res.json(tasks.map((t) => taskToApi(t, (t as any).assignedUser)));
+  res.json(tasks.map((t) => taskToApi(t, (t as any).assignedUser, lead)));
 });
 
 export function createCreateTaskHandler(dependencies: TaskRouteDependencies = {}) {
@@ -102,7 +115,10 @@ export function createCreateTaskHandler(dependencies: TaskRouteDependencies = {}
       return;
     }
 
-    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, params.data.id) });
+    const lead = await database.query.leadsTable.findFirst({
+      where: eq(leadsTable.id, params.data.id),
+      with: { company: { columns: { name: true } } },
+    });
     if (!lead) {
       res.status(404).json({ error: "Lead not found" });
       return;
@@ -137,7 +153,7 @@ export function createCreateTaskHandler(dependencies: TaskRouteDependencies = {}
       details: { title: task.title },
     });
 
-    res.status(201).json(taskToApi(task, assignedUser));
+    res.status(201).json(taskToApi(task, assignedUser, lead));
   };
 }
 
@@ -167,7 +183,10 @@ export function createUpdateTaskHandler(dependencies: TaskRouteDependencies = {}
       res.status(404).json({ error: "Task not found" });
       return;
     }
-    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, existing.leadId) });
+    const lead = await database.query.leadsTable.findFirst({
+      where: eq(leadsTable.id, existing.leadId),
+      with: { company: { columns: { name: true } } },
+    });
     if (user.role === "rep" && (!lead || lead.assignedRepId !== user.id)) {
       res.status(403).json({ error: "Forbidden" });
       return;
@@ -211,7 +230,7 @@ export function createUpdateTaskHandler(dependencies: TaskRouteDependencies = {}
       details: { title: existing.title, fields: Object.keys(body.data) },
     });
 
-    res.json(taskToApi(updated, null));
+    res.json(taskToApi(updated, null, lead));
   };
 }
 

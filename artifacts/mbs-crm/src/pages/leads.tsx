@@ -19,12 +19,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, Building2 as BuildingIcon, ArrowUpDown } from "lucide-react";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, ArrowUpDown } from "lucide-react";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from "@/components/ui/empty";
 import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { QueryErrorState } from "@/components/query-error-state";
+import { formatLeadIdentity } from "@/lib/recordIdentity";
+import { PhoneLink, EmailLink } from "@/components/phone-link";
 
 const LEAD_FIELDS = [
   { value: "__skip__", label: "— skip —" },
@@ -822,8 +824,7 @@ export default function Leads() {
           </div>
         ) : (
           data?.leads.map((lead) => (
-            <Link key={lead.id} href={`/leads/${lead.id}`} className="block">
-              <div className={`rounded-lg border bg-white shadow-sm p-4 space-y-2 transition-colors hover:bg-gray-50/60 ${selectedIds.has(lead.id) ? "border-blue-300 bg-blue-50/40" : ""}`}>
+            <div key={lead.id} className={`rounded-lg border bg-white shadow-sm p-4 space-y-2 transition-colors hover:bg-gray-50/60 ${selectedIds.has(lead.id) ? "border-blue-300 bg-blue-50/40" : ""}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -836,9 +837,18 @@ export default function Leads() {
                           />
                         </span>
                       )}
-                      <div className="font-semibold text-sm truncate">{lead.firstName} {lead.lastName}</div>
+                      <Link
+                        href={`/leads/${lead.id}`}
+                        className="font-semibold text-sm truncate text-[#0E2A47] hover:underline"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {formatLeadIdentity(lead)}
+                      </Link>
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">{lead.email}</div>
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                      {lead.phone?.trim() ? <PhoneLink phone={lead.phone} leadId={lead.id} className="text-xs" /> : <span>Phone unavailable</span>}
+                      {lead.email?.trim() ? <EmailLink email={lead.email} leadId={lead.id} className="text-xs" /> : <span>Email unavailable</span>}
+                    </div>
                     <CreatedBy actor={lead.createdBy} source={lead.leadSource} />
                   </div>
                   <div className="flex items-center gap-1">
@@ -853,12 +863,6 @@ export default function Leads() {
                     )}
                   </div>
                 </div>
-                {lead.companyName && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <BuildingIcon size={12} />
-                    <span className="truncate">{lead.companyName}</span>
-                  </div>
-                )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
                   <span className="min-w-0 truncate">
                     <span className="font-semibold text-[#0E2A47]">Assigned Rep: </span>
@@ -866,8 +870,7 @@ export default function Leads() {
                   </span>
                   <span className="flex-shrink-0 ml-2">{format(new Date(lead.updatedAt), "MMM d, yyyy")}</span>
                 </div>
-              </div>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -890,6 +893,8 @@ export default function Leads() {
               )}
               <TableHead>Lead</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Stale</TableHead>
               <TableHead>Score</TableHead>
@@ -911,6 +916,8 @@ export default function Leads() {
                   {isManagerOrAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
                   <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[110px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[140px]" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-[48px] rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
@@ -923,13 +930,13 @@ export default function Leads() {
               ))
             ) : error && !data ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 11 : 10} className="py-12 text-center text-muted-foreground">
+                <TableCell colSpan={isManagerOrAdmin ? 13 : 12} className="py-12 text-center text-muted-foreground">
                   Lead results are unavailable.
                 </TableCell>
               </TableRow>
             ) : data?.leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManagerOrAdmin ? 11 : 10} className="py-0">
+                <TableCell colSpan={isManagerOrAdmin ? 13 : 12} className="py-0">
                   {hasFilters ? (
                     <Empty className="py-12 border-0">
                       <EmptyMedia variant="icon"><Search className="h-5 w-5" /></EmptyMedia>
@@ -989,14 +996,19 @@ export default function Leads() {
                   )}
                   <TableCell className="font-medium">
                     <Link href={`/leads/${lead.id}`} className="block w-full">
-                      {lead.firstName} {lead.lastName}
-                      <div className="text-xs text-muted-foreground font-normal">{lead.email}</div>
+                      {formatLeadIdentity(lead)}
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/leads/${lead.id}`} className="block w-full">
-                      {lead.companyName || "-"}
+                    <Link href={`/leads/${lead.id}`} className="block w-full text-primary hover:underline">
+                      {lead.companyName || "—"}
                     </Link>
+                  </TableCell>
+                  <TableCell onClick={(event) => event.stopPropagation()}>
+                    {lead.phone?.trim() ? <PhoneLink phone={lead.phone} leadId={lead.id} className="text-sm" /> : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell onClick={(event) => event.stopPropagation()}>
+                    {lead.email?.trim() ? <EmailLink email={lead.email} leadId={lead.id} className="text-sm" /> : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
                     <Link href={`/leads/${lead.id}`} className="block w-full">

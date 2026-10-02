@@ -9,6 +9,12 @@ Keep `GET /api` returning the same lightweight success response as the shallow h
 
 **How to apply:** When changing API routing or health checks, preserve a fast, unauthenticated, dependency-free 200 response at both the API mount root and the dedicated shallow health path.
 
+Liveness is not application readiness. Smoke runners must wait for the reported ready phase before requesting business or Clerk-proxy routes.
+
+**Why:** Starting a smoke check on the first healthy response produced a false Clerk-proxy 503 while the application was still loading. Do not weaken dependency-free liveness to fix that race.
+
+**How to apply:** Keep deployment liveness independent of boot completion, and make verification callers explicitly wait for application readiness.
+
 Do not treat "listener opened" or a post-listen dynamic import as proof of responsive liveness. Measure HTTP responses throughout bootstrap, separately from application readiness.
 
 **Why:** Publishing on a half-vCPU VM stalled even though local fresh-process tests completed in seconds. Module evaluation after `import()` still blocked the listening thread; production probes saw timeouts between port opening and application readiness.

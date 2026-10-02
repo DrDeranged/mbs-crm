@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGetLeadQueryKey, getListLeadActivityQueryKey, LeadUpdateApplicationType, useUpdateLead } from "@workspace/api-client-react";
-import { useLeadDetail } from "./context";
+import { useLeadDetail, useLeadDetailAction } from "./context";
 const editFormSchema = z.object({
   firstName: z.string().min(1, "Required"),
   lastName: z.string().min(1, "Required"),
@@ -23,6 +23,8 @@ const editFormSchema = z.object({
 export function EditLeadDialog() {
   const { lead } = useLeadDetail();
   const [open, setOpen] = useState(false);
+  const openEditDialog = useCallback(() => setOpen(true), []);
+  useLeadDetailAction("edit", openEditDialog);
   const updateLead = useUpdateLead();
   const queryClient = useQueryClient();
   const { toast } = useToast();

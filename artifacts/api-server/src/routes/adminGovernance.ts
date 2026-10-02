@@ -16,6 +16,7 @@ import { z } from "zod/v4";
 import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { getLeadSmsEligibility } from "../lib/smsEligibility";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router = Router();
 const positiveId = z.coerce.number().int().positive();
@@ -125,7 +126,7 @@ router.get("/admin/data-governance/retention-preview", async (req: Request, res:
   cutoff.setMonth(cutoff.getMonth() - retentionMonths);
 
   const eligible = await db
-    .select({ id: leadsTable.id, firstName: leadsTable.firstName, lastName: leadsTable.lastName, email: leadsTable.email, status: leadsTable.status, updatedAt: leadsTable.updatedAt })
+    .select({ id: leadsTable.id, firstName: leadsTable.firstName, lastName: leadsTable.lastName, companyName: leadsTable.companyName, email: leadsTable.email, status: leadsTable.status, updatedAt: leadsTable.updatedAt })
     .from(leadsTable)
     .where(
       and(
@@ -150,7 +151,7 @@ router.get("/admin/data-governance/retention-preview", async (req: Request, res:
     eligibleCount: eligible.length,
     eligible: eligible.map((l) => ({
       id: l.id,
-      name: [l.firstName, l.lastName].filter(Boolean).join(" ") || `Lead #${l.id}`,
+      name: entityLabel(l.companyName, contactName(l.firstName, l.lastName), `Lead #${l.id}`),
       email: l.email,
       status: l.status,
       lastUpdated: l.updatedAt,

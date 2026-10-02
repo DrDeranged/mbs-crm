@@ -22,6 +22,7 @@ import { calculateRatePoints, parseDealRatePointsQuery, reverseFromPoints, type 
 import { InlineListError } from "@/components/inline-list-error";
 import { listData } from "@/lib/list-response";
 import { getQueryErrorStatus } from "@/lib/query-error";
+import { formatDealIdentity } from "@/lib/recordIdentity";
 
 const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`;
@@ -96,12 +97,29 @@ export default function RatePointsPage() {
     });
   };
 
+  const dealIdentity = deal ? ((deal as any).entityLabel || formatDealIdentity(deal as any)) : "";
+  const customDealName = deal?.dealName?.trim() ?? "";
+  const hasDistinctDealName = Boolean(customDealName && customDealName !== dealIdentity);
+
   return (
     <div className="flex-1 bg-[#f8fafc] overflow-y-auto">
       <div className="max-w-[1200px] mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
           {dealId ? <Link href={`/deals/${dealId}`}><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link> : null}
-          <div><h1 className="text-2xl font-bold text-[#0E2A47]">Rate &amp; Points</h1><p className="text-sm text-muted-foreground">{deal ? `Calculating for ${deal.dealName}` : "Model a payment stream and commission"}</p></div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#0E2A47]">Rate &amp; Points</h1>
+            <p className="text-sm text-muted-foreground">
+              {deal ? (
+                <>
+                  Calculating for{" "}
+                  <Link href={`/deals/${deal.id}`} className="font-medium text-[#1F4E79] hover:underline">{dealIdentity}</Link>
+                  {hasDistinctDealName && (
+                    <> · <Link href={`/deals/${deal.id}`} className="hover:underline">{customDealName}</Link></>
+                  )}
+                </>
+              ) : "Model a payment stream and commission"}
+            </p>
+          </div>
         </div>
         {(approvalsQuery.isError || approvalList.malformed) && <InlineListError title="Couldn’t load calculator prefill" status={approvalsQuery.isError ? getQueryErrorStatus(approvalsQuery.error) : 200} detail={approvalList.malformed ? "The server returned an unexpected approvals response." : undefined} onRetry={() => void approvalsQuery.refetch()} />}
         <Card>

@@ -45,3 +45,4 @@
 - [Published PWA asset fallbacks](pwa-asset-fallbacks.md) — static hosting may serve 200 HTML for removed JS chunks; reject it before caching and recover stale route imports.
 - [Baseline migration adoption](baseline-migration-adoption.md) — run migration zero only on an empty schema; existing installations adopt its checksum without replaying DDL.
 - [Offline queue ownership](offline-queue-ownership.md) — replay only entries bound to the current account; quarantine legacy ownerless entries rather than guessing their owner.
+- [Contact action boundaries](contact-action-boundaries.md) — deal access never grants linked-lead access; terminal status does not restrict contact actions.

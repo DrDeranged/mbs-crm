@@ -11,6 +11,7 @@ import { ShieldCheck, Download, ChevronLeft, ChevronRight, Trash2, Eye, FileText
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName } from "@/lib/utils";
+import { Link } from "wouter";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 
@@ -18,6 +19,7 @@ type PiiLogEntry = {
   id: number;
   userId: number | null;
   leadId: number | null;
+  entityLabel?: string | null;
   fieldCategory: "ssn" | "credit" | "application";
   action: "view" | "export";
   ip: string | null;
@@ -272,7 +274,7 @@ export default function Governance() {
                     <tr>
                       <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">Time</th>
                       <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">User</th>
-                      <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">Lead ID</th>
+                      <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">Lead</th>
                       <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">Category</th>
                       <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">Action</th>
                       <th className="px-3 py-2 text-left font-medium text-xs text-muted-foreground">IP</th>
@@ -285,7 +287,7 @@ export default function Governance() {
                       <tr key={row.id} className="border-t hover:bg-muted/20">
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(row.createdAt), "MMM d, yyyy HH:mm")}</td>
                         <td className="px-3 py-2 text-xs">{row.userName ?? <span className="text-muted-foreground">System</span>}</td>
-                        <td className="px-3 py-2 text-xs">{row.leadId ? <span className="font-mono">#{row.leadId}</span> : "—"}</td>
+                        <td className="px-3 py-2 text-xs">{row.leadId ? <Link href={`/leads/${row.leadId}`} className="font-medium text-[#1F4E79] hover:underline">{row.entityLabel || `Lead #${row.leadId}`}</Link> : "—"}</td>
                         <td className="px-3 py-2"><CategoryBadge category={row.fieldCategory} /></td>
                         <td className="px-3 py-2"><ActionBadge action={row.action} /></td>
                         <td className="px-3 py-2 text-xs text-muted-foreground font-mono">{row.ip ?? "—"}</td>
@@ -376,8 +378,8 @@ export default function Governance() {
                       <tbody>
                         {preview.eligible.map((l) => (
                           <tr key={l.id} className="border-t">
-                            <td className="px-3 py-1.5 text-xs font-mono">#{l.id}</td>
-                            <td className="px-3 py-1.5 text-xs">{l.name}</td>
+                            <td className="px-3 py-1.5 text-xs font-mono"><Link href={`/leads/${l.id}`} className="text-[#1F4E79] hover:underline">#{l.id}</Link></td>
+                            <td className="px-3 py-1.5 text-xs"><Link href={`/leads/${l.id}`} className="font-medium text-[#1F4E79] hover:underline">{l.name}</Link></td>
                             <td className="px-3 py-1.5 text-xs text-muted-foreground">{l.email ?? "—"}</td>
                             <td className="px-3 py-1.5 text-xs text-muted-foreground">{format(new Date(l.lastUpdated), "MMM d, yyyy")}</td>
                           </tr>

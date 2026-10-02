@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, UserRoundPlus } from "lucide-react";
+import { formatLeadIdentity } from "@/lib/recordIdentity";
 import {
   addCampaignLeadIds,
   assertCampaignLeadResultCap,
@@ -19,10 +20,6 @@ type Props = {
   selectedIds: number[];
   onChange: (ids: number[]) => void;
 };
-
-function leadName(lead: CampaignPickerLead) {
-  return [lead.firstName, lead.lastName].filter(Boolean).join(" ") || `Lead #${lead.id}`;
-}
 
 export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
   const [open, setOpen] = useState(false);
@@ -132,8 +129,8 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
                 <label key={lead.id} className="flex cursor-pointer items-start gap-3 border-b p-3 last:border-0 hover:bg-slate-50">
                   <Checkbox checked={selectedIds.includes(lead.id)} onCheckedChange={(checked) => setPicked(lead.id, Boolean(checked))} />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-medium">{leadName(lead)}</span>
-                    <span className="block truncate text-sm text-slate-500">{[lead.companyName, lead.email, lead.leadSource].filter(Boolean).join(" · ") || "No company, email, or source metadata"}</span>
+                    <span className="block font-medium">{formatLeadIdentity(lead)}</span>
+                    <span className="block truncate text-sm text-slate-500">{[lead.email, lead.leadSource].filter(Boolean).join(" · ") || "No email or source metadata"}</span>
                   </span>
                 </label>
               ))}
@@ -156,10 +153,10 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
             const lead = metadata[id];
             return (
               <Badge key={id} variant="secondary" className="max-w-full gap-1 py-1">
-                <span className="truncate" title={lead ? [lead.companyName, lead.email, lead.leadSource].filter(Boolean).join(" · ") : `Lead #${id}`}>
-                  {lead ? `${leadName(lead)}${lead.companyName ? ` · ${lead.companyName}` : ""}${lead.email ? ` · ${lead.email}` : ""}${lead.leadSource ? ` · ${lead.leadSource}` : ""}` : `Lead #${id} · loading details`}
+                <span className="truncate" title={lead ? [formatLeadIdentity(lead), lead.email, lead.leadSource].filter(Boolean).join(" · ") : `Lead #${id}`}>
+                  {lead ? [formatLeadIdentity(lead), lead.email, lead.leadSource].filter(Boolean).join(" · ") : `Lead #${id} · loading details`}
                 </span>
-                <button type="button" onClick={() => onChange(selectedIds.filter((pickedId) => pickedId !== id))} aria-label={`Remove ${lead ? leadName(lead) : `lead ${id}`}`}><X className="h-3 w-3" /></button>
+                <button type="button" onClick={() => onChange(selectedIds.filter((pickedId) => pickedId !== id))} aria-label={`Remove ${lead ? formatLeadIdentity(lead) : `lead ${id}`}`}><X className="h-3 w-3" /></button>
               </Badge>
             );
           })}

@@ -4,16 +4,19 @@ import {
   asc,
   desc,
   eq,
+  exists,
   gte,
   ilike,
   inArray,
   isNull,
   lte,
+  or,
   sql,
 } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
   activityLogTable,
+  companiesTable,
   dealsTable,
   leadsTable,
   usersTable,
@@ -48,6 +51,7 @@ import {
 } from "../lib/twoPhaseQueries";
 import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
 import { netGmAfterReferralSplit } from "../lib/partnerFlows";
+import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -93,11 +97,19 @@ function toApi(
     createdAt: Date;
     user?: typeof usersTable.$inferSelect | null;
   } | null,
+  contact?: DealLeadContact | null,
+  hideUnauthorizedLead = false,
 ) {
   return {
     id: deal.id,
-    leadId: deal.leadId,
+    leadId: hideUnauthorizedLead && deal.leadId != null && !contact ? null : deal.leadId,
     dealName: deal.dealName,
+    companyName: contact?.companyName ?? null,
+    contactName: contact?.contactName ?? null,
+    contactEmail: contact?.contactEmail ?? null,
+    contactPhone: contact?.contactPhone ?? null,
+    businessAddress: contact?.businessAddress ?? null,
+    entityLabel: entityLabel(contact?.companyName, contact?.contactName, `Deal #${deal.id}`),
     stage: deal.stage,
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
@@ -122,6 +134,72 @@ function toApi(
       : null,
     approvalExpiresOn: (deal as any).approvalExpiresOn ?? null,
   };
+}
+
+type DealLeadContact = {
+  leadId: number;
+  firstName: string | null;
+  lastName: string | null;
+  companyName: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  businessAddress: string | null;
+  entityLabel: string;
+  status: string;
+  assignedRepId: number | null;
+};
+
+export async function getAuthorizedDealLeadContacts(
+  dealRows: Array<Pick<typeof dealsTable.$inferSelect, "leadId" | "id">>,
+  user: Pick<typeof usersTable.$inferSelect, "id" | "role">,
+  database: typeof db = db,
+): Promise<Map<number, DealLeadContact>> {
+  const leadIds = [...new Set(dealRows.flatMap((deal) => deal.leadId == null ? [] : [deal.leadId]))];
+  if (!leadIds.length) return new Map();
+  const rows = await database
+    .select({
+      leadId: leadsTable.id,
+      firstName: leadsTable.firstName,
+      lastName: leadsTable.lastName,
+      companyName: leadsTable.companyName,
+      relatedCompanyName: companiesTable.name,
+      contactEmail: leadsTable.email,
+      contactPhone: leadsTable.phone,
+      status: leadsTable.status,
+      assignedRepId: leadsTable.assignedRepId,
+      address: companiesTable.address,
+      city: companiesTable.city,
+      state: companiesTable.state,
+      zip: companiesTable.zip,
+    })
+    .from(leadsTable)
+    .leftJoin(companiesTable, eq(companiesTable.leadId, leadsTable.id))
+    .where(and(
+      inArray(leadsTable.id, leadIds),
+      user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined,
+    ));
+  return new Map(rows.map((lead) => {
+    const person = contactName(lead.firstName, lead.lastName);
+    const company = lead.companyName?.trim() || lead.relatedCompanyName?.trim() || null;
+    const businessAddress = [
+      lead.address?.trim() ?? "",
+      [lead.city, lead.state, lead.zip].map((part) => part?.trim() ?? "").filter(Boolean).join(", "),
+    ].filter(Boolean).join(", ") || null;
+    return [lead.leadId, {
+      leadId: lead.leadId,
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      companyName: company,
+      contactName: person || null,
+      contactEmail: lead.contactEmail,
+      contactPhone: lead.contactPhone,
+      businessAddress,
+      entityLabel: entityLabel(company, person, `Lead #${lead.leadId}`),
+      status: lead.status,
+      assignedRepId: lead.assignedRepId,
+    }];
+  }));
 }
 
 const NOTE_ACTIVITY_LIMIT = 160;
@@ -165,11 +243,38 @@ function canAccessDeal(
   return user.role !== "rep" || deal.assignedTo === user.id;
 }
 
-async function findDeal(id: number) {
-  return db.query.dealsTable.findFirst({
+async function findDeal(id: number, database: typeof db = db) {
+  return database.query.dealsTable.findFirst({
     where: eq(dealsTable.id, id),
-    with: { assignedUser: true, lead: true },
+    with: { assignedUser: true },
   });
+}
+
+function dealSearchCondition(search: string, user: Pick<typeof usersTable.$inferSelect, "id" | "role">) {
+  const pattern = `%${sanitizeLikeInput(search)}%`;
+  return or(
+    ilike(dealsTable.dealName, pattern),
+    exists(
+      db.select({ id: leadsTable.id }).from(leadsTable).where(and(
+        eq(leadsTable.id, dealsTable.leadId),
+        user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined,
+        or(
+          sql`concat_ws(' ', ${leadsTable.firstName}, ${leadsTable.lastName}) ilike ${pattern}`,
+          ilike(leadsTable.companyName, pattern),
+          ilike(leadsTable.firstName, pattern),
+          ilike(leadsTable.lastName, pattern),
+          ilike(leadsTable.email, pattern),
+          ilike(leadsTable.phone, pattern),
+          exists(
+            db.select({ id: companiesTable.id }).from(companiesTable).where(and(
+              eq(companiesTable.leadId, leadsTable.id),
+              ilike(companiesTable.name, pattern),
+            )),
+          ),
+        ),
+      )),
+    ),
+  );
 }
 
 function dateConditions(q: DealListQuery, table = dealsTable) {
@@ -230,10 +335,7 @@ router.get("/deals", async (req, res): Promise<void> => {
     }
     conditions.push(inArray(dealsTable.stage, stages));
   }
-  if (q.search)
-    conditions.push(
-      ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
-    );
+  if (q.search) conditions.push(dealSearchCondition(q.search, user));
   conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
@@ -288,10 +390,13 @@ router.get("/deals", async (req, res): Promise<void> => {
     rows = hydrated;
     total = totals[0]?.total ?? 0;
   }
-  const latestActivities = await getLatestActivities(
+  const [latestActivities, leadContacts] = await Promise.all([
+    getLatestActivities(
     "deal",
     rows.map((deal) => deal.id),
-  );
+    ),
+    getAuthorizedDealLeadContacts(rows, user),
+  ]);
   const approvalRows = rows.length === 0 ? [] : await db
     .selectDistinctOn([dealApprovalsTable.dealId], {
       dealId: dealApprovalsTable.dealId,
@@ -303,7 +408,7 @@ router.get("/deals", async (req, res): Promise<void> => {
   const approvalExpiryByDeal = new Map(approvalRows.map((row) => [row.dealId, row.expiresOn]));
   res.json({
     deals: rows.map((deal) =>
-      toApi(Object.assign(deal, { approvalExpiresOn: approvalExpiryByDeal.get(deal.id) }), deal.assignedUser, latestActivities.get(deal.id)),
+      toApi(Object.assign(deal, { approvalExpiresOn: approvalExpiryByDeal.get(deal.id) }), deal.assignedUser, latestActivities.get(deal.id), leadContacts.get(deal.leadId ?? -1), true),
     ),
     total,
     page,
@@ -337,10 +442,7 @@ export function createExportDealsHandler(dependencies: {
     }
     conditions.push(inArray(dealsTable.stage, stages));
   }
-  if (q.search)
-    conditions.push(
-      ilike(dealsTable.dealName, `%${sanitizeLikeInput(q.search)}%`),
-    );
+  if (q.search) conditions.push(dealSearchCondition(q.search, user));
   conditions.push(...dateConditions(q));
   const where = and(...conditions);
   const sortField = q.sort_by ?? "updatedAt";
@@ -452,6 +554,15 @@ router.post("/deals", async (req, res): Promise<void> => {
     return;
   }
   const data = parsed.data;
+  if (user.role === "rep" && data.leadId != null) {
+    const linkedLead = await db.query.leadsTable.findFirst({
+      where: and(eq(leadsTable.id, data.leadId), eq(leadsTable.assignedRepId, user.id)),
+    });
+    if (!linkedLead) {
+      res.status(403).json({ error: "Reps may only link deals to leads they own" });
+      return;
+    }
+  }
   if (!validGmSplitPct(data.gmSplitPct)) {
     res
       .status(400)
@@ -489,48 +600,72 @@ router.post("/deals", async (req, res): Promise<void> => {
     entityType: "deal",
     entityId: deal.id,
   });
-  res.status(201).json(toApi(deal));
+  const contacts = await getAuthorizedDealLeadContacts([deal], user);
+  res.status(201).json(toApi(deal, null, null, contacts.get(deal.leadId ?? -1), true));
 });
 
-router.get("/deals/:id", async (req, res, next): Promise<void> => {
-  const user = await requireUser(req, res);
-  if (!user) return;
-  if (req.params.id === "analytics") {
-    next();
-    return;
-  }
-  const id = parseId(req, res);
-  if (!id) return;
-  const deal = await findDeal(id);
-  if (!deal) {
-    res.status(404).json({ error: "Deal not found" });
-    return;
-  }
-  if (!canAccessDeal(user, deal)) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
-  const activity = await db.query.activityLogTable.findMany({
-    where: eq(activityLogTable.dealId, id),
-    with: { user: true },
-    orderBy: [asc(activityLogTable.createdAt), asc(activityLogTable.id)],
-  });
-  const latestApproval = await db.query.dealApprovalsTable.findFirst({
-    where: eq(dealApprovalsTable.dealId, id),
-    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
-  });
-  const latestActivity =
-    activity.length > 0 ? activity[activity.length - 1] : null;
-  res.json({
-    ...toApi(Object.assign(deal, { approvalExpiresOn: latestApproval?.expiresOn }), deal.assignedUser, latestActivity),
-    lead: deal.lead ?? null,
-    activity: activity.map((entry) => ({
-      ...entry,
-      user: entry.user ? userToApi(entry.user) : null,
-      createdAt: entry.createdAt.toISOString(),
-    })),
-  });
-});
+export function createGetDealHandler(dependencies: {
+  database?: typeof db;
+  authenticate?: typeof requireUser;
+} = {}) {
+  const database = dependencies.database ?? db;
+  const authenticate = dependencies.authenticate ?? requireUser;
+  return async function getDeal(req: Request, res: Response, next: import("express").NextFunction): Promise<void> {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    if (req.params.id === "analytics") {
+      next();
+      return;
+    }
+    const id = parseId(req, res);
+    if (!id) return;
+    const deal = await findDeal(id, database);
+    if (!deal) {
+      res.status(404).json({ error: "Deal not found" });
+      return;
+    }
+    if (!canAccessDeal(user, deal)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    const [activity, leadContacts] = await Promise.all([
+      database.query.activityLogTable.findMany({
+        where: eq(activityLogTable.dealId, id),
+        with: { user: true },
+        orderBy: [asc(activityLogTable.createdAt), asc(activityLogTable.id)],
+      }),
+      getAuthorizedDealLeadContacts([deal], user, database),
+    ]);
+    const latestApproval = await database.query.dealApprovalsTable.findFirst({
+      where: eq(dealApprovalsTable.dealId, id),
+      orderBy: (table: any, { desc }: any) => [desc(table.createdAt), desc(table.id)],
+    });
+    const latestActivity = activity.length > 0 ? activity[activity.length - 1] : null;
+    const contact = leadContacts.get(deal.leadId ?? -1);
+    res.json({
+      ...toApi(Object.assign(deal, { approvalExpiresOn: latestApproval?.expiresOn }), deal.assignedUser, latestActivity, contact, true),
+      lead: contact ? {
+        id: contact.leadId,
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.contactEmail,
+        phone: contact.contactPhone,
+        companyName: contact.companyName,
+        status: contact.status,
+        assignedRepId: contact.assignedRepId,
+        entityLabel: contact.entityLabel,
+        businessAddress: contact.businessAddress,
+      } : null,
+      activity: activity.map((entry: any) => ({
+        ...entry,
+        user: entry.user ? userToApi(entry.user) : null,
+        createdAt: entry.createdAt.toISOString(),
+      })),
+    });
+  };
+}
+
+router.get("/deals/:id", createGetDealHandler());
 
 export function createUpdateDealHandler(dependencies: {
   database?: any;
@@ -643,7 +778,8 @@ export function createUpdateDealHandler(dependencies: {
     }
     return updatedDeal;
   });
-  res.json(toApi(deal));
+  const contacts = await getAuthorizedDealLeadContacts([deal], user, routeDb);
+  res.json(toApi(deal, null, null, contacts.get(deal.leadId ?? -1), true));
   };
 }
 
@@ -678,7 +814,8 @@ router.post("/deals/:id/archive", async (req, res): Promise<void> => {
     entityType: "deal",
     entityId: id,
   });
-  res.json(toApi(deal));
+  const contacts = await getAuthorizedDealLeadContacts([deal], user);
+  res.json(toApi(deal, null, null, contacts.get(deal.leadId ?? -1), true));
 });
 
 router.delete("/deals/:id", async (req, res): Promise<void> => {
@@ -824,7 +961,8 @@ export function createSaveDealRatePointsHandler(dependencies: {
       else await logActivity(activity, tx);
       return updated;
     });
-    res.json({ deal: toApi(deal), gmTarget: targetField, calculation });
+    const contacts = await getAuthorizedDealLeadContacts([deal], user, database);
+    res.json({ deal: toApi(deal, null, null, contacts.get(deal.leadId ?? -1), true), gmTarget: targetField, calculation });
   };
 }
 
@@ -1064,7 +1202,8 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
     entityId: deal.id,
     details: { leadId: lead.id },
   });
-  res.status(201).json(toApi(deal));
+  const contacts = await getAuthorizedDealLeadContacts([deal], user);
+  res.status(201).json(toApi(deal, null, null, contacts.get(lead.id), true));
 });
 
 router.get("/deals/analytics", async (req, res): Promise<void> => {

@@ -1075,6 +1075,15 @@ export interface Lead {
   phone?: string | null;
   /** @nullable */
   companyName?: string | null;
+  /** Trimmed full name of the lead contact, or an empty string when unavailable. */
+  contactName?: string;
+  /** Company-first identity label with a neutral fallback for missing identity. */
+  entityLabel?: string;
+  /**
+     * Formatted business address; present on the authorized lead detail response.
+     * @nullable
+     */
+  businessAddress?: string | null;
   /**
      * Vertical supplied during lead import; free text is preserved when not a known vertical.
      * @nullable
@@ -1179,6 +1188,11 @@ export interface Note {
 export interface Task {
   id: number;
   leadId: number;
+  /**
+     * Company-first label for the task's authorized linked lead.
+     * @nullable
+     */
+  leadLabel?: string | null;
   /** @nullable */
   userId?: number | null;
   assignedUser?: User | null;
@@ -3103,6 +3117,11 @@ export interface Notification {
   leadId?: number | null;
   /** @nullable */
   leadName?: string | null;
+  /**
+     * Company-first lead label, omitted when the lead is not visible to the recipient.
+     * @nullable
+     */
+  entityLabel?: string | null;
   isRead?: boolean;
   createdAt?: string;
 }
@@ -3332,6 +3351,18 @@ export interface Deal {
   /** @nullable */
   leadId?: number | null;
   dealName: string;
+  /** @nullable */
+  companyName?: string | null;
+  /** @nullable */
+  contactName?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
+  /** @nullable */
+  contactPhone?: string | null;
+  /** @nullable */
+  businessAddress?: string | null;
+  /** Company-first linked-lead identity when visible; otherwise the neutral deal fallback. */
+  entityLabel: string;
   stage: DealStage;
   /** @nullable */
   amount?: number | null;
@@ -3602,16 +3633,30 @@ export interface DealActivity {
   createdAt: string;
 }
 
-/**
- * @nullable
- */
-export type DealDetailLead = { [key: string]: unknown } | null;
-
-export type DealDetail = Deal & {
+export interface DealLeadContact {
+  id: number;
   /** @nullable */
-  lead?: DealDetailLead;
+  firstName?: string | null;
+  /** @nullable */
+  lastName?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  companyName?: string | null;
+  status?: string;
+  /** @nullable */
+  assignedRepId?: number | null;
+  entityLabel: string;
+  /** @nullable */
+  businessAddress?: string | null;
+}
+
+export type DealDetail = Deal & ({
+  lead?: DealLeadContact | null;
   activity?: DealActivity[];
-};
+});
 
 export type LeadDealConversionStage = typeof LeadDealConversionStage[keyof typeof LeadDealConversionStage];
 
@@ -4195,6 +4240,9 @@ stage?: ListDealsStage;
  * Comma-separated stage values for multi-stage views
  */
 stages?: ListDealsStagesItem[];
+/**
+ * Matches the deal name and the authorized linked lead's company/contact identity.
+ */
 search?: string;
 rep_id?: number;
 lead_id?: number;

@@ -1,0 +1,34 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { contactName, formatDealIdentity, formatLeadIdentity } from "./recordIdentity.ts";
+
+test("formats lead identity company first and tolerates missing or blank fields", () => {
+  assert.equal(formatLeadIdentity({ id: 12, companyName: "  Godspeed Logistics ", firstName: " John ", lastName: "Smith " }), "Godspeed Logistics — John Smith");
+  assert.equal(formatLeadIdentity({ companyName: "Godspeed Logistics" }), "Godspeed Logistics");
+  assert.equal(formatLeadIdentity({ firstName: "John", lastName: "Smith" }), "John Smith");
+  assert.equal(formatLeadIdentity({ id: 12, companyName: "  ", firstName: " ", lastName: "" }), "Lead #12");
+  assert.equal(formatLeadIdentity({ id: 12, entityLabel: "Lead #12" }), "Lead #12");
+  assert.equal(formatLeadIdentity(null), "Lead");
+});
+
+test("contactName trims and combines available name parts only", () => {
+  assert.equal(contactName({ firstName: " Jane ", lastName: "Doe " }), "Jane Doe");
+  assert.equal(contactName({ firstName: "Jane" }), "Jane");
+  assert.equal(contactName({ lastName: "Doe" }), "Doe");
+  assert.equal(contactName({ firstName: " ", lastName: "" }), "");
+});
+
+test("formats deal identity using authorized linked lead fields with neutral fallback", () => {
+  assert.equal(formatDealIdentity({
+    id: 4,
+    dealName: "Custom offer",
+    lead: { id: 12, companyName: "Godspeed Logistics", firstName: "John", lastName: "Smith" },
+  }), "Godspeed Logistics — John Smith");
+  assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer", lead: { id: 12, companyName: "Godspeed Logistics" } }), "Godspeed Logistics");
+  assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer", lead: { id: 12, firstName: "John", lastName: "Smith" } }), "John Smith");
+  assert.equal(formatDealIdentity({ id: 4, entityLabel: "Deal #4", dealName: "Custom offer", lead: { id: 12, companyName: " ", firstName: " ", lastName: "" } }), "Deal #4");
+  assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer" }), "Deal #4");
+  assert.equal(formatDealIdentity({ id: 4, companyName: "Godspeed Logistics", contactName: "John Smith" }), "Godspeed Logistics — John Smith");
+  assert.equal(formatDealIdentity({ dealName: "Custom offer" }), "Deal");
+  assert.equal(formatDealIdentity(null), "Deal");
+});

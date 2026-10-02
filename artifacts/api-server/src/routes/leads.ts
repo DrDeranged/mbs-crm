@@ -3,7 +3,7 @@ import { db } from "@workspace/db";
 import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, activityLogTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
 import { deriveKey, checkIdempotency, storeIdempotency } from "../lib/idempotency";
 import { matchLeadToLenders } from "../lib/matchingEngine";
-import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray } from "drizzle-orm";
+import { eq, or, ilike, and, sql, desc, asc, gte, lte, inArray, exists } from "drizzle-orm";
 import { z } from "zod/v4";
 import {
   canReadMarketingResource,
@@ -14,6 +14,7 @@ import {
 import { sanitizeLikeInput } from "../lib/sanitize";
 import { getLatestActivities, getLeadCreationActivities, logActivity } from "../lib/activityHelper";
 import { isUnassignedInboundLead } from "../lib/inboundLead";
+import { contactName, entityLabel } from "../lib/entityLabel";
 import { isEmailSuppressed } from "../lib/emailSafety";
 import { isUsfaMarketingBlocked } from "../lib/intake/usfaCompliance";
 import {
@@ -94,7 +95,9 @@ function leadToApi(
   latestActivity?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
   createdBy?: { createdAt: Date; user?: typeof usersTable.$inferSelect | null } | null,
   staleThresholdDays = 7,
+  relatedCompanyName?: string | null,
 ) {
+  const companyName = lead.companyName?.trim() || relatedCompanyName?.trim() || null;
   // Staleness is based on the activity log itself, rather than the denormalized
   // lead timestamp, so an assigned lead with no logged activity is handled
   // consistently even if legacy data has a populated lastActivityAt.
@@ -108,7 +111,13 @@ function leadToApi(
     lastName: lead.lastName,
     email: lead.email,
     phone: lead.phone,
-    companyName: lead.companyName,
+    companyName,
+    contactName: contactName(lead.firstName, lead.lastName),
+    entityLabel: entityLabel(
+      companyName,
+      contactName(lead.firstName, lead.lastName),
+      `Lead #${lead.id}`,
+    ),
     ein: lead.ein,
     applicationType: lead.applicationType,
     status: lead.status,
@@ -205,14 +214,7 @@ export function createListLeadsHandler({
 
     let searchCondition: any = undefined;
     if (q.search) {
-      const safe = sanitizeLikeInput(q.search);
-      searchCondition = or(
-        ilike(leadsTable.firstName, `%${safe}%`),
-        ilike(leadsTable.lastName, `%${safe}%`),
-        ilike(leadsTable.companyName, `%${safe}%`),
-        ilike(leadsTable.email, `%${safe}%`),
-        ilike(leadsTable.phone, `%${safe}%`),
-      );
+      searchCondition = buildLeadSearchCondition(q.search, database);
     }
 
     const whereClause = conditions.length > 0 || searchCondition
@@ -248,7 +250,7 @@ export function createListLeadsHandler({
         ? []
         : await database.query.leadsTable.findMany({
           where: buildLeadHydrationWhere(leadIds),
-          with: { assignedRep: true },
+          with: { assignedRep: true, company: { columns: { name: true } } },
         });
       leadsRaw = reorderByIds(hydrated, leadIds);
       total = totals[0]?.total ?? 0;
@@ -259,7 +261,7 @@ export function createListLeadsHandler({
           orderBy: [sortDir(sortColumn), asc(leadsTable.id)],
           limit,
           offset,
-          with: { assignedRep: true },
+          with: { assignedRep: true, company: { columns: { name: true } } },
         }),
         totalQuery,
       ]);
@@ -279,6 +281,7 @@ export function createListLeadsHandler({
         latestActivities.get(l.id),
         creationActivities.get(l.id),
         staleThresholdDays,
+        (l as any).company?.name,
       )),
       total,
       page,
@@ -286,6 +289,25 @@ export function createListLeadsHandler({
       totalPages: Math.ceil(total / limit),
     });
   };
+}
+
+export function buildLeadSearchCondition(search: string, database: typeof db = db) {
+  const safe = sanitizeLikeInput(search);
+  const pattern = `%${safe}%`;
+  return or(
+    sql`concat_ws(' ', ${leadsTable.firstName}, ${leadsTable.lastName}) ilike ${pattern}`,
+    ilike(leadsTable.firstName, pattern),
+    ilike(leadsTable.lastName, pattern),
+    ilike(leadsTable.companyName, pattern),
+    exists(
+      database.select({ id: companiesTable.id }).from(companiesTable).where(and(
+        eq(companiesTable.leadId, leadsTable.id),
+        ilike(companiesTable.name, pattern),
+      )),
+    ),
+    ilike(leadsTable.email, pattern),
+    ilike(leadsTable.phone, pattern),
+  );
 }
 
 async function findDuplicate(email?: string, phone?: string, ein?: string) {
@@ -447,9 +469,16 @@ function buildLeadsWhere(q: LeadFilter, userRole: string, userId: number, staleT
   if (q.search) {
     const safe = sanitizeLikeInput(q.search);
     searchCondition = or(
+      sql`concat_ws(' ', ${leadsTable.firstName}, ${leadsTable.lastName}) ilike ${`%${safe}%`}`,
       ilike(leadsTable.firstName, `%${safe}%`),
       ilike(leadsTable.lastName, `%${safe}%`),
       ilike(leadsTable.companyName, `%${safe}%`),
+      exists(
+        db.select({ id: companiesTable.id }).from(companiesTable).where(and(
+          eq(companiesTable.leadId, leadsTable.id),
+          ilike(companiesTable.name, `%${safe}%`),
+        )),
+      ),
       ilike(leadsTable.email, `%${safe}%`),
       ilike(leadsTable.phone, `%${safe}%`),
     );
@@ -813,6 +842,13 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
       creationActivities.get(lead.id),
       await getStaleThresholdDays(),
     ),
+    companyName: leadFields.companyName?.trim() || company?.name?.trim() || null,
+    entityLabel: entityLabel(
+      leadFields.companyName?.trim() || company?.name,
+      contactName(leadFields.firstName, leadFields.lastName),
+      `Lead #${leadFields.id}`,
+    ),
+    contactName: contactName(leadFields.firstName, leadFields.lastName),
     company: company ? {
       id: company.id,
       leadId: company.leadId,
@@ -825,6 +861,12 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
       timeInBusinessMonths: company.timeInBusinessMonths,
       annualRevenue: company.annualRevenue ? Number(company.annualRevenue) : null,
     } : null,
+    businessAddress: company
+      ? [company.address, [company.city, company.state, company.zip].filter(Boolean).join(", ")]
+          .map((part: string | null | undefined) => part?.trim() ?? "")
+          .filter(Boolean)
+          .join(", ") || null
+      : null,
     notes: notes.map((n: any) => ({
       id: n.id, leadId: n.leadId, userId: n.userId,
       author: n.author ? userToApi(n.author) : null,
@@ -910,9 +952,11 @@ router.put("/leads/:id", async (req: Request, res: Response) => {
     newAssignedRepId !== existing.assignedRepId &&
     rep?.pushToken
   ) {
-    const leadName = updated.companyName ||
-      [updated.firstName, updated.lastName].filter(Boolean).join(" ") ||
-      "A lead";
+    const leadName = entityLabel(
+      updated.companyName,
+      contactName(updated.firstName, updated.lastName),
+      `Lead #${updated.id}`,
+    );
     sendPushNotification(
       rep.pushToken,
       "Lead Assigned to You",
@@ -1061,7 +1105,11 @@ router.put("/leads/:id/status", async (req: Request, res: Response) => {
 
   // Notify assignee of status change (unless they made it themselves)
   if (updated.assignedRepId && updated.assignedRepId !== user.id) {
-    const leadName = [updated.firstName, updated.lastName].filter(Boolean).join(" ") || updated.companyName || "A lead";
+    const leadName = entityLabel(
+      updated.companyName,
+      contactName(updated.firstName, updated.lastName),
+      `Lead #${updated.id}`,
+    );
     createNotification({
       userId: updated.assignedRepId,
       type: "status_changed",

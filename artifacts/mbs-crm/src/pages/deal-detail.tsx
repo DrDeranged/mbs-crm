@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import {
   useGetDeal, getGetDealQueryKey,
@@ -13,6 +13,12 @@ import {
   useCreateDealApproval,
   useListLenders,
   useUploadDocument,
+  useCreateNote,
+  useCreateTask,
+  getListNotesQueryKey,
+  getListTasksQueryKey,
+  getListDocumentsQueryKey,
+  getListLeadActivityQueryKey,
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,7 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck, Download, Plus } from "lucide-react";
+import { ArrowLeft, User, DollarSign, Building2, Calendar, FileText, ChevronRight, Activity, ArrowUpRight, Check, X, ShieldCheck, Download, Plus, Mail, Phone, MapPin } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
@@ -35,6 +41,14 @@ import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "
 import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
 import { InlineListError } from "@/components/inline-list-error";
 import { listData } from "@/lib/list-response";
+import { EmailLink, PhoneLink } from "@/components/phone-link";
+import { RecordActionBar, type RecordActionItem } from "@/components/record-action-bar";
+import { SoftphoneContext } from "@/components/softphone-context";
+import { contactName, formatDealIdentity } from "@/lib/recordIdentity";
+import { dealActionAvailable } from "@/lib/recordActions";
+import { isMobileWeb, phoneActionForDevice } from "@/lib/recordContact";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
@@ -66,6 +80,8 @@ export default function DealDetail() {
   const updateDeal = useUpdateDeal();
   const createApproval = useCreateDealApproval();
   const uploadDocument = useUploadDocument();
+  const createNote = useCreateNote();
+  const createTask = useCreateTask();
   const archiveDeal = useArchiveDeal();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -91,6 +107,18 @@ export default function DealDetail() {
   });
   const [approvalFile, setApprovalFile] = useState<File | null>(null);
   const [approvalOpen, setApprovalOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [noteBody, setNoteBody] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState("");
+  const actionUploadRef = useRef<HTMLInputElement>(null);
+  const {
+    dial,
+    softphoneAvailable,
+    openTextComposer,
+    openEmailComposer,
+  } = useContext(SoftphoneContext);
   const latest = latestApproval(approvals as Array<{
     id: number;
     createdAt: string;
@@ -199,6 +227,56 @@ export default function DealDetail() {
     }
   };
 
+  const actionLeadId = deal?.leadId ?? null;
+  const handleAddDealNote = async () => {
+    if (!actionLeadId || !noteBody.trim()) return;
+    try {
+      await createNote.mutateAsync({ id: actionLeadId, data: { body: noteBody.trim() } });
+      setNoteBody("");
+      setNoteOpen(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListNotesQueryKey(actionLeadId) }),
+        queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(actionLeadId) }),
+      ]);
+      toast({ title: "Note added to linked lead" });
+    } catch (error) {
+      toast({ title: "Could not add note", description: mutationErrorMessage(error, "Please try again."), variant: "destructive" });
+    }
+  };
+
+  const handleAddDealTask = async () => {
+    if (!actionLeadId || !taskTitle.trim()) return;
+    try {
+      await createTask.mutateAsync({ id: actionLeadId, data: { title: taskTitle.trim(), dueDate: taskDueDate || undefined } });
+      setTaskTitle("");
+      setTaskDueDate("");
+      setTaskOpen(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(actionLeadId) }),
+        queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(actionLeadId) }),
+      ]);
+      toast({ title: "Task added to linked lead" });
+    } catch (error) {
+      toast({ title: "Could not add task", description: mutationErrorMessage(error, "Please try again."), variant: "destructive" });
+    }
+  };
+
+  const handleDealActionUpload = async (file?: File) => {
+    if (!file || !actionLeadId) return;
+    try {
+      await uploadDocument.mutateAsync({ id: actionLeadId, data: { file, category: "other" } });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey(actionLeadId) }),
+        queryClient.invalidateQueries({ queryKey: getListLeadActivityQueryKey(actionLeadId) }),
+      ]);
+      toast({ title: "Document uploaded to linked lead" });
+    } catch (error) {
+      toast({ title: "Document upload failed", description: mutationErrorMessage(error, "Please try again."), variant: "destructive" });
+    } finally {
+      if (actionUploadRef.current) actionUploadRef.current.value = "";
+    }
+  };
+
   if (dealLoading) {
     return (
       <div className="flex-1 p-6 space-y-6 bg-[#f8fafc]">
@@ -235,10 +313,78 @@ export default function DealDetail() {
 
   const assignedRep = users?.find(u => u.id === deal.assignedTo);
   const currentStage = STAGES.find(s => s.id === deal.stage)?.label || deal.stage;
+  const identity = formatDealIdentity(deal);
+  const authorizedLead = (deal as any).lead ?? null;
+  const displayContactName = authorizedLead ? contactName(authorizedLead) : deal.contactName?.trim() || "";
+  const displayPhone = (authorizedLead?.phone ?? deal.contactPhone)?.trim() || null;
+  const displayEmail = (authorizedLead?.email ?? deal.contactEmail)?.trim() || null;
+  const displayAddress = (authorizedLead?.businessAddress ?? deal.businessAddress)?.trim() || null;
+  const contactLeadId = actionLeadId;
+  const actionContact = { leadId: contactLeadId, phone: displayPhone, email: displayEmail };
+  const actions: RecordActionItem[] = [
+    {
+      action: "upload",
+      disabled: !dealActionAvailable("upload", actionContact),
+      disabledReason: "Link this deal to an accessible lead to upload documents.",
+      onClick: () => actionUploadRef.current?.click(),
+    },
+    { action: "edit", onClick: () => setEditMode(true) },
+    {
+      action: "call",
+      disabled: !dealActionAvailable("call", actionContact),
+      disabledReason: "Phone number unavailable.",
+      onClick: () => {
+        if (!displayPhone) return;
+        if (phoneActionForDevice(isMobileWeb({
+          userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+          viewportWidth: window.innerWidth,
+          pointerCoarse: window.matchMedia("(pointer: coarse)").matches,
+        }), softphoneAvailable) === "softphone") dial(displayPhone, { autoCall: true, leadId: contactLeadId ?? undefined });
+        else window.location.href = `tel:${displayPhone.replace(/[^\d+]/g, "")}`;
+      },
+    },
+    {
+      action: "text",
+      disabled: !dealActionAvailable("text", actionContact),
+      disabledReason: !displayPhone?.trim() ? "Phone number unavailable." : "Text requires a linked lead for application-scoped consent checks.",
+      onClick: () => {
+        if (!contactLeadId) return;
+        openTextComposer(contactLeadId);
+        setLocation(`/leads/${contactLeadId}`);
+      },
+    },
+    {
+      action: "email",
+      disabled: !dealActionAvailable("email", actionContact),
+      disabledReason: "Email address unavailable.",
+      onClick: () => {
+        if (!displayEmail) return;
+        if (!contactLeadId) {
+          window.location.href = `mailto:${displayEmail}`;
+          return;
+        }
+        openEmailComposer(contactLeadId);
+        setLocation(`/leads/${contactLeadId}?compose=email`);
+      },
+    },
+    {
+      action: "note",
+      disabled: !dealActionAvailable("note", actionContact),
+      disabledReason: "Link this deal to an accessible lead to add notes.",
+      onClick: () => setNoteOpen(true),
+    },
+    {
+      action: "task",
+      disabled: !dealActionAvailable("task", actionContact),
+      disabledReason: "Link this deal to an accessible lead to add tasks.",
+      onClick: () => setTaskOpen(true),
+    },
+  ];
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-y-auto">
-      <div className="flex-none px-6 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-[var(--z-header)] shadow-sm">
+      <RecordActionBar items={actions} />
+      <div className="flex-none px-4 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm sm:px-6">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <Link href="/deals" className="shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full text-muted-foreground hover:text-foreground">
@@ -247,16 +393,39 @@ export default function DealDetail() {
           </Link>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-[#0E2A47] truncate">{deal.dealName}</h1>
+               <h1 className="text-xl font-bold text-[#0E2A47] break-words">{identity}</h1>
               {deal.isArchived && <Badge variant="secondary" className="bg-slate-100 text-slate-700 shrink-0">Archived</Badge>}
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 shrink-0">{currentStage}</Badge>
             </div>
-            {deal.leadId && deal.lead && (
+            {deal.dealName?.trim() && deal.dealName.trim() !== identity && (
+              <p className="text-xs text-muted-foreground mt-1 break-words">Deal name: {deal.dealName}</p>
+            )}
+            {deal.leadId && authorizedLead && (
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                 Linked to Lead: 
                 <Link href={`/leads/${deal.leadId}`} className="text-primary hover:underline font-medium flex items-center gap-1 truncate max-w-[200px]">
-                  <span className="truncate">{(deal.lead as any).firstName} {(deal.lead as any).lastName}</span> <ArrowUpRight className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{formatDealIdentity(deal)}</span> <ArrowUpRight className="w-3 h-3 shrink-0" />
                 </Link>
+              </p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">{displayContactName || "Contact name unavailable"}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                {displayPhone ? <PhoneLink phone={displayPhone} leadId={contactLeadId ?? undefined} showIcon={false} className="min-h-11 text-xs" /> : "Phone unavailable"}
+              </span>
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                {displayEmail ? <EmailLink email={displayEmail} leadId={contactLeadId ?? undefined} showIcon={false} className="min-h-11 break-all text-xs" /> : "Email unavailable"}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                {displayAddress?.trim() || "Business address unavailable"}
+              </span>
+            </div>
+            {!contactLeadId && (
+              <p className="mt-2 max-w-2xl text-xs text-amber-800">
+                No accessible lead is linked. Documents, notes, tasks and CRM texting need an authorized linked lead.
               </p>
             )}
             {deal.lastActivityAt && (
@@ -281,7 +450,15 @@ export default function DealDetail() {
         </div>
       </div>
 
-      <div className="p-6 max-w-[1200px] w-full mx-auto grid lg:grid-cols-[1fr_400px] gap-6">
+      <input
+        ref={actionUploadRef}
+        type="file"
+        className="hidden"
+        aria-label="Upload document to linked lead"
+        onChange={(event) => void handleDealActionUpload(event.target.files?.[0])}
+      />
+
+      <div className="p-4 pb-28 md:p-6 md:pb-28 max-w-[1200px] w-full mx-auto grid lg:grid-cols-[1fr_400px] gap-6">
         <div className="space-y-6">
           <Card className="shadow-sm border-gray-200/60 overflow-hidden">
             <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
@@ -498,6 +675,45 @@ export default function DealDetail() {
           </Card>
         </div>
       </div>
+      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add note to linked lead</DialogTitle>
+            <DialogDescription>This note is saved on the deal’s authorized linked lead.</DialogDescription>
+          </DialogHeader>
+          <Textarea value={noteBody} onChange={(event) => setNoteBody(event.target.value)} placeholder="Add a note…" className="min-h-28" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNoteOpen(false)}>Cancel</Button>
+            <Button onClick={() => void handleAddDealNote()} disabled={!noteBody.trim() || createNote.isPending}>
+              {createNote.isPending ? "Saving…" : "Add note"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add task to linked lead</DialogTitle>
+            <DialogDescription>This task is saved on the deal’s authorized linked lead.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="deal-action-task-title">Task title</Label>
+              <Input id="deal-action-task-title" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="Follow up…" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="deal-action-task-due">Due date (optional)</Label>
+              <Input id="deal-action-task-due" type="date" value={taskDueDate} onChange={(event) => setTaskDueDate(event.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTaskOpen(false)}>Cancel</Button>
+            <Button onClick={() => void handleAddDealTask()} disabled={!taskTitle.trim() || createTask.isPending}>
+              {createTask.isPending ? "Saving…" : "Add task"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
