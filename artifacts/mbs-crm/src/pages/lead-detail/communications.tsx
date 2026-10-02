@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowDownLeft, ArrowUpRight, Mail, MailCheck, MailOpen, MessageSquare, Phone, PhoneCall, Send, Sparkles, Zap, Loader2 } from "lucide-react";
 import { AiDraftRequestChannel, getGetLeadDripEnrollmentQueryKey, getListCommunicationsQueryKey, getListLeadActivityQueryKey, getListLeadEmailsQueryKey, useEnrollLeadInDrip, useGenerateAiDraft, useGetLeadDripEnrollment, useListCommunications, useListDripSequences, useListEmailTemplates, useListLeadEmails, usePreviewEmailTemplate, useSendEmail, useSendSms, useUnenrollLeadFromDrip } from "@workspace/api-client-react";
 import { SoftphoneContext } from "@/components/softphone-context";
+import { PhoneLink } from "@/components/phone-link";
 import { SafeEmailHtmlPreview } from "@/components/safe-email-html-preview";
 import { useLeadDetail } from "./context";
 // Email status badge helper
@@ -137,10 +138,9 @@ function CallNoteBlock({ notes }: { notes: string }) {
 // Communications Tab
 export function LeadCommunications() {
   const { id: leadId, lead } = useLeadDetail();
-  const leadPhone = lead?.phone;
+  const leadPhone = lead?.phone?.trim();
   const leadEmail = lead?.email;
   const {
-    dial,
     pendingTextLeadId,
     clearTextComposer,
     pendingEmailLeadId,
@@ -269,13 +269,14 @@ export function LeadCommunications() {
         <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
           <Phone className="h-4 w-4 text-blue-700" />
           <span className="text-sm font-medium text-blue-900 font-mono">{leadPhone}</span>
-          <Button
-            size="sm"
-            className="ml-auto bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
-            onClick={() => dial(leadPhone, { autoCall: true, leadId })}
+          <PhoneLink
+            phone={leadPhone}
+            leadId={leadId}
+            showIcon={false}
+            className="ml-auto rounded-md bg-green-600 px-3 text-white hover:bg-green-700 hover:text-white hover:no-underline text-xs"
           >
             <PhoneCall className="h-3 w-3 mr-1" /> Call
-          </Button>
+          </PhoneLink>
         </div>
       )}
 

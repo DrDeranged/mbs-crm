@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { Mail, Phone } from "lucide-react";
 import { SoftphoneContext } from "./softphone-context";
@@ -10,6 +10,7 @@ interface PhoneLinkProps {
   leadId?: number;
   showIcon?: boolean;
   className?: string;
+  children?: ReactNode;
 }
 
 interface EmailLinkProps {
@@ -20,7 +21,7 @@ interface EmailLinkProps {
 }
 
 /** Desktop clicks use the registered CRM device; all fallback/mobile clicks use tel:. */
-export function PhoneLink({ phone, leadId, showIcon = true, className }: PhoneLinkProps) {
+export function PhoneLink({ phone, leadId, showIcon = true, className, children }: PhoneLinkProps) {
   const { dial, softphoneAvailable } = useContext(SoftphoneContext);
   const dialHref = `tel:${phone.replace(/[^\d+]/g, "")}`;
 
@@ -54,8 +55,10 @@ export function PhoneLink({ phone, leadId, showIcon = true, className }: PhoneLi
       title={`Call ${phone}`}
       aria-label={`Call ${phone}`}
     >
-      {showIcon && <Phone className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true" />}
-      <span className="font-mono text-sm">{phone}</span>
+      {children ?? <>
+        {showIcon && <Phone className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true" />}
+        <span className="font-mono text-sm">{phone}</span>
+      </>}
     </a>
   );
 }

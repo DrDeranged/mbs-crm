@@ -17,6 +17,6 @@ Contact identity is company first, contact second, with a neutral record fallbac
 
 Mobile-web contact calls always use the device's native phone link, including landscape/touch layouts. Desktop CRM calling requires an actually registered, idle device, not merely an open dialer. Detail action areas must stay usable while scrolling without another floating control covering them or form fields.
 
-**Why:** Reps need reliable native calling on phones and genuinely available CRM calling on desktop; an apparently open dialer or overlapping control does not satisfy that requirement.
+**Why:** Reps need reliable native calling on phones and genuinely available CRM calling on desktop; an apparently open dialer or overlapping control does not satisfy that requirement. A retained communication-history Call button previously bypassed shared routing despite passing helper tests.
 
-**How to apply:** Keep device availability, viewport layout and related-record authorization separate. Rendering a number must never initiate a call.
+**How to apply:** Keep device availability, viewport layout and related-record authorization separate. Rendering a number must never initiate a call. Check retained Call buttons as well as new links/toolbars, and exercise an actual component click rather than only the routing helper.
