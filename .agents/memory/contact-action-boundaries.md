@@ -14,3 +14,9 @@ Contact identity is company first, contact second, with a neutral record fallbac
 **Why:** Reps need consistent contact identification without changing stored business labels or historical evidence.
 
 **How to apply:** Use structured, authorized record data for current labels rather than editing historical text or inferring private contact details.
+
+Mobile-web contact calls always use the device's native phone link, including landscape/touch layouts. Desktop CRM calling requires an actually registered, idle device, not merely an open dialer. Detail action areas must stay usable while scrolling without another floating control covering them or form fields.
+
+**Why:** Reps need reliable native calling on phones and genuinely available CRM calling on desktop; an apparently open dialer or overlapping control does not satisfy that requirement.
+
+**How to apply:** Keep device availability, viewport layout and related-record authorization separate. Rendering a number must never initiate a call.

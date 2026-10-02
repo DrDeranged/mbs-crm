@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useIsMobileWeb } from "@/hooks/use-mobile";
+import { useLocation } from "wouter";
 import { Device, Call } from "@twilio/voice-sdk";
 import {
   useGetTwilioToken,
@@ -52,6 +53,8 @@ const OUTCOME_LABELS: Record<CallOutcome, string> = {
 
 export function SoftphoneWidget() {
   const mobileWeb = useIsMobileWeb();
+  const [location] = useLocation();
+  const mobileRecordDetail = mobileWeb && /^\/(?:leads|deals)\/\d+(?:\/|$)/.test(location);
   const { pendingNumber, autoCall, pendingLeadId, clearPending, currentLead, openTextComposer, setSoftphoneAvailable } = useContext(SoftphoneContext);
   const queryClient = useQueryClient();
   const { data: currentUser } = useGetMe();
@@ -555,7 +558,7 @@ export function SoftphoneWidget() {
       </Dialog>
 
       {/* Softphone widget trigger */}
-      {!isIncoming && minimized && (
+      {!isIncoming && minimized && !mobileRecordDetail && (
         <div className={`fixed z-[var(--z-popover)] pointer-events-none ${mobileWeb ? "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4" : "bottom-6 right-6"}`}>
           <button
             onClick={() => setMinimized(false)}
