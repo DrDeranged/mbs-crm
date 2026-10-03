@@ -1,0 +1,3076 @@
+{
+  "schemaVersion": 1,
+  "baselineRevision": "2993f17",
+  "targetApplicationRevision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+  "approval": "2026-10-03: User explicitly approved company-first contact identities, phone links and email-to-composer on Dashboard, Leads, Lead detail and Deals; Settings theme and record action bars remain approved additions. No other removals, additions or reordering are approved.",
+  "keys": {
+    "dashboard-390-admin": {
+      "replacements": [
+        {
+          "index": 27,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Equipment LLC",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Equipment LLC — Synthetic Contact",
+              "href": null,
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 30,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Services LLC",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Services LLC — Sample Applicant",
+              "href": null,
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-390-admin": {
+      "replacements": [
+        {
+          "index": 42,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": []
+        },
+        {
+          "index": 44,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 46,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 49,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 51,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 60,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 62,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-390-admin": {
+      "replacements": [
+        {
+          "index": 26,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 50,
+          "before": [
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": null,
+              "name": "",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": []
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-390-admin": {
+      "replacements": [
+        {
+          "index": 37,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 38,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-390-admin": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-390-admin": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "dashboard-768-admin": {
+      "replacements": [
+        {
+          "index": 27,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Equipment LLC",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Equipment LLC — Synthetic Contact",
+              "href": null,
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 30,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Services LLC",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "New owner for Fixture Services LLC — Sample Applicant",
+              "href": null,
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-768-admin": {
+      "replacements": [
+        {
+          "index": 42,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": []
+        },
+        {
+          "index": 44,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 46,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 49,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 51,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 60,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 62,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-768-admin": {
+      "replacements": [
+        {
+          "index": 26,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-768-admin": {
+      "replacements": [
+        {
+          "index": 37,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 38,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-768-admin": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-768-admin": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "dashboard-390-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-390-manager": {
+      "replacements": [
+        {
+          "index": 34,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": []
+        },
+        {
+          "index": 36,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 38,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 41,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 43,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 52,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 54,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-390-manager": {
+      "replacements": [
+        {
+          "index": 18,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 39,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 42,
+          "before": [
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": null,
+              "name": "",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": []
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-390-manager": {
+      "replacements": [
+        {
+          "index": 28,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 29,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-390-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-390-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "dashboard-768-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-768-manager": {
+      "replacements": [
+        {
+          "index": 34,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": []
+        },
+        {
+          "index": 36,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 38,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 41,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 43,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 52,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 54,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-768-manager": {
+      "replacements": [
+        {
+          "index": 18,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 39,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-768-manager": {
+      "replacements": [
+        {
+          "index": 28,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 29,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-768-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-768-manager": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "dashboard-390-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-390-rep": {
+      "replacements": [
+        {
+          "index": 30,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 33,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 35,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 43,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 45,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-390-rep": {
+      "replacements": [
+        {
+          "index": 16,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 36,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 39,
+          "before": [
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": null,
+              "name": "",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": []
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-390-rep": {
+      "replacements": [
+        {
+          "index": 27,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 28,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-390-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-390-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "dashboard-768-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "leads-768-rep": {
+      "replacements": [
+        {
+          "index": 30,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalidCreated bySystemContactedStaleFixture Equipment LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalidCreated bySystemNew LeadStaleFixture Services LLCAssigned Rep: Visual FixtureSep 15, 2026",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 33,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contactcontact@example.invalid",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC — Synthetic Contact",
+              "href": "/leads/1",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 35,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 43,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicantsample@example.invalid",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC — Sample Applicant",
+              "href": "/leads/2",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 45,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "lead-detail-768-rep": {
+      "replacements": [
+        {
+          "index": 16,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 36,
+          "before": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "contact@example.invalid",
+              "href": "mailto:contact@example.invalid",
+              "disabled": false
+            },
+            {
+              "tag": "BUTTON",
+              "role": null,
+              "type": "button",
+              "name": "+12025550123",
+              "href": null,
+              "disabled": false
+            }
+          ],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Upload",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Edit",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Call",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Text",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Email",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Note",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Task",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    },
+    "pipeline-768-rep": {
+      "replacements": [
+        {
+          "index": 27,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Equipment LLC",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Synthetic Contact",
+              "href": "/deals/1",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550123",
+              "href": "tel:+12025550123",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email contact@example.invalid",
+              "href": "/leads/1?compose=email",
+              "disabled": false
+            }
+          ]
+        },
+        {
+          "index": 28,
+          "before": [],
+          "after": [
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Fixture Services LLC",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Sample Applicant",
+              "href": "/deals/2",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Call +12025550124",
+              "href": "tel:+12025550124",
+              "disabled": false
+            },
+            {
+              "tag": "A",
+              "role": null,
+              "type": null,
+              "name": "Email sample@example.invalid",
+              "href": "/leads/2?compose=email",
+              "disabled": false
+            }
+          ]
+        }
+      ],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "apply-768-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": []
+    },
+    "settings-768-rep": {
+      "replacements": [],
+      "beforeExempt": [],
+      "afterExempt": [
+        {
+          "tag": "SELECT",
+          "role": null,
+          "type": null,
+          "name": "Appearance theme",
+          "href": null,
+          "disabled": false
+        }
+      ]
+    }
+  }
+}

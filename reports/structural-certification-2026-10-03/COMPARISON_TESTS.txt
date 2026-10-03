@@ -1,0 +1,17 @@
+✔ accepts only the exact approved insertion and exemption (1.33429ms)
+✔ rejects an additional contact link (0.224829ms)
+✔ rejects removal including a completely empty inventory (0.363644ms)
+✔ rejects reordered surviving controls (1.192357ms)
+✔ rejects changed destination or disabled state (0.235841ms)
+✔ rejects an extra control hidden inside an approved container (0.102501ms)
+✔ rejects unknown page/role/width contracts (0.635436ms)
+✔ rejects baseline drift at an approved replacement (0.234036ms)
+✔ dashboard accepts company-first labels only at unchanged control positions (0.38657ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 79.625685

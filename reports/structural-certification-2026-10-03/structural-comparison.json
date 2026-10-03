@@ -1,0 +1,406 @@
+[
+  {
+    "key": "dashboard-390-admin",
+    "passed": true,
+    "beforeCount": 44,
+    "afterCount": 44,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": [
+        {
+          "index": 27,
+          "tag": "A",
+          "before": "Fixture Equipment LLC",
+          "after": "Fixture Equipment LLC — Synthetic Contact"
+        },
+        {
+          "index": 28,
+          "tag": "BUTTON",
+          "before": "New owner for Fixture Equipment LLC",
+          "after": "New owner for Fixture Equipment LLC — Synthetic Contact"
+        },
+        {
+          "index": 30,
+          "tag": "A",
+          "before": "Fixture Services LLC",
+          "after": "Fixture Services LLC — Sample Applicant"
+        },
+        {
+          "index": 31,
+          "tag": "BUTTON",
+          "before": "New owner for Fixture Services LLC",
+          "after": "New owner for Fixture Services LLC — Sample Applicant"
+        }
+      ]
+    }
+  },
+  {
+    "key": "leads-390-admin",
+    "passed": true,
+    "beforeCount": 71,
+    "afterCount": 79,
+    "approvedReplacementSpans": 7,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-390-admin",
+    "passed": true,
+    "beforeCount": 51,
+    "afterCount": 50,
+    "approvedReplacementSpans": 3,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-390-admin",
+    "passed": true,
+    "beforeCount": 39,
+    "afterCount": 47,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-390-admin",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-390-admin",
+    "passed": true,
+    "beforeCount": 83,
+    "afterCount": 83,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  },
+  {
+    "key": "dashboard-768-admin",
+    "passed": true,
+    "beforeCount": 44,
+    "afterCount": 44,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": [
+        {
+          "index": 27,
+          "tag": "A",
+          "before": "Fixture Equipment LLC",
+          "after": "Fixture Equipment LLC — Synthetic Contact"
+        },
+        {
+          "index": 28,
+          "tag": "BUTTON",
+          "before": "New owner for Fixture Equipment LLC",
+          "after": "New owner for Fixture Equipment LLC — Synthetic Contact"
+        },
+        {
+          "index": 30,
+          "tag": "A",
+          "before": "Fixture Services LLC",
+          "after": "Fixture Services LLC — Sample Applicant"
+        },
+        {
+          "index": 31,
+          "tag": "BUTTON",
+          "before": "New owner for Fixture Services LLC",
+          "after": "New owner for Fixture Services LLC — Sample Applicant"
+        }
+      ]
+    }
+  },
+  {
+    "key": "leads-768-admin",
+    "passed": true,
+    "beforeCount": 71,
+    "afterCount": 79,
+    "approvedReplacementSpans": 7,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-768-admin",
+    "passed": true,
+    "beforeCount": 51,
+    "afterCount": 51,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-768-admin",
+    "passed": true,
+    "beforeCount": 39,
+    "afterCount": 47,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-768-admin",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-768-admin",
+    "passed": true,
+    "beforeCount": 83,
+    "afterCount": 83,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  },
+  {
+    "key": "dashboard-390-manager",
+    "passed": true,
+    "beforeCount": 29,
+    "afterCount": 29,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": []
+    }
+  },
+  {
+    "key": "leads-390-manager",
+    "passed": true,
+    "beforeCount": 63,
+    "afterCount": 71,
+    "approvedReplacementSpans": 7,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-390-manager",
+    "passed": true,
+    "beforeCount": 43,
+    "afterCount": 42,
+    "approvedReplacementSpans": 3,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-390-manager",
+    "passed": true,
+    "beforeCount": 30,
+    "afterCount": 38,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-390-manager",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-390-manager",
+    "passed": true,
+    "beforeCount": 28,
+    "afterCount": 28,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  },
+  {
+    "key": "dashboard-768-manager",
+    "passed": true,
+    "beforeCount": 29,
+    "afterCount": 29,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": []
+    }
+  },
+  {
+    "key": "leads-768-manager",
+    "passed": true,
+    "beforeCount": 63,
+    "afterCount": 71,
+    "approvedReplacementSpans": 7,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-768-manager",
+    "passed": true,
+    "beforeCount": 43,
+    "afterCount": 43,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-768-manager",
+    "passed": true,
+    "beforeCount": 30,
+    "afterCount": 38,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-768-manager",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-768-manager",
+    "passed": true,
+    "beforeCount": 28,
+    "afterCount": 28,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  },
+  {
+    "key": "dashboard-390-rep",
+    "passed": true,
+    "beforeCount": 25,
+    "afterCount": 25,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": []
+    }
+  },
+  {
+    "key": "leads-390-rep",
+    "passed": true,
+    "beforeCount": 54,
+    "afterCount": 62,
+    "approvedReplacementSpans": 5,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-390-rep",
+    "passed": true,
+    "beforeCount": 40,
+    "afterCount": 39,
+    "approvedReplacementSpans": 3,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-390-rep",
+    "passed": true,
+    "beforeCount": 29,
+    "afterCount": 37,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-390-rep",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-390-rep",
+    "passed": true,
+    "beforeCount": 26,
+    "afterCount": 26,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  },
+  {
+    "key": "dashboard-768-rep",
+    "passed": true,
+    "beforeCount": 25,
+    "afterCount": 25,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": [],
+    "dashboardAudit": {
+      "countUnchanged": true,
+      "descriptorsExceptNameUnchangedAtEveryIndex": true,
+      "labels": []
+    }
+  },
+  {
+    "key": "leads-768-rep",
+    "passed": true,
+    "beforeCount": 54,
+    "afterCount": 62,
+    "approvedReplacementSpans": 5,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "lead-detail-768-rep",
+    "passed": true,
+    "beforeCount": 40,
+    "afterCount": 40,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 14,
+    "differences": []
+  },
+  {
+    "key": "pipeline-768-rep",
+    "passed": true,
+    "beforeCount": 29,
+    "afterCount": 37,
+    "approvedReplacementSpans": 2,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "apply-768-rep",
+    "passed": true,
+    "beforeCount": 5,
+    "afterCount": 5,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 0,
+    "differences": []
+  },
+  {
+    "key": "settings-768-rep",
+    "passed": true,
+    "beforeCount": 26,
+    "afterCount": 26,
+    "approvedReplacementSpans": 0,
+    "approvedExemptControls": 1,
+    "differences": []
+  }
+]

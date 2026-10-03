@@ -9,11 +9,17 @@ Web CRM visual-only work must preserve existing interactive controls and their r
 
 **How to apply:** Keep Expo, routes, fetching, validation, business behavior, permissions and database schemas out of visual-only edits. Freeze matched protected-page baselines before visual changes. Public sign-in captures and mocked visual fixtures do not prove authenticated persistence. Never send live calls, messages, emails, campaigns or credit requests to gather visual-refresh evidence.
 
-Protected-page visual evidence must wait for the route's initial data-loading slots to finish and its control inventory to stabilize, not only for the initial navigation to become network-idle.
+For combined contact-action/visual certification, the user approves company-first clickable company/contact names, phone links and email-to-composer changes on Leads, Deals, Lead detail and Dashboard. Dashboard assignment controls may change their company-first labels only; removing or reordering them is not approved.
 
-**Why:** Authentication can finish after the initial navigation settles and then start protected-page queries. Capturing at that point produces inconsistent control inventories despite identical synthetic fixtures.
+**Why:** The contact-action changes are intentional product requirements, not unwanted additions from the visual refresh. Treating them as regressions would undo approved usability work.
 
-**How to apply:** Keep the original loading/request behavior intact; make the evidence runner wait for an identified loaded page state before comparing screenshots or ordered controls.
+**How to apply:** Document exact approved differences separately from remaining controls; never turn the approval into a wildcard that accepts future unrelated additions, deletions or reordering.
+
+Visual evidence must first prove that the expected route has rendered, then wait for its initial data-loading slots to finish and its control inventory to stabilize, not only for navigation to become network-idle.
+
+**Why:** Authentication can finish after navigation settles and start protected queries. Lazy public routes can also appear stable with an empty inventory before rendering. Both produce false differences despite matched fixtures.
+
+**How to apply:** Keep loading/request behavior intact. Require a page-specific landmark or expected controls before accepting stability, including public pages, and record harness failures separately from confirmed application differences.
 
 Freeze baseline builds in ignored workspace storage, not only in temporary directories.
 

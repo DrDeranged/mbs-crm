@@ -1,0 +1,40 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+before dashboard-390-admin 44
+before leads-390-admin 71
+before lead-detail-390-admin 51
+before pipeline-390-admin 39
+before apply-390-admin 5
+before settings-390-admin 83
+before dashboard-768-admin 44
+before leads-768-admin 71
+before lead-detail-768-admin 51
+before pipeline-768-admin 39
+before apply-768-admin 5
+before settings-768-admin 83
+before dashboard-390-manager 29
+before leads-390-manager 63
+before lead-detail-390-manager 43
+before pipeline-390-manager 30
+before apply-390-manager 5
+before settings-390-manager 28
+before dashboard-768-manager 29
+before leads-768-manager 63
+before lead-detail-768-manager 43
+before pipeline-768-manager 30
+before apply-768-manager 5
+before settings-768-manager 28
+before dashboard-390-rep 25
+before leads-390-rep 54
+before lead-detail-390-rep 40
+before pipeline-390-rep 29
+before apply-390-rep 5
+before settings-390-rep 26
+before dashboard-768-rep 25
+before leads-768-rep 54
+before lead-detail-768-rep 40
+before pipeline-768-rep 29
+before apply-768-rep 5
+before settings-768-rep 26
