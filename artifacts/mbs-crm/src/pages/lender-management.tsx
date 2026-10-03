@@ -30,7 +30,7 @@ function ToggleChip({ value, selected, onChange, label }: { value: string; selec
       type="button"
       onClick={() => onChange(value, !selected)}
       className={`rounded px-2 py-0.5 text-xs font-medium border transition-colors ${
-        selected ? "bg-[#1F4E79] text-white border-[#1F4E79]" : "bg-white text-slate-600 border-slate-300 hover:border-[#1F4E79]"
+        selected ? "bg-solid text-white border-info" : "bg-card text-muted-foreground border-border hover:border-info"
       }`}
     >
       {label ?? value}
@@ -74,9 +74,9 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Partner name <span className="text-red-500">*</span></Label>
+          <Label>Partner name <span className="text-danger">*</span></Label>
           <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. First Capital Funding" className="mt-1" />
-          {errors.name && <p className="text-[13px] text-red-500 mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-[13px] text-danger mt-1">{errors.name}</p>}
         </div>
         <div>
           <Label>Partner Type</Label>
@@ -122,12 +122,12 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
             <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input type="number" value={form.maxAmount} onChange={(e) => set("maxAmount", e.target.value)} placeholder="0.00" className="pl-8" />
           </div>
-          {errors.maxAmount && <p className="text-[13px] text-red-500 mt-1">{errors.maxAmount}</p>}
+          {errors.maxAmount && <p className="text-[13px] text-danger mt-1">{errors.maxAmount}</p>}
         </div>
         <div>
           <Label>Min credit score</Label>
           <Input type="number" value={form.minCreditScore} onChange={(e) => set("minCreditScore", e.target.value)} placeholder="580" className="mt-1.5" />
-          {errors.minCreditScore && <p className="text-[13px] text-red-500 mt-1">{errors.minCreditScore}</p>}
+          {errors.minCreditScore && <p className="text-[13px] text-danger mt-1">{errors.minCreditScore}</p>}
         </div>
       </div>
 
@@ -188,7 +188,7 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
 
       <div className="border-t pt-4 space-y-3">
         <div>
-          <h4 className="text-sm font-semibold text-slate-800">Published underwriting guideline</h4>
+          <h4 className="text-sm font-semibold text-foreground">Published underwriting guideline</h4>
           <p className="text-xs text-muted-foreground">Only enter terms supported by the lender’s source material. Blank values are omitted from recommendations.</p>
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -227,7 +227,7 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
         <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Any notes about this partner..." className="mt-1 min-h-[60px] resize-none" />
       </div>
 
-      <Button type="submit" disabled={!form.name.trim() || Object.keys(errors).some(k => errors[k]) || loading} className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+      <Button type="submit" disabled={!form.name.trim() || Object.keys(errors).some(k => errors[k]) || loading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
         {loading ? "Saving…" : "Save Partner"}
       </Button>
     </form>
@@ -237,7 +237,7 @@ function LenderForm({ initial, onSubmit, loading }: { initial: LenderFormData; o
 function priorityStars(weight: number) {
   const filled = Math.round((weight / 10) * 5);
   return Array.from({ length: 5 }).map((_, i) => (
-    <Star key={i} className={`h-3 w-3 ${i < filled ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+    <Star key={i} className={`h-3 w-3 ${i < filled ? "fill-amber-400 text-warning" : "text-slate-200"}`} />
   ));
 }
 
@@ -245,17 +245,17 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
   const isBrokerIn = partner.partnerType === "broker_in";
 
   return (
-    <Card className={`border overflow-hidden transition-all hover:shadow-md ${!partner.isActive ? "opacity-60 bg-slate-50" : "bg-white"}`}>
+    <Card className={`border overflow-hidden transition-all ${!partner.isActive ? "opacity-60 bg-muted" : "bg-card"}`}>
       <CardContent className="p-0">
-        <div className="p-4 border-b bg-slate-50/50 flex items-start justify-between">
+        <div className="p-4 border-b bg-muted flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-slate-800 text-base">{partner.name}</h3>
-              {!partner.isActive && <Badge variant="outline" className="text-[10px] text-slate-400">Inactive</Badge>}
+              <h3 className="font-semibold text-foreground text-base">{partner.name}</h3>
+              {!partner.isActive && <Badge variant="outline" className="text-[10px] text-muted-foreground">Inactive</Badge>}
             </div>
             <div className="flex items-center gap-0.5 mt-1">{priorityStars(partner.priorityWeight)}</div>
             {isBrokerIn && partner.referralSplitPct != null && (
-              <div className="mt-1.5 text-xs text-blue-700 font-medium bg-blue-50 w-fit px-2 py-0.5 rounded-full border border-blue-100">
+              <div className="mt-1.5 text-xs text-info font-medium bg-info-bg w-fit px-2 py-0.5 rounded-full border border-info/30">
                 {partner.referralSplitPct}% Referral Split
               </div>
             )}
@@ -263,12 +263,12 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
           <div className="flex items-center gap-2">
             <PartnerContactsDialog partnerId={partner.id} partnerName={partner.name} />
             {isAdmin && (
-              <div className="flex items-center border-l pl-2 ml-1 border-slate-200 gap-1">
-                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-slate-800 hover:bg-slate-200" onClick={() => onEdit(partner)}>
+              <div className="flex items-center border-l pl-2 ml-1 border-border gap-1">
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-secondary" onClick={() => onEdit(partner)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
                 {partner.isActive && (
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => onDeactivate(partner.id, partner.name)}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-danger hover:text-danger hover:bg-danger-bg" onClick={() => onDeactivate(partner.id, partner.name)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 )}
@@ -279,22 +279,22 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
 
         <div className="p-4 space-y-4 text-sm">
           {partner.submissionStats && (
-            <div className="flex items-center justify-between p-3 rounded-lg border bg-white shadow-sm">
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-card ">
               <div className="text-center px-3 border-r">
-                <div className="text-2xl font-semibold text-slate-800">{partner.submissionStats.submitted}</div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Submitted</div>
+                <div className="text-2xl font-semibold text-foreground">{partner.submissionStats.submitted}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Submitted</div>
               </div>
               <div className="text-center px-3 border-r">
-                <div className="text-2xl font-semibold text-[#17A567]">{partner.submissionStats.approved}</div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Approved</div>
+                <div className="text-2xl font-semibold text-success">{partner.submissionStats.approved}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Approved</div>
               </div>
               <div className="text-center px-3 border-r">
-                <div className="text-2xl font-semibold text-red-500">{partner.submissionStats.declined}</div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Declined</div>
+                <div className="text-2xl font-semibold text-danger">{partner.submissionStats.declined}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Declined</div>
               </div>
               <div className="text-center px-3">
-                <div className="text-2xl font-semibold text-blue-600">{partner.submissionStats.approvalRate}%</div>
-                <div className="text-[10px] uppercase tracking-wider text-blue-600/70 font-medium">Win Rate</div>
+                <div className="text-2xl font-semibold text-info">{partner.submissionStats.approvalRate}%</div>
+                <div className="text-[10px] uppercase tracking-wider text-info/70 font-medium">Win Rate</div>
               </div>
             </div>
           )}
@@ -302,10 +302,10 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
             {partner.programTypes?.length > 0 && (
               <div className="col-span-2">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Programs</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Programs</div>
                 <div className="flex flex-wrap gap-1">
                   {partner.programTypes.map((pt: string) => (
-                    <Badge key={pt} variant="secondary" className="text-[10px] h-4 px-1.5 bg-blue-50 text-blue-700">
+                    <Badge key={pt} variant="secondary" className="text-[10px] h-4 px-1.5 bg-info-bg text-info">
                       {pt.replace(/_/g, " ")}
                     </Badge>
                   ))}
@@ -314,8 +314,8 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
             )}
 
             <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Deal Size</div>
-              <div className="font-medium text-slate-700">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Deal Size</div>
+              <div className="font-medium text-foreground">
                 {(partner.minAmount != null || partner.maxAmount != null) ? (
                   <span className="flex items-center gap-1">
                     {partner.minAmount != null ? `$${(partner.minAmount / 1000).toFixed(0)}k` : "any"}
@@ -327,8 +327,8 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
             </div>
 
             <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Min Requirements</div>
-              <div className="font-medium text-slate-700 flex flex-wrap gap-x-3 gap-y-1">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Min Requirements</div>
+              <div className="font-medium text-foreground flex flex-wrap gap-x-3 gap-y-1">
                 {partner.minCreditScore != null && <span>{partner.minCreditScore} FICO</span>}
                 {partner.minTimeInBusinessMonths > 0 && <span>{partner.minTimeInBusinessMonths} mo. TIB</span>}
                 {partner.minMonthlyRevenue > 0 && <span>${(partner.minMonthlyRevenue / 1000).toFixed(0)}k/mo rev</span>}
@@ -339,7 +339,7 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
 
           <div className="border-t pt-3 space-y-3">
             {partner.requiresFinancialStatements && (
-              <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md border border-amber-200/50">
+              <div className="flex items-start gap-2 text-xs text-warning bg-warning-bg p-2 rounded-md border border-warning/30/50">
                 <FileText className="h-4 w-4 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold block">Financial Statements Required</span>
@@ -349,30 +349,30 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
             )}
 
             {(partner.restrictedIndustries?.length > 0 || partner.prohibitedIndustries?.length > 0) && (
-              <div className="flex items-start gap-2 text-xs text-slate-700 bg-slate-50 p-2 rounded-md border border-slate-200">
-                <FileWarning className="h-4 w-4 shrink-0 mt-0.5 text-slate-500" />
+              <div className="flex items-start gap-2 text-xs text-foreground bg-muted p-2 rounded-md border border-border">
+                <FileWarning className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
                 <div className="space-y-1">
                   {partner.restrictedIndustries?.length > 0 && (
                     <div><span className="font-semibold">Restricted:</span> {partner.restrictedIndustries.join(", ")}</div>
                   )}
                   {partner.prohibitedIndustries?.length > 0 && (
-                    <div><span className="font-semibold text-red-600">Prohibited:</span> {partner.prohibitedIndustries.join(", ")}</div>
+                    <div><span className="font-semibold text-danger">Prohibited:</span> {partner.prohibitedIndustries.join(", ")}</div>
                   )}
                 </div>
               </div>
             )}
 
             {partner.notes && (
-              <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-md border border-slate-100">
-                <div className="font-semibold text-slate-500 mb-0.5 text-[10px] uppercase tracking-wider">Internal Notes / Turnaround</div>
+              <div className="text-xs text-muted-foreground bg-muted p-2 rounded-md border border-border">
+                <div className="font-semibold text-muted-foreground mb-0.5 text-[10px] uppercase tracking-wider">Internal Notes / Turnaround</div>
                 <div className="whitespace-pre-wrap">{partner.notes}</div>
               </div>
             )}
             {(partner.guidelineSource || partner.pricing || partner.requiredDocuments?.length > 0) && (
-              <div className="text-xs bg-blue-50/60 border border-blue-100 rounded-md p-3 space-y-2">
+              <div className="text-xs bg-info-bg/60 border border-info/30 rounded-md p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-blue-900">Underwriting guideline v{partner.guidelineVersion ?? 1}</span>
-                  {partner.guidelineEffectiveAt && <span className="text-blue-700">Effective {new Date(partner.guidelineEffectiveAt).toLocaleDateString()}</span>}
+                  <span className="font-semibold text-info">Underwriting guideline v{partner.guidelineVersion ?? 1}</span>
+                  {partner.guidelineEffectiveAt && <span className="text-info">Effective {new Date(partner.guidelineEffectiveAt).toLocaleDateString()}</span>}
                 </div>
                 {partner.guidelineSource && <div><span className="font-medium">Source:</span> {partner.guidelineSource}</div>}
                 <div className="grid grid-cols-2 gap-2">
@@ -380,7 +380,7 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
                   <div><span className="font-medium">Turnaround:</span> {partner.turnaroundBusinessDaysMin != null || partner.turnaroundBusinessDaysMax != null ? `${partner.turnaroundBusinessDaysMin ?? "?"}–${partner.turnaroundBusinessDaysMax ?? "?"} business days` : "Not documented"}</div>
                 </div>
                 {partner.requiredDocuments?.length > 0 && <div><span className="font-medium">Documents:</span> {partner.requiredDocuments.join(", ")}</div>}
-                {partner.equipmentRestrictions?.length > 0 && <div className="text-amber-800"><span className="font-medium">Equipment restrictions:</span> {partner.equipmentRestrictions.join(", ")}</div>}
+                {partner.equipmentRestrictions?.length > 0 && <div className="text-warning"><span className="font-medium">Equipment restrictions:</span> {partner.equipmentRestrictions.join(", ")}</div>}
               </div>
             )}
           </div>
@@ -440,18 +440,18 @@ export default function LenderManagement() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Partner Management</h1>
-          <p className="text-sm text-slate-500 mt-1 font-medium">Manage your network of direct lenders and syndication partners</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Partner Management</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-medium">Manage your network of direct lenders and syndication partners</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
             <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="rounded" />
             Show inactive
           </label>
           {isAdmin && (
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-[#0E2A47] hover:bg-[#0c243c] text-white">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Plus className="h-4 w-4 mr-1" /> Add Partner
                 </Button>
               </DialogTrigger>
@@ -473,14 +473,14 @@ export default function LenderManagement() {
         </div>
       ) : (
         <Tabs defaultValue="direct_lenders" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-100 p-1 rounded-xl">
-            <TabsTrigger value="direct_lenders" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary p-1 rounded-xl">
+            <TabsTrigger value="direct_lenders" className="rounded-lg data-[state=active]:bg-card">
               Direct Lenders ({directLenders.length})
             </TabsTrigger>
-            <TabsTrigger value="brokers_out" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger value="brokers_out" className="rounded-lg data-[state=active]:bg-card">
               Brokers Out ({brokersOut.length})
             </TabsTrigger>
-            <TabsTrigger value="brokers_in" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsTrigger value="brokers_in" className="rounded-lg data-[state=active]:bg-card">
               Brokers In ({brokersIn.length})
             </TabsTrigger>
           </TabsList>
@@ -492,10 +492,10 @@ export default function LenderManagement() {
           ].map((tab) => (
             <TabsContent key={tab.value} value={tab.value} className="focus-visible:outline-none">
               {tab.list.length === 0 ? (
-                <div className="text-center py-16 border border-dashed rounded-xl text-muted-foreground bg-slate-50/50">
+                <div className="text-center py-16 border border-dashed rounded-xl text-muted-foreground bg-muted">
                   <Building2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">{tab.emptyText}</p>
-                  {isAdmin && <p className="text-sm mt-1 text-slate-400">Click "Add Partner" to get started</p>}
+                  {isAdmin && <p className="text-sm mt-1 text-muted-foreground">Click "Add Partner" to get started</p>}
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">

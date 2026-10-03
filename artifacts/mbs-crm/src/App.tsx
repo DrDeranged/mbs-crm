@@ -12,6 +12,8 @@ import { SoftphoneWidget } from "@/components/softphone-widget";
 import { SoftphoneProvider } from "@/components/softphone-context";
 import { getGetMeQueryKey, useGetMe, UserRole } from "@workspace/api-client-react";
 import { QueryErrorState } from "@/components/query-error-state";
+import { AppearanceProvider } from "@/components/appearance-provider";
+import { DashboardSkeleton, LeadDetailSkeleton, PipelineSkeleton, DocumentsSkeleton, CampaignSkeleton, RowsSkeleton } from "@/components/page-skeletons";
 
 // Lazy-loaded pages — each becomes a separate chunk, downloaded only when first visited
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -72,65 +74,72 @@ function stripBase(path: string): string {
 const clerkAppearance = {
   cssLayerName: "clerk" as const,
   variables: {
-    colorPrimary: "#17A567",
-    colorForeground: "#ffffff",
-    colorMutedForeground: "rgba(255,255,255,.62)",
-    colorDanger: "#dc2626",
-    colorBackground: "rgba(255,255,255,.08)",
-    colorInput: "#ffffff",
-    colorInputForeground: "#0f172a",
-    colorNeutral: "rgba(255,255,255,.2)",
-    fontFamily: "Inter, system-ui, sans-serif",
-    borderRadius: "0.875rem",
+    colorPrimary: "hsl(var(--primary))",
+    colorForeground: "hsl(var(--foreground))",
+    colorMutedForeground: "hsl(var(--muted-foreground))",
+    colorDanger: "hsl(var(--destructive))",
+    colorBackground: "hsl(var(--card))",
+    colorInput: "hsl(var(--card))",
+    colorInputForeground: "hsl(var(--foreground))",
+    colorNeutral: "hsl(var(--foreground))",
+    fontFamily: "var(--app-font-sans)",
+    borderRadius: "var(--radius)",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white/10 border border-white/15 backdrop-blur-xl rounded-[14px] w-[440px] max-w-full overflow-hidden shadow-2xl",
+    cardBox: "bg-card border border-border rounded-xl w-[440px] max-w-full overflow-hidden shadow-none",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-white font-bold",
-    headerSubtitle: "text-white/60",
+    headerTitle: "text-foreground font-bold",
+    headerSubtitle: "text-muted-foreground",
     socialButtonsBlockButtonText: {
       style: {
-        color: "#ffffff",
+        color: "hsl(var(--foreground))",
         fontWeight: "500",
         fontSize: "0.875rem",
       },
     },
-    formFieldLabel: "text-white/85",
-    footerActionLink: "text-[#65D5A2] hover:text-white",
-    footerActionText: "text-white/60",
-    dividerText: "text-white/45",
-    identityPreviewEditButton: "text-[#65D5A2]",
-    formFieldSuccessText: "text-[#65D5A2]",
-    alertText: "text-white",
+    formFieldLabel: "text-foreground",
+    footerActionLink: "text-info hover:underline",
+    footerActionText: "text-muted-foreground",
+    dividerText: "text-muted-foreground",
+    identityPreviewEditButton: "text-info",
+    formFieldSuccessText: "text-success",
+    alertText: "text-danger",
     socialButtonsBlockButton: {
       style: {
-        border: "1px solid rgba(255,255,255,.2)",
-        backgroundColor: "rgba(255,255,255,.08)",
-        color: "#ffffff",
+        border: "1px solid hsl(var(--border))",
+        backgroundColor: "hsl(var(--card))",
+        color: "hsl(var(--foreground))",
         fontWeight: "500",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,.12)",
+        boxShadow: "none",
         borderRadius: "9999px",
       },
     },
-    formButtonPrimary: "bg-gradient-to-b from-[#1DB674] to-[#149258] hover:shadow-[0_8px_24px_rgba(23,165,103,.35)] text-white rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,.18)]",
-    formFieldInput: "border-white/20 bg-white/95 text-[#0E2A47]",
-    footerAction: "bg-white/8",
-    dividerLine: "bg-white/15",
-    alert: "bg-red-500/15 border-red-300/30",
-    otpCodeFieldInput: "border-white/20 bg-white text-[#0E2A47]",
+    formButtonPrimary: "bg-primary text-primary-foreground rounded-full shadow-none",
+    formFieldInput: "border-input bg-card text-foreground",
+    footerAction: "bg-muted",
+    dividerLine: "bg-border",
+    alert: "bg-danger-bg border-danger/30",
+    otpCodeFieldInput: "border-input bg-card text-foreground",
     formFieldRow: "",
     main: "",
   },
 };
 
 function PageLoader() {
+  const [path] = useLocation();
+  if (path === "/dashboard") return <DashboardSkeleton />;
+  if (/^\/leads\/\d+/.test(path)) return <LeadDetailSkeleton />;
+  if (path === "/leads" || path === "/leads/stale") return <div className="p-6" role="status" aria-label="Loading leads"><RowsSkeleton rows={5} /></div>;
+  if (path === "/deals") return <PipelineSkeleton />;
+  if (path === "/documents") return <div className="p-6"><DocumentsSkeleton /></div>;
+  if (path === "/campaigns") return <div className="p-6"><CampaignSkeleton /></div>;
   return (
     <div className="flex flex-1 items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center gap-4">
         <BrandLogo />
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <div role="status" aria-label="Loading page" className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     </div>
   );
@@ -138,14 +147,14 @@ function PageLoader() {
 
 function PendingApprovalGate() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0E2A47] px-6">
-      <div className="w-full max-w-lg rounded-2xl border border-white/15 bg-white/10 p-8 text-center shadow-2xl backdrop-blur-xl">
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-solid p-8 text-center">
         <BrandLogo
           variant="reverse"
           className="mx-auto mb-6 w-[160px]"
           imageClassName="h-auto w-[160px]"
         />
-        <p className="text-lg font-semibold text-white">
+        <p className="text-lg font-semibold text-solid-foreground">
           Your account is awaiting approval — contact your administrator
         </p>
       </div>
@@ -167,7 +176,7 @@ function ApprovedUserRoute({ component: Component }: { component: React.Componen
 
   if (isError) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-background p-6">
         <div className="w-full max-w-xl">
           <QueryErrorState
             label="Your account"
@@ -182,7 +191,7 @@ function ApprovedUserRoute({ component: Component }: { component: React.Componen
 
   if (!me) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-background p-6">
         <div className="w-full max-w-xl">
           <QueryErrorState
             label="Your account"
@@ -213,11 +222,10 @@ function ApprovedUserRoute({ component: Component }: { component: React.Componen
 
 function SignInPage() {
   return (
-    <div className="flex min-h-screen w-full bg-[#0E2A47]">
+    <div className="flex min-h-screen w-full bg-background">
       {/* Left brand panel — navy, desktop only */}
       <div
-        className="hidden md:flex md:w-[45%] flex-col items-center justify-center gap-8 px-12 relative overflow-hidden"
-        style={{ background: "radial-gradient(circle at 18% 20%, rgba(29,182,116,.22), transparent 30%), radial-gradient(circle at 82% 78%, rgba(31,78,121,.9), transparent 42%), #0E2A47" }}
+        className="hidden md:flex md:w-[45%] flex-col items-center justify-center gap-8 px-12 relative overflow-hidden bg-solid"
       >
         {/* Decorative circles */}
         <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 pointer-events-none" />
@@ -232,7 +240,7 @@ function SignInPage() {
               Business financing, simplified.
             </p>
           </div>
-          <div className="w-12 h-0.5 bg-[#17A567] mx-auto rounded-full" />
+          <div className="w-12 h-0.5 bg-primary mx-auto rounded-full" />
           <p className="text-sm text-white/65 leading-relaxed">
             Fast, flexible funding for businesses ready to grow. Our dedicated specialists guide you every step of the way.
           </p>
@@ -240,15 +248,15 @@ function SignInPage() {
       </div>
 
       {/* Right sign-in panel */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-[#0E2A47] px-6 py-12" style={{ backgroundImage: "radial-gradient(circle at 75% 20%, rgba(29,182,116,.12), transparent 28%), radial-gradient(circle at 30% 90%, rgba(31,78,121,.85), transparent 40%)" }}>
+      <div className="flex flex-1 flex-col items-center justify-center bg-solid px-6 py-12">
         <div className="w-full max-w-[440px] space-y-7">
           <div className="flex flex-col items-center gap-3">
             <BrandLogo
               variant="reverse"
-              className="w-[160px] shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+              className="w-[160px]"
               imageClassName="h-auto w-[160px]"
             />
-            <p className="text-sm text-white/60 md:hidden">Business financing, simplified.</p>
+            <p className="text-sm text-solid-foreground/70 md:hidden">Business financing, simplified.</p>
           </div>
           <SignIn
             routing="path"
@@ -320,6 +328,7 @@ function AppRoutes() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
+      <AppearanceProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ClerkQueryClientCacheInvalidator />
@@ -417,6 +426,7 @@ function AppRoutes() {
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
+      </AppearanceProvider>
     </ClerkProvider>
   );
 }
@@ -424,11 +434,11 @@ function AppRoutes() {
 function App() {
   if (!clerkPubKey) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 text-center">
-        <div className="rounded-lg border bg-white p-8 shadow-sm">
+      <div className="flex min-h-screen items-center justify-center bg-background text-center">
+        <div className="rounded-lg border bg-card p-8">
           <BrandLogo className="mb-6" imageClassName="h-8 w-auto" />
-          <h1 className="mb-2 text-xl font-bold text-red-600">Missing Clerk Configuration</h1>
-          <p className="text-gray-600">Please set the VITE_CLERK_PUBLISHABLE_KEY environment variable.</p>
+          <h1 className="mb-2 text-xl font-bold text-danger">Missing Clerk Configuration</h1>
+          <p className="text-muted-foreground">Please set the VITE_CLERK_PUBLISHABLE_KEY environment variable.</p>
         </div>
       </div>
     );

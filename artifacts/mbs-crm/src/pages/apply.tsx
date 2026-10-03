@@ -229,29 +229,29 @@ function BankStatementDropzone({ files, onChange, maxFiles }: { files: File[]; o
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-          isDragActive ? "border-[#1F4E79] bg-blue-50" : "border-gray-300 hover:border-[#1F4E79] hover:bg-slate-50"
+          isDragActive ? "border-info bg-info-bg" : "border-border hover:border-info hover:bg-muted"
         }`}
       >
         <input {...getInputProps()} />
-        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-        <p className="font-medium text-gray-700">
+        <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+        <p className="font-medium text-foreground">
           {isDragActive ? "Drop PDFs here…" : "Drag & drop bank statement PDFs"}
         </p>
-        <p className="text-sm text-gray-400 mt-1">or click to browse — PDF only, max 20 MB each</p>
+        <p className="text-sm text-muted-foreground mt-1">or click to browse — PDF only, max 20 MB each</p>
       </div>
       {files.length > 0 && (
         <ul className="space-y-2">
           {files.map((f, i) => (
-            <li key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 text-sm">
-              <span className="flex items-center gap-2 text-gray-700">
-                <FileText className="h-4 w-4 text-[#1F4E79]" />
+            <li key={i} className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 text-sm">
+              <span className="flex items-center gap-2 text-foreground">
+                <FileText className="h-4 w-4 text-info" />
                 {f.name}
-                <span className="text-gray-400">({(f.size / 1024).toFixed(0)} KB)</span>
+                <span className="text-muted-foreground">({(f.size / 1024).toFixed(0)} KB)</span>
               </span>
               <button
                 type="button"
                 onClick={() => onChange(files.filter((_, j) => j !== i))}
-                className="text-gray-400 hover:text-red-500"
+                className="text-muted-foreground hover:text-danger"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -259,7 +259,7 @@ function BankStatementDropzone({ files, onChange, maxFiles }: { files: File[]; o
           ))}
         </ul>
       )}
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted-foreground">
         {maxFiles === 6 ? "Upload 3–6 months of statements." : "Statements are optional for equipment financing."}
       </p>
     </div>
@@ -270,9 +270,9 @@ function BankStatementDropzone({ files, onChange, maxFiles }: { files: File[]; o
 function ProgressBar({ step }: { step: number }) {
   const pct = Math.round((step / TOTAL_STEPS) * 100);
   return (
-    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+    <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
       <div
-        className="h-full bg-[#1F4E79] transition-all duration-500"
+        className="h-full bg-solid transition-all duration-500"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -285,7 +285,7 @@ function MBSHeader() {
       <BrandLogo variant="reverse" imageClassName="h-7 w-auto" />
       <div>
         <p className="font-semibold text-white text-sm leading-tight">Business Financing Application</p>
-        <p className="text-xs text-white/65">My Business Solutions</p>
+        <p className="text-xs text-white/70">My Business Solutions</p>
       </div>
     </div>
   );
@@ -459,26 +459,26 @@ export default function ApplyPage() {
   // Step 6 — confirmation
   if (step === 6) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4 py-12">
-          <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center space-y-5">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-info-bg flex items-center justify-center px-4 py-12">
+          <div className="bg-card rounded-2xl max-w-md w-full p-8 text-center space-y-5">
           <BrandLogo className="mx-auto" imageClassName="h-7 w-auto" />
           <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <div className="h-16 w-16 rounded-full bg-success-bg flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Application Submitted!</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground">Application Submitted!</h1>
+          <p className="text-muted-foreground text-sm">
             Thank you, <strong>{form.ownerFirstName}</strong>! Your application for{" "}
             <strong>{form.businessName}</strong> has been received. A dedicated funding specialist will contact you within 1 business day.
           </p>
           {confirmedLeadId && (
-            <div className="bg-slate-50 rounded-lg px-4 py-3">
-              <p className="text-xs text-gray-400">Reference Number</p>
-              <p className="font-mono font-bold text-[#1F4E79] text-lg">MBS-{String(confirmedLeadId).padStart(5, "0")}</p>
+            <div className="bg-muted rounded-lg px-4 py-3">
+              <p className="text-xs text-muted-foreground">Reference Number</p>
+              <p className="font-mono font-bold text-info text-lg">MBS-{String(confirmedLeadId).padStart(5, "0")}</p>
             </div>
           )}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Questions? Call <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
             <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
           </p>
@@ -488,14 +488,14 @@ export default function ApplyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-info-bg py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-card rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-[#1F4E79] px-6 py-5 text-white">
+          <div className="bg-solid px-6 py-5 text-white">
             <MBSHeader />
             <div className="mt-4 space-y-1">
-              <div className="flex justify-between text-xs text-blue-200">
+              <div className="flex justify-between text-xs text-solid-foreground/80">
                 <span>Step {step} of {TOTAL_STEPS - 1}</span>
                 <span>{Math.round((step / (TOTAL_STEPS - 1)) * 100)}% complete</span>
               </div>
@@ -505,7 +505,7 @@ export default function ApplyPage() {
 
           {/* Body */}
           <div className="px-6 py-6 space-y-5">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Questions about your application? Call{" "}
               <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
               <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
@@ -514,33 +514,33 @@ export default function ApplyPage() {
             {/* ── Step 1: Product selection ── */}
             {step === 1 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900">What type of financing are you looking for?</h2>
+                <h2 className="text-lg font-bold text-foreground">What type of financing are you looking for?</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => set({ type: "working_capital" })}
                     className={`rounded-xl border-2 p-5 text-left transition-all ${
                       form.type === "working_capital"
-                        ? "border-[#1F4E79] bg-blue-50"
-                        : "border-gray-200 hover:border-blue-200"
+                        ? "border-info bg-info-bg"
+                        : "border-border hover:border-info/30"
                     }`}
                   >
-                    <Building2 className={`h-7 w-7 mb-3 ${form.type === "working_capital" ? "text-[#1F4E79]" : "text-gray-400"}`} />
-                    <p className="font-semibold text-gray-900">Working Capital</p>
-                    <p className="text-xs text-gray-400 mt-1">Merchant Cash Advance or term loan for operations, payroll, inventory, or growth.</p>
+                    <Building2 className={`h-7 w-7 mb-3 ${form.type === "working_capital" ? "text-info" : "text-muted-foreground"}`} />
+                    <p className="font-semibold text-foreground">Working Capital</p>
+                    <p className="text-xs text-muted-foreground mt-1">Merchant Cash Advance or term loan for operations, payroll, inventory, or growth.</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => set({ type: "equipment" })}
                     className={`rounded-xl border-2 p-5 text-left transition-all ${
                       form.type === "equipment"
-                        ? "border-[#1F4E79] bg-blue-50"
-                        : "border-gray-200 hover:border-blue-200"
+                        ? "border-info bg-info-bg"
+                        : "border-border hover:border-info/30"
                     }`}
                   >
-                    <Wrench className={`h-7 w-7 mb-3 ${form.type === "equipment" ? "text-[#1F4E79]" : "text-gray-400"}`} />
-                    <p className="font-semibold text-gray-900">Equipment Financing</p>
-                    <p className="text-xs text-gray-400 mt-1">Finance new or used equipment with low monthly payments and flexible terms.</p>
+                    <Wrench className={`h-7 w-7 mb-3 ${form.type === "equipment" ? "text-info" : "text-muted-foreground"}`} />
+                    <p className="font-semibold text-foreground">Equipment Financing</p>
+                    <p className="text-xs text-muted-foreground mt-1">Finance new or used equipment with low monthly payments and flexible terms.</p>
                   </button>
                 </div>
               </div>
@@ -549,7 +549,7 @@ export default function ApplyPage() {
             {/* ── Step 2: Business info ── */}
             {step === 2 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900">Business Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Business Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2 space-y-1">
                     <Label className="text-xs">Legal Business Name *</Label>
@@ -734,14 +734,14 @@ export default function ApplyPage() {
                         <Label className="text-xs">Down Payment Amount ($)</Label>
                         <Input type="number" min="0" value={form.downPaymentAmount} onChange={(e) => set({ downPaymentAmount: e.target.value })} />
                       </div>
-                      <label className="sm:col-span-2 flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                      <label className="sm:col-span-2 flex items-start gap-2 text-xs text-foreground cursor-pointer">
                         <input type="checkbox" checked={form.hasFinancialStatements === true} onChange={(e) => set({ hasFinancialStatements: e.target.checked })} className="mt-0.5 rounded" />
                         I have two years of year-end financial statements available.
                       </label>
                     </>
                   )}
                   <div className="sm:col-span-2 space-y-1">
-                    <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                    <label className="flex items-start gap-2 text-xs text-foreground cursor-pointer">
                       <input data-testid="checkbox-has-collateral" type="checkbox" checked={form.hasCollateral} onChange={(e) => set({ hasCollateral: e.target.checked })} className="mt-0.5 rounded" />
                       This application is secured by qualified real-estate or equipment collateral.
                     </label>
@@ -765,7 +765,7 @@ export default function ApplyPage() {
             {/* ── Step 3: Owner info ── */}
             {step === 3 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900">Owner Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Owner Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs">First Name *</Label>
@@ -793,7 +793,7 @@ export default function ApplyPage() {
                         <Input
                           value={`•••-••-${ssnRaw.slice(5)}`}
                           readOnly
-                          className="font-mono tracking-widest bg-slate-50"
+                          className="font-mono tracking-widest bg-muted"
                         />
                         <Button
                           type="button"
@@ -806,7 +806,7 @@ export default function ApplyPage() {
                         </Button>
                       </div>
                     )}
-                    <p className="text-[10px] text-gray-400">Encrypted at rest — never stored as plain text</p>
+                    <p className="text-[10px] text-muted-foreground">Encrypted at rest — never stored as plain text</p>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Date of Birth</Label>
@@ -848,11 +848,11 @@ export default function ApplyPage() {
                     </Select>
                   </div>
                 </div>
-                <details className="rounded-xl border border-slate-200 bg-slate-50">
-                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">
+                <details className="rounded-xl border border-border bg-muted">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-foreground">
                     Add a secondary owner (optional)
                   </summary>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-200 px-4 py-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-border px-4 py-4">
                     <div className="space-y-1">
                       <Label className="text-xs">Name</Label>
                       <Input value={form.secondaryOwnerName} onChange={(e) => set({ secondaryOwnerName: e.target.value })} />
@@ -877,11 +877,11 @@ export default function ApplyPage() {
                         />
                       ) : (
                         <div className="flex gap-2">
-                          <Input value={`•••-••-${secondarySsnRaw.slice(5)}`} readOnly className="font-mono tracking-widest bg-white" />
+                          <Input value={`•••-••-${secondarySsnRaw.slice(5)}`} readOnly className="font-mono tracking-widest bg-card" />
                           <Button type="button" variant="outline" size="sm" onClick={() => setSecondarySsnRaw("")} className="flex-shrink-0 text-xs">Clear</Button>
                         </div>
                       )}
-                      <p className="text-[10px] text-gray-400">Encrypted at rest — never stored as plain text</p>
+                      <p className="text-[10px] text-muted-foreground">Encrypted at rest — never stored as plain text</p>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Date of Birth</Label>
@@ -911,8 +911,8 @@ export default function ApplyPage() {
             {step === 4 && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Bank Statement Upload</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-lg font-bold text-foreground">Bank Statement Upload</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
                      {form.type === "working_capital"
                        ? "Upload your last 3–6 months of business bank statements (PDF format)."
                        : "Upload your business bank statements (PDF format), or skip this step to continue."}
@@ -921,10 +921,10 @@ export default function ApplyPage() {
                 </div>
                  <BankStatementDropzone files={bankFiles} onChange={(files) => { setBankFiles(files); setStatementsSkipped(false); setSkipConfirmation(false); }} maxFiles={form.type === "working_capital" ? 6 : 12} />
                  {bankFiles.length < 3 && bankFiles.length > 0 && !statementsSkipped && (
-                   <p className="text-xs text-amber-600">Please add at least {3 - bankFiles.length} more statement(s).</p>
+                   <p className="text-xs text-warning">Please add at least {3 - bankFiles.length} more statement(s).</p>
                  )}
                  {form.type === "working_capital" && bankFiles.length > 6 && (
-                   <p className="text-xs text-amber-600">Please upload no more than 6 statements.</p>
+                   <p className="text-xs text-warning">Please upload no more than 6 statements.</p>
                  )}
                  <div className="border-t pt-4">
                    <Button type="button" variant="outline" className="w-full" onClick={() => {
@@ -935,7 +935,7 @@ export default function ApplyPage() {
                      {form.type === "equipment" ? "Skip this step" : "I'll send statements to my representative instead"}
                    </Button>
                    {skipConfirmation && (
-                     <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                     <p className="mt-3 rounded-lg bg-info-bg px-3 py-2 text-sm text-info">
                        {form.type === "working_capital"
                          ? "Your representative will follow up to collect your statements."
                          : "You can continue your application without uploading bank statements."}
@@ -948,21 +948,21 @@ export default function ApplyPage() {
             {/* ── Step 5: Review & sign ── */}
             {step === 5 && (
               <div className="space-y-5">
-                <h2 className="text-lg font-bold text-gray-900">Review & Sign</h2>
+                <h2 className="text-lg font-bold text-foreground">Review & Sign</h2>
 
                 {/* Summary */}
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
-                  <p className="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">Application Summary</p>
+                <div className="bg-muted rounded-xl p-4 space-y-2 text-sm">
+                  <p className="font-semibold text-foreground text-xs uppercase tracking-wide mb-3">Application Summary</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                    <span className="text-gray-500">Type</span><span className="font-medium capitalize">{form.type.replace("_", " ")}</span>
-                    <span className="text-gray-500">Business</span><span className="font-medium">{form.businessName}</span>
-                    <span className="text-gray-500">Owner</span><span className="font-medium">{form.ownerFirstName} {form.ownerLastName}</span>
-                    <span className="text-gray-500">SSN</span><span className="font-medium">***-**-{ssnRaw.slice(-4) || "****"}</span>
-                    <span className="text-gray-500">Email</span><span className="font-medium">{form.email}</span>
-                    <span className="text-gray-500">Phone</span><span className="font-medium">{form.phone}</span>
-                    <span className="text-gray-500">Revenue/mo</span><span className="font-medium">${Number(form.monthlyRevenueStated).toLocaleString()}</span>
-                    <span className="text-gray-500">Requested</span><span className="font-medium">${Number(form.requestedAmount).toLocaleString()}</span>
-                    <span className="text-gray-500">Bank Stmts</span><span className="font-medium">{statementsSkipped ? "Skipped" : `${bankFiles.length} file(s)`}</span>
+                    <span className="text-muted-foreground">Type</span><span className="font-medium capitalize">{form.type.replace("_", " ")}</span>
+                    <span className="text-muted-foreground">Business</span><span className="font-medium">{form.businessName}</span>
+                    <span className="text-muted-foreground">Owner</span><span className="font-medium">{form.ownerFirstName} {form.ownerLastName}</span>
+                    <span className="text-muted-foreground">SSN</span><span className="font-medium">***-**-{ssnRaw.slice(-4) || "****"}</span>
+                    <span className="text-muted-foreground">Email</span><span className="font-medium">{form.email}</span>
+                    <span className="text-muted-foreground">Phone</span><span className="font-medium">{form.phone}</span>
+                    <span className="text-muted-foreground">Revenue/mo</span><span className="font-medium">${Number(form.monthlyRevenueStated).toLocaleString()}</span>
+                    <span className="text-muted-foreground">Requested</span><span className="font-medium">${Number(form.requestedAmount).toLocaleString()}</span>
+                    <span className="text-muted-foreground">Bank Stmts</span><span className="font-medium">{statementsSkipped ? "Skipped" : `${bankFiles.length} file(s)`}</span>
                   </div>
                 </div>
 
@@ -975,22 +975,22 @@ export default function ApplyPage() {
                       onCheckedChange={(v) => set({ consentCreditPull: !!v })}
                       className="mt-0.5"
                     />
-                    <Label htmlFor="consent_credit" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+                    <Label htmlFor="consent_credit" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
                       I authorize My Business Solutions (MBS) and its lending partners to obtain my business and personal credit report for the purpose of evaluating my financing application.
                     </Label>
                   </div>
                   {submitAttempted && !form.consentCreditPull && (
-                    <p className="text-xs text-red-600">Credit pull consent is required.</p>
+                    <p className="text-xs text-danger">Credit pull consent is required.</p>
                   )}
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-lg border border-border bg-muted p-4">
                     {consentText ? (
                       <>
-                        <h3 className="text-sm font-semibold text-gray-800">{consentText.title}</h3>
-                        <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-gray-600">{consentText.text}</p>
-                        <p className="mt-2 text-[11px] text-gray-400">Disclosure version: {consentText.version}</p>
+                        <h3 className="text-sm font-semibold text-foreground">{consentText.title}</h3>
+                        <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">{consentText.text}</p>
+                        <p className="mt-2 text-[11px] text-muted-foreground">Disclosure version: {consentText.version}</p>
                       </>
                     ) : (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {consentTextLoading
                           ? "Loading the authorization and disclosure…"
                           : consentTextError
@@ -1007,16 +1007,16 @@ export default function ApplyPage() {
                       onCheckedChange={(v) => set({ consentTerms: !!v })}
                       className="mt-0.5"
                     />
-                    <Label htmlFor="consent_terms" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+                    <Label htmlFor="consent_terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
                       {consentText?.checkboxLabel}
                     </Label>
                   </div>
                   {submitAttempted && !form.consentTerms && (
-                    <p className="text-xs text-red-600">Terms consent is required.</p>
+                    <p className="text-xs text-danger">Terms consent is required.</p>
                   )}
                   <div className="flex gap-3 items-start">
                     <Checkbox id="sms_consent" checked={form.smsConsent} onCheckedChange={(v) => set({ smsConsent: !!v })} className="mt-0.5" />
-                    <Label htmlFor="sms_consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+                    <Label htmlFor="sms_consent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
                       I agree to receive text messages from My Business Solutions LLC about my application (application received, documents needed, status updates). Message frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP for help. See our <a href="https://my-business-solutions.com/privacy-policy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a> and <a href="https://my-business-solutions.com/terms-of-service" target="_blank" rel="noreferrer" className="underline">Terms of Service</a>.
                     </Label>
                   </div>
@@ -1025,7 +1025,7 @@ export default function ApplyPage() {
                 {/* Signature */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <p className="text-sm font-semibold text-gray-700">Applicant Signature</p>
+                    <p className="text-sm font-semibold text-foreground">Applicant Signature</p>
                     <div className="flex rounded-lg border overflow-hidden text-xs">
                       <button
                         type="button"
@@ -1033,7 +1033,7 @@ export default function ApplyPage() {
                           setSignatureMode("draw");
                           clearSubmitError();
                         }}
-                        className={`px-3 py-1.5 ${signatureMode === "draw" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
+                        className={`px-3 py-1.5 ${signatureMode === "draw" ? "bg-solid text-white" : "bg-card text-muted-foreground"}`}
                       >Draw</button>
                       <button
                         type="button"
@@ -1041,15 +1041,15 @@ export default function ApplyPage() {
                           setSignatureMode("type");
                           clearSubmitError();
                         }}
-                        className={`px-3 py-1.5 ${signatureMode === "type" ? "bg-[#1F4E79] text-white" : "bg-white text-gray-600"}`}
+                        className={`px-3 py-1.5 ${signatureMode === "type" ? "bg-solid text-white" : "bg-card text-muted-foreground"}`}
                       >Type</button>
                     </div>
                   </div>
                   {signatureMode === "draw" ? (
-                    <div className="border rounded-xl overflow-hidden bg-slate-50">
+                    <div className="border rounded-xl overflow-hidden bg-muted">
                       <SignaturePad
                         ref={sigPadRef}
-                        canvasProps={{ className: "w-full", style: { height: 120 } }}
+                        canvasProps={{ className: "w-full bg-signature-paper", style: { height: 120 } }}
                         penColor="#1F4E79"
                         onEnd={() => {
                           setHasDrawnSignature(true);
@@ -1064,7 +1064,7 @@ export default function ApplyPage() {
                             setHasDrawnSignature(false);
                             clearSubmitError();
                           }}
-                          className="text-xs text-gray-400 hover:text-gray-600"
+                          className="text-xs text-muted-foreground hover:text-muted-foreground"
                         >Clear</button>
                       </div>
                     </div>
@@ -1077,9 +1077,9 @@ export default function ApplyPage() {
                           clearSubmitError();
                         }}
                         placeholder="Type your full legal name"
-                        className="text-lg italic font-serif text-[#1F4E79]"
+                        className="text-lg italic font-serif text-info"
                       />
-                      <p className="text-xs text-gray-400">Your typed name serves as your electronic signature.</p>
+                      <p className="text-xs text-muted-foreground">Your typed name serves as your electronic signature.</p>
                     </div>
                   )}
                   {submitAttempted && !getSignatureReadiness(
@@ -1087,7 +1087,7 @@ export default function ApplyPage() {
                     typedName,
                     hasDrawnSignature && !sigPadRef.current?.isEmpty(),
                   ).ready && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-xs text-danger">
                       {getSignatureReadiness(
                         signatureMode,
                         typedName,
@@ -1098,14 +1098,14 @@ export default function ApplyPage() {
                 </div>
 
                 {submitError && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+                  <div className="bg-danger-bg border border-danger/30 rounded-lg px-4 py-3 text-sm text-danger">
                     {submitError}
                     {submitErrorStep !== null && submitErrorStep < 5 && (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="mt-2 block border-red-300 text-red-700 hover:bg-red-100"
+                        className="mt-2 block border-danger/30 text-danger hover:bg-danger-bg"
                         onClick={() => {
                           clearSubmitError();
                           setStep(submitErrorStep);
@@ -1130,7 +1130,7 @@ export default function ApplyPage() {
 
             {step < 5 ? (
               <Button
-                className="bg-[#1F4E79] hover:bg-[#163a5f] text-white flex items-center gap-1.5"
+                className="bg-solid hover:bg-sidebar-accent text-white flex items-center gap-1.5"
                 onClick={() => setStep(step + 1)}
                 disabled={!canAdvance()}
               >
@@ -1138,7 +1138,7 @@ export default function ApplyPage() {
               </Button>
             ) : (
               <Button
-                className="bg-[#1F4E79] hover:bg-[#163a5f] text-white flex items-center gap-1.5"
+                className="bg-solid hover:bg-sidebar-accent text-white flex items-center gap-1.5"
                 onClick={handleSubmit}
                 disabled={submitting || submitted}
               >
@@ -1148,7 +1148,7 @@ export default function ApplyPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-4">
           256-bit encrypted · Your data is secure · My Business Solutions LLC
         </p>
       </div>

@@ -45,12 +45,12 @@ type RetentionPreview = {
 
 function CategoryBadge({ category }: { category: string }) {
   const map: Record<string, string> = {
-    ssn: "bg-red-100 text-red-800 border-red-200",
-    credit: "bg-orange-100 text-orange-800 border-orange-200",
-    application: "bg-blue-100 text-blue-800 border-blue-200",
+    ssn: "bg-danger-bg text-danger border-danger/30",
+    credit: "bg-warning-bg text-warning border-warning/30",
+    application: "bg-info-bg text-info border-info/30",
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${map[category] ?? "bg-gray-100 text-gray-800"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${map[category] ?? "bg-secondary text-foreground"}`}>
       {category}
     </span>
   );
@@ -58,7 +58,7 @@ function CategoryBadge({ category }: { category: string }) {
 
 function ActionBadge({ action }: { action: string }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${action === "export" ? "bg-purple-100 text-purple-800 border-purple-200" : "bg-gray-100 text-gray-700 border-gray-200"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${action === "export" ? "bg-secondary text-chart-5 border-purple-200" : "bg-secondary text-foreground border-border"}`}>
       {action}
     </span>
   );
@@ -191,8 +191,8 @@ export default function Governance() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-[#1F4E79]" />
+        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-info" />
           Data Governance
         </h1>
         <p className="text-muted-foreground text-sm mt-0.5">PII access log, data retention policy, and Right to be Forgotten (RTBF) controls</p>
@@ -287,7 +287,7 @@ export default function Governance() {
                       <tr key={row.id} className="border-t hover:bg-muted/20">
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(row.createdAt), "MMM d, yyyy HH:mm")}</td>
                         <td className="px-3 py-2 text-xs">{row.userName ?? <span className="text-muted-foreground">System</span>}</td>
-                        <td className="px-3 py-2 text-xs">{row.leadId ? <Link href={`/leads/${row.leadId}`} className="font-medium text-[#1F4E79] hover:underline">{row.entityLabel || `Lead #${row.leadId}`}</Link> : "—"}</td>
+                        <td className="px-3 py-2 text-xs">{row.leadId ? <Link href={`/leads/${row.leadId}`} className="font-medium text-info hover:underline">{row.entityLabel || `Lead #${row.leadId}`}</Link> : "—"}</td>
                         <td className="px-3 py-2"><CategoryBadge category={row.fieldCategory} /></td>
                         <td className="px-3 py-2"><ActionBadge action={row.action} /></td>
                         <td className="px-3 py-2 text-xs text-muted-foreground font-mono">{row.ip ?? "—"}</td>
@@ -351,13 +351,13 @@ export default function Governance() {
 
           {preview && (
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 rounded-lg border bg-amber-50 border-amber-200">
-                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+              <div className="flex items-center gap-3 p-3 rounded-lg border bg-warning-bg border-warning/30">
+                <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-amber-900">
+                  <p className="text-sm font-medium text-warning">
                     {preview.eligibleCount} lead{preview.eligibleCount !== 1 ? "s" : ""} eligible for purge
                   </p>
-                  <p className="text-xs text-amber-700">
+                  <p className="text-xs text-warning">
                     Cutoff: {format(new Date(preview.cutoffDate), "MMM d, yyyy")} · Retention: {preview.retentionMonths} months · Excludes any with credit pulls or compliance obligations
                   </p>
                 </div>
@@ -378,8 +378,8 @@ export default function Governance() {
                       <tbody>
                         {preview.eligible.map((l) => (
                           <tr key={l.id} className="border-t">
-                            <td className="px-3 py-1.5 text-xs font-mono"><Link href={`/leads/${l.id}`} className="text-[#1F4E79] hover:underline">#{l.id}</Link></td>
-                            <td className="px-3 py-1.5 text-xs"><Link href={`/leads/${l.id}`} className="font-medium text-[#1F4E79] hover:underline">{l.name}</Link></td>
+                            <td className="px-3 py-1.5 text-xs font-mono"><Link href={`/leads/${l.id}`} className="text-info hover:underline">#{l.id}</Link></td>
+                            <td className="px-3 py-1.5 text-xs"><Link href={`/leads/${l.id}`} className="font-medium text-info hover:underline">{l.name}</Link></td>
                             <td className="px-3 py-1.5 text-xs text-muted-foreground">{l.email ?? "—"}</td>
                             <td className="px-3 py-1.5 text-xs text-muted-foreground">{format(new Date(l.lastUpdated), "MMM d, yyyy")}</td>
                           </tr>
@@ -407,9 +407,9 @@ export default function Governance() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border bg-blue-50 border-blue-200 p-4 text-sm text-blue-900 space-y-1">
+          <div className="rounded-lg border bg-info-bg border-info/30 p-4 text-sm text-info space-y-1">
             <p className="font-medium">How RTBF works:</p>
-            <ul className="list-disc list-inside space-y-0.5 text-blue-800 text-xs">
+            <ul className="list-disc list-inside space-y-0.5 text-info text-xs">
               <li>Lead fields nulled: first/last name, email, phone, company, EIN, consent IP</li>
               <li>Application fields scrubbed: owner name, SSN, DOB, home address, signature</li>
               <li>If credit compliance log entries exist (FCRA): lead record is preserved but PII is still scrubbed</li>

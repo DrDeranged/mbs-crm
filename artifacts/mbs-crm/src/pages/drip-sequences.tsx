@@ -105,7 +105,7 @@ function SequenceFormDialog({ sequence, trigger }: { sequence?: any; trigger: Re
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={isBusy} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+            <Button onClick={handleSave} disabled={isBusy} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {isBusy ? "Saving…" : isEditing ? "Save Changes" : "Create"}
             </Button>
           </div>
@@ -169,8 +169,8 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
   const activeTemplates = (templates ?? []).filter((t: any) => t.isActive);
 
   return (
-    <div className="p-4 bg-slate-50 border-t space-y-3">
-      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Email Steps</p>
+    <div className="p-4 bg-muted border-t space-y-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email Steps</p>
       {steps.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-lg">
           No steps yet. Add your first email step.
@@ -178,12 +178,12 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
       ) : (
         <div className="space-y-2">
           {steps.map((step, i) => (
-            <div key={i} className="flex items-center gap-2 bg-white border rounded-lg p-2">
+            <div key={i} className="flex items-center gap-2 bg-card border rounded-lg p-2">
               <div className="flex flex-col flex-shrink-0">
                 <button
                   onClick={() => moveStep(i, -1)}
                   disabled={!canEdit || i === 0}
-                  className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="h-4 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                   title="Move up"
                 >
                   <ChevronUp className="h-3 w-3" />
@@ -191,13 +191,13 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
                 <button
                   onClick={() => moveStep(i, 1)}
                   disabled={!canEdit || i === steps.length - 1}
-                  className="h-4 w-4 flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="h-4 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                   title="Move down"
                 >
                   <ChevronDown className="h-3 w-3" />
                 </button>
               </div>
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1F4E79] text-white text-[10px] font-bold flex-shrink-0">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-solid text-white text-[10px] font-bold flex-shrink-0">
                 {i + 1}
               </div>
               <div className="flex-1 flex items-center gap-2 min-w-0 flex-wrap">
@@ -210,7 +210,7 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
                   options={activeTemplates.map((t: any) => ({ value: String(t.id), label: t.name }))}
                 />
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Clock className="h-3 w-3 text-slate-400" />
+                  <Clock className="h-3 w-3 text-muted-foreground" />
                   <Input
                     type="number"
                     min={0}
@@ -226,7 +226,7 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
+                  className="h-7 w-7 p-0 text-danger hover:text-danger hover:bg-danger-bg flex-shrink-0"
                   onClick={() => removeStep(i)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -245,7 +245,7 @@ function StepBuilder({ sequenceId, canEdit }: { sequenceId: number; canEdit: boo
             size="sm"
             onClick={handleSave}
             disabled={upsertSteps.isPending}
-            className="bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs h-8"
+            className="bg-solid hover:bg-sidebar-accent text-white text-xs h-8"
           >
             {upsertSteps.isPending ? "Saving…" : "Save Steps"}
           </Button>
@@ -269,21 +269,21 @@ function SequenceCard({ seq, canManageAll, userId, onDelete }: {
   const triggerLabel = LEAD_STATUSES.find((s) => s.value === seq.triggerStatus)?.label ?? seq.triggerStatus;
 
   return (
-    <Card className={`transition-shadow hover:shadow-sm ${!seq.isActive ? "opacity-60" : ""}`}>
+    <Card className={` ${!seq.isActive ? "opacity-60" : ""}`}>
       <CardContent className="p-0">
         <div className="p-4 flex items-start gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 border border-amber-100 flex-shrink-0">
-            <Zap className="h-4 w-4 text-amber-500" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning-bg border border-warning/30 flex-shrink-0">
+            <Zap className="h-4 w-4 text-warning" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-slate-900 text-sm">{seq.name}</span>
+              <span className="font-semibold text-foreground text-sm">{seq.name}</span>
               {!seq.isActive && <Badge variant="outline" className="text-[10px]">Inactive</Badge>}
-              {seq.isActive && <Badge className="text-[10px] bg-green-50 text-green-700 border-green-200">Active</Badge>}
+              {seq.isActive && <Badge className="text-[10px] bg-success-bg text-success border-success/30">Active</Badge>}
             </div>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <GitBranch className="h-3 w-3" /> Trigger: <strong className="text-slate-700">{triggerLabel}</strong>
+                <GitBranch className="h-3 w-3" /> Trigger: <strong className="text-foreground">{triggerLabel}</strong>
               </span>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Mail className="h-3 w-3" /> {seq.stepCount} step{seq.stepCount !== 1 ? "s" : ""}
@@ -303,7 +303,7 @@ function SequenceCard({ seq, canManageAll, userId, onDelete }: {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                  className="h-7 w-7 p-0 text-danger hover:text-danger hover:bg-danger-bg"
                   title="Delete sequence"
                   onClick={() => onDelete(seq)}
                 >
@@ -353,24 +353,24 @@ export default function DripSequences() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Drip Sequences</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Drip Sequences</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Automated email campaigns triggered by lead status changes.
           </p>
         </div>
         <SequenceFormDialog
           trigger={
-            <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-1.5" /> New Sequence
             </Button>
           }
         />
       </div>
 
-      <Card className="border-amber-200 bg-amber-50/50">
+      <Card className="border-warning/30 bg-warning-bg/50">
         <CardContent className="pt-4 pb-3 flex items-start gap-3">
-          <Zap className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-amber-800">
+          <Zap className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-warning">
             <strong>How it works:</strong> When a lead's status changes to the trigger stage, they are automatically
             enrolled in the matching active sequence. Each step sends an email after the configured delay (hours).
             The drip engine runs every 10 minutes. Leads can be manually enrolled or unenrolled from the lead detail page.

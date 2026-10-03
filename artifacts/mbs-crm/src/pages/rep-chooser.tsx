@@ -29,17 +29,17 @@ export default function RepChooser() {
   const subtext = repChooserSubtext(rep);
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-5">
-      <section className="w-full max-w-md rounded-2xl bg-white shadow-lg p-7 text-center space-y-6">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-info-bg flex items-center justify-center p-5">
+      <section className="w-full max-w-md rounded-2xl bg-card p-7 text-center space-y-6">
         <BrandLogo className="mx-auto" imageClassName="h-10 w-auto" />
-        <div><h1 className="text-2xl font-bold text-[#0E2A47]">{label}</h1>
-          {subtext && <p className="mt-2 text-gray-500">{subtext}</p>}
-          {rep.phone && <p className="mt-2 text-gray-500">{rep.phone}</p>}</div>
+        <div><h1 className="text-2xl font-bold text-foreground">{label}</h1>
+          {subtext && <p className="mt-2 text-muted-foreground">{subtext}</p>}
+          {rep.phone && <p className="mt-2 text-muted-foreground">{rep.phone}</p>}</div>
         <div className="grid gap-3">
-          <Link href={repChooserApplyHref(rep, slug, basePath, invite)} className="block w-full rounded-xl bg-[#17A567] py-4 text-lg font-semibold text-white">Continue</Link>
+          <Link href={repChooserApplyHref(rep, slug, basePath, invite)} className="block w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground">Continue</Link>
         </div>
-        {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-[#0E2A47] underline underline-offset-2">Prefer a paper application? Download PDF</a>}
-        <p className="text-xs text-gray-500">
+        {rep.name && <a href={`${getApiBaseUrl()}/public/reps/${encodeURIComponent(canonicalSlug)}/application-form.pdf`} className="text-xs font-medium text-foreground underline underline-offset-2">Prefer a paper application? Download PDF</a>}
+        <p className="text-xs text-muted-foreground">
           Questions? Call <a href="tel:+19088608507" className="underline">(908) 860-8507</a> or email{" "}
           <a href="mailto:funding@my-business-solutions.com" className="underline">funding@my-business-solutions.com</a>.
         </p>

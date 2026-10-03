@@ -49,14 +49,14 @@ export function PhoneLink({ phone, leadId, showIcon = true, className, children 
         }
       }}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline transition-colors",
+        "inline-flex min-h-11 items-center gap-1.5 text-info hover:text-info hover:underline transition-colors",
         className
       )}
       title={`Call ${phone}`}
       aria-label={`Call ${phone}`}
     >
       {children ?? <>
-        {showIcon && <Phone className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true" />}
+        {showIcon && <Phone className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />}
         <span className="font-mono text-sm">{phone}</span>
       </>}
     </a>
@@ -86,13 +86,13 @@ export function EmailLink({ email, leadId, showIcon = true, className }: EmailLi
         setLocation(target.href);
       }}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline transition-colors",
+        "inline-flex min-h-11 items-center gap-1.5 text-info hover:text-info hover:underline transition-colors",
         className
       )}
       title={`Email ${email}`}
       aria-label={`Email ${email}`}
     >
-      {showIcon && <Mail className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true" />}
+      {showIcon && <Mail className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />}
       <span className="break-all">{email}</span>
     </a>
   );

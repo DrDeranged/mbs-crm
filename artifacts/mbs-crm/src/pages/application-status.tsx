@@ -72,10 +72,10 @@ function StatusTimeline({ result }: { result: StatusResult }) {
               <div
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                  isCompleted && "border-green-500 bg-green-500 text-white",
-                  isCurrent && !isDeclined && "border-[#1F4E79] bg-[#1F4E79] text-white",
-                  isCurrent && isDeclined && stage.key === "declined" && "border-red-500 bg-red-500 text-white",
-                  isFuture && "border-slate-300 bg-white text-slate-300",
+                  isCompleted && "border-success/30 bg-chart-1 text-white",
+                  isCurrent && !isDeclined && "border-info bg-solid text-white",
+                  isCurrent && isDeclined && stage.key === "declined" && "border-danger/30 bg-chart-4 text-white",
+                  isFuture && "border-border bg-card text-muted-foreground",
                 )}
               >
                 {isCompleted ? (
@@ -87,7 +87,7 @@ function StatusTimeline({ result }: { result: StatusResult }) {
                 )}
               </div>
               {!isLast && (
-                <div className={cn("w-0.5 flex-1 my-1", isCompleted ? "bg-green-400" : "bg-slate-200")} style={{ minHeight: "2rem" }} />
+                <div className={cn("w-0.5 flex-1 my-1", isCompleted ? "bg-green-400" : "bg-secondary")} style={{ minHeight: "2rem" }} />
               )}
             </div>
 
@@ -96,23 +96,23 @@ function StatusTimeline({ result }: { result: StatusResult }) {
               <p
                 className={cn(
                   "font-semibold text-sm",
-                  isCompleted && "text-green-700",
-                  isCurrent && !isDeclined && "text-[#1F4E79]",
-                  isCurrent && isDeclined && stage.key === "declined" && "text-red-600",
-                  isFuture && "text-slate-400",
+                  isCompleted && "text-success",
+                  isCurrent && !isDeclined && "text-info",
+                  isCurrent && isDeclined && stage.key === "declined" && "text-danger",
+                  isFuture && "text-muted-foreground",
                 )}
               >
                 {stage.label}
                 {isCurrent && !isDeclined && (
-                  <span className="ml-2 inline-flex items-center rounded-full bg-[#1F4E79]/10 px-2 py-0.5 text-xs font-medium text-[#1F4E79]">
+                  <span className="ml-2 inline-flex items-center rounded-full bg-solid/10 px-2 py-0.5 text-xs font-medium text-info">
                     Current
                   </span>
                 )}
               </p>
-              <p className={cn("text-xs mt-0.5", isFuture ? "text-slate-400" : "text-slate-500")}>
+              <p className={cn("text-xs mt-0.5", isFuture ? "text-muted-foreground" : "text-muted-foreground")}>
                 {stage.description}
                 {date && (
-                  <span className="ml-1 text-slate-400">— {formatDate(date)}</span>
+                  <span className="ml-1 text-muted-foreground">— {formatDate(date)}</span>
                 )}
               </p>
             </div>
@@ -156,23 +156,23 @@ export default function ApplicationStatus() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-muted">
       {/* Navy header */}
-      <header className="bg-[#1F4E79] text-white py-5 px-6 shadow-md">
+      <header className="bg-solid text-white py-5 px-6 ">
         <div className="mx-auto max-w-2xl flex items-center gap-3">
           <BrandLogo variant="reverse" imageClassName="h-7 w-auto" />
           <div>
             <h1 className="text-lg font-bold leading-tight">My Business Solutions</h1>
-            <p className="text-xs text-blue-200">Application Status Tracker</p>
+            <p className="text-xs text-info">Application Status Tracker</p>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-10 space-y-8">
         {/* Search card */}
-        <div className="rounded-2xl bg-white shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-1">Track Your Application</h2>
-          <p className="text-sm text-slate-500 mb-5">
+        <div className="rounded-2xl bg-card border border-border p-6">
+          <h2 className="text-xl font-bold text-foreground mb-1">Track Your Application</h2>
+          <p className="text-sm text-muted-foreground mb-5">
             Enter the tracking number from your confirmation email to check your application status.
           </p>
           <form onSubmit={handleLookup} className="flex gap-3">
@@ -188,13 +188,13 @@ export default function ApplicationStatus() {
             <Button
               type="submit"
               disabled={!token.trim() || loading}
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white px-6 shrink-0"
+              className="bg-solid hover:bg-sidebar-accent text-white px-6 shrink-0"
             >
               {loading ? "Looking up…" : "Check Status"}
             </Button>
           </form>
           {error && (
-            <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p className="mt-3 text-sm text-danger bg-danger-bg border border-danger/30 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -202,23 +202,23 @@ export default function ApplicationStatus() {
 
         {/* Result card */}
         {result && (
-          <div className="rounded-2xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+          <div className="rounded-2xl bg-card border border-border overflow-hidden">
             {/* Result header */}
-            <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
+            <div className="bg-muted border-b border-border px-6 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Company</p>
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Company</p>
+                  <h3 className="text-lg font-bold text-foreground">
                     {result.companyName ?? "Your Business"}
                   </h3>
-                  <p className="text-sm text-slate-500 mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     {result.applicationType === "equipment" ? "Equipment Financing" : "Working Capital"} · Submitted {formatDate(result.submittedAt)}
                   </p>
                 </div>
                 {result.repName && (
                   <div className="text-right shrink-0">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Your Rep</p>
-                    <p className="text-sm font-semibold text-slate-800">{result.repName}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Your Rep</p>
+                    <p className="text-sm font-semibold text-foreground">{result.repName}</p>
                   </div>
                 )}
               </div>
@@ -226,27 +226,27 @@ export default function ApplicationStatus() {
 
             {/* Timeline */}
             <div className="px-6 py-6">
-              <h4 className="text-sm font-semibold text-slate-700 mb-5 uppercase tracking-wider">Application Progress</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-5 uppercase tracking-wider">Application Progress</h4>
               <StatusTimeline result={result} />
             </div>
           </div>
         )}
 
         {/* Contact section */}
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5">
-          <h3 className="font-semibold text-slate-800 mb-1">Questions? We're here to help.</h3>
-          <p className="text-sm text-slate-500 mb-4">Contact your rep directly or reach out to our funding team.</p>
+        <div className="rounded-2xl border border-border bg-card px-6 py-5">
+          <h3 className="font-semibold text-foreground mb-1">Questions? We're here to help.</h3>
+          <p className="text-sm text-muted-foreground mb-4">Contact your rep directly or reach out to our funding team.</p>
           <div className="flex flex-wrap gap-4">
             <a
               href="tel:+19088608507"
-              className="flex items-center gap-2 text-sm text-[#1F4E79] hover:underline font-medium"
+              className="flex items-center gap-2 text-sm text-info hover:underline font-medium"
             >
               <Phone className="h-4 w-4" />
               (908) 860-8507
             </a>
             <a
               href="mailto:funding@my-business-solutions.com"
-              className="flex items-center gap-2 text-sm text-[#1F4E79] hover:underline font-medium"
+              className="flex items-center gap-2 text-sm text-info hover:underline font-medium"
             >
               <Mail className="h-4 w-4" />
               funding@my-business-solutions.com
@@ -254,7 +254,7 @@ export default function ApplicationStatus() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} My Business Solutions · Your information is kept secure and confidential.
         </p>
       </main>

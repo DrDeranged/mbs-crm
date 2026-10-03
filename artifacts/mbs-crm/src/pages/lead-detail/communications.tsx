@@ -18,16 +18,16 @@ import { useLeadDetail } from "./context";
 // Email status badge helper
 function EmailStatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    queued: "bg-slate-100 text-slate-600",
-    sent: "bg-blue-50 text-blue-700",
-    delivered: "bg-green-50 text-green-700",
-    opened: "bg-purple-50 text-purple-700",
-    clicked: "bg-indigo-50 text-indigo-700",
-    bounced: "bg-red-50 text-red-700",
-    unsubscribed: "bg-orange-50 text-orange-700",
+    queued: "bg-secondary text-muted-foreground",
+    sent: "bg-info-bg text-info",
+    delivered: "bg-success-bg text-success",
+    opened: "bg-purple-50 text-chart-5",
+    clicked: "bg-info-bg text-info",
+    bounced: "bg-danger-bg text-danger",
+    unsubscribed: "bg-warning-bg text-warning",
   };
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${map[status] ?? "bg-slate-100 text-slate-600"}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${map[status] ?? "bg-secondary text-muted-foreground"}`}>
       {status}
     </span>
   );
@@ -51,23 +51,23 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
   if (isLoading) return <Skeleton className="h-14 w-full" />;
 
   return (
-    <div className="border rounded-lg p-3 bg-slate-50">
+    <div className="border rounded-lg p-3 bg-muted">
       <div className="flex items-center gap-2 mb-2">
-        <Zap className="h-3.5 w-3.5 text-amber-500" />
-        <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Drip Campaign</span>
+        <Zap className="h-3.5 w-3.5 text-warning" />
+        <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Drip Campaign</span>
       </div>
       {enrollment ? (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-slate-700 font-medium">{(enrollment as any).sequence?.name ?? `Seq #${enrollment.sequenceId}`}</span>
+            <span className="text-sm text-foreground font-medium">{(enrollment as any).sequence?.name ?? `Seq #${enrollment.sequenceId}`}</span>
             <Badge variant="outline" className="text-[10px]">Step {(enrollment as any).currentStep + 1} / {(enrollment as any).sequence?.steps ?? "?"}</Badge>
-            <Badge className={`text-[10px] capitalize ${enrollment.status === "active" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+            <Badge className={`text-[10px] capitalize ${enrollment.status === "active" ? "bg-success-bg text-success" : "bg-secondary text-muted-foreground"}`}>
               {enrollment.status}
             </Badge>
           </div>
           {(enrollment as any).nextSendAt && enrollment.status === "active" && (
             <p className="text-xs text-muted-foreground">
-              Next email: <span className="font-medium text-slate-700">{format(new Date((enrollment as any).nextSendAt), "MMM d, h:mm a")}</span>
+              Next email: <span className="font-medium text-foreground">{format(new Date((enrollment as any).nextSendAt), "MMM d, h:mm a")}</span>
               {new Date((enrollment as any).nextSendAt) <= new Date() ? " (due now)" : ""}
             </p>
           )}
@@ -75,7 +75,7 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
             <Button
               size="sm"
               variant="ghost"
-              className="ml-auto h-6 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
+              className="ml-auto h-6 text-xs text-danger hover:text-danger hover:bg-danger-bg px-2"
               disabled={unenroll.isPending}
               onClick={() => unenroll.mutate({ id: leadId }, {
                 onSuccess: () => { invalidate(); toast({ title: "Unenrolled from drip sequence" }); },
@@ -91,7 +91,7 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
           <select
             value={selectedSeq}
             onChange={(e) => setSelectedSeq(e.target.value)}
-            className="text-xs border border-slate-200 rounded px-2 py-1 bg-white flex-1 min-w-0"
+            className="text-xs border border-border rounded px-2 py-1 bg-card flex-1 min-w-0"
           >
             <option value="">Select sequence…</option>
             {(sequences ?? []).filter((s: any) => s.isActive).map((s: any) => (
@@ -100,7 +100,7 @@ function LeadDripStatus({ leadId }: { leadId: number }) {
           </select>
           <Button
             size="sm"
-            className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white px-3"
+            className="h-7 text-xs bg-chart-3 hover:bg-amber-600 text-white px-3"
             disabled={!selectedSeq || enroll.isPending}
             onClick={() => enroll.mutate({ id: leadId, data: { sequenceId: parseInt(selectedSeq) } }, {
               onSuccess: () => { setSelectedSeq(""); invalidate(); toast({ title: "Enrolled in drip sequence" }); },
@@ -121,12 +121,12 @@ function CallNoteBlock({ notes }: { notes: string }) {
   const isLong = notes.length > NOTES_TRUNCATE;
   const shown = !isLong || expanded ? notes : notes.slice(0, NOTES_TRUNCATE) + "…";
   return (
-    <div className="mt-1 text-xs text-slate-600 bg-white/60 rounded px-2 py-1 border border-slate-100 italic space-y-0.5">
+    <div className="mt-1 text-xs text-muted-foreground bg-white/60 rounded px-2 py-1 border border-border italic space-y-0.5">
       <p className="whitespace-pre-wrap break-words">{shown}</p>
       {isLong && (
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-[#1F4E79] font-medium not-italic hover:underline text-[11px]"
+          className="text-info font-medium not-italic hover:underline text-[11px]"
         >
           {expanded ? "Show less" : "Show more"}
         </button>
@@ -266,9 +266,9 @@ export function LeadCommunications() {
     <div className="space-y-4 mt-4">
       {/* Call button */}
       {leadPhone && (
-        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-          <Phone className="h-4 w-4 text-blue-700" />
-          <span className="text-sm font-medium text-blue-900 font-mono">{leadPhone}</span>
+        <div className="flex items-center gap-3 p-3 bg-info-bg rounded-lg border border-info/30">
+          <Phone className="h-4 w-4 text-info" />
+          <span className="text-sm font-medium text-info font-mono">{leadPhone}</span>
           <PhoneLink
             phone={leadPhone}
             leadId={leadId}
@@ -293,12 +293,12 @@ export function LeadCommunications() {
             return (
               <div
                 key={c.id}
-                className={`flex gap-3 rounded-xl p-3 border text-sm ${isOutbound ? "bg-blue-50 border-blue-100" : "bg-slate-50 border-slate-200"}`}
+                className={`flex gap-3 rounded-xl p-3 border text-sm ${isOutbound ? "bg-info-bg border-info/30" : "bg-muted border-border"}`}
               >
                 <div className="flex-shrink-0 mt-0.5">
                   {isOutbound
-                    ? <ArrowUpRight className="h-4 w-4 text-blue-600" />
-                    : <ArrowDownLeft className="h-4 w-4 text-slate-600" />
+                    ? <ArrowUpRight className="h-4 w-4 text-info" />
+                    : <ArrowDownLeft className="h-4 w-4 text-muted-foreground" />
                   }
                 </div>
                 <div className="flex-1 min-w-0">
@@ -313,12 +313,12 @@ export function LeadCommunications() {
                       <Badge
                         className={`text-[10px] h-4 px-1.5 capitalize ${
                           (c as any).callOutcome === "connected"
-                            ? "bg-green-100 text-green-800 border-green-200"
+                            ? "bg-success-bg text-success border-success/30"
                             : (c as any).callOutcome === "voicemail"
-                            ? "bg-blue-100 text-blue-800 border-blue-200"
+                            ? "bg-info-bg text-info border-info/30"
                             : (c as any).callOutcome === "no_answer" || (c as any).callOutcome === "busy"
-                            ? "bg-amber-100 text-amber-800 border-amber-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
+                            ? "bg-warning-bg text-warning border-warning/30"
+                            : "bg-secondary text-foreground border-border"
                         }`}
                         variant="outline"
                       >
@@ -327,7 +327,7 @@ export function LeadCommunications() {
                     )}
                     <span className="text-xs text-muted-foreground ml-auto">{format(new Date(c.createdAt), "MMM d, h:mm a")}</span>
                   </div>
-                  {c.body && <p className="mt-1 text-sm text-slate-700 break-words">{c.body}</p>}
+                  {c.body && <p className="mt-1 text-sm text-foreground break-words">{c.body}</p>}
                   {isCall && (c as any).callNotes && (
                     <CallNoteBlock notes={(c as any).callNotes} />
                   )}
@@ -344,13 +344,13 @@ export function LeadCommunications() {
       {emails && emails.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <MailCheck className="h-3.5 w-3.5 text-purple-500" />
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Emails</span>
+            <MailCheck className="h-3.5 w-3.5 text-chart-5" />
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Emails</span>
           </div>
           <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
             {emails.map((e: any) => (
               <div key={e.id} className="flex gap-3 rounded-xl p-3 border bg-purple-50 border-purple-100 text-sm">
-                <MailOpen className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                <MailOpen className="h-4 w-4 text-chart-5 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium truncate max-w-[180px]">{e.subject}</span>
@@ -370,13 +370,13 @@ export function LeadCommunications() {
         <div className="flex gap-1 mb-3">
           <button
             onClick={() => setActiveCompose("sms")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "sms" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "sms" ? "bg-gradient-to-b from-primary from-primary text-white" : "bg-secondary text-muted-foreground hover:bg-secondary"}`}
           >
             <MessageSquare className="h-3 w-3" /> SMS
           </button>
           <button
             onClick={() => setActiveCompose("email")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "email" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"} ${hasNoEmail ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeCompose === "email" ? "bg-gradient-to-b from-primary from-primary text-white" : "bg-secondary text-muted-foreground hover:bg-secondary"} ${hasNoEmail ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={hasNoEmail}
             title={hasNoEmail ? "Lead has no email address" : undefined}
           >
@@ -399,7 +399,7 @@ export function LeadCommunications() {
                     value={draftInstruction}
                     onChange={(e) => setDraftInstruction(e.target.value)}
                     placeholder="Instruction (optional)…"
-                    className="min-h-[60px] resize-none border-white/20 bg-white/95 text-sm text-[#0E2A47] placeholder:text-slate-500"
+                    className="min-h-[60px] resize-none border-white/20 bg-card text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <Button
                     size="sm"
@@ -434,13 +434,13 @@ export function LeadCommunications() {
             <div className="flex gap-1">
               <button
                 onClick={() => { setEmailMode("template"); setEmailPreview(null); setShowPreview(false); }}
-                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "template" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "template" ? "bg-gradient-to-b from-primary from-primary text-white" : "bg-secondary text-muted-foreground hover:bg-secondary"}`}
               >
                 From Template
               </button>
               <button
                 onClick={() => { setEmailMode("freeform"); setEmailPreview(null); setShowPreview(false); }}
-                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "freeform" ? "bg-gradient-to-b from-[#1DB674] to-[#149258] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${emailMode === "freeform" ? "bg-gradient-to-b from-primary from-primary text-white" : "bg-secondary text-muted-foreground hover:bg-secondary"}`}
               >
                 Custom
               </button>
@@ -452,7 +452,7 @@ export function LeadCommunications() {
                   <select
                     value={emailTemplateId}
                     onChange={(e) => { setEmailTemplateId(e.target.value); setEmailPreview(null); setShowPreview(false); }}
-                    className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
+                    className="flex-1 text-sm border border-border rounded-md px-3 py-2 bg-card"
                   >
                     <option value="">Select an email template…</option>
                     {(templates ?? []).filter((t: any) => t.isActive).map((t: any) => (
@@ -472,13 +472,13 @@ export function LeadCommunications() {
                   )}
                 </div>
                 {showPreview && emailPreview && (
-                  <div className="border rounded-md p-3 bg-slate-50 text-xs space-y-1">
-                    <div className="font-semibold text-slate-700">Subject: {emailPreview.subject}</div>
+                  <div className="border rounded-md p-3 bg-muted text-xs space-y-1">
+                    <div className="font-semibold text-foreground">Subject: {emailPreview.subject}</div>
                     <SafeEmailHtmlPreview
                       html={emailPreview.bodyHtml}
-                      className="text-slate-600 prose prose-sm max-h-[120px] overflow-y-auto"
+                      className="text-muted-foreground prose prose-sm max-h-[120px] overflow-y-auto"
                     />
-                    <button onClick={() => setShowPreview(false)} className="text-purple-600 hover:underline text-[10px] mt-1">Hide preview</button>
+                    <button onClick={() => setShowPreview(false)} className="text-chart-5 hover:underline text-[10px] mt-1">Hide preview</button>
                   </div>
                 )}
                 <Button
@@ -504,7 +504,7 @@ export function LeadCommunications() {
                         value={draftInstruction}
                         onChange={(e) => setDraftInstruction(e.target.value)}
                         placeholder="Instruction (optional)…"
-                        className="min-h-[60px] resize-none border-white/20 bg-white/95 text-sm text-[#0E2A47] placeholder:text-slate-500"
+                        className="min-h-[60px] resize-none border-white/20 bg-card text-sm text-foreground placeholder:text-muted-foreground"
                       />
                       <Button
                         size="sm"
@@ -524,7 +524,7 @@ export function LeadCommunications() {
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="Subject…"
-                  className="w-full text-sm border border-slate-200 rounded-md px-3 py-2 bg-white"
+                  className="w-full text-sm border border-border rounded-md px-3 py-2 bg-card"
                 />
                 <RichTextEditor
                   value={emailBodyHtml}

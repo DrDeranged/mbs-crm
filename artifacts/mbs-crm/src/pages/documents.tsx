@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { DocumentsSkeleton } from "@/components/page-skeletons";
 import { useGetMe, useListEmailTemplates, useListLeads } from "@workspace/api-client-react";
 import {
   Archive,
@@ -160,6 +161,7 @@ export default function Documents() {
   const admin = me?.role === "admin";
 
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [initialTemplatesLoaded, setInitialTemplatesLoaded] = useState(false);
   const [templatesError, setTemplatesError] = useState<LoadError | null>(null);
   const [reps, setReps] = useState<{ id: number; name: string | null; email: string }[]>([]);
   const [repsError, setRepsError] = useState<LoadError | null>(null);
@@ -218,6 +220,8 @@ export default function Documents() {
     } catch {
       setTemplates([]);
       setTemplatesError({ status: "network", detail: "The collateral library could not be reached." });
+    } finally {
+      setInitialTemplatesLoaded(true);
     }
   };
 
@@ -618,7 +622,7 @@ export default function Documents() {
             <h2 className="font-semibold">Collateral library</h2>
             <p className="text-sm text-muted-foreground">Choose a document to prepare your personalized version.</p>
           </div>
-          {!templatesError && templates.length === 0 ? (
+          {!initialTemplatesLoaded ? <DocumentsSkeleton /> : !templatesError && templates.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
                 No documents are available yet.
@@ -630,7 +634,7 @@ export default function Documents() {
                 <Card
                   key={template.id}
                   className={cn(
-                    "cursor-pointer overflow-hidden transition hover:border-primary/60 hover:shadow-sm",
+                    "cursor-pointer overflow-hidden transition hover:border-primary/60 ",
                     selected?.id === template.id && "border-primary ring-2 ring-primary/15",
                   )}
                   onClick={() => setSelected(template)}
@@ -698,7 +702,7 @@ export default function Documents() {
                 </div>
               ) : rendering ? (
                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-3">
-                  <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                  <Loader2 className="h-7 w-7 animate-spin text-success" />
                   <p className="text-sm text-muted-foreground">Preparing your personalized document…</p>
                 </div>
               ) : renderError ? (

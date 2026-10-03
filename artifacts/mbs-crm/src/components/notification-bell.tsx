@@ -96,15 +96,15 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   };
 
   const Content = (
-    <div className="flex flex-col h-full max-h-[70vh] text-white">
+    <div className="flex flex-col h-full max-h-[70vh] text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <span className="text-sm font-semibold">Notifications</span>
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
             disabled={markAllRead.isPending}
-            className="flex items-center gap-1 text-xs text-white/60 hover:text-white transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <CheckCheck size={13} />
             Mark all read
@@ -115,20 +115,20 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       {/* List */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white/55 gap-2">
-            <Loader2 size={24} className="animate-spin text-[#17A567]" />
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+            <Loader2 size={24} className="animate-spin text-success" />
             <span className="text-sm">Loading notifications...</span>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white/55 gap-2">
-            <AlertCircle size={28} className="text-red-400" />
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+            <AlertCircle size={28} className="text-danger" />
             <span className="text-sm text-center px-4" data-testid="status-notifications-error">
               {getNotificationLoadError(listError, currentUser?.role === "admin")}
             </span>
             <Button variant="ghost" size="sm" onClick={() => refetchList()} className="mt-2 text-xs">Retry</Button>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white/55 gap-2">
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
             <Bell size={28} className="opacity-30" />
             <span className="text-sm">You're all caught up.</span>
           </div>
@@ -140,27 +140,27 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
                 key={n.id}
                 onClick={() => handleClickNotification(n)}
                 className={cn(
-                  "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/8 border-b border-white/8 last:border-0",
-                  !n.isRead && "bg-white/6"
+                  "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent border-b border-border last:border-0",
+                  !n.isRead && "bg-muted"
                 )}
               >
-                <div className={cn("mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full", !n.isRead ? "bg-[#17A567]/20 text-[#65D5A2]" : "bg-white/10 text-white/55")}>
+                <div className={cn("mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full", !n.isRead ? "bg-primary/20 text-success" : "bg-secondary text-muted-foreground")}>
                   <Icon size={13} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-1">
-                    <p className={cn("text-xs leading-snug truncate", !n.isRead ? "font-semibold text-white" : "font-medium text-white/80")}>
+                    <p className={cn("text-xs leading-snug truncate", !n.isRead ? "font-semibold text-foreground" : "font-medium text-foreground")}>
                       {n.title}
                     </p>
-                    {!n.isRead && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-[#17A567] mt-1" />}
+                    {!n.isRead && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-primary mt-1" />}
                   </div>
-                  <p className="text-xs text-white/60 mt-0.5 line-clamp-2">{n.body}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
                   {(n.entityLabel || n.leadName) && (
-                    <p className="mt-1 truncate text-[11px] font-medium text-[#8FD9BB]">
+                    <p className="mt-1 truncate text-[11px] font-medium text-success">
                       {n.entityLabel || n.leadName}
                     </p>
                   )}
-                  <p className="text-[10px] text-white/40 mt-1">{timeAgo(n.createdAt)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
               </button>
             );
@@ -180,13 +180,13 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
         "relative",
         onDark
           ? "text-sidebar-foreground/70 hover:bg-white/10 hover:text-white"
-          : "text-[#0E2A47] hover:bg-[#17A567]/10 hover:text-[#149258]"
+          : "text-foreground hover:bg-primary/10 hover:text-success"
       )}
       aria-label="Notifications"
     >
       <Bell size={18} />
       {unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#17A567] px-1 text-[10px] font-bold text-white leading-none shadow-[0_0_0_2px_#0E2A47] animate-pulse motion-reduce:animate-none">
+        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground leading-none shadow-[0_0_0_2px_hsl(var(--sidebar))] animate-pulse motion-reduce:animate-none">
           {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}
@@ -198,7 +198,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       <>
         {TriggerButton}
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="bottom" overlayClassName="z-[var(--z-notification-backdrop)]" showClose={false} className="p-0 bg-[#0E2A47]/95 border-t border-white/15 backdrop-blur-xl z-[var(--z-popover)] max-h-[70vh]">
+          <SheetContent side="bottom" overlayClassName="z-[var(--z-notification-backdrop)]" showClose={false} className="p-0 z-[var(--z-popover)] max-h-[70vh]">
             <SheetHeader className="sr-only">
               <SheetTitle>Notifications</SheetTitle>
             </SheetHeader>
@@ -217,7 +217,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="z-[var(--z-popover)] overflow-hidden rounded-[14px] border border-white/15 bg-[#0E2A47]/95 p-0 shadow-2xl backdrop-blur-xl w-[380px]"
+        className="z-[var(--z-popover)] overflow-hidden rounded-[var(--radius)] p-0 w-[380px]"
       >
         {Content}
       </PopoverContent>

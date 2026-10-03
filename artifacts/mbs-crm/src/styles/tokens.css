@@ -1,0 +1,156 @@
+/* Authoritative web tokens. Brand green sampled from public/brand/mbs-logo-green-slash.png slash: rgb(23,179,106) = #17B36A. Navy #0E2A47. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-wght-normal.woff2") format("woff2-variations"), url("/fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: light;
+  --brand-navy: 210.5263157895 67.0588235294% 16.6666666667%;
+  --brand-green: 151.923076923 77.227722772% 39.607843137%;
+
+  --background: 210 38% 97%;
+  --foreground: var(--brand-navy);
+  --surface: 0 0% 100%;
+  --surface-header: 0 0% 100%;
+  --card: 0 0% 100%;
+  --card-foreground: 209 67% 17%;
+  --card-border: 210 24% 87%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 209 67% 17%;
+  --popover-border: 210 24% 87%;
+
+  /* primary action = logo green with navy text (AA) */
+  --primary: var(--brand-green);
+  --primary-foreground: 209 67% 12%;
+  --primary-border: #149258;
+  --secondary: 210 38% 94%;
+  --secondary-foreground: 209 67% 17%;
+  --secondary-border: #D3DDE8;
+  --muted: 210 38% 95%;
+  --muted-foreground: 211 24% 34%;
+  --muted-border: #D3DDE8;
+  --accent: 210 38% 93%;
+  --accent-foreground: 209 67% 17%;
+  --accent-border: #D3DDE8;
+  --destructive: 2 68% 40%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: 2 68% 32%;
+  --border: 210 24% 87%;
+  --input: 210 24% 50%;
+  --ring: 152 77% 30%;
+
+  --success: 152 77% 26%;
+  --success-bg: 152 60% 92%;
+  --warning: 32 90% 28%;
+  --warning-bg: 38 92% 90%;
+  --danger: 2 68% 40%;
+  --danger-bg: 2 80% 94%;
+  --info: 209 67% 30%;
+  --info-bg: 209 60% 93%;
+
+  --solid: var(--brand-navy);
+  --solid-foreground: 0 0% 100%;
+  --chart-1: var(--success);
+  --chart-2: 209 67% 32%;
+  --chart-3: 36 90% 40%;
+  --chart-4: 2 68% 50%;
+  --chart-5: 262 30% 52%;
+
+  --sidebar: var(--brand-navy);
+  --sidebar-foreground: 210 46% 95%;
+  --sidebar-border: 209 54% 24%;
+  --sidebar-primary: var(--brand-green);
+  --sidebar-primary-foreground: 209 67% 12%;
+  --sidebar-accent: 209 55% 26%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 152 77% 55%;
+  --sidebar-glass-bg: var(--brand-navy) / 0.94;
+  --sidebar-glass-solid: var(--sidebar);
+  --sidebar-glass-border: 210 40% 90% / 0.2;
+
+  /* glass (floating only) */
+  --glass-bg: 0 0% 100% / 0.90;
+  --glass-solid: 0 0% 100%;
+  --glass-border: 209 40% 17% / 0.14;
+  --glass-blur: 16px;
+  --elev-float: 0 12px 32px -8px hsl(209 67% 17% / 0.22), 0 2px 6px hsl(209 67% 17% / 0.08);
+
+  --radius: 0.75rem;
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-6: 1.5rem; --space-8: 2rem;
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --app-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --type-xs: 0.75rem; --type-sm: 0.875rem; --type-base: 1rem; --type-lg: 1.125rem;
+  --type-xl: 1.25rem; --type-2xl: 1.5rem; --type-3xl: 1.875rem; --type-4xl: 2.25rem; --type-5xl: 3rem;
+  --app-font-heading: var(--app-font-sans);
+  --app-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Functional signature paper: preserve the existing exported navy ink. */
+  --signature-paper: 0 0% 100%;
+  --signature-ink: 208.6666666667 59.2105263158% 29.8039215686%;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 209 60% 8%;
+  --foreground: 210 30% 94%;
+  --surface: 209 52% 11%;
+  --surface-header: 209 52% 11%;
+  --card: 209 52% 11%;
+  --card-foreground: 210 30% 94%;
+  --card-border: 209 40% 20%;
+  --popover: 209 52% 13%;
+  --popover-foreground: 210 30% 94%;
+  --popover-border: 209 40% 24%;
+
+  --primary: var(--brand-green);
+  --primary-foreground: 209 67% 10%;
+  --primary-border: #17B36A;
+  --secondary: 209 40% 18%;
+  --secondary-foreground: 210 30% 94%;
+  --secondary-border: #254563;
+  --muted: 209 40% 16%;
+  --muted-foreground: 210 20% 72%;
+  --muted-border: #254563;
+  --accent: 209 40% 20%;
+  --accent-foreground: 210 30% 94%;
+  --accent-border: #254563;
+  --destructive: 2 70% 62%;
+  --destructive-foreground: 209 67% 5%;
+  --destructive-border: 2 70% 52%;
+  --border: 209 40% 20%;
+  --input: 209 35% 58%;
+  --ring: 152 70% 50%;
+
+  --success: 152 62% 62%;
+  --success-bg: 152 50% 16%;
+  --warning: 38 90% 64%;
+  --warning-bg: 36 60% 16%;
+  --danger: 2 85% 76%;
+  --danger-bg: 2 45% 18%;
+  --info: 209 80% 76%;
+  --info-bg: 209 50% 20%;
+
+  --solid: var(--brand-navy);
+  --solid-foreground: 0 0% 100%;
+  --chart-1: 152 70% 50%;
+  --chart-2: 209 75% 68%;
+  --chart-3: 38 90% 60%;
+  --chart-4: 2 80% 68%;
+  --chart-5: 262 55% 76%;
+
+  --sidebar: 209 62% 6%;
+  --sidebar-border: 209 45% 16%;
+  --sidebar-accent: 209 45% 18%;
+  --sidebar-glass-bg: 209 62% 6% / 0.94;
+
+  --glass-bg: 209 52% 14% / 0.88;
+  --glass-solid: 209 52% 13%;
+  --glass-border: 210 40% 90% / 0.16;
+  --elev-float: 0 14px 36px -8px hsl(209 80% 2% / 0.7), 0 2px 6px hsl(209 80% 2% / 0.4);
+}

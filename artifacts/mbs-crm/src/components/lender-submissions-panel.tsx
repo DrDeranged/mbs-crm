@@ -23,7 +23,7 @@ import { listData } from "@/lib/list-response";
 import { getQueryErrorStatus } from "@/lib/query-error";
 
 type Props = { leadId: number; dealId?: number; onStageMove?: (stage: "approved" | "declined") => void };
-const colors: Record<string, string> = { submitted: "bg-blue-50 text-blue-700", approved: "bg-green-50 text-green-700", declined: "bg-red-50 text-red-700", funded: "bg-emerald-50 text-emerald-700", withdrawn: "bg-slate-50 text-slate-600" };
+const colors: Record<string, string> = { submitted: "bg-info-bg text-info", approved: "bg-success-bg text-success", declined: "bg-danger-bg text-danger", funded: "bg-success-bg text-success", withdrawn: "bg-muted text-muted-foreground" };
 
 export function LenderSubmissionsPanel({ leadId, dealId, onStageMove }: Props) {
   const queryClient = useQueryClient();
@@ -103,7 +103,7 @@ export function LenderSubmissionsPanel({ leadId, dealId, onStageMove }: Props) {
     link.click();
     URL.revokeObjectURL(url);
   };
-  return <section className="space-y-3 rounded-lg border bg-white p-4" data-testid="lender-submissions-panel">
+  return <section className="space-y-3 rounded-lg border bg-card p-4" data-testid="lender-submissions-panel">
     <div className="flex items-center justify-between"><h3 className="font-semibold">Partner submissions</h3><Button size="sm" onClick={() => setOpen(true)}>Log submission</Button></div>
     {(activeQuery.isError || submissionList.malformed) && <InlineListError title="Couldn’t load lender submissions" status={activeQuery.isError ? getQueryErrorStatus(activeQuery.error) : 200} detail={submissionList.malformed ? "The server returned an unexpected submissions response." : undefined} onRetry={() => void activeQuery.refetch()} />}
     <div className="text-sm font-medium">{summary.text}</div>

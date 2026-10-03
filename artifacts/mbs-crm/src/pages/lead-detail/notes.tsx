@@ -35,7 +35,7 @@ export function LeadNotes() {
 
   return (
     <div className="space-y-6 mt-4">
-      <form onSubmit={handleAddNote} className="space-y-3 bg-white p-4 rounded-lg border shadow-sm">
+      <form onSubmit={handleAddNote} className="space-y-3 bg-card p-4 rounded-lg border ">
         <Textarea 
           ref={noteInputRef}
           placeholder="Add a note about this deal..." 
@@ -57,7 +57,7 @@ export function LeadNotes() {
           <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No notes yet.</div>
         ) : (
           notes?.map((note) => (
-            <div key={note.id} className="bg-white p-4 rounded-lg border shadow-sm space-y-2 min-w-0">
+            <div key={note.id} className="bg-card p-4 rounded-lg border space-y-2 min-w-0">
               <div className="flex flex-wrap justify-between items-start gap-2">
                 <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-[250px]" title={getUserDisplayName(note.author, "User")}>{getUserDisplayName(note.author, "User")}</span>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(note.createdAt), 'MMM d, yyyy h:mm a')}</span>

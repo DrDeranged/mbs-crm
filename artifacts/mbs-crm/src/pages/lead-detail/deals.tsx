@@ -51,7 +51,7 @@ export function ConvertToDealDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="shadow-sm">Convert to Deal</Button>
+        <Button variant="secondary" className="">Convert to Deal</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -89,7 +89,7 @@ export function LeadDeals() {
   const deals = response?.deals || [];
 
   return (
-    <Card className="shadow-sm mt-6">
+    <Card className="mt-6">
       <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Related Deals</CardTitle>
       </CardHeader>
@@ -100,10 +100,10 @@ export function LeadDeals() {
           <div className="text-center text-sm text-muted-foreground py-4">No deals linked to this lead.</div>
         ) : (
           deals.map(deal => (
-            <Link key={deal.id} href={`/deals/${deal.id}`} className="block border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+            <Link key={deal.id} href={`/deals/${deal.id}`} className="block border rounded-lg p-3 hover:bg-muted transition-colors">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-[#0E2A47]">{deal.dealName}</span>
-                <span className="text-sm text-[#149258] font-semibold">{deal.amount ? `${deal.amount.toLocaleString()}` : "—"}</span>
+                <span className="font-medium text-foreground">{deal.dealName}</span>
+                <span className="text-sm text-success font-semibold">{deal.amount ? `${deal.amount.toLocaleString()}` : "—"}</span>
               </div>
               <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
                 <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0">{deal.stage.replace(/_/g, ' ')}</Badge>

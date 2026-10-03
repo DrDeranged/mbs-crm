@@ -1,11 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/tokens.css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --spacing: var(--space-1);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + var(--space-1));
+  --text-xs: var(--type-xs);
+  --text-sm: var(--type-sm);
+  --text-base: var(--type-base);
+  --text-lg: var(--type-lg);
+  --text-xl: var(--type-xl);
+  --text-2xl: var(--type-2xl);
+  --text-3xl: var(--type-3xl);
+  --text-4xl: var(--type-4xl);
+  --text-5xl: var(--type-5xl);
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-border: hsl(var(--border));
@@ -50,6 +62,26 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: var(--app-font-sans);
+  --color-success: hsl(var(--success));
+  --color-success-bg: hsl(var(--success-bg));
+  --color-warning: hsl(var(--warning));
+  --color-warning-bg: hsl(var(--warning-bg));
+  --color-danger: hsl(var(--danger));
+  --color-danger-bg: hsl(var(--danger-bg));
+  --color-info: hsl(var(--info));
+  --color-info-bg: hsl(var(--info-bg));
+  --color-brand-navy: hsl(var(--brand-navy));
+  --color-brand-green: hsl(var(--brand-green));
+  --color-solid: hsl(var(--solid));
+  --color-solid-foreground: hsl(var(--solid-foreground));
+  --color-surface: hsl(var(--surface));
+  --color-signature-paper: hsl(var(--signature-paper));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
   --font-heading: var(--app-font-heading);
   --font-mono: var(--app-font-mono);
 
@@ -73,104 +105,6 @@
   --z-toast: 60;
 }
 
-:root {
-  --background: 210 38% 97%;
-  --foreground: 209 67% 17%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 209 67% 17%;
-  --card-border: 210 24% 89%;
-
-  --popover: 209 67% 17%;
-  --popover-foreground: 0 0% 100%;
-  --popover-border: 210 24% 89%;
-
-  --primary: 154 76% 37%;
-  --primary-foreground: 0 0% 100%;
-  --primary-border: #149258;
-
-  --secondary: 210 38% 97%;
-  --secondary-foreground: 209 67% 17%;
-  --secondary-border: #DCE4EC;
-
-  --muted: 210 38% 97%;
-  --muted-foreground: 211 21% 35%;
-  --muted-border: #DCE4EC;
-
-  --accent: 210 38% 97%;
-  --accent-foreground: 209 67% 17%;
-  --accent-border: #DCE4EC;
-
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --destructive-border: 0 84.2% 50%;
-
-  --border: 210 24% 89%;
-  --input: 210 24% 89%;
-  --ring: 154 76% 37%;
-
-  --sidebar: 209 67% 17%;
-  --sidebar-foreground: 210 46% 95%;
-  --sidebar-border: 209 54% 22%;
-  --sidebar-primary: 154 76% 37%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 213 59% 30%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 154 76% 37%;
-
-  --radius: 0.875rem;
-
-  --app-font-sans: 'Inter', system-ui, sans-serif;
-  --app-font-heading: 'Sora', 'Inter', system-ui, sans-serif;
-  --app-font-mono: 'JetBrains Mono', monospace;
-}
-
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 214.3 31.8% 20%;
-
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 214.3 31.8% 20%;
-
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --primary-border: 217.2 91.2% 50%;
-
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --secondary-border: 214.3 31.8% 20%;
-
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --muted-border: 214.3 31.8% 20%;
-
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --accent-border: 214.3 31.8% 20%;
-
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --destructive-border: 0 62.8% 20%;
-
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
-
-  --sidebar: 222.2 84% 4.9%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 214.3 31.8% 20%;
-  --sidebar-primary: 217.2 91.2% 59.8%;
-  --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-  --sidebar-accent: 214.3 31.8% 20%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 224.3 76.3% 48%;
-}
-
 @layer base {
   * {
     @apply border-border;
@@ -186,37 +120,85 @@
   }
 
   :focus-visible {
-    outline: 2px solid #17A567;
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
+/* Chart text must not inherit a series color or Recharts' fixed gray. */
+.recharts-text, .recharts-legend-item-text, .recharts-cartesian-axis-tick-value {
+  fill: hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground)) !important;
 }
+.recharts-default-tooltip {
+  background: hsl(var(--glass-solid)) !important;
+  border: 1px solid hsl(var(--glass-border)) !important;
+  border-radius: var(--radius);
+  color: hsl(var(--popover-foreground)) !important;
+  box-shadow: var(--elev-float);
+}
+.recharts-tooltip-label, .recharts-tooltip-item { color: hsl(var(--popover-foreground)) !important; }
 
-/* Clerk social button — un-layered rules beat @layer clerk and @layer utilities */
+.bg-sidebar {
+  --ring: var(--sidebar-ring);
+  --glass-bg: var(--sidebar-glass-bg);
+  --glass-solid: var(--sidebar-glass-solid);
+  --glass-border: var(--sidebar-glass-border);
+}
+.glass-surface.bg-sidebar { color: hsl(var(--sidebar-foreground)); }
+
+
+/* Clerk social button */
 .cl-socialButtonsBlockButton {
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background-color: hsl(var(--card)) !important;
   border-radius: 9999px !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease !important;
 }
-.cl-socialButtonsBlockButton:hover {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-}
+.cl-socialButtonsBlockButton:hover { background-color: hsl(var(--accent)) !important; }
 .cl-socialButtonsBlockButtonText,
 .cl-socialButtonsBlockButtonText * {
-  color: #ffffff !important;
+  color: hsl(var(--foreground)) !important;
   font-weight: 500 !important;
   font-size: 0.875rem !important;
+}
+
+/* Auth chrome uses the same opaque surfaces and contrast pairs as the CRM.
+   Explicit styles also cover vendor gradients and opacity-derived colors. */
+.cl-formButtonPrimary {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  text-shadow: none !important;
+}
+.cl-rootBox button[data-color="danger"] {
+  background: hsl(var(--destructive)) !important;
+  color: hsl(var(--destructive-foreground)) !important;
+}
+.cl-formFieldInput {
+  border-color: hsl(var(--input)) !important;
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.cl-formFieldInput::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 1;
+}
+.cl-dividerText, .cl-formFieldHintText, .cl-headerSubtitle,
+.cl-footerActionText, .cl-footer :is(p, span) {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 1;
+}
+.cl-formFieldErrorText, .cl-alertText { color: hsl(var(--danger)) !important; opacity: 1; }
+.cl-signIn-root :is(.cl-card, .cl-cardBox),
+.cl-signUp-root :is(.cl-card, .cl-cardBox) { box-shadow: none !important; }
+.cl-userButtonPopoverActionButtonText, .cl-userButtonPopoverActionButtonIcon {
+  color: hsl(var(--foreground)) !important;
+  opacity: 1;
+}
+@media (max-width: 768px) {
+  .cl-card { padding-inline: 1.25rem; }
+  .cl-otpCodeFieldInputs { gap: 4px; }
+  .cl-otpCodeFieldInput { min-width: 44px; min-height: 44px; }
 }
 
 /* ── Tiptap / ProseMirror editor ──────────────────────────────── */
@@ -240,7 +222,7 @@
   margin: 0;
 }
 .ProseMirror a {
-  color: #2563eb;
+  color: hsl(var(--info));
   text-decoration: underline;
   cursor: pointer;
 }
@@ -248,3 +230,117 @@
 .ProseMirror h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
 .ProseMirror h3 { font-size: 1.1rem;  font-weight: 600; line-height: 1.35; }
 .ProseMirror p { margin: 0; }
+
+/* Tabular numerals everywhere, incl. tables */
+table, th, td, input, [data-numeric] { font-variant-numeric: tabular-nums; }
+
+/* Floating glass: dialogs, sheets, dropdowns, popovers, toasts, command switcher */
+.glass-surface, .cl-userButtonPopoverCard, .cl-modalContent {
+  background-color: hsl(var(--glass-solid));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--glass-border));
+  box-shadow: var(--elev-float);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-surface, .cl-userButtonPopoverCard, .cl-modalContent {
+    background-color: hsl(var(--glass-bg));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  }
+  /* mobile: glass only on dialog / sheet / toast */
+  @media (max-width: 768px) {
+    .glass-surface:not([role="dialog"]):not([data-sonner-toast]):not([data-radix-toast-announce-exclude]):not(.glass-mobile),
+    .cl-userButtonPopoverCard {
+      background-color: hsl(var(--glass-solid));
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-surface, .glass-surface[role="dialog"], .cl-userButtonPopoverCard, .cl-modalContent {
+    background-color: hsl(var(--glass-solid)) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* Headers: glass only once scrolled, desktop only; never on mobile */
+@media (min-width: 769px) {
+[data-scrolled="true"].glass-header, [data-scrolled="true"][data-glass-header] {
+  background-color: hsl(var(--glass-solid));
+  border-bottom-color: hsl(var(--glass-border));
+}
+}
+@media (min-width: 769px) {
+@supports (backdrop-filter: blur(1px)) {
+  [data-scrolled="true"].glass-header, [data-scrolled="true"][data-glass-header] {
+    background-color: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  }
+}
+}
+@media (prefers-reduced-transparency: reduce) {
+  [data-scrolled="true"].glass-header, [data-scrolled="true"][data-glass-header] {
+    background-color: hsl(var(--glass-solid)) !important; backdrop-filter: none !important;
+  }
+}
+
+/* Skeleton shimmer */
+.count-up-visual::before { content: attr(data-value); }
+.skeleton-shimmer { position: relative; overflow: hidden; }
+.skeleton-shimmer::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+  transform: translateX(-100%); animation: skeleton-shimmer 1.4s var(--ease) infinite;
+}
+@keyframes skeleton-shimmer { to { transform: translateX(100%); } }
+
+/* Interaction transitions 150-200ms */
+button, [role="button"], a, input, select, textarea { transition-duration: var(--motion-fast); }
+
+/* Mobile targets use real boxes and preserve the existing DOM and tab order. */
+@media (max-width: 768px), (pointer: coarse) {
+  .record-detail-tabs { width: 100%; flex-wrap: wrap; }
+  a[href]:not([class~="flex"]):not([class~="inline-flex"]):not([class~="block"]) {
+    display: inline-block;
+    padding-block: 12px;
+  }
+  button, [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="combobox"], summary, select,
+  input:not([type="hidden"]), textarea, a[href], .ProseMirror-menubar button {
+    min-height: 44px;
+  }
+  button, [role="button"], [role="tab"], [role="menuitem"], [role="combobox"], summary,
+  input[type="checkbox"], input[type="radio"], [role="checkbox"], [role="radio"], [role="switch"], a[href] {
+    min-width: 44px;
+  }
+  /* Checkbox / radio / switch: actual 44x44 box; the compact glyph is drawn inside via background-clip padding. */
+  button[role="checkbox"], button[role="radio"], button[role="switch"] {
+    height: 44px; width: 44px; padding: 0; border: 10px solid transparent; background-clip: padding-box; box-shadow: inset 0 0 0 1px hsl(var(--ring)); box-sizing: border-box;
+  }
+  button[role="switch"] { width: 56px; }
+  button[role="checkbox"] > *, button[role="radio"] > * { margin: auto; }
+  input[type="checkbox"], input[type="radio"] {
+    width: 44px; height: 44px; box-sizing: border-box; padding: 0; border: 10px solid transparent; background-clip: padding-box; box-shadow: inset 0 0 0 1px hsl(var(--ring));
+  }
+  /* inline links: padded box so the real element is the target */
+  p a[href], li a[href], td a[href], .prose a[href], .ProseMirror a { display: inline-block; padding-block: 12px; }
+}
+
+/* Reduced motion: disable all CSS animation/transition/shimmer */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton-shimmer::after { display: none; }
+  .count-up-visual::before { content: attr(data-final); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glass-surface[data-state], .glass-surface {
+    animation-duration: var(--motion-base) !important;
+    transition-duration: var(--motion-base) !important;
+  }
+}

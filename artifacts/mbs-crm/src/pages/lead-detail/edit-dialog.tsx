@@ -79,10 +79,10 @@ export function EditLeadDialog() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="firstName" render={({ field }) => (
-                <FormItem><FormLabel>First name <span className="text-red-500">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
+                <FormItem><FormLabel>First name <span className="text-danger">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
               )} />
               <FormField control={form.control} name="lastName" render={({ field }) => (
-                <FormItem><FormLabel>Last name <span className="text-red-500">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
+                <FormItem><FormLabel>Last name <span className="text-danger">*</span></FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
               )} />
             </div>
             <div className="grid grid-cols-2 gap-4">

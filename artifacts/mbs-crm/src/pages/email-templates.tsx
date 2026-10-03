@@ -175,7 +175,7 @@ function TemplateFormDialog({
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={isBusy} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+            <Button onClick={handleSave} disabled={isBusy} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {isBusy ? "Saving…" : isEditing ? "Save Changes" : "Create Template"}
             </Button>
           </div>
@@ -212,13 +212,13 @@ function PreviewDialog({ template }: { template: any }) {
           <div className="space-y-2"><Skeleton className="h-6 w-48" /><Skeleton className="h-40 w-full" /></div>
         ) : previewData ? (
           <div className="space-y-3">
-            <div className="border rounded-md p-3 bg-slate-50">
+            <div className="border rounded-md p-3 bg-muted">
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Subject</span>
               <p className="mt-0.5 text-sm font-medium">{previewData.subject}</p>
             </div>
             <SafeEmailHtmlPreview
               html={previewData.bodyHtml}
-              className="border rounded-md p-3 bg-white prose prose-sm max-w-none"
+              className="border rounded-md p-3 bg-card prose prose-sm max-w-none"
             />
           </div>
         ) : null}
@@ -314,14 +314,14 @@ function BulkSendDialog({ template }: { template: any }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border text-sm">
-            <Users className="h-4 w-4 text-slate-500" />
-            <span className="text-slate-700">
+          <div className="flex items-center gap-2 p-3 bg-muted rounded-lg border text-sm">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground">
               <strong>{eligibleLeads.length}</strong> eligible lead{eligibleLeads.length !== 1 ? "s" : ""} with email addresses
             </span>
           </div>
             {dailyCapacity && (
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+              <div className="rounded-md border border-warning/30 bg-warning-bg p-3 text-xs text-warning">
                 <strong>{dailyCapacity.remaining}</strong> of <strong>{dailyCapacity.limit}</strong> bulk/drip emails remain today
                 ({dailyCapacity.used} already reserved). Start with a small warm-up batch and increase volume gradually.
               </div>
@@ -371,14 +371,14 @@ export default function EmailTemplates() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Email Templates</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Email Templates</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage reusable email templates with variable substitution.</p>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && <SeedTemplatesButton />}
           <TemplateFormDialog
             trigger={
-              <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-1.5" /> New Template
               </Button>
             }
@@ -392,7 +392,7 @@ export default function EmailTemplates() {
           <p className="text-xs text-muted-foreground mb-2 font-medium">Available template variables:</p>
           <div className="flex flex-wrap gap-1.5">
             {VARIABLES.map((v) => (
-              <code key={v} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded border border-slate-200">{v}</code>
+              <code key={v} className="text-[10px] px-1.5 py-0.5 bg-secondary text-muted-foreground rounded border border-border">{v}</code>
             ))}
           </div>
         </CardContent>
@@ -411,22 +411,22 @@ export default function EmailTemplates() {
       ) : (
         <div className="space-y-3">
           {templates.map((t: any) => (
-            <Card key={t.id} className={`transition-shadow hover:shadow-sm ${!t.isActive ? "opacity-60" : ""}`}>
+            <Card key={t.id} className={` ${!t.isActive ? "opacity-60" : ""}`}>
               <CardContent className="pt-4 pb-3">
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 border border-purple-100 flex-shrink-0">
-                    <Mail className="h-4 w-4 text-purple-600" />
+                    <Mail className="h-4 w-4 text-chart-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-slate-900 text-sm">{t.name}</span>
+                      <span className="font-semibold text-foreground text-sm">{t.name}</span>
                       {!t.isActive && <Badge variant="outline" className="text-[10px]">Inactive</Badge>}
                       {t.programType && (
-                        <Badge className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge className="text-[10px] bg-info-bg text-info border-info/30">
                           {t.programType === "working_capital" ? "Working Capital" : "Equipment"}
                         </Badge>
                       )}
-                      {t.isActive && <CheckCircle className="h-3.5 w-3.5 text-green-500" />}
+                      {t.isActive && <CheckCircle className="h-3.5 w-3.5 text-success" />}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">Subject: {t.subject}</p>
                     <p className="text-xs text-muted-foreground">
@@ -450,7 +450,7 @@ export default function EmailTemplates() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                          className="h-7 w-7 p-0 text-danger hover:text-danger hover:bg-danger-bg"
                           title="Delete template"
                           disabled={deleteTemplate.isPending}
                           onClick={() => handleDelete(t)}

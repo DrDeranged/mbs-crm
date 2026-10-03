@@ -75,19 +75,19 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         onClick={onNavigate}
         className={`flex min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
           isActive
-            ? "bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
-            : "text-sidebar-foreground/70 hover:bg-white/8 hover:text-white"
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-white"
         }`}
-        style={isActive ? { borderLeft: "3px solid #17A567", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
+        style={isActive ? { borderLeft: "3px solid hsl(var(--sidebar-primary))", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
       >
-        <Icon size={16} className={`shrink-0 ${isActive ? "text-[#17A567]" : ""}`} />
+        <Icon size={16} className={`shrink-0 ${isActive ? "text-sidebar-primary" : ""}`} />
         <span className="truncate">{label}</span>
       </Link>
     );
   };
 
   const sectionLabel = (text: string) => (
-    <div className="truncate px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
+    <div className="truncate px-3 mb-1 mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/70">
       {text}
     </div>
   );
@@ -110,7 +110,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           {(isManagerOrAdmin || currentUser?.role === "rep") && (
             <>
               <div className="pt-4 pb-1">
-                <div className="border-t border-white/10" />
+                <div className="border-t border-sidebar-border" />
               </div>
               {sectionLabel("Marketing")}
               {navLink("/email/templates", "Email Templates", Mail)}
@@ -120,7 +120,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               {isManagerOrAdmin && (
                 <>
                   <div className="pt-4 pb-1">
-                    <div className="border-t border-white/10" />
+                    <div className="border-t border-sidebar-border" />
                   </div>
                   {sectionLabel("Management")}
                   {navLink("/leads/stale", "Stale Leads", Activity)}
@@ -133,7 +133,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       }
                       onNavigate?.();
                     }}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-white/8 hover:text-white cursor-pointer w-full text-left"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-white cursor-pointer w-full text-left"
                     style={{ borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
                   >
                     <Upload size={16} />
@@ -147,7 +147,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           {isAdmin && (
             <>
               <div className="pt-4 pb-1">
-                <div className="border-t border-white/10" />
+                <div className="border-t border-sidebar-border" />
               </div>
               {sectionLabel("Administration")}
               {navLink("/credit/compliance", "Credit Compliance", ShieldCheck)}
@@ -165,7 +165,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-3 pb-2">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
-          className="flex items-center gap-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-sidebar-foreground/60 hover:text-white hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 w-full rounded-xl border border-sidebar-border bg-white/5 px-3 py-2 text-xs text-sidebar-foreground/70 hover:text-white hover:bg-white/10 transition-colors"
           aria-label="Open command palette"
         >
           <Search size={13} />
@@ -175,15 +175,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* User footer */}
-      <div className="border-t border-white/10 p-4 flex-shrink-0">
+      <div className="border-t border-sidebar-border p-4 flex-shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="mb-3 flex w-full items-center gap-3 rounded-xl px-1 py-1 text-left outline-none transition-colors hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-[#6EE7C0]"
+              className="mb-3 flex w-full items-center gap-3 rounded-xl px-1 py-1 text-left outline-none transition-colors hover:bg-sidebar-accent/60 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
               aria-label="Open user menu"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold shadow-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground overflow-hidden flex-shrink-0 text-xs font-semibold ">
                 {user?.imageUrl ? (
                   <img src={user.imageUrl} alt="Avatar" className="h-full w-full object-cover" />
                 ) : (
@@ -192,36 +192,36 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </div>
               <div className="flex flex-1 flex-col truncate min-w-0">
                 <span className="text-sm font-semibold truncate text-sidebar-foreground">{getUserDisplayName(user)}</span>
-                <span className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45">Account menu</span>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/70">Account menu</span>
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
+              <ChevronDown className="h-4 w-4 shrink-0 text-sidebar-foreground/70" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start" className="w-56 border-white/15 bg-[#0E2A47] text-white">
-            <DropdownMenuLabel className="text-white/55">Workspace</DropdownMenuLabel>
-            <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white">
+          <DropdownMenuContent side="top" align="start" className="w-56 glass-surface">
+            <DropdownMenuLabel className="text-muted-foreground">Workspace</DropdownMenuLabel>
+            <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
               <Link href="/help/rep-quickstart" onClick={onNavigate}>
-                <BookOpen className="h-4 w-4 text-[#6EE7C0]" />
+                <BookOpen className="h-4 w-4 text-success" />
                 Rep Quickstart
               </Link>
             </DropdownMenuItem>
             {(currentUser?.role === "rep" || currentUser?.role === "admin") && currentUser.id && (
-              <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white">
+              <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                 <a href={`${getApiBaseUrl()}/users/${currentUser.id}/application-form.pdf`}>
-                  <FileDown className="h-4 w-4 text-[#6EE7C0]" />
+                  <FileDown className="h-4 w-4 text-success" />
                   Download blank application PDF
                 </a>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem asChild className="text-white focus:bg-white/10 focus:text-white cursor-pointer">
+            <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
               <button onClick={() => window.dispatchEvent(new CustomEvent('mbs-prompt-install'))} className="w-full text-left flex items-center">
-                <Download className="h-4 w-4 mr-2 text-[#6EE7C0]" />
+                <Download className="h-4 w-4 mr-2 text-success" />
                 Install app
               </button>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuLabel className="text-xs font-normal text-white/45">
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
               Signed in as {getUserDisplayName(user)}
             </DropdownMenuLabel>
           </DropdownMenuContent>
@@ -242,29 +242,31 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
   const isDealsBoard = location.split("?")[0] === "/deals";
+  const isRecordDetail = /^\/(?:leads|deals)\/\d+(?:\/|$)/.test(location);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className={`flex w-full bg-background ${isRecordDetail ? "h-dvh overflow-hidden" : "min-h-screen"}`}>
       <CommandPalette />
       {/* Desktop Sidebar */}
-      <aside className={`hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[8px_0_28px_rgba(14,42,71,.08)] ${
+      <aside className={`hidden md:fixed md:inset-y-0 md:left-0 md:z-[var(--z-sidebar)] md:flex md:w-64 md:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground  ${
         isDealsBoard ? "xl:w-40 2xl:w-64" : ""
       }`}>
         <SidebarContent />
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 md:ml-64 flex flex-col min-h-screen overflow-hidden ${
+      <main className={`flex-1 md:ml-64 flex flex-col overflow-hidden ${isRecordDetail ? "min-h-0" : "min-h-screen"} ${
         isDealsBoard ? "xl:ml-40 2xl:ml-64" : ""
       }`}>
-        <div className="hidden md:flex h-14 items-center justify-between border-b border-border bg-white px-6 lg:px-8 flex-shrink-0">
-          <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[#46586C]">Operations workspace</span>
+        <div data-scrolled={scrolled} className="glass-header hidden md:flex h-14 items-center justify-between border-b border-border bg-surface px-6 lg:px-8 flex-shrink-0">
+          <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Operations workspace</span>
           <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
         </div>
         {/* Mobile top bar */}
-        <div className="flex md:hidden h-14 items-center border-b border-border bg-white text-foreground px-4 gap-3 flex-shrink-0 shadow-sm">
+        <div data-scrolled={scrolled} className="glass-header flex md:hidden h-14 items-center border-b border-border bg-surface text-foreground px-4 gap-3 flex-shrink-0">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-foreground hover:bg-muted">
@@ -282,7 +284,7 @@ export function AppShell({ children }: AppShellProps) {
           <NotificationBell onDark={false} />
         </div>
 
-        <div className="flex-1 overflow-auto pb-24 md:pb-6">
+        <div className="flex-1 overflow-auto pb-24 md:pb-6" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}>
           {children}
         </div>
       </main>

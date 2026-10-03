@@ -85,28 +85,28 @@ export default function NewLead() {
   };
 
   return (
-    <div className="bg-gray-50/50">
+    <div className="bg-muted">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/leads" className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-white hover:bg-gray-100 transition-colors">
+          <Link href="/leads" className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-card hover:bg-secondary transition-colors">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">New Lead</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">New Lead</h1>
             <p className="text-muted-foreground text-sm mt-1">Enter the details to create a new lead in your pipeline</p>
           </div>
         </div>
 
         {duplicate && (
-          <Alert variant="destructive" className="mb-6 border-amber-400 bg-amber-50 text-amber-900">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-900">Duplicate Lead Detected</AlertTitle>
-            <AlertDescription className="text-amber-800">
+          <Alert variant="destructive" className="mb-6 border-warning/30 bg-warning-bg text-warning">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning">Duplicate Lead Detected</AlertTitle>
+            <AlertDescription className="text-warning">
               A lead with this contact information already exists:{" "}
               <strong>{duplicate.leadName}</strong>.{" "}
               <Link
                 href={`/leads/${duplicate.leadId}`}
-                className="underline font-semibold text-amber-900 hover:text-amber-700"
+                className="underline font-semibold text-warning hover:text-warning"
               >
                 View existing lead →
               </Link>
@@ -128,7 +128,7 @@ export default function NewLead() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First name <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>First name <span className="text-danger">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="John" {...field} />
                         </FormControl>
@@ -141,7 +141,7 @@ export default function NewLead() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last name <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>Last name <span className="text-danger">*</span></FormLabel>
                         <FormControl>
                           <Input placeholder="Doe" {...field} />
                         </FormControl>

@@ -9,16 +9,16 @@ import { getGetLeadQueryKey, useGenerateLeadBriefing, useGenerateNextBestAction,
 import { useLeadDetail } from "./context";
 import { LeadDeals } from "./deals";
 function ScoreBar({ score }: { score: number }) {
-  const color = score >= 70 ? "bg-[#17A567]" : score >= 40 ? "bg-amber-500" : "bg-red-500";
+  const color = score >= 70 ? "bg-primary" : score >= 40 ? "bg-chart-3" : "bg-chart-4";
   const label = score >= 70 ? "High" : score >= 40 ? "Medium" : "Low";
-  const labelColor = score >= 70 ? "text-[#149258]" : score >= 40 ? "text-amber-700" : "text-red-700";
+  const labelColor = score >= 70 ? "text-success" : score >= 40 ? "text-warning" : "text-danger";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-[#0E2A47] tabular-nums">{score}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${score >= 70 ? "bg-[#17A567]/10" : score >= 40 ? "bg-amber-100" : "bg-red-100"} ${labelColor}`}>{label}</span>
+        <span className="text-2xl font-bold text-foreground tabular-nums">{score}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${score >= 70 ? "bg-primary/10" : score >= 40 ? "bg-warning-bg" : "bg-danger-bg"} ${labelColor}`}>{label}</span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-secondary rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
       </div>
     </div>
@@ -65,7 +65,7 @@ export function LeadInfo() {
   const fields = [
     { label: "First Name", value: lead.firstName },
     { label: "Last Name", value: lead.lastName },
-    { label: "Email", value: lead.email ? <EmailLink email={lead.email} leadId={lead.id} showIcon={false} className="text-blue-600" /> : "—" },
+    { label: "Email", value: lead.email ? <EmailLink email={lead.email} leadId={lead.id} showIcon={false} className="text-info" /> : "—" },
     { label: "Phone", value: lead.phone ? <PhoneLink phone={lead.phone} leadId={lead.id} /> : "—" },
     { label: "Business Address", value: lead.businessAddress?.trim() || "—" },
     { label: "Company", value: lead.companyName || "—" },
@@ -82,17 +82,17 @@ export function LeadInfo() {
 
   return (
     <div className="mt-4 space-y-6">
-      <Card className="shadow-sm border-[#1F4E79]/20">
+      <Card className="border-info/20">
         <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-[#1F4E79]" /> AI Deal Briefing
+              <Sparkles className="h-3.5 w-3.5 text-info" /> AI Deal Briefing
             </CardTitle>
               <div className="flex items-center gap-1">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-info"
                   disabled={generateBriefing.isPending}
                   onClick={handleGenerateBriefing}
                 >
@@ -103,7 +103,7 @@ export function LeadInfo() {
                   size="sm"
                   variant="outline"
                   data-testid="generate-next-action"
-                  className="h-7 border-[#1F4E79]/20 px-2 text-xs text-[#1F4E79] hover:bg-[#1F4E79]/5"
+                  className="h-7 border-info/20 px-2 text-xs text-info hover:bg-solid/5"
                   disabled={generateNextAction.isPending}
                   onClick={handleGenerateNextAction}
                 >
@@ -130,7 +130,7 @@ export function LeadInfo() {
               </div>
               {briefing.risks?.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-amber-500" /> Risks</div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-warning" /> Risks</div>
                   <ul className="text-sm list-disc list-inside space-y-0.5">
                     {briefing.risks.map((r: string, i: number) => <li key={i}>{r}</li>)}
                   </ul>
@@ -138,7 +138,7 @@ export function LeadInfo() {
               )}
               {briefing.nextBestActions?.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><ListChecks className="h-3 w-3 text-green-600" /> Next Best Actions</div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1"><ListChecks className="h-3 w-3 text-success" /> Next Best Actions</div>
                   <ul className="text-sm list-disc list-inside space-y-0.5">
                     {briefing.nextBestActions.map((a: string, i: number) => <li key={i}>{a}</li>)}
                   </ul>
@@ -150,20 +150,20 @@ export function LeadInfo() {
             </>
           ) : (
             <div className="text-center py-4 text-muted-foreground">
-              <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <Sparkles className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm">No AI briefing yet</p>
               <p className="text-xs mt-1">Click Generate Briefing for a summary of this deal</p>
             </div>
           )}
           {generateNextAction.data && (
-            <div className="border-t border-[#1F4E79]/10 pt-4">
+            <div className="border-t border-info/10 pt-4">
               <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <ListChecks className="h-3.5 w-3.5 text-[#1F4E79]" /> Next best action
+                <ListChecks className="h-3.5 w-3.5 text-info" /> Next best action
               </div>
               <ol className="space-y-2">
                 {generateNextAction.data.actions.map((action, index) => (
                   <li key={`${action}-${index}`} className="flex gap-2 text-sm">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1F4E79]/10 text-xs font-semibold text-[#1F4E79]">{index + 1}</span>
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-solid/10 text-xs font-semibold text-info">{index + 1}</span>
                     <span>{action}</span>
                   </li>
                 ))}
@@ -172,19 +172,19 @@ export function LeadInfo() {
             </div>
           )}
           {generateNextAction.isPending && (
-            <div className="border-t border-[#1F4E79]/10 pt-4 text-sm text-muted-foreground">Analyzing lead details, activity, and lender matches…</div>
+            <div className="border-t border-info/10 pt-4 text-sm text-muted-foreground">Analyzing lead details, activity, and lender matches…</div>
           )}
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm">
+      <Card className="">
         <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Lead Score</CardTitle>
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-[#1F4E79]"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-info"
               disabled={recalcScore.isPending}
               onClick={handleRecalcScore}
             >
@@ -203,10 +203,10 @@ export function LeadInfo() {
                     <div key={c.name} className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-xs font-medium text-gray-700 truncate">{c.name}</span>
-                          <span className="text-xs font-semibold text-gray-900 ml-2 shrink-0">{c.points}<span className="text-muted-foreground font-normal">/{c.maxPoints}</span></span>
+                          <span className="text-xs font-medium text-foreground truncate">{c.name}</span>
+                          <span className="text-xs font-semibold text-foreground ml-2 shrink-0">{c.points}<span className="text-muted-foreground font-normal">/{c.maxPoints}</span></span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${c.points >= c.maxPoints * 0.75 ? "bg-green-400" : c.points >= c.maxPoints * 0.4 ? "bg-amber-400" : "bg-red-400"}`}
                             style={{ width: `${(c.points / c.maxPoints) * 100}%` }}
@@ -224,7 +224,7 @@ export function LeadInfo() {
             </>
           ) : (
             <div className="text-center py-4 text-muted-foreground">
-              <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <BarChart3 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm">No score yet</p>
               <p className="text-xs mt-1">Click Recalculate to generate a score</p>
             </div>
@@ -232,7 +232,7 @@ export function LeadInfo() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm">
+      <Card className="">
         <CardHeader className="pb-3 border-b">
           <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact & Deal Details</CardTitle>
         </CardHeader>

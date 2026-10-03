@@ -15,10 +15,10 @@ export function LeadActivity() {
       {activities?.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No activity yet.</div>
       ) : (
-        <div className="space-y-6 pl-4 border-l-2 border-gray-200 ml-2 py-2">
+        <div className="space-y-6 pl-4 border-l-2 border-border ml-2 py-2">
           {activities?.map((activity) => (
             <div key={activity.id} className="relative flex min-w-0">
-              <div className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-white shrink-0" />
+              <div className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full bg-chart-2 ring-4 ring-white shrink-0" />
               <div className="space-y-1 min-w-0 flex-1">
                 <p className="text-sm font-medium break-words [overflow-wrap:anywhere]">
                   {typeof activity.details?.message === "string"

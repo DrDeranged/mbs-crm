@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CampaignSkeleton } from "@/components/page-skeletons";
 import { Link, useLocation } from "wouter";
 import { useListCampaigns, useCreateCampaign, useDuplicateCampaign, useCancelCampaign } from "@workspace/api-client-react";
 import { Plus, Mail, Copy, XCircle, Search, CalendarClock, PlayCircle, Clock, AlertTriangle, FileEdit } from "lucide-react";
@@ -33,15 +34,15 @@ import { getListCampaignsQueryKey } from "@workspace/api-client-react";
 
 export function getStatusColor(status: string) {
   switch (status) {
-    case "draft": return "bg-slate-100 text-slate-700 hover:bg-slate-100";
-    case "approved": return "bg-blue-100 text-blue-700 hover:bg-blue-100";
-    case "scheduled": return "bg-purple-100 text-purple-700 hover:bg-purple-100";
-    case "running": return "bg-indigo-100 text-indigo-700 hover:bg-indigo-100 animate-pulse";
-    case "paused": return "bg-amber-100 text-amber-700 hover:bg-amber-100";
-    case "completed": return "bg-green-100 text-green-700 hover:bg-green-100";
-    case "cancelled": return "bg-gray-100 text-gray-700 hover:bg-gray-100";
-    case "failed": return "bg-red-100 text-red-700 hover:bg-red-100";
-    default: return "bg-slate-100 text-slate-700";
+    case "draft": return "bg-secondary text-foreground hover:bg-secondary";
+    case "approved": return "bg-info-bg text-info hover:bg-info-bg";
+    case "scheduled": return "bg-secondary text-chart-5 hover:bg-secondary";
+    case "running": return "bg-info-bg text-info hover:bg-info-bg animate-pulse";
+    case "paused": return "bg-warning-bg text-warning hover:bg-warning-bg";
+    case "completed": return "bg-success-bg text-success hover:bg-success-bg";
+    case "cancelled": return "bg-secondary text-foreground hover:bg-secondary";
+    case "failed": return "bg-danger-bg text-danger hover:bg-danger-bg";
+    default: return "bg-secondary text-foreground";
   }
 }
 
@@ -111,10 +112,10 @@ export default function CampaignsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex flex-shrink-0 items-center justify-between border-b bg-white px-6 py-4">
+      <header className="flex flex-shrink-0 items-center justify-between border-b bg-card px-6 py-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Campaigns</h1>
-          <p className="text-sm text-slate-500">Manage, launch, and track outreach campaigns.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Campaigns</h1>
+          <p className="text-sm text-muted-foreground">Manage, launch, and track outreach campaigns.</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -162,54 +163,52 @@ export default function CampaignsPage() {
         </Dialog>
       </header>
 
-      <div className="flex-1 overflow-auto bg-slate-50/50 p-6">
+      <div className="flex-1 overflow-auto bg-muted p-6">
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search campaigns..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-9 bg-white"
+                className="pl-9 bg-card"
               />
             </div>
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center p-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
+            <CampaignSkeleton />
           ) : filteredCampaigns?.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-white py-24 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 mb-4">
-                <Mail className="h-6 w-6 text-slate-400" />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card py-24 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary mb-4">
+                <Mail className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-slate-900">No campaigns found</h3>
-              <p className="mt-1 text-sm text-slate-500 max-w-sm">
+              <h3 className="text-lg font-medium text-foreground">No campaigns found</h3>
+              <p className="mt-1 text-sm text-muted-foreground max-w-sm">
                 {search ? "No campaigns match your search." : "Get started by creating your first outreach campaign."}
               </p>
             </div>
           ) : (
             <div className="grid gap-4">
               {filteredCampaigns?.map(campaign => (
-                <Card key={campaign.id} className="overflow-hidden transition-colors hover:border-slate-300">
+                <Card key={campaign.id} className="overflow-hidden transition-colors hover:border-border">
                   <div className="flex flex-col sm:flex-row sm:items-center p-5 gap-4">
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-3">
-                        <Link href={`/campaigns/${campaign.id}`} className="text-lg font-semibold text-slate-900 hover:text-primary hover:underline truncate">
+                        <Link href={`/campaigns/${campaign.id}`} className="text-lg font-semibold text-foreground hover:text-success hover:underline truncate">
                           {campaign.name}
                         </Link>
                         <Badge variant="secondary" className={getStatusColor(campaign.status)}>
                           {campaign.status.toUpperCase()}
                         </Badge>
                       </div>
-                      <p className="text-sm text-slate-500 truncate">
+                      <p className="text-sm text-muted-foreground truncate">
                         {campaign.description || "No description provided."}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-6 text-sm text-slate-500 shrink-0">
+                    <div className="flex items-center gap-6 text-sm text-muted-foreground shrink-0">
                       <div className="flex items-center gap-1.5">
                         <Mail className="h-4 w-4" />
                         <span className="capitalize">{campaign.channel.replace("_", " & ")}</span>
@@ -234,7 +233,7 @@ export default function CampaignsPage() {
                               <Copy className="mr-2 h-4 w-4" /> Duplicate
                             </DropdownMenuItem>
                             {["scheduled", "running", "paused"].includes(campaign.status) && (
-                              <DropdownMenuItem onClick={() => handleCancel(campaign.id)} className="text-red-600 focus:text-red-600">
+                              <DropdownMenuItem onClick={() => handleCancel(campaign.id)} className="text-danger focus:text-danger">
                                 <XCircle className="mr-2 h-4 w-4" /> Cancel Campaign
                               </DropdownMenuItem>
                             )}

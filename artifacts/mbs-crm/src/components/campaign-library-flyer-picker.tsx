@@ -82,7 +82,7 @@ export function CampaignLibraryFlyerPicker({
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted"><FileText className="h-5 w-5 text-muted-foreground" /></span>
               <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{normalizeFlyerLabel(flyer.name)}</span><span className="mt-1 flex flex-wrap gap-1"><Badge variant="outline">{FLYER_CATEGORIES.find(([key]) => key === flyer.category)?.[1]}</Badge><Badge variant="outline">{FLYER_VERTICALS.find(([key]) => key === flyer.vertical)?.[1]}</Badge><Badge variant="outline">{FLYER_AUDIENCES.find(([key]) => key === flyer.audience)?.[1]}</Badge></span></span>
-              {isSelected && <Check className="h-5 w-5 shrink-0 text-primary" />}
+              {isSelected && <Check className="h-5 w-5 shrink-0 text-success" />}
             </button>;
           })}
         </div>}

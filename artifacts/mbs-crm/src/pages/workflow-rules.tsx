@@ -220,34 +220,34 @@ export default function WorkflowRules() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1F4E79] text-white flex-shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-solid text-white flex-shrink-0">
             <Zap size={18} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Workflow Rules</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Workflow Rules</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Automatically create tasks or send notifications when a lead changes status.</p>
           </div>
         </div>
-        <Button onClick={openCreate} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white gap-2">
+        <Button onClick={openCreate} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
           <Plus size={16} />
           Add Rule
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16 text-slate-400">Loading rules…</div>
+        <div className="text-center py-16 text-muted-foreground">Loading rules…</div>
       ) : rules.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-muted-foreground">
           <Zap size={36} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No workflow rules yet</p>
           <p className="text-sm mt-1">Create a rule to automatically trigger actions when a lead moves to a new status.</p>
-          <Button onClick={openCreate} className="mt-4 bg-[#1F4E79] hover:bg-[#163a5f] text-white gap-2">
+          <Button onClick={openCreate} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
             <Plus size={16} />
             Add Rule
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white overflow-x-auto shadow-sm">
+        <div className="rounded-lg border bg-card overflow-x-auto ">
           <Table>
             <TableHeader>
               <TableRow>
@@ -270,7 +270,7 @@ export default function WorkflowRules() {
                   <TableCell>
                     <Badge
                       variant="secondary"
-                      className={rule.actionType === "create_task" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}
+                      className={rule.actionType === "create_task" ? "bg-info-bg text-info" : "bg-secondary text-chart-5"}
                     >
                       {rule.actionType === "create_task" ? "Create Task" : "Send Notification"}
                     </Badge>
@@ -289,7 +289,7 @@ export default function WorkflowRules() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="h-8 w-8 text-danger hover:text-danger hover:bg-danger-bg"
                         onClick={() => setDeleteTarget(rule)}
                       >
                         <Trash2 size={14} />
@@ -358,7 +358,7 @@ export default function WorkflowRules() {
                   />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label>Task Description <span className="text-slate-400 font-normal">(optional)</span></Label>
+                  <Label>Task Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Textarea
                     placeholder="What should the rep do?"
                     rows={2}
@@ -416,7 +416,7 @@ export default function WorkflowRules() {
             <Button
               onClick={handleSave}
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+              className="bg-solid hover:bg-sidebar-accent text-white"
             >
               {editingRule ? "Save Changes" : "Create Rule"}
             </Button>

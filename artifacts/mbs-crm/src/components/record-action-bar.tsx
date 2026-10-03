@@ -60,7 +60,7 @@ export function RecordActionBar({ items, className }: { items: RecordActionItem[
         onClick={item.onClick}
         style={{ minHeight: RECORD_ACTION_MIN_TOUCH_HEIGHT, ...(mobile ? { minWidth: MOBILE_ACTION_MIN_WIDTH } : {}) }}
         className={cn(
-          "inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white px-2 text-sm font-medium text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50",
+          "inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground transition-colors hover:bg-info-bg hover:text-info disabled:cursor-not-allowed disabled:opacity-50",
           mobile && "h-12 min-w-12 flex-col gap-0 px-0 text-[10px] leading-tight"
         )}
       >
@@ -72,12 +72,12 @@ export function RecordActionBar({ items, className }: { items: RecordActionItem[
 
   return (
     <>
-      <nav aria-label="Record actions" className={cn("sticky top-0 z-[var(--z-header)] border-b bg-white/95 px-4 py-2 shadow-sm backdrop-blur", mobile ? "hidden" : "block", className)}>
+      <nav aria-label="Record actions" className={cn("sticky top-0 z-[var(--z-header)] border-b bg-card px-4 py-2 backdrop-blur", mobile ? "hidden" : "block", className)}>
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-2">{renderActions(false)}</div>
       </nav>
       <nav
         aria-label="Record actions"
-        className={cn("fixed inset-x-0 z-[var(--z-header)] overflow-x-auto border-t border-slate-200 bg-white/95 px-2 pt-2 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] backdrop-blur", mobile ? "block" : "hidden")}
+        className={cn("fixed inset-x-0 z-[var(--z-header)] overflow-x-auto border-t border-border bg-card px-2 pt-2 backdrop-blur", mobile ? "block" : "hidden")}
         style={{
           bottom: `calc(env(safe-area-inset-bottom) + ${keyboardInset}px)`,
           paddingBottom: "max(env(safe-area-inset-bottom), 8px)",

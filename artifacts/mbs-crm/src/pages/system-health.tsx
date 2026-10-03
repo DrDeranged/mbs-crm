@@ -138,7 +138,7 @@ export default function SystemHealth() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">System Health</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">System Health</h1>
         <p className="text-muted-foreground text-sm mt-0.5">
           Live error log and background job status.
         </p>
@@ -149,7 +149,7 @@ export default function SystemHealth() {
         <Card>
           <CardContent className="pt-5 pb-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Errors — 24h</p>
-            <p className={`text-3xl font-bold ${(summary?.last24h ?? 0) > 0 ? "text-destructive" : "text-green-600"}`}>
+            <p className={`text-3xl font-bold ${(summary?.last24h ?? 0) > 0 ? "text-destructive" : "text-success"}`}>
               {isLoading ? "—" : (summary?.last24h ?? 0)}
             </p>
           </CardContent>
@@ -157,7 +157,7 @@ export default function SystemHealth() {
         <Card>
           <CardContent className="pt-5 pb-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Errors — 7d</p>
-            <p className={`text-3xl font-bold ${(summary?.last7d ?? 0) > 0 ? "text-amber-600" : "text-green-600"}`}>
+            <p className={`text-3xl font-bold ${(summary?.last7d ?? 0) > 0 ? "text-warning" : "text-success"}`}>
               {isLoading ? "—" : (summary?.last7d ?? 0)}
             </p>
           </CardContent>
@@ -170,8 +170,8 @@ export default function SystemHealth() {
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               ) : (summary?.last24h ?? 0) === 0 ? (
                 <>
-                  <CheckCircle2 size={20} className="text-green-600" />
-                  <span className="font-semibold text-green-700">Healthy</span>
+                  <CheckCircle2 size={20} className="text-success" />
+                  <span className="font-semibold text-success">Healthy</span>
                 </>
               ) : (
                 <>
@@ -213,7 +213,7 @@ export default function SystemHealth() {
               </div>
             </div>
           )}
-          {pushMessage && <p data-testid="status-push-success" className="mt-3 text-sm text-green-700">{pushMessage}</p>}
+          {pushMessage && <p data-testid="status-push-success" className="mt-3 text-sm text-success">{pushMessage}</p>}
           {pushError && <p data-testid="status-push-error" className="mt-3 text-sm text-destructive">{pushError}</p>}
         </CardContent>
       </Card>
@@ -254,7 +254,7 @@ export default function SystemHealth() {
                   {run ? (
                     <Badge variant={run.status === "success" ? "outline" : "destructive"}>
                       {run.status === "success" ? (
-                        <span className="flex items-center gap-1 text-green-700">
+                        <span className="flex items-center gap-1 text-success">
                           <CheckCircle2 size={11} />
                           OK
                         </span>
@@ -295,7 +295,7 @@ export default function SystemHealth() {
             <div className="py-4">
               <Empty>
                 <EmptyMedia variant="icon">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-success" />
                 </EmptyMedia>
                 <EmptyHeader>
                   <EmptyTitle>No errors recorded — system healthy</EmptyTitle>

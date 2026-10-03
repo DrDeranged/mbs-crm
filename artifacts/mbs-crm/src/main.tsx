@@ -6,6 +6,10 @@ import { BrandLogo } from "./components/brand-logo";
 import { isChunkLoadError, reloadOnceForChunkError } from "./lib/chunkRecovery";
 import "./index.css";
 
+// System appearance applies before the first render, including public routes.
+document.documentElement.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+document.documentElement.style.colorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
 function recoverFromImportFailure(error: unknown) {
   const buildId = document.querySelector<HTMLMetaElement>('meta[name="mbs-build-id"]')?.content ?? "";
   return reloadOnceForChunkError(error, buildId, window.sessionStorage, () => window.location.reload());
@@ -24,11 +28,11 @@ function ErrorFallback({ error }: { error: unknown }) {
 
   if (retrying) return <div role="status" style={{ padding: "2rem" }}>Loading the latest version…</div>;
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif", textAlign: "center" }}>
+    <div className="bg-background p-8 text-center font-sans text-foreground">
       <BrandLogo imageClassName="h-8 w-auto" />
       <h2>Something went wrong</h2>
       <p>The application encountered an unexpected error. Please refresh the page.</p>
-      <button onClick={() => window.location.reload()} style={{ marginTop: "1rem", padding: "0.5rem 1rem", cursor: "pointer" }}>
+      <button onClick={() => window.location.reload()} className="mt-4 min-h-11 cursor-pointer rounded-md border border-primary-border bg-primary px-4 py-2 text-primary-foreground">
         Refresh
       </button>
     </div>

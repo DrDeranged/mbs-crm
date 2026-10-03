@@ -39,9 +39,9 @@ function StatBox({
   subtext?: string;
 }) {
   return (
-    <div className={`p-4 rounded-xl border ${highlight ? "bg-primary/5 border-primary/20" : "bg-white dark:bg-black/20 border-border"} flex flex-col gap-1`}>
+    <div className={`p-4 rounded-xl border ${highlight ? "bg-primary/5 border-primary/20" : "bg-card dark:bg-black/20 border-border"} flex flex-col gap-1`}>
       <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={`text-2xl font-bold tracking-tight ${highlight ? 'text-primary' : 'text-foreground'}`}>{value}</div>
+      <div className={`text-2xl font-bold tracking-tight ${highlight ? 'text-success' : 'text-foreground'}`}>{value}</div>
       {subtext ? <div className="text-xs text-muted-foreground mt-1">{subtext}</div> : null}
     </div>
   );
@@ -107,11 +107,11 @@ export default function RateConverterPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Amortizing Loan Card */}
-        <Card className="shadow-md border-border overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-[#17A567] to-[#149258]" />
+        <Card className="border-border overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-primary from-primary" />
           <CardHeader className="bg-secondary/10 pb-6 border-b">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Percent className="h-5 w-5 text-primary" />
+              <Percent className="h-5 w-5 text-success" />
               Amortizing Loan
             </CardTitle>
             <CardDescription>
@@ -120,7 +120,7 @@ export default function RateConverterPage() {
           </CardHeader>
           <CardContent className="p-0 flex flex-col md:flex-row">
             {/* Input Section */}
-            <div className="p-6 flex-1 space-y-5 border-r border-border bg-white dark:bg-card">
+            <div className="p-6 flex-1 space-y-5 border-r border-border bg-card dark:bg-card">
               <div className="space-y-2">
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground">Term (Months)</Label>
                 <div className="relative">
@@ -209,11 +209,11 @@ export default function RateConverterPage() {
         </Card>
 
         {/* MCA Card */}
-        <Card className="shadow-md border-border overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-[#0E2A47] to-[#1F4E79]" />
+        <Card className="border-border overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-sidebar to-solid" />
           <CardHeader className="bg-secondary/10 pb-6 border-b">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <CircleDollarSign className="h-5 w-5 text-[#0E2A47] dark:text-gray-300" />
+              <CircleDollarSign className="h-5 w-5 text-foreground dark:text-muted-foreground" />
               MCA Converter
             </CardTitle>
             <CardDescription>
@@ -222,7 +222,7 @@ export default function RateConverterPage() {
           </CardHeader>
           <CardContent className="p-0 flex flex-col md:flex-row">
             {/* Input Section */}
-            <div className="p-6 flex-1 space-y-5 border-r border-border bg-white dark:bg-card">
+            <div className="p-6 flex-1 space-y-5 border-r border-border bg-card dark:bg-card">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground">Term</Label>

@@ -45,9 +45,12 @@ import { DASHBOARD_EMPTY_STATES } from "@/lib/dashboardEmptyStates";
 import { QueryErrorState } from "@/components/query-error-state";
 import { formatDealIdentity, formatLeadIdentity } from "@/lib/recordIdentity";
 import { PhoneLink } from "@/components/phone-link";
+import { CountUp } from "@/components/count-up";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { ChartSkeleton, RowsSkeleton } from "@/components/page-skeletons";
 
-const BRAND = "#1F4E79";
-const TEAL = "#0D9488";
+const BRAND = "hsl(var(--chart-2))";
+const TEAL = "hsl(var(--chart-1))";
 
 type DateRangePreset = "this_month" | "last_month" | "this_quarter" | "ytd" | "custom";
 
@@ -101,12 +104,12 @@ function formatStage(s: string) {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  new_lead: "#3B82F6",
-  contacted: "#6366F1",
-  application_received: "#F59E0B",
-  submitted_to_underwriting: "#8B5CF6",
-  approved: "#10B981",
-  funded: "#059669",
+  new_lead: "hsl(var(--chart-2))",
+  contacted: "hsl(var(--chart-5))",
+  application_received: "hsl(var(--chart-3))",
+  submitted_to_underwriting: "hsl(var(--chart-4))",
+  approved: "hsl(var(--chart-1))",
+  funded: "hsl(var(--success))",
 };
 
 type SortField = "leadsCount" | "callsMade" | "smsSent" | "emailsSent" | "applications" | "approvals" | "fundings" | "revenue";
@@ -135,12 +138,12 @@ function KpiCard({
   tooltip?: string;
 }) {
   return (
-    <Card className="shadow-sm border-card-border" title={title ?? tooltip}>
+    <Card className=" border-card-border" title={title ?? tooltip}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           {label}
         </CardTitle>
-        <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-[#17A567]/10 text-[#17A567]">
+        <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-primary/10 text-success">
           {icon}
         </div>
       </CardHeader>
@@ -148,7 +151,7 @@ function KpiCard({
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold tabular-nums text-[#0E2A47]">{value}</div>
+          <div className="text-3xl font-bold tabular-nums text-foreground"><CountUp value={value} /></div>
         )}
       </CardContent>
     </Card>
@@ -171,17 +174,17 @@ function DailyBriefingCard() {
   };
 
   return (
-    <Card className="mb-6 overflow-hidden border-0 bg-[#0E2A47] text-white shadow-[0_20px_50px_rgba(14,42,71,0.18)]">
+    <Card className="mb-6 overflow-hidden border-0 bg-solid text-solid-foreground">
       <CardHeader className="border-b border-white/10 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 text-base text-white">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10">
-                <Sparkles className="h-4 w-4 text-[#6EE7C0]" />
+                <Sparkles className="h-4 w-4 text-primary" />
               </span>
               Daily Briefing
             </CardTitle>
-            <CardDescription className="mt-1 text-white/65">
+            <CardDescription className="mt-1 text-white/70">
               A concise AI read on today&apos;s pipeline priorities
             </CardDescription>
           </div>
@@ -206,18 +209,18 @@ function DailyBriefingCard() {
         ) : digest ? (
           <div className="space-y-5">
             <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
-              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6EE7C0]">Overview</div>
+              <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Overview</div>
               <p className="text-sm leading-6 text-white/90">{digest.overview}</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
               <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
-                <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
-                  <ListChecks className="h-3.5 w-3.5 text-[#6EE7C0]" /> Focus recommendations
+                <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
+                  <ListChecks className="h-3.5 w-3.5 text-primary" /> Focus recommendations
                 </div>
                 <ol className="space-y-3">
                   {digest.recommendations.map((recommendation, index) => (
                     <li key={`${recommendation}-${index}`} className="flex gap-3 text-sm leading-5 text-white/90">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#6EE7C0]/15 text-xs font-semibold text-[#6EE7C0]">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                         {index + 1}
                       </span>
                       <span>{recommendation}</span>
@@ -226,16 +229,16 @@ function DailyBriefingCard() {
                 </ol>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-4">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/65">Leads worth attention today</div>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/70">Leads worth attention today</div>
                 <div className="space-y-2">
                   {digest.topLeads.map((lead, index) => (
-                    <Link key={lead.leadId} href={`/leads/${lead.leadId}`} className="block rounded-xl border border-white/5 bg-black/10 p-3 transition-colors hover:border-[#6EE7C0]/40 hover:bg-white/10">
+                    <Link key={lead.leadId} href={`/leads/${lead.leadId}`} className="block rounded-xl border border-white/5 bg-foreground/10 p-3 transition-colors hover:border-primary/40 hover:bg-white/10">
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 text-xs font-semibold text-[#6EE7C0]">0{index + 1}</span>
+                        <span className="mt-0.5 text-xs font-semibold text-primary">0{index + 1}</span>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                             <span className="font-semibold text-white">{lead.name}</span>
-                            <span className="text-xs text-white/55">{lead.industry}</span>
+                            <span className="text-xs text-white/70">{lead.industry}</span>
                           </div>
                           <p className="mt-1 text-xs leading-5 text-white/70">{lead.why}</p>
                         </div>
@@ -245,13 +248,13 @@ function DailyBriefingCard() {
                 </div>
               </div>
             </div>
-            <p className="text-[11px] text-white/45">Generated {format(new Date(digest.generatedAt), "MMM d, h:mm a")}</p>
+            <p className="text-[11px] text-white/70">Generated {format(new Date(digest.generatedAt), "MMM d, h:mm a")}</p>
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.04] px-5 py-8 text-center">
-            <Sparkles className="mx-auto mb-2 h-7 w-7 text-white/30" />
+            <Sparkles className="mx-auto mb-2 h-7 w-7 text-white/70" />
             <p className="text-sm text-white/75">Generate a concise, read-only briefing from your current pipeline.</p>
-            <p className="mt-1 text-xs text-white/45">It highlights data gaps, recent activity, and leads that may need attention.</p>
+            <p className="mt-1 text-xs text-white/70">It highlights data gaps, recent activity, and leads that may need attention.</p>
           </div>
         )}
       </CardContent>
@@ -296,7 +299,7 @@ function StaleLeadQueue() {
     <Card className="mb-6" data-testid="card-stale-lead-queue">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Clock className="h-4 w-4 text-amber-600" />
+          <Clock className="h-4 w-4 text-warning" />
           Stale lead queue
         </CardTitle>
         <CardDescription>Assigned leads with no logged activity within the configured routing window. Reassign each lead directly from this queue.</CardDescription>
@@ -320,14 +323,14 @@ function StaleLeadQueue() {
             />
           </div>
         )}
-        {isLoading ? <Skeleton className="h-20 w-full" /> : error && !data ? null : data?.leads.length ? (
+        {isLoading ? <RowsSkeleton /> : error && !data ? null : data?.leads.length ? (
           <div className="space-y-3">
             {data.leads.map((lead) => {
               const label = formatLeadIdentity(lead);
               return (
                 <div key={lead.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center" data-testid={`row-stale-lead-${lead.id}`}>
                   <div className="min-w-0 flex-1">
-                    <Link href={`/leads/${lead.id}`} className="font-medium text-[#1F4E79] hover:underline">{label}</Link>
+                    <Link href={`/leads/${lead.id}`} className="font-medium text-info hover:underline">{label}</Link>
                     <p className="text-xs text-muted-foreground">{lead.daysIdle} idle day{lead.daysIdle === 1 ? "" : "s"} · Current owner: {lead.assignedRep?.name || "Unassigned"}</p>
                   </div>
                   <div className="flex gap-2">
@@ -352,7 +355,7 @@ function StaleLeadQueue() {
                 </div>
               );
             })}
-            {data.total > data.leads.length && <Link href="/leads/stale" className="text-sm font-medium text-[#1F4E79] hover:underline">View all stale leads</Link>}
+            {data.total > data.leads.length && <Link href="/leads/stale" className="text-sm font-medium text-info hover:underline">View all stale leads</Link>}
           </div>
         ) : <p className="text-sm text-muted-foreground" data-testid="text-stale-queue-empty">No stale leads need reassignment.</p>}
       </CardContent>
@@ -369,7 +372,7 @@ function CallsTodayCard() {
     <Card className="mb-6" data-testid="card-calls-today">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <PhoneCall className="h-4 w-4 text-[#1F4E79]" /> Calls today
+          <PhoneCall className="h-4 w-4 text-info" /> Calls today
         </CardTitle>
         <CardDescription>Inbound calls, response mix, and voicemails waiting for a callback.</CardDescription>
       </CardHeader>
@@ -381,24 +384,24 @@ function CallsTodayCard() {
             onRetry={() => { void refetch(); }}
             testId="status-dashboard-calls-error"
           />
-        ) : isLoading ? <Skeleton className="h-16 w-full" /> : (
+        ) : isLoading ? <RowsSkeleton rows={2} /> : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div><p className="text-xs text-muted-foreground">Inbound</p><p className="text-2xl font-bold">{data?.inboundCount ?? 0}</p></div>
-              <div><p className="text-xs text-muted-foreground">Answered</p><p className="text-2xl font-bold text-emerald-700">{data?.answeredCount ?? 0}</p></div>
-              <div><p className="text-xs text-muted-foreground">Voicemail</p><p className="text-2xl font-bold">{data?.voicemailCount ?? 0}</p></div>
+              <div><p className="text-xs text-muted-foreground">Inbound</p><p className="text-2xl font-bold"><CountUp value={data?.inboundCount ?? 0} /></p></div>
+              <div><p className="text-xs text-muted-foreground">Answered</p><p className="text-2xl font-bold text-success"><CountUp value={data?.answeredCount ?? 0} /></p></div>
+              <div><p className="text-xs text-muted-foreground">Voicemail</p><p className="text-2xl font-bold"><CountUp value={data?.voicemailCount ?? 0} /></p></div>
               <div><p className="text-xs text-muted-foreground">Avg callback</p><p className="text-2xl font-bold">{minutes == null ? "—" : `${Math.round(minutes / 60 * 10) / 10}h`}</p></div>
             </div>
             {!!data?.overdueVoicemails.length && (
               <div className="mt-5 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-red-700">Voicemails older than 4 business hours</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-danger">Voicemails older than 4 business hours</p>
                 {data.overdueVoicemails.map((voicemail) => (
-                  <div key={voicemail.id} className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-3 sm:flex-row sm:items-center">
+                  <div key={voicemail.id} className="flex flex-col gap-2 rounded-lg border border-danger/30 bg-danger-bg p-3 sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1">
-                      <Link href={`/leads/${voicemail.leadId}`} className="font-medium text-red-900 hover:underline">{voicemail.leadName}</Link>
-                      <p className="text-xs text-red-700">{new Date(voicemail.arrivedAt).toLocaleString()} · callback overdue</p>
+                      <Link href={`/leads/${voicemail.leadId}`} className="font-medium text-danger hover:underline">{voicemail.leadName}</Link>
+                      <p className="text-xs text-danger">{new Date(voicemail.arrivedAt).toLocaleString()} · callback overdue</p>
                     </div>
-                    {voicemail.phone && <PhoneLink phone={voicemail.phone} leadId={voicemail.leadId} className="rounded-md border border-red-300 px-3 py-2 text-sm text-red-800 hover:bg-red-100" />}
+                    {voicemail.phone && <PhoneLink phone={voicemail.phone} leadId={voicemail.leadId} className="rounded-md border border-danger/30 px-3 py-2 text-sm text-danger hover:bg-danger-bg" />}
                   </div>
                 ))}
               </div>
@@ -411,6 +414,7 @@ function CallsTodayCard() {
 }
 
 export default function Dashboard() {
+  const reducedMotion = useReducedMotion();
   const [preset, setPreset] = useState<DateRangePreset>("ytd");
   const [customRange, setCustomRange] = useState<DateRange>({
     startDate: format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -557,8 +561,8 @@ export default function Dashboard() {
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-40 ml-1 inline" />;
     return sortDir === "asc"
-      ? <ArrowUp className="h-3 w-3 ml-1 inline text-[#1F4E79]" />
-      : <ArrowDown className="h-3 w-3 ml-1 inline text-[#1F4E79]" />;
+      ? <ArrowUp className="h-3 w-3 ml-1 inline text-info" />
+      : <ArrowDown className="h-3 w-3 ml-1 inline text-info" />;
   };
 
   const presets: { id: DateRangePreset; label: string }[] = [
@@ -577,7 +581,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0E2A47]">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
             {isRep ? "Your performance metrics" : "Team pipeline analytics"}
           </p>
@@ -585,7 +589,7 @@ export default function Dashboard() {
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
             <Link href="/leads" aria-label="View inbound leads needing assignment">
-              <Badge variant="outline" className="cursor-pointer border-amber-200 bg-amber-50 px-3 py-1.5 text-amber-800 hover:bg-amber-100">
+              <Badge variant="outline" className="cursor-pointer border-warning/30 bg-warning-bg px-3 py-1.5 text-warning hover:bg-warning-bg">
                 Inbound — needs assignment: {unassignedInboundError ? "Unavailable" : unassignedInbound?.count ?? "…"}
               </Badge>
             </Link>
@@ -616,7 +620,7 @@ export default function Dashboard() {
       <Card className="mb-6" data-testid="card-expiring-approvals">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="h-4 w-4 text-amber-600" /> Approvals expiring within 14 days
+            <Clock className="h-4 w-4 text-warning" /> Approvals expiring within 14 days
           </CardTitle>
           <CardDescription>Capture-recorded lender approvals that need rep follow-up.</CardDescription>
         </CardHeader>
@@ -639,10 +643,10 @@ export default function Dashboard() {
                 return (
                   <Link key={deal.id} href={`/deals/${deal.id}`} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/40">
                     <span className="min-w-0">
-                      <span className="block truncate font-medium text-[#1F4E79]">{identity}</span>
+                      <span className="block truncate font-medium text-info">{identity}</span>
                       {customDealName && customDealName !== identity && <span className="block truncate text-xs text-muted-foreground">{customDealName}</span>}
                     </span>
-                    <Badge variant="outline" className={days < 0 ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-700"}>
+                    <Badge variant="outline" className={days < 0 ? "border-danger/30 bg-danger-bg text-danger" : "border-warning/30 bg-warning-bg text-warning"}>
                       {deal.approvalExpiresOn} · {days < 0 ? "expired" : `${days}d left`}
                     </Badge>
                   </Link>
@@ -696,23 +700,23 @@ export default function Dashboard() {
 
       {/* First-run call-to-action */}
       {!loadingSummary && !summaryError && summary && summary.allTimeTotalLeads === 0 && (
-          <div className="bg-[#17A567]/5 border border-[#17A567]/20 rounded-[14px] p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-           <div className="h-11 w-11 rounded-full bg-[#17A567]/10 flex items-center justify-center flex-shrink-0">
-             <Users className="h-5 w-5 text-[#17A567]" />
+          <div className="bg-primary/5 border border-primary/20 rounded-[14px] p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+           <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+             <Users className="h-5 w-5 text-success" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900">Welcome to MBS CRM!</p>
+            <p className="font-semibold text-foreground">Welcome to MBS CRM!</p>
             <p className="text-sm text-muted-foreground mt-0.5">Add your first lead or import a list to start tracking your pipeline.</p>
           </div>
           <div className="flex gap-2 flex-wrap flex-shrink-0">
             <Link href="/leads/new">
-              <button className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[#149258] bg-gradient-to-b from-[#1DB674] to-[#149258] px-5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.18)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(23,165,103,.35)] transition-all motion-reduce:hover:translate-y-0">
+              <button className="inline-flex h-11 items-center gap-1.5 rounded-full border border-primary-border bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                 <Plus className="h-4 w-4" />
                 Add First Lead
               </button>
             </Link>
             <Link href="/leads">
-              <button className="inline-flex h-11 items-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-[#46586C] hover:border-[#17A567] hover:text-[#149258] transition-colors">
+              <button className="inline-flex h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground transition-colors">
                 View Leads
               </button>
             </Link>
@@ -780,7 +784,7 @@ export default function Dashboard() {
 
       {/* Deals KPIs */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-[#0E2A47] mb-3 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
           <Briefcase className="h-5 w-5 text-muted-foreground" /> Deals Performance
         </h2>
         {dealsAnalyticsError && (
@@ -822,7 +826,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deals by Stage</CardTitle>
             </CardHeader>
@@ -834,9 +838,9 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(dealsAnalytics?.stageCounts || {}).map(([stage, count]) => (
-                    <div key={stage} className="flex flex-col border rounded p-2 bg-gray-50 flex-1 min-w-[100px]">
+                    <div key={stage} className="flex flex-col border rounded p-2 bg-muted flex-1 min-w-[100px]">
                       <span className="text-[10px] uppercase text-muted-foreground truncate">{formatStage(stage)}</span>
-                      <span className="text-lg font-bold text-gray-800">{count}</span>
+                      <span className="text-lg font-bold text-foreground">{count}</span>
                     </div>
                   ))}
                 </div>
@@ -844,7 +848,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rep Deal Performance</CardTitle>
             </CardHeader>
@@ -860,7 +864,7 @@ export default function Dashboard() {
                   {dealsAnalytics?.reps.map(rep => (
                     <div key={rep.repId} className="flex items-center justify-between min-w-[250px] gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        <div className="h-6 w-6 rounded-full bg-info-bg text-info flex items-center justify-center text-[10px] font-bold shrink-0">
                           {rep.repName.charAt(0) || "U"}
                         </div>
                         <span className="text-sm font-medium truncate">{rep.repName}</span>
@@ -876,7 +880,7 @@ export default function Dashboard() {
                         </div>
                         <div className="w-20">
                           <p className="text-[10px] text-muted-foreground uppercase">GM</p>
-                          <p className="text-sm font-semibold text-emerald-600">{formatCurrency(rep.fundedGm)}</p>
+                          <p className="text-sm font-semibold text-success">{formatCurrency(rep.fundedGm)}</p>
                         </div>
                       </div>
                     </div>
@@ -919,7 +923,7 @@ export default function Dashboard() {
               testId="status-dashboard-pipeline-error"
             />
           ) : loadingPipeline ? (
-            <Skeleton className="h-56 w-full" />
+            <ChartSkeleton />
           ) : (
             <ResponsiveContainer width="100%" height={230}>
               <BarChart
@@ -945,7 +949,7 @@ export default function Dashboard() {
                     ];
                   }}
                 />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]} label={{ position: "right", fontSize: 11 }}>
+                <Bar isAnimationActive={!reducedMotion} animationDuration={180} dataKey="count" radius={[0, 4, 4, 0]} label={{ position: "right", fontSize: 11 }}>
                   {(pipeline?.stages ?? []).map((entry) => (
                     <Cell key={entry.status} fill={STAGE_COLORS[entry.status] ?? BRAND} />
                   ))}
@@ -963,7 +967,7 @@ export default function Dashboard() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 Renewal Opportunities
-                <Badge className="bg-[#1F4E79] hover:bg-[#1F4E79]">
+                <Badge className="bg-solid text-solid-foreground hover:bg-solid">
                   {renewalsError ? "!" : loadingRenewals ? "…" : (renewals?.length ?? 0)}
                 </Badge>
               </CardTitle>
@@ -997,7 +1001,7 @@ export default function Dashboard() {
                     className="flex items-center justify-between py-3 hover:bg-muted/40 transition-colors -mx-2 px-2 rounded"
                   >
                     <div>
-                      <p className="font-medium text-[#1F4E79]">{name}</p>
+                      <p className="font-medium text-info">{name}</p>
                     </div>
                     <div className="text-right text-sm">
                       <p className="text-muted-foreground">
@@ -1046,7 +1050,7 @@ export default function Dashboard() {
                 testId="status-dashboard-sources-error"
               />
             ) : loadingSources ? (
-              <Skeleton className="h-52 w-full" />
+              <ChartSkeleton />
             ) : !(sources ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
                 No source data for this period.
@@ -1070,8 +1074,8 @@ export default function Dashboard() {
                     ]}
                   />
                   <Legend formatter={(v) => (v === "leadCount" ? "Total Leads" : "Funded")} />
-                  <Bar dataKey="leadCount" name="leadCount" fill={BRAND} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="fundedCount" name="fundedCount" fill={TEAL} radius={[4, 4, 0, 0]} />
+                  <Bar isAnimationActive={!reducedMotion} animationDuration={180} dataKey="leadCount" name="leadCount" fill={BRAND} radius={[4, 4, 0, 0]} />
+                  <Bar isAnimationActive={!reducedMotion} animationDuration={180} dataKey="fundedCount" name="fundedCount" fill={TEAL} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -1109,7 +1113,7 @@ export default function Dashboard() {
                 testId="status-dashboard-communications-error"
               />
             ) : loadingComms ? (
-              <Skeleton className="h-52 w-full" />
+              <ChartSkeleton />
             ) : !(communications ?? []).length ? (
               <div className="h-52 flex items-center justify-center text-sm text-muted-foreground">
                 {DASHBOARD_EMPTY_STATES.leadActivity}
@@ -1136,6 +1140,8 @@ export default function Dashboard() {
                   />
                   <Legend />
                   <Line
+                    isAnimationActive={!reducedMotion}
+                    animationDuration={180}
                     type="monotone"
                     dataKey="calls"
                     name="Calls"
@@ -1144,6 +1150,8 @@ export default function Dashboard() {
                     dot={false}
                   />
                   <Line
+                    isAnimationActive={!reducedMotion}
+                    animationDuration={180}
                     type="monotone"
                     dataKey="sms"
                     name="SMS"
@@ -1236,12 +1244,12 @@ export default function Dashboard() {
                       <tr
                         key={rep.repId}
                         className={`border-b last:border-0 hover:bg-muted/40 transition-colors ${
-                          selectedRepId === rep.repId ? "bg-blue-50" : ""
+                          selectedRepId === rep.repId ? "bg-info-bg" : ""
                         }`}
                       >
                         <td className="py-2 pr-4">
                           <button
-                            className="text-[#1F4E79] font-medium hover:underline text-left"
+                            className="text-info font-medium hover:underline text-left"
                             onClick={() =>
                               setSelectedRepId(selectedRepId === rep.repId ? undefined : rep.repId)
                             }
@@ -1255,10 +1263,10 @@ export default function Dashboard() {
                         <td className="py-2 px-3 text-right tabular-nums">{rep.emailsSent}</td>
                         <td className="py-2 px-3 text-right tabular-nums">{rep.applications}</td>
                         <td className="py-2 px-3 text-right tabular-nums">{rep.approvals}</td>
-                        <td className="py-2 px-3 text-right tabular-nums font-semibold text-emerald-700">
+                        <td className="py-2 px-3 text-right tabular-nums font-semibold text-success">
                           {rep.fundings}
                         </td>
-                        <td className="py-2 px-3 text-right tabular-nums font-semibold text-[#1F4E79]">
+                        <td className="py-2 px-3 text-right tabular-nums font-semibold text-info">
                           {formatCurrency(rep.revenue ?? 0)}
                         </td>
                       </tr>
@@ -1286,20 +1294,20 @@ export default function Dashboard() {
               testId="status-dashboard-tasks-error"
             />
           ) : loadingMyTasks ? (
-            <Skeleton className="h-20 w-full" />
+            <RowsSkeleton />
           ) : (
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-lg border bg-destructive/5 border-destructive/20 p-4">
               <p className="text-xs font-medium text-destructive uppercase tracking-wide mb-1">Overdue</p>
-              <p className="text-3xl font-bold text-destructive">{myTasks?.overdue?.length ?? 0}</p>
+              <p className="text-3xl font-bold text-destructive"><CountUp value={myTasks?.overdue?.length ?? 0} /></p>
             </div>
             <div className="rounded-lg border p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due Today</p>
-              <p className="text-3xl font-bold">{myTasks?.dueToday?.length ?? 0}</p>
+              <p className="text-3xl font-bold"><CountUp value={myTasks?.dueToday?.length ?? 0} /></p>
             </div>
             <div className="rounded-lg border p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due This Week</p>
-              <p className="text-3xl font-bold">{myTasks?.dueThisWeek?.length ?? 0}</p>
+              <p className="text-3xl font-bold"><CountUp value={myTasks?.dueThisWeek?.length ?? 0} /></p>
             </div>
           </div>
           )}

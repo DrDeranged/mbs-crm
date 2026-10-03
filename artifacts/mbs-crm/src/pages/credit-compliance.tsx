@@ -17,10 +17,10 @@ const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 function ScoreBadge({ score }: { score: number | null | undefined }) {
   if (score == null) return <span className="text-muted-foreground text-sm">N/A</span>;
   const cls =
-    score >= 740 ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
-    score >= 670 ? "bg-green-100 text-green-800 border-green-200" :
-    score >= 580 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-    "bg-red-100 text-red-800 border-red-200";
+    score >= 740 ? "bg-success-bg text-success border-success/30" :
+    score >= 670 ? "bg-success-bg text-success border-success/30" :
+    score >= 580 ? "bg-warning-bg text-warning border-warning/30" :
+    "bg-danger-bg text-danger border-danger/30";
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${cls}`}>{score}</span>;
 }
 
@@ -72,8 +72,8 @@ export default function CreditCompliance() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-[#1F4E79]" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-info" />
             Credit Compliance Log
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">Read-only append-only audit trail of all Experian credit pulls</p>
@@ -84,7 +84,7 @@ export default function CreditCompliance() {
         </Button>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="">
         <CardHeader className="pb-4 border-b">
           <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Filters</CardTitle>
         </CardHeader>
@@ -121,13 +121,13 @@ export default function CreditCompliance() {
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lead ID</label>
               <Input type="number" placeholder="Any lead" value={leadIdFilter} onChange={(e) => setLeadIdFilter(e.target.value)} className="w-28" />
             </div>
-            <Button onClick={handleFilter} className="bg-[#1F4E79] hover:bg-[#163a5f]">Apply</Button>
+            <Button onClick={handleFilter} className="bg-primary text-primary-foreground hover:bg-primary/90">Apply</Button>
             <Button variant="ghost" onClick={handleClear}>Clear</Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm">
+      <Card className="">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -165,7 +165,7 @@ export default function CreditCompliance() {
                       <td className="py-3 px-4">
                         <a
                           href={`/leads/${entry.leadId}`}
-                          className="font-medium text-[#1F4E79] hover:underline"
+                          className="font-medium text-info hover:underline"
                           onClick={(e) => { e.preventDefault(); navigate(`/leads/${entry.leadId}`); }}
                         >
                           {(entry as any).entityLabel || entry.leadName || `Lead #${entry.leadId}`}
@@ -174,7 +174,7 @@ export default function CreditCompliance() {
                       <td className="py-3 px-4">{getUserDisplayName(entry.pulledBy, "—")}</td>
                       <td className="py-3 px-4">
                         {entry.pullType ? (
-                          <Badge variant="outline" className={entry.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
+                          <Badge variant="outline" className={entry.pullType === "hard" ? "border-warning/30 text-warning" : "border-info/30 text-info"}>
                             {entry.pullType === "hard" ? "Hard" : "Soft"}
                           </Badge>
                         ) : "—"}

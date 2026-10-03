@@ -82,7 +82,7 @@ export function SearchableSelect({
       <PopoverContent
         align="start"
         onOpenAutoFocus={(event) => { event.preventDefault(); inputRef.current?.focus(); }}
-        className="z-[var(--z-dialog-popover)] w-[var(--radix-popover-trigger-width)] min-w-[14rem] border-border bg-popover p-0 text-popover-foreground shadow-md backdrop-blur-none"
+        className="z-[var(--z-dialog-popover)] w-[var(--radix-popover-trigger-width)] min-w-[14rem] border-border bg-popover p-0 text-popover-foreground backdrop-blur-none"
       >
         <Command shouldFilter={false}>
           <CommandInput ref={inputRef} value={query} onValueChange={setQuery}

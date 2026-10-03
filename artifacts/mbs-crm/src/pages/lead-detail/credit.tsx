@@ -14,19 +14,19 @@ function CreditScoreGauge({ score }: { score: number }) {
   const pct = Math.min(1, Math.max(0, (score - 300) / (850 - 300)));
   const angle = -135 + pct * 270;
   const { color, label } =
-    score >= 740 ? { color: "#059669", label: "Excellent" } :
-    score >= 670 ? { color: "#16a34a", label: "Good" } :
-    score >= 580 ? { color: "#d97706", label: "Fair" } :
-                   { color: "#dc2626", label: "Poor" };
+    score >= 740 ? { color: "hsl(var(--chart-1))", label: "Excellent" } :
+    score >= 670 ? { color: "hsl(var(--chart-2))", label: "Good" } :
+    score >= 580 ? { color: "hsl(var(--chart-3))", label: "Fair" } :
+                   { color: "hsl(var(--chart-4))", label: "Poor" };
   return (
     <div className="flex flex-col items-center gap-2 py-4">
       <svg width="160" height="90" viewBox="0 0 160 90">
-        <path d="M 10 85 A 70 70 0 0 1 150 85" fill="none" stroke="#e2e8f0" strokeWidth="12" strokeLinecap="round" />
+        <path d="M 10 85 A 70 70 0 0 1 150 85" fill="none" stroke="hsl(var(--border))" strokeWidth="12" strokeLinecap="round" />
         <path d="M 10 85 A 70 70 0 0 1 150 85" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
           strokeDasharray={`${pct * 220} 220`} />
         <g transform={`translate(80, 85) rotate(${angle})`}>
-          <line x1="0" y1="0" x2="0" y2="-52" stroke="#1e293b" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="0" cy="0" r="5" fill="#1e293b" />
+          <line x1="0" y1="0" x2="0" y2="-52" stroke="hsl(var(--foreground))" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="5" fill="hsl(var(--foreground))" />
         </g>
       </svg>
       <div className="text-4xl font-bold" style={{ color }}>{score}</div>
@@ -92,17 +92,17 @@ export function LeadCredit() {
     <div className="mt-4 space-y-4">
       {/* Consent + Pull flow */}
       {showConsent && (
-        <Card className="shadow-sm border-blue-100">
+        <Card className="border-info/30">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-[#1F4E79]" /> Pull Credit Report
+              <ShieldCheck className="h-4 w-4 text-info" /> Pull Credit Report
             </CardTitle>
             <CardDescription>
               Requires Experian API credentials (EXPERIAN_API_KEY, EXPERIAN_API_SECRET, EXPERIAN_API_URL) and an active application with encrypted SSN.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-3 p-3 bg-warning-bg border border-warning/30 rounded-lg">
               <Checkbox
                 id="credit-consent"
                 checked={consentChecked}
@@ -148,15 +148,15 @@ export function LeadCredit() {
       {hasPulls && displayPull && !showConsent && (
         <>
           {latestIsError && (
-            <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-              <XCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 rounded-lg border border-danger/30 bg-danger-bg px-4 py-3">
+              <XCircle className="h-4 w-4 text-danger flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <span className="font-semibold text-red-700">Latest pull failed</span>
-                <span className="text-red-600"> — {latestPull?.errorMessage ?? "Unknown error"}. Showing most recent completed report below.</span>
+                <span className="font-semibold text-danger">Latest pull failed</span>
+                <span className="text-danger"> — {latestPull?.errorMessage ?? "Unknown error"}. Showing most recent completed report below.</span>
               </div>
             </div>
           )}
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Latest Credit Score</CardTitle>
               <Button variant="outline" size="sm" onClick={() => { setShowConsentFlow(true); setConsentChecked(false); }} className="gap-1.5 text-xs">
@@ -182,7 +182,7 @@ export function LeadCredit() {
                 </div>
               </div>
               <div className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-                <Badge variant="outline" className={displayPull.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
+                <Badge variant="outline" className={displayPull.pullType === "hard" ? "border-warning/30 text-warning" : "border-info/30 text-info"}>
                   {displayPull.pullType === "hard" ? "Hard Pull" : "Soft Pull"}
                 </Badge>
                 <span>pulled by {getUserDisplayName(displayPull.pulledBy as { name?: string | null; email?: string | null } | null, "Unknown")}</span>
@@ -194,7 +194,7 @@ export function LeadCredit() {
 
           {/* Tradelines */}
           {summary?.tradelineSummary && summary.tradelineSummary.length > 0 && (
-            <Card className="shadow-sm">
+            <Card className="">
               <CardHeader className="pb-3 border-b">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Tradelines ({summary.tradelineCount ?? summary.tradelineSummary.length})
@@ -217,7 +217,7 @@ export function LeadCredit() {
                           <td className="py-2.5 px-4 font-medium">{tl.creditor || "—"}</td>
                           <td className="py-2.5 px-4">{tl.balance != null ? `$${Number(tl.balance).toLocaleString()}` : "—"}</td>
                           <td className="py-2.5 px-4">
-                            <Badge variant="outline" className={/current|ok/i.test(tl.status) ? "border-green-300 text-green-700" : /delinq|late|charge/i.test(tl.status) ? "border-red-300 text-red-700" : ""}>
+                            <Badge variant="outline" className={/current|ok/i.test(tl.status) ? "border-success/30 text-success" : /delinq|late|charge/i.test(tl.status) ? "border-danger/30 text-danger" : ""}>
                               {tl.status || "—"}
                             </Badge>
                           </td>
@@ -235,11 +235,11 @@ export function LeadCredit() {
 
       {/* Error state — only when there are no completed pulls to fall back on */}
       {!hasPulls && latestIsError && (
-        <Card className="shadow-sm border-red-100">
+        <Card className="border-danger/30">
           <CardContent className="pt-4 flex items-start gap-3">
-            <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
             <div>
-              <div className="font-semibold text-sm text-red-700">Last pull failed</div>
+              <div className="font-semibold text-sm text-danger">Last pull failed</div>
               <div className="text-sm text-muted-foreground mt-0.5">{latestPull?.errorMessage ?? "Unknown error"}</div>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => { setShowConsentFlow(true); setConsentChecked(false); }}>
                 Try Again
@@ -251,7 +251,7 @@ export function LeadCredit() {
 
       {/* Pull History */}
       {pulls && pulls.length > 0 && (
-        <Card className="shadow-sm">
+        <Card className="">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pull History</CardTitle>
           </CardHeader>
@@ -271,16 +271,16 @@ export function LeadCredit() {
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="py-2.5 px-4 text-muted-foreground">{format(new Date(p.createdAt!), "MMM d, yyyy")}</td>
                     <td className="py-2.5 px-4">
-                      <Badge variant="outline" className={p.pullType === "hard" ? "border-orange-300 text-orange-700" : "border-blue-300 text-blue-700"}>
+                      <Badge variant="outline" className={p.pullType === "hard" ? "border-warning/30 text-warning" : "border-info/30 text-info"}>
                         {p.pullType === "hard" ? "Hard" : "Soft"}
                       </Badge>
                     </td>
                     <td className="py-2.5 px-4">{getUserDisplayName(p.pulledBy as { name?: string | null; email?: string | null } | null, "—")}</td>
                     <td className="py-2.5 px-4 font-semibold">{p.creditScore ?? "—"}</td>
                     <td className="py-2.5 px-4">
-                      {p.status === "completed" && <Badge className="bg-green-100 text-green-700 border-green-200">Completed</Badge>}
-                      {p.status === "error" && <Badge className="bg-red-100 text-red-700 border-red-200">Error</Badge>}
-                      {p.status === "pending" && <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>}
+                      {p.status === "completed" && <Badge className="bg-success-bg text-success border-success/30">Completed</Badge>}
+                      {p.status === "error" && <Badge className="bg-danger-bg text-danger border-danger/30">Error</Badge>}
+                      {p.status === "pending" && <Badge className="bg-warning-bg text-warning border-warning/30">Pending</Badge>}
                     </td>
                   </tr>
                 ))}

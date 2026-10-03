@@ -76,7 +76,7 @@ function CreatedBy({ actor, source }: { actor?: { name?: string | null; email?: 
   return (
     <span className="flex flex-col">
       <span className="text-xs text-muted-foreground">Created by</span>
-      <span className="text-xs text-muted-foreground/75">{getUserDisplayName(actor, fallback)}</span>
+      <span className="text-xs text-muted-foreground">{getUserDisplayName(actor, fallback)}</span>
     </span>
   );
 }
@@ -170,7 +170,7 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
           {(["upload", "mapping", "confirm", "results"] as ImportStep[]).map((s, i) => (
             <span key={s} className="flex items-center gap-1">
               {i > 0 && <ChevronRight className="h-3 w-3" />}
-              <span className={step === s ? "text-[#1F4E79] font-semibold" : ""}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+              <span className={step === s ? "text-info font-semibold" : ""}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
             </span>
           ))}
         </div>
@@ -179,13 +179,13 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
         {(step === "upload" || step === "preview") && (
           <div className="space-y-4">
             <div
-              className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:border-[#1F4E79] transition-colors"
+              className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer hover:border-info transition-colors"
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
               <p className="font-medium text-sm">Click to select a CSV or Excel file</p>
               <p className="text-xs text-muted-foreground mt-1">Supported: .csv, .xlsx, .xls — max 20 MB</p>
-              {selectedFile && <p className="mt-2 text-sm font-medium text-[#1F4E79]">{selectedFile.name}</p>}
+              {selectedFile && <p className="mt-2 text-sm font-medium text-info">{selectedFile.name}</p>}
             </div>
             <input ref={fileInputRef} type="file" className="hidden" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} />
             {step === "preview" && previewMutation.isPending && (
@@ -239,7 +239,7 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => { setStep("upload"); setSelectedFile(null); setPreview(null); }}>Back</Button>
-              <Button onClick={handleConfirm} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">Continue</Button>
+              <Button onClick={handleConfirm} className="bg-primary text-primary-foreground hover:bg-primary/90">Continue</Button>
             </div>
           </div>
         )}
@@ -247,14 +247,14 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
         {/* Confirm step */}
         {step === "confirm" && preview && (
           <div className="space-y-4">
-            <div className="rounded-lg border p-4 bg-gray-50 space-y-2">
+            <div className="rounded-lg border p-4 bg-muted space-y-2">
               <p className="text-sm font-medium">Ready to import {preview.totalRows} leads</p>
               <p className="text-xs text-muted-foreground">Column mapping configured for {Object.values(mapping).filter((v) => v !== "__skip__").length} fields</p>
               <p className="text-xs text-muted-foreground">Duplicate leads (by email, phone, or EIN) will be skipped automatically</p>
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep("mapping")}>Back</Button>
-              <Button onClick={handleImport} disabled={importMutation.isPending} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+              <Button onClick={handleImport} disabled={importMutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {importMutation.isPending ? "Importing…" : "Import Leads"}
               </Button>
             </div>
@@ -265,15 +265,15 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
         {step === "results" && results && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border p-4 text-center bg-green-50">
-                <Check className="h-6 w-6 text-green-600 mx-auto mb-1" />
-                <div className="text-2xl font-bold text-green-700">{results.imported}</div>
-                <div className="text-xs text-green-600">Leads imported</div>
+              <div className="rounded-lg border p-4 text-center bg-success-bg">
+                <Check className="h-6 w-6 text-success mx-auto mb-1" />
+                <div className="text-2xl font-bold text-success">{results.imported}</div>
+                <div className="text-xs text-success">Leads imported</div>
               </div>
-              <div className="rounded-lg border p-4 text-center bg-amber-50">
-                <AlertCircle className="h-6 w-6 text-amber-500 mx-auto mb-1" />
-                <div className="text-2xl font-bold text-amber-600">{results.skipped}</div>
-                <div className="text-xs text-amber-500">Rows skipped</div>
+              <div className="rounded-lg border p-4 text-center bg-warning-bg">
+                <AlertCircle className="h-6 w-6 text-warning mx-auto mb-1" />
+                <div className="text-2xl font-bold text-warning">{results.skipped}</div>
+                <div className="text-xs text-warning">Rows skipped</div>
               </div>
             </div>
             {results.duplicates.length > 0 && (
@@ -288,7 +288,7 @@ function ImportDialog({ open, onClose, onSuccess }: { open: boolean; onClose: ()
                 </Table>
               </div>
             )}
-            <Button className="w-full bg-[#1F4E79] hover:bg-[#163a5f] text-white" onClick={handleClose}>Done</Button>
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleClose}>Done</Button>
           </div>
         )}
       </DialogContent>
@@ -547,7 +547,7 @@ export default function Leads() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{isStaleView ? "Stale Leads" : "Leads"}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{isStaleView ? "Stale Leads" : "Leads"}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
             {isStaleView ? "Assigned leads with no recent activity" : "Manage and track your financing pipeline"}
           </p>
@@ -569,7 +569,7 @@ export default function Leads() {
           )}
           <Link
             href="/leads/new"
-            className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-[#163a5f]"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-solid px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-sidebar-accent"
           >
             <Plus className="mr-2 h-4 w-4" />
             New Lead
@@ -588,14 +588,14 @@ export default function Leads() {
           <Input
             type="search"
             placeholder="Search by name, email, company…"
-            className="pl-9 w-full bg-white"
+            className="pl-9 w-full bg-card"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <Select value={status || "all"} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-full sm:w-[180px] bg-white">
+          <SelectTrigger className="w-full sm:w-[180px] bg-card">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               <SelectValue placeholder="Status" />
@@ -615,7 +615,7 @@ export default function Leads() {
         </Select>
 
         <Select value={applicationType || "all"} onValueChange={handleAppTypeChange}>
-          <SelectTrigger className="w-full sm:w-[180px] bg-white">
+          <SelectTrigger className="w-full sm:w-[180px] bg-card">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
@@ -631,7 +631,7 @@ export default function Leads() {
             onValueChange={handleRepChange}
             placeholder="Rep"
             ariaLabel="Filter by representative"
-            className="w-full bg-white sm:w-[160px]"
+            className="w-full bg-card sm:w-[160px]"
             options={[
               { value: "all", label: "All Reps" },
               ...usersData.map((rep) => ({
@@ -645,7 +645,7 @@ export default function Leads() {
         )}
 
         <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as ListLeadsSortOrder)}>
-          <SelectTrigger className="w-full sm:w-[140px] bg-white">
+          <SelectTrigger className="w-full sm:w-[140px] bg-card">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -662,7 +662,7 @@ export default function Leads() {
             type="date"
             value={startDate}
             onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
-            className="w-[160px] bg-white text-sm"
+            className="w-[160px] bg-card text-sm"
             placeholder="From"
           />
           <span className="text-sm text-muted-foreground">–</span>
@@ -670,7 +670,7 @@ export default function Leads() {
             type="date"
             value={endDate}
             onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
-            className="w-[160px] bg-white text-sm"
+            className="w-[160px] bg-card text-sm"
             placeholder="To"
           />
           {(startDate || endDate) && (
@@ -691,7 +691,7 @@ export default function Leads() {
         {(["", "high", "medium", "low"] as const).map((f) => {
           const label = f === "" ? "All" : f === "high" ? "High 70+" : f === "medium" ? "Medium 40–69" : "Low <40";
           const active = scoreFilter === f;
-          const color = f === "high" ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-50" : f === "medium" ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-50" : f === "low" ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-50" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50";
+          const color = f === "high" ? "bg-success-bg text-success border-success/30 hover:bg-success-bg" : f === "medium" ? "bg-warning-bg text-warning border-warning/30 hover:bg-warning-bg" : f === "low" ? "bg-danger-bg text-danger border-danger/30 hover:bg-danger-bg" : "bg-card text-muted-foreground border-border hover:bg-muted";
           return (
             <button
               key={f}
@@ -699,7 +699,7 @@ export default function Leads() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium border transition-all",
                 color,
-                active && "ring-2 ring-offset-1 ring-[#1F4E79] font-semibold",
+                active && "ring-2 ring-offset-1 ring-ring font-semibold",
               )}
             >
               {label}
@@ -711,8 +711,8 @@ export default function Leads() {
           className={cn(
             "px-3 py-1 rounded-full text-xs font-medium border transition-all ml-2",
             renewalFlagged
-              ? "bg-[#1F4E79] text-white border-[#1F4E79]"
-              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50",
+              ? "bg-solid text-white border-info"
+              : "bg-card text-muted-foreground border-border hover:bg-muted",
           )}
         >
           Renewals
@@ -723,8 +723,8 @@ export default function Leads() {
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium border transition-all ml-2",
               staleOnly
-                ? "bg-red-100 text-red-700 border-red-200 ring-2 ring-offset-1 ring-[#1F4E79]"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50",
+                ? "bg-danger-bg text-danger border-danger/30 ring-2 ring-offset-1 ring-ring"
+                : "bg-card text-muted-foreground border-border hover:bg-muted",
             )}
           >
             Stale
@@ -764,7 +764,7 @@ export default function Leads() {
       <div className="md:hidden space-y-3">
         {isLoading ? (
           [...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg border bg-white shadow-sm p-4 space-y-2">
+            <div key={i} className="rounded-lg border bg-card p-4 space-y-2">
               <div className="flex items-start justify-between">
                 <div className="space-y-1.5">
                   <Skeleton className="h-4 w-[140px]" />
@@ -789,7 +789,7 @@ export default function Leads() {
                   <EmptyDescription>Try adjusting your filters to find what you're looking for.</EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent>
-                  <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
+                  <button onClick={clearFilters} className="text-sm text-info underline underline-offset-4 hover:opacity-80">Clear all filters</button>
                 </EmptyContent>
               </Empty>
             ) : isRep ? (
@@ -809,7 +809,7 @@ export default function Leads() {
                 </EmptyHeader>
                 <EmptyContent>
                   <div className="flex flex-col gap-2 w-full">
-                    <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f]">
+                    <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-solid px-4 text-sm font-medium text-white shadow hover:bg-sidebar-accent">
                       <Plus className="mr-2 h-4 w-4" />New Lead
                     </Link>
                     {isManagerOrAdmin && (
@@ -824,7 +824,7 @@ export default function Leads() {
           </div>
         ) : (
           data?.leads.map((lead) => (
-            <div key={lead.id} className={`rounded-lg border bg-white shadow-sm p-4 space-y-2 transition-colors hover:bg-gray-50/60 ${selectedIds.has(lead.id) ? "border-blue-300 bg-blue-50/40" : ""}`}>
+            <div key={lead.id} className={`rounded-lg border bg-card p-4 space-y-2 transition-colors hover:bg-muted ${selectedIds.has(lead.id) ? "border-info/30 bg-info-bg/40" : ""}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -839,7 +839,7 @@ export default function Leads() {
                       )}
                       <Link
                         href={`/leads/${lead.id}`}
-                        className="font-semibold text-sm truncate text-[#0E2A47] hover:underline"
+                        className="font-semibold text-sm truncate text-foreground hover:underline"
                         onClick={(event) => event.stopPropagation()}
                       >
                         {formatLeadIdentity(lead)}
@@ -855,9 +855,9 @@ export default function Leads() {
                     <Badge variant="secondary" className="font-normal capitalize text-xs flex-shrink-0">
                       {formatStatus(lead.status)}
                     </Badge>
-                    {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">Stale</Badge>}
+                    {lead.isStale && <Badge className="bg-danger-bg text-danger hover:bg-danger-bg text-xs">Stale</Badge>}
                     {lead.needsAssignment && (
-                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] font-normal text-amber-700">
+                      <Badge variant="outline" className="border-warning/30 bg-warning-bg text-[10px] font-normal text-warning">
                         Inbound — needs assignment
                       </Badge>
                     )}
@@ -865,8 +865,8 @@ export default function Leads() {
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
                   <span className="min-w-0 truncate">
-                    <span className="font-semibold text-[#0E2A47]">Assigned Rep: </span>
-                    {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="font-semibold italic text-amber-700">Unassigned</span>}
+                    <span className="font-semibold text-foreground">Assigned Rep: </span>
+                    {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="font-semibold italic text-warning">Unassigned</span>}
                   </span>
                   <span className="flex-shrink-0 ml-2">{format(new Date(lead.updatedAt), "MMM d, yyyy")}</span>
                 </div>
@@ -876,7 +876,7 @@ export default function Leads() {
       </div>
 
       {/* Desktop table — hidden below md */}
-      <div className="hidden md:block rounded-md border bg-white shadow-sm overflow-x-auto">
+      <div className="hidden md:block rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -899,8 +899,8 @@ export default function Leads() {
               <TableHead>Stale</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead className="font-semibold text-[#0E2A47]">Created by</TableHead>
-              <TableHead className="font-semibold text-[#0E2A47]">Assigned Rep</TableHead>
+              <TableHead className="font-semibold text-foreground">Created by</TableHead>
+              <TableHead className="font-semibold text-foreground">Assigned Rep</TableHead>
               <TableHead>
                 <Button variant="ghost" size="sm" className="-ml-3 h-8 px-3 font-medium" onClick={toggleActivitySort}>
                   Last Activity <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
@@ -945,7 +945,7 @@ export default function Leads() {
                         <EmptyDescription>Try adjusting your search or filters.</EmptyDescription>
                       </EmptyHeader>
                       <EmptyContent>
-                        <button onClick={clearFilters} className="text-sm text-[#1F4E79] underline underline-offset-4 hover:opacity-80">Clear all filters</button>
+                        <button onClick={clearFilters} className="text-sm text-info underline underline-offset-4 hover:opacity-80">Clear all filters</button>
                       </EmptyContent>
                     </Empty>
                   ) : isRep ? (
@@ -965,7 +965,7 @@ export default function Leads() {
                       </EmptyHeader>
                       <EmptyContent>
                         <div className="flex flex-wrap gap-2 justify-center">
-                          <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-[#1F4E79] px-4 text-sm font-medium text-white shadow hover:bg-[#163a5f]">
+                          <Link href="/leads/new" className="inline-flex h-9 items-center justify-center rounded-md bg-solid px-4 text-sm font-medium text-white shadow hover:bg-sidebar-accent">
                             <Plus className="mr-2 h-4 w-4" />New Lead
                           </Link>
                           {isManagerOrAdmin && (
@@ -983,7 +983,7 @@ export default function Leads() {
               data?.leads.map((lead) => (
                 <TableRow
                   key={lead.id}
-                  className={`cursor-pointer hover:bg-gray-50/50 transition-colors ${selectedIds.has(lead.id) ? "bg-blue-50/40" : ""}`}
+                  className={`cursor-pointer hover:bg-muted transition-colors ${selectedIds.has(lead.id) ? "bg-info-bg/40" : ""}`}
                 >
                   {isManagerOrAdmin && (
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -1000,7 +1000,7 @@ export default function Leads() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/leads/${lead.id}`} className="block w-full text-primary hover:underline">
+                    <Link href={`/leads/${lead.id}`} className="block w-full text-success hover:underline">
                       {lead.companyName || "—"}
                     </Link>
                   </TableCell>
@@ -1016,9 +1016,9 @@ export default function Leads() {
                         <Badge variant="secondary" className="font-normal capitalize">
                           {formatStatus(lead.status)}
                         </Badge>
-                        {lead.isStale && <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Stale</Badge>}
+                        {lead.isStale && <Badge className="bg-danger-bg text-danger hover:bg-danger-bg">Stale</Badge>}
                         {lead.needsAssignment && (
-                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-[10px] font-normal text-amber-700">
+                          <Badge variant="outline" className="border-warning/30 bg-warning-bg text-[10px] font-normal text-warning">
                             Inbound — needs assignment
                           </Badge>
                         )}
@@ -1028,7 +1028,7 @@ export default function Leads() {
                   <TableCell>
                     <Link href={`/leads/${lead.id}`} className="block w-full">
                       {lead.isStale ? (
-                        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{lead.daysIdle}d idle</Badge>
+                        <Badge className="bg-danger-bg text-danger hover:bg-danger-bg">{lead.daysIdle}d idle</Badge>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
@@ -1039,9 +1039,9 @@ export default function Leads() {
                       {(lead as any).leadScore !== null && (lead as any).leadScore !== undefined ? (
                         <span className={cn(
                           "inline-flex items-center justify-center min-w-[40px] px-2 py-0.5 rounded-full text-xs font-semibold",
-                          (lead as any).leadScore >= 70 ? "bg-green-100 text-green-700" :
-                          (lead as any).leadScore >= 40 ? "bg-amber-100 text-amber-700" :
-                          "bg-red-100 text-red-700",
+                          (lead as any).leadScore >= 70 ? "bg-success-bg text-success" :
+                          (lead as any).leadScore >= 40 ? "bg-warning-bg text-warning" :
+                          "bg-danger-bg text-danger",
                         )}>
                           {(lead as any).leadScore}
                         </span>
@@ -1082,9 +1082,9 @@ export default function Leads() {
                         />
                       </div>
                     ) : (
-                      <Link href={`/leads/${lead.id}`} className="block w-full font-semibold text-[#0E2A47]">
+                      <Link href={`/leads/${lead.id}`} className="block w-full font-semibold text-foreground">
                         <span className="sr-only">Assigned Rep: </span>
-                        {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-amber-700">Unassigned</span>}
+                        {lead.assignedRep ? getUserDisplayName(lead.assignedRep) : <span className="italic text-warning">Unassigned</span>}
                       </Link>
                     )}
                   </TableCell>
@@ -1136,22 +1136,22 @@ export default function Leads() {
 
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-white border border-gray-200 shadow-xl rounded-xl px-5 py-3">
-          <span className="text-sm font-semibold text-[#1F4E79] whitespace-nowrap">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-card border border-border rounded-xl px-5 py-3">
+          <span className="text-sm font-semibold text-info whitespace-nowrap">
             {selectAllMatching ? data?.total ?? selectedIds.size : selectedIds.size} selected
           </span>
           {!selectAllMatching && allPageSelected && data && data.total > data.leads.length && (
             <Button
               size="sm"
               variant="link"
-              className="h-8 px-1 text-xs text-[#1F4E79]"
+              className="h-8 px-1 text-xs text-info"
               onClick={() => setSelectAllMatching(true)}
             >
               Select all {data.total} matching leads
             </Button>
           )}
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-secondary" />
 
           <Select value={bulkStatus} onValueChange={(v) => { setBulkStatus(v); }}>
             <SelectTrigger className="h-8 w-[160px] text-xs">
@@ -1170,14 +1170,14 @@ export default function Leads() {
           </Select>
           <Button
             size="sm"
-            className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+            className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
              disabled={selectAllMatching || !bulkStatus || bulkUpdateStatus.isPending}
             onClick={handleBulkStatus}
           >
             Apply
           </Button>
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-secondary" />
 
           {usersData && usersData.length > 0 && (
             <>
@@ -1196,13 +1196,13 @@ export default function Leads() {
               />
               <Button
                 size="sm"
-                className="h-8 bg-[#1F4E79] hover:bg-[#163a5f] text-white text-xs"
+                className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
                  disabled={!bulkRepId || bulkAssign.isPending}
                 onClick={handleBulkAssign}
               >
                 Assign
               </Button>
-              <div className="h-4 w-px bg-gray-200" />
+              <div className="h-4 w-px bg-secondary" />
             </>
           )}
 
@@ -1221,7 +1221,7 @@ export default function Leads() {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="h-8 text-xs border-danger/30 text-danger hover:bg-danger-bg hover:text-danger"
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />

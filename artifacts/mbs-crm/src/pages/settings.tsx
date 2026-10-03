@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAppearance } from "@/components/appearance-provider";
+import type { AppearancePreference } from "@/lib/appearance";
 import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, useRunProductionCloseout, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,6 +27,7 @@ import { canSubmitUserMerge, getEligibleMergeSources, getEligibleMergeTargets, g
 import { TelephonyGreetingUpload } from "@/components/telephony-greeting-upload";
 
 export default function Settings() {
+  const { preference, setPreference, storageError } = useAppearance();
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const { data: users, isLoading: loadingUsers, isError: usersError } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
   const updateUser = useUpdateUser();
@@ -600,11 +603,28 @@ export default function Settings() {
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">Manage your account and organization settings.</p>
       </div>
 
       <div className="grid gap-8">
+        <Card data-appearance-control>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>Choose how this browser displays the CRM for your account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <label htmlFor="mbs-appearance" className="mb-2 block text-sm font-medium">Theme</label>
+            <select id="mbs-appearance" aria-label="Appearance theme" value={preference}
+              onChange={(event) => setPreference(event.target.value as AppearancePreference)}
+              className="min-h-11 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+            {storageError && <p role="status" className="mt-2 text-sm text-destructive">{storageError}</p>}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>My Profile</CardTitle>
@@ -651,7 +671,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-[#1F4E79]" />
+              <Bell className="h-4 w-4 text-info" />
               Notifications
             </CardTitle>
             <CardDescription>
@@ -696,7 +716,7 @@ export default function Settings() {
                   )}
                 </div>
 
-                <div className="space-y-4 opacity-100 transition-opacity" style={{ opacity: preferences.pushEnabled ? 1 : 0.5 }}>
+                <div className="space-y-4">
                   <h4 className="text-sm font-semibold">Event Subscriptions</h4>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {[
@@ -736,7 +756,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-[#1F4E79]" />
+              <Phone className="h-4 w-4 text-info" />
               Call Forwarding
             </CardTitle>
             <CardDescription>
@@ -757,7 +777,7 @@ export default function Settings() {
                   onKeyDown={(e) => { if (e.key === "Enter") handleSaveMobile(); if (e.key === "Escape") setMobileEditing(false); }}
                   autoFocus
                 />
-                <Button onClick={handleSaveMobile} disabled={updateMobile.isPending} size="sm" className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                <Button onClick={handleSaveMobile} disabled={updateMobile.isPending} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                   {updateMobile.isPending ? "Saving…" : "Save"}
                 </Button>
                 <Button onClick={() => setMobileEditing(false)} variant="ghost" size="sm">Cancel</Button>
@@ -774,7 +794,7 @@ export default function Settings() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-500 hover:text-red-700"
+                    className="text-danger hover:text-danger"
                     onClick={() => updateMobile.mutate({ data: { mobileNumber: null } }, {
                       onSuccess: () => {
                         toast({ title: "Removed", description: "Call forwarding number removed." });
@@ -794,7 +814,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-[#1F4E79]" />
+                <Phone className="h-4 w-4 text-info" />
                 Telephony
               </CardTitle>
               <CardDescription>Choose which owned Twilio numbers are used for browser calls and outbound SMS.</CardDescription>
@@ -962,7 +982,7 @@ export default function Settings() {
                       onCheckedChange={(checked) => setTelephonySettings((c) => ({ ...c, missedCallTextBackEnabled: checked }))} />
                   </div>
                   <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
-                    <Button onClick={saveTelephony} disabled={savingTelephony} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                    <Button onClick={saveTelephony} disabled={savingTelephony} className="bg-primary text-primary-foreground hover:bg-primary/90">
                       {savingTelephony ? "Saving…" : "Save telephony settings"}
                     </Button>
                     {telephonyError && <span className="text-sm text-destructive" role="alert">{telephonyError}</span>}
@@ -1032,7 +1052,7 @@ export default function Settings() {
                   <span className="text-sm text-muted-foreground">per day</span>
                 </div>
               </div>
-              <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+              <Button onClick={handleSaveEmailSettings} disabled={savingEmailSettings} className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90">
                 {savingEmailSettings ? "Saving…" : "Save Email Safety Settings"}
               </Button>
               <div className="flex flex-wrap items-center justify-between gap-4 max-w-2xl mt-6 pt-5 border-t">
@@ -1158,13 +1178,13 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Wrench className="h-4 w-4 text-[#1F4E79]" />
+                <Wrench className="h-4 w-4 text-info" />
                 Data Maintenance
               </CardTitle>
               <CardDescription>Run narrowly scoped, admin-only maintenance actions for seeded CRM data.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border border-amber-600/30 bg-amber-50/60 p-4 max-w-2xl">
+              <div className="rounded-md border border-warning/30 bg-warning-bg p-4 max-w-2xl">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h3 className="font-medium">Schema migrations</h3>
@@ -1172,7 +1192,7 @@ export default function Settings() {
                       Apply numbered, checksum-verified migrations one at a time. Existing schema changes are detected safely and are not replayed.
                     </div>
                   </div>
-                  <Button onClick={applyPendingMigrations} disabled={migrationLoading} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                  <Button onClick={applyPendingMigrations} disabled={migrationLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     {migrationLoading ? "Applying migrations…" : "Apply pending migrations"}
                   </Button>
                 </div>
@@ -1186,13 +1206,13 @@ export default function Settings() {
                     </div>
                     {migrationStatus.applied.length > 0 && <div className="text-muted-foreground">Applied now: {migrationStatus.applied.join(", ")}</div>}
                     {migrationStatus.detected.length > 0 && <div className="text-muted-foreground">Detected already applied: {migrationStatus.detected.join(", ")}</div>}
-                    {migrationStatus.pending.length > 0 && <div className="text-amber-700">Pending: {migrationStatus.pending.join(", ")}</div>}
+                    {migrationStatus.pending.length > 0 && <div className="text-warning">Pending: {migrationStatus.pending.join(", ")}</div>}
                     {migrationStatus.mismatches.length > 0 && <div className="text-destructive">Checksum mismatch: {migrationStatus.mismatches.map((item) => item.name).join(", ")}</div>}
                     {migrationStatus.failed && <div className="text-destructive">Failed: {migrationStatus.failed.name} — {migrationStatus.failed.error}</div>}
                   </div>
                 )}
               </div>
-              <div className="rounded-md border border-[#1F4E79]/30 bg-[#1F4E79]/5 p-4 max-w-2xl">
+              <div className="rounded-md border border-info/30 bg-info-bg p-4 max-w-2xl">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h3 className="font-medium">Production closeout</h3>
@@ -1200,7 +1220,7 @@ export default function Settings() {
                        Runs ownership correction, slug backfill, starter email/template seed, and configured lender creation/packet updates in that exact order. Each operation has its own transaction; a later failure stops the sequence but does not roll back earlier successful operations.
                     </div>
                   </div>
-                  <Button onClick={handleProductionCloseout} disabled={productionCloseout.isPending} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                  <Button onClick={handleProductionCloseout} disabled={productionCloseout.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     {productionCloseout.isPending ? "Running production closeout…" : "Run production closeout"}
                   </Button>
                 </div>
@@ -1217,10 +1237,10 @@ export default function Settings() {
                     {formatProductionCloseoutResults(productionCloseout.data.results).map((line) => (
                       <div key={line.operation} className="flex flex-wrap gap-2 text-sm">
                         <span className="font-medium capitalize">{line.label}</span>
-                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
+                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-warning" : "text-muted-foreground"}>
                           {line.status}
                         </span>
-                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-amber-700" : "text-muted-foreground"}>
+                        <span className={line.status === "failed" ? "text-destructive" : line.status === "skipped" ? "text-warning" : "text-muted-foreground"}>
                           — {line.summary}
                         </span>
                       </div>
@@ -1334,7 +1354,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-[#1F4E79]" />
+                <Building2 className="h-4 w-4 text-info" />
                 Company Settings
               </CardTitle>
               <CardDescription>Contact details and branding for your organization.</CardDescription>
@@ -1383,7 +1403,7 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="sm:col-span-2 pt-2">
-                    <Button onClick={handleSaveCompany} disabled={savingCompany} className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+                    <Button onClick={handleSaveCompany} disabled={savingCompany} className="bg-primary text-primary-foreground hover:bg-primary/90">
                       {savingCompany ? "Saving…" : "Save Company Settings"}
                     </Button>
                   </div>
@@ -1538,7 +1558,7 @@ export default function Settings() {
                         <TableCell>
                           <a
                             href={`${apiBase}/users/${user.id}/application-form.pdf`}
-                            className="text-xs font-medium text-[#1F4E79] underline underline-offset-2 whitespace-nowrap"
+                            className="text-xs font-medium text-info underline underline-offset-2 whitespace-nowrap"
                           >
                             Download blank PDF
                           </a>

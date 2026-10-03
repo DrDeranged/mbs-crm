@@ -279,7 +279,7 @@ export default function DealDetail() {
 
   if (dealLoading) {
     return (
-      <div className="flex-1 p-6 space-y-6 bg-[#f8fafc]">
+      <div className="flex-1 p-6 space-y-6 bg-muted">
         <Skeleton className="h-10 w-48" />
         <div className="grid lg:grid-cols-3 gap-6">
           <Skeleton className="h-96 lg:col-span-2" />
@@ -291,7 +291,7 @@ export default function DealDetail() {
 
   if (getQueryErrorStatus(dealError) === 404) {
     return (
-      <div className="flex-1 p-6 bg-[#f8fafc] flex flex-col items-center justify-center">
+      <div className="flex-1 p-6 bg-muted flex flex-col items-center justify-center">
         <h2 className="text-xl font-semibold">Deal not found</h2>
         <Link href="/deals"><Button variant="link" className="mt-2">Back to Deals</Button></Link>
       </div>
@@ -382,9 +382,9 @@ export default function DealDetail() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-y-auto">
+    <div className="flex-1 flex flex-col h-full bg-muted overflow-y-auto">
       <RecordActionBar items={actions} />
-      <div className="flex-none px-4 py-4 border-b bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm sm:px-6">
+      <div className="flex-none px-4 py-4 border-b bg-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:px-6">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <Link href="/deals" className="shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full text-muted-foreground hover:text-foreground">
@@ -393,9 +393,9 @@ export default function DealDetail() {
           </Link>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-               <h1 className="text-xl font-bold text-[#0E2A47] break-words">{identity}</h1>
-              {deal.isArchived && <Badge variant="secondary" className="bg-slate-100 text-slate-700 shrink-0">Archived</Badge>}
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 shrink-0">{currentStage}</Badge>
+               <h1 className="text-xl font-bold text-foreground break-words">{identity}</h1>
+              {deal.isArchived && <Badge variant="secondary" className="bg-secondary text-foreground shrink-0">Archived</Badge>}
+              <Badge variant="outline" className="bg-info-bg text-info border-info/30 shrink-0">{currentStage}</Badge>
             </div>
             {deal.dealName?.trim() && deal.dealName.trim() !== identity && (
               <p className="text-xs text-muted-foreground mt-1 break-words">Deal name: {deal.dealName}</p>
@@ -403,7 +403,7 @@ export default function DealDetail() {
             {deal.leadId && authorizedLead && (
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                 Linked to Lead: 
-                <Link href={`/leads/${deal.leadId}`} className="text-primary hover:underline font-medium flex items-center gap-1 truncate max-w-[200px]">
+                <Link href={`/leads/${deal.leadId}`} className="text-success hover:underline font-medium flex items-center gap-1 truncate max-w-[200px]">
                   <span className="truncate">{formatDealIdentity(deal)}</span> <ArrowUpRight className="w-3 h-3 shrink-0" />
                 </Link>
               </p>
@@ -424,7 +424,7 @@ export default function DealDetail() {
               </span>
             </div>
             {!contactLeadId && (
-              <p className="mt-2 max-w-2xl text-xs text-amber-800">
+              <p className="mt-2 max-w-2xl text-xs text-warning">
                 No accessible lead is linked. Documents, notes, tasks and CRM texting need an authorized linked lead.
               </p>
             )}
@@ -460,8 +460,8 @@ export default function DealDetail() {
 
       <div className="p-4 pb-28 md:p-6 md:pb-28 max-w-[1200px] w-full mx-auto grid lg:grid-cols-[1fr_400px] gap-6">
         <div className="space-y-6">
-          <Card className="shadow-sm border-gray-200/60 overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
+          <Card className="border-border overflow-hidden">
+            <CardHeader className="bg-muted border-b border-border pb-4">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deal Details</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -469,13 +469,13 @@ export default function DealDetail() {
               {editMode ? (
                 <div className="grid grid-cols-2 gap-6">
                   <div className="col-span-2 space-y-1.5">
-                    <Label>Deal name <span className="text-red-500">*</span></Label>
+                    <Label>Deal name <span className="text-danger">*</span></Label>
                     <Input value={formData.dealName} onChange={e => setFormData(f => ({...f, dealName: e.target.value}))} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Stage</Label>
                     <Select value={formData.stage} onValueChange={v => setFormData(f => ({...f, stage: v}))}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STAGES.map(s => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
                       </SelectContent>
@@ -487,7 +487,7 @@ export default function DealDetail() {
                       value={formData.assignedTo}
                       onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}
                       placeholder=""
-                      className="bg-white"
+                      className="bg-card"
                       options={[
                         { value: "unassigned", label: "Unassigned" },
                         ...(users ?? []).map(u => ({ value: String(u.id), label: getUserDisplayName(u) })),
@@ -520,44 +520,44 @@ export default function DealDetail() {
                 <div className="grid grid-cols-2 gap-x-6 gap-y-8">
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Amount</div>
-                    <div className="text-lg font-semibold text-[#0E2A47]">{deal.amount ? `$${deal.amount.toLocaleString()}` : "—"}</div>
+                    <div className="text-lg font-semibold text-foreground">{deal.amount ? `$${deal.amount.toLocaleString()}` : "—"}</div>
                   </div>
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Expected GM</div>
-                    <div className="text-lg font-semibold text-emerald-600">{deal.approxGm ? `$${deal.approxGm.toLocaleString()}` : "—"}</div>
+                    <div className="text-lg font-semibold text-success">{deal.approxGm ? `$${deal.approxGm.toLocaleString()}` : "—"}</div>
                   </div>
                    {(deal as any).referredByPartnerId && (
                      <div>
                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Referral partner</div>
-                       <div className="text-sm font-medium text-[#0E2A47]">Partner #{(deal as any).referredByPartnerId} · {(deal as any).referralSplitPct ?? 0}% split</div>
+                       <div className="text-sm font-medium text-foreground">Partner #{(deal as any).referredByPartnerId} · {(deal as any).referralSplitPct ?? 0}% split</div>
                      </div>
                    )}
                    {(deal as any).referralGm != null && (
                      <div>
                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Net GM after referral</div>
-                       <div className="text-lg font-semibold text-emerald-600">${Number((deal as any).referralGm).toLocaleString()}</div>
+                       <div className="text-lg font-semibold text-success">${Number((deal as any).referralGm).toLocaleString()}</div>
                      </div>
                    )}
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Actual GM</div>
-                    <div className="text-lg font-semibold text-[#149258]">{deal.actualGm ? `$${deal.actualGm.toLocaleString()}` : "—"}</div>
+                    <div className="text-lg font-semibold text-success">{deal.actualGm ? `$${deal.actualGm.toLocaleString()}` : "—"}</div>
                   </div>
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Assigned Rep</div>
-                    <div className="text-sm font-medium flex items-center gap-2 text-gray-700">
+                    <div className="text-sm font-medium flex items-center gap-2 text-foreground">
                       <User className="h-4 w-4 text-muted-foreground" /> {assignedRep ? getUserDisplayName(assignedRep) : "Unassigned"}
                     </div>
                   </div>
                   <div>
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Created</div>
-                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <div className="text-sm font-medium text-foreground flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" /> {format(new Date(deal.createdAt), "MMM d, yyyy")}
                     </div>
                   </div>
                   {deal.fundedAt && (
                     <div>
                       <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Funded At</div>
-                      <div className="text-sm font-medium text-[#149258] flex items-center gap-2">
+                      <div className="text-sm font-medium text-success flex items-center gap-2">
                         <Check className="h-4 w-4" /> {format(new Date(deal.fundedAt), "MMM d, yyyy")}
                       </div>
                     </div>
@@ -567,8 +567,8 @@ export default function DealDetail() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-gray-200/60 overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4 flex flex-row items-center justify-between">
+          <Card className="border-border overflow-hidden">
+            <CardHeader className="bg-muted border-b border-border pb-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Latest Approval</CardTitle>
                 {latest && <CardDescription className="mt-1">{latest.lenderName} · {latest.contractType}</CardDescription>}
@@ -584,7 +584,7 @@ export default function DealDetail() {
                   <div><div className="text-xs text-muted-foreground">Advance</div><div className="font-semibold">${Number(latest.advance).toLocaleString()}</div></div>
                   <div><div className="text-xs text-muted-foreground">Payment</div><div className="font-semibold">${Number(latest.payment).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
                   <div><div className="text-xs text-muted-foreground">Term</div><div className="font-semibold">{latest.term} payments</div></div>
-                  <div><div className="text-xs text-muted-foreground">Expiry</div><div className={cn("font-semibold", approvalDaysUntil(latest.expiresOn) < 0 ? "text-red-600" : "text-emerald-600")}>{approvalDaysUntil(latest.expiresOn)} days</div></div>
+                  <div><div className="text-xs text-muted-foreground">Expiry</div><div className={cn("font-semibold", approvalDaysUntil(latest.expiresOn) < 0 ? "text-danger" : "text-success")}>{approvalDaysUntil(latest.expiresOn)} days</div></div>
                 </div>
               )}
               {!latest && !approvalOpen && <div className="text-sm text-muted-foreground py-2">No lender approval captured yet.</div>}
@@ -621,8 +621,8 @@ export default function DealDetail() {
         </div>
 
         <div className="space-y-6">
-          <Card className="shadow-sm border-gray-200/60 overflow-hidden h-full flex flex-col">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4 shrink-0">
+          <Card className="border-border overflow-hidden h-full flex flex-col">
+            <CardHeader className="bg-muted border-b border-border pb-4 shrink-0">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Activity className="h-4 w-4" /> Activity Timeline
               </CardTitle>
@@ -637,7 +637,7 @@ export default function DealDetail() {
                 <div className="p-8 text-center text-sm text-muted-foreground">No activity yet.</div>
               ) : (
                 <div className="p-6 relative">
-                  <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-gray-100" />
+                  <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-secondary" />
                   <div className="space-y-6">
                     {activities?.map(activity => {
                       const isStageChange = activity.action === "stage_changed";
@@ -646,13 +646,13 @@ export default function DealDetail() {
                       
                       return (
                         <div key={activity.id} className="relative flex items-start gap-4 z-[var(--z-header)] min-w-0">
-                          <div className={cn("h-8 w-8 rounded-full border-2 border-white flex items-center justify-center shrink-0 shadow-sm", isStageChange ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500")}>
+                          <div className={cn("h-8 w-8 rounded-full border-2 border-white flex items-center justify-center shrink-0 ", isStageChange ? "bg-info-bg text-info" : "bg-secondary text-muted-foreground")}>
                             {isStageChange ? <ChevronRight className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 break-words [overflow-wrap:anywhere]">
+                            <p className="text-sm font-medium text-foreground break-words [overflow-wrap:anywhere]">
                               {isStageChange ? (
-                                <>Moved to <span className="font-semibold text-blue-700">{newStage}</span></>
+                                <>Moved to <span className="font-semibold text-info">{newStage}</span></>
                               ) : (
                                 activity.action
                               )}

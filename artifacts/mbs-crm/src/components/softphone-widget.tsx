@@ -466,7 +466,7 @@ export function SoftphoneWidget() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardList className="h-4 w-4 text-[#1F4E79]" />
+              <ClipboardList className="h-4 w-4 text-info" />
               Post-Call Notes
             </DialogTitle>
             <DialogDescription>
@@ -526,13 +526,13 @@ export function SoftphoneWidget() {
             </div>
 
             {commLookupStatus === "loading" && (
-              <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+              <div className="flex items-center gap-2 rounded-lg bg-info-bg border border-info/30 px-3 py-2 text-xs text-info">
                 <Loader2 className="h-3 w-3 animate-spin shrink-0" />
                 Locating call record… Save will be enabled shortly.
               </div>
             )}
             {commLookupStatus === "not-found" && (
-              <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+              <div className="flex items-center gap-2 rounded-lg bg-warning-bg border border-warning/30 px-3 py-2 text-xs text-warning">
                 <AlertCircle className="h-3 w-3 shrink-0" />
                 Call record not found — notes won't be saved, but any follow-up task will still be created.
               </div>
@@ -542,7 +542,7 @@ export function SoftphoneWidget() {
                 Skip
               </Button>
               <Button
-                className="flex-1 bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+                className="flex-1 bg-solid hover:bg-sidebar-accent text-white"
                 onClick={handleSavePostCall}
                 disabled={commLookupStatus === "loading" || updateComm.isPending || createTask.isPending}
               >
@@ -562,12 +562,12 @@ export function SoftphoneWidget() {
         <div className={`fixed z-[var(--z-popover)] pointer-events-none ${mobileWeb ? "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4" : "bottom-6 right-6"}`}>
           <button
             onClick={() => setMinimized(false)}
-            className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-[#1F4E79] text-white shadow-lg hover:bg-[#163a5f] transition-colors"
+            className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full bg-solid text-white hover:bg-sidebar-accent transition-colors"
             title="Open softphone"
           >
             <Phone className="h-6 w-6" />
             {isBusy && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-chart-1 text-[10px] font-bold">
                 •
               </span>
             )}
@@ -579,13 +579,13 @@ export function SoftphoneWidget() {
       <Sheet open={!minimized || isIncoming} onOpenChange={(open) => {
         if (!open && !isIncoming) setMinimized(true);
       }}>
-        <SheetContent side="right" showClose={false} className="w-[320px] sm:w-[400px] p-0 border-l border-border bg-white flex flex-col z-[var(--z-dialog)] shadow-2xl">
-          <SheetHeader className="bg-[#1F4E79] px-4 py-3 shrink-0 flex flex-row items-center justify-between border-b-0 space-y-0">
+        <SheetContent side="right" showClose={false} className="w-[320px] sm:w-[400px] p-0 border-l border-border bg-card flex flex-col z-[var(--z-dialog)] ">
+          <SheetHeader className="bg-solid px-4 py-3 shrink-0 flex flex-row items-center justify-between border-b-0 space-y-0">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-white" />
               <SheetTitle className="text-sm font-semibold text-white mt-0">Softphone</SheetTitle>
               {isBusy && (
-                <Badge className="bg-green-500 text-white text-xs px-1.5 py-0 h-5 border-0">
+                <Badge className="bg-chart-1 text-white text-xs px-1.5 py-0 h-5 border-0">
                   {isIncoming ? "Incoming" : isCalling ? "Calling…" : formatTime(callSeconds)}
                 </Badge>
               )}
@@ -601,7 +601,7 @@ export function SoftphoneWidget() {
 
           <div className="p-4 space-y-4 flex-1 overflow-y-auto">
             {error && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              <div className="rounded-lg bg-warning-bg border border-warning/30 px-3 py-2 text-xs text-warning">
                 {error}
               </div>
             )}
@@ -621,12 +621,12 @@ export function SoftphoneWidget() {
 
             {/* Incoming call alert */}
             {isIncoming && incomingInfo && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-blue-800">
+              <div className="rounded-xl bg-info-bg border border-info/30 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-info">
                   <PhoneIncoming className="h-4 w-4 animate-pulse" />
                   <span className="text-sm font-medium">Incoming call</span>
                 </div>
-                <p className="text-sm text-blue-700 font-mono">{incomingInfo.from}</p>
+                <p className="text-sm text-info font-mono">{incomingInfo.from}</p>
                 <div className="flex gap-2 pt-1">
                   <Button size="sm" onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
                     Accept
@@ -641,20 +641,20 @@ export function SoftphoneWidget() {
             {!isIncoming && (
               <>
                 {/* Number input */}
-                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-3">
                   <input
                     type="tel"
                     value={dialInput}
                     onChange={(e) => setDialInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleCall(); }}
                     placeholder="+1 (555) 000-0000"
-                    className="flex-1 bg-transparent text-base font-mono text-slate-900 outline-none placeholder:text-slate-400"
+                    className="flex-1 bg-transparent text-base font-mono text-foreground outline-none placeholder:text-muted-foreground"
                     disabled={isBusy}
                   />
                     {dialInput && !isBusy && (
                       <button
                         onClick={() => setDialInput((v) => v.slice(0, -1))}
-                        className="text-slate-400 hover:text-slate-600"
+                        className="text-muted-foreground hover:text-muted-foreground"
                       >
                         <Delete className="h-4 w-4" />
                       </button>
@@ -668,7 +668,7 @@ export function SoftphoneWidget() {
                         <button
                           key={k}
                           onClick={() => setDialInput((v) => v + k)}
-                          className="flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                          className="flex h-10 items-center justify-center rounded-lg border border-border bg-muted text-sm font-medium text-foreground hover:bg-secondary transition-colors"
                         >
                           {k}
                         </button>
@@ -685,30 +685,30 @@ export function SoftphoneWidget() {
                           className={cn(
                             "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
                             muted
-                              ? "bg-red-100 border-red-300 text-red-600"
-                              : "bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200"
+                              ? "bg-danger-bg border-danger/30 text-danger"
+                              : "bg-secondary border-border text-muted-foreground hover:bg-secondary"
                           )}
                           title={muted ? "Unmute" : "Mute"}
                         >
                           {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                         </button>
                         <div className="text-center">
-                          <div className="text-lg font-mono font-bold text-slate-800">{formatTime(callSeconds)}</div>
-                          <div className="text-xs text-slate-500">Connected</div>
+                          <div className="text-lg font-mono font-bold text-foreground">{formatTime(callSeconds)}</div>
+                          <div className="text-xs text-muted-foreground">Connected</div>
                         </div>
                         <div className="w-10" />
                       </div>
 
                       {/* Collapsible in-call notes */}
-                      <div className="rounded-lg border border-slate-200 overflow-hidden">
+                      <div className="rounded-lg border border-border overflow-hidden">
                         <button
                           onClick={() => setShowInCallNotes((v) => !v)}
-                          className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-slate-100 transition-colors text-xs font-medium text-slate-600"
+                          className="w-full flex items-center justify-between px-3 py-2 bg-muted hover:bg-secondary transition-colors text-xs font-medium text-muted-foreground"
                         >
                           <span className="flex items-center gap-1.5">
                             <ClipboardList className="h-3 w-3" />
                             In-call notes
-                            {inCallNotes && <span className="text-[#1F4E79]">•</span>}
+                            {inCallNotes && <span className="text-info">•</span>}
                           </span>
                           {showInCallNotes
                             ? <ChevronUp className="h-3 w-3" />

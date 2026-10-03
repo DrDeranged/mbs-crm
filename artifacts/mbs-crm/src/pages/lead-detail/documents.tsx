@@ -336,7 +336,7 @@ export function LeadDocuments() {
       </div>
 
       {isUsfaLead && (
-        <section className="space-y-3 rounded-md border bg-white p-4 shadow-sm" aria-label="USFA statements">
+        <section className="space-y-3 rounded-md border bg-card p-4 " aria-label="USFA statements">
           <div>
             <h4 className="font-medium">USFA statements</h4>
             <p className="text-sm text-muted-foreground">Statements stored from the USFA dashboard.</p>
@@ -394,20 +394,20 @@ export function LeadDocuments() {
         </section>
       )}
 
-      <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+      <div className="rounded-md border bg-card overflow-hidden">
         {isLoading ? (
           <div className="p-4 space-y-3">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
         ) : documents?.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground bg-gray-50/50">No documents found.</div>
+          <div className="text-center py-8 text-muted-foreground bg-muted">No documents found.</div>
         ) : (
           <div className="divide-y">
             {documents?.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50 min-w-0 gap-2">
+              <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-muted min-w-0 gap-2">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                  <div className="h-10 w-10 rounded bg-info-bg flex items-center justify-center text-info shrink-0">
                     <FileIcon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -424,7 +424,7 @@ export function LeadDocuments() {
                 >
                   <SelectTrigger
                     aria-label={`Category for ${doc.filename}`}
-                    className="h-7 w-[145px] rounded-full border-blue-200 bg-blue-50 px-2 text-xs text-blue-700"
+                    className="h-7 w-[145px] rounded-full border-info/30 bg-info-bg px-2 text-xs text-info"
                     data-testid={`document-category-${doc.id}`}
                   >
                     <SelectValue />

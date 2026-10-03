@@ -101,11 +101,11 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
   };
 
   return (
-    <div className="md:col-span-2 rounded-lg border bg-white p-4">
+    <div className="md:col-span-2 rounded-lg border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-medium">Manually picked leads <span className="text-slate-500">({selectedIds.length})</span></p>
-          <p className="text-sm text-slate-500">Picked leads are added independently of the audience filters.</p>
+          <p className="font-medium">Manually picked leads <span className="text-muted-foreground">({selectedIds.length})</span></p>
+          <p className="text-sm text-muted-foreground">Picked leads are added independently of the audience filters.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <Button type="button" variant="outline" onClick={() => { setError(""); setOpen(true); }}>
@@ -118,26 +118,26 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
             </DialogHeader>
             <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search name, company, email, or source…" aria-label="Search leads" />
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span className="text-slate-500">{loading ? "Searching…" : `${total.toLocaleString()} matching leads`}</span>
+              <span className="text-muted-foreground">{loading ? "Searching…" : `${total.toLocaleString()} matching leads`}</span>
               <Button type="button" variant="secondary" size="sm" onClick={selectAllResults} disabled={loading || selectingAll || total === 0}>
                 {selectingAll ? "Selecting…" : `Select all ${total.toLocaleString()} results`}
               </Button>
             </div>
-            {error && <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+            {error && <p role="alert" className="rounded-md border border-danger/30 bg-danger-bg p-3 text-sm text-danger">{error}</p>}
             <div className="max-h-[45vh] min-h-40 overflow-auto rounded-md border">
               {leads.map((lead) => (
-                <label key={lead.id} className="flex cursor-pointer items-start gap-3 border-b p-3 last:border-0 hover:bg-slate-50">
+                <label key={lead.id} className="flex cursor-pointer items-start gap-3 border-b p-3 last:border-0 hover:bg-muted">
                   <Checkbox checked={selectedIds.includes(lead.id)} onCheckedChange={(checked) => setPicked(lead.id, Boolean(checked))} />
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium">{formatLeadIdentity(lead)}</span>
-                    <span className="block truncate text-sm text-slate-500">{[lead.email, lead.leadSource].filter(Boolean).join(" · ") || "No email or source metadata"}</span>
+                    <span className="block truncate text-sm text-muted-foreground">{[lead.email, lead.leadSource].filter(Boolean).join(" · ") || "No email or source metadata"}</span>
                   </span>
                 </label>
               ))}
-              {!loading && leads.length === 0 && !error && <p className="p-6 text-center text-sm text-slate-500">No leads match this search.</p>}
+              {!loading && leads.length === 0 && !error && <p className="p-6 text-center text-sm text-muted-foreground">No leads match this search.</p>}
             </div>
             <DialogFooter className="flex-row items-center justify-between sm:justify-between">
-              <span className="text-sm text-slate-500">Page {page} of {Math.max(1, Math.ceil(total / CAMPAIGN_LEAD_PICKER_PAGE_SIZE))}</span>
+              <span className="text-sm text-muted-foreground">Page {page} of {Math.max(1, Math.ceil(total / CAMPAIGN_LEAD_PICKER_PAGE_SIZE))}</span>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1 || loading}>Previous</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => setPage((value) => value + 1)} disabled={loading || page * CAMPAIGN_LEAD_PICKER_PAGE_SIZE >= total}>Next</Button>
@@ -146,7 +146,7 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
           </DialogContent>
         </Dialog>
       </div>
-      {error && !open && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
+      {error && !open && <p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
       {selectedIds.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {selectedIds.map((id) => {

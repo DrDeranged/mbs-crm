@@ -108,19 +108,19 @@ export function RichTextEditor({
     <>
       <div
         className={cn(
-          "border rounded-lg overflow-hidden bg-white",
+          "border rounded-lg overflow-hidden bg-card",
           disabled && "opacity-60 pointer-events-none",
           className
         )}
       >
         {/* Toolbar */}
-        <div className="flex items-center gap-0.5 flex-wrap px-2 py-1 border-b bg-slate-50">
+        <div className="flex items-center gap-0.5 flex-wrap px-2 py-1 border-b bg-muted">
           <Toggle
             size="sm"
             pressed={editor.isActive("bold")}
             onPressedChange={() => editor.chain().focus().toggleBold().run()}
             title="Bold (Ctrl+B)"
-            className="h-7 w-7 p-0 data-[state=on]:bg-slate-200"
+            className="h-7 w-7 p-0 data-[state=on]:bg-secondary"
           >
             <Bold className="h-3.5 w-3.5" />
           </Toggle>
@@ -129,12 +129,12 @@ export function RichTextEditor({
             pressed={editor.isActive("italic")}
             onPressedChange={() => editor.chain().focus().toggleItalic().run()}
             title="Italic (Ctrl+I)"
-            className="h-7 w-7 p-0 data-[state=on]:bg-slate-200"
+            className="h-7 w-7 p-0 data-[state=on]:bg-secondary"
           >
             <Italic className="h-3.5 w-3.5" />
           </Toggle>
 
-          <div className="w-px h-4 bg-slate-200 mx-0.5" />
+          <div className="w-px h-4 bg-secondary mx-0.5" />
 
           <Toggle
             size="sm"
@@ -143,7 +143,7 @@ export function RichTextEditor({
               editor.chain().focus().toggleHeading({ level: 1 }).run()
             }
             title="Heading 1"
-            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-slate-200"
+            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-secondary"
           >
             H1
           </Toggle>
@@ -154,7 +154,7 @@ export function RichTextEditor({
               editor.chain().focus().toggleHeading({ level: 2 }).run()
             }
             title="Heading 2"
-            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-slate-200"
+            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-secondary"
           >
             H2
           </Toggle>
@@ -165,12 +165,12 @@ export function RichTextEditor({
               editor.chain().focus().toggleHeading({ level: 3 }).run()
             }
             title="Heading 3"
-            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-slate-200"
+            className="h-7 px-1.5 text-[10px] font-bold data-[state=on]:bg-secondary"
           >
             H3
           </Toggle>
 
-          <div className="w-px h-4 bg-slate-200 mx-0.5" />
+          <div className="w-px h-4 bg-secondary mx-0.5" />
 
           <Toggle
             size="sm"
@@ -179,7 +179,7 @@ export function RichTextEditor({
               editor.chain().focus().toggleBulletList().run()
             }
             title="Bullet list"
-            className="h-7 w-7 p-0 data-[state=on]:bg-slate-200"
+            className="h-7 w-7 p-0 data-[state=on]:bg-secondary"
           >
             <List className="h-3.5 w-3.5" />
           </Toggle>
@@ -190,19 +190,19 @@ export function RichTextEditor({
               editor.chain().focus().toggleOrderedList().run()
             }
             title="Numbered list"
-            className="h-7 w-7 p-0 data-[state=on]:bg-slate-200"
+            className="h-7 w-7 p-0 data-[state=on]:bg-secondary"
           >
             <ListOrdered className="h-3.5 w-3.5" />
           </Toggle>
 
-          <div className="w-px h-4 bg-slate-200 mx-0.5" />
+          <div className="w-px h-4 bg-secondary mx-0.5" />
 
           <Toggle
             size="sm"
             pressed={editor.isActive("link")}
             onPressedChange={handleAddLink}
             title="Insert / edit link"
-            className="h-7 w-7 p-0 data-[state=on]:bg-slate-200"
+            className="h-7 w-7 p-0 data-[state=on]:bg-secondary"
           >
             <Link2 className="h-3.5 w-3.5" />
           </Toggle>
@@ -214,7 +214,7 @@ export function RichTextEditor({
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             title="Undo"
-            className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-200 disabled:opacity-30 transition-colors"
+            className="h-7 w-7 flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30 transition-colors"
           >
             <Undo2 className="h-3.5 w-3.5" />
           </button>
@@ -223,7 +223,7 @@ export function RichTextEditor({
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             title="Redo"
-            className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-200 disabled:opacity-30 transition-colors"
+            className="h-7 w-7 flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30 transition-colors"
           >
             <Redo2 className="h-3.5 w-3.5" />
           </button>
@@ -231,7 +231,7 @@ export function RichTextEditor({
 
         {/* Variable chip row */}
         {variables && variables.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 px-3 py-1.5 border-b bg-slate-50/70">
+          <div className="flex flex-wrap items-center gap-1 px-3 py-1.5 border-b bg-muted">
             <span className="text-[10px] text-muted-foreground font-medium shrink-0">
               Insert:
             </span>
@@ -240,7 +240,7 @@ export function RichTextEditor({
                 key={v}
                 type="button"
                 onClick={() => insertVariable(v)}
-                className="text-[10px] px-1.5 py-0.5 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 rounded border border-blue-200 font-mono transition-colors cursor-pointer"
+                className="text-[10px] px-1.5 py-0.5 bg-info-bg hover:bg-info-bg active:bg-blue-200 text-info rounded border border-info/30 font-mono transition-colors cursor-pointer"
               >
                 {v}
               </button>
@@ -289,7 +289,7 @@ export function RichTextEditor({
             </Button>
             <Button
               onClick={confirmLink}
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+              className="bg-solid hover:bg-sidebar-accent text-white"
             >
               {linkUrl && linkUrl !== "https://" ? "Apply" : "Remove Link"}
             </Button>

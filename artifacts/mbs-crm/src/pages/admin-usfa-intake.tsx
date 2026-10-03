@@ -67,7 +67,7 @@ export default function AdminUsfaIntake() {
   };
   useEffect(() => { if (me?.role === "admin") void load(true); }, [me?.role]);
   if (meLoading) return <div className="p-8">Loading…</div>;
-  if (me?.role !== "admin") return <div className="p-8 text-red-600">Admin access required.</div>;
+  if (me?.role !== "admin") return <div className="p-8 text-danger">Admin access required.</div>;
   const saveConnection = async () => {
     if (!sheetTab.trim()) { setMessage("Tab is required."); return; }
     setBusy(true); setMessage("");
@@ -165,7 +165,7 @@ export default function AdminUsfaIntake() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Administration</p><h1 className="text-3xl font-bold text-[#0E2A47]">USFA Intake</h1><p className="mt-1 text-sm text-muted-foreground">Read-only Google Sheet poll and idempotent row receipts.</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Administration</p><h1 className="text-3xl font-bold text-foreground">USFA Intake</h1><p className="mt-1 text-sm text-muted-foreground">Read-only Google Sheet poll and idempotent row receipts.</p></div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => void repairUsfaLeads()} disabled={busy} data-testid="button-repair-usfa-leads">
             {busy ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}

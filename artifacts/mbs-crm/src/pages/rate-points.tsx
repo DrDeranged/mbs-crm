@@ -102,17 +102,17 @@ export default function RatePointsPage() {
   const hasDistinctDealName = Boolean(customDealName && customDealName !== dealIdentity);
 
   return (
-    <div className="flex-1 bg-[#f8fafc] overflow-y-auto">
+    <div className="flex-1 bg-muted overflow-y-auto">
       <div className="max-w-[1200px] mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
           {dealId ? <Link href={`/deals/${dealId}`}><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link> : null}
           <div>
-            <h1 className="text-2xl font-bold text-[#0E2A47]">Rate &amp; Points</h1>
+            <h1 className="text-2xl font-bold text-foreground">Rate &amp; Points</h1>
             <p className="text-sm text-muted-foreground">
               {deal ? (
                 <>
                   Calculating for{" "}
-                  <Link href={`/deals/${deal.id}`} className="font-medium text-[#1F4E79] hover:underline">{dealIdentity}</Link>
+                  <Link href={`/deals/${deal.id}`} className="font-medium text-info hover:underline">{dealIdentity}</Link>
                   {hasDistinctDealName && (
                     <> · <Link href={`/deals/${deal.id}`} className="hover:underline">{customDealName}</Link></>
                   )}
@@ -123,7 +123,7 @@ export default function RatePointsPage() {
         </div>
         {(approvalsQuery.isError || approvalList.malformed) && <InlineListError title="Couldn’t load calculator prefill" status={approvalsQuery.isError ? getQueryErrorStatus(approvalsQuery.error) : 200} detail={approvalList.malformed ? "The server returned an unexpected approvals response." : undefined} onRetry={() => void approvalsQuery.refetch()} />}
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5 text-primary" />Payment inputs</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5 text-success" />Payment inputs</CardTitle></CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div><Label>Advance</Label><Input type="number" step="0.01" value={advance} onChange={(e) => setAdvance(e.target.value)} /></div>
             <div><Label>Payment</Label><Input type="number" step="0.01" value={payment} onChange={(e) => setPayment(e.target.value)} disabled={mode === "reverse"} /></div>
@@ -157,5 +157,5 @@ export default function RatePointsPage() {
 }
 
 function Stat({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
-  return <div className={`rounded-xl border p-4 ${highlight ? "border-primary/30 bg-primary/5" : "bg-white"}`}><div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div><div className="mt-1 text-xl font-bold text-[#0E2A47]">{value}</div></div>;
+  return <div className={`rounded-xl border p-4 ${highlight ? "border-primary/30 bg-primary/5" : "bg-card"}`}><div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div><div className="mt-1 text-xl font-bold text-foreground">{value}</div></div>;
 }

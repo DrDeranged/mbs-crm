@@ -28,10 +28,10 @@ export default function FinancingCampaign() {
           <h1 className="text-2xl font-semibold">Tomorrow’s Financing Campaign</h1>
           <p className="text-muted-foreground">Review-ready content only. This draft cannot select recipients, schedule, or send.</p>
         </div>
-        <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Draft · approval required</Badge>
+        <Badge className="bg-warning-bg text-warning hover:bg-warning-bg">Draft · approval required</Badge>
       </div>
 
-      <Card className="border-amber-300 bg-amber-50/70">
+      <Card className="border-warning/30 bg-warning-bg/70">
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><AlertTriangle className="h-4 w-4" />Launch approvals still required</CardTitle></CardHeader>
         <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
           <p>Approve the $10K–$5MM range, “as little as 24 hours,” and “bank statements alone” claims.</p>
@@ -47,13 +47,13 @@ export default function FinancingCampaign() {
           <CardContent className="space-y-3 text-sm">
             <div><strong>Equipment Financing — Review Before You Buy</strong><p className="text-muted-foreground">“Most equipment deals don’t die on price” copy, range/documentation claims, equipment and soft costs, working-capital option, qualifying question, Nate Ford signature, and disclaimer.</p></div>
             <div><strong>Working Capital — Preserve Your Bank Line</strong><p className="text-muted-foreground">Bank-line, unsecured-capital, use-of-funds, underwriting, reply request, Nate Ford contact details, and disclaimer.</p></div>
-            <p className="rounded-md bg-slate-50 p-2 text-xs">Preview uses <code>{"{{lead_first_name}}"}</code> and displays “Jane” when no lead is selected. The legal footer is appended only during delivery.</p>
+            <p className="rounded-md bg-muted p-2 text-xs">Preview uses <code>{"{{lead_first_name}}"}</code> and displays “Jane” when no lead is selected. The legal footer is appended only during delivery.</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2 text-base"><ShieldCheck className="h-4 w-4" />Safeguards unchanged</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {safeguards.map((item) => <p key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />{item}</p>)}
+            {safeguards.map((item) => <p key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />{item}</p>)}
           </CardContent>
         </Card>
       </div>
@@ -77,11 +77,11 @@ export default function FinancingCampaign() {
             ["Working Capital — Take on the Job", `${api}/collateral/campaign-assets/working-capital`],
             ["Equipment Financing — The Next Piece of Your Business", `${api}/collateral/campaign-assets/equipment-financing`],
           ].map(([title, src]) => (
-            <figure key={title} className="overflow-hidden rounded-lg border bg-white">
+            <figure key={title} className="overflow-hidden rounded-lg border bg-card">
               <img src={src} alt={title} className="aspect-[2/3] w-full object-contain" />
               <figcaption className="flex items-center justify-between gap-3 border-t p-3 text-sm font-medium">
                 <span>{title}</span>
-                <a href={`${src}/download`} className="inline-flex shrink-0 items-center gap-1 text-xs text-[#1F4E79] hover:underline">
+                <a href={`${src}/download`} className="inline-flex shrink-0 items-center gap-1 text-xs text-info hover:underline">
                   <Download className="h-3.5 w-3.5" />Original PNG
                 </a>
               </figcaption>

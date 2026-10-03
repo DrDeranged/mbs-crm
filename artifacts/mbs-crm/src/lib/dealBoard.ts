@@ -4,47 +4,47 @@ export const DEAL_STAGE_COLUMNS = [
   {
     id: "waiting_on_app",
     label: "Waiting on App",
-    color: "bg-gray-100 text-gray-700",
+    color: "bg-secondary text-foreground",
   },
   {
     id: "information_needed",
     label: "Info Needed",
-    color: "bg-orange-100 text-orange-700",
+    color: "bg-warning-bg text-warning",
   },
   {
     id: "submitted",
     label: "Submitted",
-    color: "bg-blue-100 text-blue-700",
+    color: "bg-info-bg text-info",
   },
   {
     id: "approved",
     label: "Approved",
-    color: "bg-green-100 text-green-700",
+    color: "bg-success-bg text-success",
   },
   {
     id: "in_funding",
     label: "In Funding",
-    color: "bg-indigo-100 text-indigo-700",
+    color: "bg-info-bg text-info",
   },
   {
     id: "funded",
     label: "Funded",
-    color: "bg-[#17A567]/10 text-[#149258]",
+    color: "bg-primary/10 text-success",
   },
   {
     id: "hold_on",
     label: "Hold On",
-    color: "bg-yellow-100 text-yellow-700",
+    color: "bg-warning-bg text-warning",
   },
   {
     id: "declined",
     label: "Declined",
-    color: "bg-red-100 text-red-700",
+    color: "bg-danger-bg text-danger",
   },
   {
     id: "dead",
     label: "Dead",
-    color: "bg-slate-100 text-slate-700",
+    color: "bg-secondary text-foreground",
   },
 ] as const satisfies ReadonlyArray<{
   id: Deal["stage"];

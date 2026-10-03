@@ -60,11 +60,11 @@ export function LeadConsent() {
   const ConsentIndicator = ({ ok, label, detail }: { ok: boolean; label: string; detail?: string }) => (
     <div className="flex items-start gap-3 py-2 border-b last:border-0">
       {ok
-        ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-        : <XCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+        ? <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+        : <XCircle className="h-4 w-4 text-danger mt-0.5 shrink-0" />
       }
       <div>
-        <div className={`text-sm font-medium ${ok ? "text-gray-900" : "text-red-700"}`}>{label}</div>
+        <div className={`text-sm font-medium ${ok ? "text-foreground" : "text-danger"}`}>{label}</div>
         {detail && <div className="text-xs text-muted-foreground mt-0.5">{detail}</div>}
       </div>
     </div>
@@ -98,11 +98,11 @@ export function LeadConsent() {
       {status && (
         <div className="space-y-4">
           {/* Consent Quick Status */}
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-[#1F4E79]" /> Consent & Communication Status
+                  <ShieldCheck className="h-4 w-4 text-info" /> Consent & Communication Status
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={fetchStatus} className="h-7 gap-1 text-xs">
                   <RefreshCw className="h-3 w-3" /> Refresh
@@ -135,31 +135,31 @@ export function LeadConsent() {
           </Card>
 
           {/* Communication Permission Summary */}
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="pb-3 border-b">
               <CardTitle className="text-sm font-semibold">Communication Permissions</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 grid grid-cols-3 gap-4">
-              <div className={`rounded-lg border p-3 text-center ${status.canAutoEmail ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
-                <div className={`text-xs font-semibold mb-1 ${status.canAutoEmail ? "text-emerald-700" : "text-red-700"}`}>Automated Email</div>
-                <div className={`text-lg font-bold ${status.canAutoEmail ? "text-emerald-800" : "text-red-800"}`}>{status.canAutoEmail ? "✓ OK" : "✗ Blocked"}</div>
+              <div className={`rounded-lg border p-3 text-center ${status.canAutoEmail ? "border-success/30 bg-success-bg" : "border-danger/30 bg-danger-bg"}`}>
+                <div className={`text-xs font-semibold mb-1 ${status.canAutoEmail ? "text-success" : "text-danger"}`}>Automated Email</div>
+                <div className={`text-lg font-bold ${status.canAutoEmail ? "text-success" : "text-danger"}`}>{status.canAutoEmail ? "✓ OK" : "✗ Blocked"}</div>
               </div>
-              <div className={`rounded-lg border p-3 text-center ${status.canAutoSms ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
-                <div className={`text-xs font-semibold mb-1 ${status.canAutoSms ? "text-emerald-700" : "text-red-700"}`}>Automated SMS</div>
-                <div className={`text-lg font-bold ${status.canAutoSms ? "text-emerald-800" : "text-red-800"}`}>{status.canAutoSms ? "✓ OK" : "✗ Blocked"}</div>
+              <div className={`rounded-lg border p-3 text-center ${status.canAutoSms ? "border-success/30 bg-success-bg" : "border-danger/30 bg-danger-bg"}`}>
+                <div className={`text-xs font-semibold mb-1 ${status.canAutoSms ? "text-success" : "text-danger"}`}>Automated SMS</div>
+                <div className={`text-lg font-bold ${status.canAutoSms ? "text-success" : "text-danger"}`}>{status.canAutoSms ? "✓ OK" : "✗ Blocked"}</div>
               </div>
-              <div className={`rounded-lg border p-3 text-center ${status.canPullCredit ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
-                <div className={`text-xs font-semibold mb-1 ${status.canPullCredit ? "text-emerald-700" : "text-red-700"}`}>Credit Pull</div>
-                <div className={`text-lg font-bold ${status.canPullCredit ? "text-emerald-800" : "text-red-800"}`}>{status.canPullCredit ? "✓ OK" : "✗ Blocked"}</div>
+              <div className={`rounded-lg border p-3 text-center ${status.canPullCredit ? "border-success/30 bg-success-bg" : "border-danger/30 bg-danger-bg"}`}>
+                <div className={`text-xs font-semibold mb-1 ${status.canPullCredit ? "text-success" : "text-danger"}`}>Credit Pull</div>
+                <div className={`text-lg font-bold ${status.canPullCredit ? "text-success" : "text-danger"}`}>{status.canPullCredit ? "✓ OK" : "✗ Blocked"}</div>
               </div>
             </CardContent>
           </Card>
 
           {/* RTBF — admin only */}
           {me.role === "admin" && (
-            <Card className="shadow-sm border-red-200">
-              <CardHeader className="pb-3 border-b border-red-100">
-                <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2">
+            <Card className="border-danger/30">
+              <CardHeader className="pb-3 border-b border-danger/30">
+                <CardTitle className="text-sm font-semibold text-danger flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" /> Right to be Forgotten (RTBF)
                 </CardTitle>
                 <CardDescription className="text-xs">
@@ -185,7 +185,7 @@ export function LeadConsent() {
                     size="sm"
                     onClick={() => handleRtbf(true)}
                     disabled={scrubbing || forceScrubbing}
-                    className="gap-1.5 border-red-300 text-red-700 hover:bg-red-50"
+                    className="gap-1.5 border-danger/30 text-danger hover:bg-danger-bg"
                   >
                     {forceScrubbing ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Scrubbing…</> : "Force Scrub (acknowledge FCRA hold)"}
                   </Button>

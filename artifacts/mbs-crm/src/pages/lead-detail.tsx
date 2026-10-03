@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { DetailLoadError } from "@/components/detail-load-error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, FileText, CheckSquare, File as FileIcon, MessageSquare, Clock, Building2, Megaphone, ClipboardList, BarChart3, ShieldCheck, ListChecks } from "lucide-react";
@@ -23,6 +22,7 @@ import { SoftphoneContext } from "@/components/softphone-context";
 import { RecordActionBar, type RecordActionItem } from "@/components/record-action-bar";
 import { leadActionTab, type LeadDetailTab } from "@/lib/recordActions";
 import { isMobileWeb, phoneActionForDevice } from "@/lib/recordContact";
+import { LeadDetailSkeleton } from "@/components/page-skeletons";
 
 function LeadDetailContent() {
   const {
@@ -70,7 +70,7 @@ function LeadDetailContent() {
   }, [lead, pendingEmailLeadId, openEmailComposer, clearEmailComposer]);
 
   if (isLoading) {
-    return <div className="p-8 space-y-4"><Skeleton className="h-10 w-[200px]" /><Skeleton className="h-[400px] w-full" /></div>;
+    return <LeadDetailSkeleton />;
   }
 
   if (getQueryErrorStatus(error) === 404) {
@@ -133,7 +133,7 @@ function LeadDetailContent() {
   ];
 
   return (
-    <div className="h-full flex-1 overflow-auto bg-gray-50/50">
+    <div className="h-full flex-1 overflow-auto bg-muted">
       <RecordActionBar items={actions} />
       <HeaderCard />
 
@@ -143,19 +143,19 @@ function LeadDetailContent() {
         <div className="lg:col-span-2">
            <Tabs value={selectedTab} onValueChange={(tab) => setSelectedTab(tab as LeadDetailTab)} className="w-full">
             <div className="overflow-x-auto">
-            <TabsList className="flex w-max min-w-full bg-white shadow-sm border p-1 gap-0.5 h-auto rounded-lg">
-              <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>
-              <TabsTrigger value="notes" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileText className="h-3.5 w-3.5 shrink-0"/> Notes</TabsTrigger>
-              <TabsTrigger value="tasks" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><CheckSquare className="h-3.5 w-3.5 shrink-0"/> Tasks</TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><FileIcon className="h-3.5 w-3.5 shrink-0"/> Docs</TabsTrigger>
-              <TabsTrigger value="communications" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><MessageSquare className="h-3.5 w-3.5 shrink-0"/> Comms</TabsTrigger>
-              <TabsTrigger value="activity" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Clock className="h-3.5 w-3.5 shrink-0"/> Activity</TabsTrigger>
-              <TabsTrigger value="lenders" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Building2 className="h-3.5 w-3.5 shrink-0"/> Lenders</TabsTrigger>
-              <TabsTrigger value="marketing" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><Megaphone className="h-3.5 w-3.5 shrink-0"/> Marketing</TabsTrigger>
-              <TabsTrigger value="application" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ClipboardList className="h-3.5 w-3.5 shrink-0"/> App</TabsTrigger>
-              <TabsTrigger value="financials" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><BarChart3 className="h-3.5 w-3.5 shrink-0"/> Financials</TabsTrigger>
-              <TabsTrigger value="credit" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ShieldCheck className="h-3.5 w-3.5 shrink-0"/> Credit</TabsTrigger>
-              <TabsTrigger value="consent" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"><ListChecks className="h-3.5 w-3.5 shrink-0"/> Consent</TabsTrigger>
+            <TabsList className="record-detail-tabs flex w-max min-w-full bg-card border p-1 gap-0.5 h-auto rounded-lg">
+              <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><FileText className="h-3.5 w-3.5 shrink-0"/> Notes</TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><CheckSquare className="h-3.5 w-3.5 shrink-0"/> Tasks</TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><FileIcon className="h-3.5 w-3.5 shrink-0"/> Docs</TabsTrigger>
+              <TabsTrigger value="communications" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><MessageSquare className="h-3.5 w-3.5 shrink-0"/> Comms</TabsTrigger>
+              <TabsTrigger value="activity" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Clock className="h-3.5 w-3.5 shrink-0"/> Activity</TabsTrigger>
+              <TabsTrigger value="lenders" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Building2 className="h-3.5 w-3.5 shrink-0"/> Lenders</TabsTrigger>
+              <TabsTrigger value="marketing" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Megaphone className="h-3.5 w-3.5 shrink-0"/> Marketing</TabsTrigger>
+              <TabsTrigger value="application" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><ClipboardList className="h-3.5 w-3.5 shrink-0"/> App</TabsTrigger>
+              <TabsTrigger value="financials" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><BarChart3 className="h-3.5 w-3.5 shrink-0"/> Financials</TabsTrigger>
+              <TabsTrigger value="credit" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><ShieldCheck className="h-3.5 w-3.5 shrink-0"/> Credit</TabsTrigger>
+              <TabsTrigger value="consent" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><ListChecks className="h-3.5 w-3.5 shrink-0"/> Consent</TabsTrigger>
             </TabsList>
           </div>
             <TabsContent value="info" className="outline-none">

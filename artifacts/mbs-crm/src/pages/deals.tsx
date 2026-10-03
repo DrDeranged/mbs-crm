@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PipelineSkeleton } from "@/components/page-skeletons";
 import { Link } from "wouter";
 import {
   useListDeals,
@@ -354,10 +355,10 @@ export default function DealsPage() {
   const totals = visibleDealTotals(deals);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f8fafc]">
-      <div className="flex-none px-6 py-4 border-b bg-white flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+    <div className="flex-1 flex flex-col h-full bg-muted">
+      <div className="flex-none px-6 py-4 border-b bg-card flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E2A47]">Deals</h1>
+          <h1 className="text-2xl font-bold text-foreground">Deals</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your funding pipeline
           </p>
@@ -412,10 +413,10 @@ export default function DealsPage() {
               placeholder="Search deals..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-full sm:w-64 h-9 bg-gray-50 border-gray-200"
+              className="pl-9 w-full sm:w-64 h-9 bg-muted border-border"
             />
           </div>
-          <div className="flex rounded-md border bg-gray-50 p-0.5 shrink-0">
+          <div className="flex rounded-md border bg-muted p-0.5 shrink-0">
             {(
               [
                 ["all", "All"],
@@ -430,7 +431,7 @@ export default function DealsPage() {
                 className={cn(
                   "px-2 py-1 rounded text-xs whitespace-nowrap",
                   dealView === value
-                    ? "bg-white shadow-sm text-primary"
+                    ? "bg-card text-success"
                     : "text-muted-foreground",
                 )}
               >
@@ -438,13 +439,13 @@ export default function DealsPage() {
               </button>
             ))}
           </div>
-          <div className="flex border rounded-md overflow-hidden bg-gray-50 p-0.5 shrink-0">
+          <div className="flex border rounded-md overflow-hidden bg-muted p-0.5 shrink-0">
             <button
               onClick={() => setView("kanban")}
               className={cn(
                 "px-2 py-1 rounded text-sm flex items-center gap-1",
                 view === "kanban"
-                  ? "bg-white shadow-sm text-primary"
+                  ? "bg-card text-success"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -456,7 +457,7 @@ export default function DealsPage() {
               className={cn(
                 "px-2 py-1 rounded text-sm flex items-center gap-1",
                 view === "table"
-                  ? "bg-white shadow-sm text-primary"
+                  ? "bg-card text-success"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -480,8 +481,8 @@ export default function DealsPage() {
               className={cn(
                 "px-2 py-1 rounded-md border text-xs whitespace-nowrap",
                 compactKanban
-                  ? "bg-[#0E2A47] text-white border-[#0E2A47]"
-                  : "bg-gray-50 text-muted-foreground hover:text-foreground",
+                  ? "bg-sidebar text-white border-sidebar-border"
+                  : "bg-muted text-muted-foreground hover:text-foreground",
               )}
             >
               {compactKanban ? "Compact" : "Fit 9 columns"}
@@ -520,18 +521,14 @@ export default function DealsPage() {
 
       <div className="flex-1 overflow-hidden relative">
         {isLoading ? (
-          <div className="p-6 grid grid-cols-4 gap-6 h-full">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-full rounded-xl" />
-            ))}
-          </div>
+          <PipelineSkeleton />
         ) : dealsError && !response ? (
           null
         ) : isRep && deals.length === 0 ? (
           <div className="flex h-full items-center justify-center p-6">
-            <div className="rounded-xl border border-dashed bg-white px-8 py-12 text-center shadow-sm">
+            <div className="rounded-xl border border-dashed bg-card px-8 py-12 text-center ">
               <UserIcon className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
-              <h2 className="text-lg font-semibold text-[#0E2A47]">
+              <h2 className="text-lg font-semibold text-foreground">
                 No deals assigned to you yet
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -571,13 +568,13 @@ export default function DealsPage() {
                     key={stage.id}
                     className={cn(
                       cn(
-                        "flex flex-col bg-gray-100/50 rounded-xl border border-gray-200/60 transition-colors h-full",
+                        "flex flex-col bg-secondary/50 rounded-xl border border-border transition-colors h-full",
                         compactKanban
                           ? "min-w-[120px]"
                           : "w-72",
                       ),
                       dragOverStage === stage.id
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-info-bg border-info/30"
                         : "",
                     )}
                     onDragOver={(e) => handleDragOver(e, stage.id)}
@@ -585,16 +582,16 @@ export default function DealsPage() {
                     onDrop={(e) => handleDrop(e, stage.id)}
                   >
                     <div className={cn(
-                      "border-b border-gray-200/60 flex items-center justify-between bg-gray-50/50 rounded-t-xl shrink-0",
+                      "border-b border-border flex items-center justify-between bg-muted rounded-t-xl shrink-0",
                       compactKanban ? "px-2 py-2 gap-1" : "p-3",
                     )}>
                       <h3 className={cn(
-                        "font-semibold text-sm text-gray-700",
+                        "font-semibold text-sm text-foreground",
                         compactKanban && "truncate whitespace-nowrap text-xs",
                       )}>
                         {stage.label}
                       </h3>
-                      <Badge variant="secondary" className="bg-white">
+                      <Badge variant="secondary" className="bg-card">
                         {stageDeals.length}
                       </Badge>
                     </div>
@@ -626,7 +623,7 @@ export default function DealsPage() {
                               handleDragStart(e, deal);
                             }}
                             className={cn(
-                              "bg-white border rounded-lg shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden",
+                              "bg-card border rounded-lg transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden",
                               compactKanban ? "p-2" : "p-3",
                             )}
                           >
@@ -642,7 +639,7 @@ export default function DealsPage() {
                                 onPointerDown={(event) => event.stopPropagation()}
                                 onDragStart={(event) => { event.preventDefault(); event.stopPropagation(); }}
                                 className={cn(
-                                "font-semibold text-[#0E2A47] truncate whitespace-nowrap",
+                                "font-semibold text-foreground truncate whitespace-nowrap",
                                 compactKanban ? "text-xs" : "text-sm",
                                 )}
                               >
@@ -697,15 +694,15 @@ export default function DealsPage() {
                                 compactKanban ? "mt-1 flex items-center justify-between gap-1" : "mt-2 space-y-1.5",
                               )}>
                                 <span className={cn(
-                                  "font-medium text-gray-700 truncate",
+                                  "font-medium text-foreground truncate",
                                   !compactKanban && "flex items-center",
                                 )}>
                                   {!compactKanban && <DollarSign className="w-3 h-3 mr-0.5" />}
                                   {formatCurrency(deal.amount)}
                                 </span>
                                 <span className={cn(
-                                  "font-medium text-emerald-600 truncate",
-                                  compactKanban && "rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px]",
+                                  "font-medium text-success truncate",
+                                  compactKanban && "rounded-full bg-success-bg px-1.5 py-0.5 text-[10px]",
                                 )}>
                                   {!compactKanban && <Building2 className="w-3 h-3 mr-0.5 inline" />}
                                   {formatGmDisplay(
@@ -715,7 +712,7 @@ export default function DealsPage() {
                                 </span>
                               </div>
                               <div className={cn(
-                                "border-gray-100 flex items-center justify-between",
+                                "border-border flex items-center justify-between",
                                 compactKanban ? "mt-1 pt-1" : "mt-3 pt-3 border-t",
                               )}>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
@@ -738,7 +735,7 @@ export default function DealsPage() {
                                 {deal.approvalExpiresOn && (() => {
                                   const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
                                   return days <= 14 && (
-                                    <Badge variant="outline" className={cn("text-[9px] px-1 py-0 h-4", days < 0 ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-700")}>
+                                    <Badge variant="outline" className={cn("text-[9px] px-1 py-0 h-4", days < 0 ? "border-danger/30 bg-danger-bg text-danger" : "border-warning/30 bg-warning-bg text-warning")}>
                                       Approval expires {days < 0 ? "overdue" : `in ${days}d`}
                                     </Badge>
                                   );
@@ -756,7 +753,7 @@ export default function DealsPage() {
           </div>
         ) : (
           <div className="p-6 h-full overflow-auto">
-            <div className="bg-white border rounded-xl shadow-sm">
+            <div className="bg-card border rounded-xl ">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -806,7 +803,7 @@ export default function DealsPage() {
                           <TableCell className="font-medium">
                             <Link
                               href={`/deals/${deal.id}`}
-                              className="text-primary hover:underline"
+                              className="text-success hover:underline"
                             >
                               {dealIdentity}
                               {customDealName && customDealName !== dealIdentity && <span className="block text-xs font-normal text-muted-foreground">{customDealName}</span>}
@@ -868,7 +865,7 @@ export default function DealsPage() {
                             ) : (
                               <button
                                 type="button"
-                                className="block w-full truncate text-left text-sm hover:text-primary"
+                                className="block w-full truncate text-left text-sm hover:text-success"
                                 onClick={() => beginNoteEdit(deal)}
                                 title={deal.notes ?? "Click to add notes"}
                               >
@@ -884,7 +881,7 @@ export default function DealsPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <UserIcon className="w-3.5 h-3.5" />
                               {rep ? getUserDisplayName(rep) : "Unassigned"}
                             </div>
@@ -913,7 +910,7 @@ export default function DealsPage() {
           </div>
         )}
       </div>
-      <div className="flex-none border-t bg-white px-6 py-3 flex flex-wrap gap-6 text-sm">
+      <div className="flex-none border-t bg-card px-6 py-3 flex flex-wrap gap-6 text-sm">
         <span>
           <span className="text-muted-foreground">Total Approx GM:</span>{" "}
           <strong>{formatCurrency(totals.approxGm)}</strong>
@@ -934,7 +931,7 @@ export default function DealsPage() {
                 You are moving{" "}
                 {pendingFundDeal && (
                   <strong>
-                    <Link href={`/deals/${pendingFundDeal.id}`} className="text-primary hover:underline">
+                    <Link href={`/deals/${pendingFundDeal.id}`} className="text-success hover:underline">
                       {pendingFundDeal.entityLabel || formatDealIdentity(pendingFundDeal as any)}
                     </Link>
                   </strong>

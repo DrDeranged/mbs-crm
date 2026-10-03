@@ -53,7 +53,7 @@ export function LeadAssignmentPicker() {
       disabled={assignLead.isPending}
       placeholder="Assign to rep…"
       ariaLabel="Assign lead to representative"
-      className="w-[190px] bg-white font-medium shadow-sm"
+      className="w-[190px] bg-card font-medium "
       options={reps.map((rep) => ({
         value: String(rep.id),
         label: getUserDisplayName(rep),
@@ -96,7 +96,7 @@ export function HeaderCard() {
 
   return (
     <>
-      <div className="border-b bg-white shadow-sm">
+      <div className="border-b bg-card ">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="mb-3">
           <Link href="/leads" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -107,24 +107,24 @@ export function HeaderCard() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 break-words">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground break-words">
               {formatLeadIdentity(lead)}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-gray-400" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span>{contactName(lead) || "Contact name unavailable"}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Phone className="h-4 w-4 text-gray-400" />
+                <Phone className="h-4 w-4 text-muted-foreground" />
                 {lead.phone?.trim() ? <PhoneLink phone={lead.phone.trim()} leadId={lead.id} /> : <span>Phone unavailable</span>}
               </div>
               <div className="flex min-w-0 items-center gap-1.5">
-                <Mail className="h-4 w-4 shrink-0 text-gray-400" />
+                <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
                 {lead.email?.trim() ? <EmailLink email={lead.email.trim()} leadId={lead.id} className="min-w-0 break-all" /> : <span>Email unavailable</span>}
               </div>
               <div className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-gray-400" />
+                <Building2 className="h-4 w-4 text-muted-foreground" />
                 <span>{lead.businessAddress?.trim() || "Business address unavailable"}</span>
               </div>
               {lead.lastActivityAt && (
@@ -147,7 +147,7 @@ export function HeaderCard() {
               onValueChange={handleStatusChange}
               disabled={changeStatus.isPending}
             >
-              <SelectTrigger className="w-[150px] sm:w-[180px] bg-white font-medium shadow-sm">
+              <SelectTrigger className="w-[150px] sm:w-[180px] bg-card font-medium ">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -208,7 +208,7 @@ export function LeadSummary() {
   const { lead } = useLeadDetail();
   return (
     <div className="space-y-6 lg:sticky lg:top-[160px]">
-      <Card className="shadow-sm">
+      <Card className="">
         <CardHeader className="pb-4 border-b">
           <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <User className="h-4 w-4" /> Deal Summary
@@ -229,7 +229,7 @@ export function LeadSummary() {
               <div className="font-medium text-sm flex items-center gap-2">
                 {lead.assignedRep ? (
                   <>
-                    <div className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+                    <div className="h-5 w-5 rounded-full bg-info-bg text-info flex items-center justify-center text-[10px] font-bold">
                       {getUserDisplayName(lead.assignedRep).charAt(0) || 'U'}
                     </div>
                     {getUserDisplayName(lead.assignedRep)}

@@ -85,7 +85,7 @@ export function LeadTasks() {
           <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">No tasks assigned.</div>
         ) : (
           tasks?.map((task) => (
-            <div key={task.id} className={`flex items-start gap-3 bg-white p-3 rounded-lg border shadow-sm transition-opacity min-w-0 ${task.isCompleted ? 'opacity-60' : ''}`}>
+            <div key={task.id} className={`flex items-start gap-3 bg-card p-3 rounded-lg border transition-opacity min-w-0 ${task.isCompleted ? 'opacity-60' : ''}`}>
               <Checkbox 
                 checked={task.isCompleted} 
                 onCheckedChange={() => handleToggle(task.id, task.isCompleted)} 

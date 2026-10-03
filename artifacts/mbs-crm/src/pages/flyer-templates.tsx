@@ -240,14 +240,14 @@ function TemplateDialog({
                     <button
                       type="button"
                       onClick={() => setEditorMode("visual")}
-                      className={`px-3 py-1 transition-colors ${editorMode === "visual" ? "bg-[#1F4E79] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`px-3 py-1 transition-colors ${editorMode === "visual" ? "bg-solid text-white" : "bg-card text-muted-foreground hover:bg-muted"}`}
                     >
                       Visual
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditorMode("html")}
-                      className={`px-3 py-1 border-l transition-colors ${editorMode === "html" ? "bg-[#1F4E79] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`px-3 py-1 border-l transition-colors ${editorMode === "html" ? "bg-solid text-white" : "bg-card text-muted-foreground hover:bg-muted"}`}
                     >
                       HTML
                     </button>
@@ -257,7 +257,7 @@ function TemplateDialog({
             </div>
 
             {showPreview ? (
-              <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
+              <div className="border rounded-lg overflow-hidden bg-card">
                 <div className="flex items-center justify-between px-3 py-1.5 bg-muted/60 border-b text-xs text-muted-foreground">
                   <span>Live Preview — defaults substituted</span>
                 </div>
@@ -297,7 +297,7 @@ function TemplateDialog({
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button
-              className="bg-[#1F4E79] hover:bg-[#163a5f] text-white"
+              className="bg-solid hover:bg-sidebar-accent text-white"
               onClick={handleSave}
               disabled={!form.name.trim() || !form.htmlTemplate.trim()}
             >
@@ -359,8 +359,8 @@ export default function FlyerTemplatesPage() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-            <Megaphone className="h-5 w-5 text-[#1F4E79]" /> Flyer Templates
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-info" /> Flyer Templates
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Create and manage branded PDF flyer templates for marketing to leads.
@@ -369,7 +369,7 @@ export default function FlyerTemplatesPage() {
         <TemplateDialog
           title="Create Flyer Template"
           trigger={
-            <Button className="bg-[#1F4E79] hover:bg-[#163a5f] text-white">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" /> New Template
             </Button>
           }
@@ -396,7 +396,7 @@ export default function FlyerTemplatesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {templates.map((tmpl: any) => (
-            <Card key={tmpl.id} className="border hover:shadow-md transition-shadow">
+            <Card key={tmpl.id} className="border ">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -404,7 +404,7 @@ export default function FlyerTemplatesPage() {
                     <CardDescription className="mt-1 flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">{programLabel(tmpl.programType)}</Badge>
                       {tmpl.isActive
-                        ? <Badge className="bg-green-100 text-green-700 text-xs">Active</Badge>
+                        ? <Badge className="bg-success-bg text-success text-xs">Active</Badge>
                         : <Badge variant="secondary" className="text-xs">Inactive</Badge>}
                     </CardDescription>
                   </div>

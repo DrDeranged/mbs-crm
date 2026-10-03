@@ -87,21 +87,21 @@ export default function NewDeal() {
   const isSubmitDisabled = createDeal.isPending || !formData.dealName.trim();
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-y-auto">
-      <div className="flex-none px-6 py-4 border-b bg-white flex items-center gap-4 sticky top-0 z-[var(--z-header)] shadow-sm">
+    <div className="flex-1 flex flex-col h-full bg-muted overflow-y-auto">
+      <div className="flex-none px-6 py-4 border-b bg-card flex items-center gap-4 sticky top-0 z-[var(--z-header)] ">
         <Link href="/deals">
           <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[#0E2A47]">New Deal</h1>
+          <h1 className="text-xl font-bold text-foreground">New Deal</h1>
         </div>
       </div>
 
       <div className="p-6 max-w-2xl w-full mx-auto">
         <form onSubmit={handleSubmit}>
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader>
               <CardTitle>Deal Information</CardTitle>
               <CardDescription>Enter the details for this new deal.</CardDescription>
@@ -111,7 +111,7 @@ export default function NewDeal() {
               <div className="space-y-5">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
-                    <Label>Deal name <span className="text-red-500">*</span></Label>
+                    <Label>Deal name <span className="text-danger">*</span></Label>
                     <Input
                       value={formData.dealName}
                       onChange={e => {
@@ -121,7 +121,7 @@ export default function NewDeal() {
                       placeholder="e.g. Acme Corp - Equipment Financing"
                       autoFocus
                     />
-                    {errors.dealName && <p className="text-[13px] text-red-500">{errors.dealName}</p>}
+                    {errors.dealName && <p className="text-[13px] text-danger">{errors.dealName}</p>}
                   </div>
 
                   <div className="space-y-1.5">
@@ -142,9 +142,9 @@ export default function NewDeal() {
                       }}
                       placeholder="Select a lead..."
                       searchPlaceholder="Search leads…"
-                      className="bg-white"
+                      className="bg-card"
                     />
-                    {errors.leadId && <p className="text-[13px] text-red-500">{errors.leadId}</p>}
+                    {errors.leadId && <p className="text-[13px] text-danger">{errors.leadId}</p>}
                   </div>
                 </div>
                 
@@ -152,7 +152,7 @@ export default function NewDeal() {
                   <div className="space-y-1.5">
                     <Label>Stage</Label>
                     <Select value={formData.stage} onValueChange={v => setFormData(f => ({...f, stage: v}))}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STAGES.map(s => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
                       </SelectContent>
@@ -169,7 +169,7 @@ export default function NewDeal() {
                       onValueChange={value => setFormData(f => ({...f, assignedTo: value}))}
                       placeholder="Unassigned"
                       searchPlaceholder="Search reps…"
-                      className="bg-white"
+                      className="bg-card"
                     />
                   </div>
                   <div className="space-y-1.5">

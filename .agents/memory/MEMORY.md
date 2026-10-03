@@ -46,3 +46,4 @@
 - [Baseline migration adoption](baseline-migration-adoption.md) — run migration zero only on an empty schema; existing installations adopt its checksum without replaying DDL.
 - [Offline queue ownership](offline-queue-ownership.md) — replay only entries bound to the current account; quarantine legacy ownerless entries rather than guessing their owner.
 - [Contact action boundaries](contact-action-boundaries.md) — deal access never grants linked-lead access; terminal status does not restrict contact actions.
+- [Web visual scope](web-visual-scope.md) — preserve controls/order and contact actions; Settings appearance is the sole new control; freeze safe authenticated baselines first.
