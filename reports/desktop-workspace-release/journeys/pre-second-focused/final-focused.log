@@ -1,0 +1,115 @@
+
+Running 5 tests using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  1 tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation (7.3s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  2 tests/desktop-workspace.spec.ts:81:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages (6.5s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  3 tests/desktop-workspace.spec.ts:119:5 › desktop: equal readable columns and independent lead activity at exact breakpoints (4.6s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  4 tests/web-visual-refresh.spec.ts:116:5 › journey: public application submit persists application, lead and typed signature (7.2s)
+  ✘  5 tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission (4.9s)
+
+
+  1) tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+
+    Error: page.evaluate: e: You're already signed in.
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:68:3
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+  2) tests/desktop-workspace.spec.ts:81:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+
+    Error: page.evaluate: e: You're already signed in.
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:103:3
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+  3) tests/desktop-workspace.spec.ts:119:5 › desktop: equal readable columns and independent lead activity at exact breakpoints 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      145 |   for (let i = 0; i < 20; i++) {
+      146 |     const assignment = await api(page, "/leads/1/assign", { repId: i % 2 === 0 ? 2 : 3 }, "PUT");
+    > 147 |     expect(assignment.status).toBe(200);
+          |                               ^
+      148 |   }
+      149 |   await open(page, "/leads/1");
+      150 |   await expect(page.locator(".lead-detail-columns")).toHaveCount(0);
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:147:31
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--46691-tivity-at-exact-breakpoints/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--46691-tivity-at-exact-breakpoints/error-context.md
+
+  4) tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission 
+
+    Error: locator.fill: Error: strict mode violation: getByRole('dialog').locator('input:not([type="date"]):not([type="file"])') resolved to 2 elements:
+        1) <input value="" class="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"/> aka getByRole('textbox').nth(1)
+        2) <input value="" type="text" cmdk-input="" role="combobox" id="radix-«r2j»" autocorrect="off" autocomplete="off" spellcheck="false" aria-expanded="true" aria-autocomplete="list" aria-controls="radix-«r2h»" aria-label="Search by name…" placeholder="Search by name…" aria-labelledby="radix-«r2i»" class="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"/> aka getByRole('combobox', { name: 'Search by name…' })
+
+    Call log:
+      - waiting for getByRole('dialog').locator('input:not([type="date"]):not([type="file"])')
+
+
+      153 |   await page.getByRole("button", { name: "Partner", exact: true }).click();
+      154 |   await page.getByRole("option", { name: /^Visual Fixture Match Partner/ }).click();
+    > 155 |   await page.getByRole("dialog").locator('input:not([type="date"]):not([type="file"])').fill(`Manual journey ${unique}`);
+          |                                                                                         ^
+      156 |   const saved = page.waitForResponse(response => new URL(response.url()).pathname.endsWith("/submissions/manual") && response.request().method() === "POST" && response.ok());
+      157 |   await page.getByRole("button", { name: "Save submission" }).click();
+      158 |   await saved;
+        at /home/runner/workspace/tests/web-visual-refresh.spec.ts:155:89
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md
+
+  4 failed
+    tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+    tests/desktop-workspace.spec.ts:81:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+    tests/desktop-workspace.spec.ts:119:5 › desktop: equal readable columns and independent lead activity at exact breakpoints 
+    tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission 
+  1 passed (1.4m)

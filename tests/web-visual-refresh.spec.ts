@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const reportDir = resolve("reports/web-visual-refresh/journeys");
+const reportDir = resolve(process.env.VISUAL_JOURNEY_REPORT_DIR ?? "reports/web-visual-refresh/journeys");
 let sandbox: any;
 const unique = `${Date.now()}`;
 
@@ -48,7 +48,7 @@ test("journey: admin sign-in, per-account theme/system/reduced motion and sign-o
   await shot(page, "journey-dashboard-authenticated");
   await open(page, "/settings");
   const theme = page.getByLabel("Appearance theme");
-  await expect(theme).toHaveValue("system");
+  await expect(theme).toHaveValue("light");
   await theme.selectOption("dark");
   await expect(page.locator("html")).toHaveAttribute("data-appearance", "dark");
   await page.reload();
@@ -68,14 +68,14 @@ test("journey: admin sign-in, per-account theme/system/reduced motion and sign-o
   await shot(page, "journey-settings-system-reduced-motion");
   await open(page, "/settings");
   await theme.selectOption("dark");
-  await page.getByRole("button", { name: "Sign Out" }).click();
+  await page.getByRole("button", { name: "Sign Out", exact: true }).first().click();
   await expect(page.getByRole("button", { name: "Sign Out" })).toHaveCount(0);
   await sandbox.login(page, "rep");
   await open(page, "/settings");
-  await expect(page.getByLabel("Appearance theme")).toHaveValue("system");
+  await expect(page.getByLabel("Appearance theme")).toHaveValue("light");
   await expect(page.locator("html")).toHaveAttribute("data-appearance", "light");
   await page.getByLabel("Appearance theme").selectOption("light");
-  await page.getByRole("button", { name: "Sign Out" }).click();
+  await page.getByRole("button", { name: "Sign Out", exact: true }).first().click();
   await page.goto(`${sandbox.url}/apply`);
   await expect(page.locator("html")).toHaveAttribute("data-appearance", "light");
   await sandbox.login(page, "admin");
@@ -101,7 +101,7 @@ test("journey: create lead in UI and Run Match with DB-backed results", async ({
   await page.getByLabel("Email address").fill(`journey-${unique}@example.invalid`);
   await page.getByLabel("Phone number").fill("+12025550801");
   await page.getByLabel("Company name").fill("Journey Test LLC");
-  await page.getByRole("button", { name: "Create Lead" }).click();
+  await page.getByRole("button", { name: "Create Lead", exact: true }).click();
   await expect(page).toHaveURL(/\/leads\/\d+/);
   const lead = json(`SELECT to_jsonb(l)::text FROM leads l WHERE email='journey-${unique}@example.invalid'`);
   expect(lead.company_name).toBe("Journey Test LLC");
@@ -128,7 +128,7 @@ test("journey: public application submit persists application, lead and typed si
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByText("First Name *").locator("xpath=..").locator("input").fill("Synthetic");
   await page.getByText("Last Name *").locator("xpath=..").locator("input").fill("Applicant");
-  await page.getByPlaceholder("XXX-XX-XXXX").fill("900-12-3456");
+  await page.getByText("Social Security Number *", { exact: true }).locator("xpath=..").getByPlaceholder("XXX-XX-XXXX").fill("900-12-3456");
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Skip this step" }).click();
   await page.getByRole("button", { name: "Next" }).click();
@@ -152,9 +152,11 @@ test("journey: Log partner submission persists an actual manual submission", asy
   await page.getByRole("button", { name: "Log submission" }).click();
   await page.getByRole("button", { name: "Partner", exact: true }).click();
   await page.getByRole("option", { name: /^Visual Fixture Match Partner/ }).click();
-  await page.getByRole("dialog").locator('input:not([type="date"]):not([type="file"])').fill(`Manual journey ${unique}`);
+  await page.getByRole("dialog").locator('input:not([type="date"]):not([type="file"]):not([role="combobox"])').fill(`Manual journey ${unique}`);
+  const saved = page.waitForResponse(response => new URL(response.url()).pathname.endsWith("/submissions/manual") && response.request().method() === "POST" && response.ok());
   await page.getByRole("button", { name: "Save submission" }).click();
-  await expect(page.getByText("Visual Fixture Match Partner")).toBeVisible();
+  await saved;
+  await expect(page.getByText("Visual Fixture Match Partner").first()).toBeVisible();
   const row = json(`SELECT to_jsonb(s)::text FROM lender_submissions s WHERE lead_id=1 AND lender_id=${partner.id} AND source='manual' AND notes='Manual journey ${unique}'`);
   expect(row.status).toBe("submitted");
   await shot(page, "journey-manual-partner-submission");
@@ -195,7 +197,7 @@ test("journey: create campaign, preview and approve via UI/API/DB without launch
   const previewResponse = page.waitForResponse(response =>
     new URL(response.url()).pathname.endsWith("/preview") && response.status() === 200,
   );
-  await page.getByRole("button", { name: "Calculate", exact: true }).click();
+  await page.getByRole("button", { name: "Calculate", exact: true }).first().click();
   await previewResponse;
   await expect(page.getByText(/eligible/i).first()).toBeVisible();
   const preview = json(`SELECT to_jsonb(p)::text FROM campaign_audience_previews p JOIN campaigns c ON c.id=p.campaign_id WHERE c.name='Synthetic Campaign ${unique}' ORDER BY p.id DESC LIMIT 1`);

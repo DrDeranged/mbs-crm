@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearch } from "wouter";
 import { useGetMe, useListLenders, useCreateLender, useUpdateLender, useDeactivateLender } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -245,7 +246,7 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
   const isBrokerIn = partner.partnerType === "broker_in";
 
   return (
-    <Card className={`border overflow-hidden transition-all ${!partner.isActive ? "opacity-60 bg-muted" : "bg-card"}`}>
+    <Card id={`partner-${partner.id}`} className={`border overflow-hidden transition-all ${!partner.isActive ? "opacity-60 bg-muted" : "bg-card"}`}>
       <CardContent className="p-0">
         <div className="p-4 border-b bg-muted flex items-start justify-between">
           <div>
@@ -391,6 +392,7 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
 }
 
 export default function LenderManagement() {
+  const search = useSearch();
   const { data: me } = useGetMe();
   const { data: lenders, isLoading } = useListLenders();
   const createLender = useCreateLender();
@@ -402,8 +404,22 @@ export default function LenderManagement() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<any | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [partnerTab, setPartnerTab] = useState("direct_lenders");
 
   const isAdmin = me?.role === "admin";
+
+  useEffect(() => {
+    const requested = Number(new URLSearchParams(search).get("partner"));
+    const partner = lenders?.find(item => item.id === requested);
+    if (partner) setPartnerTab(partner.partnerType === "broker_out" ? "brokers_out" : partner.partnerType === "broker_in" ? "brokers_in" : "direct_lenders");
+  }, [lenders, search]);
+  useEffect(() => {
+    if (isLoading) return;
+    const requested = new URLSearchParams(search).get("partner");
+    if (!requested || !/^\d+$/.test(requested)) return;
+    const frame = requestAnimationFrame(() => document.getElementById(`partner-${requested}`)?.scrollIntoView({ block: "center" }));
+    return () => cancelAnimationFrame(frame);
+  }, [isLoading, lenders, partnerTab, search]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["listLenders"] });
 
@@ -472,7 +488,7 @@ export default function LenderManagement() {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
         </div>
       ) : (
-        <Tabs defaultValue="direct_lenders" className="w-full">
+        <Tabs value={partnerTab} onValueChange={setPartnerTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary p-1 rounded-xl">
             <TabsTrigger value="direct_lenders" className="rounded-lg data-[state=active]:bg-card">
               Direct Lenders ({directLenders.length})

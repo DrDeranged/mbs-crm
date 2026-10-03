@@ -1,0 +1,344 @@
+{
+  "baselineRevision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+  "baselineIndexSha256": "6461ce1e711e63e4678a0d1f7c29c7e5ca210502974b1a20e7bf835b47d8b72d",
+  "comparisons": [
+    {
+      "key": "dashboard-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    }
+  ],
+  "newExceptions": [],
+  "widths": [
+    390,
+    768,
+    1024,
+    1280,
+    1440
+  ],
+  "height": 900,
+  "targetScreenshots": [
+    "dashboard-390-light.png",
+    "leads-390-light.png",
+    "lead-detail-390-light.png",
+    "pipeline-390-light.png",
+    "settings-390-light.png",
+    "dashboard-768-light.png",
+    "leads-768-light.png",
+    "lead-detail-768-light.png",
+    "pipeline-768-light.png",
+    "settings-768-light.png",
+    "dashboard-1024-light.png",
+    "leads-1024-light.png",
+    "lead-detail-1024-light.png",
+    "pipeline-1024-light.png",
+    "settings-1024-light.png",
+    "dashboard-1280-light.png",
+    "leads-1280-light.png",
+    "lead-detail-1280-light.png",
+    "pipeline-1280-light.png",
+    "settings-1280-light.png",
+    "dashboard-1440-light.png",
+    "leads-1440-light.png",
+    "lead-detail-1440-light.png",
+    "pipeline-1440-light.png",
+    "settings-1440-light.png",
+    "dashboard-390-dark.png",
+    "leads-390-dark.png",
+    "lead-detail-390-dark.png",
+    "pipeline-390-dark.png",
+    "settings-390-dark.png",
+    "dashboard-768-dark.png",
+    "leads-768-dark.png",
+    "lead-detail-768-dark.png",
+    "pipeline-768-dark.png",
+    "settings-768-dark.png",
+    "dashboard-1024-dark.png",
+    "leads-1024-dark.png",
+    "lead-detail-1024-dark.png",
+    "pipeline-1024-dark.png",
+    "settings-1024-dark.png",
+    "dashboard-1280-dark.png",
+    "leads-1280-dark.png",
+    "lead-detail-1280-dark.png",
+    "pipeline-1280-dark.png",
+    "settings-1280-dark.png",
+    "dashboard-1440-dark.png",
+    "leads-1440-dark.png",
+    "lead-detail-1440-dark.png",
+    "pipeline-1440-dark.png",
+    "settings-1440-dark.png"
+  ],
+  "baselineScreenshots": [
+    "dashboard-390-light.png",
+    "leads-390-light.png",
+    "lead-detail-390-light.png",
+    "pipeline-390-light.png",
+    "settings-390-light.png",
+    "dashboard-768-light.png",
+    "leads-768-light.png",
+    "lead-detail-768-light.png",
+    "pipeline-768-light.png",
+    "settings-768-light.png",
+    "dashboard-390-dark.png",
+    "leads-390-dark.png",
+    "lead-detail-390-dark.png",
+    "pipeline-390-dark.png",
+    "settings-390-dark.png",
+    "dashboard-768-dark.png",
+    "leads-768-dark.png",
+    "lead-detail-768-dark.png",
+    "pipeline-768-dark.png",
+    "settings-768-dark.png"
+  ],
+  "errors": [],
+  "authentication": "Real development Clerk ticket, not password/SSO certification",
+  "fixtures": "Identical disposable schema-only test clone, synthetic records; live delivery credentials removed"
+}

@@ -204,10 +204,10 @@ export function HeaderCard() {
   );
 }
 
-export function LeadSummary() {
+export function LeadSummary({ sticky = true }: { sticky?: boolean } = {}) {
   const { lead } = useLeadDetail();
   return (
-    <div className="space-y-6 lg:sticky lg:top-[160px]">
+    <div className={sticky ? "space-y-6 lg:sticky lg:top-[160px]" : "space-y-6"}>
       <Card className="">
         <CardHeader className="pb-4 border-b">
           <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">

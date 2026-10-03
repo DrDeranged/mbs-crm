@@ -133,6 +133,7 @@ function toApi(
       ? userToApi(latestActivity.user)
       : null,
     approvalExpiresOn: (deal as any).approvalExpiresOn ?? null,
+    lenderName: (deal as any).lenderName ?? null,
   };
 }
 
@@ -355,7 +356,9 @@ router.get("/deals", async (req, res): Promise<void> => {
     .where(where);
   let rows: any[];
   let total: number;
-  if (sortField === "lastActivityAt") {
+  // Correlated identity search must stay in the core select too; the relational
+  // builder aliases the outer deal and rewrites nested lead references.
+  if (sortField === "lastActivityAt" || q.search) {
     const [dealIdRows, totals] = await Promise.all([
       buildDealPageIdsQuery(
         db,
@@ -401,14 +404,19 @@ router.get("/deals", async (req, res): Promise<void> => {
     .selectDistinctOn([dealApprovalsTable.dealId], {
       dealId: dealApprovalsTable.dealId,
       expiresOn: dealApprovalsTable.expiresOn,
+      lenderName: lendersTable.name,
     })
     .from(dealApprovalsTable)
+    .leftJoin(lendersTable, eq(lendersTable.id, dealApprovalsTable.lenderId))
     .where(inArray(dealApprovalsTable.dealId, rows.map((deal) => deal.id)))
     .orderBy(dealApprovalsTable.dealId, desc(dealApprovalsTable.createdAt), desc(dealApprovalsTable.id));
-  const approvalExpiryByDeal = new Map(approvalRows.map((row) => [row.dealId, row.expiresOn]));
+  const latestApprovalByDeal = new Map(approvalRows.map((row) => [row.dealId, row]));
   res.json({
     deals: rows.map((deal) =>
-      toApi(Object.assign(deal, { approvalExpiresOn: approvalExpiryByDeal.get(deal.id) }), deal.assignedUser, latestActivities.get(deal.id), leadContacts.get(deal.leadId ?? -1), true),
+      toApi(Object.assign(deal, {
+        approvalExpiresOn: latestApprovalByDeal.get(deal.id)?.expiresOn,
+        lenderName: latestApprovalByDeal.get(deal.id)?.lenderName,
+      }), deal.assignedUser, latestActivities.get(deal.id), leadContacts.get(deal.leadId ?? -1), true),
     ),
     total,
     page,
@@ -468,14 +476,14 @@ export function createExportDealsHandler(dependencies: {
 
   let exported = 0;
   const batchSize = 1000;
-  const latestActivityRequested = sortField === "lastActivityAt";
+  const requiresIdPhase = sortField === "lastActivityAt" || Boolean(q.search);
   await database.transaction(async (tx) => {
     // A repeatable-read snapshot prevents mutable deal/activity rows from
     // moving between batches and being duplicated or skipped.
     await tx.execute(sql`set transaction isolation level repeatable read`);
     let offset = 0;
     while (!res.destroyed) {
-      const deals = latestActivityRequested
+      const deals = requiresIdPhase
         ? await (async () => {
             const pageRows = await buildDealPageIdsQuery(
               tx,
@@ -639,11 +647,12 @@ export function createGetDealHandler(dependencies: {
     const latestApproval = await database.query.dealApprovalsTable.findFirst({
       where: eq(dealApprovalsTable.dealId, id),
       orderBy: (table: any, { desc }: any) => [desc(table.createdAt), desc(table.id)],
+      with: { lender: true },
     });
     const latestActivity = activity.length > 0 ? activity[activity.length - 1] : null;
     const contact = leadContacts.get(deal.leadId ?? -1);
     res.json({
-      ...toApi(Object.assign(deal, { approvalExpiresOn: latestApproval?.expiresOn }), deal.assignedUser, latestActivity, contact, true),
+      ...toApi(Object.assign(deal, { approvalExpiresOn: latestApproval?.expiresOn, lenderName: latestApproval?.lender?.name }), deal.assignedUser, latestActivity, contact, true),
       lead: contact ? {
         id: contact.leadId,
         firstName: contact.firstName,

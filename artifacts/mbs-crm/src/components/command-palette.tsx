@@ -22,13 +22,20 @@ import {
   Plus,
   Upload,
   Briefcase,
+  Calculator,
+  FileText,
+  Activity,
+  ClipboardList,
+  BookOpen,
 } from "lucide-react";
 import {
   getListDealsQueryKey,
   getListLeadsQueryKey,
+  getListLendersQueryKey,
   useGetMe,
   useListDeals,
   useListLeads,
+  useListLenders,
 } from "@workspace/api-client-react";
 import { formatDealIdentity, formatLeadIdentity } from "@/lib/recordIdentity";
 
@@ -41,6 +48,7 @@ export function CommandPalette() {
   const isAdmin = me?.role === "admin";
   const isManagerOrAdmin = me?.role === "manager" || isAdmin;
   const canSearchRecords = me?.role === "rep" || isManagerOrAdmin;
+  const canSearchPartners = isAdmin || me?.role === "rep";
   const searchTerm = search.trim();
   const leadSearchParams = { search: searchTerm || undefined, limit: 8 };
   const dealSearchParams = { search: searchTerm || undefined, page: 1, limit: 8 };
@@ -52,6 +60,17 @@ export function CommandPalette() {
   });
   const matchingLeads = leadSearchData?.leads ?? [];
   const matchingDeals = dealSearchData?.deals ?? [];
+  // Partners (direct lenders and inbound/outbound brokers) share the existing
+  // authorized directory. Do not fetch it for roles without its navigation.
+  const { data: partners, isFetching: isSearchingPartners, error: partnerSearchError } = useListLenders({
+    query: { queryKey: getListLendersQueryKey(), enabled: open && canSearchPartners && searchTerm.length >= 2 },
+  });
+  const matchingPartners = (canSearchPartners ? partners ?? [] : []).filter(partner =>
+    partner.isActive && [partner.name, partner.contactName, partner.contactEmail, partner.phone]
+      .some(value => value?.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())),
+  ).slice(0, 8);
+  const searchPending = isSearchingLeads || isSearchingDeals || (canSearchPartners && isSearchingPartners);
+  const searchFailed = leadSearchError || dealSearchError || (canSearchPartners && partnerSearchError);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -84,9 +103,9 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (!nextOpen) setSearch(""); }}>
-      <CommandInput value={search} onValueChange={setSearch} placeholder="Search pages, leads, deals, and actions…" />
+      <CommandInput value={search} onValueChange={setSearch} placeholder="Search pages, leads, deals, lenders, partners, and actions…" />
       <CommandList>
-        <CommandEmpty>{searchTerm.length >= 2 && (isSearchingLeads || isSearchingDeals) ? "Searching records…" : "No results found."}</CommandEmpty>
+        <CommandEmpty>{searchTerm.length >= 2 && searchPending ? "Searching records…" : searchFailed ? "Search incomplete. Some records could not be loaded." : "No results found."}</CommandEmpty>
 
         {canSearchRecords && searchTerm.length >= 2 && (
           <>
@@ -131,13 +150,37 @@ export function CommandPalette() {
                 })}
               </CommandGroup>
             )}
-            {!matchingLeads.length && !matchingDeals.length && (isSearchingLeads || isSearchingDeals) && (
-              <CommandGroup heading="Records"><CommandItem disabled value="searching-records">Searching records…</CommandItem></CommandGroup>
+            {(["Lenders", "Partners"] as const).map(group => {
+              const matches = matchingPartners.filter(partner =>
+                group === "Lenders" ? !partner.partnerType || partner.partnerType === "direct_lender" : partner.partnerType !== "direct_lender" && !!partner.partnerType,
+              );
+              return matches.length > 0 && (
+                <CommandGroup key={group} heading={group}>
+                  {matches.map(partner => (
+                    <CommandItem
+                      key={`partner-${partner.id}`}
+                      value={`${partner.name} ${partner.contactName ?? ""} ${partner.contactEmail ?? ""} ${partner.phone ?? ""}`}
+                      onSelect={() => go(`/lenders?partner=${partner.id}`)}
+                    >
+                      <Building2 />
+                      <span className="min-w-0">
+                        <span className="block truncate">{partner.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {[partner.contactName, partner.contactEmail, partner.phone].filter(Boolean).join(" · ") || "Contact unavailable"}
+                        </span>
+                      </span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              );
+            })}
+            {!matchingLeads.length && !matchingDeals.length && !matchingPartners.length && searchPending && (
+              <CommandGroup heading="Records"><CommandItem disabled value={`searching-records ${searchTerm}`}>Searching records…</CommandItem></CommandGroup>
             )}
-            {(leadSearchError || dealSearchError) && (
+            {searchFailed && (
               <CommandGroup heading="Record search">
                 <CommandItem disabled value={`record search error ${searchTerm}`}>
-                  Some record results could not be loaded. Try again or open the Leads and Deals lists.
+                  Some record results could not be loaded. Try again or open the relevant record list.
                 </CommandItem>
               </CommandGroup>
             )}
@@ -157,7 +200,11 @@ export function CommandPalette() {
             <Briefcase />
             Deals
           </CommandItem>
-          {isManagerOrAdmin && (
+          <CommandItem onSelect={() => go("/deals/rate-points")}><Calculator />Rate &amp; Points</CommandItem>
+          <CommandItem onSelect={() => go("/documents")}><FileText />Documents</CommandItem>
+          <CommandItem onSelect={() => go("/help/rep-quickstart")}><BookOpen />Rep Quickstart</CommandItem>
+          {isManagerOrAdmin && <CommandItem onSelect={() => go("/campaigns")}><Mail />Campaigns</CommandItem>}
+          {canSearchRecords && (
             <>
               <CommandItem onSelect={() => go("/email/templates")}>
                 <Mail />
@@ -169,12 +216,13 @@ export function CommandPalette() {
               </CommandItem>
             </>
           )}
+          {canSearchPartners && (
+            <CommandItem value="Lenders Partners" onSelect={() => go("/lenders")}>
+              <Building2 />Partners (Lenders)
+            </CommandItem>
+          )}
           {isAdmin && (
             <>
-              <CommandItem onSelect={() => go("/lenders")}>
-                <Building2 />
-                Lenders
-              </CommandItem>
               <CommandItem onSelect={() => go("/flyer-templates")}>
                 <Megaphone />
                 Flyer Templates
@@ -191,12 +239,16 @@ export function CommandPalette() {
                 <GitBranch />
                 Workflow Rules
               </CommandItem>
+              <CommandItem onSelect={() => go("/governance")}><ShieldCheck />Data Governance</CommandItem>
+              <CommandItem onSelect={() => go("/system-health")}><Activity />System Health</CommandItem>
+              <CommandItem onSelect={() => go("/admin/usfa-intake")}><ClipboardList />USFA Intake</CommandItem>
               <CommandItem onSelect={() => go("/settings")}>
                 <Settings />
                 Settings
               </CommandItem>
             </>
           )}
+          {isManagerOrAdmin && <CommandItem onSelect={() => go("/leads/stale")}><Activity />Stale Leads</CommandItem>}
         </CommandGroup>
 
         <CommandSeparator />

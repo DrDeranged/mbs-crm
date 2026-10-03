@@ -1,0 +1,68 @@
+
+Running 2 tests using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+[rail-pin] admin before sign-out {
+  userId: 'user_3KBvvIzQT9TFLWWDTGGkc7Rv9BA',
+  keys: [
+    [
+      'mbs-desktop-sidebar-pinned:user_3KBvvIzQT9TFLWWDTGGkc7Rv9BA',
+      'false'
+    ]
+  ]
+}
+[rail-pin] after admin sign-out [
+  [
+    'mbs-desktop-sidebar-pinned:user_3KBvvIzQT9TFLWWDTGGkc7Rv9BA',
+    'false'
+  ]
+]
+[rail-pin] after rep sign-out [
+  [
+    'mbs-desktop-sidebar-pinned:user_3KBvvIzQT9TFLWWDTGGkc7Rv9BA',
+    'false'
+  ]
+]
+  ✘  1 tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation (22.4s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  2 tests/desktop-workspace.spec.ts:93:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages (11.2s)
+
+
+  1) tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  getByTestId('desktop-sidebar')
+    Expected: "true"
+    Received: "false"
+    Timeout:  8000ms
+
+    Call log:
+      - Expect "toHaveAttribute" getByTestId('desktop-sidebar') with timeout 8000ms
+      - waiting for getByTestId('desktop-sidebar')
+        20 × locator resolved to <aside data-open="false" data-pinned="false" data-testid="desktop-sidebar" class="desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground">…</aside>
+           - unexpected value "false"
+
+
+      83 |   await sandbox.login(page, "admin");
+      84 |   await open(page, "/dashboard");
+    > 85 |   await expect(sidebar).toHaveAttribute("data-pinned", "true");
+         |                         ^
+      86 |   await page.setViewportSize({ width: 1023, height: 900 });
+      87 |   await expect(sidebar).toHaveCount(0);
+      88 |   await page.keyboard.press("Control+b");
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:85:25
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+  1 failed
+    tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+  1 passed (54.4s)

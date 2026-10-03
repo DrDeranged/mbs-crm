@@ -240,7 +240,10 @@ export function createListLeadsHandler({
       .select({ total: sql<number>`cast(count(*) as int)` })
       .from(leadsTable)
       .where(whereClause as any);
-    if (staleRequested) {
+    // Company/contact search contains correlated SQL, just like the stale
+    // predicate. Select its IDs in the core builder before relational hydration
+    // so Drizzle cannot rewrite inner company aliases into the lead alias.
+    if (staleRequested || searchCondition) {
       const [leadIdRows, totals] = await Promise.all([
         buildLeadPageIdsQuery(database, whereClause, [sortDir(sortColumn), asc(leadsTable.id)], limit, offset),
         totalQuery,

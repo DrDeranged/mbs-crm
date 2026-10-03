@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { DesktopSidebar } from "@/components/desktop-sidebar";
+import { useDesktopSidebarPin, useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import { Link, useLocation } from "wouter";
 import { CommandPalette } from "@/components/command-palette";
 import { useClerk, useUser } from "@clerk/react";
@@ -46,7 +48,7 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({ onNavigate, showSearch = true }: { onNavigate?: () => void; showSearch?: boolean }) {
   const [location, navigate] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
@@ -162,7 +164,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* Cmd+K search trigger */}
-      <div className="px-3 pb-2">
+      {showSearch && <div className="px-3 pb-2">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
           className="flex items-center gap-2 w-full rounded-xl border border-sidebar-border bg-white/5 px-3 py-2 text-xs text-sidebar-foreground/70 hover:text-white hover:bg-white/10 transition-colors"
@@ -172,7 +174,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <span className="flex-1 text-left">Search…</span>
           <kbd className="font-mono bg-sidebar-foreground/10 px-1.5 py-0.5 rounded text-[10px]">⌘K</kbd>
         </button>
-      </div>
+      </div>}
 
       {/* User footer */}
       <div className="border-t border-sidebar-border p-4 flex-shrink-0">
@@ -246,6 +248,40 @@ export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
   const isDealsBoard = location.split("?")[0] === "/deals";
   const isRecordDetail = /^\/(?:leads|deals)\/\d+(?:\/|$)/.test(location);
+  const isDesktop = useIsDesktop();
+  const { user: clerkUser } = useUser();
+  const { pinned, setPinned } = useDesktopSidebarPin(clerkUser?.id, isDesktop);
+
+  if (isDesktop) {
+    return (
+      <div className={`flex w-full bg-background ${isRecordDetail ? "h-dvh overflow-hidden" : "min-h-screen"}`}>
+        <CommandPalette />
+        <DesktopSidebar pinned={pinned} onTogglePin={() => setPinned((p) => !p)} expanded={<SidebarContent showSearch={pinned} />} />
+        <main className={`flex-1 flex flex-col overflow-hidden ${pinned ? "ml-64" : "ml-14"} ${isRecordDetail ? "min-h-0" : "min-h-screen"}`}>
+          <div data-scrolled={scrolled} className="glass-header flex h-14 items-center justify-between gap-4 border-b border-border bg-surface px-6 lg:px-8 flex-shrink-0">
+            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Operations workspace</span>
+            <div className="flex items-center gap-4">
+              {!pinned && (
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+                  className="flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  aria-label="Open command palette"
+                >
+                  <Search size={13} />
+                  <span>Search…</span>
+                  <kbd className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-[10px]">⌘K</kbd>
+                </button>
+              )}
+              <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto pb-6" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}>
+            {children}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex w-full bg-background ${isRecordDetail ? "h-dvh overflow-hidden" : "min-h-screen"}`}>

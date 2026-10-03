@@ -1,0 +1,29 @@
+✔ appearance defaults to light and never loads another account's preference (0.699337ms)
+✔ system follows OS while explicit modes override it (0.307976ms)
+✔ invalid and inaccessible storage preferences are safe (0.261591ms)
+✔ failed lazy route import reloads at most once per build in a browser session (1.20754ms)
+✔ blocked session storage prevents an unbounded reload loop (0.220003ms)
+✔ desktop phone uses softphone only when device is registered (1.046506ms)
+✔ mobile web phone always uses tel even when a desktop device is registered (0.206769ms)
+✔ softphone must be registered and idle; active calls and incoming calls fall back to tel (0.136719ms)
+✔ mobile web detection handles narrow viewports and mobile device landscape (0.427871ms)
+✔ email opens CRM composer for linked lead and mailto otherwise (1.264295ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 187.217808
+✔ release default ignores deployment and development auto-domains (0.948108ms)
+✔ explicit public host wins and protocols are normalized (0.238098ms)
+✔ rejects API paths instead of generating incorrect origins (0.276854ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.965309

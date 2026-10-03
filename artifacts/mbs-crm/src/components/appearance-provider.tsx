@@ -14,7 +14,7 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
   const { user, isLoaded, isSignedIn } = useUser();
   const userId = isLoaded && isSignedIn ? user?.id ?? null : null;
   const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
-  const [choice, setChoice] = useState<{ owner: string | null; preference: AppearancePreference }>({ owner: null, preference: "system" });
+  const [choice, setChoice] = useState<{ owner: string | null; preference: AppearancePreference }>({ owner: null, preference: "light" });
   const [storageError, setStorageError] = useState<string | null>(null);
   // Resolve a new owner synchronously. Never render the previous account's
   // preference while waiting for an effect after sign-out/account switching.

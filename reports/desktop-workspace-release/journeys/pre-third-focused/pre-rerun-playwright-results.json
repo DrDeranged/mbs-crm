@@ -1,0 +1,375 @@
+{
+  "config": {
+    "argv": [
+      "/nix/store/9cyx2v23dip6p9q98384k9v06c96qskb-nodejs-24.13.0/bin/node",
+      "/home/runner/workspace/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "playwright.desktop-workspace.config.ts",
+      "--grep",
+      "desktop: rail hover|desktop: authorized palette|desktop: equal readable columns|journey: public application submit|journey: Log partner submission"
+    ],
+    "configFile": "/home/runner/workspace/playwright.desktop-workspace.config.ts",
+    "rootDir": "/home/runner/workspace/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/workspace/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/(?:web-visual-refresh|desktop-workspace)\\.spec\\.ts/"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/desktop-workspace-release/journeys/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "desktop-workspace.spec.ts",
+      "file": "desktop-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 22920,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('desktop-sidebar')\nExpected: \u001b[32m\"\u001b[7mtru\u001b[27me\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mfals\u001b[27me\"\u001b[39m\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('desktop-sidebar') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('desktop-sidebar')\u001b[22m\n\u001b[2m    20 × locator resolved to <aside data-open=\"false\" data-pinned=\"false\" data-testid=\"desktop-sidebar\" class=\"desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"false\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('desktop-sidebar')\nExpected: \u001b[32m\"\u001b[7mtru\u001b[27me\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mfals\u001b[27me\"\u001b[39m\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('desktop-sidebar') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('desktop-sidebar')\u001b[22m\n\u001b[2m    20 × locator resolved to <aside data-open=\"false\" data-pinned=\"false\" data-testid=\"desktop-sidebar\" class=\"desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"false\"\u001b[22m\n\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:79:25",
+                    "location": {
+                      "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                      "column": 25,
+                      "line": 79
+                    },
+                    "snippet": "  77 |   await sandbox.login(page, \"admin\");\n  78 |   await open(page, \"/dashboard\");\n> 79 |   await expect(sidebar).toHaveAttribute(\"data-pinned\", \"true\");\n     |                         ^\n  80 |   await page.setViewportSize({ width: 1023, height: 900 });\n  81 |   await expect(sidebar).toHaveCount(0);\n  82 |   await page.keyboard.press(\"Control+b\");"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                        "column": 25,
+                        "line": 79
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('desktop-sidebar')\nExpected: \u001b[32m\"\u001b[7mtru\u001b[27me\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mfals\u001b[27me\"\u001b[39m\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('desktop-sidebar') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('desktop-sidebar')\u001b[22m\n\u001b[2m    20 × locator resolved to <aside data-open=\"false\" data-pinned=\"false\" data-testid=\"desktop-sidebar\" class=\"desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"false\"\u001b[22m\n\n\n  77 |   await sandbox.login(page, \"admin\");\n  78 |   await open(page, \"/dashboard\");\n> 79 |   await expect(sidebar).toHaveAttribute(\"data-pinned\", \"true\");\n     |                         ^\n  80 |   await page.setViewportSize({ width: 1023, height: 900 });\n  81 |   await expect(sidebar).toHaveCount(0);\n  82 |   await page.keyboard.press(\"Control+b\");\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:79:25"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:11:26.045Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                    "column": 25,
+                    "line": 79
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-be6f2c506248e21aa9ed",
+          "file": "desktop-workspace.spec.ts",
+          "line": 30,
+          "column": 5
+        },
+        {
+          "title": "desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7148,
+                  "error": {
+                    "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30",
+                    "stack": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:109:3",
+                    "location": {
+                      "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                      "column": 171,
+                      "line": 44
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                        "column": 171,
+                        "line": 44
+                      },
+                      "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:109:3"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:11:59.525Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                    "column": 171,
+                    "line": 44
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-fb7024554a02cba149c7",
+          "file": "desktop-workspace.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "desktop: equal readable columns and independent lead activity at exact breakpoints",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8512,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:12:17.045Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-eedb3dfc27da46cb0f25",
+          "file": "desktop-workspace.spec.ts",
+          "line": 125,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "web-visual-refresh.spec.ts",
+      "file": "web-visual-refresh.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "journey: public application submit persists application, lead and typed signature",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:12:34.780Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d006b168e84a6318bbb-be03804f7c31cca6b64f",
+          "file": "web-visual-refresh.spec.ts",
+          "line": 116,
+          "column": 5
+        },
+        {
+          "title": "journey: Log partner submission persists an actual manual submission",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3854,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:12:46.369Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d006b168e84a6318bbb-0b71b2616501ef11c2ce",
+          "file": "web-visual-refresh.spec.ts",
+          "line": 148,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T16:11:25.222Z",
+    "duration": 85889.346,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

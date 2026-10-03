@@ -1,0 +1,211 @@
+
+Running 6 tests using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  1 tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation (12.7s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  2 tests/desktop-workspace.spec.ts:79:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages (12.7s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  3 tests/desktop-workspace.spec.ts:156:5 › desktop: funded deal action-bar upload persists metadata and exact bytes (4.5s)
+  ✘  4 tests/web-visual-refresh.spec.ts:116:5 › journey: public application submit persists application, lead and typed signature (1.5m)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  5 tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission (1.5m)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  6 tests/web-visual-refresh.spec.ts:186:5 › journey: create campaign, preview and approve via UI/API/DB without launching (5.0s)
+
+
+  1) tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('button', { name: 'Open command palette', exact: true })
+    Expected: 1
+    Received: 2
+    Timeout:  8000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('button', { name: 'Open command palette', exact: true }) with timeout 8000ms
+      - waiting for getByRole('button', { name: 'Open command palette', exact: true })
+        19 × locator resolved to 2 elements
+           - unexpected value "2"
+
+
+      40 |   await expect(sidebar).toHaveAttribute("data-open", "true");
+      41 |   expect((await page.locator("main").boundingBox())!.x).toBe(mainX);
+    > 42 |   await expect(page.getByRole("button", { name: "Open command palette", exact: true })).toHaveCount(1);
+         |                                                                                         ^
+      43 |   await page.mouse.move(400, 200);
+      44 |   await page.waitForTimeout(180);
+      45 |   await expect(sidebar).toHaveAttribute("data-open", "true");
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:42:89
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+  2) tests/desktop-workspace.spec.ts:79:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('option').filter({ hasText: 'Fixture Equipment LLC' }).first()
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('option').filter({ hasText: 'Fixture Equipment LLC' }).first() with timeout 8000ms
+      - waiting for getByRole('option').filter({ hasText: 'Fixture Equipment LLC' }).first()
+
+
+      86 |     await page.keyboard.press("Control+k");
+      87 |     await page.getByPlaceholder("Search pages, leads, deals, lenders, partners, and actions…").fill(term);
+    > 88 |     await expect(page.getByRole("option").filter({ hasText: expected }).first()).toBeVisible();
+         |                                                                                  ^
+      89 |     await page.keyboard.press("Escape");
+      90 |   };
+      91 |   for (const term of ["Fixture Equipment", "Synthetic Contact", "contact@example.invalid", "12025550123"]) await search(term, "Fixture Equipment LLC");
+        at search (/home/runner/workspace/tests/desktop-workspace.spec.ts:88:82)
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:91:108
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+  3) tests/web-visual-refresh.spec.ts:116:5 › journey: public application submit persists application, lead and typed signature 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.fill: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for getByRole('group').getByPlaceholder('XXX-XX-XXXX')
+        - locator resolved to <input value="" autocomplete="off" inputmode="numeric" placeholder="XXX-XX-XXXX" class="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"/>
+        - fill("900-12-3456")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        172 × waiting for element to be visible, enabled and editable
+            - element is not visible
+          - retrying fill action
+            - waiting 500ms
+
+
+      129 |   await page.getByText("First Name *").locator("xpath=..").locator("input").fill("Synthetic");
+      130 |   await page.getByText("Last Name *").locator("xpath=..").locator("input").fill("Applicant");
+    > 131 |   await page.getByRole("group").getByPlaceholder("XXX-XX-XXXX").fill("900-12-3456");
+          |                                                                 ^
+      132 |   await page.getByRole("button", { name: "Next" }).click();
+      133 |   await page.getByRole("button", { name: "Skip this step" }).click();
+      134 |   await page.getByRole("button", { name: "Next" }).click();
+        at /home/runner/workspace/tests/web-visual-refresh.spec.ts:131:65
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-dcbd0-on-lead-and-typed-signature/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-dcbd0-on-lead-and-typed-signature/error-context.md
+
+  4) tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.click: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Log submission' })
+        - locator resolved to <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-primary-border bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[.98] min-h-8 rounded-md px-3 text-xs max-md:min-…>Log submission</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is not stable
+      - retrying click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Created</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div class="p-6 space-y-4 pt-4">…</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+      2 × retrying click action
+          - waiting 100ms
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="flex flex-col space-y-1.5 p-6 pb-4 border-b">…</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+      36 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Created</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="p-6 space-y-4 pt-4">…</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="flex flex-col space-y-1.5 p-6 pb-4 border-b">…</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="flex flex-col space-y-1.5 p-6 pb-4 border-b">…</div> from <div class="space-y-6 lg:sticky lg:top-[160px]">…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+
+
+      150 |   await open(page, "/leads/1");
+      151 |   await page.getByRole("tab", { name: /Docs/ }).click();
+    > 152 |   await page.getByRole("button", { name: "Log submission" }).click();
+          |                                                              ^
+      153 |   await page.getByRole("button", { name: "Partner", exact: true }).click();
+      154 |   await page.getByRole("option", { name: /^Visual Fixture Match Partner/ }).click();
+      155 |   await page.getByRole("dialog").locator('input:not([type="date"]):not([type="file"])').fill(`Manual journey ${unique}`);
+        at /home/runner/workspace/tests/web-visual-refresh.spec.ts:152:62
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md
+
+  4 failed
+    tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+    tests/desktop-workspace.spec.ts:79:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+    tests/web-visual-refresh.spec.ts:116:5 › journey: public application submit persists application, lead and typed signature 
+    tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission 
+  2 passed (4.7m)

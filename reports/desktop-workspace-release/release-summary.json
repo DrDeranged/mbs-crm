@@ -1,0 +1,155 @@
+{
+  "verdict": "PASS — requested desktop workspace and release proof; not published",
+  "mobileComparisons": "36/36, both fresh matched baseline and exact certified inventory/exempt controls",
+  "screenshots": {
+    "target": 50,
+    "matchedMobileBaseline": 20
+  },
+  "journeys": [
+    {
+      "title": "desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages",
+      "status": "passed",
+      "time": 1791044073582.9688,
+      "source": "reports/desktop-workspace-release/journeys/pre-rail-fix/rail-palette-diagnostic.log"
+    },
+    {
+      "title": "desktop: equal readable columns and independent lead activity at exact breakpoints",
+      "status": "passed",
+      "time": 1791043998778.5598,
+      "source": "reports/desktop-workspace-release/journeys/pre-third-focused/final-focused.log"
+    },
+    {
+      "title": "desktop: funded deal action-bar upload persists metadata and exact bytes",
+      "status": "passed",
+      "time": 1791043745843.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/focused-continuation.log"
+    },
+    {
+      "title": "desktop: phone handoff on mobile and desktop without a registered softphone",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation",
+      "status": "passed",
+      "time": 1791044117246.7615,
+      "source": "reports/desktop-workspace-release/journeys/final-rail.log"
+    },
+    {
+      "title": "journey: admin sign-in, per-account theme/system/reduced motion and sign-out isolation",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "journey: create campaign, preview and approve via UI/API/DB without launching",
+      "status": "passed",
+      "time": 1791043745843.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/focused-continuation.log"
+    },
+    {
+      "title": "journey: create lead in UI and Run Match with DB-backed results",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "journey: existing call-forwarding profile saves through UI and persists",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "journey: Log partner submission persists an actual manual submission",
+      "status": "passed",
+      "time": 1791043998778.5598,
+      "source": "reports/desktop-workspace-release/journeys/pre-third-focused/final-focused.log"
+    },
+    {
+      "title": "journey: mobile dialog close target and rich editor keyboard focus",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "journey: normal lead-document multipart upload persists DB metadata and local provider bytes",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    },
+    {
+      "title": "journey: public application submit persists application, lead and typed signature",
+      "status": "passed",
+      "time": 1791043998778.5598,
+      "source": "reports/desktop-workspace-release/journeys/pre-third-focused/final-focused.log"
+    },
+    {
+      "title": "journey: softphone opens idle without a dial or call request",
+      "status": "passed",
+      "time": 1791043745839.7524,
+      "source": "reports/desktop-workspace-release/journeys/pre-final-focused/initial-browser-pass.log"
+    }
+  ],
+  "chunkRecovery": {
+    "passed": true,
+    "buildId": "b21c2f56-3507-4b29-ba08-f7091a1d3b53",
+    "injectedFailure": "Actual production lazy-route JavaScript request aborted by browser transport",
+    "failedChunks": [
+      "/assets/settings-BZvVStBj.js"
+    ],
+    "firstFailure": {
+      "reloads": 1,
+      "recoveredRoute": "/settings",
+      "errorBoundarySeen": false,
+      "sessionGuard": "1"
+    },
+    "repeatedChunks": [
+      "/assets/leads-CDK8DKdd.js"
+    ],
+    "repeatSameBuild": {
+      "additionalReloads": 0,
+      "errorBoundaryAvailable": true
+    },
+    "differentBuildAndNonChunkErrors": "Covered by src/lib/chunkRecovery.test.ts; separate guard per build, non-chunk failures do not reload"
+  },
+  "mobileBuild": {
+    "passed": true,
+    "platforms": [
+      {
+        "platform": "ios",
+        "manifestSha256": "6587c436f90afcecfb76b55cdb6e3820127379dc5e3cf8e0616a18a651987ee4",
+        "bundleSha256": "ead0b45cf9569add397ada7665e78a891c8b82e9d408951bd491ca5394aa6ad0",
+        "bytes": 4339174,
+        "launchAssetOrigin": "https://app.my-business-solutions.com",
+        "compiledApiOrigin": "https://app.my-business-solutions.com",
+        "obsoleteHostPresent": false
+      },
+      {
+        "platform": "android",
+        "manifestSha256": "b7786055628eb84ae3ebb67d8107aafed8c0c9033bea2c5ce349a855ef2b574a",
+        "bundleSha256": "61cf246ec8a9a44383f93c7e32bf9c363615d75f09476d2e2b12fd80663d542e",
+        "bytes": 4336417,
+        "launchAssetOrigin": "https://app.my-business-solutions.com",
+        "compiledApiOrigin": "https://app.my-business-solutions.com",
+        "obsoleteHostPresent": false
+      }
+    ],
+    "developmentWorkflowChanged": false,
+    "reproduction": "EXPO_PUBLIC_DOMAIN=app.my-business-solutions.com METRO_PORT=<free port> pnpm --filter @workspace/mbs-crm-mobile run build && node scripts/desktop-workspace/mobile-proof.mjs"
+  },
+  "preflight": {
+    "gates": 11,
+    "exitCode": 0,
+    "transcript": "preflight.txt",
+    "sha256": "0e6b27c46dbbcecd3b923981d3039a8527ed9d2e591b02130b141871947e4f81",
+    "actualTail": "\u001b[2K\u001b[1G[⡿] Pulling schema from database...\n\u001b[2K\u001b[1G[⢿] Pulling schema from database...\n\u001b[2K\u001b[1G[⣻] Pulling schema from database...\n\u001b[2K\u001b[1G[⣽] Pulling schema from database...\n\u001b[2K\u001b[1G[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[⣯] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\nSchema parity OK: SQL runner and complete Drizzle schema set match\nPOPULATED-SCHEMA initial no-ledger reconciliation: applied=61, ledger=66|1, baseline SQL skipped\nPOPULATED-SCHEMA retry: applied=0, adopted=000_baseline (a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902), constraints/indexes unchanged (60/710|228|184)\nMIGRATION REHEARSAL PASS\nPREFLIGHT 11/11: database divergence\n\n> workspace@0.0.0 db:divergence /home/runner/workspace\n> pnpm --silent --dir scripts exec tsx ./src/db-divergence.ts\n\nClone-only ledger rows: none\nDev-only ledger rows: none\nChanged ledger rows: none\nClone-only tables: none\nDev-only tables: none\nClone-only columns: none\nDev-only columns: none\nChanged columns: none\nDB DIVERGENCE PASS\nPREFLIGHT PASS\n\nPREFLIGHT_EXIT_CODE=0"
+  },
+  "scope": {
+    "authentication": "Real development Clerk session obtained by ticket; no password/SSO certification",
+    "telephony": "Idle softphone UI and desktop/mobile OS handoff without a registered device; available-device action policy unit-tested. No carrier call or native dialer invoked.",
+    "safety": "Disposable schema-only browser fixture clones, synthetic records, provider credentials stripped, local storage bytes verified; external delivery blocked",
+    "deployment": "No publishing, live deployment configuration changes or production writes",
+    "migrations": "No application schema changes or migrations added/applied; existing preflight rehearsal uses disposable clones"
+  }
+}

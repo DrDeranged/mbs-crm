@@ -63,6 +63,7 @@ import { createNoteSaveController } from "@/lib/noteSaveController";
 import { QueryErrorState } from "@/components/query-error-state";
 import { contactName, formatDealIdentity } from "@/lib/recordIdentity";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
+import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 
 const STAGES = DEAL_STAGE_COLUMNS;
 
@@ -94,6 +95,7 @@ function LastActivity({
 }
 
 export default function DealsPage() {
+  const isDesktop = useIsDesktop();
   const [view, setView] = useState<"kanban" | "table">("kanban");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -534,6 +536,105 @@ export default function DealsPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Deals assigned to you will appear here.
               </p>
+            </div>
+          </div>
+        ) : view === "kanban" && isDesktop ? (
+          <div className="h-full overflow-hidden p-2" data-testid="deals-board-desktop">
+            <div className="deals-board-desktop h-full">
+              {STAGES.map((stage) => {
+                const stageDeals = deals.filter((d) => d.stage === stage.id);
+                return (
+                  <div
+                    key={stage.id}
+                    className={cn(
+                      "flex min-w-0 flex-col h-full rounded-xl border border-border bg-secondary/50 transition-colors",
+                      dragOverStage === stage.id ? "bg-info-bg border-info/30" : "",
+                    )}
+                    onDragOver={(e) => handleDragOver(e, stage.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, stage.id)}
+                  >
+                    <div className="flex shrink-0 items-start justify-between gap-1 rounded-t-xl border-b border-border bg-muted px-2 py-2">
+                      <h3 className="deal-wrap min-w-0 text-xs font-semibold text-foreground">{stage.label}</h3>
+                      <Badge variant="secondary" className="bg-card shrink-0">{stageDeals.length}</Badge>
+                    </div>
+                    <div className="custom-scrollbar flex-1 space-y-1 overflow-y-auto p-1">
+                      {stageDeals.map((deal) => {
+                        const rep = users?.find((u) => u.id === deal.assignedTo);
+                        const linkedContact = (deal as any).lead ?? (deal as any).contact;
+                        const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                        const customDealName = deal.dealName?.trim() ?? "";
+                        const personName = (deal as any).contactName || contactName(linkedContact);
+                        const companyName = (deal as any).companyName?.trim() || linkedContact?.companyName?.trim();
+                        const phone = (deal as any).contactPhone || linkedContact?.phone;
+                        const email = (deal as any).contactEmail || linkedContact?.email;
+                        const lender = deal.lenderName;
+                        const days = deal.approvalExpiresOn
+                          ? Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000)
+                          : null;
+                        const stop = {
+                          "data-no-deal-drag": true,
+                          draggable: false,
+                          onClick: (event: React.MouseEvent) => event.stopPropagation(),
+                          onPointerDown: (event: React.PointerEvent) => event.stopPropagation(),
+                          onDragStart: (event: React.DragEvent) => { event.preventDefault(); event.stopPropagation(); },
+                        } as const;
+                        const missing = (label: string) => <span className="text-muted-foreground">{label}</span>;
+                        return (
+                          <div
+                            key={deal.id}
+                            draggable
+                            onDragStart={(e) => {
+                              if ((e.target as HTMLElement).closest("[data-no-deal-drag]")) { e.preventDefault(); return; }
+                              handleDragStart(e, deal);
+                            }}
+                            className="deal-wrap group relative cursor-grab overflow-hidden rounded-lg border bg-card p-2 text-[11px] leading-snug active:cursor-grabbing"
+                          >
+                            <Link href={`/deals/${deal.id}`} className="absolute inset-0 z-[var(--z-deal-card-bg)]" aria-label={`Open ${companyName || dealIdentity}`} />
+                            <div className="pointer-events-none relative z-[var(--z-deal-card-content)] space-y-0.5">
+                              <Link href={`/deals/${deal.id}`} data-no-deal-drag draggable={false}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                className="pointer-events-auto block text-xs font-semibold text-foreground hover:underline">
+                                {companyName || dealIdentity || "Company not recorded"}
+                              </Link>
+                              {customDealName && customDealName !== dealIdentity && customDealName !== companyName && (
+                                <p className="text-muted-foreground">{customDealName}</p>
+                              )}
+                              <p>{personName || missing("Contact not recorded")}</p>
+                              <div className="pointer-events-auto" {...stop}>
+                                {phone ? <PhoneLink phone={phone} leadId={deal.leadId ?? linkedContact?.id} showIcon={false} className="text-[11px]" /> : missing("Phone not recorded")}
+                              </div>
+                              {email && (
+                                <div className="pointer-events-auto" {...stop}>
+                                  <EmailLink email={email} leadId={deal.leadId ?? linkedContact?.id} showIcon={false} className="text-[11px] [overflow-wrap:anywhere]" />
+                                </div>
+                              )}
+                              <p className="font-medium text-foreground">{deal.amount != null ? formatCurrency(deal.amount) : "Amount not recorded"}</p>
+                              <p className="font-medium text-success">
+                                GM {formatGmDisplay(deal.actualGm ?? deal.approxGm, deal.gmSplitPct ?? 100)}
+                              </p>
+                              <p>Lender: {lender || missing("Not assigned")}</p>
+                              <p>Age: {deal.createdAt ? formatDistanceToNow(new Date(deal.createdAt)) : missing("Unknown")}</p>
+                              <p>
+                                Approval expiry:{" "}
+                                {deal.approvalExpiresOn && days != null ? (
+                                  <span className={cn(days < 0 ? "text-danger" : days <= 14 ? "text-warning" : "")}>
+                                    {format(new Date(`${deal.approvalExpiresOn}T00:00:00`), "MMM d, yyyy")}
+                                    {days < 0 ? " (overdue)" : days <= 14 ? ` (in ${days}d)` : ""}
+                                  </span>
+                                ) : missing("None recorded")}
+                              </p>
+                              <p className="text-muted-foreground">Rep: {rep ? getUserDisplayName(rep) : "Unassigned"}</p>
+                              {deal.isArchived && <Badge variant="outline" className="h-4 px-1 py-0 text-[9px]">Archived</Badge>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : view === "kanban" ? (

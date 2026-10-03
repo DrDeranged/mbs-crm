@@ -23,6 +23,7 @@ import { RecordActionBar, type RecordActionItem } from "@/components/record-acti
 import { leadActionTab, type LeadDetailTab } from "@/lib/recordActions";
 import { isMobileWeb, phoneActionForDevice } from "@/lib/recordContact";
 import { LeadDetailSkeleton } from "@/components/page-skeletons";
+import { useMediaQuery } from "@/hooks/use-desktop-sidebar";
 
 function LeadDetailContent() {
   const {
@@ -43,6 +44,7 @@ function LeadDetailContent() {
     dial,
   } = useContext(SoftphoneContext);
   const { requestAction } = useLeadDetail();
+  const wide = useMediaQuery("(min-width: 1280px)");
   const [selectedTab, setSelectedTab] = useState<LeadDetailTab>("info");
 
   useEffect(() => {
@@ -132,16 +134,8 @@ function LeadDetailContent() {
     { action: "task", onClick: () => requestTabAction("task") },
   ];
 
-  return (
-    <div className="h-full flex-1 overflow-auto bg-muted">
-      <RecordActionBar items={actions} />
-      <HeaderCard />
-
-      <div className="p-4 pb-28 md:p-8 md:pb-28 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <LeadSummary />
-
-        <div className="lg:col-span-2">
-           <Tabs value={selectedTab} onValueChange={(tab) => setSelectedTab(tab as LeadDetailTab)} className="w-full">
+  const leadTabs = (
+<Tabs value={wide && selectedTab === "activity" ? "info" : selectedTab} onValueChange={(tab) => setSelectedTab(tab as LeadDetailTab)} className="w-full">
             <div className="overflow-x-auto">
             <TabsList className="record-detail-tabs flex w-max min-w-full bg-card border p-1 gap-0.5 h-auto rounded-lg">
               <TabsTrigger value="info" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><User className="h-3.5 w-3.5 shrink-0"/> Info</TabsTrigger>
@@ -149,7 +143,7 @@ function LeadDetailContent() {
               <TabsTrigger value="tasks" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><CheckSquare className="h-3.5 w-3.5 shrink-0"/> Tasks</TabsTrigger>
               <TabsTrigger value="documents" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><FileIcon className="h-3.5 w-3.5 shrink-0"/> Docs</TabsTrigger>
               <TabsTrigger value="communications" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><MessageSquare className="h-3.5 w-3.5 shrink-0"/> Comms</TabsTrigger>
-              <TabsTrigger value="activity" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Clock className="h-3.5 w-3.5 shrink-0"/> Activity</TabsTrigger>
+              {!wide && <TabsTrigger value="activity" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Clock className="h-3.5 w-3.5 shrink-0"/> Activity</TabsTrigger>}
               <TabsTrigger value="lenders" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Building2 className="h-3.5 w-3.5 shrink-0"/> Lenders</TabsTrigger>
               <TabsTrigger value="marketing" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><Megaphone className="h-3.5 w-3.5 shrink-0"/> Marketing</TabsTrigger>
               <TabsTrigger value="application" className="flex items-center gap-1.5 shrink-0 whitespace-nowrap px-3 py-2 text-xs data-[state=active]:bg-info-bg data-[state=active]:text-info"><ClipboardList className="h-3.5 w-3.5 shrink-0"/> App</TabsTrigger>
@@ -174,9 +168,9 @@ function LeadDetailContent() {
             <TabsContent value="communications" className="outline-none">
               <LeadCommunications />
             </TabsContent>
-            <TabsContent value="activity" className="outline-none">
+            {!wide && <TabsContent value="activity" className="outline-none">
               <LeadActivity />
-            </TabsContent>
+            </TabsContent>}
             <TabsContent value="lenders" className="outline-none">
               <LeadLenderMatch />
             </TabsContent>
@@ -196,7 +190,23 @@ function LeadDetailContent() {
               <LeadConsent />
             </TabsContent>
           </Tabs>
-        </div>
+  );
+
+  return (
+    <div className={wide ? "flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-muted" : "h-full flex-1 overflow-auto bg-muted"}>
+      <RecordActionBar items={actions} />
+      <HeaderCard />
+
+      <div className={wide ? "lead-detail-columns min-h-0 flex-1 p-6 pb-28" : "p-4 pb-28 md:p-8 md:pb-28 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start"}>
+        {wide ? <div className="min-w-0 space-y-6 pr-1" data-testid="lead-detail-left"><LeadSummary sticky={false} />{leadTabs}</div> : (<>
+        <LeadSummary />
+        <div className="lg:col-span-2">{leadTabs}</div></>)}
+        {wide && (
+          <section aria-label="Activity timeline" className="min-w-0 rounded-lg border bg-card p-4" data-testid="lead-detail-activity">
+            <h2 className="flex items-center gap-1.5 text-sm font-semibold"><Clock className="h-4 w-4" /> Activity</h2>
+            <LeadActivity />
+          </section>
+        )}
       </div>
     </div>
   );

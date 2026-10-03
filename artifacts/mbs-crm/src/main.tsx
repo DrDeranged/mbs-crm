@@ -6,9 +6,9 @@ import { BrandLogo } from "./components/brand-logo";
 import { isChunkLoadError, reloadOnceForChunkError } from "./lib/chunkRecovery";
 import "./index.css";
 
-// System appearance applies before the first render, including public routes.
-document.documentElement.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
-document.documentElement.style.colorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+// Unsaved/public appearance is Light. The provider resolves saved account choices.
+document.documentElement.classList.remove("dark");
+document.documentElement.style.colorScheme = "light";
 
 function recoverFromImportFailure(error: unknown) {
   const buildId = document.querySelector<HTMLMetaElement>('meta[name="mbs-build-id"]')?.content ?? "";

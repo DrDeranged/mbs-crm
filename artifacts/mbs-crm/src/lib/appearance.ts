@@ -5,13 +5,13 @@ export function appearanceKey(userId: string): string {
 }
 
 export function readAppearance(storage: Pick<Storage, "getItem">, userId: string | null): AppearancePreference {
-  if (!userId) return "system";
+  if (!userId) return "light";
   try {
     const saved = storage.getItem(appearanceKey(userId));
-    return saved === "light" || saved === "dark" ? saved : "system";
+    return saved === "system" || saved === "light" || saved === "dark" ? saved : "light";
   } catch {
     // Private browsing/storage policy may make preferences unavailable.
-    return "system";
+    return "light";
   }
 }
 
@@ -20,5 +20,5 @@ export function resolveAppearance(preference: AppearancePreference, systemDark: 
 }
 
 export function readBrowserAppearance(userId: string | null): AppearancePreference {
-  try { return readAppearance(window.localStorage, userId); } catch { return "system"; }
+  try { return readAppearance(window.localStorage, userId); } catch { return "light"; }
 }

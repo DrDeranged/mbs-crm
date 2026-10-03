@@ -1,0 +1,68 @@
+
+> @workspace/mbs-crm-mobile@0.0.0 build /home/runner/workspace/artifacts/mbs-crm-mobile
+> node scripts/build.js
+
+Building static Expo Go deployment...
+Preparing build directories...
+Build: 1791042163734-15976
+Clearing Metro cache...
+Cache cleared
+Starting Metro...
+Setting EXPO_PUBLIC_DOMAIN=app.my-business-solutions.com
+Setting EXPO_PUBLIC_REPL_ID=8b2f0d46-c34b-495e-bca0-bc5f10c647fc
+[Metro] Starting project at /home/runner/workspace/artifacts/mbs-crm-mobile
+[Metro] React Compiler enabled
+[Metro] Starting Metro Bundler
+Metro ready
+Downloading bundles and manifests...
+This may take several minutes for production builds...
+Fetching ios bundle...
+Downloading: http://localhost:18082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=ios&dev=false&hot=false&lazy=false&minify=true
+[Metro] Waiting on http://localhost:18082
+[Metro] Logs for your project will appear below.
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+[Metro] | (node:16102) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:16103) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:16122) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:16105) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:16104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] | (node:16107) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[Metro] | (Use `node --trace-warnings ...` to show where the warning was created)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 16.0% ( 38/197)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 63.0% (496/632)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 70.2% ( 931/1143)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 82.0% (1273/1406)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 92.3% (1705/1775)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1843/1843)
+[Metro] iOS Bundled 24499ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1843 modules)
+[Metro] iOS node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1843/1843)
+ios bundle ready
+Fetching android bundle...
+Downloading: http://localhost:18082/artifacts/mbs-crm-mobile/node_modules/expo-router/entry.bundle?platform=android&dev=false&hot=false&lazy=false&minify=true
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓░░░░░░░░░░░░ 25.0% (164/420)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓░░░░░░░░░░ 41.0% (578/903)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 52.8% ( 854/1175)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 63.2% ( 998/1255)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 75.2% (1278/1474)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 91.5% (1711/1789)
+[Metro] Android node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1839/1839)
+[Metro] Android Bundled 26385ms node_modules/.pnpm/expo-router@6.0.24_@types+react-dom@19.1.11_@types+react@19.1.17__@types+react@19.1.17__1aff3836ea3e29527de60a30fc807a77/node_modules/expo-router/entry.js (1839 modules)
+android bundle ready
+Fetching ios manifest...
+Fetching android manifest...
+ios manifest ready
+android manifest ready
+All downloads completed successfully
+Processing assets...
+Found 49 unique asset(s)
+Copying assets...
+Copied 49 assets
+Updated bundle URLs
+Updating manifests and creating landing page...
+Manifests updated
+Build complete! Deploy to: https://app.my-business-solutions.com

@@ -3397,6 +3397,11 @@ export interface Deal {
   lastActivityActor?: User | null;
   /** @nullable */
   approvalExpiresOn?: string | null;
+  /**
+     * Lender on the most recently recorded deal approval, or null when no approval is recorded.
+     * @nullable
+     */
+  lenderName?: string | null;
 }
 
 export type DealApprovalContractType = typeof DealApprovalContractType[keyof typeof DealApprovalContractType];

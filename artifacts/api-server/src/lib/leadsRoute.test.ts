@@ -223,6 +223,59 @@ test("GET /api/leads?stale=true returns only stale assigned leads for an admin",
   }
 });
 
+test("ordinary company search selects IDs before relational hydration", async () => {
+  process.env.DATABASE_URL ??= "postgresql://integration-test.invalid/test";
+  const { createListLeadsHandler } = await import("../routes/leads");
+  const { PgDialect } = await import("drizzle-orm/pg-core");
+  const realDatabase = await import("@workspace/db");
+  const dialect = new PgDialect();
+  let idWhere = "";
+  let hydrationWhere = "";
+  let idCalls = 0;
+  let hydrationCalls = 0;
+  const database = {
+    select(fields: Record<string, unknown>) {
+      // Build the inner company EXISTS with the real SQL builder, never execute
+      // it; only outer ID/count results are fixture-controlled.
+      if (fields.id === realDatabase.companiesTable.id) return realDatabase.db.select(fields as any);
+      const idPhase = Object.hasOwn(fields, "id");
+      if (idPhase) idCalls++;
+      return queryBuilder(() => idPhase ? [] : [{ total: 0 }], where => {
+        if (idPhase) idWhere = dialect.sqlToQuery(where as any).sql;
+      });
+    },
+    query: { leadsTable: { async findMany(options: { where: unknown }) {
+      hydrationCalls++;
+      hydrationWhere = dialect.sqlToQuery(options.where as any).sql;
+      return [];
+    } } },
+  };
+  const app = express();
+  app.get("/api/leads", createListLeadsHandler({
+    database: database as any,
+    authenticate: async () => ({ id: 3, role: "rep", isActive: true }) as any,
+    getStaleThresholdDays: async () => 7,
+    getLatestActivities: async () => new Map(),
+    getLeadCreationActivities: async () => new Map(),
+  }));
+  const server = createServer(app);
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const address = server.address();
+    assert(address && typeof address !== "string");
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/leads?search=Northstar`);
+    assert.equal(response.status, 200);
+    assert.equal(idCalls, 1);
+    assert.match(idWhere, /companies/i);
+    assert.match(idWhere, /assigned_rep_id/i);
+    assert.equal(hydrationCalls, 0, "Empty ID page must not run a relational search");
+    assert.equal(hydrationWhere, "");
+    assert.deepEqual(await response.json(), { leads: [], total: 0, page: 1, limit: 25, totalPages: 0 });
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
+
 test("POST /api/leads/capture/elementor is absent and does not invoke a handler", async () => {
   process.env.DATABASE_URL ??= "postgresql://integration-test.invalid/test";
   const { default: leadsRouter } = await import("../routes/leads");

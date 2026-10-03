@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "buildId": "b21c2f56-3507-4b29-ba08-f7091a1d3b53",
+  "injectedFailure": "Actual production lazy-route JavaScript request aborted by browser transport",
+  "failedChunks": [
+    "/assets/settings-BZvVStBj.js"
+  ],
+  "firstFailure": {
+    "reloads": 1,
+    "recoveredRoute": "/settings",
+    "errorBoundarySeen": false,
+    "sessionGuard": "1"
+  },
+  "repeatedChunks": [
+    "/assets/leads-CDK8DKdd.js"
+  ],
+  "repeatSameBuild": {
+    "additionalReloads": 0,
+    "errorBoundaryAvailable": true
+  },
+  "differentBuildAndNonChunkErrors": "Covered by src/lib/chunkRecovery.test.ts; separate guard per build, non-chunk failures do not reload"
+}

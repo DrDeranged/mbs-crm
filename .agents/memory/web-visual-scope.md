@@ -3,7 +3,7 @@ name: Web visual scope
 description: Scope and evidence constraints for visual-only web CRM refreshes.
 ---
 
-Web CRM visual-only work must preserve existing interactive controls and their relative DOM/tab order, including persistent lead/deal contact actions. The approved appearance preference control belongs inside existing Settings, defaults to system and is isolated per signed-in account in the current browser; cross-device sync is not requested.
+Web CRM visual-only work must preserve existing interactive controls and their relative DOM/tab order, including persistent lead/deal contact actions. The approved appearance preference control belongs inside existing Settings, defaults to Light for unsaved/invalid choices and is isolated per signed-in account in the current browser; explicit System, Light and Dark choices stay honored. Cross-device sync is not requested.
 
 **Why:** The user explicitly permits presentation changes, not workflow redesign, and approved only the Settings appearance control as new interactive structure.
 
@@ -32,3 +32,9 @@ Persistence evidence must wait for a successful mutation response before inspect
 **Why:** A selected upload filename can appear before the upload succeeds. Treating that label as completion produced a misleading UI assertion followed by a missing database record.
 
 **How to apply:** Keep visual fixtures separate from persistence proof, match controls against their actual accessible names, and await the relevant completed response rather than optimistic labels.
+
+Desktop workspace changes do not authorize new mobile controls or new structural exceptions. Below 1024px, compare against the certified post-contact baseline; do not expand the older pre-contact exception manifest.
+
+**Why:** The user specifically requires the certified mobile navigation/control order to remain untouched while desktop-only rail and pin controls are introduced.
+
+**How to apply:** Branch desktop-only controls out of the DOM below the breakpoint rather than merely CSS-hiding them, and compare existing exempt controls too.

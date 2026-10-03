@@ -1,0 +1,75 @@
+
+Running 5 tests using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  1 tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation (22.9s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✘  2 tests/desktop-workspace.spec.ts:87:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages (7.1s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  3 tests/desktop-workspace.spec.ts:125:5 › desktop: equal readable columns and independent lead activity at exact breakpoints (8.5s)
+  ✓  4 tests/web-visual-refresh.spec.ts:116:5 › journey: public application submit persists application, lead and typed signature (4.3s)
+  ✓  5 tests/web-visual-refresh.spec.ts:148:5 › journey: Log partner submission persists an actual manual submission (3.9s)
+
+
+  1) tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  getByTestId('desktop-sidebar')
+    Expected: "true"
+    Received: "false"
+    Timeout:  8000ms
+
+    Call log:
+      - Expect "toHaveAttribute" getByTestId('desktop-sidebar') with timeout 8000ms
+      - waiting for getByTestId('desktop-sidebar')
+        20 × locator resolved to <aside data-open="false" data-pinned="false" data-testid="desktop-sidebar" class="desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground">…</aside>
+           - unexpected value "false"
+
+
+      77 |   await sandbox.login(page, "admin");
+      78 |   await open(page, "/dashboard");
+    > 79 |   await expect(sidebar).toHaveAttribute("data-pinned", "true");
+         |                         ^
+      80 |   await page.setViewportSize({ width: 1023, height: 900 });
+      81 |   await expect(sidebar).toHaveCount(0);
+      82 |   await page.keyboard.press("Control+b");
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:79:25
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md
+
+  2) tests/desktop-workspace.spec.ts:87:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+
+    Error: page.evaluate: e: You're already signed in.
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)
+        at /home/runner/workspace/tests/desktop-workspace.spec.ts:109:3
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+    Error Context: reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md
+
+  2 failed
+    tests/desktop-workspace.spec.ts:30:5 › desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation 
+    tests/desktop-workspace.spec.ts:87:5 › desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages 
+  3 passed (1.4m)

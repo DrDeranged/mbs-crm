@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "platforms": [
+    {
+      "platform": "ios",
+      "manifestSha256": "6587c436f90afcecfb76b55cdb6e3820127379dc5e3cf8e0616a18a651987ee4",
+      "bundleSha256": "ead0b45cf9569add397ada7665e78a891c8b82e9d408951bd491ca5394aa6ad0",
+      "bytes": 4339174,
+      "launchAssetOrigin": "https://app.my-business-solutions.com",
+      "compiledApiOrigin": "https://app.my-business-solutions.com",
+      "obsoleteHostPresent": false
+    },
+    {
+      "platform": "android",
+      "manifestSha256": "b7786055628eb84ae3ebb67d8107aafed8c0c9033bea2c5ce349a855ef2b574a",
+      "bundleSha256": "61cf246ec8a9a44383f93c7e32bf9c363615d75f09476d2e2b12fd80663d542e",
+      "bytes": 4336417,
+      "launchAssetOrigin": "https://app.my-business-solutions.com",
+      "compiledApiOrigin": "https://app.my-business-solutions.com",
+      "obsoleteHostPresent": false
+    }
+  ],
+  "developmentWorkflowChanged": false,
+  "reproduction": "EXPO_PUBLIC_DOMAIN=app.my-business-solutions.com METRO_PORT=<free port> pnpm --filter @workspace/mbs-crm-mobile run build && node scripts/desktop-workspace/mobile-proof.mjs"
+}

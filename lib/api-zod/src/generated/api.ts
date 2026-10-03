@@ -3499,7 +3499,8 @@ export const ListDealsResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
-  "approvalExpiresOn": zod.coerce.date().nullish()
+  "approvalExpiresOn": zod.coerce.date().nullish(),
+  "lenderName": zod.string().nullish().describe('Lender on the most recently recorded deal approval, or null when no approval is recorded.')
 })),
   "total": zod.number(),
   "page": zod.number(),
@@ -3659,7 +3660,8 @@ export const GetDealResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
-  "approvalExpiresOn": zod.coerce.date().nullish()
+  "approvalExpiresOn": zod.coerce.date().nullish(),
+  "lenderName": zod.string().nullish().describe('Lender on the most recently recorded deal approval, or null when no approval is recorded.')
 }).and(zod.object({
   "lead": zod.union([zod.object({
   "id": zod.number(),
@@ -3845,7 +3847,8 @@ export const UpdateDealResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
-  "approvalExpiresOn": zod.coerce.date().nullish()
+  "approvalExpiresOn": zod.coerce.date().nullish(),
+  "lenderName": zod.string().nullish().describe('Lender on the most recently recorded deal approval, or null when no approval is recorded.')
 })
 
 
@@ -3964,7 +3967,8 @@ export const ArchiveDealResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
-  "approvalExpiresOn": zod.coerce.date().nullish()
+  "approvalExpiresOn": zod.coerce.date().nullish(),
+  "lenderName": zod.string().nullish().describe('Lender on the most recently recorded deal approval, or null when no approval is recorded.')
 })
 
 
@@ -4154,7 +4158,8 @@ export const SaveDealRatePointsResponse = zod.object({
   "mobileNumber": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional().describe('User who performed the most recent activity'),
-  "approvalExpiresOn": zod.coerce.date().nullish()
+  "approvalExpiresOn": zod.coerce.date().nullish(),
+  "lenderName": zod.string().nullish().describe('Lender on the most recently recorded deal approval, or null when no approval is recorded.')
 }),
   "gmTarget": zod.enum(['approxGm', 'actualGm']),
   "calculation": zod.object({

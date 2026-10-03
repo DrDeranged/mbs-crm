@@ -1,0 +1,457 @@
+{
+  "config": {
+    "argv": [
+      "/nix/store/9cyx2v23dip6p9q98384k9v06c96qskb-nodejs-24.13.0/bin/node",
+      "/home/runner/workspace/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "playwright.desktop-workspace.config.ts",
+      "--grep",
+      "desktop: rail hover|desktop: authorized palette|desktop: equal readable columns|journey: public application submit|journey: Log partner submission"
+    ],
+    "configFile": "/home/runner/workspace/playwright.desktop-workspace.config.ts",
+    "rootDir": "/home/runner/workspace/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/workspace/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/(?:web-visual-refresh|desktop-workspace)\\.spec\\.ts/"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/desktop-workspace-release/journeys/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "desktop-workspace.spec.ts",
+      "file": "desktop-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "desktop: rail hover delays, no reflow, pin persistence, keyboard and account isolation",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7317,
+                  "error": {
+                    "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30",
+                    "stack": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:68:3",
+                    "location": {
+                      "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                      "column": 171,
+                      "line": 44
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                        "column": 171,
+                        "line": 44
+                      },
+                      "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:68:3"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:09:12.585Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--94dcd-board-and-account-isolation/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                    "column": 171,
+                    "line": 44
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-be6f2c506248e21aa9ed",
+          "file": "desktop-workspace.spec.ts",
+          "line": 30,
+          "column": 5
+        },
+        {
+          "title": "desktop: authorized palette covers company/contact/email/phone, deals, lenders, brokers and pages",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6450,
+                  "error": {
+                    "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30",
+                    "stack": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:103:3",
+                    "location": {
+                      "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                      "column": 171,
+                      "line": 44
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                        "column": 171,
+                        "line": 44
+                      },
+                      "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nq._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:212:20)\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:103:3"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:09:32.542Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--baaaf-s-lenders-brokers-and-pages/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                    "column": 171,
+                    "line": 44
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-fb7024554a02cba149c7",
+          "file": "desktop-workspace.spec.ts",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "title": "desktop: equal readable columns and independent lead activity at exact breakpoints",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4647,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m400\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m400\u001b[39m\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:147:31",
+                    "location": {
+                      "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                      "column": 31,
+                      "line": 147
+                    },
+                    "snippet": "  145 |   for (let i = 0; i < 20; i++) {\n  146 |     const assignment = await api(page, \"/leads/1/assign\", { repId: i % 2 === 0 ? 2 : 3 }, \"PUT\");\n> 147 |     expect(assignment.status).toBe(200);\n      |                               ^\n  148 |   }\n  149 |   await open(page, \"/leads/1\");\n  150 |   await expect(page.locator(\".lead-detail-columns\")).toHaveCount(0);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                        "column": 31,
+                        "line": 147
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m400\u001b[39m\n\n  145 |   for (let i = 0; i < 20; i++) {\n  146 |     const assignment = await api(page, \"/leads/1/assign\", { repId: i % 2 === 0 ? 2 : 3 }, \"PUT\");\n> 147 |     expect(assignment.status).toBe(200);\n      |                               ^\n  148 |   }\n  149 |   await open(page, \"/leads/1\");\n  150 |   await expect(page.locator(\".lead-detail-columns\")).toHaveCount(0);\n    at /home/runner/workspace/tests/desktop-workspace.spec.ts:147:31"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:09:49.248Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--46691-tivity-at-exact-breakpoints/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/desktop-workspace-desktop--46691-tivity-at-exact-breakpoints/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/runner/workspace/tests/desktop-workspace.spec.ts",
+                    "column": 31,
+                    "line": 147
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "79ffb3356d47e10cc7c6-eedb3dfc27da46cb0f25",
+          "file": "desktop-workspace.spec.ts",
+          "line": 119,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "web-visual-refresh.spec.ts",
+      "file": "web-visual-refresh.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "journey: public application submit persists application, lead and typed signature",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7245,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:10:08.539Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d006b168e84a6318bbb-be03804f7c31cca6b64f",
+          "file": "web-visual-refresh.spec.ts",
+          "line": 116,
+          "column": 5
+        },
+        {
+          "title": "journey: Log partner submission persists an actual manual submission",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4876,
+                  "error": {
+                    "message": "Error: locator.fill: Error: strict mode violation: getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])') resolved to 2 elements:\n    1) <input value=\"\" class=\"flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm\"/> aka getByRole('textbox').nth(1)\n    2) <input value=\"\" type=\"text\" cmdk-input=\"\" role=\"combobox\" id=\"radix-«r2j»\" autocorrect=\"off\" autocomplete=\"off\" spellcheck=\"false\" aria-expanded=\"true\" aria-autocomplete=\"list\" aria-controls=\"radix-«r2h»\" aria-label=\"Search by name…\" placeholder=\"Search by name…\" aria-labelledby=\"radix-«r2i»\" class=\"flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50\"/> aka getByRole('combobox', { name: 'Search by name…' })\n\nCall log:\n\u001b[2m  - waiting for getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])')\u001b[22m\n",
+                    "stack": "Error: locator.fill: Error: strict mode violation: getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])') resolved to 2 elements:\n    1) <input value=\"\" class=\"flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm\"/> aka getByRole('textbox').nth(1)\n    2) <input value=\"\" type=\"text\" cmdk-input=\"\" role=\"combobox\" id=\"radix-«r2j»\" autocorrect=\"off\" autocomplete=\"off\" spellcheck=\"false\" aria-expanded=\"true\" aria-autocomplete=\"list\" aria-controls=\"radix-«r2h»\" aria-label=\"Search by name…\" placeholder=\"Search by name…\" aria-labelledby=\"radix-«r2i»\" class=\"flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50\"/> aka getByRole('combobox', { name: 'Search by name…' })\n\nCall log:\n\u001b[2m  - waiting for getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])')\u001b[22m\n\n    at /home/runner/workspace/tests/web-visual-refresh.spec.ts:155:89",
+                    "location": {
+                      "file": "/home/runner/workspace/tests/web-visual-refresh.spec.ts",
+                      "column": 89,
+                      "line": 155
+                    },
+                    "snippet": "  153 |   await page.getByRole(\"button\", { name: \"Partner\", exact: true }).click();\n  154 |   await page.getByRole(\"option\", { name: /^Visual Fixture Match Partner/ }).click();\n> 155 |   await page.getByRole(\"dialog\").locator('input:not([type=\"date\"]):not([type=\"file\"])').fill(`Manual journey ${unique}`);\n      |                                                                                         ^\n  156 |   const saved = page.waitForResponse(response => new URL(response.url()).pathname.endsWith(\"/submissions/manual\") && response.request().method() === \"POST\" && response.ok());\n  157 |   await page.getByRole(\"button\", { name: \"Save submission\" }).click();\n  158 |   await saved;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/runner/workspace/tests/web-visual-refresh.spec.ts",
+                        "column": 89,
+                        "line": 155
+                      },
+                      "message": "Error: locator.fill: Error: strict mode violation: getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])') resolved to 2 elements:\n    1) <input value=\"\" class=\"flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm\"/> aka getByRole('textbox').nth(1)\n    2) <input value=\"\" type=\"text\" cmdk-input=\"\" role=\"combobox\" id=\"radix-«r2j»\" autocorrect=\"off\" autocomplete=\"off\" spellcheck=\"false\" aria-expanded=\"true\" aria-autocomplete=\"list\" aria-controls=\"radix-«r2h»\" aria-label=\"Search by name…\" placeholder=\"Search by name…\" aria-labelledby=\"radix-«r2i»\" class=\"flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50\"/> aka getByRole('combobox', { name: 'Search by name…' })\n\nCall log:\n\u001b[2m  - waiting for getByRole('dialog').locator('input:not([type=\"date\"]):not([type=\"file\"])')\u001b[22m\n\n\n  153 |   await page.getByRole(\"button\", { name: \"Partner\", exact: true }).click();\n  154 |   await page.getByRole(\"option\", { name: /^Visual Fixture Match Partner/ }).click();\n> 155 |   await page.getByRole(\"dialog\").locator('input:not([type=\"date\"]):not([type=\"file\"])').fill(`Manual journey ${unique}`);\n      |                                                                                         ^\n  156 |   const saved = page.waitForResponse(response => new URL(response.url()).pathname.endsWith(\"/submissions/manual\") && response.request().method() === \"POST\" && response.ok());\n  157 |   await page.getByRole(\"button\", { name: \"Save submission\" }).click();\n  158 |   await saved;\n    at /home/runner/workspace/tests/web-visual-refresh.spec.ts:155:89"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T16:10:30.591Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/desktop-workspace-release/journeys/test-output/web-visual-refresh-journey-28457-an-actual-manual-submission/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/runner/workspace/tests/web-visual-refresh.spec.ts",
+                    "column": 89,
+                    "line": 155
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7d006b168e84a6318bbb-0b71b2616501ef11c2ce",
+          "file": "web-visual-refresh.spec.ts",
+          "line": 148,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T16:09:11.920Z",
+    "duration": 84802.018,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}
