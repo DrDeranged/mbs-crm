@@ -38,3 +38,16 @@ Desktop workspace changes do not authorize new mobile controls or new structural
 **Why:** The user specifically requires the certified mobile navigation/control order to remain untouched while desktop-only rail and pin controls are introduced.
 
 **How to apply:** Branch desktop-only controls out of the DOM below the breakpoint rather than merely CSS-hiding them, and compare existing exempt controls too.
+
+Control-inventory and persistence proofs do not certify text readability. Dense
+record layouts need geometry checks with fully populated rows and realistic
+long addresses, company/contact names, status labels and ownership labels.
+
+**Why:** A Leads table could preserve every control and pass workflow checks
+while squeezing a break-anywhere email into a few characters per line and
+making each row very tall. Content length and column competition matter.
+
+**How to apply:** Inspect the actual narrow-desktop screenshots and measure
+email line rectangles, row heights, clipping and scroll containment. Preserve
+intentional wrapping in compact cards; let dense tables scroll rather than
+compressing identifiers into character stacks.

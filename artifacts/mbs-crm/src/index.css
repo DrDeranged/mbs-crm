@@ -235,6 +235,16 @@
 /* Tabular numerals everywhere, incl. tables */
 table, th, td, input, [data-numeric] { font-variant-numeric: tabular-nums; }
 
+/* Dense record tables scroll inside their existing wrapper instead of
+   sacrificing a contact column to character-by-character wrapping.
+   Keep compact cards and the mobile Deals list's inline contact layout intact. */
+@media (min-width: 768px) {
+  .leads-data-table { min-width: 1440px; }
+  .deals-data-table { min-width: 1200px; }
+  table [data-contact-link="email"] { white-space: nowrap; flex-shrink: 0; }
+  table [data-contact-link="email"] > span { word-break: normal; overflow-wrap: normal; }
+}
+
 /* Floating glass: dialogs, sheets, dropdowns, popovers, toasts, command switcher */
 .glass-surface, .cl-userButtonPopoverCard, .cl-modalContent {
   background-color: hsl(var(--glass-solid));

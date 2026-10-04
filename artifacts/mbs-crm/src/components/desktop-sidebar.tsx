@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useClerk } from "@clerk/react";
 import {
@@ -8,9 +8,8 @@ import {
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-const OPEN_DELAY = 150;
-const CLOSE_DELAY = 300;
+import { SidebarInteractionContext } from "@/components/sidebar-interaction-context";
+import { createSidebarHoverController } from "@/lib/sidebarHover";
 
 type Item = { href: string; label: string; icon: ElementType; exact?: boolean };
 
@@ -70,7 +69,7 @@ function Rail({ pinned, onTogglePin }: { pinned: boolean; onTogglePin: () => voi
 
   return (
     <div className="flex h-full w-14 flex-col items-center py-2">
-      <div className="flex h-12 w-full items-center justify-center border-b border-sidebar-border pb-1">
+      <div data-sidebar-hover-exempt className="flex h-12 w-full items-center justify-center border-b border-sidebar-border pb-1">
         <NotificationBell />
       </div>
       <nav className="flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden py-3" aria-label="Primary">
@@ -110,7 +109,7 @@ function Rail({ pinned, onTogglePin }: { pinned: boolean; onTogglePin: () => voi
           </>
         )}
       </nav>
-      <div className="flex flex-col items-center gap-1 border-t border-sidebar-border pt-2">
+      <div data-sidebar-hover-exempt className="flex flex-col items-center gap-1 border-t border-sidebar-border pt-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <button type="button" className="desktop-rail-item" aria-label="Sign Out" onClick={() => signOut()}>
@@ -136,22 +135,82 @@ export function DesktopSidebar({
   pinned, onTogglePin, expanded,
 }: { pinned: boolean; onTogglePin: () => void; expanded: ReactNode }) {
   const [hoverOpen, setHoverOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clear = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+  const sidebarRef = useRef<HTMLElement>(null);
+  const expandedRef = useRef<HTMLDivElement>(null);
+  const layers = useRef(new Set<symbol>());
+  const pressed = useRef(false);
+  const pinnedRef = useRef(pinned);
+  pinnedRef.current = pinned;
+  const focusTransfer = useRef<string | null>(null);
+  const keyboardInside = useCallback(() => {
+    const active = document.activeElement;
+    return Boolean(active && sidebarRef.current?.contains(active) && active.matches(":focus-visible"));
   }, []);
-  const schedule = useCallback((open: boolean, delay: number) => {
-    clear();
-    timer.current = setTimeout(() => { timer.current = null; setHoverOpen(open); }, delay);
-  }, [clear]);
-  useEffect(() => clear, [clear]);
-  useEffect(() => { if (pinned) { clear(); setHoverOpen(false); } }, [pinned, clear]);
+  const [hover] = useState(() => createSidebarHoverController(setHoverOpen, (opening) => {
+    if (pinnedRef.current || pressed.current || layers.current.size) return false;
+    return opening
+      ? Boolean(sidebarRef.current?.matches(":hover"))
+      : !sidebarRef.current?.matches(":hover") && !keyboardInside();
+  }));
+  const setLayerOpen = useCallback((owner: symbol, open: boolean) => {
+    if (open) {
+      layers.current.add(owner);
+      hover.cancel();
+    } else if (layers.current.delete(owner) && !layers.current.size) {
+      hover.request(false);
+    }
+  }, [hover]);
+  const interaction = useMemo(() => ({ setLayerOpen }), [setLayerOpen]);
+  useEffect(() => () => hover.cancel(), [hover]);
+  useEffect(() => {
+    hover.cancel();
+    // Pointer-leave intents are blocked while pinned. Reconcile them when
+    // unpinning, unless current pointer/focus/portal ownership still holds us.
+    if (!pinned) hover.request(false);
+  }, [pinned, hover]);
+  useEffect(() => {
+    const finishPress = () => {
+      if (!pressed.current) return;
+      pressed.current = false;
+      if (!sidebarRef.current?.matches(":hover")) hover.request(false);
+    };
+    window.addEventListener("pointerup", finishPress);
+    window.addEventListener("pointercancel", finishPress);
+    return () => {
+      window.removeEventListener("pointerup", finishPress);
+      window.removeEventListener("pointercancel", finishPress);
+    };
+  }, [hover]);
+  useLayoutEffect(() => {
+    if (!(pinned || hoverOpen) || !focusTransfer.current) return;
+    const label = focusTransfer.current;
+    focusTransfer.current = null;
+    const controls = expandedRef.current?.querySelectorAll<HTMLElement>("a[href], button");
+    const target = label === "sidebar-pin"
+      ? expandedRef.current?.querySelector<HTMLElement>(`[aria-label="${pinned ? "Unpin sidebar" : "Pin sidebar open"}"]`)
+      : Array.from(controls ?? []).find(el => (el.getAttribute("aria-label") || el.textContent?.trim()) === label);
+    target?.focus();
+  }, [hoverOpen, pinned]);
+  const togglePin = () => {
+    if (keyboardInside()) focusTransfer.current = "sidebar-pin";
+    hover.setOpen(Boolean(sidebarRef.current?.matches(":hover")) || keyboardInside());
+    onTogglePin();
+  };
+  const trackPointer = (target: EventTarget | null) => {
+    if (pinned || layers.current.size || pressed.current) return;
+    // A later pointer hover must not replay a previous keyboard focus handoff.
+    focusTransfer.current = null;
+    const element = target instanceof Element ? target : null;
+    if (element?.closest("[data-sidebar-hover-exempt]")) hover.cancel();
+    else if (element && sidebarRef.current?.contains(element)) hover.request(true);
+  };
+  const expandedVisible = pinned || hoverOpen;
 
   const pinBar = (
     <div className="flex shrink-0 items-center justify-end border-t border-sidebar-border px-3 py-1.5">
       <button
         type="button"
-        onClick={onTogglePin}
+        onClick={togglePin}
         aria-pressed={pinned}
         aria-label={pinned ? "Unpin sidebar" : "Pin sidebar open"}
         className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
@@ -170,29 +229,48 @@ export function DesktopSidebar({
   );
 
   return (
+    <SidebarInteractionContext.Provider value={interaction}>
     <aside
+      ref={sidebarRef}
       data-testid="desktop-sidebar"
       data-pinned={pinned}
       data-open={pinned || hoverOpen}
-      onPointerEnter={() => { if (!pinned) schedule(true, OPEN_DELAY); }}
-      onPointerLeave={() => { if (!pinned) schedule(false, CLOSE_DELAY); }}
+      onPointerEnter={(e) => trackPointer(e.target)}
+      onPointerMove={(e) => trackPointer(e.target)}
+      onPointerLeave={() => hover.request(false)}
+      onPointerDownCapture={() => { pressed.current = true; hover.cancel(); }}
       onFocusCapture={(e) => {
         // Pointer focus must not place the overlay over a rail control between
         // mouse-down and click. Keyboard focus can expand it immediately.
-        if (!pinned && e.target.matches(":focus-visible")) { clear(); setHoverOpen(true); }
+        if (e.target.matches(":focus-visible") && e.target.closest("[data-sidebar-surface='rail']") && e.target.getAttribute("aria-label") === "Pin sidebar open") {
+          focusTransfer.current = "sidebar-pin";
+        }
+        if (!layers.current.size && e.target.matches(":focus-visible") && !e.target.closest("[data-sidebar-hover-exempt]")) {
+          if (e.target.closest("[data-sidebar-surface='rail']")) {
+            focusTransfer.current = e.target.getAttribute("aria-label") || e.target.textContent?.trim() || null;
+          }
+          hover.setOpen(true);
+        }
       }}
-      onBlurCapture={(e) => { if (!pinned && !e.currentTarget.contains(e.relatedTarget as Node | null)) schedule(false, CLOSE_DELAY); }}
-      onKeyDown={(e) => { if (e.key === "Escape" && !pinned) { clear(); setHoverOpen(false); } }}
+      onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) hover.request(false); }}
+      onKeyDown={(e) => {
+        // Do not unmount a rail-owned panel via the global pin shortcut.
+        if (layers.current.size && !e.altKey && !e.shiftKey && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") e.preventDefault();
+        if (e.key === "Escape" && !pinned && !layers.current.size) hover.setOpen(false);
+      }}
       className="desktop-rail fixed inset-y-0 left-0 z-[var(--z-sidebar)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
     >
-      {pinned ? expandedTree : (
-        <>
-          <Rail pinned={false} onTogglePin={onTogglePin} />
-          {hoverOpen && (
-            <div className="desktop-rail-overlay glass-surface bg-sidebar text-sidebar-foreground">{expandedTree}</div>
-          )}
-        </>
-      )}
+      {!pinned && <div className="h-full" data-sidebar-surface="rail" inert={expandedVisible} aria-hidden={expandedVisible}>
+        <Rail pinned={false} onTogglePin={togglePin} />
+      </div>}
+      <div
+        ref={expandedRef}
+        data-sidebar-surface="expanded"
+        hidden={!expandedVisible}
+        inert={!expandedVisible}
+        className={pinned ? "h-full" : "desktop-rail-overlay glass-surface bg-sidebar text-sidebar-foreground"}
+      >{expandedTree}</div>
     </aside>
+    </SidebarInteractionContext.Provider>
   );
 }

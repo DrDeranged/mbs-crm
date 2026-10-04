@@ -33,6 +33,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { useSidebarLayer } from "@/components/sidebar-interaction-context";
 import { getUserDisplayName } from "@/lib/utils";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import {
@@ -49,6 +50,7 @@ interface AppShellProps {
 }
 
 function SidebarContent({ onNavigate, showSearch = true }: { onNavigate?: () => void; showSearch?: boolean }) {
+  const setMenuOpen = useSidebarLayer();
   const [location, navigate] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
@@ -178,7 +180,7 @@ function SidebarContent({ onNavigate, showSearch = true }: { onNavigate?: () => 
 
       {/* User footer */}
       <div className="border-t border-sidebar-border p-4 flex-shrink-0">
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button
               type="button"

@@ -72,6 +72,7 @@ export function EmailLink({ email, leadId, showIcon = true, className }: EmailLi
   return (
     <a
       href={target.href}
+      data-contact-link="email"
       draggable={false}
       onPointerDown={(event) => event.stopPropagation()}
       onDragStart={(event) => {

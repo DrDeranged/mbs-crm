@@ -4,7 +4,7 @@
 .desktop-rail-overlay {
   position: absolute; inset: 0 auto 0 0; width: 16rem;
   box-shadow: var(--elev-float);
-  animation: desktop-rail-in var(--motion-fast) var(--ease);
+  animation: desktop-rail-in 100ms var(--ease);
 }
 @keyframes desktop-rail-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 .desktop-rail-item {

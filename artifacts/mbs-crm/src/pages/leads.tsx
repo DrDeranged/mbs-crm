@@ -877,7 +877,7 @@ export default function Leads() {
 
       {/* Desktop table — hidden below md */}
       <div className="hidden md:block rounded-md border bg-card overflow-x-auto">
-        <Table>
+        <Table className="leads-data-table">
           <TableHeader>
             <TableRow>
               {isManagerOrAdmin && (
@@ -891,10 +891,10 @@ export default function Leads() {
                   />
                 </TableHead>
               )}
-              <TableHead>Lead</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead className="min-w-40">Lead</TableHead>
+              <TableHead className="min-w-40">Company</TableHead>
+              <TableHead className="min-w-36">Phone</TableHead>
+              <TableHead className="min-w-60">Email</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Stale</TableHead>
               <TableHead>Score</TableHead>

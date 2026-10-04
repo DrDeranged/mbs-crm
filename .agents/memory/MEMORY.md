@@ -48,3 +48,4 @@
 - [Contact action boundaries](contact-action-boundaries.md) — deal access never grants linked-lead access; terminal status does not restrict contact actions.
 - [Web visual scope](web-visual-scope.md) — preserve mobile controls/order and contact actions; desktop pin controls are accepted; freeze safe authenticated baselines first.
 - [Visual baseline HTML polling](visual-baseline-html-polls.md) — retained bundles must see retained HTML during version polling, or update banners invalidate control comparisons.
+- [Fixture network interception](fixture-network-interception.md) — block PWA workers and prove HTTP interception before treating mocked rows or unread counts as fixture evidence.

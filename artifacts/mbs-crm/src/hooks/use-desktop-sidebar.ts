@@ -56,6 +56,9 @@ export function useDesktopSidebarPin(userId: string | null | undefined, desktop:
       if (event.defaultPrevented || event.altKey || event.shiftKey) return;
       if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "b") return;
       if (isEditingTarget(event.target) || isEditingTarget(document.activeElement)) return;
+      // A popup can temporarily lose focus when its read buttons become disabled.
+      // Keep the pin shortcut from removing its trigger during that interval.
+      if (document.querySelector('[role="dialog"][data-state="open"], [role="menu"][data-state="open"]')) return;
       event.preventDefault();
       setPinned((p) => !p);
     };

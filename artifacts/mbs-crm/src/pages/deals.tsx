@@ -855,12 +855,12 @@ export default function DealsPage() {
         ) : (
           <div className="p-6 h-full overflow-auto">
             <div className="bg-card border rounded-xl ">
-              <Table>
+              <Table className="deals-data-table">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Deal / Contact</TableHead>
-                    <TableHead className="hidden md:table-cell">Phone</TableHead>
-                    <TableHead className="hidden md:table-cell">Email</TableHead>
+                    <TableHead className="md:min-w-72">Deal / Contact</TableHead>
+                    <TableHead className="hidden md:table-cell md:min-w-36">Phone</TableHead>
+                    <TableHead className="hidden md:table-cell md:min-w-60">Email</TableHead>
                     <TableHead>Stage</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Expected GM</TableHead>

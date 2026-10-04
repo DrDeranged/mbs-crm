@@ -339,7 +339,7 @@ export default function SystemHealth() {
                             {err.message ?? "—"}
                           </p>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell max-w-56 break-all font-mono text-xs text-muted-foreground">
+                        <TableCell className="hidden lg:table-cell min-w-40 max-w-56 break-all font-mono text-xs text-muted-foreground">
                           {err.requestId ?? "—"}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">

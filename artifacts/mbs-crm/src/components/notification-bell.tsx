@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Bell, UserPlus, MessageSquare, ArrowRightCircle, FileText, CreditCard, Phone, Clock, CheckCheck, RefreshCw, Loader2, AlertCircle } from "lucide-react";
 import { useGetMe, useGetUnreadNotificationCount, useListNotifications, getListNotificationsQueryKey, useMarkAllNotificationsRead, useMarkNotificationRead } from "@workspace/api-client-react";
@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { notificationTarget } from "@/lib/notificationNavigation";
 import { getNotificationLoadError } from "@/lib/notification-error";
+import { useSidebarLayer } from "@/components/sidebar-interaction-context";
 
 const TYPE_ICON: Record<string, React.ElementType> = {
   lead_assigned: UserPlus,
@@ -36,6 +37,15 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const setLayerOpen = useSidebarLayer();
+  const interactionVersion = useRef(0);
+  const changeOpen = useCallback((next: boolean) => {
+    interactionVersion.current += 1;
+    setLayerOpen(next);
+    setOpen(next);
+  }, [setLayerOpen]);
+  // Route/breakpoint changes may unmount the bell before its read request ends.
+  useLayoutEffect(() => () => { interactionVersion.current += 1; }, []);
 
   const { data: currentUser } = useGetMe();
   const { data: countData, refetch: refetchCount } = useGetUnreadNotificationCount();
@@ -49,6 +59,8 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   // Poll for counts
   useEffect(() => {
     const id = setInterval(() => {
+      // Persistent collapsed/expanded trees must not double-poll offscreen bells.
+      if (!triggerRef.current?.getClientRects().length) return;
       refetchCount();
       if (open) refetchList();
     }, 30_000);
@@ -58,13 +70,14 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   // Close on route change and restore focus
   useEffect(() => {
     if (open) {
-      setOpen(false);
+      changeOpen(false);
       // Restore focus to trigger on route change
       setTimeout(() => triggerRef.current?.focus(), 0);
     }
   }, [location]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClickNotification = async (n: { id: number; isRead: boolean; leadId?: number | null }) => {
+    const version = interactionVersion.current;
     if (!n.isRead) {
       try {
         await markRead.mutateAsync({ id: n.id });
@@ -72,16 +85,18 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
         refetchList();
       } catch (err) {
         toast({ title: "Failed to mark as read", variant: "destructive" });
+        return;
       }
     }
+    if (version !== interactionVersion.current) return;
 
     const target = notificationTarget(n.leadId);
     if (target) {
+      changeOpen(false);
       navigate(target);
     } else {
-      toast({ title: "Cannot open record", description: "API Limitation: No lead ID provided for this notification.", variant: "default" });
+      toast({ title: "Cannot open record", description: "This notification does not link to a lead.", variant: "default" });
     }
-    setOpen(false);
   };
 
   const handleMarkAllRead = async () => {
@@ -103,7 +118,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
-            disabled={markAllRead.isPending}
+            disabled={markAllRead.isPending || markRead.isPending}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <CheckCheck size={13} />
@@ -138,6 +153,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
             return (
               <button
                 key={n.id}
+                disabled={markRead.isPending || markAllRead.isPending}
                 onClick={() => handleClickNotification(n)}
                 className={cn(
                   "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent border-b border-border last:border-0",
@@ -175,7 +191,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
       ref={triggerRef}
       variant="ghost"
       size="icon"
-      onClick={() => isMobile && setOpen(true)}
+      onClick={() => isMobile && changeOpen(true)}
       className={cn(
         "relative",
         onDark
@@ -197,7 +213,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
     return (
       <>
         {TriggerButton}
-        <Sheet open={open} onOpenChange={setOpen}>
+        <Sheet open={open} onOpenChange={changeOpen}>
           <SheetContent side="bottom" overlayClassName="z-[var(--z-notification-backdrop)]" showClose={false} className="p-0 z-[var(--z-popover)] max-h-[70vh]">
             <SheetHeader className="sr-only">
               <SheetTitle>Notifications</SheetTitle>
@@ -210,7 +226,7 @@ export function NotificationBell({ onDark = true }: { onDark?: boolean }) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={changeOpen}>
       <PopoverTrigger asChild>
         {TriggerButton}
       </PopoverTrigger>
