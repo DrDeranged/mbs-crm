@@ -31,8 +31,15 @@ if (!basePath) {
 // script hash happens to stay the same (for example, after a worker-only fix).
 const buildId = randomUUID();
 
-export default defineConfig({
+export default defineConfig(async ({ command }) => ({
   base: basePath,
+  // A build/verification process must not invalidate the live server's
+  // optimized dependencies. Vite otherwise reports missing files as 504
+  // "Outdated Optimize Dep", which rejects lazy page imports.
+  cacheDir: path.resolve(import.meta.dirname, "node_modules", command === "serve" ? ".vite-dev" : ".vite-build"),
+  optimizeDeps: {
+    include: ["recharts", "date-fns"],
+  },
   plugins: [
     {
       name: "mbs-build-id",
@@ -89,4 +96,4 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
   },
-});
+}));

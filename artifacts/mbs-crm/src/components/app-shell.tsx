@@ -33,6 +33,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetMe } from "@workspace/api-client-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useSidebarLayer } from "@/components/sidebar-interaction-context";
 import { getUserDisplayName } from "@/lib/utils";
 import { getApiBaseUrl } from "@/lib/apiBase";
@@ -274,6 +275,7 @@ export function AppShell({ children }: AppShellProps) {
                   <kbd className="font-mono bg-foreground/10 px-1.5 py-0.5 rounded text-[10px]">⌘K</kbd>
                 </button>
               )}
+              <ThemeToggle />
               <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
             </div>
           </div>

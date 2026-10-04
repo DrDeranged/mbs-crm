@@ -3,9 +3,9 @@ name: Web visual scope
 description: Scope and evidence constraints for visual-only web CRM refreshes.
 ---
 
-Web CRM visual-only work must preserve existing interactive controls and their relative DOM/tab order, including persistent lead/deal contact actions. The approved appearance preference control belongs inside existing Settings, defaults to Light for unsaved/invalid choices and is isolated per signed-in account in the current browser; explicit System, Light and Dark choices stay honored. Cross-device sync is not requested.
+Web CRM visual-only work must preserve existing interactive controls and their relative DOM/tab order, including persistent lead/deal contact actions. On 2026-10-04, the user approved moving desktop light/dark switching to a top-bar icon beside Search and removing the desktop Settings appearance selector. Mobile web keeps its existing Settings appearance control. Unsaved/invalid choices still default to Light; existing System preferences remain honored until explicitly toggled. Cross-device sync is not requested.
 
-**Why:** The user explicitly permits presentation changes, not workflow redesign, and approved only the Settings appearance control as new interactive structure.
+**Why:** Presentation changes do not authorize workflow redesign. The desktop header theme control is an explicit approved exception, not permission to add or reorder unrelated controls or mobile navigation.
 
 **How to apply:** Keep Expo, routes, fetching, validation, business behavior, permissions and database schemas out of visual-only edits. Freeze matched protected-page baselines before visual changes. Public sign-in captures and mocked visual fixtures do not prove authenticated persistence. Never send live calls, messages, emails, campaigns or credit requests to gather visual-refresh evidence.
 

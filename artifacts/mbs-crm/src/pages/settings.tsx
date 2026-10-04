@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAppearance } from "@/components/appearance-provider";
+import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import type { AppearancePreference } from "@/lib/appearance";
 import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, useRunProductionCloseout, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import { canSubmitUserMerge, getEligibleMergeSources, getEligibleMergeTargets, g
 import { TelephonyGreetingUpload } from "@/components/telephony-greeting-upload";
 
 export default function Settings() {
+  const isDesktop = useIsDesktop();
   const { preference, setPreference, storageError } = useAppearance();
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const { data: users, isLoading: loadingUsers, isError: usersError } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
@@ -608,7 +610,7 @@ export default function Settings() {
       </div>
 
       <div className="grid gap-8">
-        <Card data-appearance-control>
+        {!isDesktop && <Card data-appearance-control>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
             <CardDescription>Choose how this browser displays the CRM for your account.</CardDescription>
@@ -624,7 +626,7 @@ export default function Settings() {
             </select>
             {storageError && <p role="status" className="mt-2 text-sm text-destructive">{storageError}</p>}
           </CardContent>
-        </Card>
+        </Card>}
         <Card>
           <CardHeader>
             <CardTitle>My Profile</CardTitle>
