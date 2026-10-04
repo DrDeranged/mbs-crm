@@ -1,0 +1,12 @@
+{
+  "certifiedCommit": "6f7c8611ed4087a14e62ff99a0f5dbb5f3b33835",
+  "parent": "a149ae9308e626cda886934b5f5520b0b54d7252",
+  "remoteTree": "9d4a219b26c77652dd8d1d6d3328d9ff84a78c27",
+  "localSnapshot": "53d227c14924afabccd66d647f61dad2dc05d188",
+  "matchedCommittedSourceFiles": 963,
+  "excludedGeneratedFiles": [
+    ".agents/agent_assets_metadata.toml",
+    "test-results/.last-run.json"
+  ],
+  "published": false
+}

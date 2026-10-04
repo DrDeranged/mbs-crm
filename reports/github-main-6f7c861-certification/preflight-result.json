@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "stageMarkers": [
+    "PREFLIGHT 1/11: schema path guard",
+    "PREFLIGHT 2/11: recovery guard",
+    "PREFLIGHT 3/11: typecheck",
+    "PREFLIGHT 4/11: full suite",
+    "PREFLIGHT 5/11: migration lint",
+    "PREFLIGHT 6/11: schema parity",
+    "PREFLIGHT 7/11: built-app smoke",
+    "PREFLIGHT 8/11: migration dependency lint",
+    "PREFLIGHT 9/11: production database clone",
+    "PREFLIGHT 10/11: migration rehearsal",
+    "PREFLIGHT 11/11: database divergence"
+  ],
+  "passed": true,
+  "invocation": "env -u NODE_ENV PORT=4380 BASE_PATH=/ pnpm run preflight",
+  "redaction": "Credential-shaped values/connection strings only; complete gate transcript retained",
+  "initialAttempt": "initial-preflight: production NODE_ENV was incorrectly set by certification harness; original failure retained",
+  "rawMarkerCount": 21,
+  "gateParsing": "Only markers paired with actual workspace command invocations; full-suite preflight unit tests also print mocked markers."
+}

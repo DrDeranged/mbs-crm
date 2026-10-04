@@ -1,0 +1,45 @@
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src/lib/scrub-round2-f.test.ts:30:1
+✖ the actual provider dispatch sink sends a signed unsubscribe footer and legal address (1.165577ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/scrub-round2-f.test.ts:32:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+test at src/lib/scrub-round2-f.test.ts:51:1
+✖ a no-flyer campaign message has text/plain, minimal HTML, and zero attachments (0.308236ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/scrub-round2-f.test.ts:53:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+/home/runner/workspace/artifacts/api-server:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/api-server@0.0.0 test: `node --test --experimental-strip-types --loader ./test-loader.mjs src/lib/*.test.ts`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.
+pnpm -w run test failed with exit code 1
+PREFLIGHT FAIL
+undefined
+/home/runner/workspace/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/preflight.ts
+ ELIFECYCLE  Command failed with exit code 1.

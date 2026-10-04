@@ -1,0 +1,10 @@
+{
+  "errors": [],
+  "missingBaselineAssets": [],
+  "expectedFixtureNotes": [
+    "serviceWorkers:block",
+    "external delivery credentials stripped by fixture",
+    "any delivery-provider 503 is not classified as an app render error"
+  ],
+  "captureLimit": "Bounded sanitized pageerror messages only; no URLs, traces, HAR, cookies, auth tickets or credentials"
+}

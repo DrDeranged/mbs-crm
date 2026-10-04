@@ -1,0 +1,1050 @@
+
+> workspace@0.0.0 preflight /home/runner/workspace
+> pnpm --filter @workspace/scripts exec tsx ./src/preflight.ts
+
+PREFLIGHT 1/11: schema path guard
+
+> workspace@0.0.0 guard:schema-path /home/runner/workspace
+> pnpm --filter @workspace/scripts exec tsx ./src/forbid-schema-push.ts
+
+Schema path guard passed
+PREFLIGHT 2/11: recovery guard
+
+> workspace@0.0.0 recovery:guard /home/runner/workspace
+> pnpm --filter @workspace/scripts run recovery:guard
+
+
+> @workspace/scripts@0.0.0 recovery:guard /home/runner/workspace/scripts
+> tsx ./src/recovery-guard.ts
+
+Recovery guard passed.
+PREFLIGHT 3/11: typecheck
+
+> workspace@0.0.0 typecheck /home/runner/workspace
+> pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+
+
+> workspace@0.0.0 typecheck:libs /home/runner/workspace
+> tsc --build
+
+Scope: 5 of 11 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mbs-crm typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mbs-crm-mobile typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+artifacts/mockup-sandbox typecheck: Done
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+scripts typecheck: Done
+artifacts/mbs-crm-mobile typecheck: Done
+artifacts/mbs-crm typecheck: Done
+artifacts/api-server typecheck: Done
+PREFLIGHT 4/11: full suite
+
+> workspace@0.0.0 test /home/runner/workspace
+> pnpm --filter @workspace/api-server run test && pnpm --filter @workspace/mbs-crm run test && pnpm --filter @workspace/scripts run test && pnpm --filter @workspace/scripts exec tsx --test ../lib/db/src/*.test.ts
+
+
+> @workspace/api-server@0.0.0 test /home/runner/workspace/artifacts/api-server
+> node --test --experimental-strip-types --loader ./test-loader.mjs src/lib/*.test.ts
+
+(node:11402) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ migration status endpoint is forbidden for reps (38.4583ms)
+(node:11403) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ post-Clerk push health enforces anonymous, representative, and admin roles (54.340843ms)
+(node:11404) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ GET /api/analytics/reps includes active reps and active users assigned leads or deals only (1684.590676ms)
+(node:11405) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ application consent version is server-owned and persists the current disclosure version (1.185915ms)
+(node:11406) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ blank application uses the rep identity and exact disclosure/footer (3.546811ms)
+✔ title is profile data and a blank title is not derived from role (0.831185ms)
+✔ filled application masks both SSNs and never emits encrypted or plaintext SSN fields (0.863949ms)
+(node:11412) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ native form preserves complete consent and footer text, never plaintext SSNs (2449.8226ms)
+✔ native form embeds Unicode Inter text, logo, ET dates, and mapped application type (1556.320123ms)
+✔ application and prepared-by footer baselines are separated inside the bottom margin (0.211033ms)
+✔ application form renders natively as one US Letter PDF (1941.343395ms)
+✔ filled native application stays on one Letter page and masks SSNs (2723.777819ms)
+✔ native historical applications embed PNG signatures without substituting signature evidence (2544.370954ms)
+✔ native header uses work email, ordered phones, and required clearance (5.633728ms)
+✔ Nate and Calvin header regions remain deterministic (4747.657035ms)
+(node:11414) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ typed signature accepts two trimmed characters (1.930197ms)
+✔ typed signature rejects one character and names over 200 characters (0.240427ms)
+✔ drawn signature accepts safe PNG data URLs and rejects malformed/non-image values (0.661811ms)
+✔ application rules enforce consents and equipment description without requiring vendor (0.303891ms)
+✔ signed application HTML escapes injection strings and signature metadata (22.750187ms)
+✔ legacy applications do not invent a signature method or signed timestamp (0.500489ms)
+(node:11461) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ application submit attributes a rep-slug lead and records QR-card activity (88.579618ms)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ application submit persists and returns equipment category and homeownership (19.723883ms)
+✔ application submit rejects explicit null category and homeownership values (21.435144ms)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ a second public application reuses its existing email lead, logs the re-application, and notifies its assigned rep (10.409943ms)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✖ a phone-only re-application sends only to the stored lead email, never the submitted unverified email (13.514321ms)
+✔ conflicting email and phone identities return a named 400 without attaching an application (14.542718ms)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Confirmation email configuration invalid: Error: PUBLIC_APP_URL is required for outbound email
+    at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/applications.ts:575:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ each re-application retains its own immutable signed-document key (63.306878ms)
+(node:11469) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production parser accepts and normalizes a nine-digit EIN (5.691021ms)
+✔ production parser accepts the optional collateral boolean and defaults it when omitted (0.525282ms)
+✔ production parser reports malformed EIN with its field and format message (1.428459ms)
+✔ production parser turns a malformed non-object body into a named validation error (1.272724ms)
+✔ production parser accepts a punctuated phone after trimming only (0.611846ms)
+✔ validation response never returns the literal Invalid input (0.311873ms)
+✔ optional Section 1 fields remain optional and SSNs normalize to digits (0.720864ms)
+✔ invalid optional business start date is rejected without making other optional fields required (0.503855ms)
+(node:11470) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ the real API router has a gate before every private mutation (8273.334412ms)
+✔ the production mutation gate accepts a Clerk-authenticated request (12.622925ms)
+✔ creator-owned resources reject other reps (1.264516ms)
+✔ unsigned inbound voice and voicemail callbacks are rejected before routing or storage (38.706515ms)
+✔ a rep cannot self-assign a lead (11.316665ms)
+{"level":40,"time":1791139262466,"pid":11470,"hostname":"repl","route":"/api/sendgrid/webhook","reason":"verification_key_missing","hasSignatureHeader":false,"hasTimestampHeader":false,"hasRawBody":true,"rawBodyBytes":23,"msg":"SendGrid webhook signature rejected"}
+✔ unsigned SendGrid webhooks are rejected in every environment (7.723081ms)
+✔ unsigned Twilio callbacks are rejected before side effects (17.14707ms)
+(node:11476) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ brand helper serves the canonical light and reverse marks (3.761668ms)
+✔ email and flyer branding use the hosted light mark and non-legacy alt (0.850964ms)
+﹣ configured email logo URL returns HTTP 200 when online (0.08887ms) # Set RUN_ONLINE_TESTS=1 to check live hosting
+(node:11493) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ campaign APIs are restricted to manager and admin roles (1.542694ms)
+✔ campaign without a flyer produces plain text and one remote logo HTML alternative (1.216542ms)
+✔ Link sends no attachment and renders an expiring URL in both email alternatives; Attach is unchanged (2.385997ms)
+✔ vendor vertical mappings use imported lead vertical first and default to equipment (4.998511ms)
+✔ daily overflow is deferred to the next New York business day (17.481176ms)
+✔ future scheduled launches are rejected when no delivery worker exists (0.143862ms)
+✔ resume candidates exclude sent, uncertain, and early deferred rows (0.182519ms)
+✔ audience classification preserves actionable email exclusion reasons (0.282015ms)
+✔ campaign audience union deduplicates IDs, prioritizes picked origin, and sorts by ID (0.278156ms)
+✔ campaign exclusion breakdown distinguishes consent, suppression, prior sends and duplicates (0.259518ms)
+✔ a picked lead outside the filters is included but suppression excludes it with a visible reason (0.237979ms)
+✔ manual picks without filters never expand into an all-leads campaign (0.128472ms)
+✔ SMS preview explains missing, duplicate, consent, and unsupported launch outcomes (0.133741ms)
+✔ editing a campaign invalidates its approval version (0.100289ms)
+✔ repeat launch lifecycle is idempotent and transitions are explicit (0.119091ms)
+✔ future scheduling advances the campaign, while an unscheduled dry run does not (0.080401ms)
+✔ campaign content hashes are stable and change when approved template content changes (0.718165ms)
+✔ campaign Reply-To defaults and participates in approval hash (0.145585ms)
+✔ approval blocks unknown merge tokens before any provider send (0.16698ms)
+✔ campaign flyer delivery uses the approved immutable creative (0.171767ms)
+✔ approval requires the current hash and explicit claims affirmation (0.235329ms)
+✔ approval and launch reject empty or malformed eligible audience counts (0.150763ms)
+✔ provider-free validation reports no-send, tested address, audience count, and timestamp (0.234012ms)
+✔ provider-free validation rejects inactive or missing content and exercises rendering (0.199438ms)
+✔ approved audience remains the launch source after reload or newer preview changes (0.1361ms)
+✔ assigned representative reply-to contract preserves routing (0.141401ms)
+✔ same-key resume only selects eligible recipients and never retries uncertain queued rows (0.119465ms)
+✔ recipient ledger summaries are cumulative across partial runs (0.178149ms)
+✔ execution lease refuses active owners and allows expiry takeover (0.086188ms)
+✔ resume continues past already-processed queued recipient (0.069099ms)
+(node:11501) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Clerk publishable key origins are decoded for diagnostics only (1.40451ms)
+✔ Clerk proxy always uses the documented proxy upstream (0.359483ms)
+✔ production proxy emits a fatal diagnostic when its secret is missing (1.631097ms)
+✔ production proxy logs the derived FAPI host and safe key prefixes once (0.458861ms)
+✔ production proxy logs a full upstream exception and returns a short reason (0.74043ms)
+✔ production proxy preserves an upstream failure status and logs response headers (1.720598ms)
+✔ Clerk health probes the proxy upstream and caches the result (0.979084ms)
+✔ Clerk health reports missing keys and an unreachable upstream (0.537419ms)
+(node:11519) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ reps cannot use admin collateral template policy (0.782346ms)
+✔ collateral admin policy permits managers only through the explicit admin role (0.136028ms)
+✔ rep collateral email policy only permits assigned leads (0.123447ms)
+(node:11528) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ collateral provider payload rewrites legacy CRM URLs, not unrelated destinations (4.292088ms)
+(node:11536) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ collateral merge fields prefer corporate email and omit absent optional values (59.873829ms)
+✔ collateral merge fields omit optional title and phone lines (11.09267ms)
+✔ QR encoder receives the exact rep URL and required brand-safe options (10.54928ms)
+✔ PDF image overlay emits Letter output and explicitly rejects raster output without sharp (187.11092ms)
+✔ image overlay does not mutate source bytes and retains artwork content above rep band (75.295284ms)
+(node:11544) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ commercial financing disclosure remains sourced from the immutable consent text artifact (1.109901ms)
+✔ consentText.ts matches the canonical full-file SHA-256 fixture (0.903967ms)
+✔ the disclosure acceptance checkbox has a required, artifact-owned label and version (0.235536ms)
+✔ public disclosure payload exactly exposes the immutable artifact constants (0.792516ms)
+(node:11552) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ calls card fixture counts two voicemails, one callback, and one overdue record (879.807905ms)
+(node:11562) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Migration 029 is append-only and preserves historical approvals (9.657728ms)
+✔ latest approval selection uses created_at then id tie-break (0.274465ms)
+✔ approval reminder creation is idempotent across duplicate captures (1.315713ms)
+(node:11570) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ deal contact projection scopes reps to their linked-lead ownership in one batch (1129.811646ms)
+(node:11579) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ rep resolves an authorized funded deal to its lead and uploads against the lead id (1479.250718ms)
+✔ visible deal does not disclose or authorize its other-rep lead (18.458779ms)
+✔ linked deal uses a neutral deal fallback when company and contact identity are absent (20.846295ms)
+(node:11592) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production funded GM aggregate sums raw actualGm without split multiplication (1.526885ms)
+(node:11600) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ deal CSV includes notes and split percentage values (1953.049467ms)
+(node:11614) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Express deal update persists notes and exactly one notes_updated activity (74.538483ms)
+✔ deal update rolls back notes when activity logging fails (10.978858ms)
+Error: activity insert failed
+    at Object.values (file:///home/runner/workspace/artifacts/api-server/src/lib/dealsUpdateRoute.test.ts:92:47)
+    at logActivity (file:///home/runner/workspace/artifacts/api-server/src/lib/activityHelper.ts:17:43)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/deals.ts:770:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Object.transaction (file:///home/runner/workspace/artifacts/api-server/src/lib/dealsUpdateRoute.test.ts:79:16)
+    at async file:///home/runner/workspace/artifacts/api-server/src/routes/deals.ts:743:16
+✔ rate points save updates the correct GM field and writes complete activity in one transaction (15.453052ms)
+(node:11624) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ document download headers support Unicode names with an ASCII fallback (1.632163ms)
+✔ document download headers encode control and quote characters (0.27517ms)
+(node:11632) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ legacy document category helper mirrors migration 019 key backfill (1.217041ms)
+✔ a rep cannot update a document category for another rep's lead (140.058315ms)
+✔ a rep can update a document category for their assigned lead (20.244631ms)
+(node:11640) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ authorized funded lead can upload a document through the real API route (2481.709684ms)
+✔ authorized declined lead can upload a document through the real API route (31.269615ms)
+✔ deal visibility does not authorize upload to a linked lead owned by another rep (20.149658ms)
+(node:11650) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production origin validation and boot, root and deep health (4556.353096ms)
+✔ provider payloads for direct, campaign/drip, image-free and application confirmation use public URLs (10.323846ms)
+(node:11659) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shared limiter rejects the reservation that would exceed the cap (1.596531ms)
+✔ limiter normalizes invalid capacities to safe bounds (0.431381ms)
+(node:11667) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ documents and strictly rejects unknown merge tokens (1.667745ms)
+✔ data:image URIs are rejected separately from merge-token validation (0.320683ms)
+✔ every inline starter template uses only supported merge tokens (0.542317ms)
+✔ rendering uses Hi there fallback and omits a missing company phrase (0.994195ms)
+✔ supported per-send footer tokens render without creating a second footer (0.351562ms)
+✖ HTML and plain-text compliance footer is exact once and never data URI (2.93085ms)
+✖ provider dispatch keeps test-send Reply-To on the admin address (0.380539ms)
+(node:11675) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ suppression uses a canonical case-insensitive email (0.835571ms)
+✔ email engagement state never downgrades terminal statuses (0.186344ms)
+✔ all provider suppression events classify as suppressing (0.201082ms)
+(node:11683) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ entity labels trim identity and prefer company before contact (0.745892ms)
+(node:11691) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an Express flyer request returns 503 and records one correlatable 5xx event (220.841356ms)
+(node:11701) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production flyer renderer defaults are pinned to two concurrent renders and 30 seconds (2.268405ms)
+✔ flyer rendering keeps five queued requests at a maximum concurrency of two (27.842523ms)
+✔ a flyer render timeout is represented as a 503 error and retains its active slot (27.709089ms)
+✔ five callers receive 503 by their enqueue deadline when the two active renders never settle (8.249172ms)
+✔ flyer renderer refuses a configuration above the two-render safety cap (0.456612ms)
+(node:11709) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 5xx recorder logs and persists request correlation fields and an error stack (6.014578ms)
+✔ 5xx recorder deliberately ignores non-server responses (1.87795ms)
+(node:11719) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ matches an unassigned inbound lead older than 24 hours (1.378777ms)
+✔ does not match a lead exactly at the 24-hour boundary (0.246288ms)
+✔ does not match assigned, non-inbound, or recent leads (0.314498ms)
+(node:11727) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ New York inbound business hours
+  ✔ respects weekdays, exact boundaries, DST and holidays (18.965634ms)
+✔ New York inbound business hours (20.21899ms)
+▶ inbound routing targets
+  ✔ rings a known caller's assigned active rep only (1.148508ms)
+  ✔ rings active forwarding reps for unknown callers or ring-all mode (0.212579ms)
+  ✔ returns a simultaneous 20-second dial for known and unknown callers (6.270952ms)
+  ✔ skips dialing after hours and records with the closed greeting (1.028101ms)
+  ✔ rings priority reps sequentially, skipping inactive, merged, and unforwarded users (1.356267ms)
+  ✔ uses audio when available and falls back to written greeting otherwise (0.947047ms)
+✔ inbound routing targets (12.095727ms)
+(node:11735) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ names the first missing or invalid Twilio setting (1.357184ms)
+✔ reports detailed integration presence and caches token mint (0.60373ms)
+✔ times out token mint with a safe reason (5.638942ms)
+✔ lists both owned numbers when both roles use the business line (1.375858ms)
+✔ reports split configured roles across owned numbers (0.343573ms)
+✔ keeps selected sender role visible when the sender is unowned (0.213323ms)
+(node:11736) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ lead search matches company-table identity in one correlated SQL query (2333.031766ms)
+(node:11751) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV lead import parser keeps vertical column values (2.745826ms)
+✔ CSV buffer parsing does not load the optional ExcelJS parser (2.297016ms)
+✔ Excel buffer parsing lazily loads ExcelJS and preserves normalized rows (1583.374404ms)
+✔ lead import resolves an explicitly mapped vertical source column (0.515005ms)
+✔ known verticals normalize to canonical values and unknown values remain intact (0.187289ms)
+(node:11764) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ deal contact SMS target uses application-scoped consent and never sends without consent (56.633526ms)
+(node:11772) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ GET /api/leads?stale=true returns only stale assigned leads for an admin (3083.17603ms)
+✔ ordinary company search selects IDs before relational hydration (27.370605ms)
+✔ POST /api/leads/capture/elementor is absent and does not invoke a handler (21.012213ms)
+(node:11782) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ context carries criteria, provenance, stipulations, and points (11.832335ms)
+✔ prompt forbids ranking unknown dimensions and requires citations (0.471439ms)
+✔ recommendations without a criterion or exact document gap are rejected (0.360149ms)
+✔ free-text context is redacted before it reaches the prompt (0.650239ms)
+✔ text recommendations must cite criteria and available document gaps (2.364033ms)
+✔ document readiness uses categories and preserves personal/joint document gaps (0.645292ms)
+✔ unknown required document remains a gap unless its exact label is present (0.291444ms)
+(node:11795) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ lender-package route exposes safe renderer reason and logs the full error (32.910363ms)
+✔ lender-package route returns the no_application reason without rendering (0.389443ms)
+✔ omission report paginates instead of failing on many excluded documents (755.624001ms)
+✔ native cover uses branded rep email and polished cover values (209.594612ms)
+✔ selection uses persisted document categories and orders underwriting documents (0.830459ms)
+✔ selected package honors unchecked cover/application sections and the caller's document order (64.982743ms)
+✔ selected package normalizes scrambled cross-category IDs but retains each category's chosen order (25.885252ms)
+✔ selected package rejects document IDs belonging to another lead (4.05569ms)
+✔ lender-package rendering includes supplied primary and secondary owner SSNs (1780.266044ms)
+✔ the retired maskSsn input is rejected while legacy saved configs are normalized (1.332924ms)
+✔ an assigned rep's selected-package route decrypts full SSNs and audits sensitivity without logging values (1661.742232ms)
+✔ the standard lender-package download decrypts both owner SSNs only after lead authorization (1880.345207ms)
+✖ baseline application has two pages; exactly two statements append in upload order with safe footers (1.220522ms)
+✔ native package includes three rep-uploaded statements and an invoice with Puppeteer unavailable (2328.792234ms)
+✔ malformed and excluded files are skipped and every exclusion is named on the final page (1843.251938ms)
+✖ statement copy failures become exclusions without partially appended pages (1.093332ms)
+Failed to build lender package {
+  err: LenderPackageError: Could not render the lender package cover or finance application
+      at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)
+      at file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:876:29
+      ... 2 lines matching cause stack trace ...
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    reason: 'renderer_unavailable',
+    [cause]: Error: PUBLIC_APP_URL must use https in production
+        at normalizeBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:24:11)
+        at getPublicBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:31:29)
+        at buildCoverHtml (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:286:42)
+        at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:675:35)
+        at file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:876:29
+        at async TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:649:3)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  },
+  message: 'Could not render the lender package cover or finance application',
+  stack: 'LenderPackageError: Could not render the lender package cover or finance application\n' +
+    '    at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)\n' +
+    '    at file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:876:29\n' +
+    '    at async TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:649:3)\n' +
+    '    at async Test.run (node:internal/test_runner/test:1113:7)\n' +
+    '    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)'
+}
+✖ a configurable small package cap prunes the largest statement (23.17949ms)
+✖ failed oversized transfers debit actual bytes and stop later downloads (1.255978ms)
+✔ rep access uses the documents route's 403 denial semantics (0.590901ms)
+✖ admin can download any lead, audits the successful export, and sanitizes Unicode footer email (2.468183ms)
+(node:11803) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ lender package reasons do not expose arbitrary server errors (1.224276ms)
+(node:11812) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seed-new route requires an authenticated admin (52.309952ms)
+✔ seed-new route returns the exact shared operation summary, including missing update names (9.143963ms)
+Failed to seed new lenders Error: database unavailable
+    at seedNewLenders (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderSeedRoutes.test.ts:108:13)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/lenders.ts:557:28
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ seed-new route returns 500 when the shared operation fails (7.743311ms)
+(node:11822) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ submission request validation returns a named 400 before package work (5.479444ms)
+✔ a concurrent second submission is denied by the held advisory lock before email send (25.06225ms)
+✔ a post-SendGrid transaction failure leaves a durable receipt and refuses a second email (1.613415ms)
+✔ a known SendGrid failure releases the receipt so a retry may send (4.600665ms)
+✔ a thrown network error leaves an uncertain receipt and blocks a second email (2.167143ms)
+✔ submission lock is released when immutable package storage fails before email (1.312884ms)
+✔ submission re-download returns the immutable stored bytes after verifying its hash (4.107603ms)
+✔ submission stores exactly the emailed attachment with config/hash metadata before immutable re-download (14.610755ms)
+✔ lender submission decrypts full SSNs for package assembly without placing values in audit metadata (3.476855ms)
+✔ an assigned rep may download a full-SSN immutable package under the normal lead authorization rule (5.966442ms)
+✔ exact-package download refuses a corrupt stored object (1.022569ms)
+✔ lender submission denies a rep with a lead assigned to another rep (0.350999ms)
+✔ lender submission refuses a duplicate inside the rolling 24-hour window (0.401832ms)
+✔ successful lender submission creates a Submitted deal when one is absent (1.797717ms)
+✔ successful lender submission moves an existing active deal to Submitted and links its row (1.039834ms)
+✔ lender submission SendGrid mock receives the built PDF, recipient, rep CC, and exact subject (0.68264ms)
+✔ submission status and notes changes persist with activity logging in one transaction (3.074223ms)
+(node:11831) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ manual submission persists source manual and writes its activity (2.844945ms)
+(node:11839) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an 8-month working-capital lead includes Thoro and excludes Dexly on TIB (28.428885ms)
+✔ a 24-month, $250,000 working-capital lead includes Dexly (1.575599ms)
+✔ missing required criteria exclude a lender (0.958294ms)
+✔ documented equipment restrictions exclude a conflicting equipment file (0.475704ms)
+✔ incomplete equipment facts cannot silently clear documented restrictions (0.3851ms)
+✔ missing amount, TIB, state, and generic Other industry cannot clear structured gates (0.409525ms)
+✔ application estimated score band is used only when actual score is absent (0.41654ms)
+✔ actual lead credit score overrides application estimated score (0.355989ms)
+✔ application business start month supplies time in business when company data is absent (0.466634ms)
+✔ company time in business overrides application business start date (0.508663ms)
+✔ an equipment trucking lead matches only lenders allowed by structured criteria (5.306601ms)
+✔ batch 2 startup, monthly revenue, industry, and financial-statement gates use structured criteria (8.898193ms)
+✔ product-scoped revenue gates and all-program industry restrictions apply correctly (2.065453ms)
+✔ Section D Fenix and AFG packet scenarios use production seed rows and matcher (5.877548ms)
+✔ Maxim uses state/amount/TIB gates, ignores FICO, and requires collateral for WC (4.968453ms)
+✔ AFG vocational exceptions are scoped to equipment applications (0.506511ms)
+✔ AFG tow-truck exclusion considers company and application signals (1.074068ms)
+✔ AFG restricted trucking exceptions cannot be used by working-capital applications (0.411673ms)
+✔ AFG tow exclusion ignores incidental towing equipment language (0.320635ms)
+✔ rep-facing DKW fixture ranks approval before points and speed (1.331148ms)
+✔ Godspeed approval evidence exposes Maxim C1 down-payment range and points (1.82307ms)
+✔ generic lender notes never leak a captured approval tier to another lead (0.411599ms)
+✔ Maxim points are a documented deal-specific upper bound, not compensation.max (1.338377ms)
+✔ Enviro-Care below AFG equipment minimum is explicitly excluded (0.48169ms)
+✔ document gaps use categories and statement count without treating one bank statement as three (0.971775ms)
+✔ a current business statement reconciles a stale personal-only persisted gap (0.279104ms)
+(node:11847) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ migration runner applies a new file once and skips it on the second run (94.53982ms)
+✔ migration runner reports a checksum mismatch without rerunning the file (11.468552ms)
+✔ schema boot line reports zero applied migrations (0.327541ms)
+✔ schema boot line lists pending migration names (0.317959ms)
+✔ dry run treats a wrapped missing-ledger error as a first run (7.757807ms)
+(node:11868) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seed literals have the exact mapped fields and exhaustive structured notes (1.923541ms)
+✔ new lender seeds have one entry per lender and the seed plan is idempotent (0.434245ms)
+✔ a later existing-lender packet takes precedence over overlapping seed fields (0.243441ms)
+✔ the Section A seed literals preserve exact mapped fields, contacts, nulls, and notes (0.6891ms)
+✔ seed insert mapping carries explicit contacts and position caps without name special cases (0.433332ms)
+✔ supported document fields are populated only where the packet states them (0.945888ms)
+✔ the pure exact-name planner is idempotent and preserves existing names (0.547807ms)
+✔ Section B update literals preserve the exact marker, source statements, and schema mappings (0.621024ms)
+✔ Section B appends preserve old notes and contacts while restricting structured patches (0.340274ms)
+✔ production executor creates first, then applies Section B updates with only AFG contact correction (3.098423ms)
+✔ seed operation reports the unique configured lender inventory and updates (1.46245ms)
+✔ production executor uses exact names and does not recreate a missing Section B lender (1.029158ms)
+✔ structured gates backfill after an earlier packet marker and remain idempotent (3.485618ms)
+✔ a prior packet marker without the new AFG marker is updated once and then unchanged (1.104715ms)
+✔ prior packet inventory includes the new AFG update and three unapplied September 15 updates (1.320155ms)
+✔ Section D seeds one missing lender and updates old AFG marker exactly once (1.66661ms)
+✔ the original four-lender seed script remains byte-unchanged (11.066257ms)
+(node:11877) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ the generated client's exact notification payload matches the query schema (2.810024ms)
+✔ rep can list, click through, mark read, and mark all read without changing another user's rows (42.942023ms)
+✔ admin can list, click through, mark read, and mark all read without changing another user's rows (23.756189ms)
+(node:11890) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ notification delivery attempts Expo and web channels independently (5.520594ms)
+(node:11898) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ broker-out matches are grouped as super-broker options (0.706388ms)
+✔ broker-in split math exposes gross, referral, and net GM (0.808812ms)
+✔ split math clamps malformed percentages (0.146701ms)
+✔ missing referral data produces a numeric zero instead of NaN (0.092846ms)
+(node:11906) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ native PDF is healthy without Chromium; failed launches are cached for ten minutes (48.846544ms)
+✔ successful probe closes browser and uses bounded launch options (2.630324ms)
+✔ probe times out and still closes a late browser (43.99613ms)
+(node:11916) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":40,"time":1791139270122,"pid":11916,"hostname":"repl","err":{"type":"Error","message":"expected background cancellation","stack":"Error: expected background cancellation\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:11:33)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.start (node:internal/test_runner/test:1003:17)\n    at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"},"stack":"Error: expected background cancellation\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:11:33)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.start (node:internal/test_runner/test:1003:17)\n    at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)","msg":"Non-fatal unhandled promise rejection; keeping process alive"}
+{"level":60,"time":1791139270125,"pid":11916,"hostname":"repl","err":{"type":"Error","message":"unexpected failure","stack":"Error: unexpected failure\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:25:28)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)"},"stack":"Error: unexpected failure\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:25:28)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)","msg":"FATAL: Unhandled promise rejection; exiting"}
+{"level":60,"time":1791139270126,"pid":11916,"hostname":"repl","err":{"type":"Error","message":"unexpected exception","stack":"Error: unexpected exception\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:35:27)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"},"stack":"Error: unexpected exception\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:35:27)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)","origin":"uncaughtException","msg":"FATAL: Uncaught exception; exiting"}
+✔ only explicitly marked promise rejections keep the process alive (3.335566ms)
+✔ unknown promise rejections are fatal (0.670017ms)
+✔ unknown uncaught exceptions are fatal (0.548612ms)
+✔ explicitly marked uncaught exceptions keep the process alive (0.431821ms)
+{"level":40,"time":1791139270127,"pid":11916,"hostname":"repl","err":{"type":"Error","message":"expected isolated exception","stack":"Error: expected isolated exception\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:46:18)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"},"stack":"Error: expected isolated exception\n    at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/processHandlers.test.ts:46:18)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1106:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\n    at Test.postRun (node:internal/test_runner/test:1235:19)\n    at Test.run (node:internal/test_runner/test:1163:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)","origin":"uncaughtException","msg":"Non-fatal uncaught exception; keeping process alive"}
+(node:11917) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production closeout route requires an authenticated admin (66.895797ms)
+✔ production closeout route returns the same shared lender operation result (19.840798ms)
+Failed to run production closeout Error: closeout unavailable
+    at runProductionCloseout (file:///home/runner/workspace/artifacts/api-server/src/lib/productionCloseoutRoute.test.ts:126:13)
+    at file:///home/runner/workspace/artifacts/api-server/src/routes/adminProductionCloseout.ts:41:28
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+✔ production closeout route preserves operation failure results and handles unexpected 500s (33.227014ms)
+(node:11938) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ production closeout executes operations in the required order (3.561057ms)
+✔ production closeout stops on the first failure and reports skipped operations (1.63691ms)
+(node:11946) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ public application, status, chooser, and unsubscribe page markup has no placeholder contacts (2.136894ms)
+✔ rendered applicant-facing emails and voicemail follow-up SMS never contain placeholder contacts (5.230759ms)
+(node:11952) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CRM notification types map to their exact preference events (0.870125ms)
+✔ generic status_changed notifications do not infer a browser event (0.1278ms)
+✔ push master-off suppresses web push while event preference remains independent (0.211826ms)
+✔ expired web-push responses are prunable, other failures are retained (0.140491ms)
+(node:11963) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ authenticated subscription route round-trips through upsert and unsubscribe handlers (151.424732ms)
+✔ push subscription origins accept known providers and reject lookalikes/insecure URLs (0.534099ms)
+✔ concurrent first claims of one endpoint cannot transfer its owner (32.091098ms)
+(node:11971) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server rate points calculation matches Maxim fixture (2.240422ms)
+✔ server calculation accounts for payment in advance (1.885465ms)
+(node:11980) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Ray reserved email mapping is exact and old Rahmare mapping is gone (1.130144ms)
+✔ Ray greeting fallback uses the canonical display name (0.29076ms)
+✔ QR generators receive canonical web payloads through injected spies (1.830878ms)
+✔ injected QR router serves the expected binary content types (53.091451ms)
+(node:11989) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ retirement auth is admin-only and generic PUT requires retirement for an existing slug (0.741269ms)
+✔ retirement is idempotent and permanently reserves the prior slug (2.456391ms)
+✔ retirement rejects active and retired targets (0.714569ms)
+✔ failed update rolls back reservation and never writes history (0.280091ms)
+✔ retired public resolver responds with a canonical 301 (39.52357ms)
+(node:11998) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ safe auth lookup preserves an initialized user id (0.828566ms)
+✔ safe auth lookup does not mask an earlier request error (0.280911ms)
+(node:12007) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ admin errors page rejects malformed input with its field (2.700324ms)
+✔ governance purge confirmation rejects malformed input with its field (0.806928ms)
+✔ analytics rep rejects malformed input with its field (0.570948ms)
+✔ credit log date rejects malformed input with its field (0.736823ms)
+✔ deal list sort rejects malformed input with its field (1.565743ms)
+✔ lead list status rejects malformed input with its field (4.826388ms)
+✔ notification page rejects malformed input with its field (1.971722ms)
+✔ PII log category rejects malformed input with its field (0.892924ms)
+(node:12015) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1791139277910,"pid":12015,"hostname":"repl","msg":"SENTRY_DSN not set — Sentry error tracking disabled"}
+✔ boot-critical routes precede Clerk and global validation middleware (1.311117ms)
+{"level":30,"time":1791139277922,"pid":12015,"hostname":"repl","clerkFapiHost":"frontend-api.clerk.dev","publishableKeyHost":"select-humpback-65.clerk.accounts.dev","publishableKeyPrefix":"pk_test","secretKeyPrefix":"sk_test","proxyRevision":"2026-09-19.1","msg":"Clerk production proxy FAPI host resolved"}
+{"level":40,"time":1791139277924,"pid":12015,"hostname":"repl","msg":"ALLOWED_ORIGINS is not set in production — all CORS origins will be rejected"}
+(node:12023) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ proxy forwards signed raw bytes and preserves host and one-hop forwarding headers (30.012912ms)
+✔ proxy streams headers and response chunks before the upstream finishes (20.562269ms)
+✔ proxy returns an explicit 503 when the private runtime connection fails (16.561479ms)
+✔ proxy forwards the socket address as a single fallback hop when X-Forwarded-For is absent (6.471381ms)
+✔ proxy aborts the public response if an upstream stream fails after headers (15.350573ms)
+✔ aborting the public response closes the corresponding upstream response (11.950917ms)
+✔ aborting an incoming upload cancels the forwarded upstream request (9.566827ms)
+(node:12033) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"applied":["037_partner_flows_and_texting.sql","047_partner_contacts_prerequisite.sql","038_partner_texting.sql","039_ridgestone_partner_profile.sql","040_release_schema_parity.sql","041_push_notifications.sql","042_push_delivery_ledger.sql","043_align_push_schema.sql","044_notification_delivery_claims.sql","045_application_equipment_category_homeowner.sql","046_complete_partner_contacts_recovery.sql","048_financing_campaign_draft.sql","049_lender_underwriting_intelligence.sql","050_lender_guideline_versions.sql","051_users_role_default_pending.sql","052_reusable_campaign_launcher.sql","053_campaign_preview_approval_snapshots.sql","054_campaign_preview_recipient_snapshots.sql","055_campaign_launch_execution_leases.sql","056_campaign_flyer.sql","057_telephony_settings.sql","058_telephony_business_defaults.sql","059_inbound_voice_settings.sql","060_inbound_voice_array_defaults.sql","061_telephony_completion.sql","062_email_readiness_daily_cap.sql","063_lead_vertical.sql","064_collateral_flyer_library.sql","065_campaign_flyer_link_vendor_template.sql","066_bundled_vendor_equipment_flyers.sql"],"superseded":["036_partners_contacts.sql"],"alreadyApplied":["000_baseline.sql","001_create_credit_tables.sql","002_rep_slugs.sql","003_deals.sql","004_deal_intended_rep_slug.sql","005_lead_distribution_settings.sql","006_drip_sequence_ownership.sql","007_lead_staleness_threshold.sql","008_email_safety_settings.sql","009_email_send_failure_reason.sql","010_email_webhook_events.sql","011_email_rate_slots.sql","012_application_signature.sql","013_retired_rep_slugs.sql","014_application_optional_fields.sql","015_application_consent_text_version.sql","016_user_titles.sql","017_deal_notes_gm_split.sql","018_lender_matcher_gates.sql","019_document_categories.sql","020_lender_submissions.sql","021_lead_package_config.sql","022_lender_submission_package_snapshots.sql","023_routing_and_marketing_ownership.sql","024_email_compliance_daily_budget.sql","025_usfa_intake.sql","026_usfa_intake_runtime_support.sql","028_merge_going_to_funding_stage.sql","029_deal_approvals.sql","030_add_application_collateral.sql","031_collateral_library.sql","032_finance_application_collateral.sql","033_lender_submission_review_fields.sql","034_application_sms_consent.sql","035_user_identities.sql","036_partners_contacts.sql"],"schema":{"failed":null}}
+✔ production-partial partner recovery reaches the current migration head (15848.028525ms)
+✔ boot migration runner applies two pending files in numeric order and records them (147.214073ms)
+✔ a failing second file keeps the first file applied and recorded (194.881431ms)
+✔ a failed entry with a checksum mismatch is reported without retrying (9.642217ms)
+✔ dry-run reads a legacy schema_migrations ledger without mutating it (60.621302ms)
+✔ a mismatch blocks pending files collected before it (16.791918ms)
+✔ a persisted checksum-matching non-duplicate failure remains failed and stops following files (199.170423ms)
+✔ a failed migration reports prior applied work and boot still releases its coordinator (201.464482ms)
+✔ a checksum-matching duplicate-object failure is superseded (35.475018ms)
+✔ a timed-out advisory lock records degraded startup and releases the client (0.917058ms)
+(node:12041) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ scrub A fixture stores normalized EIN, server consent version, optional secondary owner, and both signature methods (123.848956ms)
+✔ scrub A fixture reports named validation fields and creates the working-capital statement task (55.397748ms)
+✔ scrub A migration dry-run discovers baseline then the append-only 001–022 set without writing (49.416782ms)
+✔ scrub A selected-package preview has no submission write path (13.80397ms)
+✔ scrub A package-config route persists, returns, and resets selection in an isolated repository (1.986418ms)
+✔ scrub A administrator can override a recent lender submission and records the submission activity (8.667477ms)
+(node:12060) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ routing defaults to manual and only rotates ordinary website inbound leads (2.40234ms)
+✔ automatic stale reassignment requires both opt-in flags and a rotating source (0.34168ms)
+✔ representatives cannot manage other resources but can read administrator-owned resources (0.361866ms)
+✔ stale reassignment uses a core select builder, never an aliased relational findMany (1.486182ms)
+✔ drip API returns 403 when a rep reads, updates, or deletes another rep's sequence (100.445962ms)
+✔ drip API permits a rep to read an admin sequence but forbids editing it (25.069655ms)
+✔ drip enrollment API returns 403 for a lead assigned to another representative (8.864516ms)
+✔ drip enrollment API rejects an admin sequence containing another rep's private template (46.215757ms)
+✔ drip API returns 400 for malformed sequence and nested step bodies (19.709113ms)
+✔ template API returns 403 for another rep's read, update, and delete (75.407277ms)
+✔ template API permits a rep to read an admin template but forbids editing it (76.334845ms)
+(node:12089) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ the actual provider dispatch sink sends a signed unsubscribe footer and legal address (1.165577ms)
+✖ a no-flyer campaign message has text/plain, minimal HTML, and zero attachments (0.308236ms)
+✔ correlated webhook suppresses the persisted recipient, not a mismatched event email (64.523842ms)
+✔ valid SendGrid ECDSA signature passes through exact raw-body verification (23.198931ms)
+✔ invalid webhook signatures return 401 before any delivery or suppression mutation (7.210344ms)
+✔ signed webhook route suppresses the matched lead for every H event (36.482762ms)
+✔ admin test-send route sends fixed CEO message from funding address and returns mocked provider id (16.336682ms)
+✔ shared locked daily bulk/drip reservation allows 75 combined attempts and denies the rest (5.650341ms)
+✔ bulk and drip production call sites opt into the shared 60-message reservation (5.35428ms)
+✔ email-delivery settings rejects null and malformed F fields with a named issue before database access (4.969252ms)
+(node:12176) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ rep performance keeps active reps plus historical owners and falls back to the email name (966.649509ms)
+✔ average funding time's production predicate rejects cycles under 24 hours (2.988368ms)
+✔ deal export HTTP handler retains representative ownership scope while admins can select a representative (216.465279ms)
+✔ retired public rep slugs use a permanent canonical redirect while unknown slugs stay generic (364.750518ms)
+✔ lender packages select statements only from their persisted category, never their filename (18.304302ms)
+✔ submission's actual handler refuses a same lender/lead submission inside 24 hours before building or sending (133.993501ms)
+(node:12195) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ accepts Calvin source ownership with a missing marker for repair (1.610455ms)
+✔ accepts a real Calvin assignee with the Calvin marker (0.26583ms)
+✔ accepts an already-unassigned Calvin reservation (0.195215ms)
+✔ unchanged seeded ownership produces no corrections or assignment activity inputs (1.210047ms)
+✔ closeout preserves a real Calvin assignment instead of creating a clear/reconcile loop (0.348485ms)
+✔ tolerates converted or deleted seed rows and reports only matching markers (0.200867ms)
+✔ fails closeout only when no matching seeded rows remain (0.380445ms)
+✔ normalizes funding duration to a nonnegative whole day or null (0.289745ms)
+(node:12207) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1791139278785,"pid":12207,"hostname":"repl","msg":"SENTRY_DSN not set — Sentry error tracking disabled"}
+✔ Sentry remains unloaded without a DSN and retains its privacy-safe capture setup when enabled (2.400007ms)
+{"level":30,"time":1791139278785,"pid":12207,"hostname":"repl","msg":"Sentry error tracking initialized"}
+(node:12219) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unchecked SMS consent stays false and leaves timestamp and IP empty (1.965465ms)
+✔ checked SMS consent records timestamp and IP and makes the lead eligible (0.274215ms)
+✔ legacy or incomplete consent records remain ineligible (0.282661ms)
+(node:12227) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normal leads select compiles stale condition with a stable correlated alias (31.844876ms)
+✔ latest activity sort expressions compile with an explicit activity alias (1.038969ms)
+✔ active stages compile as inArray parameters rather than raw SQL (24.445063ms)
+✔ two-phase lead and deal ID queries keep correlated SQL out of relational hydration (41.858232ms)
+(node:12236) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ stale display boundary is a strict less-than comparison (0.694536ms)
+(node:12244) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ startup gate keeps deployment liveness healthy while booting (43.686056ms)
+✔ startup gate rejects business traffic until the application is ready (14.165097ms)
+✔ startup gate hands the same listener to the application once ready (8.216172ms)
+✔ failed initialization stays observable and does not admit business traffic (19.741415ms)
+✔ liveness stays independent of production email configuration and ready listener (11.576728ms)
+(node:12253) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ rep can create a task assigned to themself on their lead (95.583192ms)
+✔ rep cannot create a task assigned to another user (17.430278ms)
+✔ manager can create a task assigned to any active user (10.725657ms)
+✔ manager cannot create a task for an inactive user (8.303431ms)
+✔ PATCH allows a manager to reassign to an active user (27.143394ms)
+✔ PATCH rejects a rep assigning a task to another user without updating it (42.041334ms)
+✔ PATCH rejects assignment to an inactive user (41.403085ms)
+(node:12262) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ audio upload grants bind the file, greeting, administrator and expiry (17.940083ms)
+✔ greeting accepts only an MP3 signature under 2 MB (67.115116ms)
+(node:12271) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ browser calls use the configured voice caller ID (22.547813ms)
+✔ browser call caller ID falls back to the client identity when unset (0.363005ms)
+✔ SMS replies use the owned inbound number for the existing thread (0.517694ms)
+✔ both owned numbers are valid inbound destinations (0.150567ms)
+✔ new SMS and unowned inbound threads use the configured sender (0.216473ms)
+(node:12281) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ uses a valid TWILIO_PHONE_NUMBER fallback when settings are unset (2.214736ms)
+✔ uses the business default when the environment fallback is absent or invalid (0.287867ms)
+✔ persisted numbers override the environment fallback independently (0.243572ms)
+(node:12289) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ historical outcomes are a bounded explainable signal (115.175273ms)
+✔ unsupported economics stay null instead of being invented (0.931067ms)
+✔ bank-derived revenue keeps bank-statement provenance and source IDs (5.408391ms)
+(node:12297) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ identity resolution prefers a linked identity and falls back to the legacy clerk id (1.7ms)
+✔ merge reference policy moves every requested source reference to the target (0.551776ms)
+✔ merge refuses inactive targets and only requires confirmation for reassignment (0.792475ms)
+✔ reserved email attaches to the active reserved-slug owner, not a new user (0.200807ms)
+✔ merge keeps target slug and retires and clears the source slug (0.938836ms)
+(node:12305) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ USFA mapper normalizes the exact Doe Street vendor row (3.46066ms)
+✔ USFA source migration leaves existing companies and runtime support to later migrations (19.620498ms)
+✔ mapper preserves the exact 28-header contract and handles score/revenue bands (2.255702ms)
+✔ mapper zero-pads EIN and zip, flags short EIN, and keeps SSN/DOB out of lead data (0.366116ms)
+✔ dedupe plan prefers external id and excludes the vendor's test address from email matching (0.416898ms)
+✔ mapper rejects rows without an external id and marks malformed primary phones (0.888904ms)
+✔ comments, alternate phone, and statement metadata never fetch or embed statement contents (0.621209ms)
+✔ mapper preserves all four Sheet statement links and creates one task even with no links (1.38314ms)
+✔ USFA poller requires every exact vendor header (1.474641ms)
+✔ USFA poller is safely disarmed when service-account secret is absent (4.592433ms)
+✔ USFA connection test reads only the configured header row and counts returned columns (0.887793ms)
+✔ USFA connection test fails safely for missing configuration and sanitizes provider auth errors (0.705353ms)
+✔ USFA import creates exactly one task per lead, assigned to the rep or the shared admin queue (2.21635ms)
+✔ USFA ingestion commits before global admin notification and persists duplicate intake history (50.976344ms)
+✔ USFA invite claim is conditional: exactly one winner and replay is rejected (1.938ms)
+✔ USFA error receipts are retried while successful receipts remain idempotent (1.42682ms)
+✔ extracts a PDF attachment and vendor identity without fetching statement links (1.689435ms)
+✔ does not treat a message without a PDF as an application (0.151832ms)
+✔ delegated Gmail worker is safely disarmed without credentials (8.943045ms)
+✔ Gmail listing paginates every page without any write operation (0.245808ms)
+✔ Gmail retries use one deterministic object key and source-level idempotency guard (2.891352ms)
+✔ USFA leads are blocked from marketing until explicit consent is confirmed (0.169067ms)
+✔ all SMS and drip entry points recheck the shared USFA consent guard (2.057492ms)
+✔ USFA webhook signature is HMAC-SHA256 over the exact raw body (0.711127ms)
+✔ USFA webhook rejects an invalid signature through the real Express route (62.373312ms)
+✔ USFA webhook schema requires id and a monthly numeric revenue (3.861841ms)
+(node:12313) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ voicemail playback tokens round-trip and carry a document id (1.825893ms)
+✔ voicemail playback tokens reject tampering and expiry (0.462973ms)
+✔ missed-call text-back has the exact opt-out copy and uses the New York call date (25.693618ms)
+✔ missed-call text-back guard recognizes business hours and rejects after-hours (0.565549ms)
+✔ handleMissedCall text-back guard requires opt-in, consent, and an unanswered call (0.96476ms)
+(node:12323) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shutdown resolves after an already-observed unexpected worker exit (109.909768ms)
+✔ worker exit while public requests drain cannot strand shutdown (78.969568ms)
+✔ normal shutdown asks a live worker to close and waits for exit (120.253263ms)
+ℹ tests 446
+ℹ suites 2
+ℹ pass 434
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 57214.977134
+
+✖ failing tests:
+
+test at src/lib/applicationSubmitRoute.test.ts:298:1
+✖ a phone-only re-application sends only to the stored lead email, never the submitted unverified email (13.514321ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/applicationSubmitRoute.test.ts:322:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src/lib/emailReadiness.test.ts:64:1
+✖ HTML and plain-text compliance footer is exact once and never data URI (2.93085ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/emailReadiness.test.ts:85:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at src/lib/emailReadiness.test.ts:101:1
+✖ provider dispatch keeps test-send Reply-To on the admin address (0.380539ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/emailReadiness.test.ts:103:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at src/lib/lenderPackage.test.ts:24:1
+✖ lender-package route exposes safe renderer reason and logs the full error (32.910363ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /private renderer diagnostic/. Input:
+  
+  'PUBLIC_APP_URL must use https in production'
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:43:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'PUBLIC_APP_URL must use https in production',
+    expected: /private renderer diagnostic/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at src/lib/lenderPackage.test.ts:389:1
+✖ baseline application has two pages; exactly two statements append in upload order with safe footers (1.220522ms)
+  Error [LenderPackageError]: Could not render the lender package cover or finance application
+      at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:392:26)
+      ... 4 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    reason: 'renderer_unavailable',
+    [cause]: Error: PUBLIC_APP_URL must use https in production
+        at normalizeBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:24:11)
+        at getPublicBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:31:29)
+        at buildCoverHtml (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:286:42)
+        at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:675:35)
+        at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:392:26)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+  }
+
+test at src/lib/lenderPackage.test.ts:525:1
+✖ statement copy failures become exclusions without partially appended pages (1.093332ms)
+  Error [LenderPackageError]: Could not render the lender package cover or finance application
+      at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:534:26)
+      ... 4 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    reason: 'renderer_unavailable',
+    [cause]: Error: PUBLIC_APP_URL must use https in production
+        at normalizeBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:24:11)
+        at getPublicBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:31:29)
+        at buildCoverHtml (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:286:42)
+        at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:675:35)
+        at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:534:26)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+  }
+
+test at src/lib/lenderPackage.test.ts:551:1
+✖ a configurable small package cap prunes the largest statement (23.17949ms)
+  Error [LenderPackageError]: Could not render the lender package cover or finance application
+      at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)
+      at build (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:563:5)
+      ... 2 lines matching cause stack trace ...
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    reason: 'renderer_unavailable',
+    [cause]: Error: PUBLIC_APP_URL must use https in production
+        at normalizeBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:24:11)
+        at getPublicBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:31:29)
+        at buildCoverHtml (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:286:42)
+        at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:675:35)
+        at build (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:563:5)
+        at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:573:22)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  }
+
+test at src/lib/lenderPackage.test.ts:581:1
+✖ failed oversized transfers debit actual bytes and stop later downloads (1.255978ms)
+  Error [LenderPackageError]: Could not render the lender package cover or finance application
+      at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:699:11)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:591:24)
+      ... 4 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    reason: 'renderer_unavailable',
+    [cause]: Error: PUBLIC_APP_URL must use https in production
+        at normalizeBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:24:11)
+        at getPublicBaseUrl (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:31:29)
+        at buildCoverHtml (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:286:42)
+        at buildLenderPackagePdf (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.ts:675:35)
+        at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:591:24)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+  }
+
+test at src/lib/lenderPackage.test.ts:632:1
+✖ admin can download any lead, audits the successful export, and sanitizes Unicode footer email (2.468183ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  500 !== 200
+  
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/lenderPackage.test.ts:653:10)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src/lib/scrub-round2-f.test.ts:30:1
+✖ the actual provider dispatch sink sends a signed unsubscribe footer and legal address (1.165577ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/scrub-round2-f.test.ts:32:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+test at src/lib/scrub-round2-f.test.ts:51:1
+✖ a no-flyer campaign message has text/plain, minimal HTML, and zero attachments (0.308236ms)
+  Error: PUBLIC_APP_URL is required for outbound email
+      at getEmailAppOrigin (file:///home/runner/workspace/artifacts/api-server/src/lib/brand.ts:107:57)
+      at sendTrackedEmailToProvider (file:///home/runner/workspace/artifacts/api-server/src/routes/email.ts:442:23)
+      at TestContext.<anonymous> (file:///home/runner/workspace/artifacts/api-server/src/lib/scrub-round2-f.test.ts:53:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+/home/runner/workspace/artifacts/api-server:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/api-server@0.0.0 test: `node --test --experimental-strip-types --loader ./test-loader.mjs src/lib/*.test.ts`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.
+pnpm -w run test failed with exit code 1
+PREFLIGHT FAIL
+undefined
+/home/runner/workspace/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/preflight.ts
+ ELIFECYCLE  Command failed with exit code 1.

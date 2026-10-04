@@ -1,0 +1,11 @@
+{
+  "exitCode": 1,
+  "stageMarkers": [
+    "PREFLIGHT 1/11: schema path guard",
+    "PREFLIGHT 2/11: recovery guard",
+    "PREFLIGHT 3/11: typecheck",
+    "PREFLIGHT 4/11: full suite"
+  ],
+  "passed": false,
+  "redaction": "Credential-shaped values/connection strings only; complete gate transcript retained"
+}

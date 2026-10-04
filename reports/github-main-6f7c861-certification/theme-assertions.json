@@ -1,0 +1,133 @@
+{
+  "osColorScheme": "dark",
+  "preferenceStorage": "browser-local per authenticated synthetic account; no server/cross-device sync asserted",
+  "assertions": [
+    {
+      "step": "new-user-os-dark-default",
+      "mode": "light",
+      "ariaLabels": [
+        "Switch to dark mode"
+      ],
+      "toggleCount": 1,
+      "preference": [],
+      "expected": "light",
+      "pass": true
+    },
+    {
+      "step": "header-Enter-to-dark",
+      "mode": "dark",
+      "ariaLabels": [
+        "Switch to light mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "dark"
+      ],
+      "expected": "dark",
+      "pass": true
+    },
+    {
+      "step": "header-Space-to-light",
+      "mode": "light",
+      "ariaLabels": [
+        "Switch to dark mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "light"
+      ],
+      "expected": "light",
+      "pass": true
+    },
+    {
+      "step": "mobile-settings-reflects-light",
+      "mode": "light",
+      "ariaLabels": [],
+      "toggleCount": 0,
+      "preference": [
+        "light"
+      ],
+      "settingsPreference": "light",
+      "expected": "light",
+      "pass": true
+    },
+    {
+      "step": "settings-select-dark",
+      "mode": "dark",
+      "ariaLabels": [],
+      "toggleCount": 0,
+      "preference": [
+        "dark"
+      ],
+      "settingsPreference": "dark",
+      "expected": "dark",
+      "pass": true
+    },
+    {
+      "step": "desktop-settings-absent-header-dark",
+      "mode": "dark",
+      "ariaLabels": [
+        "Switch to light mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "dark"
+      ],
+      "settingsSelectorCount": 0,
+      "expected": "dark; selector absent",
+      "pass": true
+    },
+    {
+      "step": "reload-dark-persists",
+      "mode": "dark",
+      "ariaLabels": [
+        "Switch to light mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "dark"
+      ],
+      "expected": "dark",
+      "pass": true
+    },
+    {
+      "step": "settings-select-light",
+      "mode": "light",
+      "ariaLabels": [],
+      "toggleCount": 0,
+      "preference": [
+        "light"
+      ],
+      "settingsPreference": "light",
+      "expected": "light",
+      "pass": true
+    },
+    {
+      "step": "header-reflects-light",
+      "mode": "light",
+      "ariaLabels": [
+        "Switch to dark mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "light"
+      ],
+      "expected": "light",
+      "pass": true
+    },
+    {
+      "step": "reload-light-persists",
+      "mode": "light",
+      "ariaLabels": [
+        "Switch to dark mode"
+      ],
+      "toggleCount": 1,
+      "preference": [
+        "light"
+      ],
+      "expected": "light",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

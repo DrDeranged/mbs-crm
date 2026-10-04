@@ -1,0 +1,797 @@
+{
+  "fixtureData": "Disposable synthetic fixture; Deals UI Table view explicitly selected and verified.",
+  "geometry": [
+    {
+      "page": "leads",
+      "width": 1280,
+      "sidebar": "collapsed",
+      "document": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "overflowX": "visible"
+      },
+      "table": {
+        "scrollWidth": 1497,
+        "clientWidth": 1497,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1497,
+          "clientWidth": 1158,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "hidden md:block rounded-md border bg-card overflow-x-auto",
+          "scrollWidth": 1158,
+          "clientWidth": 1158,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-14 min-h-screen",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/leads-1280-collapsed.png"
+    },
+    {
+      "page": "leads",
+      "width": 1280,
+      "sidebar": "pinned",
+      "document": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "overflowX": "visible"
+      },
+      "table": {
+        "scrollWidth": 1497,
+        "clientWidth": 1497,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1497,
+          "clientWidth": 958,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "hidden md:block rounded-md border bg-card overflow-x-auto",
+          "scrollWidth": 958,
+          "clientWidth": 958,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-64 min-h-screen",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/leads-1280-pinned.png"
+    },
+    {
+      "page": "leads",
+      "width": 1366,
+      "sidebar": "collapsed",
+      "document": {
+        "scrollWidth": 1366,
+        "clientWidth": 1366,
+        "overflowX": "visible"
+      },
+      "table": {
+        "scrollWidth": 1497,
+        "clientWidth": 1497,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1497,
+          "clientWidth": 1244,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "hidden md:block rounded-md border bg-card overflow-x-auto",
+          "scrollWidth": 1244,
+          "clientWidth": 1244,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-14 min-h-screen",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/leads-1366-collapsed.png"
+    },
+    {
+      "page": "leads",
+      "width": 1366,
+      "sidebar": "pinned",
+      "document": {
+        "scrollWidth": 1366,
+        "clientWidth": 1366,
+        "overflowX": "visible"
+      },
+      "table": {
+        "scrollWidth": 1497,
+        "clientWidth": 1497,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1497,
+          "clientWidth": 1044,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "hidden md:block rounded-md border bg-card overflow-x-auto",
+          "scrollWidth": 1044,
+          "clientWidth": 1044,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-64 min-h-screen",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/leads-1366-pinned.png"
+    },
+    {
+      "page": "deals",
+      "view": "table",
+      "width": 1280,
+      "sidebar": "collapsed",
+      "table": {
+        "visible": true,
+        "scrollWidth": 1310,
+        "clientWidth": 1310,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "document": [
+        {
+          "tag": "HTML",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1310,
+          "clientWidth": 1174,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "bg-card border rounded-xl ",
+          "scrollWidth": 1174,
+          "clientWidth": 1174,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "p-6 h-full overflow-auto",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-hidden relative",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 flex flex-col h-full bg-muted",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-14 min-h-screen",
+          "scrollWidth": 1224,
+          "clientWidth": 1224,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/deals-1280-collapsed-table.png"
+    },
+    {
+      "page": "deals",
+      "view": "table",
+      "width": 1280,
+      "sidebar": "pinned",
+      "table": {
+        "visible": true,
+        "scrollWidth": 1310,
+        "clientWidth": 1310,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "document": [
+        {
+          "tag": "HTML",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1310,
+          "clientWidth": 974,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "bg-card border rounded-xl ",
+          "scrollWidth": 974,
+          "clientWidth": 974,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "p-6 h-full overflow-auto",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-hidden relative",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 flex flex-col h-full bg-muted",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-64 min-h-screen",
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/deals-1280-pinned-table.png"
+    },
+    {
+      "page": "deals",
+      "view": "table",
+      "width": 1366,
+      "sidebar": "collapsed",
+      "table": {
+        "visible": true,
+        "scrollWidth": 1310,
+        "clientWidth": 1310,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "document": [
+        {
+          "tag": "HTML",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1310,
+          "clientWidth": 1260,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "bg-card border rounded-xl ",
+          "scrollWidth": 1260,
+          "clientWidth": 1260,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "p-6 h-full overflow-auto",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-hidden relative",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 flex flex-col h-full bg-muted",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-14 min-h-screen",
+          "scrollWidth": 1310,
+          "clientWidth": 1310,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/deals-1366-collapsed-table.png"
+    },
+    {
+      "page": "deals",
+      "view": "table",
+      "width": 1366,
+      "sidebar": "pinned",
+      "table": {
+        "visible": true,
+        "scrollWidth": 1310,
+        "clientWidth": 1310,
+        "rowCount": 2,
+        "containsSynthetic": true
+      },
+      "document": [
+        {
+          "tag": "HTML",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "className": "relative w-full overflow-auto",
+          "scrollWidth": 1310,
+          "clientWidth": 1060,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "bg-card border rounded-xl ",
+          "scrollWidth": 1060,
+          "clientWidth": 1060,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "p-6 h-full overflow-auto",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-hidden relative",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 flex flex-col h-full bg-muted",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex-1 overflow-auto pb-6",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "flex-1 flex flex-col overflow-hidden ml-64 min-h-screen",
+          "scrollWidth": 1110,
+          "clientWidth": 1110,
+          "overflowX": "hidden"
+        },
+        {
+          "tag": "DIV",
+          "className": "flex w-full bg-background min-h-screen",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "scrollWidth": 1366,
+          "clientWidth": 1366,
+          "overflowX": "visible"
+        }
+      ],
+      "horizontalScrolling": true,
+      "scrollContainedToTable": true,
+      "scrollWholePage": false,
+      "screenshot": "screenshots/deals-1366-pinned-table.png"
+    }
+  ],
+  "screenshots": [
+    "screenshots/leads-1280-collapsed.png",
+    "screenshots/leads-1280-pinned.png",
+    "screenshots/leads-1366-collapsed.png",
+    "screenshots/leads-1366-pinned.png",
+    "screenshots/deals-1280-collapsed-table.png",
+    "screenshots/deals-1280-pinned-table.png",
+    "screenshots/deals-1366-collapsed-table.png",
+    "screenshots/deals-1366-pinned-table.png"
+  ],
+  "correctedDealsTableView": true,
+  "removedInvalidInitialDealsGeometry": true
+}

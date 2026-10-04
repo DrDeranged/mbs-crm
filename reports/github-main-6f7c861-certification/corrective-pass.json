@@ -1,0 +1,160 @@
+{
+  "fixedTime": "2026-10-03T18:00:00.000Z",
+  "captureScope": "Only /leads at 390px and 768px for admin, manager and rep, target plus retained baseline.",
+  "captureCount": 12,
+  "loginBeforeClock": true,
+  "clockObserved": true,
+  "missingBaselineAssets": [],
+  "renderErrors": [],
+  "finalLeadKeys": [
+    {
+      "key": "leads-390-admin",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 58,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 71,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    },
+    {
+      "key": "leads-390-manager",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 50,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 63,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    },
+    {
+      "key": "leads-390-rep",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 42,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 54,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    },
+    {
+      "key": "leads-768-admin",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 58,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 71,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    },
+    {
+      "key": "leads-768-manager",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 50,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 63,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    },
+    {
+      "key": "leads-768-rep",
+      "targetEqualsFreshBaseline": true,
+      "controlsEqualCertified": false,
+      "exemptionsEqualCertified": true,
+      "differences": [
+        {
+          "index": 42,
+          "target": "19d idle",
+          "certified": "18d idle"
+        },
+        {
+          "index": 54,
+          "target": "19d idle",
+          "certified": "18d idle"
+        }
+      ]
+    }
+  ],
+  "dealsTableCorrection": {
+    "screenshots": [
+      "screenshots/deals-1280-collapsed-table.png",
+      "screenshots/deals-1280-pinned-table.png",
+      "screenshots/deals-1366-collapsed-table.png",
+      "screenshots/deals-1366-pinned-table.png"
+    ],
+    "allVisibleRowsSynthetic": true,
+    "geometry": [
+      {
+        "width": 1280,
+        "sidebar": "collapsed",
+        "horizontalScrolling": true,
+        "containedToTable": true,
+        "wholePage": false
+      },
+      {
+        "width": 1280,
+        "sidebar": "pinned",
+        "horizontalScrolling": true,
+        "containedToTable": true,
+        "wholePage": false
+      },
+      {
+        "width": 1366,
+        "sidebar": "collapsed",
+        "horizontalScrolling": true,
+        "containedToTable": true,
+        "wholePage": false
+      },
+      {
+        "width": 1366,
+        "sidebar": "pinned",
+        "horizontalScrolling": true,
+        "containedToTable": true,
+        "wholePage": false
+      }
+    ]
+  },
+  "originalEvidenceArchive": "initial-browser-pass/",
+  "supersededHarnessAttempt": "correction-diagnostics/"
+}
