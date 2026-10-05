@@ -141,6 +141,11 @@ test("all current migrations form a parseable analyzer corpus", async () => {
   const migrations = await discoverMigrations(path.resolve(import.meta.dirname, "../migrations"));
   for (const migration of migrations) {
     assert.doesNotThrow(() => analyzeMigrationSql(migration.sql), migration.name);
+    if (migration.name === "068_campaign_attribution_fk_names.sql") {
+      assert.throws(() => analyzeMigrationSql(migration.sql + "\n-- altered"),
+        /unsupported dynamic SQL/, "a changed dynamic body must remain rejected");
+      assert.ok(analyzeMigrationSql(migration.sql).referencedTables.includes("campaign_replies"));
+    }
   }
 });
 

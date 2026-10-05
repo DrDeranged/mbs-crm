@@ -3,6 +3,8 @@ import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { ReferrerSelect } from "@/components/referrer-select";
+import { referrerPayload } from "@/lib/campaignMetrics";
 import { useCreateLead, LeadInputApplicationType, LeadInputLeadSource } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,7 @@ export default function NewLead() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const createLead = useCreateLead();
+  const [referrer, setReferrer] = useState<{ type: "lead" | "partner"; id: number; label: string } | null>(null);
   const [duplicate, setDuplicate] = useState<DuplicateInfo | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -47,7 +50,7 @@ export default function NewLead() {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setDuplicate(null);
-    createLead.mutate({ data: values }, {
+    createLead.mutate({ data: { ...values, ...referrerPayload(referrer) } }, {
       onSuccess: (data) => {
         toast({
           title: "Lead Created",
@@ -239,6 +242,11 @@ export default function NewLead() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                <div className="space-y-2" data-testid="field-referred-by">
+                  <div className="text-sm font-medium">Referred by (optional)</div>
+                  <ReferrerSelect value={referrer} onChange={(o) => setReferrer(o)} />
                 </div>
 
                 <div className="flex justify-end pt-4">

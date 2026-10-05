@@ -1,3 +1,4 @@
+import { validateReferrer, attributeReferral, referrerLabel } from "../lib/campaignAttribution";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, companiesTable, leadStatusHistoryTable, leadAssignmentHistoryTable, activityLogTable, usersTable, dripSequencesTable, dripEnrollmentsTable } from "@workspace/db";
@@ -112,6 +113,9 @@ function leadToApi(
     email: lead.email,
     phone: lead.phone,
     companyName,
+    referredByLeadId: lead.referredByLeadId ?? null,
+    referredByPartnerId: lead.referredByPartnerId ?? null,
+    referredByLabel: null,
     contactName: contactName(lead.firstName, lead.lastName),
     entityLabel: entityLabel(
       companyName,
@@ -362,11 +366,20 @@ router.post("/leads", async (req: Request, res: Response) => {
     return;
   }
 
-  const [lead] = await db.insert(leadsTable).values({
-    ...leadData,
-    applicationType: (leadData.applicationType as any) ?? "working_capital",
-    leadSource: (leadData.leadSource as any) ?? "manual",
-  }).returning();
+  let referrer;
+  try { referrer = await validateReferrer(req.body, user); }
+  catch { return void res.status(400).json({ error: "Invalid or unavailable referrer" }); }
+  const lead = await db.transaction(async tx => {
+    const at = new Date();
+    const [created] = await tx.insert(leadsTable).values({
+      ...leadData, ...referrer,
+      referredAt: referrer.referredByLeadId || referrer.referredByPartnerId ? at : null,
+      applicationType: (leadData.applicationType as any) ?? "working_capital",
+      leadSource: (leadData.leadSource as any) ?? "manual",
+    }).returning();
+    await attributeReferral(created.id, referrer, at, tx);
+    return created;
+  });
 
   if (company) {
     await db.insert(companiesTable).values({
@@ -378,7 +391,7 @@ router.post("/leads", async (req: Request, res: Response) => {
 
   await logActivity({ userId: user.id, leadId: lead.id, action: "lead_created", entityType: "lead", entityId: lead.id });
 
-  res.status(201).json(await leadToApiWithCurrentActivity(lead, null));
+  res.status(201).json({ ...await leadToApiWithCurrentActivity(lead, null), referredByLabel: await referrerLabel(lead, user) });
 });
 
 router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Response) => {
@@ -846,6 +859,7 @@ router.get("/leads/:id", async (req: Request, res: Response) => {
       await getStaleThresholdDays(),
     ),
     companyName: leadFields.companyName?.trim() || company?.name?.trim() || null,
+    referredByLabel: await referrerLabel(leadFields, user),
     entityLabel: entityLabel(
       leadFields.companyName?.trim() || company?.name,
       contactName(leadFields.firstName, leadFields.lastName),
@@ -927,6 +941,9 @@ router.put("/leads/:id", async (req: Request, res: Response) => {
 
   const { company, ...leadData } = body.data;
 
+  if (Object.hasOwn(req.body, "referredByLeadId") || Object.hasOwn(req.body, "referredByPartnerId")) {
+    return void res.status(400).json({ error: "Use the audited referral editor to change or clear a referral" });
+  }
   const [updated] = await db
     .update(leadsTable)
     .set({ ...leadData, updatedAt: new Date() })

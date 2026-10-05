@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CampaignSkeleton } from "@/components/page-skeletons";
 import { Link, useLocation } from "wouter";
-import { useListCampaigns, useCreateCampaign, useDuplicateCampaign, useCancelCampaign } from "@workspace/api-client-react";
+import { useGetMe, useListCampaignMetrics, useListCampaigns, useCreateCampaign, useDuplicateCampaign, useCancelCampaign } from "@workspace/api-client-react";
 import { Plus, Mail, Copy, XCircle, Search, CalendarClock, PlayCircle, Clock, AlertTriangle, FileEdit } from "lucide-react";
 import { format } from "date-fns";
 
@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { CampaignComparisonTable, MetricsDefinitions, MetricsState } from "@/components/campaign-metrics-panel";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -50,6 +51,10 @@ export default function CampaignsPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { data: campaigns, isLoading } = useListCampaigns();
+  const { data: me } = useGetMe();
+  const canCompare = me?.role === "manager" || me?.role === "admin";
+  const metricsQ = useListCampaignMetrics({ query: { enabled: canCompare } as any });
+  const [compareIds, setCompareIds] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -176,6 +181,29 @@ export default function CampaignsPage() {
               />
             </div>
           </div>
+
+          {canCompare && <section aria-label="Campaign comparison" className="space-y-3" data-testid="section-campaign-comparison">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Compare campaigns</h2>
+            <MetricsState isLoading={metricsQ.isLoading} isError={metricsQ.isError} onRetry={() => void metricsQ.refetch()} empty={metricsQ.data?.length === 0}>
+              {metricsQ.data && (
+                <>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Choose campaigns to compare">
+                    {metricsQ.data.map((m) => {
+                      const on = compareIds.includes(m.campaignId);
+                      return (
+                        <Button key={m.campaignId} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} data-testid={`toggle-compare-${m.campaignId}`}
+                          onClick={() => setCompareIds((ids) => on ? ids.filter((i) => i !== m.campaignId) : [...ids, m.campaignId].slice(-4))}>{m.name}</Button>
+                      );
+                    })}
+                  </div>
+                  {compareIds.length < 2
+                    ? <p className="text-sm text-muted-foreground">Select two to four campaigns to compare side by side.</p>
+                    : <CampaignComparisonTable rows={metricsQ.data.filter((m) => compareIds.includes(m.campaignId))} onOpen={(cid) => setLocation(`/campaigns/${cid}`)} />}
+                  <MetricsDefinitions metrics={metricsQ.data} />
+                </>
+              )}
+            </MetricsState>
+          </section>}
 
           {isLoading ? (
             <CampaignSkeleton />

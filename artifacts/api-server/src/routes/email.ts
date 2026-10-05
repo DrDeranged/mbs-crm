@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+import { digestReplyToken, REPLY_DOMAIN, replyCaptureConfigured } from "../lib/campaignAttribution";
 import { Router, type Request, type Response } from "express";
 import sgMail from "@sendgrid/mail";
 import { createHmac } from "crypto";
@@ -504,17 +506,28 @@ async function doSendEmail(params: {
     email: FROM_EMAIL,
     name: FROM_NAME,
   };
-  const replyTo = VALID_EMAIL.test(repEmail)
+  let replyTo = VALID_EMAIL.test(repEmail)
     ? { email: repEmail, name: params.rep?.name?.trim() || repEmail }
     : undefined;
 
   const deliveryKind = params.deliveryKind ?? "direct";
+  // Never route customer replies into a subdomain before Parse is configured.
+  if (params.campaignId && !replyCaptureConfigured()) {
+    return { send: null, error: "Campaign reply capture is not enabled/configured", configurationReason: "missing:campaign_reply_capture", deliveryOutcome: "definite_failure" };
+  }
+  if (params.campaignId && (!VALID_EMAIL.test(repEmail) || repEmail.toLowerCase().endsWith(`@${REPLY_DOMAIN}`))) {
+    return { send: null, error: "Invalid campaign forwarding destination", deliveryOutcome: "definite_failure" };
+  }
+  const replyToken = params.campaignId ? randomBytes(24).toString("hex") : null;
+  if (replyToken) replyTo = { email: `r-${replyToken}@${REPLY_DOMAIN}`, name: "My Business Solutions" };
   const values = {
     leadId: params.leadId,
     userId: params.userId,
     templateId: params.templateId,
     campaignId: params.campaignId ?? null,
     campaignLaunchId: params.campaignLaunchId ?? null,
+    replyTokenDigest: replyToken ? digestReplyToken(replyToken) : null,
+    originalReplyTo: replyToken ? repEmail : null,
     subject: params.subject,
     toEmail: params.toEmail,
     fromEmail: from.email,

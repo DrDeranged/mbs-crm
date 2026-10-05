@@ -8,6 +8,7 @@ import { AlertTriangle, BarChart3, ListChecks, RefreshCw, Sparkles } from "lucid
 import { getGetLeadQueryKey, useGenerateLeadBriefing, useGenerateNextBestAction, useRecalculateLeadScore } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
 import { LeadDeals } from "./deals";
+import { ReferredByEditor, ReferredRecordsList, LeadCampaignEngagement, LeadCampaignReplies } from "@/components/referral-panels";
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 70 ? "bg-primary" : score >= 40 ? "bg-chart-3" : "bg-chart-4";
   const label = score >= 70 ? "High" : score >= 40 ? "Medium" : "Low";
@@ -249,6 +250,10 @@ export function LeadInfo() {
       </Card>
 
       <LeadDeals />
+      <Card><CardContent className="p-4"><ReferredByEditor kind="lead" recordId={lead.id} leadId={lead.referredByLeadId} partnerId={lead.referredByPartnerId} label={lead.referredByLabel} /></CardContent></Card>
+      <ReferredRecordsList type="lead" id={lead.id} />
+      <LeadCampaignEngagement leadId={lead.id} />
+      <LeadCampaignReplies leadId={lead.id} />
     </div>
   );
 }

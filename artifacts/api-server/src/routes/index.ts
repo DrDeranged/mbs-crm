@@ -44,6 +44,9 @@ import partnerContactsRouter from "./partnerContacts";
 import pushNotificationsRouter from "./pushNotifications";
 import adminPushHealthRouter from "./adminPushHealth";
 import campaignsRouter from "./campaigns";
+import referralsRouter from "./referrals";
+import campaignRepliesRouter from "./campaignReplies";
+import campaignMetricsRouter from "./campaignMetrics";
 
 const router: IRouter = Router();
 export const bootCriticalRouter: IRouter = Router();
@@ -51,6 +54,7 @@ export const bootCriticalRouter: IRouter = Router();
 bootCriticalRouter.use(healthRouter);
 bootCriticalRouter.use(publicRepRouter);
 bootCriticalRouter.use(sendgridRouter);
+bootCriticalRouter.use(campaignRepliesRouter);
 bootCriticalRouter.use(twilioProviderRouter);
 bootCriticalRouter.use(usfaIntakeRouter);
 
@@ -63,6 +67,7 @@ export const PUBLIC_MUTATION_PATHS = new Set([
   "/applications/submit",
   "/leads/capture",
   "/sendgrid/webhook",
+  "/sendgrid/inbound-parse",
   "/intake/usfa",
   "/twilio/voice",
   "/twilio/voice/inbound",
@@ -108,6 +113,8 @@ export const mutationAuthenticationGuard = createMutationAuthenticationGuard();
 // Provider callbacks authenticate with their own raw-body signatures and must
 // be registered before the global mutation gate.
 router.use(mutationAuthenticationGuard);
+router.use(referralsRouter);
+router.use(campaignMetricsRouter);
 
 router.use(dealsRouter);
 router.use(adminProductionCloseoutRouter);

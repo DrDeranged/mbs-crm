@@ -1,3 +1,4 @@
+import { recordValidatedFlyerClick } from "../lib/campaignAttribution";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -66,6 +67,7 @@ type CampaignFlyerTokenPayload = {
   name: string;
   contentType: "image/png" | "application/pdf";
   expiresAt: number;
+  attribution?: { campaignId: number; launchId: number; leadId: number; recipientId: number };
 };
 
 export type SignedCampaignFlyerInput = Omit<CampaignFlyerTokenPayload, "expiresAt">;
@@ -541,6 +543,22 @@ router.get("/collateral/flyers/public/:token", async (req, res) => {
         asset.bytes.length !== asset.size || actualDigest !== payload.digest ||
         detectCollateralFlyerContentType(asset.bytes) !== payload.contentType) {
       return void res.status(409).json({ error: "Approved flyer integrity check failed" });
+    }
+    if (payload.attribution) {
+      const a = payload.attribution;
+      if (![a.campaignId, a.launchId, a.leadId, a.recipientId].every(id => Number.isSafeInteger(id) && id > 0)) {
+        return void res.status(403).json({ error: "Invalid attribution" });
+      }
+      // Commit the event before returning any destination. A failed insert is
+      // handled by the 503 below, never by a silent redirect.
+      if (!await recordValidatedFlyerClick(a, { templateId: payload.templateId, digest: payload.digest })) {
+        return void res.status(403).json({ error: "Campaign receipt unavailable" });
+      }
+      const { attribution: _attribution, expiresAt: _expiresAt, ...assetInput } = payload;
+      const destination = buildSignedCampaignFlyerUrl(assetInput, Math.max(1, Math.min(900, Math.floor((payload.expiresAt - Date.now()) / 1000))));
+      res.set("Cache-Control", "no-store, private").set("Pragma", "no-cache").set("Referrer-Policy", "no-referrer");
+      res.redirect(302, destination);
+      return;
     }
     const extension = payload.contentType === "image/png" ? "png" : "pdf";
     const displayName = normalizeCollateralFlyerDisplayName(template.name, template.originalFilename);

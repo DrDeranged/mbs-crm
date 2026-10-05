@@ -361,6 +361,151 @@ export interface CampaignLaunch {
   createdAt: string;
 }
 
+export type CampaignReplyForwardStatus = typeof CampaignReplyForwardStatus[keyof typeof CampaignReplyForwardStatus];
+
+
+export const CampaignReplyForwardStatus = {
+  pending: 'pending',
+  dispatching: 'dispatching',
+  forwarded: 'forwarded',
+  failed: 'failed',
+  uncertain: 'uncertain',
+} as const;
+
+export type CampaignReplyAttachmentsItem = {
+  filename: string;
+  contentType: string;
+};
+
+export interface CampaignReply {
+  id: number;
+  campaignId: number;
+  leadId: number;
+  /** @nullable */
+  emailSendId: number | null;
+  fromEmail: string;
+  subject: string;
+  bodyText: string;
+  receivedAt: string;
+  forwardStatus: CampaignReplyForwardStatus;
+  /** @nullable */
+  failureReason: string | null;
+  attachments: CampaignReplyAttachmentsItem[];
+}
+
+export type CampaignMetricsEngagedLeadsItem = {
+  leadId: number;
+  label: string;
+  /** @nullable */
+  firstClickAt: string | null;
+  totalFlyerClicks: number;
+  replies: number;
+  calls: number;
+};
+
+export interface CampaignMetrics {
+  campaignId: number;
+  name: string;
+  trackingSince: string | null;
+  replyCaptureConfigured: boolean;
+  sent: number;
+  delivered: number;
+  deliveredPct: number | null;
+  bounced: number;
+  blocked: number;
+  opensApproximate: number;
+  uniqueFlyerClicks: number | null;
+  totalFlyerClicks: number | null;
+  firstClickAt: string | null;
+  replies: number | null;
+  calls: number | null;
+  referredLeads: number | null;
+  /** @nullable */
+  submitted: number | null;
+  /** @nullable */
+  approved: number | null;
+  /** @nullable */
+  funded: number | null;
+  /** @nullable */
+  fundedDollars: number | null;
+  /** @nullable */
+  mbsPoints: number | null;
+  unpricedFundedDeals: number;
+  definitions: string[];
+  engagedLeads: CampaignMetricsEngagedLeadsItem[];
+}
+
+export type ReferrerOptionType = typeof ReferrerOptionType[keyof typeof ReferrerOptionType];
+
+
+export const ReferrerOptionType = {
+  lead: 'lead',
+  partner: 'partner',
+} as const;
+
+export interface ReferrerOption {
+  type: ReferrerOptionType;
+  id: number;
+  label: string;
+}
+
+export interface ReferralAssignment {
+  referredByLeadId: number | null;
+  referredByPartnerId: number | null;
+}
+
+export interface ReferralAssignmentResult {
+  id: number;
+  referredByLeadId: number | null;
+  referredByPartnerId: number | null;
+}
+
+export type ReferredRecordsLeadsItem = {
+  id: number;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  companyName?: string | null;
+  status: string;
+  /** @nullable */
+  referredAt: string | null;
+  referralCampaignId?: number | null;
+};
+
+export type ReferredRecordsDealsItem = {
+  id: number;
+  /** @nullable */
+  leadId: number | null;
+  stage: string;
+  amount?: number | null;
+  actualGm?: number | null;
+};
+
+export interface ReferredRecords {
+  leads: ReferredRecordsLeadsItem[];
+  deals: ReferredRecordsDealsItem[];
+}
+
+export interface ReferralLink {
+  token: string;
+}
+
+export type PublicReferralType = typeof PublicReferralType[keyof typeof PublicReferralType];
+
+
+export const PublicReferralType = {
+  lead: 'lead',
+  partner: 'partner',
+} as const;
+
+export interface PublicReferral {
+  token: string;
+  label: string;
+  type: PublicReferralType;
+  id: number;
+}
+
 export type CampaignResultsCounts = {
   eligible: number;
   excluded: number;
@@ -1064,6 +1209,10 @@ export interface AiBriefing {
 }
 
 export interface Lead {
+  /** @nullable */
+  referredByLabel?: string | null;
+  referredByLeadId?: number | null;
+  referredByPartnerId?: number | null;
   id: number;
   /** @nullable */
   firstName?: string | null;
@@ -1295,6 +1444,8 @@ export interface CompanyInput {
 }
 
 export interface LeadInput {
+  referredByLeadId?: number | null;
+  referredByPartnerId?: number | null;
   firstName: string;
   lastName: string;
   email?: string;
@@ -3371,6 +3522,10 @@ export interface Deal {
   /** @nullable */
   actualGm?: number | null;
   /** @nullable */
+  referredByLabel?: string | null;
+  /** @nullable */
+  referredByLeadId?: number | null;
+  /** @nullable */
   referredByPartnerId?: number | null;
   /** @nullable */
   referralSplitPct?: number | null;
@@ -5014,5 +5169,9 @@ export type SearchCampaignLeadPicker200 = {
 export type ResolveCampaignLeadPickerBody = {
   /** @maxItems 1000 */
   ids: number[];
+};
+
+export type ListReferralOptionsParams = {
+search?: string;
 };
 

@@ -1,3 +1,4 @@
+export * from "./campaignEngagement";
 export * from "./users";
 export * from "./userIdentities";
 export * from "./adminAuditLog";

@@ -299,6 +299,20 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/campaign-audience-presets` | `routes/campaigns.ts` | A | manager/admin audience preset creation |
 | PATCH | `/api/campaign-audience-presets/:id` | `routes/campaigns.ts` | A | manager/admin audience preset rename/update |
 | DELETE | `/api/campaign-audience-presets/:id` | `routes/campaigns.ts` | A | manager/admin audience preset deletion |
+| POST | `/api/sendgrid/inbound-parse` | `routes/campaignReplies.ts` | P | separate HTTP Basic Parse credential; bounded multipart; no writes before authentication |
+| GET | `/api/public/referrals/:token` | `routes/referrals.ts` | P | valid unexpired signed token; only the supplied referrer label, never a directory |
+| GET | `/api/referrals/options` | `routes/referrals.ts` | A | authenticated; rep-owned leads only; partners follow existing partner access |
+| POST | `/api/referrals/lead/:id/link` | `routes/referrals.ts` | A | referrer lead access; unpredictable signed referral context |
+| POST | `/api/referrals/partner/:id/link` | `routes/referrals.ts` | A | authenticated partner availability check; signed context |
+| GET | `/api/referrals/lead/:id` | `routes/referrals.ts` | A | referrer lead access plus independent child lead/deal scope checks |
+| GET | `/api/referrals/partner/:id` | `routes/referrals.ts` | A | authenticated partner access; returned child leads/deals separately scoped |
+| PATCH | `/api/referrals/lead/:id` | `routes/referrals.ts` | A | record ownership and target access; no self/dual referral; transactionally audited |
+| PATCH | `/api/referrals/deal/:id` | `routes/referrals.ts` | A | deal ownership and target access; no self/dual referral; transactionally audited |
+| GET | `/api/campaigns/metrics` | `routes/campaignMetrics.ts` | A | manager/admin only; consistent comparison aggregates |
+| GET | `/api/campaigns/:id/metrics` | `routes/campaignMetrics.ts` | A | manager/admin only |
+| GET | `/api/leads/:id/campaign-engagement` | `routes/campaignMetrics.ts` | A | lead access; metrics narrowed to the accessible lead |
+| GET | `/api/leads/:id/campaign-replies` | `routes/campaignMetrics.ts` | A | lead access; no private storage paths or forwarding destination returned |
+| GET | `/api/campaigns/:id/replies` | `routes/campaignMetrics.ts` | A | manager/admin only; safe text and forwarding outcomes |
 
 ## Findings and verification
 
@@ -315,7 +329,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | PASS | Router-walk regression coverage. | `src/lib/authMatrix.test.ts` recursively walks the real composed router, pins the 234 registration count, requires exact method/path equality with this matrix, and uses a branded mocked Clerk request context with the actual production mutation gate. It makes a denied request for every private mutation, plus an authenticated probe, without mounting a test-only preempting guard. It also exercises rep self-assignment denial plus unsigned provider callback denial. |
 | PASS | Router-walk test isolation. | `flyer-templates.ts:202-209` honors the test-only `DISABLE_FLYER_TEMPLATE_SEED=true` guard used before the composed router is imported, so route inspection cannot trigger its legacy module-load seed write. |
 
-**Re-enumeration result:** 234 registrations and 234 matrix rows. This
+**Re-enumeration result:** 273 registrations and 273 matrix rows. This
 reconciliation is route-inventory evidence, not exhaustive authorization proof.
 Runtime suite/typecheck status must be recorded from their actual command
 results; no unresolved Section A source-audit finding is currently listed here.

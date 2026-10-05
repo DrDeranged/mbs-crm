@@ -5070,6 +5070,84 @@ paths:
       tags: [campaigns]
       parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
       responses: { "200": { description: Campaign results, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignResults" } } } } }
+  /campaigns/metrics:
+    get:
+      operationId: listCampaignMetrics
+      tags: [campaigns]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignMetrics" } } } } } }
+  /campaigns/{id}/metrics:
+    get:
+      operationId: getCampaignMetrics
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignMetrics" } } } } }
+  /leads/{id}/campaign-engagement:
+    get:
+      operationId: getLeadCampaignEngagement
+      tags: [leads]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignMetrics" } } } } } }
+  /referrals/options:
+    get:
+      operationId: listReferralOptions
+      tags: [referrals]
+      parameters: [{ name: search, in: query, required: false, schema: { type: string } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ReferrerOption" } } } } } }
+  /referrals/lead/{id}:
+    get:
+      operationId: getLeadReferrals
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferredRecords" } } } } }
+    patch:
+      operationId: updateLeadReferrer
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralAssignment" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralAssignmentResult" } } } } }
+  /referrals/deal/{id}:
+    patch:
+      operationId: updateDealReferrer
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralAssignment" } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralAssignmentResult" } } } } }
+  /referrals/partner/{id}:
+    get:
+      operationId: getPartnerReferrals
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferredRecords" } } } } }
+  /referrals/lead/{id}/link:
+    post:
+      operationId: createLeadReferralLink
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralLink" } } } } }
+  /referrals/partner/{id}/link:
+    post:
+      operationId: createPartnerReferralLink
+      tags: [referrals]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReferralLink" } } } } }
+  /public/referrals/{token}:
+    get:
+      operationId: getPublicReferral
+      tags: [public]
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PublicReferral" } } } } }
+  /leads/{id}/campaign-replies:
+    get:
+      operationId: getLeadCampaignReplies
+      tags: [leads]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignReply" } } } } } }
+  /campaigns/{id}/replies:
+    get:
+      operationId: getCampaignReplies
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignReply" } } } } } }
   /campaign-audience-presets:
     get:
       operationId: listCampaignAudiencePresets
@@ -5315,6 +5393,128 @@ components:
         startedAt: { type: string, format: date-time, nullable: true }
         completedAt: { type: string, format: date-time, nullable: true }
         createdAt: { type: string, format: date-time }
+    CampaignReply:
+      type: object
+      required: [id, campaignId, leadId, emailSendId, fromEmail, subject, bodyText, receivedAt, forwardStatus, failureReason, attachments]
+      properties:
+        id: { type: integer }
+        campaignId: { type: integer }
+        leadId: { type: integer }
+        emailSendId: { type: ["integer", "null"] }
+        fromEmail: { type: string }
+        subject: { type: string }
+        bodyText: { type: string }
+        receivedAt: { type: string }
+        forwardStatus: { type: string, enum: [pending, dispatching, forwarded, failed, uncertain] }
+        failureReason: { type: ["string", "null"] }
+        attachments:
+          type: array
+          items:
+            type: object
+            required: [filename, contentType]
+            properties:
+              filename: { type: string }
+              contentType: { type: string }
+    CampaignMetrics:
+      type: object
+      required: [campaignId, name, trackingSince, replyCaptureConfigured, sent, delivered, deliveredPct, bounced, blocked, opensApproximate, uniqueFlyerClicks, totalFlyerClicks, firstClickAt, replies, calls, referredLeads, submitted, approved, funded, fundedDollars, mbsPoints, unpricedFundedDeals, definitions, engagedLeads]
+      properties:
+        campaignId: { type: integer }
+        name: { type: string }
+        trackingSince: { type: string, nullable: true }
+        replyCaptureConfigured: { type: boolean }
+        sent: { type: integer }
+        delivered: { type: integer }
+        deliveredPct: { type: number, nullable: true }
+        bounced: { type: integer }
+        blocked: { type: integer }
+        opensApproximate: { type: integer }
+        uniqueFlyerClicks: { type: integer, nullable: true }
+        totalFlyerClicks: { type: integer, nullable: true }
+        firstClickAt: { type: string, nullable: true }
+        replies: { type: integer, nullable: true }
+        calls: { type: integer, nullable: true }
+        referredLeads: { type: integer, nullable: true }
+        submitted: { type: [integer, "null"] }
+        approved: { type: [integer, "null"] }
+        funded: { type: [integer, "null"] }
+        fundedDollars: { type: [number, "null"] }
+        mbsPoints: { type: [number, "null"] }
+        unpricedFundedDeals: { type: integer }
+        definitions: { type: array, items: { type: string } }
+        engagedLeads:
+          type: array
+          items:
+            type: object
+            required: [leadId, label, firstClickAt, totalFlyerClicks, replies, calls]
+            properties:
+              leadId: { type: integer }
+              label: { type: string }
+              firstClickAt: { type: [string, "null"] }
+              totalFlyerClicks: { type: integer }
+              replies: { type: integer }
+              calls: { type: integer }
+    ReferrerOption:
+      type: object
+      required: [type, id, label]
+      properties:
+        type: { type: string, enum: [lead, partner] }
+        id: { type: integer }
+        label: { type: string }
+    ReferralAssignment:
+      type: object
+      required: [referredByLeadId, referredByPartnerId]
+      properties:
+        referredByLeadId: { type: integer, nullable: true }
+        referredByPartnerId: { type: integer, nullable: true }
+    ReferralAssignmentResult:
+      type: object
+      required: [id, referredByLeadId, referredByPartnerId]
+      properties:
+        id: { type: integer }
+        referredByLeadId: { type: integer, nullable: true }
+        referredByPartnerId: { type: integer, nullable: true }
+    ReferredRecords:
+      type: object
+      required: [leads, deals]
+      properties:
+        leads:
+          type: array
+          items:
+            type: object
+            required: [id, firstName, lastName, status, referredAt]
+            properties:
+              id: { type: integer }
+              firstName: { type: [string, "null"] }
+              lastName: { type: [string, "null"] }
+              companyName: { type: string, nullable: true }
+              status: { type: string }
+              referredAt: { type: [string, "null"] }
+              referralCampaignId: { type: integer, nullable: true }
+        deals:
+          type: array
+          items:
+            type: object
+            required: [id, leadId, stage]
+            properties:
+              id: { type: integer }
+              leadId: { type: [integer, "null"] }
+              stage: { type: string }
+              amount: { type: number, nullable: true }
+              actualGm: { type: number, nullable: true }
+    ReferralLink:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+    PublicReferral:
+      type: object
+      required: [token, label, type, id]
+      properties:
+        token: { type: string }
+        label: { type: string }
+        type: { type: string, enum: [lead, partner] }
+        id: { type: integer }
     CampaignResults:
       type: object
       required: [launches, counts]
@@ -5871,6 +6071,9 @@ components:
       type: object
       required: [id, status, applicationType, leadSource, createdAt, updatedAt, isStale, daysIdle, needsAssignment]
       properties:
+        referredByLabel: { type: ["string", "null"] }
+        referredByLeadId: { type: integer, nullable: true }
+        referredByPartnerId: { type: integer, nullable: true }
         id:
           type: integer
         firstName:
@@ -6020,6 +6223,8 @@ components:
       type: object
       required: [firstName, lastName]
       properties:
+        referredByLeadId: { type: integer, nullable: true }
+        referredByPartnerId: { type: integer, nullable: true }
         firstName:
           type: string
         lastName:
@@ -8529,6 +8734,8 @@ components:
         amount: { type: ["integer", "null"] }
         approxGm: { type: ["integer", "null"] }
         actualGm: { type: ["integer", "null"] }
+        referredByLabel: { type: ["string", "null"] }
+        referredByLeadId: { type: ["integer", "null"] }
         referredByPartnerId: { type: ["integer", "null"] }
         referralSplitPct: { type: ["number", "null"] }
         referralGm: { type: ["number", "null"] }

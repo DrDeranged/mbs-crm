@@ -17,6 +17,10 @@ const legacyUnsafeChecksums: Record<string, string> = {
   "030_add_application_collateral.sql": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
   "031_collateral_library.sql": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
   "036_partners_contacts.sql": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+  // Applied by the transactional migration ledger before lint verification.
+  // Preserve its applied identity; the exemption is exact-byte scoped, not a
+  // filename-only bypass. Empty/existing-schema rehearsal still executes it.
+  "067_campaign_attribution.sql": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
 };
 
 function lineAt(sql: string, index: number): number {

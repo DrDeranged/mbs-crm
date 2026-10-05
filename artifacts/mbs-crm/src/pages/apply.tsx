@@ -391,6 +391,8 @@ export default function ApplyPage() {
       if (statementsSkipped) formData.append("statementsSkipped", "true");
       const inviteToken = new URLSearchParams(window.location.search).get("invite");
       if (inviteToken) formData.append("usfaInviteToken", inviteToken);
+      const referralToken = new URLSearchParams(window.location.search).get("referral");
+      if (referralToken) formData.append("referralToken", referralToken);
       formData.append("ownerSsn", ssnRaw.replace(/\D/g, ""));
       formData.append("secondaryOwnerSsn", secondarySsnRaw.replace(/\D/g, ""));
       const sig = getSignatureData();

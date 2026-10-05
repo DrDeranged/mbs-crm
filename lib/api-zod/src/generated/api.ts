@@ -920,6 +920,9 @@ export const ListLeadsQueryParams = zod.object({
 
 export const ListLeadsResponse = zod.object({
   "leads": zod.array(zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -1079,6 +1082,8 @@ export const createLeadBodyRequestedAmountMax = 2147483647;
 
 
 export const CreateLeadBody = zod.object({
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "firstName": zod.string(),
   "lastName": zod.string(),
   "email": zod.string().optional(),
@@ -1358,6 +1363,9 @@ export const GetLeadParams = zod.object({
 })
 
 export const GetLeadResponse = zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -1725,6 +1733,9 @@ export const UpdateLeadBody = zod.object({
 })
 
 export const UpdateLeadResponse = zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -1906,6 +1917,9 @@ export const ChangeLeadStatusBody = zod.object({
 })
 
 export const ChangeLeadStatusResponse = zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -2064,6 +2078,9 @@ export const AssignLeadBody = zod.object({
 })
 
 export const AssignLeadResponse = zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -2805,6 +2822,9 @@ export const GetDashboardSummaryResponse = zod.object({
   "count": zod.number().optional()
 })),
   "recentLeads": zod.array(zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -2981,6 +3001,9 @@ export const GetDashboardCallsResponse = zod.object({
  */
 export const GetRepDashboardResponse = zod.object({
   "myLeads": zod.array(zod.object({
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
+  "referredByPartnerId": zod.number().nullish(),
   "id": zod.number(),
   "firstName": zod.string().nullish(),
   "lastName": zod.string().nullish(),
@@ -3418,6 +3441,8 @@ export const ListDealsResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
   "referralSplitPct": zod.number().nullish(),
   "referralGm": zod.number().nullish(),
@@ -3579,6 +3604,8 @@ export const GetDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
   "referralSplitPct": zod.number().nullish(),
   "referralGm": zod.number().nullish(),
@@ -3766,6 +3793,8 @@ export const UpdateDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
   "referralSplitPct": zod.number().nullish(),
   "referralGm": zod.number().nullish(),
@@ -3886,6 +3915,8 @@ export const ArchiveDealResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
   "referralSplitPct": zod.number().nullish(),
   "referralGm": zod.number().nullish(),
@@ -4077,6 +4108,8 @@ export const SaveDealRatePointsResponse = zod.object({
   "amount": zod.number().nullish(),
   "approxGm": zod.number().nullish(),
   "actualGm": zod.number().nullish(),
+  "referredByLabel": zod.string().nullish(),
+  "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
   "referralSplitPct": zod.number().nullish(),
   "referralGm": zod.number().nullish(),
@@ -8505,6 +8538,289 @@ export const GetCampaignResultsResponse = zod.object({
   "failed": zod.number()
 })
 })
+
+
+export const ListCampaignMetricsResponseItem = zod.object({
+  "campaignId": zod.number(),
+  "name": zod.string(),
+  "trackingSince": zod.string().nullable(),
+  "replyCaptureConfigured": zod.boolean(),
+  "sent": zod.number(),
+  "delivered": zod.number(),
+  "deliveredPct": zod.number().nullable(),
+  "bounced": zod.number(),
+  "blocked": zod.number(),
+  "opensApproximate": zod.number(),
+  "uniqueFlyerClicks": zod.number().nullable(),
+  "totalFlyerClicks": zod.number().nullable(),
+  "firstClickAt": zod.string().nullable(),
+  "replies": zod.number().nullable(),
+  "calls": zod.number().nullable(),
+  "referredLeads": zod.number().nullable(),
+  "submitted": zod.number().nullable(),
+  "approved": zod.number().nullable(),
+  "funded": zod.number().nullable(),
+  "fundedDollars": zod.number().nullable(),
+  "mbsPoints": zod.number().nullable(),
+  "unpricedFundedDeals": zod.number(),
+  "definitions": zod.array(zod.string()),
+  "engagedLeads": zod.array(zod.object({
+  "leadId": zod.number(),
+  "label": zod.string(),
+  "firstClickAt": zod.string().nullable(),
+  "totalFlyerClicks": zod.number(),
+  "replies": zod.number(),
+  "calls": zod.number()
+}))
+})
+export const ListCampaignMetricsResponse = zod.array(ListCampaignMetricsResponseItem)
+
+
+export const GetCampaignMetricsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCampaignMetricsResponse = zod.object({
+  "campaignId": zod.number(),
+  "name": zod.string(),
+  "trackingSince": zod.string().nullable(),
+  "replyCaptureConfigured": zod.boolean(),
+  "sent": zod.number(),
+  "delivered": zod.number(),
+  "deliveredPct": zod.number().nullable(),
+  "bounced": zod.number(),
+  "blocked": zod.number(),
+  "opensApproximate": zod.number(),
+  "uniqueFlyerClicks": zod.number().nullable(),
+  "totalFlyerClicks": zod.number().nullable(),
+  "firstClickAt": zod.string().nullable(),
+  "replies": zod.number().nullable(),
+  "calls": zod.number().nullable(),
+  "referredLeads": zod.number().nullable(),
+  "submitted": zod.number().nullable(),
+  "approved": zod.number().nullable(),
+  "funded": zod.number().nullable(),
+  "fundedDollars": zod.number().nullable(),
+  "mbsPoints": zod.number().nullable(),
+  "unpricedFundedDeals": zod.number(),
+  "definitions": zod.array(zod.string()),
+  "engagedLeads": zod.array(zod.object({
+  "leadId": zod.number(),
+  "label": zod.string(),
+  "firstClickAt": zod.string().nullable(),
+  "totalFlyerClicks": zod.number(),
+  "replies": zod.number(),
+  "calls": zod.number()
+}))
+})
+
+
+export const GetLeadCampaignEngagementParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadCampaignEngagementResponseItem = zod.object({
+  "campaignId": zod.number(),
+  "name": zod.string(),
+  "trackingSince": zod.string().nullable(),
+  "replyCaptureConfigured": zod.boolean(),
+  "sent": zod.number(),
+  "delivered": zod.number(),
+  "deliveredPct": zod.number().nullable(),
+  "bounced": zod.number(),
+  "blocked": zod.number(),
+  "opensApproximate": zod.number(),
+  "uniqueFlyerClicks": zod.number().nullable(),
+  "totalFlyerClicks": zod.number().nullable(),
+  "firstClickAt": zod.string().nullable(),
+  "replies": zod.number().nullable(),
+  "calls": zod.number().nullable(),
+  "referredLeads": zod.number().nullable(),
+  "submitted": zod.number().nullable(),
+  "approved": zod.number().nullable(),
+  "funded": zod.number().nullable(),
+  "fundedDollars": zod.number().nullable(),
+  "mbsPoints": zod.number().nullable(),
+  "unpricedFundedDeals": zod.number(),
+  "definitions": zod.array(zod.string()),
+  "engagedLeads": zod.array(zod.object({
+  "leadId": zod.number(),
+  "label": zod.string(),
+  "firstClickAt": zod.string().nullable(),
+  "totalFlyerClicks": zod.number(),
+  "replies": zod.number(),
+  "calls": zod.number()
+}))
+})
+export const GetLeadCampaignEngagementResponse = zod.array(GetLeadCampaignEngagementResponseItem)
+
+
+export const ListReferralOptionsQueryParams = zod.object({
+  "search": zod.coerce.string().optional()
+})
+
+export const ListReferralOptionsResponseItem = zod.object({
+  "type": zod.enum(['lead', 'partner']),
+  "id": zod.number(),
+  "label": zod.string()
+})
+export const ListReferralOptionsResponse = zod.array(ListReferralOptionsResponseItem)
+
+
+export const GetLeadReferralsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadReferralsResponse = zod.object({
+  "leads": zod.array(zod.object({
+  "id": zod.number(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "companyName": zod.string().nullish(),
+  "status": zod.string(),
+  "referredAt": zod.string().nullable(),
+  "referralCampaignId": zod.number().nullish()
+})),
+  "deals": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "stage": zod.string(),
+  "amount": zod.number().nullish(),
+  "actualGm": zod.number().nullish()
+}))
+})
+
+
+export const UpdateLeadReferrerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateLeadReferrerBody = zod.object({
+  "referredByLeadId": zod.number().nullable(),
+  "referredByPartnerId": zod.number().nullable()
+})
+
+export const UpdateLeadReferrerResponse = zod.object({
+  "id": zod.number(),
+  "referredByLeadId": zod.number().nullable(),
+  "referredByPartnerId": zod.number().nullable()
+})
+
+
+export const UpdateDealReferrerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDealReferrerBody = zod.object({
+  "referredByLeadId": zod.number().nullable(),
+  "referredByPartnerId": zod.number().nullable()
+})
+
+export const UpdateDealReferrerResponse = zod.object({
+  "id": zod.number(),
+  "referredByLeadId": zod.number().nullable(),
+  "referredByPartnerId": zod.number().nullable()
+})
+
+
+export const GetPartnerReferralsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPartnerReferralsResponse = zod.object({
+  "leads": zod.array(zod.object({
+  "id": zod.number(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "companyName": zod.string().nullish(),
+  "status": zod.string(),
+  "referredAt": zod.string().nullable(),
+  "referralCampaignId": zod.number().nullish()
+})),
+  "deals": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number().nullable(),
+  "stage": zod.string(),
+  "amount": zod.number().nullish(),
+  "actualGm": zod.number().nullish()
+}))
+})
+
+
+export const CreateLeadReferralLinkParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateLeadReferralLinkResponse = zod.object({
+  "token": zod.string()
+})
+
+
+export const CreatePartnerReferralLinkParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreatePartnerReferralLinkResponse = zod.object({
+  "token": zod.string()
+})
+
+
+export const GetPublicReferralParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetPublicReferralResponse = zod.object({
+  "token": zod.string(),
+  "label": zod.string(),
+  "type": zod.enum(['lead', 'partner']),
+  "id": zod.number()
+})
+
+
+export const GetLeadCampaignRepliesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadCampaignRepliesResponseItem = zod.object({
+  "id": zod.number(),
+  "campaignId": zod.number(),
+  "leadId": zod.number(),
+  "emailSendId": zod.number().nullable(),
+  "fromEmail": zod.string(),
+  "subject": zod.string(),
+  "bodyText": zod.string(),
+  "receivedAt": zod.string(),
+  "forwardStatus": zod.enum(['pending', 'dispatching', 'forwarded', 'failed', 'uncertain']),
+  "failureReason": zod.string().nullable(),
+  "attachments": zod.array(zod.object({
+  "filename": zod.string(),
+  "contentType": zod.string()
+}))
+})
+export const GetLeadCampaignRepliesResponse = zod.array(GetLeadCampaignRepliesResponseItem)
+
+
+export const GetCampaignRepliesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCampaignRepliesResponseItem = zod.object({
+  "id": zod.number(),
+  "campaignId": zod.number(),
+  "leadId": zod.number(),
+  "emailSendId": zod.number().nullable(),
+  "fromEmail": zod.string(),
+  "subject": zod.string(),
+  "bodyText": zod.string(),
+  "receivedAt": zod.string(),
+  "forwardStatus": zod.enum(['pending', 'dispatching', 'forwarded', 'failed', 'uncertain']),
+  "failureReason": zod.string().nullable(),
+  "attachments": zod.array(zod.object({
+  "filename": zod.string(),
+  "contentType": zod.string()
+}))
+})
+export const GetCampaignRepliesResponse = zod.array(GetCampaignRepliesResponseItem)
 
 
 export const listCampaignAudiencePresetsResponseRulesMinAmountMin = 0;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, serial, integer, text, timestamp, index, check } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index, check, uniqueIndex } from "drizzle-orm/pg-core";
 import { leadsTable } from "./leads";
 import { usersTable } from "./users";
 import { emailTemplatesTable } from "./emailTemplates";
@@ -24,6 +24,8 @@ export const emailSendsTable = pgTable(
     templateId: integer("template_id").references(() => emailTemplatesTable.id, { onDelete: "set null" }),
     campaignId: integer("campaign_id"),
     campaignLaunchId: integer("campaign_launch_id"),
+    replyTokenDigest: text("reply_token_digest"),
+    originalReplyTo: text("original_reply_to"),
     subject: text("subject").notNull(),
     toEmail: text("to_email").notNull(),
     fromEmail: text("from_email").notNull(),
@@ -41,6 +43,7 @@ export const emailSendsTable = pgTable(
   },
   (t) => [
     index("email_sends_lead_idx").on(t.leadId),
+    uniqueIndex("email_sends_reply_token_uq").on(t.replyTokenDigest),
     index("email_sends_sgid_idx").on(t.sendgridMessageId),
     index("email_sends_status_idx").on(t.status),
     index("email_sends_daily_marketing_idx").on(t.deliveryKind, t.createdAt),

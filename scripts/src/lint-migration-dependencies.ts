@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { cloneProduction, defaultCloneConfig, startExistingManagedCloneServer, stopManagedCloneServer } from "./dbCloneProd";
 import { localPostgresUrl } from "./localPostgres";
+import { createHash } from "node:crypto";
 
 export type MigrationNumber = { name: string; number: number };
 export type LintResult = {
@@ -12,6 +13,20 @@ export type LintResult = {
 };
 
 const filePattern = /^([0-9]{3,})_([a-z][a-z0-9]*(?:_[a-z0-9]+)*)\.sql$/;
+
+/** An applied finite identifier loop cannot be rewritten. Analyze its exact
+ * literal renames, but still execute the original bytes in the native rehearsal.
+ * Unknown/modified dynamic SQL continues to fail closed. */
+export function migrationDependencyProjection(name: string, sql: string): string {
+  if (name !== "068_campaign_attribution_fk_names.sql" ||
+      createHash("sha256").update(sql).digest("hex") !== "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66") return sql;
+  const tuples = [...sql.matchAll(/\('([a-z_]+)', '([a-z_]+)', '([a-z_]+)'\)/g)];
+  if (tuples.length !== 11) throw new Error("Constraint-name projection incomplete");
+  return tuples.map(([, table, oldName, newName]) =>
+    `DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${oldName}' AND conrelid = '${table}'::regclass) THEN
+      ALTER TABLE ${table} RENAME CONSTRAINT ${oldName} TO ${newName};
+    END IF; END $$;`).join("\n");
+}
 
 /** Strict, intentionally side-effect-free migration discovery. */
 export function numberMigrations(names: string[]): MigrationNumber[] {
@@ -339,7 +354,7 @@ export async function lintMigrationDependencies(root = path.resolve(import.meta.
     const futureColumns = new Map<string, number>();
     const tableRefs = new Set<string>(); let columns = 0;
     for (const migration of migrations) {
-      const sql = await readFile(path.join(migrationDir, migration.name), "utf8");
+      const sql = migrationDependencyProjection(migration.name, await readFile(path.join(migrationDir, migration.name), "utf8"));
       const analysis = analyzeMigrationSql(sql);
       if (analysis.dynamic) throw new Error(`${migration.name}: dynamic SQL cannot be analyzed`);
       for (const operation of analysis.operations) {
@@ -354,7 +369,8 @@ export async function lintMigrationDependencies(root = path.resolve(import.meta.
     }
     const visible = new Set(baselineTables);
     for (const migration of migrations) {
-      const sql = await readFile(path.join(migrationDir, migration.name), "utf8");
+      const sourceSql = await readFile(path.join(migrationDir, migration.name), "utf8");
+      const sql = migrationDependencyProjection(migration.name, sourceSql);
       const analysis = analyzeMigrationSql(sql);
       // Same-file create operations are visible to later operations.
       for (const operation of analysis.operations) {
@@ -366,14 +382,14 @@ export async function lintMigrationDependencies(root = path.resolve(import.meta.
       }
       columns += countColumnReferences(sql);
       await validateProceduralBodies(config, migration, sql, future, futureColumns);
-      const statements = splitSql(sql);
+      const statements = splitSql(sourceSql);
       const command = `BEGIN;\n${statements.map(statement => `${statement};`).join("\n")}\nCOMMIT;`;
       let result = await config.process.capture(config.psqlBinary, ["--dbname", localPostgresUrl(config.port, config.database),
         "--set=ON_ERROR_STOP=on", "--command", command]);
       if (result.code !== 0) {
         // Replay prefixes in rollback-only transactions to attribute the
         // failure without ever exposing SQL or changing the live schema.
-        let failing = sql;
+        let failing = sourceSql;
         for (let i = 0; i < statements.length; i++) {
           const probe = await config.process.capture(config.psqlBinary, ["--dbname", localPostgresUrl(config.port, config.database),
             "--set=ON_ERROR_STOP=on", "--command", `BEGIN;\n${statements.slice(0, i + 1).map(statement => `${statement};`).join("\n")}\nROLLBACK;`]);

@@ -10,6 +10,7 @@ export const CAMPAIGN_STATUSES = ["draft", "approved", "scheduled", "running", "
 export const CAMPAIGN_RECIPIENT_STATUSES = ["eligible", "excluded", "queued", "sent", "failed", "deferred"] as const;
 
 export const campaignsTable = pgTable("campaigns", {
+  trackingSince: timestamp("tracking_since", { withTimezone: true }),
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
@@ -125,6 +126,7 @@ export const campaignRecipientsTable = pgTable("campaign_recipients", {
   exclusionReason: text("exclusion_reason"),
   availableAt: timestamp("available_at", { withTimezone: true }),
   emailSendId: integer("email_send_id"),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   unique("campaign_recipients_launch_id_lead_id_channel_key").on(t.launchId, t.leadId, t.channel),

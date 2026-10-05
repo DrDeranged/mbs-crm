@@ -1,3 +1,4 @@
+import { attributeInboundCall } from "../lib/campaignAttribution";
 import { Router, type Request, type Response } from "express";
 import twilio from "twilio";
 import { z } from "zod/v4";
@@ -238,6 +239,7 @@ async function handleInboundVoice(
       status: open && targets.length ? "ringing" : "voicemail",
       twilioSid: callSid,
     });
+    await attributeInboundCall(callSid, from, existing?.createdAt ?? new Date());
   }
 
   res.type("text/xml").send(buildInboundVoiceTwiML({

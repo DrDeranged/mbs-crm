@@ -59,7 +59,9 @@ import type {
   CampaignLaunchInput,
   CampaignLaunchResult,
   CampaignLeadPickerLead,
+  CampaignMetrics,
   CampaignPreview,
+  CampaignReply,
   CampaignResults,
   CampaignUploadedFlyer,
   CampaignValidationInput,
@@ -170,6 +172,7 @@ import type {
   ListLeadsParams,
   ListNotifications200,
   ListNotificationsParams,
+  ListReferralOptionsParams,
   ListUsersParams,
   LogOutboundCallBody,
   ManualLenderSubmissionCreate,
@@ -190,11 +193,17 @@ import type {
   PreviewEmailTemplateBody,
   PreviewImportBody,
   ProductionCloseoutResponse,
+  PublicReferral,
   PublicRep,
   PullCreditReportBody,
   PushSubscriptionDelete,
   PushSubscriptionInput,
   RecalculateLeadScore200,
+  ReferralAssignment,
+  ReferralAssignmentResult,
+  ReferralLink,
+  ReferredRecords,
+  ReferrerOption,
   RegisterCollateralFlyers201,
   RegisterCollateralFlyersBody,
   RenderCollateralTemplateParams,
@@ -17030,6 +17039,912 @@ export function useGetCampaignResults<TData = Awaited<ReturnType<typeof getCampa
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetCampaignResultsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCampaignMetricsUrl = () => {
+
+
+
+
+  return `/api/campaigns/metrics`
+}
+
+export const listCampaignMetrics = async ( options?: RequestInit): Promise<CampaignMetrics[]> => {
+
+  return customFetch<CampaignMetrics[]>(getListCampaignMetricsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCampaignMetricsQueryKey = () => {
+    return [
+    `/api/campaigns/metrics`
+    ] as const;
+    }
+
+
+export const getListCampaignMetricsQueryOptions = <TData = Awaited<ReturnType<typeof listCampaignMetrics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCampaignMetricsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCampaignMetrics>>> = ({ signal }) => listCampaignMetrics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCampaignMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof listCampaignMetrics>>>
+export type ListCampaignMetricsQueryError = ErrorType<unknown>
+
+
+
+export function useListCampaignMetrics<TData = Awaited<ReturnType<typeof listCampaignMetrics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCampaignMetricsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCampaignMetricsUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/metrics`
+}
+
+export const getCampaignMetrics = async (id: number, options?: RequestInit): Promise<CampaignMetrics> => {
+
+  return customFetch<CampaignMetrics>(getGetCampaignMetricsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCampaignMetricsQueryKey = (id: number,) => {
+    return [
+    `/api/campaigns/${id}/metrics`
+    ] as const;
+    }
+
+
+export const getGetCampaignMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getCampaignMetrics>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCampaignMetricsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaignMetrics>>> = ({ signal }) => getCampaignMetrics(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaignMetrics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCampaignMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaignMetrics>>>
+export type GetCampaignMetricsQueryError = ErrorType<unknown>
+
+
+
+export function useGetCampaignMetrics<TData = Awaited<ReturnType<typeof getCampaignMetrics>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCampaignMetricsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadCampaignEngagementUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/campaign-engagement`
+}
+
+export const getLeadCampaignEngagement = async (id: number, options?: RequestInit): Promise<CampaignMetrics[]> => {
+
+  return customFetch<CampaignMetrics[]>(getGetLeadCampaignEngagementUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadCampaignEngagementQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/campaign-engagement`
+    ] as const;
+    }
+
+
+export const getGetLeadCampaignEngagementQueryOptions = <TData = Awaited<ReturnType<typeof getLeadCampaignEngagement>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignEngagement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadCampaignEngagementQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadCampaignEngagement>>> = ({ signal }) => getLeadCampaignEngagement(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignEngagement>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadCampaignEngagementQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadCampaignEngagement>>>
+export type GetLeadCampaignEngagementQueryError = ErrorType<unknown>
+
+
+
+export function useGetLeadCampaignEngagement<TData = Awaited<ReturnType<typeof getLeadCampaignEngagement>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignEngagement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadCampaignEngagementQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReferralOptionsUrl = (params?: ListReferralOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/referrals/options?${stringifiedParams}` : `/api/referrals/options`
+}
+
+export const listReferralOptions = async (params?: ListReferralOptionsParams, options?: RequestInit): Promise<ReferrerOption[]> => {
+
+  return customFetch<ReferrerOption[]>(getListReferralOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReferralOptionsQueryKey = (params?: ListReferralOptionsParams,) => {
+    return [
+    `/api/referrals/options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListReferralOptionsQueryOptions = <TData = Awaited<ReturnType<typeof listReferralOptions>>, TError = ErrorType<unknown>>(params?: ListReferralOptionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReferralOptions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReferralOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReferralOptions>>> = ({ signal }) => listReferralOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReferralOptions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReferralOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listReferralOptions>>>
+export type ListReferralOptionsQueryError = ErrorType<unknown>
+
+
+
+export function useListReferralOptions<TData = Awaited<ReturnType<typeof listReferralOptions>>, TError = ErrorType<unknown>>(
+ params?: ListReferralOptionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReferralOptions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReferralOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadReferralsUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/lead/${id}`
+}
+
+export const getLeadReferrals = async (id: number, options?: RequestInit): Promise<ReferredRecords> => {
+
+  return customFetch<ReferredRecords>(getGetLeadReferralsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadReferralsQueryKey = (id: number,) => {
+    return [
+    `/api/referrals/lead/${id}`
+    ] as const;
+    }
+
+
+export const getGetLeadReferralsQueryOptions = <TData = Awaited<ReturnType<typeof getLeadReferrals>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadReferrals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadReferralsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadReferrals>>> = ({ signal }) => getLeadReferrals(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadReferrals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadReferralsQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadReferrals>>>
+export type GetLeadReferralsQueryError = ErrorType<unknown>
+
+
+
+export function useGetLeadReferrals<TData = Awaited<ReturnType<typeof getLeadReferrals>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadReferrals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadReferralsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateLeadReferrerUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/lead/${id}`
+}
+
+export const updateLeadReferrer = async (id: number,
+    referralAssignment: ReferralAssignment, options?: RequestInit): Promise<ReferralAssignmentResult> => {
+
+  return customFetch<ReferralAssignmentResult>(getUpdateLeadReferrerUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      referralAssignment,)
+  }
+);}
+
+
+
+
+export const getUpdateLeadReferrerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeadReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLeadReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext> => {
+
+const mutationKey = ['updateLeadReferrer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLeadReferrer>>, {id: number;data: BodyType<ReferralAssignment>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateLeadReferrer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLeadReferrerMutationResult = NonNullable<Awaited<ReturnType<typeof updateLeadReferrer>>>
+    export type UpdateLeadReferrerMutationBody = BodyType<ReferralAssignment>
+    export type UpdateLeadReferrerMutationError = ErrorType<unknown>
+
+    export const useUpdateLeadReferrer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeadReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLeadReferrer>>,
+        TError,
+        {id: number;data: BodyType<ReferralAssignment>},
+        TContext
+      > => {
+      return useMutation(getUpdateLeadReferrerMutationOptions(options));
+    }
+
+export const getUpdateDealReferrerUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/deal/${id}`
+}
+
+export const updateDealReferrer = async (id: number,
+    referralAssignment: ReferralAssignment, options?: RequestInit): Promise<ReferralAssignmentResult> => {
+
+  return customFetch<ReferralAssignmentResult>(getUpdateDealReferrerUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      referralAssignment,)
+  }
+);}
+
+
+
+
+export const getUpdateDealReferrerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDealReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDealReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext> => {
+
+const mutationKey = ['updateDealReferrer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDealReferrer>>, {id: number;data: BodyType<ReferralAssignment>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDealReferrer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDealReferrerMutationResult = NonNullable<Awaited<ReturnType<typeof updateDealReferrer>>>
+    export type UpdateDealReferrerMutationBody = BodyType<ReferralAssignment>
+    export type UpdateDealReferrerMutationError = ErrorType<unknown>
+
+    export const useUpdateDealReferrer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDealReferrer>>, TError,{id: number;data: BodyType<ReferralAssignment>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDealReferrer>>,
+        TError,
+        {id: number;data: BodyType<ReferralAssignment>},
+        TContext
+      > => {
+      return useMutation(getUpdateDealReferrerMutationOptions(options));
+    }
+
+export const getGetPartnerReferralsUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/partner/${id}`
+}
+
+export const getPartnerReferrals = async (id: number, options?: RequestInit): Promise<ReferredRecords> => {
+
+  return customFetch<ReferredRecords>(getGetPartnerReferralsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPartnerReferralsQueryKey = (id: number,) => {
+    return [
+    `/api/referrals/partner/${id}`
+    ] as const;
+    }
+
+
+export const getGetPartnerReferralsQueryOptions = <TData = Awaited<ReturnType<typeof getPartnerReferrals>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPartnerReferrals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPartnerReferralsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPartnerReferrals>>> = ({ signal }) => getPartnerReferrals(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPartnerReferrals>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPartnerReferralsQueryResult = NonNullable<Awaited<ReturnType<typeof getPartnerReferrals>>>
+export type GetPartnerReferralsQueryError = ErrorType<unknown>
+
+
+
+export function useGetPartnerReferrals<TData = Awaited<ReturnType<typeof getPartnerReferrals>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPartnerReferrals>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPartnerReferralsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateLeadReferralLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/lead/${id}/link`
+}
+
+export const createLeadReferralLink = async (id: number, options?: RequestInit): Promise<ReferralLink> => {
+
+  return customFetch<ReferralLink>(getCreateLeadReferralLinkUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateLeadReferralLinkMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeadReferralLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLeadReferralLink>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['createLeadReferralLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLeadReferralLink>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  createLeadReferralLink(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLeadReferralLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createLeadReferralLink>>>
+
+    export type CreateLeadReferralLinkMutationError = ErrorType<unknown>
+
+    export const useCreateLeadReferralLink = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeadReferralLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createLeadReferralLink>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCreateLeadReferralLinkMutationOptions(options));
+    }
+
+export const getCreatePartnerReferralLinkUrl = (id: number,) => {
+
+
+
+
+  return `/api/referrals/partner/${id}/link`
+}
+
+export const createPartnerReferralLink = async (id: number, options?: RequestInit): Promise<ReferralLink> => {
+
+  return customFetch<ReferralLink>(getCreatePartnerReferralLinkUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreatePartnerReferralLinkMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPartnerReferralLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPartnerReferralLink>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['createPartnerReferralLink'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPartnerReferralLink>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  createPartnerReferralLink(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePartnerReferralLinkMutationResult = NonNullable<Awaited<ReturnType<typeof createPartnerReferralLink>>>
+
+    export type CreatePartnerReferralLinkMutationError = ErrorType<unknown>
+
+    export const useCreatePartnerReferralLink = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPartnerReferralLink>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPartnerReferralLink>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCreatePartnerReferralLinkMutationOptions(options));
+    }
+
+export const getGetPublicReferralUrl = (token: string,) => {
+
+
+
+
+  return `/api/public/referrals/${token}`
+}
+
+export const getPublicReferral = async (token: string, options?: RequestInit): Promise<PublicReferral> => {
+
+  return customFetch<PublicReferral>(getGetPublicReferralUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicReferralQueryKey = (token: string,) => {
+    return [
+    `/api/public/referrals/${token}`
+    ] as const;
+    }
+
+
+export const getGetPublicReferralQueryOptions = <TData = Awaited<ReturnType<typeof getPublicReferral>>, TError = ErrorType<unknown>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicReferral>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicReferralQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicReferral>>> = ({ signal }) => getPublicReferral(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicReferral>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicReferralQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicReferral>>>
+export type GetPublicReferralQueryError = ErrorType<unknown>
+
+
+
+export function useGetPublicReferral<TData = Awaited<ReturnType<typeof getPublicReferral>>, TError = ErrorType<unknown>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicReferral>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicReferralQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLeadCampaignRepliesUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/campaign-replies`
+}
+
+export const getLeadCampaignReplies = async (id: number, options?: RequestInit): Promise<CampaignReply[]> => {
+
+  return customFetch<CampaignReply[]>(getGetLeadCampaignRepliesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadCampaignRepliesQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/campaign-replies`
+    ] as const;
+    }
+
+
+export const getGetLeadCampaignRepliesQueryOptions = <TData = Awaited<ReturnType<typeof getLeadCampaignReplies>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadCampaignRepliesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadCampaignReplies>>> = ({ signal }) => getLeadCampaignReplies(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignReplies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadCampaignRepliesQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadCampaignReplies>>>
+export type GetLeadCampaignRepliesQueryError = ErrorType<unknown>
+
+
+
+export function useGetLeadCampaignReplies<TData = Awaited<ReturnType<typeof getLeadCampaignReplies>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadCampaignReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadCampaignRepliesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCampaignRepliesUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/replies`
+}
+
+export const getCampaignReplies = async (id: number, options?: RequestInit): Promise<CampaignReply[]> => {
+
+  return customFetch<CampaignReply[]>(getGetCampaignRepliesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCampaignRepliesQueryKey = (id: number,) => {
+    return [
+    `/api/campaigns/${id}/replies`
+    ] as const;
+    }
+
+
+export const getGetCampaignRepliesQueryOptions = <TData = Awaited<ReturnType<typeof getCampaignReplies>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCampaignRepliesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaignReplies>>> = ({ signal }) => getCampaignReplies(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaignReplies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCampaignRepliesQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaignReplies>>>
+export type GetCampaignRepliesQueryError = ErrorType<unknown>
+
+
+
+export function useGetCampaignReplies<TData = Awaited<ReturnType<typeof getCampaignReplies>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignReplies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCampaignRepliesQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

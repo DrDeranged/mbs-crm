@@ -49,6 +49,7 @@ export const dealsTable = pgTable(
       { onDelete: "set null" },
     ),
     referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
+    referredByLeadId: integer("referred_by_lead_id").references(() => leadsTable.id, { onDelete: "set null" }),
     assignedTo: integer("assigned_to").references(() => usersTable.id, {
       onDelete: "set null",
     }),
@@ -60,6 +61,8 @@ export const dealsTable = pgTable(
   },
   (t) => [
     index("deals_lead_idx").on(t.leadId),
+    index("deals_referrer_lead_idx").on(t.referredByLeadId),
+    check("deals_referrer_check", sql`(${t.referredByLeadId} IS NULL OR ${t.referredByPartnerId} IS NULL) AND (${t.referredByLeadId} IS NULL OR ${t.leadId} IS NULL OR ${t.referredByLeadId} <> ${t.leadId})`),
     index("deals_stage_idx").on(t.stage),
     index("deals_assigned_to_idx").on(t.assignedTo),
     index("deals_created_idx").on(t.createdAt),

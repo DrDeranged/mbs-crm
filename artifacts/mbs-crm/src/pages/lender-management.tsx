@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ReferredRecordsList } from "@/components/referral-panels";
 import { useSearch } from "wouter";
 import { useGetMe, useListLenders, useCreateLender, useUpdateLender, useDeactivateLender } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -279,6 +280,7 @@ function PartnerCard({ partner, isAdmin, onEdit, onDeactivate }: { partner: any,
         </div>
 
         <div className="p-4 space-y-4 text-sm">
+          {partner.partnerType === "broker_in" && <ReferredRecordsList type="partner" id={partner.id} />}
           {partner.submissionStats && (
             <div className="flex items-center justify-between p-3 rounded-lg border bg-card ">
               <div className="text-center px-3 border-r">

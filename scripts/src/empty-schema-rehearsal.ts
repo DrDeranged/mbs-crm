@@ -1,6 +1,6 @@
 import { createServer } from "node:net";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -88,8 +88,9 @@ async function rehearsePopulatedSchemaAdoption(
     databaseUrl,
     "SELECT count(*) || '|' || count(*) FILTER (WHERE name = '000_baseline') FROM schema_migrations",
   );
-  if (!initialAppliedCount || initialLedger !== "66|1") {
-    throw new Error("Populated-schema initial reconciliation did not record the complete migration ledger");
+  const expectedLedgerCount = (await readdir(path.dirname(baselineMigrationPath))).filter(name => name.endsWith(".sql")).length;
+  if (!initialAppliedCount || initialLedger !== `${expectedLedgerCount}|1`) {
+    throw new Error(`Populated-schema initial reconciliation did not record the complete migration ledger: expected ${expectedLedgerCount}|1, received ${initialLedger}`);
   }
   const expectedBaselineChecksum = createHash("sha256")
     .update(await readFile(baselineMigrationPath))

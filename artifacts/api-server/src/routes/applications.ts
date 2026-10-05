@@ -1,3 +1,5 @@
+import { resolvePublicReferral } from "./referrals";
+import { attributeReferral } from "../lib/campaignAttribution";
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
@@ -164,6 +166,12 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         ...validation.data,
         signatureData: normalizedSignature.data,
       };
+      let referral = null;
+      if (req.body.referralToken) {
+        try { referral = await resolvePublicReferral(String(req.body.referralToken), database); }
+        catch { /* The same public error covers private, invalid and expired targets. */ }
+        if (!referral) return void res.status(400).json({ error: "Referral link expired or unavailable" });
+      }
 
       // ── Validate uploaded files are PDFs ─────────────────────────────────
       const files = (req.files as Express.Multer.File[]) ?? [];
@@ -315,6 +323,9 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
         } else {
           const assignedRepId = await resolveAssignee(applicationBody.rep, inboundSource);
           [txLead] = await tx.insert(leadsTable).values({
+            referredByLeadId: referral?.referredByLeadId ?? null,
+            referredByPartnerId: referral?.referredByPartnerId ?? null,
+            referredAt: referral ? signatureSignedAt : null,
             firstName: applicationBody.ownerFirstName,
             lastName: applicationBody.ownerLastName,
             email,
@@ -331,6 +342,10 @@ export function createApplicationSubmitRouter(dependencies: ApplicationSubmitDep
             lastActivityAt: new Date(),
             trackingToken,
           }).returning();
+          if (referral) {
+            if (referral.referredByLeadId === txLead.id) throw new Error("Self referral is not allowed");
+            await attributeReferral(txLead.id, referral, signatureSignedAt, tx, referral.explicitSendId);
+          }
 
           await tx.insert(activityLogTable).values({
             userId: null,

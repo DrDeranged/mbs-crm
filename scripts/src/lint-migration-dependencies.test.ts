@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -8,6 +8,7 @@ import {
   countColumnReferences,
   lintMigrationDependencies,
   numberMigrations,
+  migrationDependencyProjection,
 } from "./lint-migration-dependencies";
 
 test("numberMigrations is strict, sorted, and rejects aliases", () => {
@@ -187,6 +188,17 @@ test("migration analysis ignores relation-like prose inside SQL string literals"
   assert.deepEqual(analysis.operations, [
     { kind: "reference", table: "campaigns" },
   ]);
+});
+
+test("applied finite rename projection is exact-byte scoped and unknown dynamic SQL remains rejected", async () => {
+  const name = "068_campaign_attribution_fk_names.sql";
+  const sql = await readFile(path.resolve(import.meta.dirname, "../../lib/db/migrations", name), "utf8");
+  const projected = migrationDependencyProjection(name, sql);
+  assert.equal(analyzeMigrationSql(projected).dynamic, false);
+  assert.equal((projected.match(/ALTER TABLE/g) ?? []).length, 11);
+  assert.equal(migrationDependencyProjection("999_other.sql", sql), sql);
+  assert.equal(migrationDependencyProjection(name, sql + "\n-- modified"), sql + "\n-- modified");
+  assert.equal(analyzeMigrationSql(sql + "\n-- modified").dynamic, true);
 });
 
 test("workspace corpus has the expected baseline and migration counts", { concurrency: false }, async () => {

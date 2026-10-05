@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
+import { ReferredByEditor } from "@/components/referral-panels";
 import { useParams, Link, useLocation } from "wouter";
 import {
   useGetDeal, getGetDealQueryKey,
@@ -465,6 +466,7 @@ export default function DealDetail() {
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Deal Details</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
+              <div className="mb-6"><ReferredByEditor kind="deal" recordId={deal.id} leadId={deal.referredByLeadId} partnerId={deal.referredByPartnerId} label={deal.referredByLabel} /></div>
               {(approvalsQuery.isError || approvalsList.malformed) && <InlineListError title="Couldn’t load approvals" status={approvalsQuery.isError ? getQueryErrorStatus(approvalsQuery.error) : 200} detail={approvalsList.malformed ? "The server returned an unexpected approvals response." : undefined} onRetry={() => void approvalsQuery.refetch()} />}
               {editMode ? (
                 <div className="grid grid-cols-2 gap-6">

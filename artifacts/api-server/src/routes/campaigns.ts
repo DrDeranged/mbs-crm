@@ -378,8 +378,11 @@ async function reconcileCampaignRecipient(input: {
     if (!campaign || campaign.status !== "running") return false;
     const [updated] = await tx.update(campaignRecipientsTable).set({
       status: input.status, ...(input.reason ? { exclusionReason: input.reason } : {}),
+      ...(input.status === "sent" ? { sentAt: new Date() } : {}),
       ...(input.emailSendId ? { emailSendId: input.emailSendId } : {}),
     }).where(and(eq(campaignRecipientsTable.id, input.recipientId), eq(campaignRecipientsTable.status, "queued"))).returning({ id: campaignRecipientsTable.id });
+    if (updated && input.status === "sent") await tx.update(campaignsTable)
+      .set({ trackingSince: sql`coalesce(${campaignsTable.trackingSince}, now())` }).where(eq(campaignsTable.id, input.campaignId));
     return Boolean(updated);
   });
 }
@@ -495,6 +498,7 @@ router.post("/campaigns", async (req, res): Promise<void> => {
   const flyerError = await validateUploadedFlyer(data.flyer, user);
   if (flyerError) { res.status(400).json({ error: flyerError }); return; }
   const [created] = await db.insert(campaignsTable).values({
+    trackingSince: new Date(),
     name: data.name,
     description: data.description ?? null,
     channel: data.channel ?? "email",
@@ -569,6 +573,7 @@ router.post("/campaigns/:id/duplicate", async (req, res): Promise<void> => {
   if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
   const name = z.object({ name: z.string().trim().min(1).max(160).optional() }).parse(req.body ?? {}).name ?? `${campaign.name} Copy`;
   const [copy] = await db.insert(campaignsTable).values({
+    trackingSince: new Date(),
     name, description: campaign.description, channel: campaign.channel, status: "draft",
     emailTemplateId: campaign.emailTemplateId, smsBody: campaign.smsBody, flyer: campaign.flyer, flyerDeliveryMode: campaign.flyerDeliveryMode, audienceRules: campaign.audienceRules,
     ownerId: user.id, createdBy: user.id,
@@ -955,6 +960,7 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
         templateId: resolvedFlyer.templateId!, objectPath: resolvedFlyer.objectPath!,
         digest: resolvedFlyer.digest, generation: resolvedFlyer.generation,
         name: resolvedFlyer.name, contentType: resolvedFlyer.contentType as "image/png" | "application/pdf",
+        attribution: { campaignId, launchId: launch.id, leadId: lead.id, recipientId: claimedRecipient.id },
       }, 7 * 24 * 60 * 60)
       : null;
     const renderedBody = renderTemplate(template.bodyHtml, vars);

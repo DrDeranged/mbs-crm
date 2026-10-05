@@ -24,6 +24,11 @@ import {
   useListUsers,
   useGetAnalyticsSources,
   useListCampaignFlyers,
+  useGetCampaignMetrics,
+  useGetCampaignReplies,
+  getGetCampaignRepliesQueryKey,
+  useGetMe,
+  getGetCampaignMetricsQueryKey,
 } from "@workspace/api-client-react";
 import { 
   CheckCircle2, AlertTriangle, Play, Calendar, ArrowLeft,
@@ -52,6 +57,8 @@ import { format } from "date-fns";
 import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
 import { campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
 import { CampaignLeadPicker } from "@/components/campaign-lead-picker";
+import { CampaignRepliesList } from "@/components/campaign-replies-panel";
+import { CampaignKpiPanel, MetricsDefinitions, MetricsState } from "@/components/campaign-metrics-panel";
 import { CampaignLibraryFlyerPicker } from "@/components/campaign-library-flyer-picker";
 
 const campaignSchema = z.object({
@@ -164,6 +171,10 @@ export default function CampaignDetailPage() {
   const approvedAudience = data?.approvedAudience;
   
   const { data: results } = useGetCampaignResults(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignResultsQueryKey(id) } });
+  const metricsQ = useGetCampaignMetrics(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignMetricsQueryKey(id) } });
+  const { data: me } = useGetMe();
+  const canSeeReplies = me?.role === "manager" || me?.role === "admin";
+  const repliesQ = useGetCampaignReplies(id, { query: { enabled: !!id && canSeeReplies && campaign?.status !== "draft", queryKey: getGetCampaignRepliesQueryKey(id) } });
   const { data: templates } = useListEmailTemplates();
   const { data: presets } = useListCampaignAudiencePresets({ query: { queryKey: getListCampaignAudiencePresetsQueryKey() } });
   const { data: users } = useListUsers({ isActive: true });
@@ -418,6 +429,7 @@ export default function CampaignDetailPage() {
         setLaunchDialogOpen(false);
         queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) });
         queryClient.invalidateQueries({ queryKey: getGetCampaignResultsQueryKey(id) });
+        queryClient.invalidateQueries({ queryKey: getGetCampaignMetricsQueryKey(id) });
       },
       onError: (err: any) => toast.error(getErrorMsg(err, "Failed to launch campaign"))
     });
@@ -1389,6 +1401,17 @@ export default function CampaignDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="results" className="space-y-6">
+                  {campaign.status !== "draft" && (
+                    <MetricsState isLoading={metricsQ.isLoading} isError={metricsQ.isError} onRetry={() => void metricsQ.refetch()}>
+                      {metricsQ.data && <><CampaignKpiPanel metrics={metricsQ.data} /><MetricsDefinitions metrics={[metricsQ.data]} /></>}
+                    </MetricsState>
+                  )}
+                  {canSeeReplies && campaign.status !== "draft" && (
+                    <section aria-label="Replies" className="space-y-2" data-testid="section-campaign-replies">
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Human replies</h3>
+                      <CampaignRepliesList replies={repliesQ.data} isLoading={repliesQ.isLoading} isError={repliesQ.isError} onRetry={() => void repliesQ.refetch()} />
+                    </section>
+                  )}
                   {results && results.launches.length > 0 ? (
                     <Card>
                       <CardHeader>

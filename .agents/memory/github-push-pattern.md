@@ -78,4 +78,19 @@ When many committed paths must be synchronized, upload blobs at fewer than 10 co
 
 **Why:** The connector enforces a per-Repl request rate, and GitHub's tree endpoint can reject large flat payloads or complex accumulated rename/delete sets.
 
-**How to apply:** Read bytes from `HEAD` with `git show HEAD:<path>` so uncommitted changes are excluded. After updating the branch ref, compare the GitHub commit's tree SHA with `git rev-parse HEAD^{tree}`.
+**How to apply:** For full-tree synchronization, read bytes from a pinned commit
+with `git show <sha>:<path>` and compare its complete tree. For feature-scoped
+pushes, compare every intentional blob with the tested bytes and every untouched
+blob with the previous remote tree.
+
+## Pin feature intent before long verification
+
+Freeze the original local baseline and reviewed file manifest; do not rediscover
+the feature's scope from a later `HEAD` diff.
+
+**Why:** Automatic checkpoints may advance local `HEAD` during a long preflight.
+A later changed-only diff can then omit most of the tested feature.
+
+**How to apply:** Retain the reviewed paths and original blob baselines, compare
+them with a fresh remote tree, update non-forcibly, and verify complete tree
+preservation. Audit reports need not be committed or included in the source tree.

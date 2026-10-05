@@ -1,3 +1,4 @@
+import { referrerLabel } from "../lib/campaignAttribution";
 import { Router, type IRouter, type Request, type Response } from "express";
 import {
   and,
@@ -115,6 +116,8 @@ function toApi(
     approxGm: deal.approxGm ?? null,
     actualGm: deal.actualGm ?? null,
     referredByPartnerId: deal.referredByPartnerId ?? null,
+    referredByLeadId: deal.referredByLeadId ?? null,
+    referredByLabel: null,
     referralSplitPct: deal.referralSplitPct == null ? null : Number(deal.referralSplitPct),
     referralGm: netGmAfterReferralSplit(
       Number(deal.actualGm ?? deal.approxGm ?? 0),
@@ -591,10 +594,14 @@ router.post("/deals", async (req, res): Promise<void> => {
       .json({ error: "actualGm is required when a deal is funded" });
     return;
   }
+  const referralLead = data.leadId ? await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, data.leadId) }) : null;
   const [deal] = await db
     .insert(dealsTable)
     .values({
       ...data,
+      referredByLeadId: referralLead?.referredByLeadId ?? null,
+      referredByPartnerId: referralLead?.referredByPartnerId ?? null,
+      referralSplitPct: referralLead?.referralSplitPct ?? null,
       gmSplitPct: data.gmSplitPct ?? 100,
       assignedTo: user.role === "rep" ? user.id : data.assignedTo,
       fundedAt: data.stage === "funded" ? new Date() : null,
@@ -607,6 +614,7 @@ router.post("/deals", async (req, res): Promise<void> => {
     action: "created",
     entityType: "deal",
     entityId: deal.id,
+    details: { initialStage: deal.stage },
   });
   const contacts = await getAuthorizedDealLeadContacts([deal], user);
   res.status(201).json(toApi(deal, null, null, contacts.get(deal.leadId ?? -1), true));
@@ -670,6 +678,7 @@ export function createGetDealHandler(dependencies: {
         user: entry.user ? userToApi(entry.user) : null,
         createdAt: entry.createdAt.toISOString(),
       })),
+      referredByLabel: await referrerLabel(deal, user, database),
     });
   };
 }
@@ -1192,6 +1201,9 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
     .values({
       leadId: lead.id,
       dealName: data.dealName ?? defaultName,
+      referredByLeadId: lead.referredByLeadId,
+      referredByPartnerId: lead.referredByPartnerId,
+      referralSplitPct: lead.referralSplitPct,
       stage,
       amount: data.amount !== undefined ? data.amount : lead.requestedAmount,
       approxGm: data.approxGm,

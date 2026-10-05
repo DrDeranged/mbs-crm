@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, uniqueIndex, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, boolean, timestamp, index, jsonb, uniqueIndex, numeric, type AnyPgColumn, check } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -55,6 +55,8 @@ export const leadsTable = pgTable(
       () => lendersTable.id,
       { onDelete: "set null" },
     ),
+    referredByLeadId: integer("referred_by_lead_id").references((): AnyPgColumn => leadsTable.id, { onDelete: "set null" }),
+    referredAt: timestamp("referred_at"),
     referralSplitPct: numeric("referral_split_pct", { precision: 5, scale: 2 }),
     externalId: text("external_id"),
     creditScoreBand: text("credit_score_band"),
@@ -64,6 +66,9 @@ export const leadsTable = pgTable(
   },
   (t) => [
     index("leads_email_idx").on(t.email),
+    index("leads_referrer_lead_idx").on(t.referredByLeadId),
+    index("leads_referrer_partner_idx").on(t.referredByPartnerId),
+    check("leads_referrer_check", sql`(${t.referredByLeadId} IS NULL OR ${t.referredByPartnerId} IS NULL) AND (${t.referredByLeadId} IS NULL OR ${t.referredByLeadId} <> ${t.id})`),
     index("leads_phone_idx").on(t.phone),
     index("leads_ein_idx").on(t.ein),
     index("leads_status_idx").on(t.status),
