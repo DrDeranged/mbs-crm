@@ -51,3 +51,30 @@ making each row very tall. Content length and column competition matter.
 email line rectangles, row heights, clipping and scroll containment. Preserve
 intentional wrapping in compact cards; let dense tables scroll rather than
 compressing identifiers into character stacks.
+
+For desktop Leads, the user approved a different constraint on 2026-10-05:
+the title, filters, records, bulk actions and pagination must fit the viewport
+at normal zoom. Responsive field grouping, keyboard-accessible full-value
+details and adaptive pagination are authorized here; the older horizontal
+table-scroll workaround does not satisfy this request. Below 1024px, preserve
+the existing mobile/tablet controls and order. Long forms and other genuinely
+long content may still scroll within the workspace.
+
+**Why:** Preserving controls alone left unused side space, clipped columns and
+records below the screen. Shrinking the whole app or hiding overflow is not an
+acceptable substitute for fitting the visible page.
+
+**How to apply:** Keep full contact and ownership values accessible, measure
+actual row geometry and wrapped bulk controls, and reserve loading/footer
+space independently of query data so page sizing cannot oscillate.
+
+Viewport-fit certification must include hit-target checks for bottom controls,
+not only scroll dimensions.
+
+**Why:** A floating phone control intercepted pagination even when every
+reported viewport/scroll dimension passed. Selection-dependent controls can
+also change height while a page-size query is pending and trigger a sizing loop.
+
+**How to apply:** Click pagination and selection-clear controls in narrow,
+pinned and bulk states using synthetic fixtures; inspect overlay hit targets
+without initiating a call. Preserve toolbar geometry through pending queries.

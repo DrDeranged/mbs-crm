@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import "./leads-fit.css";
+import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
+import { useLeadsFit } from "@/hooks/use-leads-fit";
+import { LeadsFitTable } from "@/components/leads-fit-table";
+import { LEADS_MOBILE_PAGE_SIZE, clampPage, pageRange, remapPage } from "@/lib/leadsPageSizing";
 import { Link, useLocation } from "wouter";
 import {
   useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers,
@@ -318,6 +323,19 @@ export default function Leads() {
   const [scoreFilter, setScoreFilter] = useState<"high" | "medium" | "low" | "">("");
   const [renewalFlagged, setRenewalFlagged] = useState(false);
   const [staleOnly, setStaleOnly] = useState(false);
+  const desktop = useIsDesktop();
+  const fit = useLeadsFit(desktop);
+  const limit = desktop ? (fit.pageSize ?? LEADS_MOBILE_PAGE_SIZE) : LEADS_MOBILE_PAGE_SIZE;
+  const limitReady = !desktop || fit.pageSize !== null;
+  const prevLimitRef = useRef(limit);
+  useEffect(() => {
+    if (!limitReady) return;
+    if (prevLimitRef.current !== limit) {
+      const old = prevLimitRef.current;
+      prevLimitRef.current = limit;
+      setPage((p) => remapPage(p, old, limit));
+    }
+  }, [limit, limitReady]);
 
   useEffect(() => {
     const handler = () => setImportOpen(true);
@@ -499,7 +517,7 @@ export default function Leads() {
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     page,
-    limit: 20,
+    limit,
     sortBy,
     sortOrder,
     ...scoreMinMax,
@@ -508,7 +526,7 @@ export default function Leads() {
   };
 
   const { data, isLoading, error, refetch } = useListLeads(queryParams, {
-    query: { queryKey: getListLeadsQueryKey(queryParams) },
+    query: { queryKey: getListLeadsQueryKey(queryParams), enabled: limitReady },
   });
 
   const toggleActivitySort = () => {
@@ -526,7 +544,15 @@ export default function Leads() {
     error: usersError,
     refetch: refetchUsers,
   } = useListUsers({ role: "rep", isActive: true });
-  const allPageSelected = !!data?.leads?.length && data.leads.every((lead) => selectedIds.has(lead.id));
+  useEffect(() => {
+    if (data && data.totalPages >= 1 && page > data.totalPages) setPage(clampPage(page, data.totalPages));
+  }, [data, page]);
+  // Keep selection toolbar geometry stable while a new page-size query is pending.
+  // Its "select all matching" prompt must not disappear/reappear with query data.
+  const lastSelectionData = useRef<typeof data>(undefined);
+  if (data) lastSelectionData.current = data;
+  const selectionData = desktop ? data ?? lastSelectionData.current : data;
+  const allPageSelected = !!selectionData?.leads?.length && selectionData.leads.every((lead) => selectedIds.has(lead.id));
 
   const handleStatusChange = (val: string) => { setStatus(val === "all" ? "" : val); setPage(1); };
   const handleAppTypeChange = (val: string) => { setApplicationType(val === "all" ? "" : val); setPage(1); };
@@ -543,9 +569,120 @@ export default function Leads() {
     setRenewalFlagged(false); setStaleOnly(false); setPage(1);
   };
 
+  const bulkBar = selectedIds.size > 0 ? (
+      <div className={desktop ? "flex w-full flex-wrap items-center justify-center gap-2 bg-card border border-border rounded-xl px-3 py-2" : "fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-card border border-border rounded-xl px-5 py-3"}>
+          <span className="text-sm font-semibold text-info whitespace-nowrap">
+            {selectAllMatching ? selectionData?.total ?? selectedIds.size : selectedIds.size} selected
+          </span>
+          {!selectAllMatching && (desktop || allPageSelected) && selectionData && selectionData.total > (desktop ? selectedIds.size : selectionData.leads.length) && (
+            <Button
+              size="sm"
+              variant="link"
+              className="h-8 px-1 text-xs text-info"
+              onClick={() => setSelectAllMatching(true)}
+            >
+              Select all {selectionData.total} matching leads
+            </Button>
+          )}
+
+          <div className="h-4 w-px bg-secondary" />
+
+          <Select value={bulkStatus} onValueChange={(v) => { setBulkStatus(v); }}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue placeholder="Change Status…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new_lead">New Lead</SelectItem>
+              <SelectItem value="contacted">Contacted</SelectItem>
+              <SelectItem value="follow_up">Follow Up</SelectItem>
+              <SelectItem value="application_received">App Received</SelectItem>
+              <SelectItem value="submitted_to_underwriting">In Underwriting</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="funded">Funded</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
+             disabled={selectAllMatching || !bulkStatus || bulkUpdateStatus.isPending}
+            onClick={handleBulkStatus}
+          >
+            Apply
+          </Button>
+
+          <div className="h-4 w-px bg-secondary" />
+
+          {usersData && usersData.length > 0 && (
+            <>
+              <SearchableSelect
+                value={bulkRepId}
+                onValueChange={setBulkRepId}
+                placeholder="Assign To…"
+                ariaLabel="Bulk assign representative"
+                className="h-8 w-[150px] text-xs"
+                options={usersData.map((rep) => ({
+                  value: String(rep.id),
+                  label: getUserDisplayName(rep),
+                  detail: rep.email || undefined,
+                  keywords: [rep.email, rep.name].filter(Boolean).join(" "),
+                }))}
+              />
+              <Button
+                size="sm"
+                className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
+                 disabled={!bulkRepId || bulkAssign.isPending}
+                onClick={handleBulkAssign}
+              >
+                Assign
+              </Button>
+              <div className="h-4 w-px bg-secondary" />
+            </>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            disabled={isExporting}
+             onClick={() => handleExport(selectAllMatching ? undefined : [...selectedIds])}
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+
+           {isAdmin && !selectAllMatching && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-danger/30 text-danger hover:bg-danger-bg hover:text-danger"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs text-muted-foreground"
+             onClick={() => { setSelectedIds(new Set()); setSelectAllMatching(false); }}
+          >
+            <X className="mr-1 h-3.5 w-3.5" />
+            Clear
+          </Button>
+        </div>
+  ) : null;
+
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+    <div
+      ref={fit.rootRef}
+      data-leads-fit={desktop ? "true" : undefined}
+      style={desktop && fit.rootHeight ? { height: fit.rootHeight } : undefined}
+      className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8"
+    >
+      <div className="leads-fit-block flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">{isStaleView ? "Stale Leads" : "Leads"}</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
@@ -582,7 +719,7 @@ export default function Leads() {
         onSuccess={() => queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() })}
       />
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 flex-wrap">
+      <div className="leads-fit-block flex flex-col sm:flex-row gap-3 mb-6 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -655,7 +792,7 @@ export default function Leads() {
         </Select>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 flex-wrap items-center">
+      <div className="leads-fit-block flex flex-col sm:flex-row gap-3 mb-4 flex-wrap items-center">
         <span className="text-sm text-muted-foreground whitespace-nowrap">Date range:</span>
         <div className="flex items-center gap-2">
           <Input
@@ -686,7 +823,7 @@ export default function Leads() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4 items-center">
+      <div className="leads-fit-block flex flex-wrap gap-2 mb-4 items-center">
         <span className="text-sm text-muted-foreground whitespace-nowrap">Score:</span>
         {(["", "high", "medium", "low"] as const).map((f) => {
           const label = f === "" ? "All" : f === "high" ? "High 70+" : f === "medium" ? "Medium 40–69" : "Low <40";
@@ -875,7 +1012,33 @@ export default function Leads() {
         )}
       </div>
 
-      {/* Desktop table — hidden below md */}
+      {desktop ? (
+        <>
+          <div ref={fit.regionRef} className="leads-fit-region">
+            <LeadsFitTable
+              leads={data?.leads}
+              isLoading={isLoading || !limitReady}
+              unavailable={!!error && !data}
+              skeletonRows={Math.min(limit, 12)}
+              hasFilters={hasFilters}
+              isRep={isRep}
+              isManagerOrAdmin={isManagerOrAdmin}
+              isStaleView={isStaleView}
+              selectedIds={selectedIds}
+              allPageSelected={allPageSelected}
+              users={usersData}
+              assignPending={bulkAssign.isPending}
+              onToggleSelect={toggleSelect}
+              onToggleSelectAll={toggleSelectAll}
+              onSingleAssign={handleSingleAssign}
+              onToggleActivitySort={toggleActivitySort}
+              onClearFilters={clearFilters}
+              onImport={() => setImportOpen(true)}
+            />
+          </div>
+          {isManagerOrAdmin && <div className="leads-fit-bulk-slot" data-testid="slot-leads-bulk">{bulkBar}</div>}
+        </>
+      ) : (
       <div className="hidden md:block rounded-md border bg-card overflow-x-auto">
         <Table className="leads-data-table">
           <TableHeader>
@@ -1107,26 +1270,27 @@ export default function Leads() {
           </TableBody>
         </Table>
       </div>
+      )}
 
-      {data && data.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
+      {(desktop || (data && data.totalPages > 1)) && (
+        <div className={desktop ? "leads-fit-footer" : "flex items-center justify-between mt-4"} data-testid="pagination-leads">
           <div className="text-sm text-muted-foreground">
-            Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total} entries
+            {data ? (() => { const r = pageRange(page, limit, data.total); return `Showing ${r.start} to ${r.end} of ${data.total} entries`; })() : error ? "Lead results unavailable" : "Loading leads…"}
           </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              disabled={!data || isLoading || page === 1}
             >
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-              disabled={page === data.totalPages}
+              onClick={() => setPage((p) => Math.min(data?.totalPages ?? 1, p + 1))}
+              disabled={!data || isLoading || page >= data.totalPages}
             >
               Next
             </Button>
@@ -1134,112 +1298,7 @@ export default function Leads() {
         </div>
       )}
 
-      {/* Floating bulk action bar */}
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-card border border-border rounded-xl px-5 py-3">
-          <span className="text-sm font-semibold text-info whitespace-nowrap">
-            {selectAllMatching ? data?.total ?? selectedIds.size : selectedIds.size} selected
-          </span>
-          {!selectAllMatching && allPageSelected && data && data.total > data.leads.length && (
-            <Button
-              size="sm"
-              variant="link"
-              className="h-8 px-1 text-xs text-info"
-              onClick={() => setSelectAllMatching(true)}
-            >
-              Select all {data.total} matching leads
-            </Button>
-          )}
-
-          <div className="h-4 w-px bg-secondary" />
-
-          <Select value={bulkStatus} onValueChange={(v) => { setBulkStatus(v); }}>
-            <SelectTrigger className="h-8 w-[160px] text-xs">
-              <SelectValue placeholder="Change Status…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new_lead">New Lead</SelectItem>
-              <SelectItem value="contacted">Contacted</SelectItem>
-              <SelectItem value="follow_up">Follow Up</SelectItem>
-              <SelectItem value="application_received">App Received</SelectItem>
-              <SelectItem value="submitted_to_underwriting">In Underwriting</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="funded">Funded</SelectItem>
-              <SelectItem value="declined">Declined</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            size="sm"
-            className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
-             disabled={selectAllMatching || !bulkStatus || bulkUpdateStatus.isPending}
-            onClick={handleBulkStatus}
-          >
-            Apply
-          </Button>
-
-          <div className="h-4 w-px bg-secondary" />
-
-          {usersData && usersData.length > 0 && (
-            <>
-              <SearchableSelect
-                value={bulkRepId}
-                onValueChange={setBulkRepId}
-                placeholder="Assign To…"
-                ariaLabel="Bulk assign representative"
-                className="h-8 w-[150px] text-xs"
-                options={usersData.map((rep) => ({
-                  value: String(rep.id),
-                  label: getUserDisplayName(rep),
-                  detail: rep.email || undefined,
-                  keywords: [rep.email, rep.name].filter(Boolean).join(" "),
-                }))}
-              />
-              <Button
-                size="sm"
-                className="h-8 bg-solid hover:bg-sidebar-accent text-white text-xs"
-                 disabled={!bulkRepId || bulkAssign.isPending}
-                onClick={handleBulkAssign}
-              >
-                Assign
-              </Button>
-              <div className="h-4 w-px bg-secondary" />
-            </>
-          )}
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 text-xs"
-            disabled={isExporting}
-             onClick={() => handleExport(selectAllMatching ? undefined : [...selectedIds])}
-          >
-            <Download className="mr-1.5 h-3.5 w-3.5" />
-            Export CSV
-          </Button>
-
-           {isAdmin && !selectAllMatching && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 text-xs border-danger/30 text-danger hover:bg-danger-bg hover:text-danger"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Delete
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 text-xs text-muted-foreground"
-            onClick={() => setSelectedIds(new Set())}
-          >
-            <X className="mr-1 h-3.5 w-3.5" />
-            Clear
-          </Button>
-        </div>
-      )}
+      {!desktop && bulkBar}
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

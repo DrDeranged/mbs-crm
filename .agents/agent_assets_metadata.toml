@@ -68,3 +68,227 @@ mtime_ms = 1790017677740
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/6ac58c52-3cf6-482f-8288-deaf202b6573/41892a88-dca5-4199-aa7c-06b3cc1e3389"
 storage_version_token = "1790017689192399"
 content_type = "text/plain"
+
+[[outputs]]
+id = "RiS_TkRcpGDjDXK-UX1uE"
+uri = "file://reports/cold-boot/PREFLIGHT_2026-10-01.txt"
+type = "text"
+title = "Full 11-gate preflight transcript"
+description = "Complete passing preflight run, including the built cold-start measurements; exit code 0."
+logical_id = "dc21cda5-84f2-4fab-9489-50199cf79699"
+content_hash = "sha256:f2284fe818eff3064200c6da12f4dbbd6bcd65dfc4a06b509ee5ad3aa609d1f6"
+size = 134978
+mtime_ms = 1790867659688
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/dc21cda5-84f2-4fab-9489-50199cf79699/5a6d7e6a-791b-4710-b834-e8772a757ecf"
+storage_version_token = "1790867859791270"
+content_type = "text/plain"
+
+[[outputs]]
+id = "7c-xWxiuE7ZZO5u6qF5DI"
+uri = "file://.local/verification/contact-actions-preflight.txt"
+type = "text"
+title = "Final eleven-gate preflight — PASS"
+description = "Actual final transcript including the Communications Call click regression. PREFLIGHT PASS; PREFLIGHT_EXIT_STATUS=0."
+logical_id = "cac0b7c1-544d-41ce-abf5-1e51a3e0ebf3"
+content_hash = "sha256:d18f69df7c59716fe9508a6578f0f71c348f16fd26b47bb72b36a1c1c48c201b"
+size = 140264
+mtime_ms = 1790961249107
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/cac0b7c1-544d-41ce-abf5-1e51a3e0ebf3/a853ce70-0a25-407c-9a62-1043a03c0406"
+storage_version_token = "1790961357953452"
+content_type = "text/plain"
+
+[[outputs]]
+id = "BPxMuUZ5B9d-L53s2fzVZ"
+uri = "file://.local/verification/contact-actions-verification.txt"
+type = "text"
+title = "Final contact-action verification evidence"
+description = "Controlled functional flows, authorization/consent regressions, built-layout geometry and the retained Communications Call control click regression. No live sends or publishing."
+logical_id = "ede14441-b82b-4562-8c02-c644db76fb62"
+content_hash = "sha256:9c5954bbba572ecf439d49e503837b9ecaae575ea6f585a431cc11b804cf436c"
+size = 8655
+mtime_ms = 1790961338047
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/ede14441-b82b-4562-8c02-c644db76fb62/629b346a-1cfd-47d8-a408-960e1ac6767a"
+storage_version_token = "1790961358681113"
+content_type = "text/plain"
+
+[[outputs]]
+id = "dKRd1lEtfPhlVJT0XFWwe"
+uri = "file://reports/certification-2af927c/CERTIFICATION.html"
+type = "html"
+title = "GitHub 2af927c — certification report and 96 screenshots"
+description = "Overall FAIL on the strict control-inventory requirement. Includes per-item verdicts, every structural difference, end-to-end results, contrast measurements, the screenshot matrix, and full preflight transcript."
+logical_id = "c081d5a3-d214-4d9c-a477-fb63da551644"
+content_hash = "sha256:6300cca8042363b909764d37186c73687a1c24b1be0b4ec68fe1c7460f08cd4b"
+size = 15959544
+mtime_ms = 1791040599098
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/c081d5a3-d214-4d9c-a477-fb63da551644/185dded4-4625-4254-90e3-15f4067ba526"
+storage_version_token = "1791040611455852"
+content_type = "text/html"
+
+[[outputs]]
+id = "9TzybIzkAPCLF4o5rbxRl"
+uri = "file://reports/certification-2af927c/PREFLIGHT_FULL.txt"
+type = "text"
+title = "Full eleven-gate preflight — PASS, exit 0"
+description = "Complete authoritative output for the executable source matching GitHub main 2af927c, including final PASS and exit status."
+logical_id = "df3fcaa6-f7a6-411e-a922-a2f1a092d41c"
+content_hash = "sha256:149c2b77b68956023499cc21a910455524ad28687974dbd2971bba69b00a4fa8"
+size = 140233
+mtime_ms = 1791040247006
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/df3fcaa6-f7a6-411e-a922-a2f1a092d41c/6e311240-53a0-4572-89c5-1801e1f3ccbf"
+storage_version_token = "1791040612080808"
+content_type = "text/plain"
+
+[[outputs]]
+id = "A57aCgzHcgjSA-7WY4QDn"
+uri = "file://reports/structural-certification-2026-10-03/REPORT.md"
+type = "text"
+title = "Structure certification — PASS, 36/36"
+description = "Fresh role/width comparisons, exact approved exceptions, Apply readiness fix, and Dashboard assignment-control audit. Pushed to GitHub main; nothing published."
+logical_id = "3b2bd465-e84b-43f6-8a85-1cd195f34524"
+content_hash = "sha256:dc940e0c43a4ba176de0ff3f7500d9904cceae2b4ee7c43186e3d5bc53e21d28"
+size = 7068
+mtime_ms = 1791041371698
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/3b2bd465-e84b-43f6-8a85-1cd195f34524/28016110-6e86-48f2-9454-db0fe74608c8"
+storage_version_token = "1791041445763584"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "bmerLmhomvXDW0YoghQAi"
+uri = "file://reports/desktop-workspace-release/release-report.html"
+type = "html"
+title = "Desktop workspace release proof"
+description = "Verified GitHub hash, all 70 screenshots, 36 strict mobile comparisons, 14 latest passing browser scenarios, compiled iOS/Android host proof, genuine chunk recovery and complete passing preflight transcript."
+logical_id = "2bfaabb7-2948-4d76-9ec8-9dd5cff1f3e8"
+content_hash = "sha256:19f2d4dc1551d899a146461d2f20722f68e9c001e95baaef3c41197dd0579d7c"
+size = 8733956
+mtime_ms = 1791044666182
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/2bfaabb7-2948-4d76-9ec8-9dd5cff1f3e8/23a54f7c-d088-4fb7-ab4e-ee02e830224a"
+storage_version_token = "1791044731943279"
+content_type = "text/html"
+
+[[outputs]]
+id = "eAbZAushwUcc602VdI3eu"
+uri = "file://reports/desktop-workspace-release/preflight.txt"
+type = "text"
+title = "Complete passing eleven-gate preflight"
+description = "Full actual command output, including DB DIVERGENCE PASS, PREFLIGHT PASS and PREFLIGHT_EXIT_CODE=0; not an excerpt or marker-count summary."
+logical_id = "8bc0d6a0-fb80-41ab-9ec9-96f062910da9"
+content_hash = "sha256:0e6b27c46dbbcecd3b923981d3039a8527ed9d2e591b02130b141871947e4f81"
+size = 140198
+mtime_ms = 1791044178770
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/8bc0d6a0-fb80-41ab-9ec9-96f062910da9/1ac7e286-d6a3-45a8-bfa2-8242079e9056"
+storage_version_token = "1791044733285240"
+content_type = "text/plain"
+
+[[outputs]]
+id = "itcOq1zbbs18vTEEOjvhi"
+uri = "file://reports/github-main-6f7c861-certification/certification.html"
+type = "html"
+title = "6f7c861 certification report and screenshots"
+description = "Full preflight passed; strict mobile inventory remains 30/36. Includes all eight requested table screenshots, scroll measurements, theme assertions and the complete preflight transcript. Not published."
+logical_id = "4785ebdd-4d48-4106-b940-6c0b7de03a94"
+content_hash = "sha256:2f33d5cc4b721cec13c74c34f768ad5093135d5ca949c8be05cd226fac17ba06"
+size = 1570724
+mtime_ms = 1791140336083
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/4785ebdd-4d48-4106-b940-6c0b7de03a94/21fd94e2-ef76-4097-ab51-66318a9b9cbf"
+storage_version_token = "1791140492969189"
+content_type = "text/html"
+
+[[outputs]]
+id = "mq3QCag3sXJ5kOAWiqvPz"
+uri = "file://reports/sendgrid-webhook-2026-10-04/requests.csv"
+type = "table"
+title = "SendGrid production webhook request audit"
+description = "All six retrievable matching requests since September24, with UTC timestamps, request IDs, HTTP statuses and rejection diagnostics. Earlier logs were unavailable; this is not a complete historical traffic record."
+logical_id = "27f8960f-cc81-481e-ae87-6322b245350e"
+content_hash = "sha256:ef13ab277abf8b65057f818d7131003a6b2cb60172df31ac346818608712b67d"
+size = 1018
+mtime_ms = 1791142115268
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/27f8960f-cc81-481e-ae87-6322b245350e/58210723-b685-43dc-8809-77c75e877d2d"
+storage_version_token = "1791142115780458"
+content_type = "text/csv"
+
+[[outputs]]
+id = "N-Fvcpi0OR8i_7Jl1RGik"
+uri = "file://reports/desktop-viewport/before/1024x768-pinned-light.png"
+type = "image"
+title = "Desktop Leads — before"
+description = "Signed-in synthetic baseline at 1024×768 with the sidebar pinned."
+logical_id = "55d1e4a2-45d4-41ea-926a-b76db2d60fc8"
+content_hash = "sha256:621cb6610f957827c5ab383f98a45d2b2293c35617cfcee0505f8c6a8014d06f"
+size = 140516
+mtime_ms = 1791225075755
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/55d1e4a2-45d4-41ea-926a-b76db2d60fc8/b5da9f96-b9fe-4ead-b6f6-b91953d8ec6b"
+storage_version_token = "1791226288466871"
+content_type = "image/png"
+
+[[outputs]]
+id = "HI82PhzyrYOjhIGtdO05a"
+uri = "file://reports/desktop-viewport/after/1024x768-pinned-light.png"
+type = "image"
+title = "Desktop Leads — fitted"
+description = "The same desktop size, with grouped records, adaptive pagination and accessible full-value details."
+logical_id = "121ac569-dc20-4478-b717-9b7869cc62e3"
+content_hash = "sha256:6a4fb374865bba731d32f57e7f982be1c9f4210e7f68a38fe2a0a42a1d22581e"
+size = 158193
+mtime_ms = 1791225611019
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/121ac569-dc20-4478-b717-9b7869cc62e3/c7cc6fa5-33e8-430a-8152-b2406f83650a"
+storage_version_token = "1791226289628462"
+content_type = "image/png"
+
+[[outputs]]
+id = "OseU20t6t8zpDYqdzykYA"
+uri = "file://reports/campaign-attribution/verification-report.html"
+type = "html"
+title = "Campaign attribution — verification report"
+description = "Completed paths, test results, actual preflight tail, GitHub hash/tree proof, and inactive external setup."
+logical_id = "b02bfb37-2606-453c-adb6-bdf027a003c1"
+content_hash = "sha256:c56179cd2d717e20b308deccf016c1758fad839427dbdc4f15576b7f7f99d928"
+size = 5910
+mtime_ms = 1791234477242
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/b02bfb37-2606-453c-adb6-bdf027a003c1/e30576e6-54b5-4dfb-895f-ac663efebf06"
+storage_version_token = "1791234560051594"
+content_type = "text/html"
+
+[[outputs]]
+id = "WCyIXbq_Nlr6ygl_PHDXN"
+uri = "file://reports/campaign-attribution/preflight-full.txt"
+type = "text"
+title = "Complete authoritative preflight transcript"
+description = "All 11 gates and final PASS; 723 tests passed and one optional online check skipped. Unabridged normal-environment output."
+logical_id = "6214f67a-4d01-4be7-95df-03fc15dce354"
+content_hash = "sha256:d4ae561ca2de9695a407942e18df77471e04ad7d5a4bebb446a405cd57fa3d00"
+size = 144017
+mtime_ms = 1791234330219
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/6214f67a-4d01-4be7-95df-03fc15dce354/5d85fb25-8205-4663-9477-454542e283c0"
+storage_version_token = "1791234560843976"
+content_type = "text/plain"
+
+[[outputs]]
+id = "EX7rDSyVi1Xq3sh6U70Ez"
+uri = "file://reports/campaign-attribution/github-push-proof.txt"
+type = "text"
+title = "Verified GitHub push receipt"
+description = "Remote commit/tree and per-file hashes: 56 reviewed files match; 1,167 unrelated remote files preserved; non-forced and not published."
+logical_id = "7537f378-3285-4e13-811e-b885cf50599c"
+content_hash = "sha256:fb56215165b5854de3ebac2d0afdbad6029293137ee3f5e56fb0b64ab5ecd67f"
+size = 16454
+mtime_ms = 1791234538315
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/7537f378-3285-4e13-811e-b885cf50599c/b1fe3ea1-044a-43f3-a23e-9db596712548"
+storage_version_token = "1791234561594957"
+content_type = "text/plain"
+
+[[outputs]]
+id = "n71IPWTGA02_wyJNEkd6y"
+uri = "file://reports/campaign-attribution/parse-setup.txt"
+type = "text"
+title = "Inbound reply setup and metric definitions"
+description = "Exact replies-only MX, Parse endpoint, separate authentication, activation limits and KPI definitions. No live configuration changed."
+logical_id = "b3ad788b-9fac-487e-b690-7e648858849d"
+content_hash = "sha256:eea4069b0d0edd1f42cbfc8bc79824777b2361ede210dd59cc927a48134177d0"
+size = 5971
+mtime_ms = 1791234538431
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8b2f0d46-c34b-495e-bca0-bc5f10c647fc/b3ad788b-9fac-487e-b690-7e648858849d/c4ecef86-5a89-4fcf-af67-1262ad96bc5d"
+storage_version_token = "1791234562245453"
+content_type = "text/plain"

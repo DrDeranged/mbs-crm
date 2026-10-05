@@ -577,7 +577,7 @@ export default function Dashboard() {
   const selectedRepName = reps?.find((r) => r.repId === selectedRepId)?.repName;
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+    <div className="w-full max-w-[1400px] lg:max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

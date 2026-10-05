@@ -257,10 +257,10 @@ export function AppShell({ children }: AppShellProps) {
 
   if (isDesktop) {
     return (
-      <div className={`flex w-full bg-background ${isRecordDetail ? "h-dvh overflow-hidden" : "min-h-screen"}`}>
+      <div className="desktop-app-shell flex h-dvh w-full overflow-hidden bg-background">
         <CommandPalette />
         <DesktopSidebar pinned={pinned} onTogglePin={() => setPinned((p) => !p)} expanded={<SidebarContent showSearch={pinned} />} />
-        <main className={`flex-1 flex flex-col overflow-hidden ${pinned ? "ml-64" : "ml-14"} ${isRecordDetail ? "min-h-0" : "min-h-screen"}`}>
+        <main className={`min-h-0 min-w-0 flex-1 flex flex-col overflow-hidden ${pinned ? "ml-64" : "ml-14"}`}>
           <div data-scrolled={scrolled} className="glass-header flex h-14 items-center justify-between gap-4 border-b border-border bg-surface px-6 lg:px-8 flex-shrink-0">
             <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground">Operations workspace</span>
             <div className="flex items-center gap-4">
@@ -279,7 +279,7 @@ export function AppShell({ children }: AppShellProps) {
               <BrandLogo className="h-7" imageClassName="h-7 w-auto" />
             </div>
           </div>
-          <div className="flex-1 overflow-auto pb-6" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}>
+          <div data-desktop-content className="min-h-0 min-w-0 flex-1 overflow-auto" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}>
             {children}
           </div>
         </main>

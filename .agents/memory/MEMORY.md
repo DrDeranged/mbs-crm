@@ -27,6 +27,7 @@
 - [Orval whitespace drift](orval-whitespace-drift.md) — verification-only codegen can add blank lines to the generated React client; inspect and discard whitespace-only drift.
 - [Reserved-deal ownership convergence](reserved-deal-ownership.md) — maintenance must preserve a real reserved-rep assignment or closeout and sign-in reconciliation will create activity churn.
 - [Release verdict evidence](release-verdict-evidence.md) — never report SHIP unless the complete passing preflight transcript is attached.
+- [Certification clocks](certification-clock.md) — archived labels depend on API and browser time; freezing the browser alone does not freeze idle days.
 - [Published API fingerprints](published-api-fingerprints.md) — verify server revisions from a live response/header; a current static bundle does not prove the matching API build shipped.
 - [Express sibling router scope](express-sibling-router-scope.md) — unscoped router.use middleware can validate and reject requests intended for routers mounted later.
 - [SendGrid webhook key rotation](sendgrid-webhook-key-rotation.md) — API tests can be unsigned; re-enabling signing rotates keys, so certify with a real controlled send.
@@ -51,3 +52,4 @@
 - [Fixture network interception](fixture-network-interception.md) — block PWA workers and prove HTTP interception before treating mocked rows or unread counts as fixture evidence.
 - [DOM regression lifetime](dom-regression-lifetime.md) — bundled React/Radix scheduling may retain Node handles after DOM teardown; finish standalone CLIs explicitly.
 - [Vite cache ownership](vite-cache-ownership.md) — missing optimized files can break lazy routes while initial pages still work; isolate live development caches from builds.
+- [Fixture authentication lifecycle](fixture-auth-lifecycle.md) — isolate Clerk role contexts; already-deleted test users must not prevent database cleanup.
