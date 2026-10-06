@@ -511,14 +511,13 @@ async function doSendEmail(params: {
     : undefined;
 
   const deliveryKind = params.deliveryKind ?? "direct";
-  // Never route customer replies into a subdomain before Parse is configured.
-  if (params.campaignId && !replyCaptureConfigured()) {
-    return { send: null, error: "Campaign reply capture is not enabled/configured", configurationReason: "missing:campaign_reply_capture", deliveryOutcome: "definite_failure" };
-  }
-  if (params.campaignId && (!VALID_EMAIL.test(repEmail) || repEmail.toLowerCase().endsWith(`@${REPLY_DOMAIN}`))) {
+  // Capture is strictly opt-in. Ordinary campaign mail retains its configured
+  // Reply-To when Parse is disabled or either piece of configuration is absent.
+  const captureReplies = Boolean(params.campaignId) && replyCaptureConfigured();
+  if (captureReplies && (!VALID_EMAIL.test(repEmail) || repEmail.toLowerCase().endsWith(`@${REPLY_DOMAIN}`))) {
     return { send: null, error: "Invalid campaign forwarding destination", deliveryOutcome: "definite_failure" };
   }
-  const replyToken = params.campaignId ? randomBytes(24).toString("hex") : null;
+  const replyToken = captureReplies ? randomBytes(24).toString("hex") : null;
   if (replyToken) replyTo = { email: `r-${replyToken}@${REPLY_DOMAIN}`, name: "My Business Solutions" };
   const values = {
     leadId: params.leadId,

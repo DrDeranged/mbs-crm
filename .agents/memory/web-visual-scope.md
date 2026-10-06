@@ -39,6 +39,17 @@ Desktop workspace changes do not authorize new mobile controls or new structural
 
 **How to apply:** Branch desktop-only controls out of the DOM below the breakpoint rather than merely CSS-hiding them, and compare existing exempt controls too.
 
+The user explicitly approved two Lead Detail exceptions on 2026-10-05:
+the INPUT named "Search referrer" and BUTTON named "Share referral link".
+No other mobile control additions, removals or ordering changes are approved.
+
+**Why:** These referral tools are intended additions, while the remaining
+certified mobile control inventory must still match exactly.
+
+**How to apply:** Compare these as a separate, exact two-control approved
+inventory on Lead Detail only for each role at 390/768; require zero approved
+additions on other pages and preserve the prior exemption inventory unchanged.
+
 Control-inventory and persistence proofs do not certify text readability. Dense
 record layouts need geometry checks with fully populated rows and realistic
 long addresses, company/contact names, status labels and ownership labels.

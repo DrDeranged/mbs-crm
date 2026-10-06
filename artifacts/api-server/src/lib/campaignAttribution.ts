@@ -6,7 +6,7 @@ export const ATTRIBUTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 export const REPLY_DOMAIN = "replies.my-business-solutions.com";
 export const digestReplyToken = (token: string) => createHash("sha256").update(token).digest("hex");
 export function replyCaptureConfigured() {
-  return Boolean(process.env.SENDGRID_INBOUND_PARSE_SECRET && process.env.SENDGRID_INBOUND_PARSE_ENABLED === "true");
+  return Boolean(process.env.SENDGRID_INBOUND_PARSE_SECRET?.trim() && process.env.SENDGRID_INBOUND_PARSE_ENABLED === "true");
 }
 export function signAttributionToken(payload: object) {
   const secret = process.env.SESSION_SECRET;

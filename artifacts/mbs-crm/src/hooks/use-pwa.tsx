@@ -57,7 +57,8 @@ export function usePwa() {
       navigator.serviceWorker
         .register(swUrl)
         .then((registered) => {
-          if (disposed) return;
+          // Embedded/test browsers may block registration and return no object.
+          if (disposed || !registered) return;
           registration = registered;
           updateListener = () => {
             const newWorker = registered.installing;
