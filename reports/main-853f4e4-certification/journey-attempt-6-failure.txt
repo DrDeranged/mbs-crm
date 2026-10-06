@@ -1,0 +1,6 @@
+locator.selectOption: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('Appearance theme')[22m
+
+    at leadsJourney (/home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:193:49)
+    at async file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:363:3

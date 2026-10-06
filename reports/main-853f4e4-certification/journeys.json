@@ -1,0 +1,1151 @@
+[
+  {
+    "selector": "getByPlaceholder(\"Search by name, email, company…\")",
+    "outcome": "Synthetic Contact -> 1 matching row"
+  },
+  {
+    "selector": "getByPlaceholder(\"Search by name, email, company…\")",
+    "outcome": "Fixture Services LLC -> Sample Applicant only"
+  },
+  {
+    "selector": "getByRole(\"combobox\").nth(0)",
+    "outcome": "Status Contacted -> Synthetic Contact only"
+  },
+  {
+    "selector": "getByRole(\"combobox\").nth(1)",
+    "outcome": "Type Equipment -> matching lead retained"
+  },
+  {
+    "selector": "getByRole(\"button\", {name:\"Filter by representative\"})",
+    "outcome": "Visual Fixture -> two assigned synthetic leads"
+  },
+  {
+    "selector": "getByRole(\"combobox\").last()",
+    "outcome": "Oldest First selected; API request sortOrder=asc",
+    "request": "http://127.0.0.1:4320/api/leads?repId=3&page=1&limit=7&sortBy=updatedAt&sortOrder=asc"
+  },
+  {
+    "selector": "table row a[href^=\"tel:\"]",
+    "outcome": "phone href captured; default prevented; URL stayed /leads",
+    "href": "tel:+12025550123"
+  },
+  {
+    "selector": "table row [data-contact-link=\"email\"]",
+    "outcome": "opened /leads/1 and activated Comms tab",
+    "href": "/leads/1?compose=email",
+    "url": "http://127.0.0.1:4320/leads/1"
+  },
+  {
+    "selector": "lead detail a[href^=\"tel:\"]",
+    "outcome": "default prevented; remained on lead detail"
+  },
+  {
+    "selector": "getByRole(\"link\", {name:/Synthetic Contact/})",
+    "outcome": "navigated to /leads/1 detail",
+    "heading": "Fixture Equipment LLC — Synthetic Contact",
+    "url": "http://127.0.0.1:4320/leads/1"
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "390x900 light",
+    "geometry": {
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "document": {
+        "width": 390,
+        "height": 1358
+      },
+      "table": null,
+      "fitRegion": null,
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 33,
+            "y": 831,
+            "width": 179.984375,
+            "height": 44,
+            "top": 831,
+            "right": 212.984375,
+            "bottom": 875,
+            "left": 33
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 33,
+            "y": 879,
+            "width": 179.984375,
+            "height": 44,
+            "top": 879,
+            "right": 212.984375,
+            "bottom": 923,
+            "left": 33
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 33,
+            "y": 1071,
+            "width": 181.90625,
+            "height": 44,
+            "top": 1071,
+            "right": 214.90625,
+            "bottom": 1115,
+            "left": 33
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 33,
+            "y": 1119,
+            "width": 181.90625,
+            "height": 44,
+            "top": 1119,
+            "right": 214.90625,
+            "bottom": 1163,
+            "left": 33
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "768x900 light",
+    "geometry": {
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "document": {
+        "width": 768,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": null,
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 661,
+            "y": 665,
+            "width": 101.15625,
+            "height": 58,
+            "top": 665,
+            "right": 762.15625,
+            "bottom": 723,
+            "left": 661
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 805,
+            "y": 665,
+            "width": 165.25,
+            "height": 58,
+            "top": 665,
+            "right": 970.25,
+            "bottom": 723,
+            "left": 805
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 661,
+            "y": 756,
+            "width": 101.15625,
+            "height": 58,
+            "top": 756,
+            "right": 762.15625,
+            "bottom": 814,
+            "left": 661
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 805,
+            "y": 756,
+            "width": 163.140625,
+            "height": 58,
+            "top": 756,
+            "right": 968.140625,
+            "bottom": 814,
+            "left": 805
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "1280x900 light",
+    "geometry": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "document": {
+        "width": 1280,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": {
+        "rect": {
+          "x": 88,
+          "y": 280,
+          "width": 1160,
+          "height": 496,
+          "top": 280,
+          "right": 1248,
+          "bottom": 776,
+          "left": 88
+        },
+        "clientWidth": 1158,
+        "scrollWidth": 1158,
+        "clientHeight": 494,
+        "scrollHeight": 494
+      },
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 363.328125,
+            "y": 327,
+            "width": 121.15625,
+            "height": 24,
+            "top": 327,
+            "right": 484.484375,
+            "bottom": 351,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 363.328125,
+            "y": 351,
+            "width": 161.640625,
+            "height": 24,
+            "top": 351,
+            "right": 524.96875,
+            "bottom": 375,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 363.328125,
+            "y": 387,
+            "width": 121.15625,
+            "height": 24,
+            "top": 387,
+            "right": 484.484375,
+            "bottom": 411,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 363.328125,
+            "y": 411,
+            "width": 159.828125,
+            "height": 24,
+            "top": 411,
+            "right": 523.15625,
+            "bottom": 435,
+            "left": 363.328125
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "1440x900 light",
+    "geometry": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "document": {
+        "width": 1440,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": {
+        "rect": {
+          "x": 88,
+          "y": 280,
+          "width": 1320,
+          "height": 496,
+          "top": 280,
+          "right": 1408,
+          "bottom": 776,
+          "left": 88
+        },
+        "clientWidth": 1318,
+        "scrollWidth": 1318,
+        "clientHeight": 494,
+        "scrollHeight": 494
+      },
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 400.125,
+            "y": 339,
+            "width": 121.15625,
+            "height": 24,
+            "top": 339,
+            "right": 521.28125,
+            "bottom": 363,
+            "left": 400.125
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 521.28125,
+            "y": 339,
+            "width": 161.640625,
+            "height": 24,
+            "top": 339,
+            "right": 682.921875,
+            "bottom": 363,
+            "left": 521.28125
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 400.125,
+            "y": 399,
+            "width": 121.15625,
+            "height": 24,
+            "top": 399,
+            "right": 521.28125,
+            "bottom": 423,
+            "left": 400.125
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 521.28125,
+            "y": 399,
+            "width": 159.828125,
+            "height": 24,
+            "top": 399,
+            "right": 681.109375,
+            "bottom": 423,
+            "left": 521.28125
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "390x900 dark",
+    "geometry": {
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "document": {
+        "width": 390,
+        "height": 1358
+      },
+      "table": null,
+      "fitRegion": null,
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 33,
+            "y": 831,
+            "width": 179.984375,
+            "height": 44,
+            "top": 831,
+            "right": 212.984375,
+            "bottom": 875,
+            "left": 33
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 33,
+            "y": 879,
+            "width": 179.984375,
+            "height": 44,
+            "top": 879,
+            "right": 212.984375,
+            "bottom": 923,
+            "left": 33
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 33,
+            "y": 1071,
+            "width": 181.90625,
+            "height": 44,
+            "top": 1071,
+            "right": 214.90625,
+            "bottom": 1115,
+            "left": 33
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 33,
+            "y": 1119,
+            "width": 181.90625,
+            "height": 44,
+            "top": 1119,
+            "right": 214.90625,
+            "bottom": 1163,
+            "left": 33
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "768x900 dark",
+    "geometry": {
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "document": {
+        "width": 768,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": null,
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 661,
+            "y": 665,
+            "width": 101.15625,
+            "height": 58,
+            "top": 665,
+            "right": 762.15625,
+            "bottom": 723,
+            "left": 661
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 805,
+            "y": 665,
+            "width": 165.25,
+            "height": 58,
+            "top": 665,
+            "right": 970.25,
+            "bottom": 723,
+            "left": 805
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 661,
+            "y": 756,
+            "width": 101.15625,
+            "height": 58,
+            "top": 756,
+            "right": 762.15625,
+            "bottom": 814,
+            "left": 661
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 805,
+            "y": 756,
+            "width": 163.140625,
+            "height": 58,
+            "top": 756,
+            "right": 968.140625,
+            "bottom": 814,
+            "left": 805
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "1280x900 dark",
+    "geometry": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "document": {
+        "width": 1280,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": {
+        "rect": {
+          "x": 88,
+          "y": 280,
+          "width": 1160,
+          "height": 496,
+          "top": 280,
+          "right": 1248,
+          "bottom": 776,
+          "left": 88
+        },
+        "clientWidth": 1158,
+        "scrollWidth": 1158,
+        "clientHeight": 494,
+        "scrollHeight": 494
+      },
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 363.328125,
+            "y": 327,
+            "width": 121.15625,
+            "height": 24,
+            "top": 327,
+            "right": 484.484375,
+            "bottom": 351,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 363.328125,
+            "y": 351,
+            "width": 161.640625,
+            "height": 24,
+            "top": 351,
+            "right": 524.96875,
+            "bottom": 375,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 363.328125,
+            "y": 387,
+            "width": 121.15625,
+            "height": 24,
+            "top": 387,
+            "right": 484.484375,
+            "bottom": 411,
+            "left": 363.328125
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 363.328125,
+            "y": 411,
+            "width": 159.828125,
+            "height": 24,
+            "top": 411,
+            "right": 523.15625,
+            "bottom": 435,
+            "left": 363.328125
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "authenticated Leads initial view",
+    "outcome": "1440x900 dark",
+    "geometry": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "document": {
+        "width": 1440,
+        "height": 900
+      },
+      "table": null,
+      "fitRegion": {
+        "rect": {
+          "x": 88,
+          "y": 280,
+          "width": 1320,
+          "height": 496,
+          "top": 280,
+          "right": 1408,
+          "bottom": 776,
+          "left": 88
+        },
+        "clientWidth": 1318,
+        "scrollWidth": 1318,
+        "clientHeight": 494,
+        "scrollHeight": 494
+      },
+      "rows": [],
+      "contactLinks": [
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        {
+          "href": "tel:+12025550123",
+          "rect": {
+            "x": 400.125,
+            "y": 339,
+            "width": 121.15625,
+            "height": 24,
+            "top": 339,
+            "right": 521.28125,
+            "bottom": 363,
+            "left": 400.125
+          }
+        },
+        {
+          "href": "/leads/1?compose=email",
+          "rect": {
+            "x": 521.28125,
+            "y": 339,
+            "width": 161.640625,
+            "height": 24,
+            "top": 339,
+            "right": 682.921875,
+            "bottom": 363,
+            "left": 521.28125
+          }
+        },
+        {
+          "href": "tel:+12025550124",
+          "rect": {
+            "x": 400.125,
+            "y": 399,
+            "width": 121.15625,
+            "height": 24,
+            "top": 399,
+            "right": 521.28125,
+            "bottom": 423,
+            "left": 400.125
+          }
+        },
+        {
+          "href": "/leads/2?compose=email",
+          "rect": {
+            "x": 521.28125,
+            "y": 399,
+            "width": 159.828125,
+            "height": 24,
+            "top": 399,
+            "right": 681.109375,
+            "bottom": 423,
+            "left": 521.28125
+          }
+        }
+      ]
+    }
+  },
+  {
+    "selector": "page.goto(\"/campaigns/5\") then getByRole(\"tab\",{name:\"Results\"})",
+    "outcome": "campaign completed; legacy Results Sent 13; new KPI Sent 13; unknown historical metrics disclosed as Not tracked",
+    "campaign": {
+      "url": "http://127.0.0.1:4320/campaigns/5",
+      "title": "Vendors — Heavy Equipment",
+      "status": "completed",
+      "resultsApi": {
+        "status": 200,
+        "counts": {
+          "eligible": 13,
+          "excluded": 0,
+          "sent": 13,
+          "failed": 0,
+          "deferred": 0,
+          "nextAvailableAt": null
+        },
+        "launches": 1
+      },
+      "metricsApi": {
+        "status": 200,
+        "sent": 13,
+        "trackingSince": null,
+        "uniqueFlyerClicks": null,
+        "replies": null,
+        "fundedDollars": null
+      },
+      "legacyResultsSent": "SENT\n13",
+      "kpiSent": "SENT\n13",
+      "untrackedText": [
+        "Historical tracking not available",
+        "Not tracked"
+      ],
+      "screenshot": "reports/main-853f4e4-certification/campaign-5-results.png",
+      "fixtureVerification": "5|Vendors — Heavy Equipment|completed|t|5|13|13|13|13|13",
+      "historicalRows": {
+        "sends": 13,
+        "recipients": 13,
+        "launches": 1
+      },
+      "runtimeErrors": [
+        {
+          "phase": "journey",
+          "role": "admin",
+          "kind": "console",
+          "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+        },
+        {
+          "phase": "journey",
+          "role": "admin",
+          "kind": "console",
+          "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+        }
+      ],
+      "noLaunchAction": true,
+      "noDeliveryAction": true,
+      "disclaimer": "Candidate-code behavior rendered from anonymized historical production records in isolated fixture; not a newly published production page."
+    }
+  }
+]

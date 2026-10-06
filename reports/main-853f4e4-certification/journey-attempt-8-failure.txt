@@ -1,0 +1,4 @@
+Harness failure preserved from the campaign continuation attempt:
+ReferenceError: responses is not defined
+Location: leads-certification.mjs:286, in a response-event collector left behind after its unused array was removed.
+This was test-helper-only; the authenticated Leads steps and screenshot capture had advanced to Campaign Results setup, but the attempt is not a passing campaign verification. The fixture was disposable and the next run includes idempotent cleanup.

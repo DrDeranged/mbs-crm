@@ -1,0 +1,6 @@
+Error: Lead row/name link did not navigate to detail
+    at check (file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:36:46)
+    at leadsJourney (file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:185:3)
+    at runNextTicks (node:internal/process/task_queues:64:5)
+    at process.processImmediate (node:internal/timers:472:9)
+    at async file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:361:3

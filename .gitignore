@@ -53,3 +53,4 @@ screenshots/
 # Generated evidence stays local. Already tracked audit reports remain tracked;
 # keep the final preflight tail in the tracked audit report.
 /reports/
+/test-results/

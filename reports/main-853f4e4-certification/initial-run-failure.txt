@@ -1,0 +1,8 @@
+Initial disposable fixture browser run (preserved before harness correction)
+Command: node reports/main-853f4e4-certification/leads-certification.mjs
+Observed failure:
+locator.waitFor: Timeout 15000ms exceeded.
+Call log:
+  - waiting for getByRole('link', { name: 'Synthetic Contact', exact: true }) to be visible
+Location: leads-certification.mjs:89:76, while waiting for the search result after filling "Synthetic Contact".
+This is preserved as an initial harness failure; no product code was changed. The request clarified the strict inventory extractor and campaign scope before the corrected certification rerun.

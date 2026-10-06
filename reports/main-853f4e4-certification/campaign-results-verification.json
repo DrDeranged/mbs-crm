@@ -1,0 +1,55 @@
+{
+  "url": "http://127.0.0.1:4320/campaigns/5",
+  "title": "Vendors — Heavy Equipment",
+  "status": "completed",
+  "resultsApi": {
+    "status": 200,
+    "counts": {
+      "eligible": 13,
+      "excluded": 0,
+      "sent": 13,
+      "failed": 0,
+      "deferred": 0,
+      "nextAvailableAt": null
+    },
+    "launches": 1
+  },
+  "metricsApi": {
+    "status": 200,
+    "sent": 13,
+    "trackingSince": null,
+    "uniqueFlyerClicks": null,
+    "replies": null,
+    "fundedDollars": null
+  },
+  "legacyResultsSent": "SENT\n13",
+  "kpiSent": "SENT\n13",
+  "untrackedText": [
+    "Historical tracking not available",
+    "Not tracked"
+  ],
+  "screenshot": "reports/main-853f4e4-certification/campaign-5-results.png",
+  "fixtureVerification": "5|Vendors — Heavy Equipment|completed|t|5|13|13|13|13|13",
+  "historicalRows": {
+    "sends": 13,
+    "recipients": 13,
+    "launches": 1
+  },
+  "runtimeErrors": [
+    {
+      "phase": "journey",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "journey",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ],
+  "noLaunchAction": true,
+  "noDeliveryAction": true,
+  "disclaimer": "Candidate-code behavior rendered from anonymized historical production records in isolated fixture; not a newly published production page."
+}

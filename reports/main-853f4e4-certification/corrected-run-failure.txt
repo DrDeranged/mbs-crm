@@ -1,0 +1,3 @@
+Error: STRICT STRUCTURE comparison mismatch; Leads and campaign exercises completed; see structure-differences.json
+    at check (file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:36:46)
+    at file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:371:3

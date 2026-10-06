@@ -1,0 +1,6 @@
+locator.waitFor: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-testid="table-leads-fit"] tbody tr').first() to be visible[22m
+
+    at leadsJourney (/home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:199:78)
+    at async file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:363:3

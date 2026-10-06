@@ -1,0 +1,5883 @@
+[
+  {
+    "key": "lead-detail-390-admin",
+    "flags": {
+      "key": "lead-detail-390-admin",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 50,
+    "targetCount": 52,
+    "certifiedCount": 50,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": null,
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Flyer Templates",
+        "href": "/flyer-templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Credit Compliance",
+        "href": "/credit/compliance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Data Governance",
+        "href": "/governance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Workflow Rules",
+        "href": "/workflow-rules",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "System Health",
+        "href": "/system-health",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "USFA Intake",
+        "href": "/admin/usfa-intake",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Settings",
+        "href": "/settings",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Flyer Templates",
+        "href": "/flyer-templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Credit Compliance",
+        "href": "/credit/compliance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Data Governance",
+        "href": "/governance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Workflow Rules",
+        "href": "/workflow-rules",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "System Health",
+        "href": "/system-health",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "USFA Intake",
+        "href": "/admin/usfa-intake",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Settings",
+        "href": "/settings",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "key": "lead-detail-768-admin",
+    "flags": {
+      "key": "lead-detail-768-admin",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 50,
+    "targetCount": 53,
+    "certifiedCount": 51,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": {
+      "tag": "BUTTON",
+      "role": null,
+      "type": null,
+      "name": "",
+      "href": null,
+      "disabled": false
+    },
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Flyer Templates",
+        "href": "/flyer-templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Credit Compliance",
+        "href": "/credit/compliance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Data Governance",
+        "href": "/governance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Workflow Rules",
+        "href": "/workflow-rules",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "System Health",
+        "href": "/system-health",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "USFA Intake",
+        "href": "/admin/usfa-intake",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Settings",
+        "href": "/settings",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Flyer Templates",
+        "href": "/flyer-templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Credit Compliance",
+        "href": "/credit/compliance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Data Governance",
+        "href": "/governance",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Workflow Rules",
+        "href": "/workflow-rules",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "System Health",
+        "href": "/system-health",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "USFA Intake",
+        "href": "/admin/usfa-intake",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Settings",
+        "href": "/settings",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "key": "lead-detail-390-manager",
+    "flags": {
+      "key": "lead-detail-390-manager",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 42,
+    "targetCount": 44,
+    "certifiedCount": 42,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": null,
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "key": "lead-detail-768-manager",
+    "flags": {
+      "key": "lead-detail-768-manager",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 42,
+    "targetCount": 45,
+    "certifiedCount": 43,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": {
+      "tag": "BUTTON",
+      "role": null,
+      "type": null,
+      "name": "",
+      "href": null,
+      "disabled": false
+    },
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Campaigns",
+        "href": "/campaigns",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Stale Leads",
+        "href": "/leads/stale",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Import Leads",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Assign lead to representative",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "key": "lead-detail-390-rep",
+    "flags": {
+      "key": "lead-detail-390-rep",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 39,
+    "targetCount": 41,
+    "certifiedCount": 39,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": null,
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "key": "lead-detail-768-rep",
+    "flags": {
+      "key": "lead-detail-768-rep",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    "firstCertifiedControlDifference": 39,
+    "targetCount": 42,
+    "certifiedCount": 40,
+    "targetAtDifference": {
+      "tag": "INPUT",
+      "role": null,
+      "type": null,
+      "name": "Search referrer",
+      "href": null,
+      "disabled": false
+    },
+    "certifiedAtDifference": {
+      "tag": "BUTTON",
+      "role": null,
+      "type": null,
+      "name": "",
+      "href": null,
+      "disabled": false
+    },
+    "targetControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedControls": [
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Dashboard",
+        "href": "/dashboard",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Deals",
+        "href": "/deals",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Rate & Points",
+        "href": "/deals/rate-points",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Documents",
+        "href": "/documents",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email Templates",
+        "href": "/email/templates",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Drip Sequences",
+        "href": "/drip/sequences",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Partners",
+        "href": "/lenders",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Open command palette",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open user menu",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Sign Out",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Open navigation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Notifications",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Back to Leads",
+        "href": "/leads",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "combobox",
+        "type": "button",
+        "name": "Contacted",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Convert to Deal",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit Details",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Info",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Notes",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Tasks",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Docs",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Comms",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Activity",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Lenders",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Marketing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "App",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Financials",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Credit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": "tab",
+        "type": "button",
+        "name": "Consent",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Generate Briefing",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Next best action",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Recalculate",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Email contact@example.invalid",
+        "href": "/leads/1?compose=email",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Call +12025550123",
+        "href": "tel:+12025550123",
+        "disabled": false
+      },
+      {
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "name": "Synthetic equipment financing125,000waiting on appCreated 9/15/2026",
+        "href": "/deals/1",
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "targetExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "certifiedExemptions": [
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Upload",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Edit",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Call",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Text",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Email",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Note",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Task",
+        "href": null,
+        "disabled": false
+      }
+    ]
+  }
+]

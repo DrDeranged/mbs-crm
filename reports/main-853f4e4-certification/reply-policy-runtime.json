@@ -1,0 +1,36 @@
+{
+  "captureFlagCases": [
+    {
+      "secretPresent": false,
+      "enabled": false,
+      "captureConfigured": false
+    },
+    {
+      "secretPresent": false,
+      "enabled": true,
+      "captureConfigured": false
+    },
+    {
+      "secretPresent": true,
+      "enabled": false,
+      "captureConfigured": false
+    },
+    {
+      "secretPresent": true,
+      "enabled": true,
+      "captureConfigured": true
+    }
+  ],
+  "requiredBehavior": "Campaign sends retain the configured Reply-To while capture is disabled",
+  "observed": {
+    "send": null,
+    "error": "Campaign reply capture is not enabled/configured",
+    "configurationReason": "missing:campaign_reply_capture",
+    "deliveryOutcome": "definite_failure"
+  },
+  "requirementPass": false,
+  "verdict": "FAIL: this revision rejects campaign sends instead of retaining configured Reply-To",
+  "providerCalls": 0,
+  "databaseWrites": 0,
+  "isolation": "Real source function; mocked settings read, provider and database writes prohibited"
+}

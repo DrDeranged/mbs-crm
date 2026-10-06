@@ -1,0 +1,13 @@
+{
+  "sourceFile": ".local/certification-853f4e4/historical-campaign.json",
+  "sourceSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+  "productionDatabaseAccess": "READ-ONLY source snapshot only; inserts executed only against guarded visual_refresh_fixture_* disposable clone",
+  "pii": "source snapshot contains no customer contact details; fixture names/emails substituted",
+  "rowCounts": {
+    "sends": 13,
+    "recipients": 13,
+    "launches": 1
+  },
+  "fixtureCurrentDatabase": "visual_refresh_fixture_16656_1791245941463",
+  "insertedCampaign": 5
+}

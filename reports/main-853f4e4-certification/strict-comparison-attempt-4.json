@@ -1,0 +1,1465 @@
+{
+  "target": "853f4e49378b10daf3d59d81769c81fe812ca0ea",
+  "localSnapshot": "4165874ad76bdfbba46a115d7c3b404ec1752b6d",
+  "baselineRevision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+  "baselineIndexSha256": "6461ce1e711e63e4678a0d1f7c29c7e5ca210502974b1a20e7bf835b47d8b72d",
+  "baselineRoot": ".local/certification-2af927c/baselines/target-2af927c",
+  "strictRequired": 36,
+  "comparisons": [
+    {
+      "key": "dashboard-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-admin",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-admin",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-manager",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-manager",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-390-rep",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "dashboard-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "leads-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "lead-detail-768-rep",
+      "controlsEqual": false,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": false,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "pipeline-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "apply-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    },
+    {
+      "key": "settings-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true
+    }
+  ],
+  "structurePass": false,
+  "widths": [
+    390,
+    768,
+    1280,
+    1440
+  ],
+  "height": 900,
+  "screenshots": [],
+  "fixtureAgeEvidence": "1|2026-09-17 09:38:14|2026-09-15 00:00:00|2026-09-17 09:38:14|18\n2|2026-09-17 09:38:14|2026-09-15 00:00:00|2026-09-17 09:38:14|18",
+  "journeys": [],
+  "errors": [
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "admin",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "manager",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "phase": "target",
+      "role": "rep",
+      "kind": "console",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "authentication": "real development Clerk tickets; fixture.login; admin/manager/rep fixture claims",
+  "database": "isolated schema-only clone; synthetic contacts; delivery credentials removed; background jobs disabled; no live delivery"
+}

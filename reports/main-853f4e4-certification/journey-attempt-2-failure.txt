@@ -1,0 +1,6 @@
+locator.click: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('combobox', { name: 'Filter by representative' })[22m
+
+    at leadsJourney (/home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:126:13)
+    at async file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:353:3

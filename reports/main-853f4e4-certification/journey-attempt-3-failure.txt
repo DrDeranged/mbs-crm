@@ -1,0 +1,6 @@
+locator.getAttribute: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-testid="table-leads-fit"]').locator('tbody tr').filter({ has: getByRole('link', { name: 'Synthetic Contact', exact: true }) }).locator('a[href^="tel:"]')[22m
+
+    at leadsJourney (/home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:155:33)
+    at async file:///home/runner/workspace/reports/main-853f4e4-certification/leads-certification.mjs:361:3

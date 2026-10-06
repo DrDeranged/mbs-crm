@@ -1,0 +1,14 @@
+{
+  "host": "127.0.0.1",
+  "port": 55432,
+  "username": "postgres",
+  "database": "production_clone",
+  "sourceKind": "schema-only",
+  "sourceFingerprint": "af563ce7e8e75c4643694b3a0e82582996fb82dc2ee44aed0ac681b82dbc68c5",
+  "restoredAt": "2026-10-05T23:42:25.701Z",
+  "preflightExit": 0,
+  "preflightSha256": "5b3b2f17f1fa1235988c6ec58512beba40c2741ed4a7b71a61f74b652ad7e09d",
+  "realProductionBackup": false,
+  "productionDataRehearsalCertified": false,
+  "verdict": "BLOCKED: full preflight passes but clone source is schema-only fallback, not actual production backup"
+}

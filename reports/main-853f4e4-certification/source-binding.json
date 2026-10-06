@@ -1,0 +1,30 @@
+{
+  "target": "853f4e49378b10daf3d59d81769c81fe812ca0ea",
+  "remoteTree": "96bf6b0cbd0b4118461b77c651355d9d4ff4af1c",
+  "parent": "1316888e5ead2f19986fa6fc1d6abe6755c43fe2",
+  "localSnapshot": "4165874ad76bdfbba46a115d7c3b404ec1752b6d",
+  "trackedFilesMatching": 1041,
+  "migrations": [
+    {
+      "path": "lib/db/migrations/067_campaign_attribution.sql",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "375ada13519cec4625bc42b07925e51589eebef0",
+      "sha256": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba"
+    },
+    {
+      "path": "lib/db/migrations/068_campaign_attribution_fk_names.sql",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fca90e96bce35490e92f1198d3825c0e26e09750",
+      "sha256": "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66"
+    }
+  ],
+  "sourceChangesDuringCertification": [
+    ".gitignore: ignore generated test-results directory",
+    "test-results/.last-run.json: intentional removal",
+    "Agent memory: production-clone and optional reply-capture constraints"
+  ],
+  "productSourceChangesDuringCertification": [],
+  "published": false
+}

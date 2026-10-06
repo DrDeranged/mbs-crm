@@ -53,3 +53,4 @@
 - [DOM regression lifetime](dom-regression-lifetime.md) — bundled React/Radix scheduling may retain Node handles after DOM teardown; finish standalone CLIs explicitly.
 - [Vite cache ownership](vite-cache-ownership.md) — missing optimized files can break lazy routes while initial pages still work; isolate live development caches from builds.
 - [Fixture authentication lifecycle](fixture-auth-lifecycle.md) — isolate Clerk role contexts; already-deleted test users must not prevent database cleanup.
+- [Optional campaign reply capture](campaign-reply-rollout.md) — disabled Parse must preserve configured campaign Reply-To, not block ordinary sends.
