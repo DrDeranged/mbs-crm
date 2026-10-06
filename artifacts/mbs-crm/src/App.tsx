@@ -162,7 +162,12 @@ function PendingApprovalGate() {
   );
 }
 
-function ApprovedUserRoute({ component: Component }: { component: React.ComponentType }) {
+type ProtectedPageProps = {
+  component: React.ComponentType;
+  allowedRoles?: string[];
+};
+
+function ApprovedUserRoute({ component: Component, allowedRoles }: ProtectedPageProps) {
   const { data: me, isLoading, isError, error, refetch } = useGetMe({
     query: {
       queryKey: getGetMeQueryKey(),
@@ -212,7 +217,12 @@ function ApprovedUserRoute({ component: Component }: { component: React.Componen
     <SoftphoneProvider>
       <AppShell>
         <Suspense fallback={<PageLoader />}>
-          <Component />
+          {allowedRoles && !allowedRoles.includes(me.role) ? (
+            <section className="p-6">
+              <h1 className="text-xl font-semibold">Manager Access Required</h1>
+              <p className="mt-2 text-muted-foreground">Campaigns are available to managers and admins.</p>
+            </section>
+          ) : <Component />}
         </Suspense>
       </AppShell>
       <SoftphoneWidget />
@@ -271,11 +281,11 @@ function SignInPage() {
   );
 }
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function ProtectedRoute({ component: Component, allowedRoles }: ProtectedPageProps) {
   return (
     <>
       <Show when="signed-in">
-        <ApprovedUserRoute component={Component} />
+        <ApprovedUserRoute component={Component} allowedRoles={allowedRoles} />
       </Show>
       <Show when="signed-out">
         <Redirect to="/sign-in" />
@@ -391,10 +401,10 @@ function AppRoutes() {
               <ProtectedRoute component={FinancingCampaignRedirect} />
             </Route>
             <Route path="/campaigns/:id">
-              <ProtectedRoute component={CampaignDetail} />
+              <ProtectedRoute component={CampaignDetail} allowedRoles={["manager", "admin"]} />
             </Route>
             <Route path="/campaigns">
-              <ProtectedRoute component={Campaigns} />
+              <ProtectedRoute component={Campaigns} allowedRoles={["manager", "admin"]} />
             </Route>
             <Route path="/apply" component={ApplyPage} />
             <Route path="/r/:slug" component={RepChooser} />
