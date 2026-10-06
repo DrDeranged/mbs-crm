@@ -3,8 +3,14 @@ import test from "node:test";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { getGetMeQueryKey, getListUsersQueryKey } from "@workspace/api-client-react";
-import { useManagerDirectory } from "../hooks/use-manager-directory.ts";
+import { createRequire } from "node:module";
+
+// The generated client uses extensionless TS imports. Enable the existing
+// workspace TS resolver for this hook test, not for the entire web test suite.
+const { register } = createRequire(new URL("../../../../scripts/package.json", import.meta.url))("tsx/esm/api");
+register();
+const { getGetMeQueryKey, getListUsersQueryKey } = await import("@workspace/api-client-react");
+const { useManagerDirectory } = await import("../hooks/use-manager-directory.ts");
 
 test("directory access waits for identity; reps cannot expose cached users or manually refetch", async () => {
   for (const role of [undefined, "rep", "manager", "admin"]) {
