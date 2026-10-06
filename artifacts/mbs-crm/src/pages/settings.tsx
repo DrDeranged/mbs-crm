@@ -31,10 +31,12 @@ export default function Settings() {
   const isDesktop = useIsDesktop();
   const { preference, setPreference, storageError } = useAppearance();
   const { data: me, isLoading: loadingMe } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
-  const { data: users, isLoading: loadingUsers, isError: usersError } = useListUsers({}, { query: { queryKey: getListUsersQueryKey() } });
+  const isAdmin = me?.role === UserRole.admin;
+  const { data: users, isLoading: loadingUsers, isError: usersError } = useListUsers({}, {
+    query: { queryKey: getListUsersQueryKey(), enabled: isAdmin },
+  });
   const updateUser = useUpdateUser();
   const updateMobile = useUpdateMyMobile();
-  const isAdmin = me?.role === UserRole.admin;
   const { data: leadDistribution, isLoading: loadingLeadDistribution } = useGetLeadDistributionSettings({
     query: {
       queryKey: getGetLeadDistributionSettingsQueryKey(),

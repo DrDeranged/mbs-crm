@@ -50,6 +50,16 @@ certified mobile control inventory must still match exactly.
 inventory on Lead Detail only for each role at 390/768; require zero approved
 additions on other pages and preserve the prior exemption inventory unchanged.
 
+The user also approved removing the impossible rep-only Retry controls from
+Leads and Pipeline on 2026-10-05.
+
+**Why:** Those controls came from querying a manager-only user directory as a
+rep; retrying could never resolve the permission denial.
+
+**How to apply:** Gate directory queries by role rather than weakening the API
+permission boundary. The exact removals are one Retry on each rep Leads and
+Pipeline case at 390/768. No other removals are authorized.
+
 Control-inventory and persistence proofs do not certify text readability. Dense
 record layouts need geometry checks with fully populated rows and realistic
 long addresses, company/contact names, status labels and ownership labels.

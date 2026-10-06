@@ -12,6 +12,7 @@ import {
   ListDealsSortBy,
   ListDealsSortOrder,
   useListUsers,
+  getListUsersQueryKey,
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,7 @@ export default function DealsPage() {
 
   const { data: currentUser } = useGetMe();
   const isRep = currentUser?.role === "rep";
+  const isManagerOrAdmin = currentUser?.role === "manager" || currentUser?.role === "admin";
 
   const compactPreferenceKey = currentUser?.id
     ? kanbanCompactPreferenceKey(currentUser.id)
@@ -181,7 +183,9 @@ export default function DealsPage() {
     data: users,
     error: usersError,
     refetch: refetchUsers,
-  } = useListUsers();
+  } = useListUsers(undefined, {
+    query: { queryKey: getListUsersQueryKey(), enabled: isManagerOrAdmin },
+  });
 
   const updateDeal = useUpdateDeal();
   const seedDeals = useSeedDeals();
@@ -510,7 +514,7 @@ export default function DealsPage() {
           />
         </div>
       )}
-      {usersError && (
+      {isManagerOrAdmin && usersError && (
         <div className="px-6 pt-4">
           <QueryErrorState
             label="Team members"

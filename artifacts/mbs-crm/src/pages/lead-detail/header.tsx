@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/searchable-select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Building2, Mail, User, Link2, Phone } from "lucide-react";
-import { getGetLeadQueryKey, getListLeadActivityQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
+import { getGetLeadQueryKey, getListLeadActivityQueryKey, getListUsersQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
 import { contactName, formatLeadIdentity } from "@/lib/recordIdentity";
 import { useLeadDetail } from "./context";
@@ -21,11 +21,13 @@ import { EditLeadDialog } from "./edit-dialog";
 export function LeadAssignmentPicker() {
   const { data: currentUser } = useGetMe();
   const { lead, id: leadId } = useLeadDetail();
-  const { data: reps } = useListUsers({ role: "rep", isActive: true });
+  const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
+  const { data: reps } = useListUsers({ role: "rep", isActive: true }, {
+    query: { queryKey: getListUsersQueryKey({ role: "rep", isActive: true }), enabled: canAssign },
+  });
   const assignLead = useAssignLead();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const canAssign = currentUser?.role === "manager" || currentUser?.role === "admin";
 
   if (!canAssign || !reps) return null;
 

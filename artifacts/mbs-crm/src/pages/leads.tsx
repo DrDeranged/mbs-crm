@@ -6,7 +6,7 @@ import { LeadsFitTable } from "@/components/leads-fit-table";
 import { LEADS_MOBILE_PAGE_SIZE, clampPage, pageRange, remapPage } from "@/lib/leadsPageSizing";
 import { Link, useLocation } from "wouter";
 import {
-  useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers,
+  useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers, getListUsersQueryKey,
   useImportLeads, usePreviewImport,
   useGetMe,
   useBulkUpdateLeadStatus,
@@ -543,7 +543,9 @@ export default function Leads() {
     data: usersData,
     error: usersError,
     refetch: refetchUsers,
-  } = useListUsers({ role: "rep", isActive: true });
+  } = useListUsers({ role: "rep", isActive: true }, {
+    query: { queryKey: getListUsersQueryKey({ role: "rep", isActive: true }), enabled: isManagerOrAdmin },
+  });
   useEffect(() => {
     if (data && data.totalPages >= 1 && page > data.totalPages) setPage(clampPage(page, data.totalPages));
   }, [data, page]);
@@ -886,7 +888,7 @@ export default function Leads() {
           />
         </div>
       )}
-      {usersError && (
+      {isManagerOrAdmin && usersError && (
         <div className="mb-4">
           <QueryErrorState
             label="Available representatives"
