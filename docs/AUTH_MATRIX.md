@@ -66,6 +66,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/leads/import/preview` | `routes/import.ts:128` | `A` | reps rejected |
 | POST | `/api/leads/import` | `routes/import.ts:160` | `A` | reps rejected |
 | POST | `/api/twilio/token` | `routes/twilio.ts:42` | `U` | caller receives only `user_${user.id}` token |
+| GET | `/api/twilio/readiness` | `routes/twilio.ts` | `U` | configuration booleans only; no credentials, provider calls, or tokens |
 | POST | `/api/twilio/voice` | `routes/twilio.ts:88` | `T` | provider callback; no rep-selected record |
 | POST | `/api/twilio/voice/inbound` | `routes/twilio.ts:147` | `T` | provider callback; assignment is read from matched lead |
 | POST | `/api/twilio/voice/status` | `routes/twilio.ts:234` | `T` | provider callback |
