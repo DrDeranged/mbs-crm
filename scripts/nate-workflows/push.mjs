@@ -31,7 +31,11 @@ assert.equal(oldTree.truncated, false);
 const oldFiles = new Map(oldTree.tree.filter(entry => entry.type === "blob").map(entry => [entry.path, entry]));
 const files = [];
 for (const file of manifest.files) {
-  const bytes = await readFile(file.path);
+  // A main-project integration may include unrelated changes in the same file.
+  // Pin the already-tested task revision rather than exporting partial dependencies.
+  const bytes = file.sourceRevision
+    ? git("show", `${file.sourceRevision}:${file.path}`)
+    : await readFile(file.path);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), file.sha256, `Tested bytes changed: ${file.path}`);
   // Compute Git's exact content-addressed blob hash without touching the index.
   const actualBlob = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
@@ -72,7 +76,9 @@ for (const [name, result] of Object.entries(certification.behaviorAssertions ?? 
 const entries = [];
 for (const file of files) {
   if (oldFiles.get(file.path)?.sha === file.blob) continue;
-  const bytes = await readFile(file.path);
+  const bytes = file.sourceRevision
+    ? git("show", `${file.sourceRevision}:${file.path}`)
+    : await readFile(file.path);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), file.sha256);
   const uploaded = await github("POST", "git/blobs", { content: bytes.toString("base64"), encoding: "base64" });
   assert.equal(uploaded.sha, file.blob);

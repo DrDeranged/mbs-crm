@@ -135,7 +135,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/documents/:docId/download` | `routes/documents.ts:138` | `L` | document's lead must have `assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts:6` | `L` | handler checks `lead.assignedRepId === user.id` for reps (`lib/lenderPackage.ts:556-585`) |
 | POST | `/api/leads/:id/lender-package` | `routes/lenderPackage.ts` | `L` | selected document IDs are verified against the lead; assigned reps only |
-| POST | `/api/deals/:id/lender-package` | `routes/lenderPackage.ts` | `L` | deal access and independently scoped linked-lead access; selected document IDs belong to that lead |
 | GET | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
 | PUT | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
 | DELETE | `/api/leads/:id/package-config` | `routes/lenderPackage.ts` | `L` | assigned reps only; admins/managers may access any lead |
@@ -166,7 +165,6 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/leads/:id/underwriting-profile` | `routes/lenders.ts` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/underwriting-corrections` | `routes/lenders.ts` | `L` | `lead.assignedRepId === user.id` for reps; evidence document must belong to lead |
 | POST | `/api/leads/:id/submissions` | `routes/lenders.ts:287` | `L` | `lead.assignedRepId === user.id` for reps |
-| POST | `/api/deals/:id/submissions` | `routes/lenders.ts` | `L` | deal access plus independently scoped linked-lead access; admins or the lead's assigned rep may submit |
 | POST | `/api/leads/:id/submissions/manual` | `routes/lenders.ts` | `L` | submission lead's `assignedRepId === user.id` for reps; explicit deal must belong to the lead |
 | GET | `/api/leads/:id/submissions` | `routes/lenders.ts:326` | `L` | `lead.assignedRepId === user.id` for reps |
 | PUT | `/api/submissions/:id` | `routes/lenders.ts:354` | `L` | submission lead's `assignedRepId === user.id` for reps |

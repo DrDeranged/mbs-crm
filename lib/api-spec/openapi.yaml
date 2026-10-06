@@ -1707,35 +1707,6 @@ paths:
         "403": { description: Forbidden }
         "404": { description: Lead or application not found }
 
-  /deals/{id}/lender-package:
-    post:
-      operationId: buildDealLenderPackage
-      tags: [documents]
-      summary: Build a selected lender package from the deal's authorized linked lead
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LenderPackageConfig"
-      responses:
-        "200":
-          description: Selected lender package PDF
-          content:
-            application/pdf:
-              schema: { type: string, format: binary }
-        "400": { description: Invalid selection or document ownership }
-        "401": { description: Unauthorized }
-        "403": { description: Deal or linked lead is not accessible }
-        "404": { description: "Deal, lead or application not found" }
-        "409": { description: Deal has no linked lead }
-        "500": { description: Package generation failed }
-
   /leads/{id}/package-config:
     get:
       operationId: getLeadPackageConfig
@@ -3751,36 +3722,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/LenderSubmission"
-    post:
-      operationId: createDealSubmission
-      tags: [lenders]
-      summary: Send the linked lead's package and record the submission on this deal
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DealLenderSubmissionInput"
-      responses:
-        "201":
-          description: Submission created on the originating deal
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LenderSubmission"
-        "400": { description: Invalid submission input }
-        "401": { description: Unauthorized }
-        "403": { description: Deal or linked lead is not accessible }
-        "404": { description: "Deal, linked lead or lender not found" }
-        "409": { description: Submission safeguard prevented sending }
-        "500": { description: Package generation or finalization failed }
-        "502": { description: Delivery failed or its outcome is uncertain; do not retry automatically }
-        "503": { description: Submission lock is temporarily unavailable }
 
   /partners/{partnerId}/contacts/{contactId}/sms:
     post:
@@ -7811,14 +7752,6 @@ components:
       type: object
       required: [id, leadId, lenderId, matchScore, criteriaBreakdown, matchedAt]
       properties:
-        verdict:
-          type: string
-          enum: [Likely, Possible, Excluded]
-        reason:
-          type: string
-        needsBeforeSubmit:
-          type: array
-          items: { type: string }
         id:
           type: integer
         leadId:
@@ -9365,24 +9298,6 @@ components:
         jobs:
           type: object
           additionalProperties: true
-
-    DealLenderSubmissionInput:
-      type: object
-      additionalProperties: false
-      required: [lender_id]
-      properties:
-        lender_id:
-          type: integer
-          minimum: 1
-        via_broker_id:
-          type: integer
-        end_lender_id:
-          type: integer
-        admin_override:
-          type: boolean
-          default: false
-        package_config:
-          $ref: "#/components/schemas/LenderPackageConfig"
 
     LenderPackageConfig:
       type: object

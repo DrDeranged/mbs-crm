@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
+import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 import { ReferredByEditor } from "@/components/referral-panels";
 import { useParams, Link, useLocation } from "wouter";
 import {
@@ -39,7 +40,6 @@ import { getQueryErrorStatus } from "@/lib/query-error";
 import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
 import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
-import { LenderPackageBuilderDialog } from "./lead-detail/lender-package-builder";
 import { InlineListError } from "@/components/inline-list-error";
 import { listData } from "@/lib/list-response";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
@@ -50,7 +50,6 @@ import { dealActionAvailable } from "@/lib/recordActions";
 import { isMobileWeb, phoneActionForDevice } from "@/lib/recordContact";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 
 function mutationErrorMessage(error: any, fallback: string) {
   return error?.data?.error ?? error?.data?.message ?? error?.message ?? fallback;
@@ -61,7 +60,6 @@ const STAGES = DEAL_STAGE_COLUMNS;
 export default function DealDetail() {
   const { id } = useParams();
   const dealId = Number(id);
-  const [packageBuilderOpen, setPackageBuilderOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   const {
@@ -385,27 +383,11 @@ export default function DealDetail() {
       disabledReason: "Link this deal to an accessible lead to add tasks.",
       onClick: () => setTaskOpen(true),
     },
-    {
-      action: "build-package",
-      disabled: !authorizedLead,
-      disabledReason: "Link this deal to an accessible lead before building a lender package.",
-      onClick: () => setPackageBuilderOpen(true),
-    },
   ];
 
   return (
     <div className="flex-1 flex flex-col h-full bg-muted overflow-y-auto">
       <RecordActionBar items={actions} />
-      {authorizedLead && actionLeadId && (
-        <LenderPackageBuilderDialog
-          key={dealId}
-          leadId={actionLeadId}
-          dealId={dealId}
-          open={packageBuilderOpen}
-          onOpenChange={setPackageBuilderOpen}
-          submitMode
-        />
-      )}
       <div className="flex-none px-4 py-4 border-b bg-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:px-6">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <Link href="/deals" className="shrink-0">
