@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { ReferredByEditor } from "@/components/referral-panels";
 import { useParams, Link, useLocation } from "wouter";
 import {
@@ -6,7 +7,6 @@ import {
   useGetMe,
   useUpdateDeal,
   useListDealActivity,
-  useListUsers,
   DealStage,
   useArchiveDeal,
   useListDealApprovals,
@@ -69,7 +69,7 @@ export default function DealDetail() {
     refetch: refetchDeal,
   } = useGetDeal(dealId, { query: { queryKey: getGetDealQueryKey(dealId) } });
   const { data: activities, isLoading: activityLoading } = useListDealActivity(dealId);
-  const { data: users } = useListUsers({ role: "rep", isActive: true });
+  const { data: users, canReadDirectory } = useListUsers({ role: "rep", isActive: true });
   const { data: me } = useGetMe();
 
   const approvalsQuery = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
@@ -156,7 +156,9 @@ export default function DealDetail() {
         approxGm: formData.approxGm ? Number(formData.approxGm) : null,
         actualGm: formData.actualGm ? Number(formData.actualGm) : null,
         stage: formData.stage as any,
-        assignedTo: formData.assignedTo === "unassigned" ? null : Number(formData.assignedTo)
+        ...(canReadDirectory ? {
+          assignedTo: formData.assignedTo === "unassigned" ? null : Number(formData.assignedTo),
+        } : {})
       } 
     }, {
       onSuccess: () => {
@@ -312,7 +314,8 @@ export default function DealDetail() {
     );
   }
 
-  const assignedRep = users?.find(u => u.id === deal.assignedTo);
+  const assignedRep = users?.find(u => u.id === deal.assignedTo)
+    ?? (me?.id === deal.assignedTo ? me : undefined);
   const currentStage = STAGES.find(s => s.id === deal.stage)?.label || deal.stage;
   const identity = formatDealIdentity(deal);
   const authorizedLead = (deal as any).lead ?? null;
@@ -484,7 +487,7 @@ export default function DealDetail() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Assigned rep</Label>
+                    {canReadDirectory && <><Label>Assigned rep</Label>
                     <SearchableSelect
                       value={formData.assignedTo}
                       onValueChange={v => setFormData(f => ({...f, assignedTo: v}))}
@@ -494,7 +497,7 @@ export default function DealDetail() {
                         { value: "unassigned", label: "Unassigned" },
                         ...(users ?? []).map(u => ({ value: String(u.id), label: getUserDisplayName(u) })),
                       ]}
-                    />
+                    /></>}
                   </div>
                   <div className="space-y-1.5">
                     <Label>Amount</Label>

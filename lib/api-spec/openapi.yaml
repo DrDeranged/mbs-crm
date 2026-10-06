@@ -2624,11 +2624,13 @@ paths:
             type: integer
       responses:
         "200":
-          description: Application record
+          description: Application record, or null when the accessible lead has no submitted application
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApplicationRecord"
+                anyOf:
+                  - $ref: "#/components/schemas/ApplicationRecord"
+                  - type: "null"
         "404":
           description: Not found
 
@@ -2712,6 +2714,27 @@ paths:
                   $ref: "#/components/schemas/RenewalOpportunity"
         "401":
           description: Unauthorized
+
+  /twilio/readiness:
+    get:
+      operationId: getTwilioReadiness
+      tags: [twilio]
+      summary: Read configuration readiness without contacting Twilio or minting a token
+      responses:
+        "200":
+          description: Configuration state (no secrets)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [voiceConfigured, ownedNumbersConfigured]
+                properties:
+                  voiceConfigured:
+                    type: boolean
+                  ownedNumbersConfigured:
+                    type: boolean
+        "401":
+          description: Authentication required
 
   /twilio/token:
     post:

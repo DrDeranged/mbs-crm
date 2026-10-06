@@ -4,6 +4,8 @@ import { useLocation } from "wouter";
 import { Device, Call } from "@twilio/voice-sdk";
 import {
   useGetTwilioToken,
+  useGetTwilioReadiness,
+  getGetTwilioReadinessQueryKey,
   useGetMe,
   useUpdateCommunication,
   useCreateTask,
@@ -58,6 +60,9 @@ export function SoftphoneWidget() {
   const { pendingNumber, autoCall, pendingLeadId, clearPending, currentLead, openTextComposer, setSoftphoneAvailable } = useContext(SoftphoneContext);
   const queryClient = useQueryClient();
   const { data: currentUser } = useGetMe();
+  const { data: readiness } = useGetTwilioReadiness({
+    query: { queryKey: getGetTwilioReadinessQueryKey(), enabled: Boolean(currentUser) },
+  });
 
   const [minimized, setMinimized] = useState(true);
   const [dialInput, setDialInput] = useState("");
@@ -192,6 +197,10 @@ export function SoftphoneWidget() {
   }, [currentUser?.role, requestTwilioToken]);
 
   useEffect(() => {
+    if (!readiness?.voiceConfigured) {
+      if (readiness) setError("Twilio calling is not configured.");
+      return;
+    }
     let cancelled = false;
     requestTwilioToken().then((data) => {
       if (!cancelled) initDevice(data.token);
@@ -213,7 +222,7 @@ export function SoftphoneWidget() {
       setDeviceRegistered(false);
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [readiness?.voiceConfigured, requestTwilioToken, initDevice]);
 
   // Handle dial requests from context (click-to-call)
   useEffect(() => {

@@ -10,7 +10,7 @@ import { logActivity } from "../lib/activityHelper";
 import { sendPushNotification } from "../lib/pushNotifications";
 import { createNotification } from "../lib/notify";
 import { logger } from "../lib/logger";
-import { getTwilioFailureReason, mintVoiceToken } from "../lib/integrationHealth";
+import { getTwilioFailureReason, getBrowserTelephonyReadiness, mintVoiceToken } from "../lib/integrationHealth";
 import { getTelephonySettings } from "../lib/telephonySettings";
 import { approvedTwilioNumbers, isOwnedInboundNumber, selectVoiceCallerId } from "../lib/telephonyRouting";
 import { appendVoiceMessage, buildInboundVoiceTwiML, isWithinVoiceHours, nextPriorityTarget, selectRingTargets } from "../lib/inboundVoice";
@@ -83,6 +83,12 @@ function validateTwilioSignature(req: Request): boolean {
 }
 
 // POST /api/twilio/token
+twilioTokenRouter.get("/twilio/readiness", async (req, res) => {
+  const user = await requireUser(req, res);
+  if (!user) return;
+  res.json(getBrowserTelephonyReadiness());
+});
+
 twilioTokenRouter.post("/twilio/token", async (req, res) => {
   const user = await requireUser(req, res);
   if (!user) return;

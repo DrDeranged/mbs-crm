@@ -23,6 +23,17 @@ export function getTwilioFailureReason(env = process.env): TwilioFailureReason |
   return null;
 }
 
+/** Presence only: no provider calls, no tokens, and no secret values in output. */
+export function getBrowserTelephonyReadiness(env = process.env) {
+  return {
+    voiceConfigured: getTwilioFailureReason(env) === null
+      && ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_API_KEY", "TWILIO_API_SECRET"]
+        .every(key => Boolean(env[key]?.trim())),
+    ownedNumbersConfigured: /^AC[0-9a-f]{32}$/i.test(env["TWILIO_ACCOUNT_SID"] ?? "")
+      && Boolean(env["TWILIO_AUTH_TOKEN"]?.trim()),
+  };
+}
+
 export function mintVoiceToken(identity: string, env = process.env): string {
   const reason = getTwilioFailureReason(env);
   if (reason) throw new Error(reason);

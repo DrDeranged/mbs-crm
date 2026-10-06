@@ -140,6 +140,7 @@ import type {
   GetDealsAnalyticsParams,
   GetLeadBriefing200,
   GetPartnerTextingSettings200,
+  GetTwilioReadiness200,
   GetTwilioToken503,
   GetUnreadNotificationCount200,
   HealthStatus,
@@ -7830,9 +7831,9 @@ export const getGetLeadApplicationUrl = (id: number,) => {
 /**
  * @summary Get the submitted application for a lead (SSN masked)
  */
-export const getLeadApplication = async (id: number, options?: RequestInit): Promise<ApplicationRecord> => {
+export const getLeadApplication = async (id: number, options?: RequestInit): Promise<ApplicationRecord | null> => {
 
-  return customFetch<ApplicationRecord>(getGetLeadApplicationUrl(id),
+  return customFetch<ApplicationRecord | null>(getGetLeadApplicationUrl(id),
   {
     ...options,
     method: 'GET'
@@ -8129,6 +8130,83 @@ export function useGetAnalyticsRenewals<TData = Awaited<ReturnType<typeof getAna
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAnalyticsRenewalsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTwilioReadinessUrl = () => {
+
+
+
+
+  return `/api/twilio/readiness`
+}
+
+/**
+ * @summary Read configuration readiness without contacting Twilio or minting a token
+ */
+export const getTwilioReadiness = async ( options?: RequestInit): Promise<GetTwilioReadiness200> => {
+
+  return customFetch<GetTwilioReadiness200>(getGetTwilioReadinessUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTwilioReadinessQueryKey = () => {
+    return [
+    `/api/twilio/readiness`
+    ] as const;
+    }
+
+
+export const getGetTwilioReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getTwilioReadiness>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTwilioReadiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTwilioReadinessQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTwilioReadiness>>> = ({ signal }) => getTwilioReadiness({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTwilioReadiness>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTwilioReadinessQueryResult = NonNullable<Awaited<ReturnType<typeof getTwilioReadiness>>>
+export type GetTwilioReadinessQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read configuration readiness without contacting Twilio or minting a token
+ */
+
+export function useGetTwilioReadiness<TData = Awaited<ReturnType<typeof getTwilioReadiness>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTwilioReadiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTwilioReadinessQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

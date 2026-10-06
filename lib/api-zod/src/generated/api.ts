@@ -4537,7 +4537,7 @@ export const GetLeadApplicationParams = zod.object({
   "id": zod.coerce.number()
 })
 
-export const GetLeadApplicationResponse = zod.object({
+export const GetLeadApplicationResponse = zod.union([zod.object({
   "id": zod.number(),
   "leadId": zod.number(),
   "type": zod.enum(['equipment', 'working_capital']),
@@ -4602,7 +4602,7 @@ export const GetLeadApplicationResponse = zod.object({
   "signatureIp": zod.string().nullish(),
   "signedDocumentUrl": zod.string().nullish(),
   "submittedAt": zod.coerce.date()
-})
+}),zod.null()])
 
 
 /**
@@ -4685,6 +4685,15 @@ export const GetAnalyticsRenewalsResponseItem = zod.object({
   "requestedAmount": zod.number().nullish()
 })
 export const GetAnalyticsRenewalsResponse = zod.array(GetAnalyticsRenewalsResponseItem)
+
+
+/**
+ * @summary Read configuration readiness without contacting Twilio or minting a token
+ */
+export const GetTwilioReadinessResponse = zod.object({
+  "voiceConfigured": zod.boolean(),
+  "ownedNumbersConfigured": zod.boolean()
+})
 
 
 /**

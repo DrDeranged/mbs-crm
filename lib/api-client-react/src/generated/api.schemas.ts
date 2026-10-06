@@ -4727,6 +4727,11 @@ export type GetAnalyticsRenewalsParams = {
 rep_id?: number;
 };
 
+export type GetTwilioReadiness200 = {
+  voiceConfigured: boolean;
+  ownedNumbersConfigured: boolean;
+};
+
 export type GetTwilioToken503 = {
   error: string;
   reason: string;

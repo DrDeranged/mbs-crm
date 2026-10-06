@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import "./leads-fit.css";
 import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import { useLeadsFit } from "@/hooks/use-leads-fit";
@@ -6,7 +7,7 @@ import { LeadsFitTable } from "@/components/leads-fit-table";
 import { LEADS_MOBILE_PAGE_SIZE, clampPage, pageRange, remapPage } from "@/lib/leadsPageSizing";
 import { Link, useLocation } from "wouter";
 import {
-  useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, useListUsers, getListUsersQueryKey,
+  useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, getListUsersQueryKey,
   useImportLeads, usePreviewImport,
   useGetMe,
   useBulkUpdateLeadStatus,
@@ -764,7 +765,7 @@ export default function Leads() {
           </SelectContent>
         </Select>
 
-        {usersData && usersData.length > 0 && (
+        {isManagerOrAdmin && usersData && usersData.length > 0 && (
           <SearchableSelect
             value={repId || "all"}
             onValueChange={handleRepChange}

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useAppearance } from "@/components/appearance-provider";
 import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import type { AppearancePreference } from "@/lib/appearance";
-import { useGetMe, getGetMeQueryKey, useListUsers, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, useRunProductionCloseout, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, getListUsersQueryKey, useUpdateUser, useUpdateMyMobile, useGetLeadDistributionSettings, getGetLeadDistributionSettingsQueryKey, useUpdateLeadDistributionSettings, getListLeadsQueryKey, useReassignSeededDeals, useBackfillSlugs, useSeedStarterEmail, useSeedNewLenders, useRunProductionCloseout, getListDealsQueryKey, getGetDealsAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -151,15 +152,23 @@ export default function Settings() {
     let cancelled = false;
     setLoadingTelephony(true);
     setTelephonyError(null);
-    Promise.all([
-      fetch(`${apiBase}/settings/telephony`, { credentials: "include" }),
-      fetch(`${apiBase}/settings/telephony/owned-numbers`, { credentials: "include" }),
-    ]).then(async ([settingsResponse, numbersResponse]) => {
+    fetch(`${apiBase}/twilio/readiness`, { credentials: "include" })
+      .then(async response => {
+        if (!response.ok) throw new Error("Unable to check telephony configuration.");
+        const readiness = await response.json();
+        return Promise.all([
+          fetch(`${apiBase}/settings/telephony`, { credentials: "include" }),
+          readiness.ownedNumbersConfigured
+            ? fetch(`${apiBase}/settings/telephony/owned-numbers`, { credentials: "include" })
+            : Promise.resolve(null),
+        ]);
+      }).then(async ([settingsResponse, numbersResponse]) => {
       const settingsPayload = await settingsResponse.json().catch(() => ({}));
-      const numbersPayload = await numbersResponse.json().catch(() => []);
+      const numbersPayload = numbersResponse ? await numbersResponse.json().catch(() => []) : [];
       if (!settingsResponse.ok) throw new Error(settingsPayload.error || "Unable to load telephony settings.");
-      if (!numbersResponse.ok) throw new Error(numbersPayload.error || "Unable to load owned phone numbers.");
+      if (numbersResponse && !numbersResponse.ok) throw new Error(numbersPayload.error || "Unable to load owned phone numbers.");
       if (cancelled) return;
+      if (!numbersResponse) setTelephonyError("Twilio owned-number lookup is not configured.");
       setTelephonySettings({
         voiceCallerId: typeof settingsPayload.voiceCallerId === "string" ? settingsPayload.voiceCallerId : "",
         smsSenderNumber: typeof settingsPayload.smsSenderNumber === "string" ? settingsPayload.smsSenderNumber : "",

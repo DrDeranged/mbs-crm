@@ -693,7 +693,7 @@ router.get("/leads/:id/application", async (req: Request, res: Response) => {
     where: eq(applicationsTable.leadId, id),
     orderBy: [desc(applicationsTable.submittedAt), desc(applicationsTable.id)],
   });
-  if (!app) { res.status(404).json({ error: "No application on file" }); return; }
+  if (!app) { res.json(null); return; }
 
   // Mask SSN — never send plaintext to client
   const { ownerSsnEncrypted, secondaryOwnerSsnEncrypted, ...rest } = app;

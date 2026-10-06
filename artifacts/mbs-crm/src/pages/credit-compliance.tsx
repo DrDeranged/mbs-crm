@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useGetMe, useGetCreditComplianceLog, getGetCreditComplianceLogQueryKey, useListUsers } from "@workspace/api-client-react";
+import { useGetMe, useGetCreditComplianceLog, getGetCreditComplianceLogQueryKey } from "@workspace/api-client-react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

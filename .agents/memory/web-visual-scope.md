@@ -3,6 +3,20 @@ name: Web visual scope
 description: Scope and evidence constraints for visual-only web CRM refreshes.
 ---
 
+Representatives must never request the user directory. Hide every directory-backed
+rep filter or assignee picker for reps, including before identity finishes loading;
+managers and admins retain those controls. This functional role-policy change is
+explicitly approved in addition to the three structural exception categories:
+Search referrer, Share referral link, and the exact rep Retry removals.
+
+**Why:** The user explicitly rejected rep error panels and empty directory controls,
+not just failed queries. Query disabling alone does not remove cached directory
+data or prevent a manual refetch.
+
+**How to apply:** Keep role checks on both requests and controls, including new/edit
+forms and direct route visits. Do not weaken server RBAC or use a baseline update
+to approve unrelated structural changes.
+
 Web CRM visual-only work must preserve existing interactive controls and their relative DOM/tab order, including persistent lead/deal contact actions. On 2026-10-04, the user approved moving desktop light/dark switching to a top-bar icon beside Search and removing the desktop Settings appearance selector. Mobile web keeps its existing Settings appearance control. Unsaved/invalid choices still default to Light; existing System preferences remain honored until explicitly toggled. Cross-device sync is not requested.
 
 **Why:** Presentation changes do not authorize workflow redesign. The desktop header theme control is an explicit approved exception, not permission to add or reorder unrelated controls or mobile navigation.

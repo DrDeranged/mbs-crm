@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import {
   useGetMe, getGetMeQueryKey,
   useGetMyTasks, getGetMyTasksQueryKey,
@@ -16,7 +17,7 @@ import {
   useGetDealsAnalytics, getGetDealsAnalyticsQueryKey,
   useGetUnassignedInboundCount, getGetUnassignedInboundCountQueryKey,
   useListLeads, getListLeadsQueryKey,
-  useListUsers, getListUsersQueryKey,
+  getListUsersQueryKey,
   useAssignLead,
   useListDeals,
   getListDealsQueryKey,

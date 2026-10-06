@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { useRoute, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +22,6 @@ import {
   useUpdateCampaignAudiencePreset,
   useDeleteCampaignAudiencePreset,
   getListCampaignAudiencePresetsQueryKey,
-  useListUsers,
   useGetAnalyticsSources,
   useListCampaignFlyers,
   useGetCampaignMetrics,
@@ -177,7 +177,7 @@ export default function CampaignDetailPage() {
   const repliesQ = useGetCampaignReplies(id, { query: { enabled: !!id && canSeeReplies && campaign?.status !== "draft", queryKey: getGetCampaignRepliesQueryKey(id) } });
   const { data: templates } = useListEmailTemplates();
   const { data: presets } = useListCampaignAudiencePresets({ query: { queryKey: getListCampaignAudiencePresetsQueryKey() } });
-  const { data: users } = useListUsers({ isActive: true });
+  const { data: users, canReadDirectory } = useListUsers({ isActive: true });
   const { data: sourceData, isPending: sourcesPending, isError: sourcesError, refetch: refetchSources } = useGetAnalyticsSources();
   const sourceOptions = campaignSourceOptions(sourceData);
   const repOptions = campaignRepOptions(users);
@@ -1020,7 +1020,7 @@ export default function CampaignDetailPage() {
                           </FormItem>
                         )}
                       />
-                      <FormField
+                      {canReadDirectory && <FormField
                         control={form.control}
                         name="audienceRules.assignedRepId"
                         render={({ field }) => (
@@ -1044,7 +1044,7 @@ export default function CampaignDetailPage() {
                             <FormMessage />
                           </FormItem>
                         )}
-                      />
+                      />}
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}

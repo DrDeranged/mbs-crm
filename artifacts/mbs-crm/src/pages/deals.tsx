@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { PipelineSkeleton } from "@/components/page-skeletons";
 import { Link } from "wouter";
 import {
@@ -11,7 +12,6 @@ import {
   Deal,
   ListDealsSortBy,
   ListDealsSortOrder,
-  useListUsers,
   getListUsersQueryKey,
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";

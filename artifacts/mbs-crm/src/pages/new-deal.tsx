@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { getUserDisplayName } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import {
   useCreateDeal,
-  useListUsers,
   useListLeads,
   DealStage,
   getListDealsQueryKey,
@@ -24,7 +24,7 @@ const STAGES = DEAL_STAGE_COLUMNS;
 
 export default function NewDeal() {
   const [, setLocation] = useLocation();
-  const { data: users } = useListUsers({ role: "rep", isActive: true });
+  const { data: users, canReadDirectory } = useListUsers({ role: "rep", isActive: true });
   const { data: leadsData } = useListLeads({ limit: 100 });
   const leads = (leadsData as any)?.leads ?? [];
   
@@ -63,7 +63,7 @@ export default function NewDeal() {
         amount: formData.amount ? Number(formData.amount) : undefined,
         approxGm: formData.approxGm ? Number(formData.approxGm) : undefined,
         stage: formData.stage as any,
-        assignedTo: formData.assignedTo === "unassigned" ? undefined : Number(formData.assignedTo)
+        assignedTo: canReadDirectory && formData.assignedTo !== "unassigned" ? Number(formData.assignedTo) : undefined
       }
     }, {
       onSuccess: (deal) => {
@@ -159,7 +159,7 @@ export default function NewDeal() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Assigned rep</Label>
+                    {canReadDirectory && <><Label>Assigned rep</Label>
                     <SearchableSelect
                       options={[
                         { value: "unassigned", label: "Unassigned" },
@@ -170,7 +170,7 @@ export default function NewDeal() {
                       placeholder="Unassigned"
                       searchPlaceholder="Search reps…"
                       className="bg-card"
-                    />
+                    /></>}
                   </div>
                   <div className="space-y-1.5">
                     <Label>Requested amount</Label>

@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/searchable-select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Building2, Mail, User, Link2, Phone } from "lucide-react";
-import { getGetLeadQueryKey, getListLeadActivityQueryKey, getListUsersQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe, useListUsers } from "@workspace/api-client-react";
+import { getGetLeadQueryKey, getListLeadActivityQueryKey, getListUsersQueryKey, useAssignLead, useCreateUsfaApplicationLink, useGetMe } from "@workspace/api-client-react";
+import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
 import { contactName, formatLeadIdentity } from "@/lib/recordIdentity";
 import { useLeadDetail } from "./context";
