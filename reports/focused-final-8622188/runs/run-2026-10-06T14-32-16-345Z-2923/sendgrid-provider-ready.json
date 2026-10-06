@@ -1,0 +1,6 @@
+{
+  "ready": true,
+  "bind": "127.0.0.1",
+  "port": 36529,
+  "fakeProvider": "local-only"
+}

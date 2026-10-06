@@ -1,0 +1,18 @@
+{
+  "originalPath": "scripts/visual-refresh/sandbox.mjs",
+  "originalSha256": "809004c2053b0d40697e98284b19ca78ec71487cb8a5a0f3d5709ee25a827953",
+  "derivativePath": "reports/focused-final-8622188/derived-sandbox.mjs",
+  "derivativeSha256": "c807fdc0e95ac68859b10a960fde9fcd67fa8534a9d77ff2625cc2b044a1a596",
+  "importedFilesystemHelpers": [
+    "readFileSync",
+    "writeFileSync"
+  ],
+  "narrowOverride": "POST /api/campaigns/{one allow-listed id}/launch only",
+  "launchRequires": [
+    "parent local provider listener ready",
+    "API-child transport preloader ready",
+    "fake key installed",
+    "inbound parse settings unset"
+  ],
+  "allOtherExternalDeliveryBlocksRetained": true
+}

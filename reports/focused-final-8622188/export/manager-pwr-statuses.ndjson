@@ -1,0 +1,267 @@
+{"page":"manager-auth","method":"GET","path":"/sign-in","status":200,"at":"2026-10-06T14:32:28.837Z"}
+{"page":"manager-auth","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:28.855Z"}
+{"page":"manager-auth","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:28.892Z"}
+{"page":"manager-auth","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:28.985Z"}
+{"page":"manager-auth","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:29.012Z"}
+{"page":"manager-auth","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:29.024Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:29.036Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:29.079Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:29.172Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:29.206Z"}
+{"page":"manager-auth","method":"GET","path":"http://127.0.0.1:4360/f55a67f7-8f62-4c24-802c-8584321eb132","status":200,"at":"2026-10-06T14:32:29.259Z"}
+{"page":"manager-auth","method":"POST","path":"/v1/dev_browser","status":200,"at":"2026-10-06T14:32:29.346Z"}
+{"page":"manager-auth","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:29.471Z"}
+{"page":"manager-auth","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:29.473Z"}
+{"page":"manager-auth","method":"GET","path":"http://127.0.0.1:4360/405cf8bb-aea3-404c-99b9-45bf8d69877f","status":200,"at":"2026-10-06T14:32:29.485Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.548Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.548Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.550Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/7181_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.551Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/signup_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.551Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/8746_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.557Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/signin_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.558Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.596Z"}
+{"page":"manager-auth","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/3736_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:29.611Z"}
+{"page":"manager-auth","method":"GET","path":"/static/google.svg","status":200,"at":"2026-10-06T14:32:29.767Z"}
+{"page":"manager-auth","method":"POST","path":"/v1/client/sign_ins","status":200,"at":"2026-10-06T14:32:29.768Z"}
+{"page":"manager-auth","method":"POST","path":"/v1/client/sessions/sess_3KKD1LilnvjQGvbfeFceNn1eW9J/touch","status":200,"at":"2026-10-06T14:32:29.892Z"}
+{"page":"Leads","method":"GET","path":"/leads","status":200,"at":"2026-10-06T14:32:30.221Z"}
+{"page":"Leads","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:30.242Z"}
+{"page":"Leads","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:30.266Z"}
+{"page":"Leads","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:30.284Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:30.296Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:30.306Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:30.394Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:30.400Z"}
+{"page":"Leads","method":"GET","path":"http://127.0.0.1:4360/40860df1-9f7d-4203-acea-d37187f99604","status":200,"at":"2026-10-06T14:32:30.483Z"}
+{"page":"Leads","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:30.565Z"}
+{"page":"Leads","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:30.573Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:30.580Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:30.580Z"}
+{"page":"Leads","method":"GET","path":"http://127.0.0.1:4360/5f3215ca-f450-43e5-bc9d-bf0e053fc8f3","status":200,"at":"2026-10-06T14:32:30.600Z"}
+{"page":"Leads","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:30.613Z"}
+{"page":"Leads","method":"GET","path":"/api/me","status":200,"at":"2026-10-06T14:32:30.614Z"}
+{"page":"Leads","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:30.663Z"}
+{"page":"Leads","method":"GET","path":"/assets/leads-BRPkQBsU.css","status":200,"at":"2026-10-06T14:32:30.667Z"}
+{"page":"Leads","method":"GET","path":"/brand/mbs-logo-green-slash.png","status":200,"at":"2026-10-06T14:32:30.685Z"}
+{"page":"Leads","method":"GET","path":"/assets/use-manager-directory-CNRNX6AW.js","status":200,"at":"2026-10-06T14:32:30.687Z"}
+{"page":"Leads","method":"GET","path":"/assets/leads-jcDDz_JV.js","status":200,"at":"2026-10-06T14:32:30.689Z"}
+{"page":"Leads","method":"GET","path":"/assets/checkbox-CTWJPd-1.js","status":200,"at":"2026-10-06T14:32:30.690Z"}
+{"page":"Leads","method":"GET","path":"/assets/searchable-select-I6zA7TQW.js","status":200,"at":"2026-10-06T14:32:30.692Z"}
+{"page":"Leads","method":"GET","path":"/assets/phone-link-XoHaYzWG.js","status":200,"at":"2026-10-06T14:32:30.692Z"}
+{"page":"Leads","method":"GET","path":"/assets/empty-CulYNYIt.js","status":200,"at":"2026-10-06T14:32:30.692Z"}
+{"page":"Leads","method":"GET","path":"/assets/format-BsxEDTnR.js","status":200,"at":"2026-10-06T14:32:30.694Z"}
+{"page":"Leads","method":"GET","path":"/assets/arrow-up-down-DYlxJk9S.js","status":200,"at":"2026-10-06T14:32:30.695Z"}
+{"page":"Leads","method":"GET","path":"/assets/info-4h65DzxR.js","status":200,"at":"2026-10-06T14:32:30.695Z"}
+{"page":"Leads","method":"GET","path":"/assets/formatDistanceToNow-BvcfjZNi.js","status":200,"at":"2026-10-06T14:32:30.695Z"}
+{"page":"Leads","method":"GET","path":"/assets/table-C7guu-D-.js","status":200,"at":"2026-10-06T14:32:30.696Z"}
+{"page":"Leads","method":"GET","path":"/assets/trash-2-BwoBi9jH.js","status":200,"at":"2026-10-06T14:32:30.697Z"}
+{"page":"Leads","method":"GET","path":"/assets/alert-dialog-BPBvG_sm.js","status":200,"at":"2026-10-06T14:32:30.697Z"}
+{"page":"Leads","method":"GET","path":"/api/notifications/unread-count","status":200,"at":"2026-10-06T14:32:30.697Z"}
+{"page":"Leads","method":"GET","path":"/api/twilio/readiness","status":200,"at":"2026-10-06T14:32:30.698Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:30.701Z"}
+{"page":"Leads","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:30.701Z"}
+{"page":"Leads","method":"GET","path":"/[REDACTED_OPAQUE_RESOURCE]","status":200,"at":"2026-10-06T14:32:30.852Z"}
+{"page":"Leads","method":"GET","path":"/api/users","status":200,"at":"2026-10-06T14:32:30.993Z"}
+{"page":"Leads","method":"GET","path":"/api/leads","status":200,"at":"2026-10-06T14:32:31.010Z"}
+{"page":"Lead Detail","method":"GET","path":"/leads/1","status":200,"at":"2026-10-06T14:32:31.096Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:31.118Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:31.144Z"}
+{"page":"Lead Detail","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:31.169Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:31.175Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:31.185Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:31.275Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:31.281Z"}
+{"page":"Lead Detail","method":"GET","path":"http://127.0.0.1:4360/71215531-179c-4170-8751-4302149448d6","status":200,"at":"2026-10-06T14:32:31.362Z"}
+{"page":"Lead Detail","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:31.436Z"}
+{"page":"Lead Detail","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:31.455Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:31.461Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:31.462Z"}
+{"page":"Lead Detail","method":"GET","path":"http://127.0.0.1:4360/652715dd-ce88-44d9-8387-29d749f22b74","status":200,"at":"2026-10-06T14:32:31.478Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:31.481Z"}
+{"page":"Lead Detail","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:31.482Z"}
+{"page":"Lead Detail","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:31.483Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/me","status":200,"at":"2026-10-06T14:32:31.484Z"}
+{"page":"Lead Detail","method":"GET","path":"/[REDACTED_OPAQUE_RESOURCE]","status":200,"at":"2026-10-06T14:32:31.513Z"}
+{"page":"Lead Detail","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:31.524Z"}
+{"page":"Lead Detail","method":"GET","path":"/brand/mbs-logo-green-slash.png","status":200,"at":"2026-10-06T14:32:31.524Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/list-response-D3nYxFu7.js","status":200,"at":"2026-10-06T14:32:31.538Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/pencil-BRnw7psT.js","status":200,"at":"2026-10-06T14:32:31.538Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/tabs-CUJNsNnu.js","status":200,"at":"2026-10-06T14:32:31.538Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/record-action-bar-BVILGHS7.js","status":200,"at":"2026-10-06T14:32:31.539Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/lead-detail-CLR9K82T.js","status":200,"at":"2026-10-06T14:32:31.539Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/searchable-select-I6zA7TQW.js","status":200,"at":"2026-10-06T14:32:31.541Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/card-fSOQr67D.js","status":200,"at":"2026-10-06T14:32:31.542Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/arrow-left-B5HANzbc.js","status":200,"at":"2026-10-06T14:32:31.544Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/link-2-x4eJn4Jh.js","status":200,"at":"2026-10-06T14:32:31.545Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/user-B68HNpkf.js","status":200,"at":"2026-10-06T14:32:31.548Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/form-C1v2qIWv.js","status":200,"at":"2026-10-06T14:32:31.548Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/campaign-replies-panel-khLdcuKs.js","status":200,"at":"2026-10-06T14:32:31.549Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/referrer-select-HOEEWQRM.js","status":200,"at":"2026-10-06T14:32:31.550Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/triangle-alert-C4iYza3S.js","status":200,"at":"2026-10-06T14:32:31.551Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/campaignMetrics-BZ_H2_AY.js","status":200,"at":"2026-10-06T14:32:31.551Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-DbKJuWlM.js","status":200,"at":"2026-10-06T14:32:31.552Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/referral-panels-BLrHL8Qd.js","status":200,"at":"2026-10-06T14:32:31.552Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/sparkles-CWbBecjo.js","status":200,"at":"2026-10-06T14:32:31.558Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/trending-up-BSjM7-WM.js","status":200,"at":"2026-10-06T14:32:31.558Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/chart-column-C18Na0D-.js","status":200,"at":"2026-10-06T14:32:31.561Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/calendar-CxHi7cMK.js","status":200,"at":"2026-10-06T14:32:31.563Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/format-BsxEDTnR.js","status":200,"at":"2026-10-06T14:32:31.563Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-DLoRjS3_.js","status":200,"at":"2026-10-06T14:32:31.563Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-C8vne3tf.js","status":200,"at":"2026-10-06T14:32:31.571Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/switch-DWwdsr3a.js","status":200,"at":"2026-10-06T14:32:31.573Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/safe-email-html-preview-lrCwXaPF.js","status":200,"at":"2026-10-06T14:32:31.573Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/eye-DsJ0JNGV.js","status":200,"at":"2026-10-06T14:32:31.574Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/rotate-ccw-CwqAwsQf.js","status":200,"at":"2026-10-06T14:32:31.575Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/fileDownload-Do9oMiCL.js","status":200,"at":"2026-10-06T14:32:31.576Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/list-BjR2Wt2H.js","status":200,"at":"2026-10-06T14:32:31.590Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/phone-call-BCnjgriu.js","status":200,"at":"2026-10-06T14:32:31.591Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/star-Ci_vxpd5.js","status":200,"at":"2026-10-06T14:32:31.591Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/index-C7yKKq-w.js","status":200,"at":"2026-10-06T14:32:31.591Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/circle-check-D5tdUU5f.js","status":200,"at":"2026-10-06T14:32:31.592Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/rich-text-editor-VeKJZuWE.js","status":200,"at":"2026-10-06T14:32:31.595Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/circle-x-DVgx9kCk.js","status":200,"at":"2026-10-06T14:32:31.596Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/copy-BujtTq9O.js","status":200,"at":"2026-10-06T14:32:31.598Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/use-manager-directory-CNRNX6AW.js","status":200,"at":"2026-10-06T14:32:31.605Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/phone-link-XoHaYzWG.js","status":200,"at":"2026-10-06T14:32:31.605Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/formatDistanceToNow-BvcfjZNi.js","status":200,"at":"2026-10-06T14:32:31.606Z"}
+{"page":"Lead Detail","method":"GET","path":"/assets/checkbox-CTWJPd-1.js","status":200,"at":"2026-10-06T14:32:31.606Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/leads/[ID]/application","status":200,"at":"2026-10-06T14:32:31.611Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/leads/[ID]","status":200,"at":"2026-10-06T14:32:31.611Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/notifications/unread-count","status":200,"at":"2026-10-06T14:32:31.621Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/twilio/readiness","status":200,"at":"2026-10-06T14:32:31.621Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/users","status":200,"at":"2026-10-06T14:32:31.851Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/leads/[ID]/campaign-replies","status":200,"at":"2026-10-06T14:32:31.869Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/referrals/lead/1","status":200,"at":"2026-10-06T14:32:31.875Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/deals","status":200,"at":"2026-10-06T14:32:31.886Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/leads/[ID]/activity","status":200,"at":"2026-10-06T14:32:31.886Z"}
+{"page":"Lead Detail","method":"GET","path":"/api/leads/[ID]/campaign-engagement","status":200,"at":"2026-10-06T14:32:31.894Z"}
+{"page":"Deals","method":"GET","path":"/deals","status":200,"at":"2026-10-06T14:32:31.979Z"}
+{"page":"Deals","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:32.014Z"}
+{"page":"Deals","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:32.049Z"}
+{"page":"Deals","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:32.075Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:32.081Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:32.094Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:32.182Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:32.188Z"}
+{"page":"Deals","method":"GET","path":"http://127.0.0.1:4360/b54e73eb-b620-407e-bbdf-c0d2c462edb3","status":200,"at":"2026-10-06T14:32:32.268Z"}
+{"page":"Deals","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:32.346Z"}
+{"page":"Deals","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:32.359Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:32.369Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:32.369Z"}
+{"page":"Deals","method":"GET","path":"/api/me","status":200,"at":"2026-10-06T14:32:32.425Z"}
+{"page":"Deals","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:32.430Z"}
+{"page":"Deals","method":"GET","path":"http://127.0.0.1:4360/88d44a26-cc54-4017-be47-dc2236551903","status":200,"at":"2026-10-06T14:32:32.433Z"}
+{"page":"Deals","method":"GET","path":"/[REDACTED_OPAQUE_RESOURCE]","status":200,"at":"2026-10-06T14:32:32.473Z"}
+{"page":"Deals","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:32.478Z"}
+{"page":"Deals","method":"GET","path":"/brand/mbs-logo-green-slash.png","status":200,"at":"2026-10-06T14:32:32.478Z"}
+{"page":"Deals","method":"GET","path":"/assets/dollar-sign-C5S59m-1.js","status":200,"at":"2026-10-06T14:32:32.500Z"}
+{"page":"Deals","method":"GET","path":"/assets/dealBoard-CE-u94hD.js","status":200,"at":"2026-10-06T14:32:32.501Z"}
+{"page":"Deals","method":"GET","path":"/assets/use-manager-directory-CNRNX6AW.js","status":200,"at":"2026-10-06T14:32:32.502Z"}
+{"page":"Deals","method":"GET","path":"/assets/deals-BLDNLqCF.js","status":200,"at":"2026-10-06T14:32:32.513Z"}
+{"page":"Deals","method":"GET","path":"/assets/table-C7guu-D-.js","status":200,"at":"2026-10-06T14:32:32.514Z"}
+{"page":"Deals","method":"GET","path":"/assets/phone-link-XoHaYzWG.js","status":200,"at":"2026-10-06T14:32:32.515Z"}
+{"page":"Deals","method":"GET","path":"/assets/list-BjR2Wt2H.js","status":200,"at":"2026-10-06T14:32:32.516Z"}
+{"page":"Deals","method":"GET","path":"/assets/formatDistanceToNow-BvcfjZNi.js","status":200,"at":"2026-10-06T14:32:32.519Z"}
+{"page":"Deals","method":"GET","path":"/assets/user-B68HNpkf.js","status":200,"at":"2026-10-06T14:32:32.520Z"}
+{"page":"Deals","method":"GET","path":"/assets/arrow-up-down-DYlxJk9S.js","status":200,"at":"2026-10-06T14:32:32.520Z"}
+{"page":"Deals","method":"GET","path":"/assets/format-BsxEDTnR.js","status":200,"at":"2026-10-06T14:32:32.521Z"}
+{"page":"Deals","method":"GET","path":"/api/notifications/unread-count","status":200,"at":"2026-10-06T14:32:32.521Z"}
+{"page":"Deals","method":"GET","path":"/api/twilio/readiness","status":200,"at":"2026-10-06T14:32:32.521Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:32.597Z"}
+{"page":"Deals","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:32.597Z"}
+{"page":"Deals","method":"GET","path":"/api/users","status":200,"at":"2026-10-06T14:32:32.799Z"}
+{"page":"Deals","method":"GET","path":"/api/deals","status":200,"at":"2026-10-06T14:32:32.800Z"}
+{"page":"Campaigns","method":"GET","path":"/campaigns","status":200,"at":"2026-10-06T14:32:32.918Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:33.013Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:33.041Z"}
+{"page":"Campaigns","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:33.073Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:33.079Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:33.088Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:33.183Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:33.189Z"}
+{"page":"Campaigns","method":"GET","path":"http://127.0.0.1:4360/f843348a-36b9-4fd6-9828-170b1c2ef355","status":200,"at":"2026-10-06T14:32:33.273Z"}
+{"page":"Campaigns","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:33.350Z"}
+{"page":"Campaigns","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:33.370Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:33.377Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:33.378Z"}
+{"page":"Campaigns","method":"GET","path":"/api/me","status":200,"at":"2026-10-06T14:32:33.396Z"}
+{"page":"Campaigns","method":"GET","path":"http://127.0.0.1:4360/ce55430f-e0a0-496c-ab84-a3cde3c9a80f","status":200,"at":"2026-10-06T14:32:33.401Z"}
+{"page":"Campaigns","method":"GET","path":"/[REDACTED_OPAQUE_RESOURCE]","status":200,"at":"2026-10-06T14:32:33.428Z"}
+{"page":"Campaigns","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:33.430Z"}
+{"page":"Campaigns","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:33.430Z"}
+{"page":"Campaigns","method":"GET","path":"/brand/mbs-logo-green-slash.png","status":200,"at":"2026-10-06T14:32:33.431Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/campaigns-D8bVkYsS.js","status":200,"at":"2026-10-06T14:32:33.444Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/triangle-alert-C4iYza3S.js","status":200,"at":"2026-10-06T14:32:33.444Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/card-fSOQr67D.js","status":200,"at":"2026-10-06T14:32:33.445Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/campaignMetrics-BZ_H2_AY.js","status":200,"at":"2026-10-06T14:32:33.446Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/info-4h65DzxR.js","status":200,"at":"2026-10-06T14:32:33.447Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/copy-BujtTq9O.js","status":200,"at":"2026-10-06T14:32:33.447Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/circle-x-DVgx9kCk.js","status":200,"at":"2026-10-06T14:32:33.448Z"}
+{"page":"Campaigns","method":"GET","path":"/assets/index-DbKJuWlM.js","status":200,"at":"2026-10-06T14:32:33.449Z"}
+{"page":"Campaigns","method":"GET","path":"/api/twilio/readiness","status":200,"at":"2026-10-06T14:32:33.449Z"}
+{"page":"Campaigns","method":"GET","path":"/api/notifications/unread-count","status":200,"at":"2026-10-06T14:32:33.449Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:33.470Z"}
+{"page":"Campaigns","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:33.471Z"}
+{"page":"Campaigns","method":"GET","path":"/api/campaigns","status":200,"at":"2026-10-06T14:32:33.747Z"}
+{"page":"Campaigns","method":"GET","path":"/api/campaigns/metrics","status":200,"at":"2026-10-06T14:32:33.747Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/campaigns/5","status":200,"at":"2026-10-06T14:32:33.876Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/index-Be32LSEK.css","status":200,"at":"2026-10-06T14:32:33.909Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/index-BpL3p1ik.js","status":200,"at":"2026-10-06T14:32:33.935Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/","status":200,"at":"2026-10-06T14:32:33.963Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/clerk-js@6/dist/clerk.browser.js","status":307,"at":"2026-10-06T14:32:33.965Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/clerk-js@6.38.0/dist/clerk.browser.js","status":200,"at":"2026-10-06T14:32:33.977Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1/dist/ui.browser.js","status":307,"at":"2026-10-06T14:32:34.064Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui.browser.js","status":200,"at":"2026-10-06T14:32:34.071Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"http://127.0.0.1:4360/ebddf271-2ba8-49e6-8215-4c5c206c0f70","status":200,"at":"2026-10-06T14:32:34.153Z"}
+{"page":"Campaign 5 Results","method":"POST","path":"/v1/environment","status":200,"at":"2026-10-06T14:32:34.228Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/v1/client","status":200,"at":"2026-10-06T14:32:34.245Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/framework_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:34.252Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/ui-common_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:34.253Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/brand/mbs-logo-green-slash.png","status":200,"at":"2026-10-06T14:32:34.259Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"http://127.0.0.1:4360/15d27c76-2375-497c-b58a-06e6be835f8c","status":200,"at":"2026-10-06T14:32:34.262Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/me","status":200,"at":"2026-10-06T14:32:34.267Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/vendors_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:34.269Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/npm/@clerk/ui@1.39.0/dist/subscriptionDetails_ui_2784f6_1.39.0.js","status":200,"at":"2026-10-06T14:32:34.269Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/[REDACTED_OPAQUE_RESOURCE]","status":200,"at":"2026-10-06T14:32:34.305Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/brand/mbs-logo-green-slash-reverse.png","status":200,"at":"2026-10-06T14:32:34.308Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/use-manager-directory-CNRNX6AW.js","status":200,"at":"2026-10-06T14:32:34.349Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/campaign-detail-CRBc7TSF.js","status":200,"at":"2026-10-06T14:32:34.350Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/card-fSOQr67D.js","status":200,"at":"2026-10-06T14:32:34.350Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/campaign-library-flyer-picker-Bzko5xPR.js","status":200,"at":"2026-10-06T14:32:34.352Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/searchable-select-I6zA7TQW.js","status":200,"at":"2026-10-06T14:32:34.352Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/form-C1v2qIWv.js","status":200,"at":"2026-10-06T14:32:34.352Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/save-DlSxNO-k.js","status":200,"at":"2026-10-06T14:32:34.352Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/tabs-CUJNsNnu.js","status":200,"at":"2026-10-06T14:32:34.353Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/play-DHZt3yqk.js","status":200,"at":"2026-10-06T14:32:34.353Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/checkbox-CTWJPd-1.js","status":200,"at":"2026-10-06T14:32:34.353Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/index-DbKJuWlM.js","status":200,"at":"2026-10-06T14:32:34.354Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/campaigns-D8bVkYsS.js","status":200,"at":"2026-10-06T14:32:34.354Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/campaignMetrics-BZ_H2_AY.js","status":200,"at":"2026-10-06T14:32:34.355Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/info-4h65DzxR.js","status":200,"at":"2026-10-06T14:32:34.355Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/copy-BujtTq9O.js","status":200,"at":"2026-10-06T14:32:34.355Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/campaign-replies-panel-khLdcuKs.js","status":200,"at":"2026-10-06T14:32:34.355Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/triangle-alert-C4iYza3S.js","status":200,"at":"2026-10-06T14:32:34.356Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/arrow-left-B5HANzbc.js","status":200,"at":"2026-10-06T14:32:34.356Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/circle-x-DVgx9kCk.js","status":200,"at":"2026-10-06T14:32:34.356Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/circle-check-D5tdUU5f.js","status":200,"at":"2026-10-06T14:32:34.357Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/pencil-BRnw7psT.js","status":200,"at":"2026-10-06T14:32:34.357Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/trash-2-BwoBi9jH.js","status":200,"at":"2026-10-06T14:32:34.357Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/calendar-CxHi7cMK.js","status":200,"at":"2026-10-06T14:32:34.358Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/chart-column-C18Na0D-.js","status":200,"at":"2026-10-06T14:32:34.358Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/assets/format-BsxEDTnR.js","status":200,"at":"2026-10-06T14:32:34.358Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/notifications/unread-count","status":200,"at":"2026-10-06T14:32:34.358Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/fonts/inter-latin-wght-normal.woff2","status":200,"at":"2026-10-06T14:32:34.359Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/twilio/readiness","status":200,"at":"2026-10-06T14:32:34.359Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaigns/[ID]","status":200,"at":"2026-10-06T14:32:34.629Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaigns/[ID]/results","status":200,"at":"2026-10-06T14:32:34.629Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaigns/[ID]/replies","status":200,"at":"2026-10-06T14:32:34.631Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/email/templates","status":200,"at":"2026-10-06T14:32:34.698Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/collateral/campaign-assets/equipment-financing","status":200,"at":"2026-10-06T14:32:34.716Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/collateral/campaign-assets/working-capital","status":200,"at":"2026-10-06T14:32:34.718Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaign-audience-presets","status":200,"at":"2026-10-06T14:32:34.720Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaigns/[ID]/metrics","status":200,"at":"2026-10-06T14:32:34.720Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/users","status":200,"at":"2026-10-06T14:32:34.721Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/campaign-flyers","status":200,"at":"2026-10-06T14:32:34.721Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/analytics/sources","status":200,"at":"2026-10-06T14:32:34.722Z"}
+{"page":"Campaign 5 Results","method":"GET","path":"/api/collateral/flyers","status":200,"at":"2026-10-06T14:32:34.726Z"}

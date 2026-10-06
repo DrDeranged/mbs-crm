@@ -1,0 +1,21 @@
+{
+  "page": "/campaigns/5",
+  "resultTab": "Results",
+  "api": {
+    "status": 200,
+    "path": "/api/campaigns/5/results"
+  },
+  "counts": {
+    "eligible": 13,
+    "excluded": 0,
+    "sent": 13,
+    "failed": 0,
+    "deferred": 0,
+    "nextAvailableAt": null
+  },
+  "launchCount": 1,
+  "launchStatus": "completed",
+  "visibleUiSent13": true,
+  "screenshot": "campaign5-results-manager.png",
+  "screenshotSha256": "a750b2dd5700781f32f1e6f0f17e125adaf5b4b1301c3cb718e8b02deeaeca85"
+}

@@ -1,0 +1,41 @@
+{
+  "sourceRun": "run-2026-10-06T14-32-16-345Z-2923",
+  "targetGithubCommit": "862218809a23c7f4d4adc748f07d74534746fb6d",
+  "files": [
+    {
+      "path": "reports/focused-final-8622188/export/manager-pwr-statuses.ndjson",
+      "source": "reports/focused-final-8622188/runs/run-2026-10-06T14-32-16-345Z-2923/manager-pwr-statuses.ndjson",
+      "originalSha256": "e42e290d46a2305fdceb0ac4c032f77951f90e0e6928c29d6956efeeec668d11",
+      "exportedSha256": "bc0e0980886da2417e94f544a582537495149b0c1c2c1268f3a03dca92500d36",
+      "redactions": 5
+    },
+    {
+      "path": "reports/focused-final-8622188/export/manager-cdp-statuses.ndjson",
+      "source": "reports/focused-final-8622188/runs/run-2026-10-06T14-32-16-345Z-2923/manager-cdp-statuses.ndjson",
+      "originalSha256": "49686cdff5a65bb06f40e004d07672b9dd4c2bde5aac3ac017530f623614f55a",
+      "exportedSha256": "8a6767ee94028615ac340e790fa4582cba5403a77be016b765e829cb0b0f5edd",
+      "redactions": 6
+    },
+    {
+      "path": "reports/focused-final-8622188/export/sendgrid-raw-transport.ndjson",
+      "source": "reports/focused-final-8622188/runs/run-2026-10-06T14-32-16-345Z-2923/sendgrid-raw-transport.ndjson",
+      "originalSha256": "2301c0ec909aa4538a912e41947d64be1ffcbcd8bd46b3070629944324693b21",
+      "exportedSha256": "5f8ad19a7b3ae2b434c75c4e0896bc6341d1f2988e4f369728961ddf1686bb59",
+      "redactions": 2
+    },
+    {
+      "path": "reports/focused-final-8622188/export/campaign-api-status.ndjson",
+      "source": "reports/focused-final-8622188/runs/run-2026-10-06T14-32-16-345Z-2923/campaign-api-status.ndjson",
+      "originalSha256": "2ebdcedf460569a6b1b69c7bf73ba2551fbe3c7ef708691a533753066c78fddf",
+      "exportedSha256": "b89a19bcfda4c0f0267ab3050f1bb92dbf4bba3dc6e1277b38bfa6182c3d9912",
+      "redactions": 1
+    },
+    {
+      "path": "reports/focused-final-8622188/export/cleanup-verification.json",
+      "source": "reports/focused-final-8622188/runs/run-2026-10-06T14-32-16-345Z-2923/cleanup-verification.json",
+      "originalSha256": "4ecb42cd67a8de9a0e135c3fe1ac4ce39ba7ab77804db7afc552b9b6a2b86277",
+      "exportedSha256": "67de7e0ae258b098d64fa39f2c5153b273c89f7bb0702f1eb32c144d5ed2d49e",
+      "redactions": 3
+    }
+  ]
+}

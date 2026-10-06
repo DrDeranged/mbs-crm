@@ -1,0 +1,22 @@
+{
+  "fixtureClosed": true,
+  "fixtureDatabaseAbsent": true,
+  "syntheticUsersCreated": 3,
+  "syntheticUsersAbsent": [
+    {
+      "id": "[DELETED_FIXTURE_USER]",
+      "absent": true
+    },
+    {
+      "id": "[DELETED_FIXTURE_USER]",
+      "absent": true
+    },
+    {
+      "id": "[DELETED_FIXTURE_USER]",
+      "absent": true
+    }
+  ],
+  "allSyntheticUsersAbsent": true,
+  "cleanupError": null,
+  "verifiedAt": "2026-10-06T14:32:36.799Z"
+}

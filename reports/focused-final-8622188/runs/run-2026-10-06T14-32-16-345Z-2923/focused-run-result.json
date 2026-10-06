@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": [
+    "one approved single-recipient API launch through local SendGrid transport interceptor",
+    "Manager HTTP error-status audit for Leads, Lead Detail, Deals, Campaigns, Campaign 5 Results",
+    "Campaign 5 historical Results Sent 13 via real API/UI and screenshot"
+  ],
+  "targetGithubCommit": "862218809a23c7f4d4adc748f07d74534746fb6d",
+  "fixtureDatabase": "visual_refresh_fixture_2923_1791297136417",
+  "historicalSends": 13,
+  "providerTransportCalls": 1,
+  "managerUnexpectedStatuses": 0
+}

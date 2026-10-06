@@ -1,0 +1,42 @@
+{
+  "pages": [
+    {
+      "label": "Leads",
+      "path": "/leads"
+    },
+    {
+      "label": "Lead Detail",
+      "path": "/leads/1"
+    },
+    {
+      "label": "Deals",
+      "path": "/deals"
+    },
+    {
+      "label": "Campaigns",
+      "path": "/campaigns"
+    },
+    {
+      "label": "Campaign 5 Results",
+      "path": "/campaigns/5"
+    }
+  ],
+  "pwrResponses": 267,
+  "cdpResponses": 251,
+  "forbiddenStatuses": [],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "campaign5ResultApi": {
+    "status": 200,
+    "path": "/api/campaigns/5/results"
+  },
+  "campaign5ResultCounts": {
+    "eligible": 13,
+    "excluded": 0,
+    "sent": 13,
+    "failed": 0,
+    "deferred": 0,
+    "nextAvailableAt": null
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "database": "visual_refresh_fixture_2923_1791297136417",
+  "campaignId": 1,
+  "verification": {
+    "campaign_id": 1,
+    "campaign_status": "completed",
+    "launch_id": 1,
+    "launch_status": "completed",
+    "sent_count": 1,
+    "recipient_sent": 1,
+    "email_sends_sent": 1,
+    "to_email": "contact@example.invalid",
+    "provider_message_id": "focused-8622188-send-1@example.invalid"
+  },
+  "providerMessageId": "focused-8622188-send-1@example.invalid",
+  "actualApiRouteUsed": true,
+  "actualCompiledSendGridClientUsed": true,
+  "senderUnitMockUsed": false
+}

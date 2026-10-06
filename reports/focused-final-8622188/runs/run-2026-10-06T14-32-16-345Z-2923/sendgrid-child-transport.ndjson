@@ -1,0 +1,1 @@
+{"event":"transport-intercepted","method":"POST","host":"api.sendgrid.com","path":"/v3/mail/send","destination":"http://127.0.0.1:36529","fakeKeyInstalled":true,"inboundParseSecretUnset":true}

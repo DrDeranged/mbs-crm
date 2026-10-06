@@ -1,0 +1,20 @@
+{
+  "source": ".local/certification-853f4e4/historical-campaign.json",
+  "sourceSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+  "database": "visual_refresh_fixture_2923_1791297136417",
+  "campaignId": 5,
+  "insertedStatements": 46,
+  "fixtureRows": {
+    "launches": 1,
+    "recipients": 13,
+    "sends": 13
+  },
+  "verification": {
+    "id": 5,
+    "status": "completed",
+    "sent_count": 13,
+    "recipient_sent": 13,
+    "email_sent": 13
+  },
+  "sourceKind": "schema-only disposable fixture; not production-data rehearsal"
+}

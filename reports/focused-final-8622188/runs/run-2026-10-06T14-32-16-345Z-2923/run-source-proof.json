@@ -1,0 +1,35 @@
+{
+  "targetGithubCommit": "862218809a23c7f4d4adc748f07d74534746fb6d",
+  "previousFrozenRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "mainMustIndependentlyPinAndStartThisExactCommit": true,
+  "pushReceipt": {
+    "verified": true,
+    "published": false,
+    "commit": "862218809a23c7f4d4adc748f07d74534746fb6d"
+  },
+  "sourceBinding": {
+    "candidate": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+    "sourceFilesMatched": 886
+  },
+  "appSourceHashes": {
+    "webSource": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+    "apiSource": "e8f022ca14076201ede0715423b1458525f326bef8d026792c63a569663bf77d",
+    "webBuild": "8f34cd1e9b2374b504cff9179d7ae7dd844cf2b55329894d8476cf4c8c189a0c",
+    "webIndex": "13aa61616fa8a616eda427a3117abb095f21b598a1c28046faf95aa873cebe92",
+    "apiDist": "d33f4b9894d7399099942508e7266ba5720a2cef2ec16259d6fdac2629bfef9d"
+  },
+  "frozenBuildHashes": {
+    "webSource": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+    "apiSource": "e8f022ca14076201ede0715423b1458525f326bef8d026792c63a569663bf77d",
+    "webBuild": "8f34cd1e9b2374b504cff9179d7ae7dd844cf2b55329894d8476cf4c8c189a0c",
+    "webIndex": "13aa61616fa8a616eda427a3117abb095f21b598a1c28046faf95aa873cebe92",
+    "apiDist": "d33f4b9894d7399099942508e7266ba5720a2cef2ec16259d6fdac2629bfef9d"
+  },
+  "apiBundle": "artifacts/api-server/dist/chunks/chunk-KLBRZB65.mjs",
+  "apiBundleNodeHttpsRequestSeam": "verified compiled axios line: https.request(options)",
+  "apiChildPreloadedBeforeCompiledApiEntry": true,
+  "systemChromium": "/repl/tools/bin/chromium",
+  "nodeOptionsPreload": "reports/focused-final-8622188/sendgrid-transport-interceptor.cjs",
+  "sendgridInboundParse": "unset in isolated API process",
+  "actualProviderCredential": "none; replaced with fake key"
+}

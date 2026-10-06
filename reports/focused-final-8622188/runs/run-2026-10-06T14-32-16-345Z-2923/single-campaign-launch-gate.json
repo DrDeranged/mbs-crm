@@ -1,0 +1,7 @@
+{
+  "path": "/api/campaigns/1/launch",
+  "remaining": 0,
+  "useLimit": "one pre-approval guard attempt plus one approved live launch",
+  "used": false,
+  "lastConsumedAt": "2026-10-06T14:32:28.318Z"
+}
