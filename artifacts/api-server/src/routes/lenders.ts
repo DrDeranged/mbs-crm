@@ -11,6 +11,7 @@ import {
 } from "@workspace/db";
 import { eq, desc, asc, and, gte, sql, inArray, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
+import { canReadDealSubmissions } from "../lib/dealSubmissionAccess";
 import { lenderNeedsBusinessStatements, matchLeadToLenders, repFacingMatchDetails } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
 import { recordManualLenderSubmission } from "../lib/manualLenderSubmission";
@@ -1357,7 +1358,7 @@ router.get("/deals/:id/submissions", async (req: Request, res: Response) => {
   if (!Number.isSafeInteger(dealId) || dealId <= 0) return void res.status(400).json({ error: "Invalid deal ID" });
   const deal = await db.query.dealsTable.findFirst({ where: eq(dealsTable.id, dealId) });
   if (!deal) return void res.status(404).json({ error: "Deal not found" });
-  if (user.role !== "admin" && !(user.role === "rep" && deal.assignedTo === user.id)) return void res.status(403).json({ error: "Forbidden" });
+  if (!canReadDealSubmissions(user, deal)) return void res.status(403).json({ error: "Forbidden" });
   const subs = await db.select().from(lenderSubmissionsTable).where(eq(lenderSubmissionsTable.dealId, dealId)).orderBy(desc(lenderSubmissionsTable.sentAt));
   const lenders = await db.select().from(lendersTable);
   const users = await db.select().from(usersTable);
