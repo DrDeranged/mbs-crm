@@ -132,7 +132,7 @@ export function CommandPalette() {
             {matchingDeals.length > 0 && (
               <CommandGroup heading="Deals">
                 {matchingDeals.map((deal) => {
-                  const identity = deal.entityLabel || formatDealIdentity(deal as any);
+                  const identity = formatDealIdentity(deal as any);
                   const customDealName = deal.dealName?.trim() ?? "";
                   return (
                   <CommandItem
@@ -143,7 +143,6 @@ export function CommandPalette() {
                     <Briefcase />
                     <span className="min-w-0">
                       <span className="block truncate">{identity}</span>
-                      {customDealName && customDealName !== identity && <span className="block truncate text-xs text-muted-foreground">{customDealName}</span>}
                     </span>
                   </CommandItem>
                   );

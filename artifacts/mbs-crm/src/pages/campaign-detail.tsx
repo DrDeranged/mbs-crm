@@ -55,7 +55,7 @@ import { getStatusColor } from "./campaigns";
 import { getApiBaseUrl } from "@/lib/apiBase";
 import { format } from "date-fns";
 import { campaignValuesChanged, canConfirmCampaignLaunch, explainEmptyAudience, getCampaignReadiness, isCampaignPreviewFresh, serializeAudienceRules, validateCampaignFlyerFile } from "@/lib/campaignLauncher";
-import { campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
+import { CAMPAIGN_DEALS_OPTIONS, campaignRepOptions, campaignSourceOptions } from "@/lib/campaignAudienceOptions";
 import { CampaignLeadPicker } from "@/components/campaign-lead-picker";
 import { CampaignRepliesList } from "@/components/campaign-replies-panel";
 import { CampaignKpiPanel, MetricsDefinitions, MetricsState } from "@/components/campaign-metrics-panel";
@@ -71,6 +71,7 @@ const campaignSchema = z.object({
   flyer: z.any().nullable().optional(),
   flyerDeliveryMode: z.enum(["attach", "link"]),
   audienceRules: z.object({
+    deals: z.enum(["all", "open", "exclude_open"]).optional(),
     statuses: z.array(z.string()).optional(),
     programTypes: z.array(z.string()).optional(),
     assignedRepId: z.string().optional().nullable(),
@@ -140,6 +141,7 @@ const normalizeCampaign = (campaign: any): CampaignFormValues => {
     flyer: campaign.flyer || null,
     flyerDeliveryMode: campaign.flyerDeliveryMode || "attach",
     audienceRules: {
+      deals: campaign.audienceRules?.deals || "all",
       statuses: campaign.audienceRules?.statuses || [],
       programTypes: campaign.audienceRules?.programTypes || [],
       assignedRepId: campaign.audienceRules?.assignedRepId ? String(campaign.audienceRules.assignedRepId) : "__none__",
@@ -228,6 +230,7 @@ export default function CampaignDetailPage() {
       flyer: null,
       flyerDeliveryMode: "link",
       audienceRules: {
+        deals: "all",
         statuses: [],
         programTypes: [],
         assignedRepId: "__none__",
@@ -537,6 +540,7 @@ export default function CampaignDetailPage() {
     ...(audienceRules.maxAmount ? [{ key: "max", label: `Max $${Number(audienceRules.maxAmount).toLocaleString()}`, clear: () => form.setValue("audienceRules.maxAmount", "", { shouldDirty: true }) }] : []),
   ];
   const clearAllFilters = () => form.setValue("audienceRules", {
+    deals: "all",
     statuses: [], programTypes: [], assignedRepId: "__none__", leadSources: [],
     createdFrom: "", createdTo: "", minAmount: "", maxAmount: "",
     pickedLeadIds: audienceRules.pickedLeadIds || [],
@@ -970,6 +974,18 @@ export default function CampaignDetailPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="grid gap-6 md:grid-cols-2">
+                      <FormField control={form.control} name="audienceRules.deals" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Deals</FormLabel>
+                          <Select value={field.value || "all"} onValueChange={field.onChange}>
+                            <FormControl><SelectTrigger aria-label="Deals audience"><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {CAMPAIGN_DEALS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
                       <CampaignLeadPicker
                         selectedIds={audienceRules.pickedLeadIds || []}
                         onChange={(pickedLeadIds) => form.setValue("audienceRules.pickedLeadIds", pickedLeadIds, { shouldDirty: true })}

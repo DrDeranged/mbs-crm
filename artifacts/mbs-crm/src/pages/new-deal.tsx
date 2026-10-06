@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
+import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 import { getUserDisplayName } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import {

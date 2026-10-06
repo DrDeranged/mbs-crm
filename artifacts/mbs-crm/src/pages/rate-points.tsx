@@ -97,7 +97,7 @@ export default function RatePointsPage() {
     });
   };
 
-  const dealIdentity = deal ? ((deal as any).entityLabel || formatDealIdentity(deal as any)) : "";
+  const dealIdentity = deal ? formatDealIdentity(deal) : "";
   const customDealName = deal?.dealName?.trim() ?? "";
   const hasDistinctDealName = Boolean(customDealName && customDealName !== dealIdentity);
 
@@ -113,9 +113,6 @@ export default function RatePointsPage() {
                 <>
                   Calculating for{" "}
                   <Link href={`/deals/${deal.id}`} className="font-medium text-info hover:underline">{dealIdentity}</Link>
-                  {hasDistinctDealName && (
-                    <> · <Link href={`/deals/${deal.id}`} className="hover:underline">{customDealName}</Link></>
-                  )}
                 </>
               ) : "Model a payment stream and commission"}
             </p>

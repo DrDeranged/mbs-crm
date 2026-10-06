@@ -7,6 +7,12 @@ const SOURCE_LABELS: Record<string, string> = {
   usfundadvisor: "US Fund Advisor",
 };
 
+export const CAMPAIGN_DEALS_OPTIONS = [
+  ["all", "All leads"],
+  ["open", "Only leads with an open deal"],
+  ["exclude_open", "Exclude leads with an open deal"],
+] as const;
+
 export function campaignSourceOptions(
   sources: readonly { source: string; leadCount: number }[] = [],
 ): [string, string][] {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatDealIdentity } from "@/lib/recordIdentity";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -93,7 +94,7 @@ export function ReferredRecordsList({ type, id }: { type: "lead" | "partner"; id
           <ul className="divide-y rounded-md border">
             {deals.map((d) => (
               <li key={d.id} className="flex items-center justify-between gap-2 px-3 py-2">
-                <Link href={`/deals/${d.id}`} className="font-medium hover:underline">Deal #{d.id}</Link>
+                <Link href={`/deals/${d.id}`} className="font-medium hover:underline">{formatDealIdentity(d)}</Link>
                 <span className="text-xs capitalize text-muted-foreground">{d.stage.replace(/_/g, " ")} · {d.amount != null ? formatMoney(d.amount) : "—"}{d.actualGm != null ? ` · GM ${formatMoney(d.actualGm)}` : ""}</span>
               </li>
             ))}

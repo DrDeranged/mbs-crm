@@ -11,8 +11,8 @@ export function useManagerDirectory(params?: ListUsersParams, options?: Options)
   const result = useListUsers<Directory>(params, {
     ...options,
     query: {
-      queryKey: getListUsersQueryKey(params),
       ...options?.query,
+      queryKey: getListUsersQueryKey(params),
       enabled: canReadDirectory && (options?.query?.enabled ?? true),
     },
   });

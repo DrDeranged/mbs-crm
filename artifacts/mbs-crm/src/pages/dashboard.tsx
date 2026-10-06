@@ -639,13 +639,12 @@ export default function Dashboard() {
             <div className="space-y-2">
               {expiringDeals.map((deal) => {
                 const days = Math.ceil((new Date(`${deal.approvalExpiresOn}T00:00:00`).getTime() - Date.now()) / 86400000);
-                const identity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                const identity = formatDealIdentity(deal as any);
                 const customDealName = (deal as any).dealName?.trim();
                 return (
                   <Link key={deal.id} href={`/deals/${deal.id}`} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/40">
                     <span className="min-w-0">
                       <span className="block truncate font-medium text-info">{identity}</span>
-                      {customDealName && customDealName !== identity && <span className="block truncate text-xs text-muted-foreground">{customDealName}</span>}
                     </span>
                     <Badge variant="outline" className={days < 0 ? "border-danger/30 bg-danger-bg text-danger" : "border-warning/30 bg-warning-bg text-warning"}>
                       {deal.approvalExpiresOn} · {days < 0 ? "expired" : `${days}d left`}

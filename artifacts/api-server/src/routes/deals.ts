@@ -53,6 +53,7 @@ import {
 import { annuityPayment, calculateRatePoints } from "../lib/ratePoints";
 import { netGmAfterReferralSplit } from "../lib/partnerFlows";
 import { contactName, entityLabel } from "../lib/entityLabel";
+import { eligibleAssignmentCondition } from "../lib/assignmentEligibility";
 
 const router: IRouter = Router();
 const stageSchema = z.enum(DEAL_STAGES);
@@ -104,13 +105,13 @@ function toApi(
   return {
     id: deal.id,
     leadId: hideUnauthorizedLead && deal.leadId != null && !contact ? null : deal.leadId,
-    dealName: deal.dealName,
     companyName: contact?.companyName ?? null,
     contactName: contact?.contactName ?? null,
     contactEmail: contact?.contactEmail ?? null,
     contactPhone: contact?.contactPhone ?? null,
     businessAddress: contact?.businessAddress ?? null,
-    entityLabel: entityLabel(contact?.companyName, contact?.contactName, `Deal #${deal.id}`),
+    dealName: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
+    entityLabel: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
     stage: deal.stage,
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
@@ -533,8 +534,13 @@ export function createExportDealsHandler(dependencies: {
           .filter((row) => row.dealId != null)
           .map((row) => [row.dealId!, row.createdAt]),
       );
+      const contacts = await getAuthorizedDealLeadContacts(deals as any[], user, tx as any);
       for (const deal of deals as any[]) {
-        await writeCsvRow(res, dealCsvRow(deal, activityDates.get(deal.id)));
+        const contact = contacts.get(deal.leadId ?? -1);
+        await writeCsvRow(res, dealCsvRow({
+          ...deal,
+          dealName: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
+        }, activityDates.get(deal.id)));
         exported++;
       }
       offset += deals.length;
@@ -592,6 +598,10 @@ router.post("/deals", async (req, res): Promise<void> => {
     res
       .status(400)
       .json({ error: "actualGm is required when a deal is funded" });
+    return;
+  }
+  if (data.assignedTo != null && !await db.query.usersTable.findFirst({ where: eligibleAssignmentCondition(data.assignedTo) })) {
+    res.status(400).json({ error: "Destination user must be active eligible staff" });
     return;
   }
   const referralLead = data.leadId ? await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, data.leadId) }) : null;
@@ -729,6 +739,10 @@ export function createUpdateDealHandler(dependencies: {
     return;
   }
   const nextStage = parsed.data.stage ?? existing.stage;
+  if (parsed.data.assignedTo != null && !await routeDb.query.usersTable.findFirst({ where: eligibleAssignmentCondition(parsed.data.assignedTo) })) {
+    res.status(400).json({ error: "Destination user must be active eligible staff" });
+    return;
+  }
   const nextActualGm =
     parsed.data.actualGm !== undefined
       ? parsed.data.actualGm
@@ -1033,7 +1047,7 @@ export async function createApprovalExpiryReminder(
         leadId: deal.leadId!,
         userId: deal.assignedTo!,
         title: reminderTitle,
-        description: `Approval captured for ${deal.dealName} expires on ${expiresOn}.`,
+        description: `Approval captured for this deal expires on ${expiresOn}.`,
         dueDate,
         isCompleted: false,
       });
@@ -1190,6 +1204,10 @@ router.post("/leads/:id/convert-to-deal", async (req, res): Promise<void> => {
         ? data.assignedTo
         : lead.assignedRepId;
   const stage = data.stage ?? "waiting_on_app";
+  if (assignedTo != null && !await db.query.usersTable.findFirst({ where: eligibleAssignmentCondition(assignedTo) })) {
+    res.status(400).json({ error: "Destination user must be active eligible staff" });
+    return;
+  }
   if (stage === "funded" && data.actualGm == null) {
     res
       .status(400)

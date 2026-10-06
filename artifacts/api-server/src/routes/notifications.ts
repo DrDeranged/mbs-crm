@@ -145,8 +145,8 @@ export function createNotificationsRouter({
       data: rows.map((n) => ({
         id: n.id,
         type: n.type,
-        title: n.title,
-        body: n.body,
+        title: n.title?.replace(/\bdeal\s*#?\s*\d+\b/gi, "Deal"),
+        body: n.body?.replace(/\bdeal\s*#?\s*\d+\b/gi, "Deal"),
         leadId: n.leadId,
         leadName: n.lead && (
           user.role !== "rep" || n.lead.assignedRepId === user.id

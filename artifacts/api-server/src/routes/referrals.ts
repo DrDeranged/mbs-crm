@@ -5,6 +5,7 @@ import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ATTRIBUTION_WINDOW_MS, signAttributionToken, verifyAttributionToken, validateReferrer, referrerRecipient, mostRecentCampaign, attributeReferral } from "../lib/campaignAttribution";
 import { sanitizeLikeInput } from "../lib/sanitize";
+import { entityLabel, contactName } from "../lib/entityLabel";
 
 const router = Router();
 const accessibleLead = (user: { id: number; role: string }) => user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined;
@@ -73,7 +74,15 @@ for (const type of ["lead", "partner"] as const) {
         stage: dealsTable.stage, amount: dealsTable.amount, actualGm: dealsTable.actualGm }).from(dealsTable)
         .where(and(accessibleDeal(user), eq(type === "lead" ? dealsTable.referredByLeadId : dealsTable.referredByPartnerId, id))).limit(250),
     ]);
-    res.json({ leads, deals });
+    const identities = deals.length ? await db.query.dealsTable.findMany({
+      where: or(...deals.map(deal => eq(dealsTable.id, deal.id))),
+      with: { lead: { with: { company: true } } },
+    }) : [];
+    res.json({ leads, deals: deals.map(deal => {
+      const linked = identities.find(row => row.id === deal.id)?.lead;
+      const lead = linked && (user.role !== "rep" || linked.assignedRepId === user.id) ? linked : null;
+      return { ...deal, entityLabel: entityLabel(lead?.companyName || lead?.company?.name, contactName(lead?.firstName, lead?.lastName), "Deal") };
+    }) });
   });
 }
 

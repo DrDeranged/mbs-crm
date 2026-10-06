@@ -151,7 +151,7 @@ test("rep resolves an authorized funded deal to its lead and uploads against the
   assert.equal(result.dealPayload.leadId, 804);
   assert.equal(result.dealPayload.lead?.id, 804);
   assert.equal(result.dealPayload.entityLabel, "Godspeed Logistics — John Smith");
-  assert.equal(result.dealPayload.dealName, "Custom deal name");
+  assert.equal(result.dealPayload.dealName, "Godspeed Logistics — John Smith");
   assert.equal(result.uploadResponse?.status, 201);
   const query = new PgDialect().sqlToQuery(result.contactWhere);
   assert.match(query.sql, /assigned_rep_id/);
@@ -163,8 +163,8 @@ test("visible deal does not disclose or authorize its other-rep lead", async () 
   assert.equal(result.dealResponse.status, 200);
   assert.equal(result.dealPayload.leadId, null);
   assert.equal(result.dealPayload.lead, null);
-  assert.equal(result.dealPayload.entityLabel, "Deal #707");
-  assert.equal(result.dealPayload.dealName, "Custom deal name");
+  assert.equal(result.dealPayload.entityLabel, "Deal");
+  assert.equal(result.dealPayload.dealName, "Deal");
   assert.equal(result.uploadResponse, null);
   assert.match(new PgDialect().sqlToQuery(result.contactWhere).sql, /assigned_rep_id/);
 });
@@ -176,6 +176,6 @@ test("linked deal uses a neutral deal fallback when company and contact identity
     companyName: null,
   });
   assert.equal(result.dealResponse.status, 200);
-  assert.equal(result.dealPayload.entityLabel, "Deal #707");
-  assert.equal(result.dealPayload.dealName, "Custom deal name");
+  assert.equal(result.dealPayload.entityLabel, "Deal");
+  assert.equal(result.dealPayload.dealName, "Deal");
 });

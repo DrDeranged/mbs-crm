@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql } from "drizzle-orm";
+import { campaignDealAudienceCondition } from "../lib/campaignDealAudience";
 import { db } from "@workspace/db";
 import {
   campaignsTable,
@@ -72,6 +73,7 @@ const flyerSchema = z.discriminatedUnion("source", [
   }),
 ]).nullable();
 const rulesSchema = z.object({
+  deals: z.enum(["all", "open", "exclude_open"]).default("all"),
   statuses: z.array(z.string()).max(20).optional(),
   programTypes: z.array(z.enum(["equipment", "working_capital"])).max(2).optional(),
   assignedRepId: id.nullable().optional(),
@@ -244,6 +246,9 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
   if (rules.minAmount != null) conditions.push(gte(leadsTable.requestedAmount, rules.minAmount));
   if (rules.maxAmount != null) conditions.push(lte(leadsTable.requestedAmount, rules.maxAmount));
   const pickedIds = rules.pickedLeadIds ?? [];
+  // EXISTS avoids multiplying recipients when a lead has several open deals.
+  // Archived deals are not open, even if their last stage was active.
+  const dealCondition = campaignDealAudienceCondition(rules.deals);
   // No filter plus manual picks means picked-only, not an accidental all-leads send.
   const filterMatches = includeCampaignFilterMatches(conditions.length, pickedIds.length)
     ? await db.select().from(leadsTable)
@@ -260,7 +265,13 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
     Object.assign(error, { statusCode: 400 });
     throw error;
   }
-  const leads = unionCampaignAudience(filterMatches, pickedLeads);
+  const union = unionCampaignAudience(filterMatches, pickedLeads);
+  const dealMatchedIds = dealCondition && union.length
+    ? new Set((await db.select({ id: leadsTable.id }).from(leadsTable).where(and(
+      inArray(leadsTable.id, union.map(lead => lead.id)), dealCondition,
+    ))).map(lead => lead.id))
+    : null;
+  const leads = union.filter(lead => !dealMatchedIds || dealMatchedIds.has(lead.id));
   const filterMatchIds = new Set(filterMatches.map((lead) => lead.id));
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
@@ -329,8 +340,8 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
       emailCapacityRemaining: emailCapacity.remaining,
       emailToday: Math.min(emailEligibleCount, emailCapacity.remaining),
       emailQueuedNextBusinessDay: Math.max(0, emailEligibleCount - emailCapacity.remaining),
-      filterMatches: filterMatches.length,
-      pickedAdded: pickedLeads.filter((lead) => !filterMatchIds.has(lead.id)).length,
+      filterMatches: filterMatches.filter(lead => !dealMatchedIds || dealMatchedIds.has(lead.id)).length,
+      pickedAdded: pickedLeads.filter(lead => (!dealMatchedIds || dealMatchedIds.has(lead.id)) && !filterMatchIds.has(lead.id)).length,
       reasonCounts: campaignExclusionReasonCounts(exclusions),
     },
   };

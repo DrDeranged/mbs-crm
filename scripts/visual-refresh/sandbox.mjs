@@ -15,7 +15,7 @@ function run(command, args, env = process.env) {
   if (result.status !== 0) throw new Error(`${command} failed: ${result.stderr?.toString().slice(-1200)}`);
 }
 
-export async function startSandbox({ build = true, webRoot, port = Number(process.env.VISUAL_SANDBOX_PORT ?? 4320) } = {}) {
+export async function startSandbox({ build = true, webRoot, staffNames, port = Number(process.env.VISUAL_SANDBOX_PORT ?? 4320) } = {}) {
   if (!process.env.CLERK_SECRET_KEY?.startsWith("sk_test_")) throw new Error("Test Clerk credentials required.");
   if (!process.env.DATABASE_URL) throw new Error("Development database required.");
   const publicRoot = webRoot ?? join(root, "artifacts/mbs-crm/dist/public");
@@ -28,6 +28,7 @@ export async function startSandbox({ build = true, webRoot, port = Number(proces
   const directory = await mkdtemp(join(tmpdir(), "mbs-visual-"));
   const users = [];
   let api, server, databaseCreated = false;
+  const cleanup = { clerkUsersDeleted: 0, databaseDropped: false, tempDirectoryRemoved: false };
   async function close() {
     if (server) await new Promise(resolve => server.close(resolve));
     if (api) {
@@ -35,9 +36,17 @@ export async function startSandbox({ build = true, webRoot, port = Number(proces
       await Promise.race([new Promise(resolve => api.once("exit", resolve)), new Promise(resolve => setTimeout(resolve, 3000))]);
       if (api.exitCode === null) api.kill("SIGKILL");
     }
-    for (const user of users) await clerkClient.users.deleteUser(user.id);
-    if (databaseCreated) run("dropdb", ["--if-exists", "--force", `--maintenance-db=${process.env.DATABASE_URL}`, databaseName]);
+    for (const user of users) {
+      await clerkClient.users.deleteUser(user.id);
+      cleanup.clerkUsersDeleted++;
+    }
+    if (databaseCreated) {
+      run("dropdb", ["--if-exists", "--force", `--maintenance-db=${process.env.DATABASE_URL}`, databaseName]);
+      databaseCreated = false;
+      cleanup.databaseDropped = true;
+    }
     await rm(directory, { recursive: true, force: true });
+    cleanup.tempDirectoryRemoved = !existsSync(directory);
   }
   try {
     if (build) {
@@ -51,12 +60,14 @@ export async function startSandbox({ build = true, webRoot, port = Number(proces
     run("pg_dump", [`--dbname=${process.env.DATABASE_URL}`, "--schema-only", "--no-owner", "--no-privileges", `--file=${schema}`]);
     run("psql", [`--dbname=${databaseUrl}`, "--set=ON_ERROR_STOP=on", `--file=${schema}`]);
     for (const [index, role] of ["admin", "manager", "rep"].entries()) {
+      const displayName = staffNames?.[index] ?? "Visual Fixture";
       const user = await clerkClient.users.createUser({
-        firstName: "Visual", lastName: "Fixture", emailAddress: [`visual-${role}-${Date.now()}@example.com`], skipPasswordRequirement: true,
+        firstName: displayName.split(" ")[0], lastName: displayName.split(" ").slice(1).join(" "),
+        emailAddress: [`visual-${role}-${Date.now()}@example.com`], skipPasswordRequirement: true,
       });
       users.push(user);
       run("psql", [`--dbname=${databaseUrl}`, "--set=ON_ERROR_STOP=on", "--command",
-        `INSERT INTO users(id,clerk_id,name,email,role,is_active,slug) VALUES (${index + 1},'${user.id}','Visual Fixture','fixture-${role}@example.invalid','${role}',true,'fixture-${role}');`]);
+        `INSERT INTO users(id,clerk_id,name,email,role,is_active,slug) VALUES (${index + 1},'${user.id}','${displayName}','fixture-${role}@example.invalid','${role}',true,'fixture-${role}');`]);
     }
     run("psql", [`--dbname=${databaseUrl}`, "--set=ON_ERROR_STOP=on", "--command", `
       INSERT INTO leads(id,first_name,last_name,email,phone,company_name,application_type,status,assigned_rep_id,requested_amount,credit_score,lead_score,lead_source,created_at,updated_at,last_activity_at)
@@ -127,6 +138,17 @@ export async function startSandbox({ build = true, webRoot, port = Number(proces
     await new Promise(resolve => server.listen(port, "127.0.0.1", resolve));
     return {
       url: `http://127.0.0.1:${port}`, close, storageDirectory: join(directory, "storage"),
+      cleanupReport: () => ({ ...cleanup }),
+      seedFixture(sql) {
+        // Deliberately narrow fixture-only INSERTs into the disposable clone.
+        // No DDL, updates, deletes, arbitrary queries, or caller-selected DB URL.
+        const tuple = "\\([a-z0-9_@.+\\-:', ]+\\)";
+        const safeInsert = new RegExp(`^\\s*INSERT\\s+INTO\\s+(?:public\\.)?(users|leads|deals)\\s*\\([a-z0-9_,\\s]+\\)\\s*VALUES\\s*${tuple}(?:\\s*,\\s*${tuple})*\\s*RETURNING\\s+id\\s*;?\\s*$`, "i");
+        if (!safeInsert.test(sql)) throw new Error("Fixture seed must be literal INSERT tuples into users, leads, or deals with RETURNING id.");
+        const result = spawnSync("psql", [`--dbname=${databaseUrl}`, "--no-psqlrc", "--quiet", "--tuples-only", "--no-align", "--set=ON_ERROR_STOP=on", "--command", sql], { encoding: "utf8" });
+        if (result.status !== 0) throw new Error("Synthetic fixture seed failed.");
+        return result.stdout.trim();
+      },
       query(sql) {
         if (!/^\s*SELECT\b/i.test(sql)) throw new Error("Evidence queries must be read-only SELECTs.");
         const result = spawnSync("psql", [`--dbname=${databaseUrl}`, "--no-psqlrc", "--tuples-only", "--no-align", "--set=ON_ERROR_STOP=on", "--command", sql], { encoding: "utf8" });

@@ -98,6 +98,20 @@ async function withNotificationServer(
   }
 }
 
+test("legacy deal numbers cannot reappear in notification titles or descriptions", async () => {
+  const row = notification(900, 7, 12);
+  row.title = "Deal #812 assigned";
+  row.body = "Approval for Deal 812: follow up in 7 days.";
+  await withNotificationServer({ id: 7, role: "rep" }, [row], async baseUrl => {
+    const response = await fetch(`${baseUrl}/notifications`);
+    assert.equal(response.status, 200);
+    const payload = await response.json() as { data: Array<{ title: string; body: string; entityLabel: string }> };
+    assert.equal(payload.data[0].title, "Deal assigned");
+    assert.equal(payload.data[0].body, "Approval for Deal: follow up in 7 days.");
+    assert.equal(payload.data[0].entityLabel, "Morgan Lee LLC — Morgan Lee");
+  });
+});
+
 test("the generated client's exact notification payload matches the query schema", () => {
   const exactPayload = { page: "1", limit: "20" };
   const parsed = notificationsQuery.safeParse(exactPayload);

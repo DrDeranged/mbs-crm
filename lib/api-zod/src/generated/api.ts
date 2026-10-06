@@ -902,6 +902,7 @@ export const listLeadsQueryPageDefault = 1;
 export const listLeadsQueryLimitDefault = 25;
 
 export const ListLeadsQueryParams = zod.object({
+  "leadSource": zod.coerce.string().optional(),
   "search": zod.coerce.string().optional(),
   "status": zod.coerce.string().optional(),
   "applicationType": zod.coerce.string().optional(),
@@ -1164,6 +1165,7 @@ export const exportLeadsQuerySortByDefault = `createdAt`;
 export const exportLeadsQuerySortOrderDefault = `desc`;
 
 export const ExportLeadsQueryParams = zod.object({
+  "leadSource": zod.coerce.string().optional(),
   "ids": zod.coerce.string().optional().describe('Comma-separated lead IDs to export (if omitted, exports all matching filter)'),
   "search": zod.coerce.string().optional(),
   "status": zod.coerce.string().optional(),
@@ -1208,6 +1210,7 @@ export const bulkAssignLeadsBodyIdsMax = 500;
 export const BulkAssignLeadsBody = zod.object({
   "ids": zod.array(zod.number()).max(bulkAssignLeadsBodyIdsMax).optional(),
   "filter": zod.object({
+  "leadSource": zod.string().optional(),
   "search": zod.string().optional(),
   "status": zod.string().optional(),
   "applicationType": zod.string().optional(),
@@ -7968,6 +7971,7 @@ export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/obje
 export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
 
 
+export const listCampaignsResponseAudienceRulesDealsDefault = `all`;
 export const listCampaignsResponseAudienceRulesMinAmountMin = 0;
 
 export const listCampaignsResponseAudienceRulesMaxAmountMin = 0;
@@ -8004,6 +8008,7 @@ export const ListCampaignsResponseItem = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(listCampaignsResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8028,6 +8033,7 @@ export const createCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects
 export const createCampaignBodyFlyerTwoSizeMax = 15728640;
 
 
+export const createCampaignBodyAudienceRulesDealsDefault = `all`;
 export const createCampaignBodyAudienceRulesMinAmountMin = 0;
 
 export const createCampaignBodyAudienceRulesMaxAmountMin = 0;
@@ -8062,6 +8068,7 @@ export const CreateCampaignBody = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(createCampaignBodyAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8165,6 +8172,7 @@ export const getCampaignResponseCampaignFlyerTwoObjectPathRegExp = new RegExp('^
 export const getCampaignResponseCampaignFlyerTwoSizeMax = 15728640;
 
 
+export const getCampaignResponseCampaignAudienceRulesDealsDefault = `all`;
 export const getCampaignResponseCampaignAudienceRulesMinAmountMin = 0;
 
 export const getCampaignResponseCampaignAudienceRulesMaxAmountMin = 0;
@@ -8202,6 +8210,7 @@ export const GetCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(getCampaignResponseCampaignAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8251,6 +8260,7 @@ export const updateCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects
 export const updateCampaignBodyFlyerTwoSizeMax = 15728640;
 
 
+export const updateCampaignBodyAudienceRulesDealsDefault = `all`;
 export const updateCampaignBodyAudienceRulesMinAmountMin = 0;
 
 export const updateCampaignBodyAudienceRulesMaxAmountMin = 0;
@@ -8285,6 +8295,7 @@ export const UpdateCampaignBody = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignBodyAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8303,6 +8314,7 @@ export const updateCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/obj
 export const updateCampaignResponseFlyerTwoSizeMax = 15728640;
 
 
+export const updateCampaignResponseAudienceRulesDealsDefault = `all`;
 export const updateCampaignResponseAudienceRulesMinAmountMin = 0;
 
 export const updateCampaignResponseAudienceRulesMaxAmountMin = 0;
@@ -8339,6 +8351,7 @@ export const UpdateCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8421,6 +8434,7 @@ export const approveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/ob
 export const approveCampaignResponseFlyerTwoSizeMax = 15728640;
 
 
+export const approveCampaignResponseAudienceRulesDealsDefault = `all`;
 export const approveCampaignResponseAudienceRulesMinAmountMin = 0;
 
 export const approveCampaignResponseAudienceRulesMaxAmountMin = 0;
@@ -8457,6 +8471,7 @@ export const ApproveCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(approveCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8691,6 +8706,7 @@ export const GetLeadReferralsResponse = zod.object({
   "referralCampaignId": zod.number().nullish()
 })),
   "deals": zod.array(zod.object({
+  "entityLabel": zod.string().optional(),
   "id": zod.number(),
   "leadId": zod.number().nullable(),
   "stage": zod.string(),
@@ -8747,6 +8763,7 @@ export const GetPartnerReferralsResponse = zod.object({
   "referralCampaignId": zod.number().nullish()
 })),
   "deals": zod.array(zod.object({
+  "entityLabel": zod.string().optional(),
   "id": zod.number(),
   "leadId": zod.number().nullable(),
   "stage": zod.string(),
@@ -8832,6 +8849,7 @@ export const GetCampaignRepliesResponseItem = zod.object({
 export const GetCampaignRepliesResponse = zod.array(GetCampaignRepliesResponseItem)
 
 
+export const listCampaignAudiencePresetsResponseRulesDealsDefault = `all`;
 export const listCampaignAudiencePresetsResponseRulesMinAmountMin = 0;
 
 export const listCampaignAudiencePresetsResponseRulesMaxAmountMin = 0;
@@ -8845,6 +8863,7 @@ export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "rules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(listCampaignAudiencePresetsResponseRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8863,6 +8882,7 @@ export const ListCampaignAudiencePresetsResponse = zod.array(ListCampaignAudienc
 
 
 
+export const createCampaignAudiencePresetBodyRulesDealsDefault = `all`;
 export const createCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 
 export const createCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
@@ -8875,6 +8895,7 @@ export const createCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 export const CreateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1),
   "rules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(createCampaignAudiencePresetBodyRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8893,6 +8914,7 @@ export const UpdateCampaignAudiencePresetParams = zod.object({
 })
 
 
+export const updateCampaignAudiencePresetBodyRulesDealsDefault = `all`;
 export const updateCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 
 export const updateCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
@@ -8905,6 +8927,7 @@ export const updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 export const UpdateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1).optional(),
   "rules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignAudiencePresetBodyRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),
@@ -8917,6 +8940,7 @@ export const UpdateCampaignAudiencePresetBody = zod.object({
 }).optional()
 })
 
+export const updateCampaignAudiencePresetResponseRulesDealsDefault = `all`;
 export const updateCampaignAudiencePresetResponseRulesMinAmountMin = 0;
 
 export const updateCampaignAudiencePresetResponseRulesMaxAmountMin = 0;
@@ -8930,6 +8954,7 @@ export const UpdateCampaignAudiencePresetResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "rules": zod.object({
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignAudiencePresetResponseRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
   "assignedRepId": zod.number().nullish(),

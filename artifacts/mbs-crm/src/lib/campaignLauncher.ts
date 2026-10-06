@@ -9,6 +9,7 @@ export function validateCampaignFlyerFile(file: Pick<File, "type" | "size">): st
 }
 
 export function serializeAudienceRules(rules: {
+  deals?: "all" | "open" | "exclude_open";
   statuses?: string[];
   programTypes?: string[];
   assignedRepId?: string | null;

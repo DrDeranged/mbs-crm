@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGetLeadQueryKey, getListDealsQueryKey, useConvertLeadToDeal, useListDeals } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
+import { formatDealIdentity, formatLeadIdentity } from "@/lib/recordIdentity";
 export function ConvertToDealDialog() {
   const [open, setOpen] = useState(false);
   const convert = useConvertLeadToDeal();
@@ -20,7 +21,7 @@ export function ConvertToDealDialog() {
   const { lead } = useLeadDetail();
 
   const [formData, setFormData] = useState({
-    dealName: `${lead.firstName || ''} ${lead.lastName || ''} - ${lead.companyName || 'Deal'}`.trim(),
+    dealName: formatLeadIdentity(lead),
     amount: lead.requestedAmount ? String(lead.requestedAmount) : "",
     approxGm: ""
   });
@@ -102,7 +103,7 @@ export function LeadDeals() {
           deals.map(deal => (
             <Link key={deal.id} href={`/deals/${deal.id}`} className="block border rounded-lg p-3 hover:bg-muted transition-colors">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">{deal.dealName}</span>
+                <span className="font-medium text-foreground">{formatDealIdentity(deal)}</span>
                 <span className="text-sm text-success font-semibold">{deal.amount ? `${deal.amount.toLocaleString()}` : "—"}</span>
               </div>
               <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">

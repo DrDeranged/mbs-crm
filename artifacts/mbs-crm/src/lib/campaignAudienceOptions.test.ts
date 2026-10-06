@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { campaignRepOptions, campaignSourceOptions } from "./campaignAudienceOptions.ts";
+import { CAMPAIGN_DEALS_OPTIONS, campaignRepOptions, campaignSourceOptions } from "./campaignAudienceOptions.ts";
+
+test("Deals audience has exactly the three required choices with All leads first", () => {
+  assert.deepEqual(CAMPAIGN_DEALS_OPTIONS, [
+    ["all", "All leads"], ["open", "Only leads with an open deal"], ["exclude_open", "Exclude leads with an open deal"],
+  ]);
+});
 
 test("source options use database values, including imported tags, with sorted lead counts", () => {
   assert.deepEqual(campaignSourceOptions([

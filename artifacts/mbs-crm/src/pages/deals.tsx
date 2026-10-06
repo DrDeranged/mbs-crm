@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
+import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 import { PipelineSkeleton } from "@/components/page-skeletons";
 import { Link } from "wouter";
 import {
@@ -566,7 +566,7 @@ export default function DealsPage() {
                       {stageDeals.map((deal) => {
                         const rep = users?.find((u) => u.id === deal.assignedTo);
                         const linkedContact = (deal as any).lead ?? (deal as any).contact;
-                        const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                        const dealIdentity = formatDealIdentity(deal);
                         const customDealName = deal.dealName?.trim() ?? "";
                         const personName = (deal as any).contactName || contactName(linkedContact);
                         const companyName = (deal as any).companyName?.trim() || linkedContact?.companyName?.trim();
@@ -602,9 +602,6 @@ export default function DealsPage() {
                                 className="pointer-events-auto block text-xs font-semibold text-foreground hover:underline">
                                 {companyName || dealIdentity || "Company not recorded"}
                               </Link>
-                              {customDealName && customDealName !== dealIdentity && customDealName !== companyName && (
-                                <p className="text-muted-foreground">{customDealName}</p>
-                              )}
                               <p>{personName || missing("Contact not recorded")}</p>
                               <div className="pointer-events-auto" {...stop}>
                                 {phone ? <PhoneLink phone={phone} leadId={deal.leadId ?? linkedContact?.id} showIcon={false} className="text-[11px]" /> : missing("Phone not recorded")}
@@ -709,7 +706,7 @@ export default function DealsPage() {
                           (u) => u.id === deal.assignedTo,
                         );
                         const linkedContact = (deal as any).lead ?? (deal as any).contact;
-                        const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                        const dealIdentity = formatDealIdentity(deal);
                         const customDealName = deal.dealName?.trim() ?? "";
                         const personName = (deal as any).contactName || contactName(linkedContact);
                         const companyName = (deal as any).companyName?.trim() || linkedContact?.companyName?.trim();
@@ -750,9 +747,6 @@ export default function DealsPage() {
                               >
                                 {companyName || dealIdentity}
                               </Link>
-                              {customDealName && customDealName !== dealIdentity && (
-                                <p className="mt-0.5 truncate text-[10px] text-muted-foreground" title={customDealName}>{customDealName}</p>
-                              )}
                               {hasAuthorizedContact && (
                                 <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[10px] text-muted-foreground">
                                   {companyName && personName && (
@@ -899,7 +893,7 @@ export default function DealsPage() {
                       const rep = users?.find((u) => u.id === deal.assignedTo);
                       const stageObj = STAGES.find((s) => s.id === deal.stage);
                       const linkedContact = (deal as any).lead ?? (deal as any).contact;
-                      const dealIdentity = (deal as any).entityLabel || formatDealIdentity(deal as any);
+                      const dealIdentity = formatDealIdentity(deal);
                       const customDealName = deal.dealName?.trim() ?? "";
                       const phone = (deal as any).contactPhone || linkedContact?.phone;
                       const email = (deal as any).contactEmail || linkedContact?.email;
@@ -911,7 +905,6 @@ export default function DealsPage() {
                               className="text-success hover:underline"
                             >
                               {dealIdentity}
-                              {customDealName && customDealName !== dealIdentity && <span className="block text-xs font-normal text-muted-foreground">{customDealName}</span>}
                             </Link>
                             {(phone || email) && (
                               <div className="mt-1 flex flex-col gap-1 md:hidden" onClick={(event) => event.stopPropagation()}>
@@ -965,7 +958,7 @@ export default function DealsPage() {
                                     setNoteErrorId(null);
                                   }
                                 }}
-                                aria-label={`Notes for ${deal.dealName}`}
+                                aria-label={`Notes for ${formatDealIdentity(deal)}`}
                               />
                             ) : (
                               <button
@@ -1037,13 +1030,11 @@ export default function DealsPage() {
                 {pendingFundDeal && (
                   <strong>
                     <Link href={`/deals/${pendingFundDeal.id}`} className="text-success hover:underline">
-                      {pendingFundDeal.entityLabel || formatDealIdentity(pendingFundDeal as any)}
+                      {formatDealIdentity(pendingFundDeal)}
                     </Link>
                   </strong>
                 )}
-                {pendingFundDeal && pendingFundDeal.dealName !== (pendingFundDeal.entityLabel || formatDealIdentity(pendingFundDeal as any)) && (
-                  <> (<Link href={`/deals/${pendingFundDeal.id}`} className="hover:underline">{pendingFundDeal.dealName}</Link>)</>
-                )}{" "}to Funded. Please verify the final Gross Margin (GM) before proceeding.
+                {" "}to Funded. Please verify the final Gross Margin (GM) before proceeding.
             </p>
             <div className="space-y-2">
               <Label>Actual GM ($)</Label>

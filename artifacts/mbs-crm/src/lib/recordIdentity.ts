@@ -24,6 +24,7 @@ function clean(value: unknown): string {
 }
 
 function recordFallback(kind: "Lead" | "Deal", id?: number | string | null): string {
+  if (kind === "Deal") return "Deal";
   return id !== undefined && id !== null && String(id).trim()
     ? `${kind} #${id}`
     : kind;
@@ -45,15 +46,17 @@ export function formatLeadIdentity(lead: LeadIdentitySource | null | undefined):
 
 /**
  * The canonical company-first label for a deal. A linked lead is authoritative
- * for contact identity; dealName remains the useful fallback for unlinked
- * deals or links without any available contact projection.
+ * for contact identity. Incomplete or inaccessible projections use the neutral
+ * "Deal" fallback, never a stored custom name or numeric identifier.
  */
 export function formatDealIdentity(deal: DealIdentitySource | null | undefined): string {
   if (!deal) return "Deal";
   const linkedLead = deal.lead ?? deal.contact;
-  const company = clean(linkedLead?.companyName) || clean(deal.companyName);
-  const contact = contactName(linkedLead) || clean(deal.contactName) || contactName(deal);
+  const company = linkedLead ? clean(linkedLead.companyName) : clean(deal.companyName);
+  const contact = linkedLead ? contactName(linkedLead) : clean(deal.contactName) || contactName(deal);
   if (company && contact) return `${company} — ${contact}`;
   if (company || contact) return company || contact;
-  return clean(deal.entityLabel) || recordFallback("Deal", deal.id);
+  if (linkedLead) return "Deal";
+  const label = clean(deal.entityLabel);
+  return label && !/\bdeal\s*#?\s*\d+/i.test(label) ? label : "Deal";
 }

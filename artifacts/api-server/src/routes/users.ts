@@ -10,6 +10,7 @@ import { retireRepSlug } from "./repPublic";
 import { isSlugRetirementAuthorized, requiresSlugRetirement } from "../lib/repSlugPolicy";
 import { MERGE_USER_REFERENCE_COLUMNS, mergeRequiresConfirmation } from "../lib/userIdentityMerge";
 import applicationFormRouter from "./applicationForm";
+import { eligibleAssignmentCondition, assignmentDisplayName } from "../lib/assignmentEligibility";
 
 const router: IRouter = Router();
 
@@ -112,13 +113,13 @@ router.get("/users", async (req: Request, res: Response) => {
       ? and(
           params.data.role ? eq(usersTable.role, params.data.role) : undefined,
           params.data.isActive === undefined ? undefined : eq(usersTable.isActive, params.data.isActive),
-          params.data.isActive === true ? isNull(usersTable.mergedInto) : undefined,
+          params.data.isActive === true ? eligibleAssignmentCondition() : undefined,
         )
       : undefined,
     orderBy: (t, { asc }) => [asc(t.name)],
   });
 
-  res.json(users.map(userToApi));
+  res.json(users.sort((a, b) => assignmentDisplayName(a).localeCompare(assignmentDisplayName(b)) || a.id - b.id).map(userToApi));
 });
 
 router.post("/admin/users/merge", async (req: Request, res: Response) => {

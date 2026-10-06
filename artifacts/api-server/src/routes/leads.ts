@@ -52,9 +52,11 @@ import {
 } from "../lib/twoPhaseQueries";
 
 const router: IRouter = Router();
+import { eligibleAssignmentCondition } from "../lib/assignmentEligibility";
 const positiveLeadId = z.coerce.number().int().positive();
 export const listLeadsQuery = z.object({
   search: z.string().trim().min(1).max(200).optional(),
+  leadSource: z.string().min(1).max(200).optional(),
   status: z.enum(["new_lead", "contacted", "application_received", "submitted_to_underwriting", "approved", "funded", "declined", "follow_up"]).optional(),
   applicationType: z.enum(["equipment", "working_capital"]).optional(),
   repId: z.coerce.number().int().positive().optional(),
@@ -71,7 +73,7 @@ export const listLeadsQuery = z.object({
   ids: z.string().regex(/^\d+(,\d+)*$/, "Expected comma-separated positive ids").optional(),
 }).strict();
 type LeadFilter = Pick<z.infer<typeof listLeadsQuery>,
-  "search" | "status" | "applicationType" | "repId" | "startDate" | "endDate" |
+  "search" | "leadSource" | "status" | "applicationType" | "repId" | "startDate" | "endDate" |
   "minScore" | "maxScore" | "renewalFlagged" | "stale">;
 
 function parseLeadListQuery(req: Request, res: Response) {
@@ -198,6 +200,7 @@ export function createListLeadsHandler({
 
     const conditions: ReturnType<typeof eq>[] = [];
     if (user.role === "rep") conditions.push(eq(leadsTable.assignedRepId, user.id));
+    if (q.leadSource) conditions.push(sql`${leadsTable.leadSource} = ${q.leadSource}`);
     if (q.status) conditions.push(eq(leadsTable.status, q.status));
     if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType));
     if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
@@ -348,7 +351,7 @@ router.post("/leads", async (req: Request, res: Response) => {
       res.status(403).json({ error: "Only managers and admins may assign leads" });
       return;
     }
-    if (!await isEligibleInboundAssignee(leadData.assignedRepId)) {
+    if (!await db.query.usersTable.findFirst({ where: eligibleAssignmentCondition(leadData.assignedRepId) })) {
       res.status(400).json({
         error: "Destination user must be active and eligible for inbound assignment",
       });
@@ -464,6 +467,7 @@ router.post("/leads/capture", captureRateLimiter, async (req: Request, res: Resp
 function buildLeadsWhere(q: LeadFilter, userRole: string, userId: number, staleThresholdDays = 7, now = Date.now()) {
   const conditions: any[] = [];
   if (userRole === "rep") conditions.push(eq(leadsTable.assignedRepId, userId));
+  if (q.leadSource) conditions.push(sql`${leadsTable.leadSource} = ${q.leadSource}`);
   if (q.status) conditions.push(eq(leadsTable.status, q.status));
   if (q.applicationType) conditions.push(eq(leadsTable.applicationType, q.applicationType));
   if (q.repId) conditions.push(eq(leadsTable.assignedRepId, Number(q.repId)));
@@ -695,12 +699,11 @@ router.post("/leads/bulk/assign", async (req: Request, res: Response) => {
   const destinationRep = await db.query.usersTable.findFirst({
     where: and(
       eq(usersTable.id, body.data.repId),
-      eq(usersTable.role, "rep"),
-      eq(usersTable.isActive, true),
+      eligibleAssignmentCondition(),
     ),
   });
   if (!destinationRep) {
-    res.status(400).json({ error: "Destination user must be an active rep" });
+    res.status(400).json({ error: "Destination user must be active eligible staff" });
     return;
   }
 
@@ -1174,12 +1177,11 @@ export function createAssignLeadHandler(dependencies: AssignLeadDependencies = {
   const destinationRep = await database.query.usersTable.findFirst({
     where: and(
       eq(usersTable.id, body.data.repId),
-      eq(usersTable.role, "rep"),
-      eq(usersTable.isActive, true),
+      eligibleAssignmentCondition(),
     ),
   });
   if (!destinationRep) {
-    res.status(400).json({ error: "Destination user must be an active rep" });
+    res.status(400).json({ error: "Destination user must be active eligible staff" });
     return;
   }
 

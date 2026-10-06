@@ -84,6 +84,18 @@ export interface CampaignLibraryFlyer {
   name: string;
 }
 
+/**
+ * Open means a non-archived deal in an active stage; also applies to manually picked leads.
+ */
+export type CampaignAudienceRulesDeals = typeof CampaignAudienceRulesDeals[keyof typeof CampaignAudienceRulesDeals];
+
+
+export const CampaignAudienceRulesDeals = {
+  all: 'all',
+  open: 'open',
+  exclude_open: 'exclude_open',
+} as const;
+
 export type CampaignAudienceRulesProgramTypesItem = typeof CampaignAudienceRulesProgramTypesItem[keyof typeof CampaignAudienceRulesProgramTypesItem];
 
 
@@ -93,6 +105,8 @@ export const CampaignAudienceRulesProgramTypesItem = {
 } as const;
 
 export interface CampaignAudienceRules {
+  /** Open means a non-archived deal in an active stage; also applies to manually picked leads. */
+  deals?: CampaignAudienceRulesDeals;
   statuses?: string[];
   programTypes?: CampaignAudienceRulesProgramTypesItem[];
   assignedRepId?: number | null;
@@ -474,6 +488,7 @@ export type ReferredRecordsLeadsItem = {
 };
 
 export type ReferredRecordsDealsItem = {
+  entityLabel?: string;
   id: number;
   /** @nullable */
   leadId: number | null;
@@ -1681,6 +1696,7 @@ export interface AssignLead {
  * The current lead-list filters. Used to select matching leads server-side.
  */
 export interface BulkLeadFilter {
+  leadSource?: string;
   search?: string;
   status?: string;
   applicationType?: string;
@@ -4246,6 +4262,7 @@ export type UpdateUserPushTokenBody = {
 };
 
 export type ListLeadsParams = {
+leadSource?: string;
 search?: string;
 status?: string;
 applicationType?: string;
@@ -4293,6 +4310,7 @@ export type ImportLeadsBody = {
 };
 
 export type ExportLeadsParams = {
+leadSource?: string;
 /**
  * Comma-separated lead IDs to export (if omitted, exports all matching filter)
  */

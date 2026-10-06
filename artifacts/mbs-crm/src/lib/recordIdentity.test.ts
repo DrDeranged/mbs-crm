@@ -26,9 +26,17 @@ test("formats deal identity using authorized linked lead fields with neutral fal
   }), "Godspeed Logistics — John Smith");
   assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer", lead: { id: 12, companyName: "Godspeed Logistics" } }), "Godspeed Logistics");
   assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer", lead: { id: 12, firstName: "John", lastName: "Smith" } }), "John Smith");
-  assert.equal(formatDealIdentity({ id: 4, entityLabel: "Deal #4", dealName: "Custom offer", lead: { id: 12, companyName: " ", firstName: " ", lastName: "" } }), "Deal #4");
-  assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer" }), "Deal #4");
+  assert.equal(formatDealIdentity({ id: 4, entityLabel: "Deal #4", dealName: "Custom offer", lead: { id: 12, companyName: " ", firstName: " ", lastName: "" } }), "Deal");
+  assert.equal(formatDealIdentity({ id: 4, dealName: "Custom offer" }), "Deal");
   assert.equal(formatDealIdentity({ id: 4, companyName: "Godspeed Logistics", contactName: "John Smith" }), "Godspeed Logistics — John Smith");
   assert.equal(formatDealIdentity({ dealName: "Custom offer" }), "Deal");
   assert.equal(formatDealIdentity(null), "Deal");
+  assert.equal(formatDealIdentity({ id: 41, entityLabel: "Deal 41" }), "Deal");
+  assert.equal(formatDealIdentity({
+    lead: { companyName: "", firstName: "", lastName: "" },
+    companyName: "Stale company", contactName: "Stale person", entityLabel: "Stale deal name",
+  }), "Deal", "linked identity is authoritative even when its fields are empty");
+  assert.equal(formatDealIdentity({
+    lead: { companyName: "123 Equipment", firstName: "Alex" }, companyName: "Stale company",
+  }), "123 Equipment — Alex", "legitimate company numbers are not stripped");
 });

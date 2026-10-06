@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
+import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 import "./leads-fit.css";
 import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import { useLeadsFit } from "@/hooks/use-leads-fit";
@@ -13,6 +13,8 @@ import {
   useBulkUpdateLeadStatus,
   useBulkAssignLeads,
   useBulkDeleteLeads,
+  useGetAnalyticsSources,
+  getGetAnalyticsSourcesQueryKey,
 } from "@workspace/api-client-react";
 import { cn, getUserDisplayName } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -309,6 +311,7 @@ export default function Leads() {
   const [status, setStatus] = useState<string>("");
   const [applicationType, setApplicationType] = useState<string>("");
   const [repId, setRepId] = useState<string>("");
+  const [leadSource, setLeadSource] = useState("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
@@ -362,6 +365,7 @@ export default function Leads() {
   const bulkUpdateStatus = useBulkUpdateLeadStatus();
   const bulkAssign = useBulkAssignLeads();
   const bulkDelete = useBulkDeleteLeads();
+  const sourcesQuery = useGetAnalyticsSources(undefined, { query: { queryKey: [...getGetAnalyticsSourcesQueryKey(), currentUser?.id, currentUser?.role], enabled: !!currentUser } });
 
   const toggleSelect = (id: number) => {
     setSelectAllMatching(false);
@@ -398,6 +402,7 @@ export default function Leads() {
   const handleBulkAssign = () => {
     if (!bulkRepId || (selectedIds.size === 0 && !selectAllMatching)) return;
     const filter = {
+      leadSource: leadSource || undefined,
       search: debouncedSearch || undefined,
       status: status || undefined,
       applicationType: applicationType || undefined,
@@ -445,6 +450,7 @@ export default function Leads() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (status) params.set("status", status);
+      if (leadSource) params.set("leadSource", leadSource);
       if (applicationType) params.set("applicationType", applicationType);
       if (repId) params.set("repId", repId);
       if (startDate) params.set("startDate", startDate);
@@ -508,9 +514,10 @@ export default function Leads() {
   useEffect(() => {
     setSelectedIds(new Set());
     setSelectAllMatching(false);
-  }, [debouncedSearch, status, applicationType, repId, startDate, endDate, scoreFilter, renewalFlagged, staleOnly, isStaleView]);
+  }, [debouncedSearch, leadSource, status, applicationType, repId, startDate, endDate, scoreFilter, renewalFlagged, staleOnly, isStaleView]);
 
   const queryParams = {
+    leadSource: leadSource || undefined,
     search: debouncedSearch || undefined,
     status: status || undefined,
     applicationType: applicationType || undefined,
@@ -564,16 +571,17 @@ export default function Leads() {
   const formatStatus = (status: string) =>
     status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-  const hasFilters = !!(search || status || applicationType || repId || startDate || endDate || scoreFilter || renewalFlagged || staleOnly || isStaleView);
+  const hasFilters = !!(search || leadSource || status || applicationType || repId || startDate || endDate || scoreFilter || renewalFlagged || staleOnly || isStaleView);
 
   const clearFilters = () => {
+    setLeadSource("");
     setSearch(""); setDebouncedSearch(""); setStatus(""); setApplicationType("");
     setRepId(""); setStartDate(""); setEndDate(""); setScoreFilter("");
     setRenewalFlagged(false); setStaleOnly(false); setPage(1);
   };
 
   const bulkBar = selectedIds.size > 0 ? (
-      <div className={desktop ? "flex w-full flex-wrap items-center justify-center gap-2 bg-card border border-border rounded-xl px-3 py-2" : "fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex items-center gap-3 bg-card border border-border rounded-xl px-5 py-3"}>
+      <div className={desktop ? "flex w-full flex-wrap items-center justify-center gap-2 bg-card border border-border rounded-xl px-3 py-2" : "fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-popover)] flex w-[calc(100%-2rem)] max-w-2xl flex-wrap items-center justify-center gap-2 bg-card border border-border rounded-xl px-5 py-3"}>
           <span className="text-sm font-semibold text-info whitespace-nowrap">
             {selectAllMatching ? selectionData?.total ?? selectedIds.size : selectedIds.size} selected
           </span>
@@ -783,6 +791,20 @@ export default function Leads() {
             ]}
           />
         )}
+        <SearchableSelect
+          value={leadSource || "__all_sources__"}
+          onValueChange={value => { setLeadSource(value === "__all_sources__" ? "" : value); setPage(1); }}
+          ariaLabel="Lead Source"
+          placeholder="Lead Source"
+          className="w-full bg-card sm:w-[180px]"
+          disabled={sourcesQuery.isPending || sourcesQuery.isError}
+          options={[
+            { value: "__all_sources__", label: "All Lead Sources" },
+            ...(sourcesQuery.data ?? []).filter(item => item.leadCount > 0).sort((a, b) => a.source.localeCompare(b.source))
+              .map(item => ({ value: item.source, label: `${item.source} (${item.leadCount.toLocaleString()})` })),
+          ]}
+        />
+        {sourcesQuery.isError && <Button variant="outline" size="sm" onClick={() => void sourcesQuery.refetch()}>Retry lead sources</Button>}
 
         <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as ListLeadsSortOrder)}>
           <SelectTrigger className="w-full sm:w-[140px] bg-card">

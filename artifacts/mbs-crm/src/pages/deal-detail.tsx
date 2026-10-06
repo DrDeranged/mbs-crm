@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { useManagerDirectory as useListUsers } from "@/hooks/use-manager-directory";
+import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-directory";
 import { ReferredByEditor } from "@/components/referral-panels";
 import { useParams, Link, useLocation } from "wouter";
 import {
@@ -135,7 +135,7 @@ export default function DealDetail() {
   useEffect(() => {
     if (deal && !editMode) {
       setFormData({
-        dealName: deal.dealName || "",
+        dealName: formatDealIdentity(deal),
         amount: deal.amount ? String(deal.amount) : "",
         approxGm: deal.approxGm ? String(deal.approxGm) : "",
         actualGm: deal.actualGm ? String(deal.actualGm) : "",
@@ -401,9 +401,6 @@ export default function DealDetail() {
               {deal.isArchived && <Badge variant="secondary" className="bg-secondary text-foreground shrink-0">Archived</Badge>}
               <Badge variant="outline" className="bg-info-bg text-info border-info/30 shrink-0">{currentStage}</Badge>
             </div>
-            {deal.dealName?.trim() && deal.dealName.trim() !== identity && (
-              <p className="text-xs text-muted-foreground mt-1 break-words">Deal name: {deal.dealName}</p>
-            )}
             {deal.leadId && authorizedLead && (
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                 Linked to Lead: 

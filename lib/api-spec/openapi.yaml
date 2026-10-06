@@ -718,6 +718,9 @@ paths:
       tags: [leads]
       summary: List leads with search/filter/pagination
       parameters:
+        - name: leadSource
+          in: query
+          schema: { type: string }
         - name: search
           in: query
           schema:
@@ -898,6 +901,9 @@ paths:
       tags: [leads]
       summary: Export leads as CSV (respects current filter params, or specific IDs)
       parameters:
+        - name: leadSource
+          in: query
+          schema: { type: string }
         - name: ids
           in: query
           description: Comma-separated lead IDs to export (if omitted, exports all matching filter)
@@ -5261,6 +5267,11 @@ components:
     CampaignAudienceRules:
       type: object
       properties:
+        deals:
+          type: string
+          enum: [all, open, exclude_open]
+          default: all
+          description: Open means a non-archived deal in an active stage; also applies to manually picked leads.
         statuses: { type: array, items: { type: string } }
         programTypes: { type: array, items: { type: string, enum: [equipment, working_capital] } }
         assignedRepId: { type: integer, nullable: true }
@@ -5520,6 +5531,7 @@ components:
             type: object
             required: [id, leadId, stage]
             properties:
+              entityLabel: { type: string }
               id: { type: integer }
               leadId: { type: [integer, "null"] }
               stage: { type: string }
@@ -6547,6 +6559,8 @@ components:
       type: object
       description: The current lead-list filters. Used to select matching leads server-side.
       properties:
+        leadSource:
+          type: string
         search:
           type: string
         status:
