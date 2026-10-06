@@ -1,0 +1,66 @@
+
+> workspace@0.0.0 preflight /tmp/predeploy-c6fc40f-source
+> pnpm --filter @workspace/scripts exec tsx ./src/preflight.ts
+
+PREFLIGHT 1/11: schema path guard
+
+> workspace@0.0.0 guard:schema-path /tmp/predeploy-c6fc40f-source
+> pnpm --filter @workspace/scripts exec tsx ./src/forbid-schema-push.ts
+
+Schema path guard passed
+PREFLIGHT 2/11: recovery guard
+
+> workspace@0.0.0 recovery:guard /tmp/predeploy-c6fc40f-source
+> pnpm --filter @workspace/scripts run recovery:guard
+
+
+> @workspace/scripts@0.0.0 recovery:guard /tmp/predeploy-c6fc40f-source/scripts
+> tsx ./src/recovery-guard.ts
+
+error: Could not read 1f2ce519d342fe7ad49bf4d690201f14299622af
+fatal: Failed to traverse parents of commit c6fc40fa76880972ad2d8b1226ef0fb45c5890ca
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git log --format=%H%x09%s HEAD
+error: Could not read 1f2ce519d342fe7ad49bf4d690201f14299622af
+fatal: Failed to traverse parents of commit c6fc40fa76880972ad2d8b1226ef0fb45c5890ca
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at git (/tmp/predeploy-c6fc40f-source/scripts/src/recovery-guard.ts:34:54)
+    at recoveryGuard (/tmp/predeploy-c6fc40f-source/scripts/src/recovery-guard.ts:60:19)
+    at <anonymous> (/tmp/predeploy-c6fc40f-source/scripts/src/recovery-guard.ts:73:20)
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    '',
+    'error: Could not read 1f2ce519d342fe7ad49bf4d690201f14299622af\n' +
+      'fatal: Failed to traverse parents of commit c6fc40fa76880972ad2d8b1226ef0fb45c5890ca\n'
+  ],
+  pid: 2388,
+  stdout: '',
+  stderr: 'error: Could not read 1f2ce519d342fe7ad49bf4d690201f14299622af\n' +
+    'fatal: Failed to traverse parents of commit c6fc40fa76880972ad2d8b1226ef0fb45c5890ca\n'
+}
+
+Node.js v24.13.0
+/tmp/predeploy-c6fc40f-source/scripts:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/scripts@0.0.0 recovery:guard: `tsx ./src/recovery-guard.ts`
+Exit status 1
+ ELIFECYCLE  Command failed with exit code 1.
+pnpm -w run recovery:guard failed with exit code 1
+PREFLIGHT FAIL
+undefined
+/tmp/predeploy-c6fc40f-source/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/preflight.ts
+ ELIFECYCLE  Command failed with exit code 1.
+
+AUTHORITATIVE_COMMAND_EXIT=1

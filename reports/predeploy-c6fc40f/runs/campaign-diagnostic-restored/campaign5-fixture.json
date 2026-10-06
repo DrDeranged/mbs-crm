@@ -1,0 +1,18 @@
+{
+  "phase": "campaign-send",
+  "campaign5Only": false,
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "oneRecipientAudience": 1,
+  "campaign5SyntheticAudience": 13,
+  "maxProviderRequests": 14,
+  "fixtureSeedMethod": "actual API handlers",
+  "preflightStatusAtLaunch": "PASS",
+  "parseSecretsSet": false,
+  "realProviderCalls": false,
+  "oneRecipientCampaign": {
+    "verdict": "FAIL",
+    "diagnosticFile": "one-recipient-campaign-diagnostic.json"
+  },
+  "verdict": "FAIL",
+  "failure": "Error: separate Campaign 5 synthetic launch sends its 13-recipient audience through the campaign API handler: {\"status\":201,\"body\":{\"launch\":{\"id\":2,\"campaignId\":5,\"idempotencyKey\":\"predeploy-campaign5-approved-thirteen\",\"requestedBy\":1,\"mode\":\"live\",\"status\":\"failed\",\"eligibleCount\":13,\"excludedCount\":0,\"sentCount\":0,\"failedCount\":13,\"scheduledAt\":null,\"startedAt\":\"2026-10-06T23:09:23.246Z\",\"completedAt\":\"2026-10-06T23:09:23.523Z\",\"createdAt\":\"2026-10-06T23:09:23.236Z\",\"executionLeaseToken\":null,\"executionLeaseExpiresAt\":null},\"sent\":0,\"failed\":13},\"text\":\"{\\\"launch\\\":{\\\"id\\\":2,\\\"campaignId\\\":5,\\\"idempotencyKey\\\":\\\"predeploy-campaign5-approved-thirteen\\\",\\\"requestedBy\\\":1,\\\"mode\\\":\\\"live\\\",\\\"status\\\":\\\"failed\\\",\\\"eligibleCount\\\":13,\\\"excludedCount\\\":0,\\\"sentCount\\\":0,\\\"failedCount\\\":13,\\\"scheduledAt\\\":null,\\\"startedAt\\\":\\\"2026-10-06T23:09:23.246Z\\\",\\\"completedAt\\\":\\\"2026-10-06T23:09:23.523Z\\\",\\\"createdAt\\\":\\\"2026-10-06T23:09:23.236Z\\\",\\\"executionLeaseToken\\\":null,\\\"executionLeaseExpiresAt\\\":null},\\\"sent\\\":0,\\\"failed\\\":13}\"}\n    at check (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:21:18)\n    at runCampaignSend (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:845:5)\n    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:970:3"
+}

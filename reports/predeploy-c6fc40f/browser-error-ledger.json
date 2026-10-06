@@ -1,0 +1,507 @@
+{
+  "scope": "Authorized browser UI traffic; explicit API security-denial probes are separated below.",
+  "requiredPages": [
+    "Dashboard",
+    "Leads",
+    "Lead Detail",
+    "Deals",
+    "Campaigns",
+    "Settings"
+  ],
+  "roles": [
+    "admin",
+    "manager",
+    "rep"
+  ],
+  "originalCoreRun": "runs/core-final",
+  "addedCampaignListRun": "runs/core-resume-role-boundary",
+  "browserHttpErrors": [
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals"
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/campaigns/1",
+      "status": 409,
+      "method": "POST",
+      "path": "/api/campaigns/1/approve"
+    }
+  ],
+  "classifiedHttpResponses": [
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/leads/3/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads/bulk/assign",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/leads",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "PUT",
+      "path": "/api/deals/5",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/leads",
+      "status": 400,
+      "method": "POST",
+      "path": "/api/deals",
+      "expected": true,
+      "reason": "Intentional inactive/pending/merged/missing assignment-destination rejection probe."
+    },
+    {
+      "context": "behavior-api",
+      "role": "admin",
+      "route": "/campaigns/1",
+      "status": 409,
+      "method": "POST",
+      "path": "/api/campaigns/1/approve",
+      "expected": true,
+      "reason": "Intentional stale campaign approval probe after modifying saved audience."
+    }
+  ],
+  "prohibitedDirectoryRequests": [],
+  "campaignListRoleChecks": [
+    {
+      "name": "resume admin /campaigns list route renders its API-created fixture campaign",
+      "passed": true,
+      "actual": {
+        "role": "admin",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    {
+      "name": "resume manager /campaigns list route renders its API-created fixture campaign",
+      "passed": true,
+      "actual": {
+        "role": "manager",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    {
+      "name": "resume rep /campaigns list route renders its API-created fixture campaign",
+      "passed": true,
+      "actual": {
+        "role": "rep",
+        "route": "/campaigns",
+        "heading": "Manager Access Required",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    }
+  ],
+  "unrelatedConsoleMessages": [
+    {
+      "role": "admin",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "admin",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "manager",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "manager",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "rep",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "rep",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    }
+  ],
+  "consoleMessageLimitation": "Six retained Radix DialogContent/DialogTitle accessibility console messages. The original collector did not associate them with pages; no page attribution is invented. They are not HTTP 4xx/5xx.",
+  "explicitSecurityApiProbes": [
+    {
+      "name": "inactive/pending/merged/missing destinations rejected on lead/deal single, bulk, and create",
+      "passed": true,
+      "actual": {
+        "7": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "8": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "9": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "999999": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ]
+      }
+    },
+    {
+      "name": "rep is forbidden from directory and assignment endpoints without assignment directory UI requests",
+      "passed": true,
+      "actual": {
+        "directoryStatus": 403,
+        "singleAssignStatus": 403,
+        "bulkStatus": 403,
+        "uiDirectoryRequests": [],
+        "controls": []
+      }
+    }
+  ]
+}

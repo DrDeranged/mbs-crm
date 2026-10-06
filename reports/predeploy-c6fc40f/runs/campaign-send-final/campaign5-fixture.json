@@ -1,0 +1,13 @@
+{
+  "phase": "campaign-send",
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "oneRecipientAudience": 1,
+  "campaign5SyntheticAudience": 13,
+  "maxProviderRequests": 14,
+  "fixtureSeedMethod": "actual API handlers",
+  "preflightStatusAtLaunch": "PASS",
+  "parseSecretsSet": false,
+  "realProviderCalls": false,
+  "verdict": "FAIL",
+  "failure": "Error: one-recipient campaign launch records exactly one successful send: {\"status\":201,\"body\":{\"launch\":{\"id\":1,\"campaignId\":1,\"idempotencyKey\":\"predeploy-approved-single-recipient\",\"requestedBy\":1,\"mode\":\"live\",\"status\":\"failed\",\"eligibleCount\":1,\"excludedCount\":0,\"sentCount\":0,\"failedCount\":1,\"scheduledAt\":null,\"startedAt\":\"2026-10-06T22:43:37.511Z\",\"completedAt\":\"2026-10-06T22:43:37.551Z\",\"createdAt\":\"2026-10-06T22:43:37.493Z\",\"executionLeaseToken\":null,\"executionLeaseExpiresAt\":null},\"sent\":0,\"failed\":1},\"text\":\"{\\\"launch\\\":{\\\"id\\\":1,\\\"campaignId\\\":1,\\\"idempotencyKey\\\":\\\"predeploy-approved-single-recipient\\\",\\\"requestedBy\\\":1,\\\"mode\\\":\\\"live\\\",\\\"status\\\":\\\"failed\\\",\\\"eligibleCount\\\":1,\\\"excludedCount\\\":0,\\\"sentCount\\\":0,\\\"failedCount\\\":1,\\\"scheduledAt\\\":null,\\\"startedAt\\\":\\\"2026-10-06T22:43:37.511Z\\\",\\\"completedAt\\\":\\\"2026-10-06T22:43:37.551Z\\\",\\\"createdAt\\\":\\\"2026-10-06T22:43:37.493Z\\\",\\\"executionLeaseToken\\\":null,\\\"executionLeaseExpiresAt\\\":null},\\\"sent\\\":0,\\\"failed\\\":1}\"}\n    at check (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:21:18)\n    at runCampaignSend (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:628:5)\n    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:804:3"
+}

@@ -1,0 +1,13 @@
+file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:93
+  { head: head.stdout.trim(), tree: tree.stdout.trim() });
+                      ^
+
+TypeError: Cannot read properties of undefined (reading 'trim')
+    at validatePinnedEvidence (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:93:23)
+    at async readiness (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:122:18)
+    at async runCampaignSend (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:542:17)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:969:3
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

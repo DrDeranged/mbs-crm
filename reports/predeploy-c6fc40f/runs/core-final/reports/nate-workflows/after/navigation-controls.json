@@ -1,0 +1,1120 @@
+{
+  "dashboard-390-admin": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Flyer Templates",
+      "href": "/flyer-templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Credit Compliance",
+      "href": "/credit/compliance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Data Governance",
+      "href": "/governance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Workflow Rules",
+      "href": "/workflow-rules",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "System Health",
+      "href": "/system-health",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "USFA Intake",
+      "href": "/admin/usfa-intake",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Settings",
+      "href": "/settings",
+      "disabled": false
+    }
+  ],
+  "apply-390-admin": [],
+  "settings-390-admin": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Flyer Templates",
+      "href": "/flyer-templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Credit Compliance",
+      "href": "/credit/compliance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Data Governance",
+      "href": "/governance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Workflow Rules",
+      "href": "/workflow-rules",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "System Health",
+      "href": "/system-health",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "USFA Intake",
+      "href": "/admin/usfa-intake",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Settings",
+      "href": "/settings",
+      "disabled": false
+    }
+  ],
+  "dashboard-768-admin": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Flyer Templates",
+      "href": "/flyer-templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Credit Compliance",
+      "href": "/credit/compliance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Data Governance",
+      "href": "/governance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Workflow Rules",
+      "href": "/workflow-rules",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "System Health",
+      "href": "/system-health",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "USFA Intake",
+      "href": "/admin/usfa-intake",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Settings",
+      "href": "/settings",
+      "disabled": false
+    }
+  ],
+  "apply-768-admin": [],
+  "settings-768-admin": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Flyer Templates",
+      "href": "/flyer-templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Credit Compliance",
+      "href": "/credit/compliance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Data Governance",
+      "href": "/governance",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Workflow Rules",
+      "href": "/workflow-rules",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "System Health",
+      "href": "/system-health",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "USFA Intake",
+      "href": "/admin/usfa-intake",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Settings",
+      "href": "/settings",
+      "disabled": false
+    }
+  ],
+  "dashboard-390-manager": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    }
+  ],
+  "apply-390-manager": [],
+  "settings-390-manager": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    }
+  ],
+  "dashboard-768-manager": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    }
+  ],
+  "apply-768-manager": [],
+  "settings-768-manager": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Campaigns",
+      "href": "/campaigns",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Stale Leads",
+      "href": "/leads/stale",
+      "disabled": false
+    }
+  ],
+  "dashboard-390-rep": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    }
+  ],
+  "apply-390-rep": [],
+  "settings-390-rep": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    }
+  ],
+  "dashboard-768-rep": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    }
+  ],
+  "apply-768-rep": [],
+  "settings-768-rep": [
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Dashboard",
+      "href": "/dashboard",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Leads",
+      "href": "/leads",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Deals",
+      "href": "/deals",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Rate & Points",
+      "href": "/deals/rate-points",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Documents",
+      "href": "/documents",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Email Templates",
+      "href": "/email/templates",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Drip Sequences",
+      "href": "/drip/sequences",
+      "disabled": false
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "type": null,
+      "name": "Partners",
+      "href": "/lenders",
+      "disabled": false
+    }
+  ]
+}

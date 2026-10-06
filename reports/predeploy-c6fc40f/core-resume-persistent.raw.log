@@ -1,0 +1,25 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Error: strict mode violation: getByText('Nate workflow after disposable', { exact: true }) resolved to 2 elements:
+    1) <button aria-pressed="false" data-testid="toggle-compare-1" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-border bg-transparent text-muted-foreground hover:border-primary hover:bg-accent…>Nate workflow after disposable</button> aka getByTestId('toggle-compare-1')
+    2) <a href="/campaigns/1" class="text-lg font-semibold text-foreground hover:text-success hover:underline truncate">Nate workflow after disposable</a> aka getByRole('link', { name: 'Nate workflow after disposable' })
+
+Call log:
+[2m  - waiting for getByText('Nate workflow after disposable', { exact: true }) to be visible[22m
+
+    at capture (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-persistent/nate-workflows-pinned-derived.mjs:815:62)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-persistent/nate-workflows-pinned-derived.mjs:1036:5 {
+  log: [
+    "  - waiting for getByText('Nate workflow after disposable', { exact: true }) to be visible"
+  ]
+}
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

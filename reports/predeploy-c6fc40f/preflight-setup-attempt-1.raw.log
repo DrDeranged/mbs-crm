@@ -1,0 +1,56 @@
+
+> workspace@0.0.0 preflight /tmp/predeploy-c6fc40f-source
+> pnpm --filter @workspace/scripts exec tsx ./src/preflight.ts
+
+PREFLIGHT 1/11: schema path guard
+
+> workspace@0.0.0 guard:schema-path /tmp/predeploy-c6fc40f-source
+> pnpm --filter @workspace/scripts exec tsx ./src/forbid-schema-push.ts
+
+fatal: not a git repository (or any parent up to mount point /)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git rev-parse --show-toplevel
+fatal: not a git repository (or any parent up to mount point /)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at trackedSourceAndConfigFiles (/tmp/predeploy-c6fc40f-source/scripts/src/forbid-schema-push.ts:58:25)
+    at assertNoForbiddenSchemaPush (/tmp/predeploy-c6fc40f-source/scripts/src/forbid-schema-push.ts:81:52)
+    at <anonymous> (/tmp/predeploy-c6fc40f-source/scripts/src/forbid-schema-push.ts:92:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    '',
+    'fatal: not a git repository (or any parent up to mount point /)\n' +
+      'Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).\n'
+  ],
+  pid: 1977,
+  stdout: '',
+  stderr: 'fatal: not a git repository (or any parent up to mount point /)\n' +
+    'Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).\n'
+}
+
+Node.js v24.13.0
+undefined
+/tmp/predeploy-c6fc40f-source/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/forbid-schema-push.ts
+ ELIFECYCLE  Command failed with exit code 1.
+pnpm -w run guard:schema-path failed with exit code 1
+PREFLIGHT FAIL
+undefined
+/tmp/predeploy-c6fc40f-source/scripts:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx ./src/preflight.ts
+ ELIFECYCLE  Command failed with exit code 1.
+
+AUTHORITATIVE_COMMAND_EXIT=1

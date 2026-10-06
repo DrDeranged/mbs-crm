@@ -1,0 +1,15 @@
+file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:21
+  if (!ok) throw new Error(`${name}: ${JSON.stringify(actual)}`);
+                 ^
+
+Error: immutable pinned API/web build snapshots are present and fingerprint-verified: {"status":"MISSING_OR_INVALID","error":"ENOENT: no such file or directory, open '/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/current.json'"}
+    at check (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:21:18)
+    at readiness (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:144:3)
+    at async runCore (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:407:17)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:692:3
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1
+
+AUTHORITATIVE_COMMAND_EXIT=1

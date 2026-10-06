@@ -1,0 +1,14 @@
+{
+  "production": {
+    "exitCode": 0,
+    "exitReason": null,
+    "output": "applied_count,latest\n66,066_bundled_vendor_equipment_flyers\n",
+    "success": true
+  },
+  "development": {
+    "exitCode": 0,
+    "exitReason": null,
+    "output": "applied_count,latest\n68,068_campaign_attribution_fk_names\n",
+    "success": true
+  }
+}

@@ -1,0 +1,15 @@
+node:internal/fs/promises:856
+  return await PromisePrototypeThen(
+         ^
+
+Error: ENOENT: no such file or directory, mkdir '/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-24-09.879Z'
+    at async mkdir (node:internal/fs/promises:856:10)
+    at async freezeBuildsOnly (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:169:3)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:700:3 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-24-09.879Z'
+}
+
+Node.js v24.13.0

@@ -1,0 +1,15 @@
+{
+  "phase": "core-resume",
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "archivedBaseline": "pinned structural-certification-2026-10-03/after/role-controls.json",
+  "approvalManifest": "pinned opt-in-recertification/approval-manifest.json",
+  "preflightStatusAtLaunch": "PASS",
+  "routeCaptureRepeated": false,
+  "resumedFullRouteEvidence": "runs/core-final/reports/nate-workflows/after",
+  "evidenceDirectory": "/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows",
+  "derivedHarness": "/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-persistent/nate-workflows-pinned-derived.mjs",
+  "childExitCode": 1,
+  "childSignal": null,
+  "appSourceModified": false,
+  "published": false
+}

@@ -1,0 +1,16 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: one-recipient campaign launch records exactly one successful send: {"status":201,"body":{"launch":{"id":1,"campaignId":1,"idempotencyKey":"predeploy-approved-single-recipient","requestedBy":1,"mode":"live","status":"failed","eligibleCount":1,"excludedCount":0,"sentCount":0,"failedCount":1,"scheduledAt":null,"startedAt":"2026-10-06T22:43:37.511Z","completedAt":"2026-10-06T22:43:37.551Z","createdAt":"2026-10-06T22:43:37.493Z","executionLeaseToken":null,"executionLeaseExpiresAt":null},"sent":0,"failed":1},"text":"{\"launch\":{\"id\":1,\"campaignId\":1,\"idempotencyKey\":\"predeploy-approved-single-recipient\",\"requestedBy\":1,\"mode\":\"live\",\"status\":\"failed\",\"eligibleCount\":1,\"excludedCount\":0,\"sentCount\":0,\"failedCount\":1,\"scheduledAt\":null,\"startedAt\":\"2026-10-06T22:43:37.511Z\",\"completedAt\":\"2026-10-06T22:43:37.551Z\",\"createdAt\":\"2026-10-06T22:43:37.493Z\",\"executionLeaseToken\":null,\"executionLeaseExpiresAt\":null},\"sent\":0,\"failed\":1}"}
+    at check (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:21:18)
+    at runCampaignSend (file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:628:5)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/run-predeploy.mjs:804:3
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

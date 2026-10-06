@@ -1,0 +1,26 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Error: strict mode violation: getByText('Nate USFA Open Equipment LLC — Nate USFA Open Fixture01', { exact: true }) resolved to 2 elements:
+    1) <a href="/deals/5" class="text-success hover:underline">Nate USFA Open Equipment LLC — Nate USFA Open Fix…</a> aka getByRole('link', { name: 'Nate USFA Open Equipment LLC' }).first()
+    2) <a href="/deals/6" class="text-success hover:underline">Nate USFA Open Equipment LLC — Nate USFA Open Fix…</a> aka getByRole('link', { name: 'Nate USFA Open Equipment LLC' }).nth(1)
+
+Call log:
+[2m  - waiting for getByText('Nate USFA Open Equipment LLC — Nate USFA Open Fixture01', { exact: true }) to be visible[22m
+
+    at runDealIdentityVisualSweep (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-final/nate-workflows-pinned-derived.mjs:645:51)
+    at async capture (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-final/nate-workflows-pinned-derived.mjs:877:7)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-final/nate-workflows-pinned-derived.mjs:998:5 {
+  log: [
+    "  - waiting for getByText('Nate USFA Open Equipment LLC — Nate USFA Open Fixture01', { exact: true }) to be visible"
+  ]
+}
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

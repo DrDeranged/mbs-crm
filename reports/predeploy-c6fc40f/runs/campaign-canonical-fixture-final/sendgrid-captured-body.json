@@ -1,0 +1,552 @@
+{
+  "campaign1OneRecipient": [
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "contact@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=1&email=contact%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=1&email=contact%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "single-campaign-replies@example.invalid",
+        "name": "Visual Fixture"
+      }
+    }
+  ],
+  "campaign5SyntheticThirteen": [
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.01@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=2&email=campaign5.recipient.01%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=2&email=campaign5.recipient.01%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.02@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=3&email=campaign5.recipient.02%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=3&email=campaign5.recipient.02%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.03@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=4&email=campaign5.recipient.03%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=4&email=campaign5.recipient.03%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.04@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=5&email=campaign5.recipient.04%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=5&email=campaign5.recipient.04%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.05@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=6&email=campaign5.recipient.05%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=6&email=campaign5.recipient.05%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.06@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=7&email=campaign5.recipient.06%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=7&email=campaign5.recipient.06%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.07@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=8&email=campaign5.recipient.07%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=8&email=campaign5.recipient.07%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.08@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=9&email=campaign5.recipient.08%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=9&email=campaign5.recipient.08%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.09@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=10&email=campaign5.recipient.09%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=10&email=campaign5.recipient.09%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.10@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=11&email=campaign5.recipient.10%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=11&email=campaign5.recipient.10%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.11@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=12&email=campaign5.recipient.11%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=12&email=campaign5.recipient.11%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.12@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=13&email=campaign5.recipient.12%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=13&email=campaign5.recipient.12%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    },
+    {
+      "from": {
+        "email": "[REDACTED_EMAIL]",
+        "name": "My Business Solutions"
+      },
+      "subject": "Synthetic test message",
+      "personalizations": [
+        {
+          "to": [
+            {
+              "email": "campaign5.recipient.13@example.invalid"
+            }
+          ]
+        }
+      ],
+      "content": [
+        {
+          "value": "Synthetic fixture content for approval testing.\n\nUnsubscribe: https://app.my-business-solutions.com/api/email/unsubscribe?id=14&email=campaign5.recipient.13%40example.invalid&token=[REDACTED] Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307\nYou're receiving this as a business owner who may benefit from equipment or working-capital financing.\nQuestions? Call (908) 860-8507 or email [REDACTED_EMAIL].",
+          "type": "text/plain"
+        },
+        {
+          "value": "<p>Synthetic fixture content for approval testing.</p><p style=\"font-size:11px;color:#999;margin-top:24px;text-align:center\"><span>My Business Solutions LLC · 617 Palisade Ave Unit 2, Jersey City, NJ 07307</span><br><a href=\"https://app.my-business-solutions.com/api/email/unsubscribe?id=14&email=campaign5.recipient.13%40example.invalid&token=[REDACTED]" style=\"color:#999\">Unsubscribe</a><br><span>You're receiving this as a business owner who may benefit from equipment or working-capital financing.</span><br><span>Questions? Call <a href=\"tel:+19088608507\">(908) 860-8507</a> or email <a href=\"mailto:[REDACTED_EMAIL]\">[REDACTED_EMAIL]</a>.</span></p>",
+          "type": "text/html"
+        }
+      ],
+      "tracking_settings": {
+        "click_tracking": {
+          "enable": false,
+          "enable_text": false
+        },
+        "open_tracking": {
+          "enable": false
+        }
+      },
+      "reply_to": {
+        "email": "synthetic-replies@example.invalid",
+        "name": "synthetic-replies@example.invalid"
+      }
+    }
+  ]
+}

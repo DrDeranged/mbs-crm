@@ -1,0 +1,25 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/fs/promises:1021
+  const result = await PromisePrototypeThen(
+                 ^
+
+Error: ENOENT: no such file or directory, lstat '/home/runner/workspace/.local/predeploy-c6fc40f-source/artifacts/api-server/dist'
+    at async lstat (node:internal/fs/promises:1021:18)
+    at async Promise.all (index 0)
+    at async checkPaths (node:internal/fs/cp/cp:77:39)
+    at async cpFn (node:internal/fs/cp/cp:66:17)
+    at async startSandbox (file:///home/runner/workspace/.local/predeploy-c6fc40f-source/scripts/visual-refresh/sandbox.mjs:110:5)
+    at async capture (file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-restored/nate-workflows-pinned-derived.mjs:725:19)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-restored/nate-workflows-pinned-derived.mjs:1036:5 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'lstat',
+  path: '/home/runner/workspace/.local/predeploy-c6fc40f-source/artifacts/api-server/dist'
+}
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

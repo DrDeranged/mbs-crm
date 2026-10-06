@@ -1,0 +1,70 @@
+{
+  "phase": "after",
+  "webRoot": "/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public",
+  "auth": "Real Clerk ticket sign-in from sandbox.mjs",
+  "database": "Disposable sandbox database; synthetic fixture",
+  "campaignCreatedViaApi": true,
+  "campaignId": 1,
+  "fixtureCounts": {
+    "syntheticStaff": 6,
+    "sourceLeadCount": 34,
+    "leadSourceCounts": {
+      "US Fund Advisor": 2,
+      "vendor_list": 30,
+      "prospect_list": 1,
+      "Website": 1
+    },
+    "fixtureDealCount": 6
+  },
+  "routes": [
+    {
+      "name": "dashboard",
+      "path": "/dashboard"
+    },
+    {
+      "name": "leads",
+      "path": "/leads"
+    },
+    {
+      "name": "lead-detail",
+      "path": "/leads/1"
+    },
+    {
+      "name": "pipeline",
+      "path": "/deals"
+    },
+    {
+      "name": "deal-detail",
+      "path": "/deals/1"
+    },
+    {
+      "name": "new-deal",
+      "path": "/deals/new"
+    },
+    {
+      "name": "credit-compliance",
+      "path": "/credit/compliance"
+    },
+    {
+      "name": "apply",
+      "path": "/apply"
+    },
+    {
+      "name": "settings",
+      "path": "/settings"
+    }
+  ],
+  "campaignAudienceSelected": true,
+  "behaviorOnly": false,
+  "widths": [
+    390,
+    768
+  ],
+  "roles": [
+    "admin",
+    "manager",
+    "rep"
+  ],
+  "forbiddenRequests": [],
+  "pageErrors": []
+}

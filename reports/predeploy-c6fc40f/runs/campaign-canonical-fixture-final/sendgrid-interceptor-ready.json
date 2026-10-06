@@ -1,0 +1,12 @@
+{
+  "ready": true,
+  "preloadedBeforeCompiledApiEntry": true,
+  "moduleBoundary": "Node HTTP/HTTPS/fetch transport",
+  "sendgridHost": "api.sendgrid.com",
+  "allowedMethod": "POST",
+  "allowedPath": "/v3/mail/send",
+  "fakeApiKeyInstalled": true,
+  "inboundParseSecretUnset": true,
+  "providerPort": 43071,
+  "at": "2026-10-06T23:12:50.133Z"
+}

@@ -1,0 +1,49 @@
+{
+  "phase": "after",
+  "assertions": {
+    "after disposable campaign created via API": {
+      "passed": true,
+      "actual": {
+        "status": 201
+      }
+    },
+    "resume admin /campaigns list route renders its API-created fixture campaign": {
+      "passed": true,
+      "actual": {
+        "role": "admin",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    "resume manager /campaigns list route renders its API-created fixture campaign": {
+      "passed": true,
+      "actual": {
+        "role": "manager",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    "after Clerk users/database/temp fixtures cleaned up": {
+      "passed": true,
+      "actual": {
+        "clerkUsersDeleted": 3,
+        "databaseDropped": true,
+        "tempDirectoryRemoved": true
+      }
+    }
+  },
+  "failures": [],
+  "behaviorComplete": false,
+  "browserErrors": [],
+  "prohibitedRequests": [],
+  "httpErrors": [],
+  "consoleErrors": [],
+  "sourceSearchDiagnostic": null,
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

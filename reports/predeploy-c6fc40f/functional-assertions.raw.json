@@ -1,0 +1,2018 @@
+{
+  "originalBehaviorComplete": false,
+  "coreAssertions": [
+    {
+      "name": "after disposable campaign created via API",
+      "passed": true,
+      "actual": {
+        "status": 201
+      }
+    },
+    {
+      "name": "after dashboard-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Credit Compliance Log"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-390-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after campaign audience route rendered or enforced its role boundary",
+      "passed": true,
+      "actual": {
+        "role": "rep",
+        "url": "http://127.0.0.1:4320/campaigns/1",
+        "h1": [
+          "Manager Access Required"
+        ],
+        "campaignId": 1,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after dashboard-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Credit Compliance Log"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-768-admin rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after dashboard-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-390-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after dashboard-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-768-manager rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after dashboard-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-390-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after dashboard-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after leads-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after lead-detail-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after pipeline-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after deal-detail-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after new-deal-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after credit-compliance-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after apply-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "after settings-768-rep rendered a real route instead of a blank/404 state",
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    {
+      "name": "active admin/manager/rep directory is eligible-only",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "ids": [
+          4,
+          5,
+          1,
+          2,
+          3,
+          6
+        ],
+        "names": [
+          "Ada Admin",
+          "Milo Manager",
+          "Nate Admin",
+          "Nate Manager",
+          "Nate Rep",
+          "Zoe Rep"
+        ]
+      }
+    },
+    {
+      "name": "assignment directory sorted by displayed name",
+      "passed": true,
+      "actual": [
+        "Ada Admin",
+        "Milo Manager",
+        "Nate Admin",
+        "Nate Manager",
+        "Nate Rep",
+        "Zoe Rep"
+      ]
+    },
+    {
+      "name": "exact source counts from accessible analytics",
+      "passed": true,
+      "actual": {
+        "vendor_list": 30,
+        "prospect_list": 1,
+        "referral": 1,
+        "US Fund Advisor": 2,
+        "Website": 1,
+        "manual": 1
+      }
+    },
+    {
+      "name": "Lead Source list and pagination return exact, distinct pages",
+      "passed": true,
+      "actual": {
+        "status1": 200,
+        "total": 30,
+        "page1": 10,
+        "page2": 10,
+        "overlap": []
+      }
+    },
+    {
+      "name": "filtered Lead Source export preserves all matching leads",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "csvRows": 31
+      }
+    },
+    {
+      "name": "deal search and detail retain linked company/customer identity",
+      "passed": true,
+      "actual": {
+        "searchStatus": 200,
+        "searchName": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01",
+        "detailStatus": 200,
+        "entityLabel": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01",
+        "linkedEntityLabel": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01"
+      }
+    },
+    {
+      "name": "lead referral listing includes the referred deal's company/customer identity",
+      "passed": true,
+      "actual": {
+        "saveStatus": 200,
+        "listStatus": 200,
+        "entityLabel": "Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02"
+      }
+    },
+    {
+      "name": "Lead Source control exposes exact accessible labels and counts",
+      "passed": true,
+      "actual": [
+        "All Lead Sources",
+        "manual (1)",
+        "prospect_list (1)",
+        "referral (1)",
+        "US Fund Advisor (2)",
+        "vendor_list (30)",
+        "Website (1)"
+      ]
+    },
+    {
+      "name": "search is intersected with selected Lead Source and returns zero matching rows",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "url": "http://127.0.0.1:4320/api/leads?leadSource=vendor_list&search=no-such-certification-record&page=1&limit=20&sortBy=updatedAt&sortOrder=desc",
+        "total": 0,
+        "rowCount": 0
+      }
+    },
+    {
+      "name": "Clear all filters resets Lead Source and list results",
+      "passed": true,
+      "actual": {
+        "sourceValueAfterReset": "All Lead Sources",
+        "visibleVendorRows": 16
+      }
+    },
+    {
+      "name": "explicit-ID bulk assignment persists exactly selected leads",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "updated": 2,
+        "dbCount": "2"
+      }
+    },
+    {
+      "name": "all-matching Lead Source assignment persists exactly 30 records",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "updated": 30,
+        "dbCount": "30"
+      }
+    },
+    {
+      "name": "inactive/pending/merged/missing destinations rejected on lead/deal single, bulk, and create",
+      "passed": true,
+      "actual": {
+        "7": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "8": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "9": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "999999": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ]
+      }
+    },
+    {
+      "name": "all eligible roles and actor self persist on lead/deal assignment and new deals",
+      "passed": true,
+      "actual": [
+        {
+          "target": 1,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 1,
+          "dealOwner": 1,
+          "createdOwner": 1,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 2,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 2,
+          "dealOwner": 2,
+          "createdOwner": 2,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 3,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 3,
+          "dealOwner": 3,
+          "createdOwner": 3,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 4,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 4,
+          "dealOwner": 4,
+          "createdOwner": 4,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 5,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 5,
+          "dealOwner": 5,
+          "createdOwner": 5,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 6,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 6,
+          "dealOwner": 6,
+          "createdOwner": 6,
+          "createdLabel": "Deal"
+        }
+      ]
+    },
+    {
+      "name": "rep is forbidden from directory and assignment endpoints without assignment directory UI requests",
+      "passed": true,
+      "actual": {
+        "directoryStatus": 403,
+        "singleAssignStatus": 403,
+        "bulkStatus": 403,
+        "uiDirectoryRequests": [],
+        "controls": []
+      }
+    },
+    {
+      "name": "admin UI assigns self and another eligible role; destination directory is alphabetical",
+      "passed": true,
+      "actual": {
+        "adminSelfSorted": true,
+        "adminOtherSorted": true,
+        "dbCount": "2",
+        "visibleTargets": [
+          "Ada Adminada.admin@example.invalid",
+          "Milo Managermilo.manager@example.invalid",
+          "Nate Adminfixture-admin@example.invalid",
+          "Nate Managerfixture-manager@example.invalid",
+          "Nate Repfixture-rep@example.invalid",
+          "Zoe Repzoe.rep@example.invalid"
+        ]
+      }
+    },
+    {
+      "name": "audience probe campaign created through API",
+      "passed": true,
+      "actual": {
+        "status": 201,
+        "id": 2
+      }
+    },
+    {
+      "name": "missing deals rule defaults to all leads",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "total": 36,
+        "emailEligible": 36,
+        "eligible": 36,
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ]
+      }
+    },
+    {
+      "name": "open rule persists and preview matches unique leads with at least one active unarchived deal",
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "persisted": "open",
+        "total": 4,
+        "emailEligible": 4,
+        "eligible": 4,
+        "ids": [
+          1,
+          2,
+          3,
+          7
+        ]
+      }
+    },
+    {
+      "name": "exclude-open rule persists and includes closed, hold, archived, and no-deal leads",
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "persisted": "exclude_open",
+        "total": 32,
+        "emailEligible": 32,
+        "eligible": 32,
+        "ids": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ],
+        "expected": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ]
+      }
+    },
+    {
+      "name": "picked-only audience includes only manual picks once",
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "total": 2,
+        "counts": {
+          "eligible": 2,
+          "excluded": 0,
+          "emailEligible": 2,
+          "smsEligible": 0,
+          "emailCapacityRemaining": 60,
+          "emailToday": 2,
+          "emailQueuedNextBusinessDay": 0,
+          "filterMatches": 0,
+          "pickedAdded": 2,
+          "reasonCounts": {
+            "noEmail": 0,
+            "unsubscribed": 0,
+            "suppressed": 0,
+            "alreadySent": 0,
+            "duplicate": 0,
+            "other": 0
+          }
+        },
+        "ids": [
+          4,
+          8
+        ]
+      }
+    },
+    {
+      "name": "picked leads obey open rule and multiple open deals do not duplicate recipients",
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "total": 1,
+        "counts": {
+          "eligible": 1,
+          "excluded": 0,
+          "emailEligible": 1,
+          "smsEligible": 0,
+          "emailCapacityRemaining": 60,
+          "emailToday": 1,
+          "emailQueuedNextBusinessDay": 0,
+          "filterMatches": 0,
+          "pickedAdded": 1,
+          "reasonCounts": {
+            "noEmail": 0,
+            "unsubscribed": 0,
+            "suppressed": 0,
+            "alreadySent": 0,
+            "duplicate": 0,
+            "other": 0
+          }
+        },
+        "ids": [
+          3
+        ]
+      }
+    },
+    {
+      "name": "manager assignment fixture starts with a different eligible owner",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": 4,
+          "firstName": "Nate USFA Closed",
+          "lastName": "Fixture02",
+          "email": "nate.fixture.2@example.invalid",
+          "phone": "+12025550002",
+          "companyName": "Nate USFA Closed Equipment LLC",
+          "referredByLeadId": null,
+          "referredByPartnerId": null,
+          "referredByLabel": null,
+          "contactName": "Nate USFA Closed Fixture02",
+          "entityLabel": "Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02",
+          "ein": null,
+          "applicationType": "working_capital",
+          "status": "new_lead",
+          "assignedRepId": 6,
+          "assignedRep": {
+            "id": 6,
+            "clerkId": "fixture-eligible-rep",
+            "name": "Zoe Rep",
+            "title": null,
+            "email": "zoe.rep@example.invalid",
+            "slug": null,
+            "role": "rep",
+            "isActive": true,
+            "mobileNumber": null,
+            "createdAt": "2026-10-06T22:36:48.049Z"
+          },
+          "leadSource": "US Fund Advisor",
+          "requestedAmount": 12000,
+          "createdAt": "2026-10-06T22:36:48.071Z",
+          "updatedAt": "2026-10-06T22:38:59.154Z",
+          "lastActivityAt": "2026-10-06T22:38:59.153Z",
+          "lastActivityActor": {
+            "id": 1,
+            "clerkId": "user_3KL9uMefqjLNn5EnKz69njRowfV",
+            "name": "Nate Admin",
+            "title": null,
+            "email": "fixture-admin@example.invalid",
+            "slug": "fixture-admin",
+            "role": "admin",
+            "isActive": true,
+            "mobileNumber": null,
+            "createdAt": "2026-10-06T22:36:42.756Z"
+          },
+          "createdBy": null,
+          "needsAssignment": false,
+          "isStale": false,
+          "daysIdle": 0,
+          "leadScore": 70,
+          "leadScoreBreakdown": null,
+          "aiSummary": null,
+          "aiSummaryGeneratedAt": null,
+          "fundedAt": null,
+          "fundedAmount": null,
+          "estimatedTermMonths": null,
+          "renewalFlaggedAt": null
+        },
+        "text": "{\"id\":4,\"firstName\":\"Nate USFA Closed\",\"lastName\":\"Fixture02\",\"email\":\"nate.fixture.2@example.invalid\",\"phone\":\"+12025550002\",\"companyName\":\"Nate USFA Closed Equipment LLC\",\"referredByLeadId\":null,\"referredByPartnerId\":null,\"referredByLabel\":null,\"contactName\":\"Nate USFA Closed Fixture02\",\"entityLabel\":\"Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02\",\"ein\":null,\"applicationType\":\"working_capital\",\"status\":\"new_lead\",\"assignedRepId\":6,\"assignedRep\":{\"id\":6,\"clerkId\":\"fixture-eligible-rep\",\"name\":\"Zoe Rep\",\"title\":null,\"email\":\"zoe.rep@example.invalid\",\"slug\":null,\"role\":\"rep\",\"isActive\":true,\"mobileNumber\":null,\"createdAt\":\"2026-10-06T22:36:48.049Z\"},\"leadSource\":\"US Fund Advisor\",\"requestedAmount\":12000,\"createdAt\":\"2026-10-06T22:36:48.071Z\",\"updatedAt\":\"2026-10-06T22:38:59.154Z\",\"lastActivityAt\":\"2026-10-06T22:38:59.153Z\",\"lastActivityActor\":{\"id\":1,\"clerkId\":\"user_3KL9uMefqjLNn5EnKz69njRowfV\",\"name\":\"Nate Admin\",\"title\":null,\"email\":\"fixture-admin@example.invalid\",\"slug\":\"fixture-admin\",\"role\":\"admin\",\"isActive\":true,\"mobileNumber\":null,\"createdAt\":\"2026-10-06T22:36:42.756Z\"},\"createdBy\":null,\"needsAssignment\":false,\"isStale\":false,\"daysIdle\":0,\"leadScore\":70,\"leadScoreBreakdown\":null,\"aiSummary\":null,\"aiSummaryGeneratedAt\":null,\"fundedAt\":null,\"fundedAmount\":null,\"estimatedTermMonths\":null,\"renewalFlaggedAt\":null}"
+      }
+    },
+    {
+      "name": "manager UI assigns self and another eligible role",
+      "passed": true,
+      "actual": {
+        "self": "Nate Manager",
+        "other": "Ada Admin",
+        "dbCount": "2"
+      }
+    },
+    {
+      "name": "manager UI all-matching assignment persists all 30 filtered leads",
+      "passed": true,
+      "actual": {
+        "dbCount": "30"
+      }
+    },
+    {
+      "name": "Deals audience selector has exactly the three required options",
+      "passed": true,
+      "actual": [
+        "All leads",
+        "Only leads with an open deal",
+        "Exclude leads with an open deal"
+      ]
+    },
+    {
+      "name": "campaign UI calculates a synthetic preview",
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "hasToken": true,
+        "count": 36
+      }
+    },
+    {
+      "name": "saving dirty campaign rule persists open and increments the saved version",
+      "passed": true,
+      "actual": {
+        "saveStatus": 200,
+        "deals": "open",
+        "version": 2,
+        "oldVersion": 1
+      }
+    },
+    {
+      "name": "saved audience changes invalidate prior preview/approval and keep campaign draft",
+      "passed": true,
+      "actual": {
+        "staleApprovalStatus": 409,
+        "error": "Preview is missing, expired, or no longer matches campaign content",
+        "status": "draft"
+      }
+    },
+    {
+      "name": "after Clerk users/database/temp fixtures cleaned up",
+      "passed": true,
+      "actual": {
+        "clerkUsersDeleted": 3,
+        "databaseDropped": true,
+        "tempDirectoryRemoved": true
+      }
+    }
+  ],
+  "continuationAssertions": {
+    "after disposable campaign created via API": {
+      "passed": true,
+      "actual": {
+        "status": 201
+      }
+    },
+    "resume admin /campaigns list route renders its API-created fixture campaign": {
+      "passed": true,
+      "actual": {
+        "role": "admin",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    "resume manager /campaigns list route renders its API-created fixture campaign": {
+      "passed": true,
+      "actual": {
+        "role": "manager",
+        "route": "/campaigns",
+        "heading": "Campaigns",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    "resume rep /campaigns list route renders its API-created fixture campaign": {
+      "passed": true,
+      "actual": {
+        "role": "rep",
+        "route": "/campaigns",
+        "heading": "Manager Access Required",
+        "campaignTitle": "Nate workflow after disposable"
+      }
+    },
+    "active admin/manager/rep directory is eligible-only": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "ids": [
+          4,
+          5,
+          1,
+          2,
+          3,
+          6
+        ],
+        "names": [
+          "Ada Admin",
+          "Milo Manager",
+          "Nate Admin",
+          "Nate Manager",
+          "Nate Rep",
+          "Zoe Rep"
+        ]
+      }
+    },
+    "assignment directory sorted by displayed name": {
+      "passed": true,
+      "actual": [
+        "Ada Admin",
+        "Milo Manager",
+        "Nate Admin",
+        "Nate Manager",
+        "Nate Rep",
+        "Zoe Rep"
+      ]
+    },
+    "exact source counts from accessible analytics": {
+      "passed": true,
+      "actual": {
+        "vendor_list": 30,
+        "prospect_list": 1,
+        "referral": 1,
+        "US Fund Advisor": 2,
+        "Website": 1,
+        "manual": 1
+      }
+    },
+    "Lead Source list and pagination return exact, distinct pages": {
+      "passed": true,
+      "actual": {
+        "status1": 200,
+        "total": 30,
+        "page1": 10,
+        "page2": 10,
+        "overlap": []
+      }
+    },
+    "filtered Lead Source export preserves all matching leads": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "csvRows": 31
+      }
+    },
+    "deal search and detail retain linked company/customer identity": {
+      "passed": true,
+      "actual": {
+        "searchStatus": 200,
+        "searchName": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01",
+        "detailStatus": 200,
+        "entityLabel": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01",
+        "linkedEntityLabel": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01"
+      }
+    },
+    "lead referral listing includes the referred deal's company/customer identity": {
+      "passed": true,
+      "actual": {
+        "saveStatus": 200,
+        "listStatus": 200,
+        "entityLabel": "Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02"
+      }
+    },
+    "Lead Source control exposes exact accessible labels and counts": {
+      "passed": true,
+      "actual": [
+        "All Lead Sources",
+        "manual (1)",
+        "prospect_list (1)",
+        "referral (1)",
+        "US Fund Advisor (2)",
+        "vendor_list (30)",
+        "Website (1)"
+      ]
+    },
+    "search is intersected with selected Lead Source and returns zero matching rows": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "url": "http://127.0.0.1:4320/api/leads?leadSource=vendor_list&search=no-such-certification-record&page=1&limit=20&sortBy=updatedAt&sortOrder=desc",
+        "total": 0,
+        "rowCount": 0
+      }
+    },
+    "Clear all filters resets Lead Source and list results": {
+      "passed": true,
+      "actual": {
+        "sourceValueAfterReset": "All Lead Sources",
+        "visibleVendorRows": 16
+      }
+    },
+    "explicit-ID bulk assignment persists exactly selected leads": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "updated": 2,
+        "dbCount": "2"
+      }
+    },
+    "all-matching Lead Source assignment persists exactly 30 records": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "updated": 30,
+        "dbCount": "30"
+      }
+    },
+    "inactive/pending/merged/missing destinations rejected on lead/deal single, bulk, and create": {
+      "passed": true,
+      "actual": {
+        "7": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "8": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "9": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ],
+        "999999": [
+          400,
+          400,
+          400,
+          400,
+          400
+        ]
+      }
+    },
+    "all eligible roles and actor self persist on lead/deal assignment and new deals": {
+      "passed": true,
+      "actual": [
+        {
+          "target": 1,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 1,
+          "dealOwner": 1,
+          "createdOwner": 1,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 2,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 2,
+          "dealOwner": 2,
+          "createdOwner": 2,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 3,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 3,
+          "dealOwner": 3,
+          "createdOwner": 3,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 4,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 4,
+          "dealOwner": 4,
+          "createdOwner": 4,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 5,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 5,
+          "dealOwner": 5,
+          "createdOwner": 5,
+          "createdLabel": "Deal"
+        },
+        {
+          "target": 6,
+          "leadStatus": 200,
+          "dealStatus": 200,
+          "createStatus": 201,
+          "leadOwner": 6,
+          "dealOwner": 6,
+          "createdOwner": 6,
+          "createdLabel": "Deal"
+        }
+      ]
+    },
+    "rep is forbidden from directory and assignment endpoints without assignment directory UI requests": {
+      "passed": true,
+      "actual": {
+        "directoryStatus": 403,
+        "singleAssignStatus": 403,
+        "bulkStatus": 403,
+        "uiDirectoryRequests": [],
+        "controls": []
+      }
+    },
+    "admin UI assigns self and another eligible role; destination directory is alphabetical": {
+      "passed": true,
+      "actual": {
+        "adminSelfSorted": true,
+        "adminOtherSorted": true,
+        "dbCount": "2",
+        "visibleTargets": [
+          "Ada Adminada.admin@example.invalid",
+          "Milo Managermilo.manager@example.invalid",
+          "Nate Adminfixture-admin@example.invalid",
+          "Nate Managerfixture-manager@example.invalid",
+          "Nate Repfixture-rep@example.invalid",
+          "Zoe Repzoe.rep@example.invalid"
+        ]
+      }
+    },
+    "audience probe campaign created through API": {
+      "passed": true,
+      "actual": {
+        "status": 201,
+        "id": 2
+      }
+    },
+    "missing deals rule defaults to all leads": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "total": 36,
+        "emailEligible": 36,
+        "eligible": 36,
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ]
+      }
+    },
+    "open rule persists and preview matches unique leads with at least one active unarchived deal": {
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "persisted": "open",
+        "total": 4,
+        "emailEligible": 4,
+        "eligible": 4,
+        "ids": [
+          1,
+          2,
+          3,
+          7
+        ]
+      }
+    },
+    "exclude-open rule persists and includes closed, hold, archived, and no-deal leads": {
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "persisted": "exclude_open",
+        "total": 32,
+        "emailEligible": 32,
+        "eligible": 32,
+        "ids": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ],
+        "expected": [
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36
+        ]
+      }
+    },
+    "picked-only audience includes only manual picks once": {
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "total": 2,
+        "counts": {
+          "eligible": 2,
+          "excluded": 0,
+          "emailEligible": 2,
+          "smsEligible": 0,
+          "emailCapacityRemaining": 60,
+          "emailToday": 2,
+          "emailQueuedNextBusinessDay": 0,
+          "filterMatches": 0,
+          "pickedAdded": 2,
+          "reasonCounts": {
+            "noEmail": 0,
+            "unsubscribed": 0,
+            "suppressed": 0,
+            "alreadySent": 0,
+            "duplicate": 0,
+            "other": 0
+          }
+        },
+        "ids": [
+          4,
+          8
+        ]
+      }
+    },
+    "picked leads obey open rule and multiple open deals do not duplicate recipients": {
+      "passed": true,
+      "actual": {
+        "save": 200,
+        "total": 1,
+        "counts": {
+          "eligible": 1,
+          "excluded": 0,
+          "emailEligible": 1,
+          "smsEligible": 0,
+          "emailCapacityRemaining": 60,
+          "emailToday": 1,
+          "emailQueuedNextBusinessDay": 0,
+          "filterMatches": 0,
+          "pickedAdded": 1,
+          "reasonCounts": {
+            "noEmail": 0,
+            "unsubscribed": 0,
+            "suppressed": 0,
+            "alreadySent": 0,
+            "duplicate": 0,
+            "other": 0
+          }
+        },
+        "ids": [
+          3
+        ]
+      }
+    },
+    "manager assignment fixture starts with a different eligible owner": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": 4,
+          "firstName": "Nate USFA Closed",
+          "lastName": "Fixture02",
+          "email": "nate.fixture.2@example.invalid",
+          "phone": "+12025550002",
+          "companyName": "Nate USFA Closed Equipment LLC",
+          "referredByLeadId": null,
+          "referredByPartnerId": null,
+          "referredByLabel": null,
+          "contactName": "Nate USFA Closed Fixture02",
+          "entityLabel": "Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02",
+          "ein": null,
+          "applicationType": "working_capital",
+          "status": "new_lead",
+          "assignedRepId": 6,
+          "assignedRep": {
+            "id": 6,
+            "clerkId": "fixture-eligible-rep",
+            "name": "Zoe Rep",
+            "title": null,
+            "email": "zoe.rep@example.invalid",
+            "slug": null,
+            "role": "rep",
+            "isActive": true,
+            "mobileNumber": null,
+            "createdAt": "2026-10-06T23:06:53.363Z"
+          },
+          "leadSource": "US Fund Advisor",
+          "requestedAmount": 12000,
+          "createdAt": "2026-10-06T23:06:53.390Z",
+          "updatedAt": "2026-10-06T23:07:17.766Z",
+          "lastActivityAt": "2026-10-06T23:07:17.765Z",
+          "lastActivityActor": {
+            "id": 1,
+            "clerkId": "user_3KLDXBOWDh6PugL9sgGc446P7NO",
+            "name": "Nate Admin",
+            "title": null,
+            "email": "fixture-admin@example.invalid",
+            "slug": "fixture-admin",
+            "role": "admin",
+            "isActive": true,
+            "mobileNumber": null,
+            "createdAt": "2026-10-06T23:06:31.973Z"
+          },
+          "createdBy": null,
+          "needsAssignment": false,
+          "isStale": false,
+          "daysIdle": 0,
+          "leadScore": 70,
+          "leadScoreBreakdown": null,
+          "aiSummary": null,
+          "aiSummaryGeneratedAt": null,
+          "fundedAt": null,
+          "fundedAmount": null,
+          "estimatedTermMonths": null,
+          "renewalFlaggedAt": null
+        },
+        "text": "{\"id\":4,\"firstName\":\"Nate USFA Closed\",\"lastName\":\"Fixture02\",\"email\":\"nate.fixture.2@example.invalid\",\"phone\":\"+12025550002\",\"companyName\":\"Nate USFA Closed Equipment LLC\",\"referredByLeadId\":null,\"referredByPartnerId\":null,\"referredByLabel\":null,\"contactName\":\"Nate USFA Closed Fixture02\",\"entityLabel\":\"Nate USFA Closed Equipment LLC — Nate USFA Closed Fixture02\",\"ein\":null,\"applicationType\":\"working_capital\",\"status\":\"new_lead\",\"assignedRepId\":6,\"assignedRep\":{\"id\":6,\"clerkId\":\"fixture-eligible-rep\",\"name\":\"Zoe Rep\",\"title\":null,\"email\":\"zoe.rep@example.invalid\",\"slug\":null,\"role\":\"rep\",\"isActive\":true,\"mobileNumber\":null,\"createdAt\":\"2026-10-06T23:06:53.363Z\"},\"leadSource\":\"US Fund Advisor\",\"requestedAmount\":12000,\"createdAt\":\"2026-10-06T23:06:53.390Z\",\"updatedAt\":\"2026-10-06T23:07:17.766Z\",\"lastActivityAt\":\"2026-10-06T23:07:17.765Z\",\"lastActivityActor\":{\"id\":1,\"clerkId\":\"user_3KLDXBOWDh6PugL9sgGc446P7NO\",\"name\":\"Nate Admin\",\"title\":null,\"email\":\"fixture-admin@example.invalid\",\"slug\":\"fixture-admin\",\"role\":\"admin\",\"isActive\":true,\"mobileNumber\":null,\"createdAt\":\"2026-10-06T23:06:31.973Z\"},\"createdBy\":null,\"needsAssignment\":false,\"isStale\":false,\"daysIdle\":0,\"leadScore\":70,\"leadScoreBreakdown\":null,\"aiSummary\":null,\"aiSummaryGeneratedAt\":null,\"fundedAt\":null,\"fundedAmount\":null,\"estimatedTermMonths\":null,\"renewalFlaggedAt\":null}"
+      }
+    },
+    "manager UI assigns self and another eligible role": {
+      "passed": true,
+      "actual": {
+        "self": "Nate Manager",
+        "other": "Ada Admin",
+        "dbCount": "2"
+      }
+    },
+    "manager UI all-matching assignment persists all 30 filtered leads": {
+      "passed": true,
+      "actual": {
+        "dbCount": "30"
+      }
+    },
+    "Deals audience selector has exactly the three required options": {
+      "passed": true,
+      "actual": [
+        "All leads",
+        "Only leads with an open deal",
+        "Exclude leads with an open deal"
+      ]
+    },
+    "campaign UI calculates a synthetic preview": {
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "hasToken": true,
+        "count": 36
+      }
+    },
+    "saving dirty campaign rule persists open and increments the saved version": {
+      "passed": true,
+      "actual": {
+        "saveStatus": 200,
+        "deals": "open",
+        "version": 2,
+        "oldVersion": 1
+      }
+    },
+    "saved audience changes invalidate prior preview/approval and keep campaign draft": {
+      "passed": true,
+      "actual": {
+        "staleApprovalStatus": 409,
+        "error": "Preview is missing, expired, or no longer matches campaign content",
+        "status": "draft"
+      }
+    },
+    "deal naming UI: referral panel renders both explicit fixture deal links with the required Company — Customer label": {
+      "passed": false,
+      "actual": {
+        "expected": "Nate USFA Open Equipment LLC — Nate USFA Open Fixture01",
+        "fixtureDealPaths": [
+          "/deals/5",
+          "/deals/6"
+        ],
+        "matchingLinks": [],
+        "ordinalLabel": false
+      }
+    },
+    "after Clerk users/database/temp fixtures cleaned up": {
+      "passed": true,
+      "actual": {
+        "clerkUsersDeleted": 3,
+        "databaseDropped": true,
+        "tempDirectoryRemoved": true
+      }
+    }
+  }
+}

@@ -1,0 +1,853 @@
+{
+  "phase": "after",
+  "assertions": {
+    "after disposable campaign created via API": {
+      "passed": true,
+      "actual": {
+        "status": 201
+      }
+    },
+    "after dashboard-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Credit Compliance Log"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-390-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after campaign audience route rendered or enforced its role boundary": {
+      "passed": true,
+      "actual": {
+        "role": "rep",
+        "url": "http://127.0.0.1:4320/campaigns/1",
+        "h1": [
+          "Manager Access Required"
+        ],
+        "campaignId": 1,
+        "readinessError": null
+      }
+    },
+    "after dashboard-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Credit Compliance Log"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-768-admin rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after dashboard-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-390-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after dashboard-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-768-manager rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after dashboard-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-390-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after dashboard-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Dashboard"
+        ],
+        "h2": [
+          "Deals Performance"
+        ],
+        "url": "http://127.0.0.1:4320/dashboard",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after leads-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Leads"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after lead-detail-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/leads/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after pipeline-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Deals"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after deal-detail-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Fixture Equipment LLC — Synthetic Contact"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/1",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after new-deal-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "New Deal"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/deals/new",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after credit-compliance-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "Admin Access Required"
+        ],
+        "url": "http://127.0.0.1:4320/credit/compliance",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after apply-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [],
+        "h2": [
+          "What type of financing are you looking for?"
+        ],
+        "url": "http://127.0.0.1:4320/apply",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after settings-768-rep rendered a real route instead of a blank/404 state": {
+      "passed": true,
+      "actual": {
+        "h1": [
+          "Settings"
+        ],
+        "h2": [],
+        "url": "http://127.0.0.1:4320/settings",
+        "notFound": false,
+        "expectedHeading": true,
+        "readinessError": null
+      }
+    },
+    "after captures only approved fixture Twilio 503 errors": {
+      "passed": true,
+      "actual": []
+    },
+    "after has no browser console errors": {
+      "passed": false,
+      "actual": [
+        {
+          "role": "admin",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "admin",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "manager",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "manager",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "rep",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "rep",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        }
+      ]
+    },
+    "after makes no prohibited provider/delivery API requests": {
+      "passed": true,
+      "actual": []
+    },
+    "after has no uncaught browser page errors": {
+      "passed": true,
+      "actual": []
+    },
+    "after Clerk users/database/temp fixtures cleaned up": {
+      "passed": true,
+      "actual": {
+        "clerkUsersDeleted": 3,
+        "databaseDropped": true,
+        "tempDirectoryRemoved": true
+      }
+    }
+  },
+  "failures": [
+    {
+      "name": "after has no browser console errors",
+      "actual": [
+        {
+          "role": "admin",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "admin",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "manager",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "manager",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "rep",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        },
+        {
+          "role": "rep",
+          "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+        }
+      ]
+    }
+  ],
+  "behaviorComplete": false,
+  "browserErrors": [],
+  "prohibitedRequests": [],
+  "httpErrors": [],
+  "consoleErrors": [
+    {
+      "role": "admin",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "admin",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "manager",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "manager",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "rep",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    },
+    {
+      "role": "rep",
+      "text": "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog"
+    }
+  ],
+  "sourceSearchDiagnostic": null,
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

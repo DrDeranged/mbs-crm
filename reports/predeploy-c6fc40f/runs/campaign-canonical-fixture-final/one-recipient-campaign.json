@@ -1,0 +1,91 @@
+{
+  "verdict": "PASS",
+  "campaignId": 1,
+  "audienceCount": 1,
+  "launchStatus": 201,
+  "launchApi": {
+    "status": 201,
+    "launch": {
+      "id": 1,
+      "campaignId": 1,
+      "status": "completed",
+      "eligibleCount": 1,
+      "excludedCount": 0,
+      "sentCount": 1,
+      "failedCount": 0
+    },
+    "sent": 1,
+    "failed": 0,
+    "error": ""
+  },
+  "sentCount": 1,
+  "configuredReplyTo": "single-campaign-replies@example.invalid",
+  "providerCalls": 1,
+  "providerResponseStatus": 202,
+  "parseSecretUnset": true,
+  "realProviderUsed": false,
+  "resultsApi": {
+    "eligible": 1,
+    "excluded": 0,
+    "sent": 1,
+    "failed": 0,
+    "deferred": 0,
+    "nextAvailableAt": null
+  },
+  "fixtureLedger": {
+    "campaign": {
+      "id": 1,
+      "status": "completed"
+    },
+    "launches": [
+      {
+        "id": 1,
+        "status": "completed",
+        "eligibleCount": 1,
+        "excludedCount": 0,
+        "sentCount": 1,
+        "failedCount": 0
+      }
+    ],
+    "recipients": [
+      {
+        "status": "sent",
+        "channel": "email",
+        "exclusionReason": "",
+        "emailSendId": 1,
+        "emailStatus": "sent",
+        "failureReason": "",
+        "deliveryKind": "bulk"
+      }
+    ],
+    "activities": [
+      {
+        "action": "created",
+        "fromStatus": null,
+        "toStatus": "draft",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      },
+      {
+        "action": "approved",
+        "fromStatus": "draft",
+        "toStatus": "approved",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      },
+      {
+        "action": "launched",
+        "fromStatus": "running",
+        "toStatus": "completed",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      }
+    ]
+  }
+}

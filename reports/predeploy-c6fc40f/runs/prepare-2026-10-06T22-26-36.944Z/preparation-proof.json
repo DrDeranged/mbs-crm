@@ -1,0 +1,17 @@
+{
+  "status": "PREPARED_NO_BROWSER",
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "archivedCases": 36,
+  "sourcePinTree": "7fad71128600161b469e35da5cc52d03a7a5db00",
+  "approvalManifest": "pinned reports/opt-in-recertification/approval-manifest.json",
+  "archivedControls": "pinned reports/structural-certification-2026-10-03/after/role-controls.json",
+  "archivedExemptions": "pinned reports/structural-certification-2026-10-03/after/exempt-controls.json",
+  "derivedHarness": "/home/runner/workspace/reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/nate-workflows-pinned-derived.mjs",
+  "evidenceDirectory": "/home/runner/workspace/reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows",
+  "browserLaunched": false,
+  "syntaxExitCode": 0,
+  "syntaxError": null,
+  "sendSandboxDerivative": "/home/runner/workspace/reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/pinned-sandbox-campaign-gated.mjs",
+  "sendSandboxSyntaxExitCode": 0,
+  "sendSandboxSyntaxError": null
+}

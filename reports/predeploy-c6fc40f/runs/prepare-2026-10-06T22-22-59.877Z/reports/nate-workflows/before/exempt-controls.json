@@ -1,0 +1,770 @@
+{
+  "dashboard-390-admin": [],
+  "leads-390-admin": [],
+  "lead-detail-390-admin": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-390-admin": [],
+  "apply-390-admin": [],
+  "settings-390-admin": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "dashboard-768-admin": [],
+  "leads-768-admin": [],
+  "lead-detail-768-admin": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-768-admin": [],
+  "apply-768-admin": [],
+  "settings-768-admin": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "dashboard-390-manager": [],
+  "leads-390-manager": [],
+  "lead-detail-390-manager": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-390-manager": [],
+  "apply-390-manager": [],
+  "settings-390-manager": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "dashboard-768-manager": [],
+  "leads-768-manager": [],
+  "lead-detail-768-manager": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-768-manager": [],
+  "apply-768-manager": [],
+  "settings-768-manager": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "dashboard-390-rep": [],
+  "leads-390-rep": [],
+  "lead-detail-390-rep": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-390-rep": [],
+  "apply-390-rep": [],
+  "settings-390-rep": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "dashboard-768-rep": [],
+  "leads-768-rep": [],
+  "lead-detail-768-rep": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Upload",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Edit",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Call",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Text",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Email",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Note",
+      "href": null,
+      "disabled": false
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "type": "button",
+      "name": "Task",
+      "href": null,
+      "disabled": false
+    }
+  ],
+  "pipeline-768-rep": [],
+  "apply-768-rep": [],
+  "settings-768-rep": [
+    {
+      "tag": "SELECT",
+      "role": null,
+      "type": null,
+      "name": "Appearance theme",
+      "href": null,
+      "disabled": false
+    }
+  ]
+}

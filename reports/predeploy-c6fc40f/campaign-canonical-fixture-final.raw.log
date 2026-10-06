@@ -1,0 +1,75 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+{
+  "phase": "campaign-send",
+  "campaign5Only": false,
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "oneRecipientAudience": 1,
+  "campaign5SyntheticAudience": 13,
+  "maxProviderRequests": 14,
+  "fixtureSeedMethod": "actual API handlers",
+  "preflightStatusAtLaunch": "PASS",
+  "parseSecretsSet": false,
+  "realProviderCalls": false,
+  "verdict": "PASS",
+  "campaignId": 5,
+  "campaignName": "Vendors — Heavy Equipment",
+  "previewStatus": 200,
+  "previewEligible": 13,
+  "approvalStatus": 200,
+  "launchStatus": 201,
+  "configuredReplyTo": "synthetic-replies@example.invalid",
+  "recipientCount": 13,
+  "capturedReplyTos": [
+    "synthetic-replies@example.invalid"
+  ],
+  "oneRecipientCampaign": {
+    "evidence": "one-recipient-campaign.json",
+    "campaignId": 1,
+    "audienceCount": 1,
+    "sentCount": 1,
+    "configuredReplyTo": "single-campaign-replies@example.invalid",
+    "capturedReplyTo": "single-campaign-replies@example.invalid"
+  },
+  "transport": {
+    "calls": 14,
+    "maxRequests": 14,
+    "campaignIdsAllowed": [
+      1,
+      5
+    ],
+    "allStatus202": true,
+    "destination": "127.0.0.1",
+    "realProviderUsed": false
+  },
+  "parseSecretUnset": true,
+  "fixtureLedger": {
+    "id": 5,
+    "status": "completed",
+    "launch_status": "completed",
+    "sent_count": 13,
+    "sent_recipients": 13
+  },
+  "resultsApi": {
+    "eligible": 13,
+    "excluded": 0,
+    "sent": 13,
+    "failed": 0,
+    "deferred": 0,
+    "nextAvailableAt": null
+  },
+  "productionAggregate": {
+    "id": 5,
+    "name": "Vendors — Heavy Equipment",
+    "status": "completed",
+    "sent": 13
+  },
+  "fixtureVersusProduction": "synthetic fixture completed via candidate APIs + loopback transport; production value read-only",
+  "screenshots": [
+    "campaign5-fixture-results-sent-13.png"
+  ]
+}
+
+AUTHORITATIVE_COMMAND_EXIT=0

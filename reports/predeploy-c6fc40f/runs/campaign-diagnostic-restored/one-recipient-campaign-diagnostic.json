@@ -1,0 +1,100 @@
+{
+  "phase": "one-recipient",
+  "launchPassed": false,
+  "launchApi": {
+    "status": 201,
+    "launch": {
+      "id": 1,
+      "campaignId": 1,
+      "status": "failed",
+      "eligibleCount": 1,
+      "excludedCount": 0,
+      "sentCount": 0,
+      "failedCount": 1
+    },
+    "sent": 0,
+    "failed": 1,
+    "error": ""
+  },
+  "resultsApi": {
+    "status": 200,
+    "counts": {
+      "eligible": 1,
+      "excluded": 0,
+      "sent": 0,
+      "failed": 1,
+      "deferred": 0,
+      "nextAvailableAt": null
+    },
+    "launches": [
+      {
+        "id": 1,
+        "status": "failed",
+        "eligibleCount": 1,
+        "excludedCount": 0,
+        "sentCount": 0,
+        "failedCount": 1
+      }
+    ]
+  },
+  "fixtureLedger": {
+    "campaign": {
+      "id": 1,
+      "status": "failed"
+    },
+    "launches": [
+      {
+        "id": 1,
+        "status": "failed",
+        "eligibleCount": 1,
+        "excludedCount": 0,
+        "sentCount": 0,
+        "failedCount": 1
+      }
+    ],
+    "recipients": [
+      {
+        "status": "failed",
+        "channel": "email",
+        "exclusionReason": "PUBLIC_APP_URL must use https in production",
+        "emailSendId": null,
+        "emailStatus": null,
+        "failureReason": "",
+        "deliveryKind": null
+      }
+    ],
+    "activities": [
+      {
+        "action": "created",
+        "fromStatus": null,
+        "toStatus": "draft",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      },
+      {
+        "action": "approved",
+        "fromStatus": "draft",
+        "toStatus": "approved",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      },
+      {
+        "action": "launched",
+        "fromStatus": "running",
+        "toStatus": "failed",
+        "reason": "",
+        "errorMessage": "",
+        "failureCode": null,
+        "errorCode": null
+      }
+    ]
+  },
+  "localTransport": [],
+  "transportLogPresent": false,
+  "parseSecretUnset": true,
+  "realProviderUsed": false
+}

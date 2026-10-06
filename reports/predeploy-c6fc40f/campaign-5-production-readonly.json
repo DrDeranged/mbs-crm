@@ -1,0 +1,16 @@
+{
+  "environment": "production-read-only",
+  "columns": {
+    "exitCode": 0,
+    "exitReason": null,
+    "output": "table_name,column_name\ncampaign_launches,campaign_id\ncampaign_launches,id\ncampaign_launches,mode\ncampaign_launches,sent_count\ncampaign_launches,status\ncampaign_recipients,campaign_id\ncampaign_recipients,id\ncampaign_recipients,status\ncampaigns,id\ncampaigns,name\ncampaigns,status\n",
+    "success": true
+  },
+  "result": {
+    "exitCode": 0,
+    "exitReason": null,
+    "output": "id,name,status,sent\n5,Vendors — Heavy Equipment,completed,13\n",
+    "success": true
+  },
+  "limitation": "Read-only replica; production clone provenance is checked separately."
+}

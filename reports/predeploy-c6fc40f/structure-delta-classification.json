@@ -1,0 +1,150 @@
+{
+  "report": "offline classification of retained structure-final evidence",
+  "analysisScope": "Existing JSON/screenshots only; no browser rerun and no product/shared-runner edits.",
+  "capturedRun": "runs/structure-final",
+  "sourceFiles": [
+    "structure-raw-deltas.json",
+    "runs/structure-final/reports/nate-workflows/before/controls.json",
+    "runs/structure-final/reports/nate-workflows/before/role-controls.json",
+    "runs/structure-final/reports/nate-workflows/after/controls.json",
+    "runs/structure-final/reports/nate-workflows/after/navigation-controls.json",
+    "runs/structure-final/reports/nate-workflows/after/capture-meta.json",
+    "runs/structure-final/reports/nate-workflows/after/assertions.json",
+    "runs/structure-final/reports/nate-workflows/after/http-errors.ndjson",
+    "runs/structure-final/reports/nate-workflows/certification-results.json"
+  ],
+  "originalResult": {
+    "verdict": "FAIL",
+    "assertionFailures": 74,
+    "preserved": true,
+    "failureComposition": {
+      "strictAdditionRemovalComparisons": 36,
+      "retainedOrderComparisons": 36,
+      "routeRoleViewportInventoryAssertion": 1,
+      "consoleErrorAssertion": 1,
+      "total": 74
+    },
+    "interpretation": "Do not restate this run as 36/36 passing. The retained structure phase remains FAIL/unverified."
+  },
+  "inventory": {
+    "canonicalBeforeCases": 36,
+    "beforeControlsEqualsBeforeRoleControls": true,
+    "afterCandidateCases": 60,
+    "candidateOnlyCases": 24,
+    "rawDeltaCases": 36,
+    "candidateOnlyRouteFamilies": [
+      "deal-detail",
+      "new-deal",
+      "credit-compliance",
+      "campaign-audience"
+    ],
+    "candidateOnlyCombination": "Each of the four route families appears for admin, manager, and rep at widths 390 and 768.",
+    "classification": "COLLECTOR_AND_ROUTE_INVENTORY_MISMATCH",
+    "notes": [
+      "The before controls are a copy of the 36-case canonical control JSON, not a new same-run before browser capture.",
+      "The after capture contains 60 keys. The additional 24 have no matching canonical before case and cannot be treated as paired structural deltas.",
+      "The failed inventory assertion is a harness/baseline inventory mismatch, not evidence that the candidate application lost those routes."
+    ]
+  },
+  "classifiedFindings": [
+    {
+      "classification": "COLLECTOR_OR_RESPONSIVE_STATE_MISMATCH",
+      "finding": "The mobile dashboard control inventory makes the sidebar look removed, but that is not supported as a product deletion.",
+      "evidence": {
+        "baselineDashboard390AdminControls": 44,
+        "candidateDashboard390AdminControls": 24,
+        "candidateHasOpenNavigationControl": true,
+        "navigationSupplementCommonCases": 18,
+        "navigationSupplementMatchesCanonicalProjection": 18,
+        "screenshots": [
+          "runs/structure-final/reports/nate-workflows/after/dashboard-390-admin.png",
+          "runs/structure-final/reports/nate-workflows/after/dashboard-768-admin.png"
+        ]
+      },
+      "interpretation": "At 390px the retained screenshot shows the compact navigation state and an Open navigation control; at 768px the sidebar is visible. The separate navigation-controls capture contains the expected role-appropriate links for its 18 recorded cases and matches the corresponding canonical navigation projection. Do not classify all mobile sidebar links as removed product controls. This limited navigation evidence does not repair the full control comparison."
+    },
+    {
+      "classification": "SYNTHETIC_FIXTURE_OR_DATASET_MISMATCH",
+      "finding": "Dashboard and record controls contain different synthetic staff, lead, and deal values from the archived controls.",
+      "evidence": {
+        "syntheticStaff": 6,
+        "sourceLeadCount": 34,
+        "fixtureDealCount": 6,
+        "dashboardNamesInRawDeltas": [
+          "Nate Rep",
+          "Nate Manager",
+          "Zoe Rep",
+          "Merged Target"
+        ]
+      },
+      "source": "runs/structure-final/reports/nate-workflows/after/capture-meta.json and structure-raw-deltas.json",
+      "interpretation": "These values are seeded fixture data, not by themselves evidence of product-code changes. Dataset-dependent labels and row/action controls must not be used to claim either a product regression or a clean structural pass."
+    },
+    {
+      "classification": "EXPLICITLY_APPROVED_CHANGE_OBSERVED",
+      "finding": "The raw comparison contains requested control deltas.",
+      "evidence": {
+        "Lead Source additions": 6,
+        "Search referrer additions": 6,
+        "Share referral link additions": 6,
+        "rep Retry removals": 4
+      },
+      "interpretation": "These match the explicit allowlist scope (role/viewport cases as applicable). They do not justify broadening exceptions for any other control."
+    },
+    {
+      "classification": "UNAPPROVED_CANDIDATE_PRODUCT_DELTA",
+      "finding": "An Open softphone button is an unmatched candidate control.",
+      "evidence": {
+        "canonicalCasesWithAddition": 27,
+        "canonicalBaselineCasesWithSameControl": 0,
+        "screenshots": [
+          "runs/structure-final/reports/nate-workflows/after/dashboard-390-admin.png",
+          "runs/structure-final/reports/nate-workflows/after/dashboard-768-admin.png"
+        ]
+      },
+      "interpretation": "This is present in the captured candidate controls across 27 canonical keys and is not one of the approved additions. Treat it as an unresolved/unapproved product-surface delta unless independently authorized; do not suppress it as a sidebar or fixture-data artifact."
+    },
+    {
+      "classification": "UNRESOLVED_CONTROL_NAME_DELTA",
+      "finding": "Apply-option accessible names differ by inserted spaces in the candidate control text.",
+      "evidence": {
+        "cases": 6,
+        "baselineExample": "Working CapitalMerchant Cash Advance or term loan for operations, payroll, inventory, or growth.",
+        "candidateExample": "Working Capital Merchant Cash Advance or term loan for operations, payroll, inventory, or growth."
+      },
+      "interpretation": "This may be a content/accessible-name improvement or a collector/text-normalization difference. No same-state before DOM evidence is retained to resolve it, and it is not an approved exception; keep it visible and unverified."
+    }
+  ],
+  "requestErrorLedger": {
+    "scope": "Retained structure-final run only",
+    "httpErrorsNdjsonRows": 0,
+    "assertionsHttpErrors": 0,
+    "rolePageBuckets": [],
+    "status": "NO_4XX_5XX_ROWS_RETAINED",
+    "note": "The retained HTTP ledger is empty; these files do not contain eight request-error records to assign to role/page. Do not invent rows or infer HTTP failures from the console warning."
+  },
+  "consoleWarnings": {
+    "count": 6,
+    "byRole": {
+      "admin": 2,
+      "manager": 2,
+      "rep": 2
+    },
+    "message": "DialogContent requires a DialogTitle for the component to be accessible for screen reader users.",
+    "classification": "CONSOLE_ACCESSIBILITY_WARNING_NOT_HTTP_STATUS",
+    "pageOrRoute": "Not present in the retained consoleErrors entries."
+  },
+  "decision": {
+    "structureItem": "FAIL_UNVERIFIED",
+    "rawDeltasRewritten": false,
+    "baselineOrExemptionsChanged": false,
+    "exceptionsWidened": false,
+    "comparisonCorrectionApplied": false,
+    "reason": "The before data is the static canonical control inventory while after is a browser capture with a different route inventory, responsive navigation state, and synthetic fixture data. The supplemental navigation evidence resolves only the sidebar interpretation, not the full DOM/control comparison; at least one unmatched candidate control also remains."
+  },
+  "environment": {
+    "frozenPinnedBuilds": "VERIFIED",
+    "preflight": "PASS",
+    "productionClone": "FAIL: sourceKind=schema-only does not satisfy actual-production-clone requirement"
+  }
+}

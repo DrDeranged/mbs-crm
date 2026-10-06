@@ -1,0 +1,34 @@
+{
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "sourceTree": "7fad71128600161b469e35da5cc52d03a7a5db00",
+  "verifiedBlobCount": 1580,
+  "archivedBaselineCases": 36,
+  "candidateBuilds": [
+    {
+      "artifact": "frozen pinned API dist",
+      "key": "api",
+      "root": "/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api",
+      "sha256": "b64b55747cd75aafedbde0b494c65c3364db4a0347700f699ac497800ec87bc5",
+      "fileCount": 158,
+      "present": true,
+      "mtime": "2026-10-06T22:27:13.871Z"
+    },
+    {
+      "artifact": "frozen pinned web dist/public",
+      "key": "web",
+      "root": "/home/runner/workspace/reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public",
+      "sha256": "92f293673cfd1044a9e10aa161696a89ba1fbfebfd435a40c89c8e971efda623",
+      "fileCount": 108,
+      "present": true,
+      "mtime": "2026-10-06T22:27:13.940Z"
+    }
+  ],
+  "buildFreezeStatus": "VERIFIED",
+  "buildFreezeError": null,
+  "frozenSnapshot": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z",
+  "pinnedPlaywrightDependencyAvailable": true,
+  "preflightStatus": "PASS",
+  "testClerkCredentialConfigured": true,
+  "developmentDatabaseConfigured": true,
+  "browserExecutionPermitted": true
+}

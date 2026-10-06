@@ -1,0 +1,3022 @@
+{
+  "sourceCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "productionChanged": false,
+  "productCodeChanged": false,
+  "published": false,
+  "redactionPolicy": "Credentials/auth URLs/connection passwords/non-synthetic email addresses/SSNs removed; synthetic fixture addresses retained.",
+  "redactedFiles": [
+    "runs/campaign-canonical-fixture-final/sendgrid-captured-body.json",
+    "runs/core-final/reports/nate-workflows/after/controls.json",
+    "runs/core-final/reports/nate-workflows/before/controls.json",
+    "runs/core-final/reports/nate-workflows/before/role-controls.json",
+    "runs/core-resume-final/reports/nate-workflows/before/controls.json",
+    "runs/core-resume-final/reports/nate-workflows/before/role-controls.json",
+    "runs/core-resume-persistent/reports/nate-workflows/before/controls.json",
+    "runs/core-resume-persistent/reports/nate-workflows/before/role-controls.json",
+    "runs/core-resume-restored/reports/nate-workflows/before/controls.json",
+    "runs/core-resume-restored/reports/nate-workflows/before/role-controls.json",
+    "runs/core-resume-role-boundary/reports/nate-workflows/before/controls.json",
+    "runs/core-resume-role-boundary/reports/nate-workflows/before/role-controls.json",
+    "runs/core-resume-scoped/reports/nate-workflows/before/controls.json",
+    "runs/core-resume-scoped/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/role-controls.json",
+    "runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/controls.json",
+    "runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/role-controls.json",
+    "runs/structure-final/reports/nate-workflows/after/controls.json",
+    "runs/structure-final/reports/nate-workflows/before/controls.json",
+    "runs/structure-final/reports/nate-workflows/before/role-controls.json",
+    "runs/structure-final/reports/nate-workflows/certification-results.json",
+    "runs/structure-final/reports/nate-workflows/control-review.json",
+    "structure-final.raw.log"
+  ],
+  "skippedRuntimeOrPrivateFiles": [
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/Inter-LICENSE.txt",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/Inter-Regular.ttf",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/Inter-SemiBold.ttf",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/equipment-financing.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/vendor-equipment-amusement.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/vendor-equipment-restaurants.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/vendor-equipment-trucking.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/vendor-equipment-yellow-iron.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/campaigns/working-capital.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/mbs-favicon-512.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/mbs-logo-green-slash-reverse.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/assets/mbs-logo-green-slash.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-4V2YAY3D.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-4V2YAY3D.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-5AX5I6WE.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-5AX5I6WE.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-6YLE5XMW.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-6YLE5XMW.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-7E3CCQC2.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-7E3CCQC2.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-ATFS5275.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-ATFS5275.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-CJPBNUHV.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-CJPBNUHV.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-EFSD5NGP.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-EFSD5NGP.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-ENMGHPCZ.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-ENMGHPCZ.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-JWNFTTI6.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-JWNFTTI6.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-KKR2HMRO.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-KKR2HMRO.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-LV2O6XJ4.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-LV2O6XJ4.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-OUD2LORY.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-OUD2LORY.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-R5GPNPTX.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-R5GPNPTX.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-RICIZEEN.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-RICIZEEN.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-RIS63LTX.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-RIS63LTX.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-T2GMKMES.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-T2GMKMES.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-WGINKKAP.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-WGINKKAP.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-WNKNA2BR.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-WNKNA2BR.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-XXDBSN6D.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-XXDBSN6D.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-YJBQIK7C.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/chunk-YJBQIK7C.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/email-IEC4GNDO.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/email-IEC4GNDO.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/encryption-EWD3WVL2.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/encryption-EWD3WVL2.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/esm-JJSRRVUZ.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/esm-JJSRRVUZ.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/esm-KUD6TZZ6.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/esm-KUD6TZZ6.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/excel-ZZULIAHE.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/excel-ZZULIAHE.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-bsd-UN3MRJQ5.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-bsd-UN3MRJQ5.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-darwin-HFMRGTA6.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-darwin-HFMRGTA6.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-linux-A5CFSWTQ.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-linux-A5CFSWTQ.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-unsupported-VAULZYES.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-unsupported-VAULZYES.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-win-IBLM3IE2.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/getMachineId-win-IBLM3IE2.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/objectStorage-VWSN54NJ.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/objectStorage-VWSN54NJ.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/runtime-6ABD5YZ7.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/chunks/runtime-6ABD5YZ7.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/index.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/index.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/lib/collateralBuildProbe.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/lib/collateralBuildProbe.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/000_baseline.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/001_create_credit_tables.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/002_rep_slugs.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/003_deals.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/004_deal_intended_rep_slug.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/005_lead_distribution_settings.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/006_drip_sequence_ownership.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/007_lead_staleness_threshold.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/008_email_safety_settings.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/009_email_send_failure_reason.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/010_email_webhook_events.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/011_email_rate_slots.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/012_application_signature.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/013_retired_rep_slugs.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/014_application_optional_fields.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/015_application_consent_text_version.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/016_user_titles.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/017_deal_notes_gm_split.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/018_lender_matcher_gates.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/019_document_categories.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/020_lender_submissions.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/021_lead_package_config.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/022_lender_submission_package_snapshots.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/023_routing_and_marketing_ownership.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/024_email_compliance_daily_budget.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/025_usfa_intake.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/026_usfa_intake_runtime_support.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/028_merge_going_to_funding_stage.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/029_deal_approvals.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/030_add_application_collateral.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/031_collateral_library.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/032_finance_application_collateral.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/033_lender_submission_review_fields.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/034_application_sms_consent.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/035_user_identities.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/036_partners_contacts.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/037_partner_flows_and_texting.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/038_partner_texting.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/039_ridgestone_partner_profile.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/040_release_schema_parity.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/041_push_notifications.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/042_push_delivery_ledger.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/043_align_push_schema.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/044_notification_delivery_claims.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/045_application_equipment_category_homeowner.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/046_complete_partner_contacts_recovery.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/047_partner_contacts_prerequisite.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/048_financing_campaign_draft.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/049_lender_underwriting_intelligence.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/050_lender_guideline_versions.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/051_users_role_default_pending.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/052_reusable_campaign_launcher.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/053_campaign_preview_approval_snapshots.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/054_campaign_preview_recipient_snapshots.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/055_campaign_launch_execution_leases.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/056_campaign_flyer.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/057_telephony_settings.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/058_telephony_business_defaults.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/059_inbound_voice_settings.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/060_inbound_voice_array_defaults.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/061_telephony_completion.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/062_email_readiness_daily_cap.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/063_lead_vertical.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/064_collateral_flyer_library.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/065_campaign_flyer_link_vendor_template.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/066_bundled_vendor_equipment_flyers.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/067_campaign_attribution.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/migrations/068_campaign_attribution_fk_names.sql",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-file.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-file.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-pretty.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-pretty.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-worker.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/pino-worker.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/runtime-worker.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/runtime-worker.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/thread-stream-worker.mjs",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/api/thread-stream-worker.mjs.map",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/admin-usfa-intake-cN6k05-3.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/alert-dialog-Bs9M07Ma.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/application-status-Dw16K558.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/apply-CrZuHNOv.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/arrow-left-DU56D7V8.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/arrow-up-down-CQ6Khx_A.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/calendar-Sd-CJgRu.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/campaign-detail-BIf9LFIN.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/campaign-library-flyer-picker-DYgxEZp2.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/campaign-replies-panel-DiP2rE3d.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/campaignMetrics-BZ_H2_AY.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/campaigns-CFLcA3I2.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/card-BjLUSWZx.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/chart-column-D03t_vk-.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/checkbox-DCWvjHWJ.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/chevron-left-C0GD2ejT.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/circle-check-unSRdjyI.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/circle-x-O5O0wgAW.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/copy-PRa4kWiM.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/credit-compliance-Dm-m9ZQP.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/dashboard-BLvWRtba.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/deal-detail-BWJiDOSe.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/dealApproval-DRPhxEeR.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/dealBoard-CE-u94hD.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/deals-BjHdB_fc.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/documents-DUipYkwl.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/dollar-sign-BKdmtEom.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/drip-sequences-CZ-Ow3e6.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/email-templates-CH_DLgTK.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/empty-BeKh3CN8.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/eye-fpK-RQjZ.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/fileDownload-Do9oMiCL.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/financing-campaign-redirect-K7Fezg3Q.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/flyer-templates-th8C194v.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/form-Cd2W_0zf.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/format-BsxEDTnR.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/formatDistanceToNow-DwPDFe4q.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/governance-BtYVXV_D.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-3p2K9P13.css",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-B6I437-0.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-C7yKKq-w.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-CSzoNO4P.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-DSIDmCn8.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/index-dSqLGXWX.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/info-geGilELA.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/lead-detail-Cz89b-eE.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/leads-BRPkQBsU.css",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/leads-BpZIC_5f.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/lender-management-En5GbIAI.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/link-2-CPWm4ivS.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/list-BgiPnk3X.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/list-response-DRXLrYMf.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/new-deal-DbZqBUv6.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/new-lead-By9UPkug.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/not-found-ikpn_AD2.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/pencil-CnR3WY5b.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/phone-call-DW9ie1Mm.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/phone-link-ZssdhNco.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/play-BkTlLJ1q.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/purify.es-BPuvlvQ_.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rate-converter-DQEz448j.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rate-points-DikqL3q-.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/record-action-bar-DfqVSfaF.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/referral-panels-D4EvXorR.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/referrer-select-CGLsV78M.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rep-chooser-BePTE6iu.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rep-quickstart-9sn88lnL.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/repChooser-CzIETh9b.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rich-text-editor-D87emVHL.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/rotate-ccw-DOnlspoS.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/safe-email-html-preview-bAzkxknV.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/save-SN8Hz_Sv.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/searchable-select-DfgBqDdz.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/settings-IOQtEoZ0.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/shield-alert-41hU_9P-.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/sparkles-D4OMUpRR.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/star-D-sxnlr7.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/switch-CPYf5Mvz.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/system-health-mSCfOAjc.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/table-CVxUbkAR.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/tabs-DY4iMy4Z.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/trash-2-BmW9FYzE.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/trending-up-CPhDRrT-.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/triangle-alert-M_v6jLwL.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/use-assignment-directory-TLU25V86.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/use-manager-directory-C9kPndr5.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/user-9J1qA5LF.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/workflow-rules-DfemWOW-.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/assets/wrench-BIZKTfkI.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/brand/mbs-app-icon.svg",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/brand/mbs-favicon-512.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/brand/mbs-logo-green-slash-reverse.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/brand/mbs-logo-green-slash.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-180x180.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-192x192.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-32x32.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-512x512.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-maskable-192x192.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon-maskable-512x512.png",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/favicon.ico",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/fonts/Inter-OFL.txt",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/fonts/inter-latin-wght-normal.woff2",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/index.html",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/manifest.webmanifest",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/offline.html",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/opengraph.jpg",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/robots.txt",
+      "reason": "compiled runtime, not evidence; digests retained"
+    },
+    {
+      "path": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/web-public/sw.js",
+      "reason": "compiled runtime, not evidence; digests retained"
+    }
+  ],
+  "files": [
+    {
+      "path": "reports/predeploy-c6fc40f/README.md",
+      "bytes": 12889,
+      "sha256": "505838cf1f4c5ef9fff8809b68ff9d98ce04fdc602516c1788168560b5e424d7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/REPORT.md",
+      "bytes": 19043,
+      "sha256": "0a910847499e638b35e06412256bc66a818ca6eea495cc49c780c526d9ea053a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/browser-error-ledger.json",
+      "bytes": 14449,
+      "sha256": "e390f9ae1187cd75f0e2870ae8f838b3e372cc81667a567e39e1caf22dcdc111"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-5-production-readonly.json",
+      "bytes": 688,
+      "sha256": "1dda34bb09b3c4411b2585343697bb20065d9d9298f539df502467eb285c0497"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-canonical-fixture-final.raw.log",
+      "bytes": 2115,
+      "sha256": "b9686ed91d919ea0a77d342a8d4e1367200f0d76f5915808f7c34d5be0ba2d27"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-diagnostic-final.raw.log",
+      "bytes": 696,
+      "sha256": "2c3bec895a645c3026b011e13d4de8edd4b4fb832d7173eafc950c80b7c6c150"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-diagnostic-restored.raw.log",
+      "bytes": 1722,
+      "sha256": "ac2a021db2f2e964ad52a421f252b570f6b2bbbdf5d13ba700d37ae2f71153b2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-https-fixture-final.raw.log",
+      "bytes": 1722,
+      "sha256": "9fa92e5c56fba85af2e8a48afe3a1d2f13ffb95680e6966e76ba97b5834d9836"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-send-final-offline-review.md",
+      "bytes": 3119,
+      "sha256": "055889d18ee0637928de898f327dcb5d3c057fd5007921c90070b15ceaab2406"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/campaign-send-final.raw.log",
+      "bytes": 1676,
+      "sha256": "3bb0672e9d527f943f74a174a8458801842bf0b4170d3c0a274db0177bc96ada"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/capture-pinned-source.mjs",
+      "bytes": 2832,
+      "sha256": "249b781d2764abf16a77e4133b25ef6a2aa331cf8af0bce6d813b86a0011b97c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/clone-provenance.json",
+      "bytes": 269,
+      "sha256": "f62a56e57b0c53ee876557527bb96b3cfbd99c737ab842a4ff4465f3eeb50696"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-final.raw.log",
+      "bytes": 1609,
+      "sha256": "b41affa98ca9f10b52e627080c4e4328446bedebfe79baf402de92f585c879a0"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-resume-final.raw.log",
+      "bytes": 268,
+      "sha256": "289e77fe1b3f55ade952073ae3f5ab1c207dd3bf4836b445aedb2032aff5f397"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-resume-persistent.raw.log",
+      "bytes": 1833,
+      "sha256": "4a684cad449c666c785b249434ac870868d7edeb0148590abf5a71cb3282cc45"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-resume-restored.raw.log",
+      "bytes": 1296,
+      "sha256": "7b06c3089ede38569a8b6ad9b14449da4580ba236d9c6a54a7c64758c8d52f46"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-resume-role-boundary.raw.log",
+      "bytes": 1077,
+      "sha256": "3f8ae94b05045639666e191e621393e019587a0995ebdcd0bf1d9d97e7115d88"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/core-resume-scoped.raw.log",
+      "bytes": 937,
+      "sha256": "080e8fa42a8fd514a5e9ecedf68557306b12cb94999c7297702f90862208b20c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/export-evidence.mjs",
+      "bytes": 4193,
+      "sha256": "7b01cf5eaadf28711995723892c8a336eda804842fa9916378775d1a700b0794"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/fetch-validation-history.mjs",
+      "bytes": 3849,
+      "sha256": "6f66960f03e3900e85f43ec6a3925025e5f4e4ca65e7f22f6bfedd8edcd4e3e6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/freeze-builds-setup.raw.log",
+      "bytes": 663,
+      "sha256": "a5aaa0145c7c89119552eb2bfd35b86ccfcfbee8c9560a8e54ff3cfe018c9055"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/freeze-builds.raw.log",
+      "bytes": 1138,
+      "sha256": "60b6d9f016fe72077b81fa681534610c6b93160cdb67c7175bdba89fcfb37eba"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z/build-provenance.json",
+      "bytes": 1101,
+      "sha256": "0984826b55a2323e376262fbe481d51afde14657295a81da013e5aede8a6188d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/frozen-builds/current.json",
+      "bytes": 108,
+      "sha256": "f85ceaf2e7cf75509cbb2468e2e5dde60389823aa0aa2bfc82796b8b39b24cdd"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/functional-assertions.raw.json",
+      "bytes": 53972,
+      "sha256": "b0f443f1a3c600f9169658f98bb4eab3343e01fb2b4a3304363862ced4791916"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/history-pin.json",
+      "bytes": 159,
+      "sha256": "472931dd335ba20ab63d6089137ac232cd2aee51665d7aacc480c248083f5896"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/materialize-git-pin.mjs",
+      "bytes": 3267,
+      "sha256": "d6166daf42bd39abd0f5cb68046264db6983811e1bfb15e124e7dc6727cd0dcd"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/migration-ledger-readonly.json",
+      "bytes": 333,
+      "sha256": "b8282fa37ea734077acecfee2c0d759a67427e9dc35082e89c2b5b12340921de"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/preflight-setup-attempt-1.raw.log",
+      "bytes": 2387,
+      "sha256": "ac3a1c920c96be7fe1a4a2a06c8e60bda0af9f1957c42a6ed586c78fe915970c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/preflight-setup-attempt-2.raw.log",
+      "bytes": 2668,
+      "sha256": "5704fac7c495ef3bc21481a3572a10f9381d5709fa18c8bbd9b6d9185b1bf99d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/preflight-tail.txt",
+      "bytes": 11693,
+      "sha256": "8524c6419d4167ab2107a69f4fbc28eba9811d9f448ba802dbee184fffa650ef"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/preflight-transcript.txt",
+      "bytes": 146902,
+      "sha256": "a0c94e9ddfd0c947fac50154e1f5f40e5e5dd69a303e105aac7e88310335fdef"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/preflight.raw.log",
+      "bytes": 146902,
+      "sha256": "a0c94e9ddfd0c947fac50154e1f5f40e5e5dd69a303e105aac7e88310335fdef"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/push-evidence.mjs",
+      "bytes": 3535,
+      "sha256": "a9c9d5549b1e09debb4f7238074765f2b12bc248b11bcecb79f9e67eb4ca9fce"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/readiness.json",
+      "bytes": 1287,
+      "sha256": "8d3d6226324c016e7365e3df77fd733e1b30ddb9027a1acbc090ea17307c9d68"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/readiness.raw.log",
+      "bytes": 1010,
+      "sha256": "7e0265460958d9a2537c3373fb72978419d6326b06d097883cb0f40741501037"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/run-predeploy.mjs",
+      "bytes": 64970,
+      "sha256": "bbd261f7255f990c965e512e99620f3c229dc6c764ad8792dc34fa220ec98d66"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/campaign-launch-allowlist.json",
+      "bytes": 172,
+      "sha256": "14fe3f72ef3922e9a30d17575b0304adcb71a50fca709b07f49cc7eccfbe2a71"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/campaign5-fixture-results-sent-13.png",
+      "bytes": 97094,
+      "sha256": "f47d8d8ccca257db297bb5402c88dd1dc2305e469da0c47c9cd7d8cc0839ac7e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/campaign5-fixture.json",
+      "bytes": 1816,
+      "sha256": "267eabd873877dac5a71ca1c8b6b9624bd018de6870facfcedc8744db7c63a31"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/one-recipient-campaign-diagnostic.json",
+      "bytes": 2193,
+      "sha256": "f0b717e98f5a881529320d3a9c2df831243302aba85625767951ec8d68efa743"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/one-recipient-campaign.json",
+      "bytes": 1898,
+      "sha256": "09605069e3c539a0bfad3a5064cc79123a97443efcb8e2ca27fd911c6cd01673"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 14023,
+      "sha256": "1e4382489d1f389287e099c25604a1f1cb1b81ab6a52c952b53a2c819fa95c82"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/provider-ready.json",
+      "bytes": 97,
+      "sha256": "921cc5003fbfa3baa11dde69134c865fe135ac25dc4d5e2c1f58cd785924be95"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/sendgrid-captured-body.json",
+      "bytes": 27157,
+      "sha256": "278b226119d6bf77ce5d93be32e2c8349c0dbb8e1475fe728ffd7f93fd575900"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/sendgrid-interceptor-ready.json",
+      "bytes": 344,
+      "sha256": "fcc0deb3b8491a90ab44b736fdeb740934dd5ed762741202c7b2df0fad817c10"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-canonical-fixture-final/sendgrid-transport.ndjson",
+      "bytes": 2702,
+      "sha256": "aef0ba2e318b37ac64f75ac3ed17d445f5209091a0dddc6cdc29f380f8dd0856"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/campaign-launch-allowlist.json",
+      "bytes": 172,
+      "sha256": "31555b7f5048ecba9224ce5b85f6b6f325ef2a998bd58905361b188b7cb62274"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/campaign5-fixture.json",
+      "bytes": 2004,
+      "sha256": "7b8af80119f60b0bcb869dff6c5e44ba20da2d9e7ae7b4d6496107ba6dade1af"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/one-recipient-campaign-diagnostic.json",
+      "bytes": 2059,
+      "sha256": "0eef1bfdabeba8a0613fd4afb5d27e919e63c9dd2d6d96899bcbc6f2ea6a9d17"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/one-recipient-campaign.json",
+      "bytes": 2070,
+      "sha256": "890c27f5157cdcba401f20744e74277d0b9f3f5999313fcc32e169e6182c9784"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 14023,
+      "sha256": "1e4382489d1f389287e099c25604a1f1cb1b81ab6a52c952b53a2c819fa95c82"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/provider-ready.json",
+      "bytes": 97,
+      "sha256": "fb8ed6ad4db0417187764d278f6038af2753e0a114691242ae758fa06ad1598d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-diagnostic-restored/sendgrid-interceptor-ready.json",
+      "bytes": 344,
+      "sha256": "2683da6b0e004721e31669496007f48b795d2c54dc30895eb81800a723c7c830"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/campaign-launch-allowlist.json",
+      "bytes": 172,
+      "sha256": "f48af6f87939fd6806f84a38dcbc4339eac057d8f269be7f0957e25605271a79"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/campaign5-fixture.json",
+      "bytes": 2004,
+      "sha256": "ccff042ee4dd1b6b11340741775c5c78173c5bbb0ecea66ade5306de4d19dbc2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/one-recipient-campaign-diagnostic.json",
+      "bytes": 2091,
+      "sha256": "f222fb1edfe777df946a4a761a239f8eb6738ff1631beaff536e1cd1d361b950"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/one-recipient-campaign.json",
+      "bytes": 2102,
+      "sha256": "137be8aa55a58ed00e24bb61f8c317385d8e5860f940c6593150b8d8599cd66d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 14023,
+      "sha256": "1e4382489d1f389287e099c25604a1f1cb1b81ab6a52c952b53a2c819fa95c82"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/provider-ready.json",
+      "bytes": 97,
+      "sha256": "338486341360bc7336d300c9155f6c516c946c25e596f627d0376f5bf61a86a2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-https-fixture-final/sendgrid-interceptor-ready.json",
+      "bytes": 344,
+      "sha256": "f50bbf2e1c9ce4489376e73afec1d124e636e970e4eb01dacc57b0e52b0949be"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-send-final/campaign-launch-allowlist.json",
+      "bytes": 172,
+      "sha256": "121aa40b254a18426e087e8d8b492dcc8d5164ac97b12d2bad59adcf97e67bb5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-send-final/campaign5-fixture.json",
+      "bytes": 1813,
+      "sha256": "979d7627346048cf7fec582493b4bb14199318b4a5afd0002fd15cf9a37bf619"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-send-final/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-send-final/provider-ready.json",
+      "bytes": 97,
+      "sha256": "28c166428fcc29beaaa7b111be0880a66684f7e3f1648293c682a6905a05cab5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/campaign-send-final/sendgrid-interceptor-ready.json",
+      "bytes": 344,
+      "sha256": "1d60b6168270e0243e13706b4cbdebe500fac4c7af2260a433d8daf2d39385dc"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/launcher-result.json",
+      "bytes": 624,
+      "sha256": "aff96739721493a23714cb000741a4e901a61ca7daae8f1c3626bf42c0348036"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-390-admin.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-390-manager.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-390-rep.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-768-admin.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-768-manager.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/apply-768-rep.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/assertions.json",
+      "bytes": 37998,
+      "sha256": "a9eacfc504d56df796f398b4d3ff8b432e9271e65fde0666836ffa895f5ae733"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-390-admin.png",
+      "bytes": 122268,
+      "sha256": "d24d1d63a1416ab174581e3ea27673cd64c998c659f68ea558ab9b1f32e6122f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-390-manager.png",
+      "bytes": 122272,
+      "sha256": "8f976520517140d2dae9b5d72fa2d8896fd7d1529c068bd55a32e00f44d1e618"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-390-rep.png",
+      "bytes": 18229,
+      "sha256": "e91991c575fb9dc4a296c4ce0fb9be52c18938a9df70cf75c29943be89590714"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-768-admin.png",
+      "bytes": 166325,
+      "sha256": "b26d65e5b60e038fd59dfac6465806fb9131c273ea07e147b3824ca1387e271a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-768-manager.png",
+      "bytes": 162720,
+      "sha256": "f7618e8a42e45cb1688d5ba9a40b1e39adf658362d79719d58b56e6b279cc9c6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-audience-768-rep.png",
+      "bytes": 49534,
+      "sha256": "aa4ee312c7904eddf69a1e45785d98f83506162e36b68a9b2a0d0972f5ded6ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-deals-options-390.png",
+      "bytes": 123076,
+      "sha256": "85964eb9f131a75fbe4936e2dbe06c8dacd95562682d85958e4eee330fb45911"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-dirty-preview-390.png",
+      "bytes": 175215,
+      "sha256": "c6960477548be685c85f9290953f5beedbb908e62b82025f9d0af7b2bb94e9b3"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/campaign-saved-stale-preview-390.png",
+      "bytes": 199134,
+      "sha256": "a5faed043217a0fbc1fdab2bedf48e20fcfddf00087914e08b308a014e7475bd"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/capture-meta.json",
+      "bytes": 1365,
+      "sha256": "50a78dcec304797fd4de6cf32a0b921900d1a3795c6a32a58f9f91c4367fb905"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/cleanup.json",
+      "bytes": 222,
+      "sha256": "46197cb8a879b13c6ef2e27069b7690e3cc1c6cc132c48ad8113aa79d58abd81"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/controls.json",
+      "bytes": 444965,
+      "sha256": "0bc4af47a0269f1b5348bc00db4a6bb1df7df808a569c59156d24da367650a3f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-390-admin.png",
+      "bytes": 47256,
+      "sha256": "9a0579ce04d2d23d9a050b1fc1d31bab36a57f18b77dc99e569ccbb588de38e6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-390-manager.png",
+      "bytes": 18387,
+      "sha256": "f68ef7565da4c7137079a82f4a9be0105c200553f46592b42d02349eb0862d7a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-390-rep.png",
+      "bytes": 18387,
+      "sha256": "f68ef7565da4c7137079a82f4a9be0105c200553f46592b42d02349eb0862d7a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-768-admin.png",
+      "bytes": 87023,
+      "sha256": "db8cfe026d6830803ad7a3c89058599d1486aa86b1d26276f5d0bade5a0b0b9c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-768-manager.png",
+      "bytes": 54753,
+      "sha256": "47dd3eaaf8c19dcd0d322b35ed34f938ce3b9a7bd874741edb720506bb94392d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/credit-compliance-768-rep.png",
+      "bytes": 49603,
+      "sha256": "c2c66dc6b9f7cfc8f27b9cb7199a43f81228737e94fb3f0b7ef7be2822345278"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-390-admin.png",
+      "bytes": 283606,
+      "sha256": "12d0fbc3d09aeb3daacf8e4b6fc06e76d18a96b249b44852e84390feba99c1a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-390-manager.png",
+      "bytes": 240659,
+      "sha256": "a821c3749ef4de8133c177a6f49e1c5dd5965c74beedc83ed84d43313d76d063"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-390-rep.png",
+      "bytes": 214143,
+      "sha256": "b5413b30c8d3fdfcc79e103d445396e1776699371ca53e1059835041b75edf20"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-768-admin.png",
+      "bytes": 331047,
+      "sha256": "f6fb316f411c922a159d1667bf58affdf29853e896eaae0d63c0fc7c08528525"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-768-manager.png",
+      "bytes": 280168,
+      "sha256": "4c257dd6e21314ee1ebc8f27067147fc917a499f729341dc0df265f4f3a9f021"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/dashboard-768-rep.png",
+      "bytes": 243643,
+      "sha256": "ed95a5a17bfe3bdc7fc368fcd35de682fc7a0fb1ac7214d88a893e106f232287"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-390-admin.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-390-manager.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-390-rep.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-768-admin.png",
+      "bytes": 101313,
+      "sha256": "14b067293f8f9476172008b15a5dc482ebf11454b2dcd57895e5aecab32a10fb"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-768-manager.png",
+      "bytes": 98109,
+      "sha256": "7f0e6bcb84623a071f92e35b7744acb6d7ca0f53b26ef4a00f1c5f62c70a573f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/deal-detail-768-rep.png",
+      "bytes": 92530,
+      "sha256": "002922d4369ce89d5b30b69b6639a1816297be70d5d610217b17cc0714e0d665"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-390-admin.png",
+      "bytes": 65292,
+      "sha256": "6b9cf7ab07880208af2272c3d0a7e17250e70950f97bed92cfb1c8e9b964ce53"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-390-manager.png",
+      "bytes": 65292,
+      "sha256": "6b9cf7ab07880208af2272c3d0a7e17250e70950f97bed92cfb1c8e9b964ce53"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-390-rep.png",
+      "bytes": 62844,
+      "sha256": "f4f2daae7453a6a30b9bd4e3a3a3a6cfd4704d69a7048f815d1bab36b052c619"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-768-admin.png",
+      "bytes": 113497,
+      "sha256": "3542f15a73f6c83c46f5005207d6c26cff71cdc1bfbe5d437117e8fec0ceb6f6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-768-manager.png",
+      "bytes": 110404,
+      "sha256": "a24c00a1026c5c97b74de69fac0986b4667bd9c3078c1f29909a040837b38331"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/lead-detail-768-rep.png",
+      "bytes": 101860,
+      "sha256": "c9ec9e1f3f69239a6c9e4bdf3f4e856e55f762c016555983c3d671c16316a11d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-390-admin.png",
+      "bytes": 400995,
+      "sha256": "92353f8f7b8d35bc8891c5534ad9a057d1f7e1a702081e47bf79f998b0ed1e29"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-390-manager.png",
+      "bytes": 400995,
+      "sha256": "92353f8f7b8d35bc8891c5534ad9a057d1f7e1a702081e47bf79f998b0ed1e29"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-390-rep.png",
+      "bytes": 402178,
+      "sha256": "adac1475a0023fe7ec36778ae24dc3c2beefbbd942a09f11659cd81fda3bcece"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-768-admin.png",
+      "bytes": 348820,
+      "sha256": "ccdb0e8fae6ca1a21d89c10ae1c0d74b9b9bc6d0bc1eeaf2fe0d7f1bfb021f66"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-768-manager.png",
+      "bytes": 345432,
+      "sha256": "8ed9591a724b0b9c47c1fa3509304a1ed7e3b6a36997a62565bc36929fb1b192"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-768-rep.png",
+      "bytes": 340021,
+      "sha256": "6e5e4fc0656cc7d3401497bce6b18728020ff83586d90bad4c8f5a1a43ced9df"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-admin-assignment-feedback-390.png",
+      "bytes": 76238,
+      "sha256": "9218410215e216b25a586cf0b23b93ca522842fa3f545719e69fc22284b7f526"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-manager-all-matching-feedback-390.png",
+      "bytes": 406771,
+      "sha256": "4a8bd48ba4888368eee702f94924ef188d659bfea9ab31a49fed976d1e91e4e2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-rep-no-assignment-controls-390.png",
+      "bytes": 119625,
+      "sha256": "0179175d25ce1c13ebb03cd2bd981be43dd35bdd46963784b522190243bd6677"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/leads-source-options-390.png",
+      "bytes": 400126,
+      "sha256": "245ecd76a427f30ff83565f93e9b19b11f18a0051709ceee0efdc29f30dcffe1"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/navigation-controls.json",
+      "bytes": 21386,
+      "sha256": "1fcfdc5e7a3f937f1977a3d1f443758d7f9bdf40bd86bc2ff9d45ac953321633"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-390-admin.png",
+      "bytes": 49662,
+      "sha256": "3e2a883273204ec1d0acec242eea4da2fd7eec0f511c78b10163353f1d04bf9b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-390-manager.png",
+      "bytes": 49662,
+      "sha256": "3e2a883273204ec1d0acec242eea4da2fd7eec0f511c78b10163353f1d04bf9b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-390-rep.png",
+      "bytes": 44994,
+      "sha256": "9a6798c92a616051165566c48681c3e2442d364aa77fcddd05fd50079bb4410c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-768-admin.png",
+      "bytes": 86265,
+      "sha256": "6f46b567f83b150419d1b0026bd0647ce3551eff6ef85cf44b9e6e8a746972b6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-768-manager.png",
+      "bytes": 83203,
+      "sha256": "360e7cbcb02c766070190dc863ebf92c96adb19333c644a742bd848c82e6fbb7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/new-deal-768-rep.png",
+      "bytes": 73212,
+      "sha256": "c5edee2b995959cfd7d39734167edbe54ec2c8cf6fd96b8ba1188003b66b104a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-390-admin.png",
+      "bytes": 76701,
+      "sha256": "28aa37b9fe32fdc163592016dbbac13843e34afbfd0539c964145a3ec9584e04"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-390-manager.png",
+      "bytes": 74900,
+      "sha256": "60edaa66aa39e8afb15ebe2f02779fb8b81536de05a4d101c1f01e200b4ee9c7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-390-rep.png",
+      "bytes": 59377,
+      "sha256": "c4da1ca45711e34c80961067aab8cd10d0096ca1df62b756a90c29024dfaebfc"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-768-admin.png",
+      "bytes": 126150,
+      "sha256": "adf6a23fa00c24e41acf698c9c12b02e07bc0d4717298e133ccd7810954406ff"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-768-manager.png",
+      "bytes": 120583,
+      "sha256": "27bbb14a438ffabe1916d4cefbce7adcaa7e26309e906ef77b128fd4e39dd865"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/pipeline-768-rep.png",
+      "bytes": 98399,
+      "sha256": "2bb5eb0962a1313499d0ce0c54d70b2d582101dfc8e00380a3341ff9eb1a4dcc"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-390-admin.png",
+      "bytes": 675493,
+      "sha256": "7885090579ea641d31a2383bdda1a3c0ce5dba33bd105e658fcc24e1f9a94a34"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-390-manager.png",
+      "bytes": 134283,
+      "sha256": "8552343585ad6e046187ec27ca6536b4d462902434fa872bda5310836420816c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-390-rep.png",
+      "bytes": 132453,
+      "sha256": "51edfc27d6784694774117f7f5630a4ecdb5b03e0a6cdd2be2df024c6db7b1be"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-768-admin.png",
+      "bytes": 834794,
+      "sha256": "a811fbb5b22fbd59dc05ca232e7482916bb12cc6e8b5da4f057b57b94a933d44"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-768-manager.png",
+      "bytes": 172512,
+      "sha256": "02bef1e6b93e2b776958561d3becf9f3ea00ebe37d4ef93a426ddf570220cc01"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/after/settings-768-rep.png",
+      "bytes": 164473,
+      "sha256": "134ff7e010305beb8a8970debf0a693f69162a42d09f55f276b6dd744274293e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-final/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-final/nate-workflows-pinned-derived.mjs",
+      "bytes": 76019,
+      "sha256": "019fc2d25f779d4d8313724437633275a751e63cbcca781ea5df612b1484bf0f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-final/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-final/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-final/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-final/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/launcher-result.json",
+      "bytes": 766,
+      "sha256": "621e80bc50792d19d15858843f9718cab1fe088528129ebba1e228cadb5174dd"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/nate-workflows-pinned-derived.mjs",
+      "bytes": 76094,
+      "sha256": "93ae0fd2fc07ab06bc42db204b4c69fffab771a21b3a1d30139322d0f3d073a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/after/assertions.json",
+      "bytes": 675,
+      "sha256": "df5b9d158cce4648e023019bbb6cf3312a71ddac516ea0630c821a15634d41f8"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/after/cleanup.json",
+      "bytes": 222,
+      "sha256": "46197cb8a879b13c6ef2e27069b7690e3cc1c6cc132c48ad8113aa79d58abd81"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-persistent/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/launcher-result.json",
+      "bytes": 762,
+      "sha256": "bf344e349288e3e441f419dd9e93306d0aca765cb0125e8e69d8c439a5807c3e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/nate-workflows-pinned-derived.mjs",
+      "bytes": 76094,
+      "sha256": "93ae0fd2fc07ab06bc42db204b4c69fffab771a21b3a1d30139322d0f3d073a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-restored/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/launcher-result.json",
+      "bytes": 772,
+      "sha256": "4c9ae60274c4e620ececcc9125624f217a6b6c80f97eb49ccac3bbea3684ff79"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/nate-workflows-pinned-derived.mjs",
+      "bytes": 76226,
+      "sha256": "7925b96ac67ca0f0b88999374cb15bbd95fda950f5ac4fa15e965cb64605b39b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/assertions.json",
+      "bytes": 24625,
+      "sha256": "0008be5a9b72ed286830d630607209386ef3fa8fcf631c43ed1f92402001e7ac"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaign-deals-options-390.png",
+      "bytes": 123039,
+      "sha256": "cb298368a62a3f7645b06d9a33391dd21a5774b5b7413e88b7938719acb9cdeb"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaign-dirty-preview-390.png",
+      "bytes": 175258,
+      "sha256": "ff6d50db7e276ae6b6cb1c73477641c4341d9c5f9e8c689ab5192a9ce003384e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaign-saved-stale-preview-390.png",
+      "bytes": 199128,
+      "sha256": "167a2589ac076052c652ef7a00695a60a424ba4e99d98f4134c7fad2d4baaa7b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaigns-list-admin.png",
+      "bytes": 47605,
+      "sha256": "aa31743c726a43b093611fa5408fc19554e8a8a51a9906913f4786c9f1c95888"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaigns-list-manager.png",
+      "bytes": 47605,
+      "sha256": "aa31743c726a43b093611fa5408fc19554e8a8a51a9906913f4786c9f1c95888"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/campaigns-list-rep.png",
+      "bytes": 18229,
+      "sha256": "e91991c575fb9dc4a296c4ce0fb9be52c18938a9df70cf75c29943be89590714"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/capture-meta.json",
+      "bytes": 1278,
+      "sha256": "4a989c8c7fd395281aad2b1c727d78e93afcaff50555d3a98d186ae3b3c17cbb"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/cleanup.json",
+      "bytes": 222,
+      "sha256": "46197cb8a879b13c6ef2e27069b7690e3cc1c6cc132c48ad8113aa79d58abd81"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/controls.json",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/leads-admin-assignment-feedback-390.png",
+      "bytes": 76767,
+      "sha256": "aef7c1eec8e394ebbfcd4a30150f7ba7be2063b73761045208506bf4ee79a6bc"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/leads-manager-all-matching-feedback-390.png",
+      "bytes": 406709,
+      "sha256": "fab15ff1daf48d992a3f95bcac8d39a0391465c9e0aaee789c3b3c628ed36380"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/leads-rep-no-assignment-controls-390.png",
+      "bytes": 119636,
+      "sha256": "c5662d81a07906fdc3b75283af8fb7ca037f826453c44fcabc4544a45129f1f8"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/leads-source-options-390.png",
+      "bytes": 388421,
+      "sha256": "53fb68a87a0f18ed388d2648755424f72a5d8301b5f36ae54949c0df75059fc2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/navigation-controls.json",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/after/resume-identity-referral-panel.png",
+      "bytes": 66353,
+      "sha256": "321c0173ab5848b57350de2d5238084c5c9a1c148e8d3cd65aa658b7d86d7df6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-role-boundary/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/launcher-result.json",
+      "bytes": 758,
+      "sha256": "0a1afda35f05b3e7722cdda4ed744d509c96e75de2d3529401545136770e0a99"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/nate-workflows-pinned-derived.mjs",
+      "bytes": 76108,
+      "sha256": "c22c0be1004c8c23cfacd2771f402b8fb85b3a55e862a21cf2e0bfe25389a0ba"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/after/assertions.json",
+      "bytes": 1251,
+      "sha256": "3f05f5b140a4f6b400d099306dff7729eb26a2c78bba4a6d85fcdf419bf93e9e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/after/campaigns-list-admin.png",
+      "bytes": 47605,
+      "sha256": "aa31743c726a43b093611fa5408fc19554e8a8a51a9906913f4786c9f1c95888"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/after/campaigns-list-manager.png",
+      "bytes": 47605,
+      "sha256": "aa31743c726a43b093611fa5408fc19554e8a8a51a9906913f4786c9f1c95888"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/after/cleanup.json",
+      "bytes": 222,
+      "sha256": "46197cb8a879b13c6ef2e27069b7690e3cc1c6cc132c48ad8113aa79d58abd81"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/core-resume-scoped/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 65048,
+      "sha256": "e42e5d5cf8c3e318aa109416086e82cbd5f1af14327d57c6f0227f11bce122a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/preparation-proof.json",
+      "bytes": 831,
+      "sha256": "1755327e2d878611b722b2e1565cb6a5aa4ee344b1cde895bb74faf316eff893"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-07-47.176Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 65048,
+      "sha256": "e42e5d5cf8c3e318aa109416086e82cbd5f1af14327d57c6f0227f11bce122a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/preparation-proof.json",
+      "bytes": 831,
+      "sha256": "082e400bc358b8888b7f4638bcf1506b9ccbc95c8f2f6da77fb57f78b612efed"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-09-17.099Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 65048,
+      "sha256": "e42e5d5cf8c3e318aa109416086e82cbd5f1af14327d57c6f0227f11bce122a5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13826,
+      "sha256": "cea659b9bdcd43b5b038f8accc884f6bf426ae51f627e414b5f3a638ababaeb5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "643f5f04368b94a8f0927b12f075393f8a33af31193327a72fe3862bdbd24027"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-10-06.722Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-28.645Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 66110,
+      "sha256": "2330cd83445ef77743ee86343a41557c230e48177248ed8b301df1ff0915a22c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13826,
+      "sha256": "cea659b9bdcd43b5b038f8accc884f6bf426ae51f627e414b5f3a638ababaeb5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "f91e0ad8e6e743c8a5105752b36df44978cd62f7cfc78714a94912f735e05e03"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-11-43.660Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71196,
+      "sha256": "8c0aae3cbb7ce0e1aece82fade6be71e097090d52669f4c321db2700ab163975"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13826,
+      "sha256": "cea659b9bdcd43b5b038f8accc884f6bf426ae51f627e414b5f3a638ababaeb5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "fa32bffa3f355aa6a0c9584e8db5233653ff75ce81d4d2db1c71af7e5f1e0139"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-16-19.039Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71196,
+      "sha256": "8c0aae3cbb7ce0e1aece82fade6be71e097090d52669f4c321db2700ab163975"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13842,
+      "sha256": "6109d3896e44110dbae05453db687a941d2323b4eef6f5251857fe737eb0ddf3"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "a6bf78f10a4040b450ead5fcb1d3ab873b157a3d0befd95a18bbb6d21d99ea0f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-33.950Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71196,
+      "sha256": "8c0aae3cbb7ce0e1aece82fade6be71e097090d52669f4c321db2700ab163975"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13842,
+      "sha256": "6109d3896e44110dbae05453db687a941d2323b4eef6f5251857fe737eb0ddf3"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "86654a2acf54443a73d4f3465d2a3b5578805c7fa65fe587f28eaf491403c03f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-17-56.963Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13883,
+      "sha256": "b5f47fabdffd2046537809775b889227b83da93f10ea4d9208b2a319e7abb4c0"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "c0c773ac9c1277910978933bb14a66cfe97b1c91d26b8bb7a1ec94b02f7bd01d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-21-24.048Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13883,
+      "sha256": "b5f47fabdffd2046537809775b889227b83da93f10ea4d9208b2a319e7abb4c0"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "7fe2568e3dce62e973a3f06396fe7efb82a1b1383249c4e8bdfaeae183a666d1"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-22-59.877Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "1be3aeb1d71302e07222b916b9b2b1ebd624aa2861d278383ebab75f5944b658"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-05.471Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "849cd35c698f326eb3c0a232eae1872e678179e699ba1cdb9b3ae8f7b323e96f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-26-36.944Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 75936,
+      "sha256": "c19fcaab0bb2203a6fa8be6d9c85d144a1648f9422ba6e3a3528bb9e55300127"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "af895c5b380d969a7bcd517a0f6efdb59b2003239dbfcf7c8dac884138d470f9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-14.548Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 75936,
+      "sha256": "c19fcaab0bb2203a6fa8be6d9c85d144a1648f9422ba6e3a3528bb9e55300127"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "f7996b6df54afe2dd8da01c968601b458400a6dd6abdc0ad8f67ef2ba8bb860a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-50-55.208Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/nate-workflows-pinned-derived.mjs",
+      "bytes": 76019,
+      "sha256": "019fc2d25f779d4d8313724437633275a751e63cbcca781ea5df612b1484bf0f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/pinned-sandbox-campaign-gated.mjs",
+      "bytes": 13998,
+      "sha256": "98758d6ed93866d857eabff3674854fad9cc1cf95b1823d8611fd48e11b9807e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/preparation-proof.json",
+      "bytes": 1050,
+      "sha256": "913782e57b3b9014fba569139290a52aa89f0617bcf096653070658cecc3d072"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/prepare-2026-10-06T22-52-19.375Z/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/launcher-result.json",
+      "bytes": 639,
+      "sha256": "8968569837d19291ec378b51900c58c98af9f6beea4bb0f89127f468b7deda86"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/nate-workflows-pinned-derived.mjs",
+      "bytes": 71512,
+      "sha256": "37cc16dd783cc20d32bf5879569a5268e4364755762c7c7dd4c7fe60d3f62711"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-390-admin.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-390-manager.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-390-rep.png",
+      "bytes": 92017,
+      "sha256": "aa6d6e08590828e54bd19758267a52923ff2d7faaa47d3ab8c6b947e387aeb4a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-768-admin.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-768-manager.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/apply-768-rep.png",
+      "bytes": 161163,
+      "sha256": "f50bc6a3e1d210052e80c0385f9c3a3892a2527dcaaa8262b868bcf503dc11ee"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/assertions.json",
+      "bytes": 27310,
+      "sha256": "65c6df034594d3c65f0ffc357ac3a9a2b27d3d0ec456eb9cbdb1ff1ae8f05cb7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-390-admin.png",
+      "bytes": 122250,
+      "sha256": "bca5b3bb0b6d82fde00a56db44f7fcad31de544be92b0910b3f6d7e8442ed6e7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-390-manager.png",
+      "bytes": 122272,
+      "sha256": "8f976520517140d2dae9b5d72fa2d8896fd7d1529c068bd55a32e00f44d1e618"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-390-rep.png",
+      "bytes": 18229,
+      "sha256": "e91991c575fb9dc4a296c4ce0fb9be52c18938a9df70cf75c29943be89590714"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-768-admin.png",
+      "bytes": 166153,
+      "sha256": "9090cd3e5021b9ef645a5088dfcfc2dc95e444503ecd568023b0232631ee0d7a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-768-manager.png",
+      "bytes": 162953,
+      "sha256": "65fe13809eb8f5d4983f4df4f692377d93e9f69759368c9ab14eed3fc4116351"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/campaign-audience-768-rep.png",
+      "bytes": 49542,
+      "sha256": "031346e6a10e58fff6656d24320b1d46fa788adbc2af2aec5a534d141500da57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/capture-meta.json",
+      "bytes": 1365,
+      "sha256": "50a78dcec304797fd4de6cf32a0b921900d1a3795c6a32a58f9f91c4367fb905"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/cleanup.json",
+      "bytes": 222,
+      "sha256": "46197cb8a879b13c6ef2e27069b7690e3cc1c6cc132c48ad8113aa79d58abd81"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/controls.json",
+      "bytes": 444965,
+      "sha256": "0bc4af47a0269f1b5348bc00db4a6bb1df7df808a569c59156d24da367650a3f"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-390-admin.png",
+      "bytes": 47256,
+      "sha256": "9a0579ce04d2d23d9a050b1fc1d31bab36a57f18b77dc99e569ccbb588de38e6"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-390-manager.png",
+      "bytes": 18387,
+      "sha256": "f68ef7565da4c7137079a82f4a9be0105c200553f46592b42d02349eb0862d7a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-390-rep.png",
+      "bytes": 18387,
+      "sha256": "f68ef7565da4c7137079a82f4a9be0105c200553f46592b42d02349eb0862d7a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-768-admin.png",
+      "bytes": 87007,
+      "sha256": "7ab87cf28841a3334fe3c965ef1ab4534fcef16101d45ef3cb4ae2eef9314185"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-768-manager.png",
+      "bytes": 54844,
+      "sha256": "1e4f7d56f931dd80635e776f5fdc549d8574cd81ce3a938567297b3c84814982"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/credit-compliance-768-rep.png",
+      "bytes": 49613,
+      "sha256": "b4611e15dfa34cb08be967ee71271ab3a59567d99008ad876cbbc1f71d056923"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-390-admin.png",
+      "bytes": 283825,
+      "sha256": "dbb03dd5286ca4dffab429773b013dba962739ce80c69fc5f74c0f4518a369e1"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-390-manager.png",
+      "bytes": 240659,
+      "sha256": "a821c3749ef4de8133c177a6f49e1c5dd5965c74beedc83ed84d43313d76d063"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-390-rep.png",
+      "bytes": 214691,
+      "sha256": "ad5f49341afe97046ec6d99567c60b89aa8055e21511119b8c7e03156b584a87"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-768-admin.png",
+      "bytes": 331019,
+      "sha256": "988115a728cc61f98c4ea1ee3f606b9062956126265c2122b347f5cd5887b80e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-768-manager.png",
+      "bytes": 280239,
+      "sha256": "b4fb594eb84477a533bdb01f6cec86ab2a36e4500da4739a5ed69f991f589cae"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/dashboard-768-rep.png",
+      "bytes": 243647,
+      "sha256": "020cf4943aedfaaad213705847ba9cb9f71c052782bad1a2dde8f06763b286f8"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-390-admin.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-390-manager.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-390-rep.png",
+      "bytes": 55029,
+      "sha256": "7a2d83dc1caa2d17ae66ff427d480b5b5d30851b634f39db4c57b9c527675f9d"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-768-admin.png",
+      "bytes": 101280,
+      "sha256": "f8f61842226928a1137a8a5f58be971455dc5fd150351f81dde1d006e306fd69"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-768-manager.png",
+      "bytes": 98203,
+      "sha256": "c6e90fe8eae8c35a58f1217aedb768a0b70d35bce785f4fa12e0a2ee339233a4"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/deal-detail-768-rep.png",
+      "bytes": 92540,
+      "sha256": "a6c347aa8be7e754d1195d8c5efaaa69bee00835d07675cf973119ca76ef14ab"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/http-errors.ndjson",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-390-admin.png",
+      "bytes": 65292,
+      "sha256": "6b9cf7ab07880208af2272c3d0a7e17250e70950f97bed92cfb1c8e9b964ce53"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-390-manager.png",
+      "bytes": 65292,
+      "sha256": "6b9cf7ab07880208af2272c3d0a7e17250e70950f97bed92cfb1c8e9b964ce53"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-390-rep.png",
+      "bytes": 62844,
+      "sha256": "f4f2daae7453a6a30b9bd4e3a3a3a6cfd4704d69a7048f815d1bab36b052c619"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-768-admin.png",
+      "bytes": 113444,
+      "sha256": "d43431fb97021c4ee2546f72ebaaaf9c877f59c055de7eba6375b152fb85bfaa"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-768-manager.png",
+      "bytes": 110502,
+      "sha256": "db8db40fd731ed39929017473e12002a2dd772ad25fea51368f214a2c5069b48"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/lead-detail-768-rep.png",
+      "bytes": 101866,
+      "sha256": "595143afe00204e4ef24a3eb5ba0dc4aa921203a92dc16384a987711317abe6b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-390-admin.png",
+      "bytes": 400995,
+      "sha256": "92353f8f7b8d35bc8891c5534ad9a057d1f7e1a702081e47bf79f998b0ed1e29"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-390-manager.png",
+      "bytes": 400995,
+      "sha256": "92353f8f7b8d35bc8891c5534ad9a057d1f7e1a702081e47bf79f998b0ed1e29"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-390-rep.png",
+      "bytes": 402178,
+      "sha256": "adac1475a0023fe7ec36778ae24dc3c2beefbbd942a09f11659cd81fda3bcece"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-768-admin.png",
+      "bytes": 348782,
+      "sha256": "61cb5d1fa768db9e7d6857db1502cba9eef70318eca0022ee59b76f966fc77af"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-768-manager.png",
+      "bytes": 345536,
+      "sha256": "9181a175bf055e236b0dae602ee2262fd6b55b5816dcb103a6eba164052d28d2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/leads-768-rep.png",
+      "bytes": 340044,
+      "sha256": "9e289cb22a1820a33fc7fc7b070c0f0c7c69a6423905387ebd60e51b300cd374"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/navigation-controls.json",
+      "bytes": 21386,
+      "sha256": "1fcfdc5e7a3f937f1977a3d1f443758d7f9bdf40bd86bc2ff9d45ac953321633"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-390-admin.png",
+      "bytes": 49662,
+      "sha256": "3e2a883273204ec1d0acec242eea4da2fd7eec0f511c78b10163353f1d04bf9b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-390-manager.png",
+      "bytes": 49662,
+      "sha256": "3e2a883273204ec1d0acec242eea4da2fd7eec0f511c78b10163353f1d04bf9b"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-390-rep.png",
+      "bytes": 44994,
+      "sha256": "9a6798c92a616051165566c48681c3e2442d364aa77fcddd05fd50079bb4410c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-768-admin.png",
+      "bytes": 86241,
+      "sha256": "f53dff625d31d4200d85a5d91594be989daa1906be74056bde6e9692ca2d7a01"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-768-manager.png",
+      "bytes": 83291,
+      "sha256": "cdba9520be9bbc20722a7a17984a298bd13f1e3c460c0151c1defe6d9b486322"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/new-deal-768-rep.png",
+      "bytes": 73229,
+      "sha256": "ea20aadef768bc72c7ddd793afcc977ea06734e7a61b0ae098526c177bc5f2ef"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-390-admin.png",
+      "bytes": 76701,
+      "sha256": "28aa37b9fe32fdc163592016dbbac13843e34afbfd0539c964145a3ec9584e04"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-390-manager.png",
+      "bytes": 74900,
+      "sha256": "60edaa66aa39e8afb15ebe2f02779fb8b81536de05a4d101c1f01e200b4ee9c7"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-390-rep.png",
+      "bytes": 59377,
+      "sha256": "c4da1ca45711e34c80961067aab8cd10d0096ca1df62b756a90c29024dfaebfc"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-768-admin.png",
+      "bytes": 126130,
+      "sha256": "b9d4a731aa6002627254845b8b1ed52122dabc6d916f360f01b998c0e5b6a39c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-768-manager.png",
+      "bytes": 120678,
+      "sha256": "a30a40bf15474f49ca96dc8ec72f88f2596b9912ef5557557214b6e3b5b896ce"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/pipeline-768-rep.png",
+      "bytes": 98400,
+      "sha256": "a8f02f882db311f5461f1ca7f83600f461a6f36d9d758289d5140133dfa771b5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-390-admin.png",
+      "bytes": 675493,
+      "sha256": "7885090579ea641d31a2383bdda1a3c0ce5dba33bd105e658fcc24e1f9a94a34"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-390-manager.png",
+      "bytes": 134283,
+      "sha256": "8552343585ad6e046187ec27ca6536b4d462902434fa872bda5310836420816c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-390-rep.png",
+      "bytes": 132453,
+      "sha256": "51edfc27d6784694774117f7f5630a4ecdb5b03e0a6cdd2be2df024c6db7b1be"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-768-admin.png",
+      "bytes": 834744,
+      "sha256": "8758cbfb90717b39e2d26abba4b226e630d99f13ffd35e7b5541514191f24bcf"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-768-manager.png",
+      "bytes": 172623,
+      "sha256": "be3ffe002dcb9095d5207238bcfd23148d9b8ea8f393e9e2bbabd600630a8993"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/after/settings-768-rep.png",
+      "bytes": 164489,
+      "sha256": "9be3e7639f2e9a774ceb7e0d3faaafc7ce1f740495f9cf26c0bd61564dc34e6a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/before/controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/before/exempt-controls.json",
+      "bytes": 14246,
+      "sha256": "edb64575f88bd4a1821c3795a6f302c0d9bf881b9bbb4ea27f6a502a78fc49a9"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/before/navigation-controls.json",
+      "bytes": 53228,
+      "sha256": "9bb76107f1fe87d2369f4fff608c85f37cf2c39ae855f98e7c27662c167da05c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/before/role-controls.json",
+      "bytes": 223210,
+      "sha256": "9eb3be5415dffb4690d600a5e89ef792ce5ac8593f4e188171c1e9fb64e12f57"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/certification-results.json",
+      "bytes": 2160266,
+      "sha256": "8ea4d7173048636d2462a3f99dd8c95990e0f337ff32d0b4bddd6a04dd9f0fa5"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/runs/structure-final/reports/nate-workflows/control-review.json",
+      "bytes": 2098088,
+      "sha256": "74cad052b5b9b2a216c87d365a68ffbd3e47d4ffe6302abd2a9de54c8aa2446a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/source-pin.json",
+      "bytes": 262850,
+      "sha256": "d3bc7c2f9ef9af74f6889fb69143963bdc037206925c8cf9289059b45b81d8bf"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/structure-delta-classification.json",
+      "bytes": 7924,
+      "sha256": "422f96258f20a089f2418905c7e2e4ae1057adbbf0b033ec7a817fe1e7c38100"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/structure-delta-classification.md",
+      "bytes": 4303,
+      "sha256": "562d9ef93259b0d16d139d855c06780bc161ffc7c744813ff63e85bb15a55a7e"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/structure-final.raw.log",
+      "bytes": 646649,
+      "sha256": "de4d0144029fff0316ccc110a11a8657bb4220c374d3ec5a4f5a8de7345ec075"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/structure-raw-deltas.json",
+      "bytes": 347975,
+      "sha256": "012c5578bc9fba518f2544021fbb9297d70f787a101e98762a9aa8847913619c"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/structure-setup.raw.log",
+      "bytes": 878,
+      "sha256": "3e6c3dd6d8de94d5a4e3239a6a5a340067929edb5657b87ad0b682acf81fc60a"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/summarize-evidence.mjs",
+      "bytes": 10515,
+      "sha256": "519f87cc18240c7eab86d3068841f9e4aedc8caf7a75c24ea08014cbd602ced2"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/summary-command.raw.log",
+      "bytes": 4691,
+      "sha256": "66be05dca3d47e929983cc234fbe0303e4ad143e83c73563fa36e37ff019df96"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/summary.json",
+      "bytes": 4690,
+      "sha256": "49a9387f4dc6b5936736329320651acf1df842701522dfa784ebd2342d836eca"
+    },
+    {
+      "path": "reports/predeploy-c6fc40f/temporary-git-pin.json",
+      "bytes": 202,
+      "sha256": "c84d5c5a4d3c432f9a0e1d77608f93e25258f81dd409f1500680d5215406f909"
+    }
+  ]
+}

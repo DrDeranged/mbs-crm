@@ -1,0 +1,31 @@
+{
+  "phase": "after",
+  "assertions": {
+    "after disposable campaign created via API": {
+      "passed": true,
+      "actual": {
+        "status": 201
+      }
+    },
+    "after Clerk users/database/temp fixtures cleaned up": {
+      "passed": true,
+      "actual": {
+        "clerkUsersDeleted": 3,
+        "databaseDropped": true,
+        "tempDirectoryRemoved": true
+      }
+    }
+  },
+  "failures": [],
+  "behaviorComplete": false,
+  "browserErrors": [],
+  "prohibitedRequests": [],
+  "httpErrors": [],
+  "consoleErrors": [],
+  "sourceSearchDiagnostic": null,
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

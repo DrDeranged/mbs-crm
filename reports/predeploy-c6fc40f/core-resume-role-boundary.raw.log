@@ -1,0 +1,24 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Open command palette' })[22m
+
+    at runDealIdentityVisualSweep (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-role-boundary/nate-workflows-pinned-derived.mjs:688:68)
+    at async capture (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-role-boundary/nate-workflows-pinned-derived.mjs:916:7)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-role-boundary/nate-workflows-pinned-derived.mjs:1037:5 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Open command palette' })"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

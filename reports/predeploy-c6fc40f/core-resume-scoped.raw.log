@@ -1,0 +1,23 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 15000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('heading', { name: 'Campaigns', exact: true }) to be visible[22m
+
+    at capture (/home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-scoped/nate-workflows-pinned-derived.mjs:813:27)
+    at async file:///home/runner/workspace/reports/predeploy-c6fc40f/runs/core-resume-scoped/nate-workflows-pinned-derived.mjs:1036:5 {
+  log: [
+    "  - waiting for getByRole('heading', { name: 'Campaigns', exact: true }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.13.0
+
+AUTHORITATIVE_COMMAND_EXIT=1

@@ -1,0 +1,90 @@
+{
+  "verdict": "NOT READY",
+  "sourceTree": "7fad71128600161b469e35da5cc52d03a7a5db00",
+  "verifiedSourceBlobCount": 1580,
+  "fullPreflightCliPassed": true,
+  "actualProductionCloneSatisfied": false,
+  "productCodeChanged": false,
+  "published": false,
+  "items": [
+    {
+      "item": 1,
+      "status": "FAIL",
+      "detail": "All 11 CLI gates PASS, exit 0; ledger 68, no pending migrations. The clone was schema-only, not an actual production backup. Read-only production ledger was 66; only 067–068 remain.",
+      "evidence": [
+        "preflight.raw.log",
+        "preflight-tail.txt",
+        "clone-provenance.json",
+        "migration-ledger-readonly.json"
+      ]
+    },
+    {
+      "item": 2,
+      "status": "FAIL",
+      "detail": "36/36 not established. Original comparison has 74 failures. Offline classification separates fixture/capture-plan issues; 27 Open softphone and six Apply-label discrepancies remain unproven exceptions. No allowlist was widened.",
+      "evidence": [
+        "structure-delta-classification.md",
+        "structure-delta-classification.json",
+        "structure-raw-deltas.json",
+        "runs/structure-final/reports/nate-workflows/control-review.json"
+      ]
+    },
+    {
+      "item": 3,
+      "status": "FAIL",
+      "detail": "Partial: six active eligible admin/manager/rep users, self included; inactive/pending/merged rejected; all eligible destinations and self persist through assignment APIs; admin/manager Lead-header UI self/other assignment passes; rep directory UI requests and assignee controls absent. Each of all five requested picker inventories/self-save paths was not individually completed in the browser.",
+      "evidence": [
+        "functional-assertions.raw.json",
+        "runs/core-final/reports/nate-workflows/after/controls.json"
+      ]
+    },
+    {
+      "item": 4,
+      "status": "FAIL",
+      "detail": "Partial: API identity checks and desktop Deals list/Pipeline/header captured. Referral matching did not pass in the continuation; Cmd-K and notification checks were not completed. No whole-request naming certification.",
+      "evidence": [
+        "core-final.raw.log",
+        "core-resume-role-boundary.raw.log",
+        "functional-assertions.raw.json"
+      ]
+    },
+    {
+      "item": 5,
+      "status": "FAIL",
+      "detail": "Partial: US Fund Advisor=2, vendor_list=30, prospect_list=1, Website=1; exact selected-ID bulk assignment updated and persisted exactly two fixtures; manager/admin bulk UI and rep absence checked. Source-filter UI/requests exercised vendor_list, not the specifically requested USFA-only result set; that exact case remains unverified.",
+      "evidence": [
+        "functional-assertions.raw.json"
+      ]
+    },
+    {
+      "item": 6,
+      "status": "PASS",
+      "detail": "Three Deals options, All/open/exclude-open preview behavior, picked-lead filtering/deduplication, closed/hold/archived/no-deal exclusion from open membership, and saved-rule approval invalidation pass.",
+      "evidence": [
+        "functional-assertions.raw.json"
+      ]
+    },
+    {
+      "item": 7,
+      "status": "PASS",
+      "detail": "Unconfigured parse: one recipient, HTTP201, Sent1/Failed0, configured/captured Reply-To single-campaign-replies@example.invalid. Independent Campaign5 completed 13 fixture sends and Results UI showed13; read-only production Campaign5 also completed with13. Loopback transport only; 14 bounded simulated calls, no actual email/provider or production mutation.",
+      "evidence": [
+        "runs/campaign-canonical-fixture-final/one-recipient-campaign.json",
+        "runs/campaign-canonical-fixture-final/sendgrid-captured-body.json",
+        "runs/campaign-canonical-fixture-final/campaign5-fixture.json",
+        "runs/campaign-canonical-fixture-final/campaign5-fixture-results-sent-13.png",
+        "campaign-5-production-readonly.json"
+      ]
+    },
+    {
+      "item": 8,
+      "status": "FAIL",
+      "detail": "Required six pages covered across all three roles. Authorized UI 403/404/503: zero; rep Campaigns shows Manager Access Required without an HTTP error. Strict all-4xx/5xx requirement does not pass: the behavior browser deliberately generated twenty400 assignment-rejection responses and one409 stale-approval response; all request paths/pages and expected reasons are retained. Six unrelated accessibility console messages also retained. No unexpected authorized UI HTTP defect identified.",
+      "evidence": [
+        "browser-error-ledger.json",
+        "runs/core-final/reports/nate-workflows/after/capture-meta.json",
+        "runs/core-resume-role-boundary/reports/nate-workflows/after/assertions.json"
+      ]
+    }
+  ]
+}

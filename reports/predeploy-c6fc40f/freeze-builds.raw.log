@@ -1,0 +1,36 @@
+{
+  "status": "FROZEN_PINNED_BUILDS",
+  "targetCommit": "c6fc40fa76880972ad2d8b1226ef0fb45c5890ca",
+  "sourceTree": "7fad71128600161b469e35da5cc52d03a7a5db00",
+  "snapshot": "frozen-builds/c6fc40f-2026-10-06T22-27-13.743Z",
+  "frozenAt": "2026-10-06T22:27:14.139Z",
+  "immutableByPolicy": true,
+  "sourceBuildRoots": {
+    "api": "/tmp/predeploy-c6fc40f-source/artifacts/api-server/dist",
+    "web": "/tmp/predeploy-c6fc40f-source/artifacts/mbs-crm/dist/public"
+  },
+  "sourceBuildRootMtimes": {
+    "api": "2026-10-06T22:14:31.046Z",
+    "web": "2026-10-06T22:14:41.780Z"
+  },
+  "sourceFingerprints": {
+    "api": {
+      "sha256": "b64b55747cd75aafedbde0b494c65c3364db4a0347700f699ac497800ec87bc5",
+      "fileCount": 158
+    },
+    "web": {
+      "sha256": "92f293673cfd1044a9e10aa161696a89ba1fbfebfd435a40c89c8e971efda623",
+      "fileCount": 108
+    }
+  },
+  "artifacts": {
+    "api": {
+      "sha256": "b64b55747cd75aafedbde0b494c65c3364db4a0347700f699ac497800ec87bc5",
+      "fileCount": 158
+    },
+    "web": {
+      "sha256": "92f293673cfd1044a9e10aa161696a89ba1fbfebfd435a40c89c8e971efda623",
+      "fileCount": 108
+    }
+  }
+}
