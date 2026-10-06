@@ -88,14 +88,6 @@ export interface CampaignLibraryFlyer {
  * Open means a non-archived deal in an active stage; also applies to manually picked leads.
  */
 export type CampaignAudienceRulesDeals = typeof CampaignAudienceRulesDeals[keyof typeof CampaignAudienceRulesDeals];
-
-
-export const CampaignAudienceRulesDeals = {
-  all: 'all',
-  open: 'open',
-  exclude_open: 'exclude_open',
-} as const;
-
 export type CampaignAudienceRulesProgramTypesItem = typeof CampaignAudienceRulesProgramTypesItem[keyof typeof CampaignAudienceRulesProgramTypesItem];
 
 
@@ -2464,6 +2456,15 @@ export interface LenderGuidelineVersion {
   createdAt: string;
 }
 
+export type LenderMatchVerdict = typeof LenderMatchVerdict[keyof typeof LenderMatchVerdict];
+
+
+export const LenderMatchVerdict = {
+  Likely: 'Likely',
+  Possible: 'Possible',
+  Excluded: 'Excluded',
+} as const;
+
 export type LenderMatchPartnerType = typeof LenderMatchPartnerType[keyof typeof LenderMatchPartnerType];
 
 
@@ -2524,6 +2525,9 @@ export interface HistoricalLenderSignal {
 }
 
 export interface LenderMatch {
+  verdict?: LenderMatchVerdict;
+  reason?: string;
+  needsBeforeSubmit?: string[];
   id: number;
   leadId: number;
   lenderId: number;
@@ -4204,6 +4208,15 @@ export interface AdminErrorsResponse {
   jobs?: AdminErrorsResponseJobs;
 }
 
+export interface DealLenderSubmissionInput {
+  /** @minimum 1 */
+  lender_id: number;
+  via_broker_id?: number;
+  end_lender_id?: number;
+  admin_override?: boolean;
+  package_config?: LenderPackageConfig;
+}
+
 export interface LenderPackageConfigResponse {
   packageConfig: LenderPackageConfig | null;
 }
@@ -5198,3 +5211,9 @@ export type ListReferralOptionsParams = {
 search?: string;
 };
 
+
+export const CampaignAudienceRulesDeals = {
+  all: 'all',
+  open: 'open',
+  exclude_open: 'exclude_open',
+} as const;

@@ -30,23 +30,31 @@ export async function startSandbox({ build = true, webRoot, staffNames, port = N
   let api, server, databaseCreated = false;
   const cleanup = { clerkUsersDeleted: 0, databaseDropped: false, tempDirectoryRemoved: false };
   async function close() {
-    if (server) await new Promise(resolve => server.close(resolve));
+    const cleanupErrors = [];
+    if (server) await new Promise(resolve => server.close(error => { if (error) cleanupErrors.push(error); resolve(); }));
     if (api) {
       api.kill("SIGTERM");
       await Promise.race([new Promise(resolve => api.once("exit", resolve)), new Promise(resolve => setTimeout(resolve, 3000))]);
       if (api.exitCode === null) api.kill("SIGKILL");
     }
     for (const user of users) {
-      await clerkClient.users.deleteUser(user.id);
-      cleanup.clerkUsersDeleted++;
+      try {
+        await clerkClient.users.deleteUser(user.id);
+        cleanup.clerkUsersDeleted++;
+      } catch (error) { cleanupErrors.push(error); }
     }
-    if (databaseCreated) {
-      run("dropdb", ["--if-exists", "--force", `--maintenance-db=${process.env.DATABASE_URL}`, databaseName]);
-      databaseCreated = false;
-      cleanup.databaseDropped = true;
-    }
-    await rm(directory, { recursive: true, force: true });
-    cleanup.tempDirectoryRemoved = !existsSync(directory);
+    try {
+      if (databaseCreated) {
+        run("dropdb", ["--if-exists", "--force", `--maintenance-db=${process.env.DATABASE_URL}`, databaseName]);
+        databaseCreated = false;
+        cleanup.databaseDropped = true;
+      }
+    } catch (error) { cleanupErrors.push(error); }
+    try {
+      await rm(directory, { recursive: true, force: true });
+      cleanup.tempDirectoryRemoved = !existsSync(directory);
+    } catch (error) { cleanupErrors.push(error); }
+    if (cleanupErrors.length) console.error(`Fixture cleanup had ${cleanupErrors.length} recoverable error(s).`);
   }
   try {
     if (build) {
@@ -75,7 +83,9 @@ export async function startSandbox({ build = true, webRoot, staffNames, port = N
       (2,'Sample','Applicant','sample@example.invalid','+12025550124','Fixture Services LLC','working_capital','new_lead',3,75000,680,65,'referral','2026-09-15','2026-09-15','2026-09-15');
       INSERT INTO deals(id,lead_id,deal_name,stage,amount,approx_gm,assigned_to,created_at,updated_at)
       VALUES (1,1,'Synthetic equipment financing','waiting_on_app',125000,7500,3,'2026-09-15','2026-09-15'),
-      (2,2,'Synthetic working capital','approved',75000,4000,3,'2026-09-15','2026-09-15');
+      (2,2,'Synthetic working capital','approved',75000,4000,3,'2026-09-15','2026-09-15'),
+      (3,1,'Manager-only access fixture','waiting_on_app',125000,7500,2,'2026-09-15','2026-09-15'),
+      (4,NULL,'Unlinked deal action fixture','waiting_on_app',50000,3000,2,'2026-09-15','2026-09-15');
       INSERT INTO lenders(name,program_types,min_amount,max_amount,min_credit_score,accepted_industries,min_time_in_business_months,accepted_states,max_existing_positions,priority_weight,is_active,partner_type,submission_method)
       VALUES ('Visual Fixture Match Partner',ARRAY['working_capital','equipment'],1000,1000000,500,ARRAY[]::text[],0,ARRAY[]::text[],10,10,true,'direct_lender','portal');
       INSERT INTO email_templates(name,subject,body_html,program_type,created_by,is_active)
@@ -83,6 +93,7 @@ export async function startSandbox({ build = true, webRoot, staffNames, port = N
       SELECT setval(pg_get_serial_sequence('users','id'),3);
       SELECT setval(pg_get_serial_sequence('leads','id'),2);
       SELECT setval(pg_get_serial_sequence('deals','id'),2);
+      SELECT setval(pg_get_serial_sequence('deals','id'),4);
     `]);
     // Keep development authentication only. Remove live delivery, storage,
     // provider and AI credentials from the child; never log their values.

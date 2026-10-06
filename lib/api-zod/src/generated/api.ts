@@ -115,7 +115,6 @@ export const getAdminUsfaIntakeQueryLimitDefault = 50;
 export const getAdminUsfaIntakeQueryLimitMax = 100;
 
 
-
 export const GetAdminUsfaIntakeQueryParams = zod.object({
   "page": zod.coerce.number().min(1).default(getAdminUsfaIntakeQueryPageDefault),
   "limit": zod.coerce.number().min(1).max(getAdminUsfaIntakeQueryLimitMax).default(getAdminUsfaIntakeQueryLimitDefault)
@@ -156,7 +155,6 @@ export const GetAdminUsfaIntakeResponse = zod.object({
 export const testAdminUsfaConnectionResponseColumnCountMin = 0;
 
 
-
 export const TestAdminUsfaConnectionResponse = zod.object({
   "ok": zod.boolean(),
   "columnCount": zod.number().min(testAdminUsfaConnectionResponseColumnCountMin).optional().describe('Number of returned header cells on success'),
@@ -168,7 +166,6 @@ export const TestAdminUsfaConnectionResponse = zod.object({
  * @summary Re-read USFA Sheet rows, restore links, and reconcile one statement task per USFA lead
  */
 export const repairAdminUsfaLeadsResponseLeadsItemRemovedTaskCountMin = 0;
-
 
 
 export const RepairAdminUsfaLeadsResponse = zod.object({
@@ -190,7 +187,6 @@ export const RepairAdminUsfaLeadsResponse = zod.object({
  */
 
 export const receiveUsfaWebhookBodyRevenueMin = 0;
-
 
 
 export const ReceiveUsfaWebhookBody = zod.object({
@@ -602,7 +598,6 @@ export const retireUserSlugBodyNewSlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9
 export const retireUserSlugBodyDisplayNameMax = 200;
 
 
-
 export const RetireUserSlugBody = zod.object({
   "newSlug": zod.string().min(1).max(retireUserSlugBodyNewSlugMax).regex(retireUserSlugBodyNewSlugRegExp),
   "displayName": zod.string().max(retireUserSlugBodyDisplayNameMax).nullish()
@@ -653,7 +648,6 @@ export const retireRepSlugBodyOneNewSlugMax = 50;
 
 export const retireRepSlugBodyOneNewSlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)\*$');
 export const retireRepSlugBodyOneDisplayNameMax = 200;
-
 
 
 export const RetireRepSlugBody = zod.object({
@@ -712,7 +706,6 @@ export const updateUserBodySlugMax = 50;
 
 export const updateUserBodySlugRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)\*$');
 export const updateUserBodyTitleMax = 200;
-
 
 
 export const UpdateUserBody = zod.object({
@@ -806,7 +799,6 @@ export const GetLeadDistributionSettingsResponse = zod.object({
 export const updateLeadDistributionSettingsBodyRoutingStaleDaysMax = 365;
 
 
-
 export const UpdateLeadDistributionSettingsBody = zod.object({
   "includeAdminsInRoundRobin": zod.boolean().optional(),
   "routing": zod.object({
@@ -844,7 +836,6 @@ export const getEmailDeliverySettingsResponseBulkEmailPerDayDefault = 60;
 export const getEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
 
 
-
 export const GetEmailDeliverySettingsResponse = zod.object({
   "emailSendingEnabled": zod.boolean().default(getEmailDeliverySettingsResponseEmailSendingEnabledDefault).describe('Explicit database-backed opt-in for all outbound email paths'),
   "bulkEmailPerMinute": zod.number().min(1).max(getEmailDeliverySettingsResponseBulkEmailPerMinuteMax).default(getEmailDeliverySettingsResponseBulkEmailPerMinuteDefault).describe('Maximum messages per minute for one bulk request'),
@@ -860,7 +851,6 @@ export const updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax = 1000;
 export const updateEmailDeliverySettingsBodyBulkEmailPerDayMax = 100000;
 
 
-
 export const UpdateEmailDeliverySettingsBody = zod.object({
   "emailSendingEnabled": zod.boolean().optional(),
   "bulkEmailPerMinute": zod.number().min(1).max(updateEmailDeliverySettingsBodyBulkEmailPerMinuteMax).optional(),
@@ -873,7 +863,6 @@ export const updateEmailDeliverySettingsResponseBulkEmailPerMinuteMax = 1000;
 
 export const updateEmailDeliverySettingsResponseBulkEmailPerDayDefault = 60;
 export const updateEmailDeliverySettingsResponseBulkEmailPerDayMax = 100000;
-
 
 
 export const UpdateEmailDeliverySettingsResponse = zod.object({
@@ -1081,7 +1070,6 @@ export const ListLeadsResponse = zod.object({
 export const createLeadBodyRequestedAmountMax = 2147483647;
 
 
-
 export const CreateLeadBody = zod.object({
   "referredByLeadId": zod.number().nullish(),
   "referredByPartnerId": zod.number().nullish(),
@@ -1188,7 +1176,6 @@ export const ExportLeadsQueryParams = zod.object({
 export const bulkUpdateLeadStatusBodyIdsMax = 500;
 
 
-
 export const BulkUpdateLeadStatusBody = zod.object({
   "ids": zod.array(zod.number()).max(bulkUpdateLeadStatusBodyIdsMax),
   "status": zod.string(),
@@ -1204,7 +1191,6 @@ export const BulkUpdateLeadStatusResponse = zod.object({
  * @summary Reassign selected leads or all leads matching a filter (manager/admin only)
  */
 export const bulkAssignLeadsBodyIdsMax = 500;
-
 
 
 export const BulkAssignLeadsBody = zod.object({
@@ -1234,7 +1220,6 @@ export const BulkAssignLeadsResponse = zod.object({
  * @summary Delete up to 500 leads (admin only)
  */
 export const bulkDeleteLeadsBodyIdsMax = 500;
-
 
 
 export const BulkDeleteLeadsBody = zod.object({
@@ -1308,7 +1293,6 @@ export const GenerateLeadBriefingResponse = zod.object({
 export const generatePipelineDigestResponseTopLeadsMax = 5;
 
 
-
 export const GeneratePipelineDigestResponse = zod.object({
   "overview": zod.string(),
   "recommendations": zod.array(zod.string()),
@@ -1331,7 +1315,6 @@ export const GenerateNextBestActionParams = zod.object({
 
 export const generateNextBestActionResponseActionsMin = 2;
 export const generateNextBestActionResponseActionsMax = 3;
-
 
 
 export const GenerateNextBestActionResponse = zod.object({
@@ -2682,6 +2665,23 @@ export const BuildSelectedLenderPackageBody = zod.object({
 
 
 /**
+ * @summary Build a selected lender package from the deal's authorized linked lead
+ */
+export const BuildDealLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const BuildDealLenderPackageBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+
+/**
  * @summary Get a lead's saved lender-package configuration
  */
 export const GetLeadPackageConfigParams = zod.object({
@@ -3428,7 +3428,6 @@ export const listDealsResponseDealsItemGmSplitPctMin = 0;
 export const listDealsResponseDealsItemGmSplitPctMax = 100;
 
 
-
 export const ListDealsResponse = zod.object({
   "deals": zod.array(zod.object({
   "id": zod.number(),
@@ -3546,7 +3545,6 @@ export const createDealBodyGmSplitPctMin = 0;
 export const createDealBodyGmSplitPctMax = 100;
 
 
-
 export const CreateDealBody = zod.object({
   "leadId": zod.number().nullish(),
   "dealName": zod.string().min(1),
@@ -3590,7 +3588,6 @@ export const GetDealParams = zod.object({
 
 export const getDealResponseOneGmSplitPctMin = 0;
 export const getDealResponseOneGmSplitPctMax = 100;
-
 
 
 export const GetDealResponse = zod.object({
@@ -3765,7 +3762,6 @@ export const updateDealBodyGmSplitPctMin = 0;
 export const updateDealBodyGmSplitPctMax = 100;
 
 
-
 export const UpdateDealBody = zod.object({
   "dealName": zod.string().min(1).optional(),
   "stage": zod.enum(['waiting_on_app', 'information_needed', 'submitted', 'approved', 'in_funding', 'funded', 'declined', 'dead', 'hold_on']).optional(),
@@ -3779,7 +3775,6 @@ export const UpdateDealBody = zod.object({
 
 export const updateDealResponseGmSplitPctMin = 0;
 export const updateDealResponseGmSplitPctMax = 100;
-
 
 
 export const UpdateDealResponse = zod.object({
@@ -3901,7 +3896,6 @@ export const ArchiveDealParams = zod.object({
 
 export const archiveDealResponseGmSplitPctMin = 0;
 export const archiveDealResponseGmSplitPctMax = 100;
-
 
 
 export const ArchiveDealResponse = zod.object({
@@ -4078,8 +4072,6 @@ export const saveDealRatePointsBodyBuyNominalRateMin = 0;
 export const saveDealRatePointsBodyTargetPointsMin = 0;
 
 
-
-
 export const SaveDealRatePointsBody = zod.object({
   "advance": zod.number().gt(saveDealRatePointsBodyAdvanceExclusiveMin),
   "payment": zod.number().gt(saveDealRatePointsBodyPaymentExclusiveMin),
@@ -4093,7 +4085,6 @@ export const SaveDealRatePointsBody = zod.object({
 
 export const saveDealRatePointsResponseDealGmSplitPctMin = 0;
 export const saveDealRatePointsResponseDealGmSplitPctMax = 100;
-
 
 
 export const SaveDealRatePointsResponse = zod.object({
@@ -4223,8 +4214,6 @@ export const ListDealApprovalsParams = zod.object({
 })
 
 
-
-
 export const ListDealApprovalsResponseItem = zod.object({
   "id": zod.number(),
   "dealId": zod.number(),
@@ -4259,8 +4248,6 @@ export const createDealApprovalBodyPaymentExclusiveMin = 0;
 export const createDealApprovalBodyDownPaymentMin = 0;
 
 
-
-
 export const CreateDealApprovalBody = zod.object({
   "lenderId": zod.number().min(1),
   "contractType": zod.enum(['EFA', 'lease', 'loan']),
@@ -4285,7 +4272,6 @@ export const ConvertLeadToDealParams = zod.object({
 export const convertLeadToDealBodyGmSplitPctDefault = 100;
 export const convertLeadToDealBodyGmSplitPctMin = 0;
 export const convertLeadToDealBodyGmSplitPctMax = 100;
-
 
 
 export const ConvertLeadToDealBody = zod.object({
@@ -4461,7 +4447,6 @@ export const GetApplicationConsentTextResponse = zod.object({
 export const submitApplicationBodyBusinessStartDateRegExp = new RegExp('^(0[1-9]|1[0-2])\/[0-9]{4}$');
 export const submitApplicationBodySmsConsentDefault = false;
 export const submitApplicationBodySignatureDataMax = 500000;
-
 
 
 export const SubmitApplicationBody = zod.object({
@@ -5116,8 +5101,6 @@ export const CreatePartnerContactParams = zod.object({
 })
 
 
-
-
 export const CreatePartnerContactBody = zod.object({
   "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']).optional(),
   "name": zod.string().min(1),
@@ -5135,8 +5118,6 @@ export const UpdatePartnerContactParams = zod.object({
   "partnerId": zod.coerce.number(),
   "contactId": zod.coerce.number()
 })
-
-
 
 
 export const UpdatePartnerContactBody = zod.object({
@@ -5291,7 +5272,6 @@ export const createLenderBodyPriorityWeightMax = 10;
 export const createLenderBodyTurnaroundBusinessDaysMinMin = 0;
 
 export const createLenderBodyTurnaroundBusinessDaysMaxMin = 0;
-
 
 
 export const CreateLenderBody = zod.object({
@@ -5507,7 +5487,6 @@ export const updateLenderBodyPriorityWeightMax = 10;
 export const updateLenderBodyTurnaroundBusinessDaysMinMin = 0;
 
 export const updateLenderBodyTurnaroundBusinessDaysMaxMin = 0;
-
 
 
 export const UpdateLenderBody = zod.object({
@@ -5837,6 +5816,9 @@ export const RunLenderMatchParams = zod.object({
 export const RunLenderMatchResponse = zod.object({
   "matchCount": zod.number(),
   "matches": zod.array(zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
@@ -6028,7 +6010,6 @@ export const CreateUnderwritingCorrectionParams = zod.object({
 export const createUnderwritingCorrectionBodyReasonMax = 500;
 
 
-
 export const CreateUnderwritingCorrectionBody = zod.object({
   "field": zod.enum(['requestedAmount', 'creditScore', 'industry', 'businessState', 'timeInBusinessMonths', 'monthlyRevenue', 'existingPositions', 'equipmentDescription', 'equipmentCategory', 'equipmentYear', 'vendorName', 'transactionAmount', 'intendedUse']),
   "value": zod.unknown(),
@@ -6045,6 +6026,9 @@ export const GetLenderMatchesParams = zod.object({
 })
 
 export const GetLenderMatchesResponseItem = zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
@@ -6528,14 +6512,38 @@ export const GetDealSubmissionsResponse = zod.array(GetDealSubmissionsResponseIt
 
 
 /**
+ * @summary Send the linked lead's package and record the submission on this deal
+ */
+export const CreateDealSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const createDealSubmissionBodyAdminOverrideDefault = false;
+
+export const CreateDealSubmissionBody = zod.object({
+  "lender_id": zod.number().min(1),
+  "via_broker_id": zod.number().optional(),
+  "end_lender_id": zod.number().optional(),
+  "admin_override": zod.boolean().default(createDealSubmissionBodyAdminOverrideDefault),
+  "package_config": zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}).optional()
+})
+
+
+/**
  * @summary Send a business-contact SMS to a partner contact
  */
 export const SendPartnerContactSmsParams = zod.object({
   "partnerId": zod.coerce.number(),
   "contactId": zod.coerce.number()
 })
-
-
 
 
 export const SendPartnerContactSmsBody = zod.object({
@@ -7531,7 +7539,6 @@ export const requestCampaignFlyerUploadUrlBodyNameMax = 255;
 export const requestCampaignFlyerUploadUrlBodySizeMax = 15728640;
 
 
-
 export const RequestCampaignFlyerUploadUrlBody = zod.object({
   "name": zod.string().min(1).max(requestCampaignFlyerUploadUrlBodyNameMax),
   "size": zod.number().min(1).max(requestCampaignFlyerUploadUrlBodySizeMax),
@@ -7648,7 +7655,6 @@ export const upsertPushSubscriptionBodyAuthMax = 512;
 export const upsertPushSubscriptionBodyUserAgentMax = 1024;
 
 
-
 export const UpsertPushSubscriptionBody = zod.object({
   "endpoint": zod.string().url().max(upsertPushSubscriptionBodyEndpointMax),
   "p256dh": zod.string().min(1).max(upsertPushSubscriptionBodyP256dhMax),
@@ -7661,7 +7667,6 @@ export const UpsertPushSubscriptionBody = zod.object({
  * @summary Remove the current user's web push endpoint
  */
 export const unsubscribePushSubscriptionBodyEndpointMax = 2048;
-
 
 
 export const UnsubscribePushSubscriptionBody = zod.object({
@@ -7707,10 +7712,6 @@ export const ListCollateralTemplatesResponseItem = zod.object({
 export const ListCollateralTemplatesResponse = zod.array(ListCollateralTemplatesResponseItem)
 
 
-
-
-
-
 export const CreateCollateralTemplateBody = zod.object({
   "name": zod.string().min(1),
   "category": zod.enum(['flyer', 'one_pager', 'application', 'letter', 'other']),
@@ -7723,7 +7724,6 @@ export const CreateCollateralTemplateBody = zod.object({
 /**
  * @summary Filter published library flyers by campaign category, vertical, audience, and representative
  */
-
 
 
 export const ListCollateralFlyersQueryParams = zod.object({
@@ -7755,7 +7755,6 @@ export const requestCollateralFlyerUploadUrlsBodyFilesItemSizeMax = 15728640;
 export const requestCollateralFlyerUploadUrlsBodyFilesMax = 50;
 
 
-
 export const RequestCollateralFlyerUploadUrlsBody = zod.object({
   "files": zod.array(zod.object({
   "originalFilename": zod.string(),
@@ -7775,7 +7774,6 @@ export const RequestCollateralFlyerUploadUrlsResponse = zod.object({
  * @summary Admin-only registration of validated immutable library flyers
  */
 export const registerCollateralFlyersBodyItemsMax = 50;
-
 
 
 export const RegisterCollateralFlyersBody = zod.object({
@@ -7807,9 +7805,6 @@ export const DownloadSignedCollateralFlyerParams = zod.object({
 })
 
 
-
-
-
 export const GetCollateralTemplateParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
@@ -7825,15 +7820,9 @@ export const GetCollateralTemplateResponse = zod.object({
 })
 
 
-
-
-
 export const UpdateCollateralTemplateParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
-
-
-
 
 
 export const UpdateCollateralTemplateBody = zod.object({
@@ -7855,15 +7844,9 @@ export const UpdateCollateralTemplateResponse = zod.object({
 })
 
 
-
-
-
 export const GetCollateralTemplateThumbnailParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
-
-
-
 
 
 export const PublishCollateralTemplateParams = zod.object({
@@ -7879,9 +7862,6 @@ export const PublishCollateralTemplateResponse = zod.object({
   "status": zod.enum(['draft', 'published']),
   "thumbnailUrl": zod.string().nullish()
 })
-
-
-
 
 
 export const ArchiveCollateralTemplateParams = zod.object({
@@ -7926,15 +7906,9 @@ export const DownloadCollateralPngParams = zod.object({
 })
 
 
-
-
-
 export const EmailCollateralRenderParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
-
-
-
 
 
 export const EmailCollateralRenderBody = zod.object({
@@ -7946,9 +7920,6 @@ export const EmailCollateralRenderBody = zod.object({
 export const EmailCollateralRenderResponse = zod.object({
   "sent": zod.boolean()
 })
-
-
-
 
 
 export const CreateCollateralRenderLinkParams = zod.object({
@@ -7970,7 +7941,6 @@ export const listCampaignsResponseReplyToEmailDefault = `nate@my-business-soluti
 export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
 
-
 export const listCampaignsResponseAudienceRulesDealsDefault = `all`;
 export const listCampaignsResponseAudienceRulesMinAmountMin = 0;
 
@@ -7978,7 +7948,6 @@ export const listCampaignsResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const listCampaignsResponseAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const ListCampaignsResponseItem = zod.object({
@@ -8026,12 +7995,10 @@ export const ListCampaignsResponseItem = zod.object({
 export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
 
 
-
 export const createCampaignBodyReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const createCampaignBodyFlyerDeliveryModeDefault = `link`;
 export const createCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const createCampaignBodyFlyerTwoSizeMax = 15728640;
-
 
 export const createCampaignBodyAudienceRulesDealsDefault = `all`;
 export const createCampaignBodyAudienceRulesMinAmountMin = 0;
@@ -8040,7 +8007,6 @@ export const createCampaignBodyAudienceRulesMaxAmountMin = 0;
 
 
 export const createCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const CreateCampaignBody = zod.object({
@@ -8090,7 +8056,6 @@ export const listCampaignFlyersResponseObjectPathRegExp = new RegExp('^\/objects
 export const listCampaignFlyersResponseSizeMax = 15728640;
 
 
-
 export const ListCampaignFlyersResponseItem = zod.object({
   "source": zod.literal("uploaded"),
   "objectPath": zod.string().regex(listCampaignFlyersResponseObjectPathRegExp),
@@ -8112,14 +8077,11 @@ export const searchCampaignLeadPickerQueryLimitDefault = 25;
 export const searchCampaignLeadPickerQueryLimitMax = 1000;
 
 
-
 export const SearchCampaignLeadPickerQueryParams = zod.object({
   "search": zod.coerce.string().max(searchCampaignLeadPickerQuerySearchMax).optional(),
   "page": zod.coerce.number().min(1).default(searchCampaignLeadPickerQueryPageDefault),
   "limit": zod.coerce.number().min(1).max(searchCampaignLeadPickerQueryLimitMax).default(searchCampaignLeadPickerQueryLimitDefault)
 })
-
-
 
 
 export const SearchCampaignLeadPickerResponse = zod.object({
@@ -8144,12 +8106,9 @@ export const SearchCampaignLeadPickerResponse = zod.object({
 export const resolveCampaignLeadPickerBodyIdsMax = 1000;
 
 
-
 export const ResolveCampaignLeadPickerBody = zod.object({
   "ids": zod.array(zod.number().min(1)).max(resolveCampaignLeadPickerBodyIdsMax)
 })
-
-
 
 
 export const ResolveCampaignLeadPickerResponseItem = zod.object({
@@ -8171,7 +8130,6 @@ export const getCampaignResponseCampaignReplyToEmailDefault = `nate@my-business-
 export const getCampaignResponseCampaignFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const getCampaignResponseCampaignFlyerTwoSizeMax = 15728640;
 
-
 export const getCampaignResponseCampaignAudienceRulesDealsDefault = `all`;
 export const getCampaignResponseCampaignAudienceRulesMinAmountMin = 0;
 
@@ -8179,7 +8137,6 @@ export const getCampaignResponseCampaignAudienceRulesMaxAmountMin = 0;
 
 
 export const getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const GetCampaignResponse = zod.object({
@@ -8259,7 +8216,6 @@ export const updateCampaignBodyFlyerDeliveryModeDefault = `link`;
 export const updateCampaignBodyFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignBodyFlyerTwoSizeMax = 15728640;
 
-
 export const updateCampaignBodyAudienceRulesDealsDefault = `all`;
 export const updateCampaignBodyAudienceRulesMinAmountMin = 0;
 
@@ -8267,7 +8223,6 @@ export const updateCampaignBodyAudienceRulesMaxAmountMin = 0;
 
 
 export const updateCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const UpdateCampaignBody = zod.object({
@@ -8313,7 +8268,6 @@ export const updateCampaignResponseReplyToEmailDefault = `nate@my-business-solut
 export const updateCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const updateCampaignResponseFlyerTwoSizeMax = 15728640;
 
-
 export const updateCampaignResponseAudienceRulesDealsDefault = `all`;
 export const updateCampaignResponseAudienceRulesMinAmountMin = 0;
 
@@ -8321,7 +8275,6 @@ export const updateCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const updateCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const UpdateCampaignResponse = zod.object({
@@ -8433,7 +8386,6 @@ export const approveCampaignResponseReplyToEmailDefault = `nate@my-business-solu
 export const approveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const approveCampaignResponseFlyerTwoSizeMax = 15728640;
 
-
 export const approveCampaignResponseAudienceRulesDealsDefault = `all`;
 export const approveCampaignResponseAudienceRulesMinAmountMin = 0;
 
@@ -8441,7 +8393,6 @@ export const approveCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const approveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
-
 
 
 export const ApproveCampaignResponse = zod.object({
@@ -8497,7 +8448,6 @@ export const DryRunCampaignTestBody = zod.object({
 })
 
 export const dryRunCampaignTestResponseEligibleCountMin = 0;
-
 
 
 export const DryRunCampaignTestResponse = zod.object({
@@ -8848,7 +8798,6 @@ export const GetCampaignRepliesResponseItem = zod.object({
 })
 export const GetCampaignRepliesResponse = zod.array(GetCampaignRepliesResponseItem)
 
-
 export const listCampaignAudiencePresetsResponseRulesDealsDefault = `all`;
 export const listCampaignAudiencePresetsResponseRulesMinAmountMin = 0;
 
@@ -8856,7 +8805,6 @@ export const listCampaignAudiencePresetsResponseRulesMaxAmountMin = 0;
 
 
 export const listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax = 1000;
-
 
 
 export const ListCampaignAudiencePresetsResponseItem = zod.object({
@@ -8880,8 +8828,6 @@ export const ListCampaignAudiencePresetsResponseItem = zod.object({
 })
 export const ListCampaignAudiencePresetsResponse = zod.array(ListCampaignAudiencePresetsResponseItem)
 
-
-
 export const createCampaignAudiencePresetBodyRulesDealsDefault = `all`;
 export const createCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 
@@ -8889,7 +8835,6 @@ export const createCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 
 
 export const createCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
-
 
 
 export const CreateCampaignAudiencePresetBody = zod.object({
@@ -8913,7 +8858,6 @@ export const UpdateCampaignAudiencePresetParams = zod.object({
   "id": zod.coerce.number()
 })
 
-
 export const updateCampaignAudiencePresetBodyRulesDealsDefault = `all`;
 export const updateCampaignAudiencePresetBodyRulesMinAmountMin = 0;
 
@@ -8921,7 +8865,6 @@ export const updateCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 
 
 export const updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
-
 
 
 export const UpdateCampaignAudiencePresetBody = zod.object({
@@ -8949,7 +8892,6 @@ export const updateCampaignAudiencePresetResponseRulesMaxAmountMin = 0;
 export const updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax = 1000;
 
 
-
 export const UpdateCampaignAudiencePresetResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -8974,5 +8916,4 @@ export const UpdateCampaignAudiencePresetResponse = zod.object({
 export const DeleteCampaignAudiencePresetParams = zod.object({
   "id": zod.coerce.number()
 })
-
 
