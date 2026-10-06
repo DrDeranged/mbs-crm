@@ -14,7 +14,7 @@ This is an audit of that candidate, not a repaired or newly published revision.
 | Full 11-gate preflight | PASS, exit 0; 723 tests passed, one intentionally skipped. |
 | Rehearsal against actual production backup | NOT CERTIFIED: clone source was `schema-only`, not a production backup restore. |
 | Strict mobile controls, required 36/36 | FAIL: 30/36. Exemption inventories match 36/36. |
-| Leads at 390, 768, 1280, 1440; light/dark | Eight authenticated screenshots captured. Tested interactions passed as detailed below. |
+| Leads at 390, 768, 1280, 1440; light/dark | Eight authenticated screenshots captured. Tested link-based interactions passed; whole-row background click is not certified. |
 | Disabled reply capture preserves campaign Reply-To | FAIL: candidate rejects campaign sends before sending, instead of preserving configured Reply-To. |
 | Completed campaign Results with new KPI and 13 sends | PASS on the candidate against an anonymized historical production snapshot in an isolated fixture. Not a production UI deployment. |
 
@@ -72,6 +72,8 @@ The representative functional journey confirmed:
 - Phone links expose the expected `tel:` destination; default dialing was deliberately prevented, and contact actions did not incorrectly trigger row navigation.
 
 These checks validate browser navigation and destinations, not actual telephone calling or email delivery. The functional journey is separate from the eight viewport captures; it is not eight independent full interaction suites.
+
+**Row-click scope:** the browser journey clicked lead links, not a row's blank background. Source inspection shows the candidate desktop `artifacts/mbs-crm/src/components/leads-fit-table.tsx` renders `tr[data-leads-row]` without a row click handler; navigation is attached to links within cells. Thus full-row background-click navigation must not be reported as passing.
 
 | Width | Light | Dark |
 | --- | --- | --- |

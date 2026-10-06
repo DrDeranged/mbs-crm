@@ -5,8 +5,8 @@
   "files": [
     {
       "path": "reports/main-853f4e4-certification/README.md",
-      "bytes": 9289,
-      "sha256": "8f9f63f26b7dac50ff6a39074526786da1387f2629332adeebd1a914502fda3b"
+      "bytes": 9699,
+      "sha256": "5c052b91dde46177beb0ecc356fd69212c36ce73e260ba90f362b206b5c1d942"
     },
     {
       "path": "reports/main-853f4e4-certification/campaign-5-results.png",
@@ -20,8 +20,8 @@
     },
     {
       "path": "reports/main-853f4e4-certification/certification-gallery.html",
-      "bytes": 1244536,
-      "sha256": "0cfa6afa40773098a2c5689f533aad2ceac225f6e7ddcd2ef38e848e165594e3"
+      "bytes": 1245001,
+      "sha256": "466d82b9794ab21a79b7d6997fe8e462ca5a6193a6370b62720b1e8671dee525"
     },
     {
       "path": "reports/main-853f4e4-certification/console-errors.json",
