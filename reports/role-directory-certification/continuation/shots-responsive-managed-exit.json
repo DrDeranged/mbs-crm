@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-10-06T04:47:55.491Z",
+  "finishedAt": "2026-10-06T04:49:30.655Z",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "runnerSha256": "affc925eba2a16067b355a174a1d61376d73bac1e8d8ac86204fe82c84b83a15",
+  "exitCode": 1,
+  "signal": null,
+  "published": false
+}

@@ -1,0 +1,4 @@
+Error: Campaign fixture row verification failed: "5|completed|1|1|1|13|13|13|13|13"
+    at check (file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:49:60)
+    at campaignSql (file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:580:5)
+    at async file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:648:24

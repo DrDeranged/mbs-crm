@@ -1,0 +1,799 @@
+{
+  "caseCount": 36,
+  "pass": true,
+  "approvedStructuralExceptionCategories": 3,
+  "additions": [
+    {
+      "case": "dashboard-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-390-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "dashboard-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "lead-detail-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 1,
+      "actual": 1,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-admin",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-admin",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-manager",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-manager",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "apply-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-rep",
+      "category": "lead-detail-search-referrer-input",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "settings-768-rep",
+      "category": "lead-detail-share-referral-button",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    }
+  ],
+  "retryRemoval": [
+    {
+      "case": "leads-390-rep",
+      "baselineExpected": 1,
+      "baselineActual": 1,
+      "candidateExpected": 0,
+      "candidateActual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-390-rep",
+      "baselineExpected": 1,
+      "baselineActual": 1,
+      "candidateExpected": 0,
+      "candidateActual": 0,
+      "pass": true
+    },
+    {
+      "case": "leads-768-rep",
+      "baselineExpected": 1,
+      "baselineActual": 1,
+      "candidateExpected": 0,
+      "candidateActual": 0,
+      "pass": true
+    },
+    {
+      "case": "pipeline-768-rep",
+      "baselineExpected": 1,
+      "baselineActual": 1,
+      "candidateExpected": 0,
+      "candidateActual": 0,
+      "pass": true
+    }
+  ],
+  "rows": [
+    {
+      "case": "dashboard-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 25,
+      "normalizedCandidateCount": 25
+    },
+    {
+      "case": "dashboard-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 29,
+      "normalizedCandidateCount": 29
+    },
+    {
+      "case": "dashboard-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 44,
+      "normalizedCandidateCount": 44
+    },
+    {
+      "case": "leads-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 292,
+      "normalizedCandidateCount": 292
+    },
+    {
+      "case": "leads-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 300,
+      "normalizedCandidateCount": 300
+    },
+    {
+      "case": "leads-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 256,
+      "normalizedCandidateCount": 256
+    },
+    {
+      "case": "lead-detail-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 42,
+      "normalizedCandidateCount": 42
+    },
+    {
+      "case": "lead-detail-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 50,
+      "normalizedCandidateCount": 50
+    },
+    {
+      "case": "lead-detail-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 39,
+      "normalizedCandidateCount": 39
+    },
+    {
+      "case": "pipeline-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 38,
+      "normalizedCandidateCount": 38
+    },
+    {
+      "case": "pipeline-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 47,
+      "normalizedCandidateCount": 47
+    },
+    {
+      "case": "pipeline-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 36,
+      "normalizedCandidateCount": 36
+    },
+    {
+      "case": "apply-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "apply-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "apply-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "settings-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 28,
+      "normalizedCandidateCount": 28
+    },
+    {
+      "case": "settings-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 83,
+      "normalizedCandidateCount": 83
+    },
+    {
+      "case": "settings-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 26,
+      "normalizedCandidateCount": 26
+    },
+    {
+      "case": "dashboard-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 29,
+      "normalizedCandidateCount": 29
+    },
+    {
+      "case": "dashboard-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 44,
+      "normalizedCandidateCount": 44
+    },
+    {
+      "case": "dashboard-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 25,
+      "normalizedCandidateCount": 25
+    },
+    {
+      "case": "leads-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 292,
+      "normalizedCandidateCount": 292
+    },
+    {
+      "case": "leads-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 300,
+      "normalizedCandidateCount": 300
+    },
+    {
+      "case": "leads-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 256,
+      "normalizedCandidateCount": 256
+    },
+    {
+      "case": "lead-detail-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 43,
+      "normalizedCandidateCount": 43
+    },
+    {
+      "case": "lead-detail-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 51,
+      "normalizedCandidateCount": 51
+    },
+    {
+      "case": "lead-detail-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 40,
+      "normalizedCandidateCount": 40
+    },
+    {
+      "case": "pipeline-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 47,
+      "normalizedCandidateCount": 47
+    },
+    {
+      "case": "pipeline-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 38,
+      "normalizedCandidateCount": 38
+    },
+    {
+      "case": "apply-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "apply-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "pipeline-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 36,
+      "normalizedCandidateCount": 36
+    },
+    {
+      "case": "settings-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 83,
+      "normalizedCandidateCount": 83
+    },
+    {
+      "case": "settings-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 28,
+      "normalizedCandidateCount": 28
+    },
+    {
+      "case": "apply-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 5,
+      "normalizedCandidateCount": 5
+    },
+    {
+      "case": "settings-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "normalizedBaselineCount": 26,
+      "normalizedCandidateCount": 26
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "sandboxSchemaOnly": true,
+  "providerCredentialStripping": true,
+  "backgroundJobsDisabled": true,
+  "files": [
+    "scripts/visual-refresh/sandbox.mjs",
+    "artifacts/mbs-crm/src",
+    "artifacts/api-server/src",
+    "artifacts/api-server/dist"
+  ],
+  "webSourceTreeSha256": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+  "apiSourceTreeSha256": "ab292ebbcfe0942ca43052da465a5e20d7ecaf46a6062923f7303c98a02f0ecf",
+  "sourceFinalizedRevision": "4598003285d7f82c51caa0e401e5d67600f76a6e"
+}

@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "baseline": {
+    "revision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+    "path": ".local/certification-2af927c/baselines/target-2af927c",
+    "controlCaptureCount": 36
+  },
+  "candidateControlCaptureCount": 36,
+  "structuralCases": {
+    "roles": [
+      "admin",
+      "manager",
+      "rep"
+    ],
+    "widths": [
+      390,
+      768
+    ],
+    "pages": [
+      [
+        "dashboard",
+        "/dashboard"
+      ],
+      [
+        "leads",
+        "/leads"
+      ],
+      [
+        "lead-detail",
+        "/leads/1"
+      ],
+      [
+        "pipeline",
+        "/deals"
+      ],
+      [
+        "apply",
+        "/apply"
+      ],
+      [
+        "settings",
+        "/settings"
+      ]
+    ]
+  },
+  "approvedStructuralExceptionCategories": [
+    {
+      "id": "lead-detail-search-referrer-input",
+      "control": {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      "cases": [
+        "lead-detail-390-admin",
+        "lead-detail-768-admin",
+        "lead-detail-390-manager",
+        "lead-detail-768-manager",
+        "lead-detail-390-rep",
+        "lead-detail-768-rep"
+      ],
+      "occurrencesPerCase": 1
+    },
+    {
+      "id": "lead-detail-share-referral-button",
+      "control": {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      },
+      "cases": [
+        "lead-detail-390-admin",
+        "lead-detail-768-admin",
+        "lead-detail-390-manager",
+        "lead-detail-768-manager",
+        "lead-detail-390-rep",
+        "lead-detail-768-rep"
+      ],
+      "occurrencesPerCase": 1
+    },
+    {
+      "id": "rep-directory-error-retry-removal",
+      "control": {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Retry",
+        "href": null,
+        "disabled": false
+      },
+      "cases": [
+        "leads-390-rep",
+        "leads-768-rep",
+        "pipeline-390-rep",
+        "pipeline-768-rep"
+      ],
+      "baselineOccurrencesPerCase": 1,
+      "candidateOccurrencesPerCase": 0
+    }
+  ],
+  "separateRolePolicyRequirement": {
+    "id": "rep-directory-control-hiding",
+    "isStructuralExceptionCategory": false,
+    "scope": "Only explicit representative-directory filters and assignee pickers; never a wildcard or exemption for unrelated controls.",
+    "roles": {
+      "rep": "Must issue zero GET /api/users requests and must not render directory-backed representative filters/assignee pickers on every listed route, including first mount before role data settles. /campaigns/:id is manager/admin-only: assert the explicit Manager Access Required UI and zero campaign-supporting HTTP requests; do not impersonate successful rep access.",
+      "manager": "Must retain enabled directory-backed representative filtering and assignee selection.",
+      "admin": "Must retain enabled directory-backed representative filtering and assignee selection."
+    },
+    "repRouteChecks": [
+      {
+        "caller": "leads representative filter",
+        "path": "/leads"
+      },
+      {
+        "caller": "lead-detail assignment header",
+        "path": "/leads/1"
+      },
+      {
+        "caller": "dashboard stale assignment",
+        "path": "/dashboard"
+      },
+      {
+        "caller": "deal pipeline directory",
+        "path": "/deals"
+      },
+      {
+        "caller": "new-deal assignee picker",
+        "path": "/deals/new"
+      },
+      {
+        "caller": "deal-detail assignee picker",
+        "path": "/deals/1"
+      },
+      {
+        "caller": "campaign audience directory",
+        "path": "/campaigns/5"
+      },
+      {
+        "caller": "settings directory caller",
+        "path": "/settings"
+      },
+      {
+        "caller": "documents rep directory",
+        "path": "/documents"
+      },
+      {
+        "caller": "credit-compliance representative filter",
+        "path": "/credit/compliance"
+      },
+      {
+        "caller": "governance route role policy",
+        "path": "/governance"
+      }
+    ],
+    "exactRepControlNames": [
+      "Filter by representative",
+      "Assigned rep",
+      "Assign rep",
+      "Assignee",
+      "Assigned to",
+      "Search reps…"
+    ],
+    "managerAdminRetentionChecks": [
+      "On /leads, Filter by representative is visible, enabled, opens, and offers the fixture representative.",
+      "On /deals/new, Assigned rep picker is visible and enabled, opens, and offers the fixture representative; no deal is submitted.",
+      "On /deals/1, Edit Details opens the edit form; Assigned rep picker is visible and enabled, opens, and offers the fixture representative; cancel without saving.",
+      "On /credit/compliance, only admins retain the representative filter because the page is explicitly admin-only; managers and reps must see the access-denied UI without directory requests."
+    ]
+  },
+  "candidateRuntimePolicy": {
+    "roles": [
+      "admin",
+      "manager",
+      "rep"
+    ],
+    "forbiddenHttpStatuses": [
+      403,
+      404,
+      503
+    ],
+    "forbiddenConsoleErrors": true,
+    "forbiddenPageExceptions": true,
+    "candidateRepGetApiUsersRequests": 0,
+    "noStatusSuppressionMocksOrInjectedProviderCredentials": true
+  },
+  "leadsScreenshots": {
+    "count": 8,
+    "widths": [
+      390,
+      768,
+      1280,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ]
+  },
+  "historicalCampaign": {
+    "campaignId": 5,
+    "ownerFixtureUserId": 1,
+    "creatorFixtureUserId": 1,
+    "launchRequesterFixtureUserId": 1,
+    "repRouteExpectation": {
+      "path": "/campaigns/5",
+      "heading": "Manager Access Required",
+      "campaignSupportRequests": 0,
+      "supportingApiPathPrefixes": [
+        "/api/campaign",
+        "/api/flyer",
+        "/api/email-templates",
+        "/api/analytics/sources",
+        "/api/users"
+      ]
+    },
+    "expectedLaunches": 1,
+    "expectedRecipients": 13,
+    "expectedSends": 13,
+    "resultsStatus": 200,
+    "metricsStatus": 200,
+    "sent": 13
+  },
+  "provenanceBoundary": {
+    "requiresRealProductionBackup": false,
+    "productionDataRehearsalCertified": false,
+    "mustReportSchemaOnlyFixture": true
+  }
+}

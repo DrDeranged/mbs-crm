@@ -1,0 +1,654 @@
+{
+  "completed": 72,
+  "required": 72,
+  "visits": [
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 25,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 29,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 44,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 292,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 300,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 257,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 42,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 50,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 39,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 38,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 47,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 37,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 28,
+      "exemptions": 1
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 83,
+      "exemptions": 1
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 26,
+      "exemptions": 1
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 29,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 44,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 25,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 292,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 300,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 257,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 43,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 51,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 40,
+      "exemptions": 14
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 47,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 38,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 37,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "admin",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 83,
+      "exemptions": 1
+    },
+    {
+      "phase": "baseline",
+      "role": "manager",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 28,
+      "exemptions": 1
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "baseline",
+      "role": "rep",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 26,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 25,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 44,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 29,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 256,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 292,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 300,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 41,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 44,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "lead-detail",
+      "width": 390,
+      "status": "completed",
+      "controls": 52,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 36,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 38,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "pipeline",
+      "width": 390,
+      "status": "completed",
+      "controls": 47,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 26,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 28,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 83,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 25,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 29,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "dashboard",
+      "width": 768,
+      "status": "completed",
+      "controls": 44,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 256,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 292,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "leads",
+      "width": 768,
+      "status": "completed",
+      "controls": 300,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 42,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 45,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "lead-detail",
+      "width": 768,
+      "status": "completed",
+      "controls": 53,
+      "exemptions": 14
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 36,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 38,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "pipeline",
+      "width": 768,
+      "status": "completed",
+      "controls": 47,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "apply",
+      "width": 768,
+      "status": "completed",
+      "controls": 5,
+      "exemptions": 0
+    },
+    {
+      "phase": "candidate",
+      "role": "rep",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 26,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "manager",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 28,
+      "exemptions": 1
+    },
+    {
+      "phase": "candidate",
+      "role": "admin",
+      "page": "settings",
+      "width": 768,
+      "status": "completed",
+      "controls": 83,
+      "exemptions": 1
+    }
+  ]
+}

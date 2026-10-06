@@ -1,0 +1,54 @@
+{
+  "status": "ORPHAN_SYNTHETIC_FIXTURE_CLEANED",
+  "sourceKind": "schema-only fixture; no production data",
+  "fixtureDatabase": "visual_refresh_fixture_21284_1791258059755",
+  "fixtureUsers": [
+    {
+      "id": 1,
+      "clerkId": "user_3KIvno6Fr8860VvFUGwRcxJmGc8",
+      "role": "admin",
+      "email": "fixture-admin@example.invalid"
+    },
+    {
+      "id": 2,
+      "clerkId": "user_3KIvnilEALmlQfvkz9aBVbv5kbw",
+      "role": "manager",
+      "email": "fixture-manager@example.invalid"
+    },
+    {
+      "id": 3,
+      "clerkId": "user_3KIvnmAcKrC4eEDBVeKrlHcWIX6",
+      "role": "rep",
+      "email": "fixture-rep@example.invalid"
+    }
+  ],
+  "campaignFixtureCounts": "1 campaign / 1 launch / 13 recipients / 13 sends",
+  "connectedExternalSessionsBeforeCleanup": 0,
+  "deletedClerkUsers": [
+    {
+      "id": "user_3KIvno6Fr8860VvFUGwRcxJmGc8",
+      "role": "admin",
+      "emails": [
+        "visual-admin-1791258065299@example.com"
+      ]
+    },
+    {
+      "id": "user_3KIvnilEALmlQfvkz9aBVbv5kbw",
+      "role": "manager",
+      "emails": [
+        "visual-manager-1791258065622@example.com"
+      ]
+    },
+    {
+      "id": "user_3KIvnmAcKrC4eEDBVeKrlHcWIX6",
+      "role": "rep",
+      "emails": [
+        "visual-rep-1791258065764@example.com"
+      ]
+    }
+  ],
+  "fixtureDatabaseAbsent": true,
+  "startedAt": "2026-10-06T03:56:51.051Z",
+  "verifiedAt": "2026-10-06T03:56:53.824Z",
+  "archivedRunPreserved": "reports/role-directory-certification/run"
+}

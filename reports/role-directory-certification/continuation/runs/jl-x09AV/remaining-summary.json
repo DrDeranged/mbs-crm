@@ -1,0 +1,243 @@
+{
+  "status": "REMAINING_SCOPE_INCOMPLETE",
+  "originalCertificationStatus": "INTERRUPTED_NO_TERMINAL_EXIT_RECORD",
+  "overallCertificationPass": false,
+  "historicalAndSchemaOnlyLimitations": {
+    "fixtureSourceKind": "schema-only fixture",
+    "productionDataRehearsalCertified": false,
+    "historicalCampaignSqlRollbackPreflightReused": true,
+    "publishOccurred": false
+  },
+  "sourceAndApiPins": {
+    "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+    "candidateApiSourceTreeSha256": "e8f022ca14076201ede0715423b1458525f326bef8d026792c63a569663bf77d",
+    "candidateApiDistSha256": "d33f4b9894d7399099942508e7266ba5720a2cef2ec16259d6fdac2629bfef9d",
+    "remainingRunnerSha256": "c803269300e6fbdaf43e833fd8dc12d567efa47f93e7c68f8d03278cf1e51d4e"
+  },
+  "retainedStructure": {
+    "cases": 36,
+    "pass": true,
+    "webPinsMatch": true,
+    "changedRouteCapturePwr": 0,
+    "changedRouteCaptureCdp": 0
+  },
+  "roleAndSecurityChecksFromTask3": {
+    "taskId": "3_fdWq7W",
+    "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+    "exitCode": 1,
+    "failedAt": "lead-search-company",
+    "failure": "page.waitForFunction: Timeout 15000ms exceeded.     at leadsJourney (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:484:16)     at async main (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:638:5)",
+    "requiredRoleJourneyChecks": [
+      "admin-assigned-deal-read-200",
+      "admin-representative-filter-retained",
+      "admin-assignee-picker-retained",
+      "admin-edit-deal-picker-retained",
+      "admin-credit-filter-retained",
+      "manager-assigned-deal-read-200",
+      "manager-representative-filter-retained",
+      "manager-assignee-picker-retained",
+      "manager-edit-deal-picker-retained",
+      "manager-credit-compliance-admin-gate",
+      "rep-assigned-deal-read-200",
+      "rep-unassigned-deal-denied",
+      "pending-deal-read-denied"
+    ],
+    "freshRoleChecksPassed": true,
+    "rawRoleResponseCounts": {
+      "admin": {
+        "200": 286,
+        "307": 16
+      },
+      "manager": {
+        "200": 222,
+        "307": 12
+      },
+      "rep": {
+        "200": 74,
+        "307": 4,
+        "403": 1
+      },
+      "pending": {
+        "200": 25,
+        "307": 2,
+        "403": 1
+      }
+    },
+    "expectedSecurityProbe403s": [
+      {
+        "role": "rep",
+        "phase": "candidate:continuation:rep:unassigned-denial",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "status": 403
+      },
+      {
+        "role": "pending",
+        "phase": "candidate:continuation:pending:deal-read-denial",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "status": 403
+      }
+    ],
+    "expectedSecurityProbeConsoleErrors": [
+      {
+        "role": "rep",
+        "phase": "candidate:continuation:rep:unassigned-denial",
+        "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      },
+      {
+        "role": "pending",
+        "phase": "candidate:continuation:pending:deal-read-denial",
+        "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      }
+    ],
+    "authorizedUiRawBadStatusCount": 0,
+    "authorizedUiConsoleErrors": 0,
+    "pageErrors": 0,
+    "requestFailures": 0,
+    "repDirectoryRequests": 0,
+    "managerReplacementPassed": true,
+    "adminRetentionPassed": true,
+    "originalManager403s": 2,
+    "originalManagerConsoleErrors": 2,
+    "originalFailureRecordsPreserved": true,
+    "retainedStructure": {
+      "cases": 36,
+      "pass": true,
+      "webPinsMatch": true,
+      "changedRouteCapturePwr": 0,
+      "changedRouteCaptureCdp": 0
+    },
+    "retainedRolePolicyRoutes": 11,
+    "retainedRolePolicyControls": 0,
+    "fixtureCleanup": {
+      "databaseAbsent": true,
+      "syntheticUsersAbsent": 4
+    }
+  },
+  "roleEvidenceClassification": {
+    "authorizedUiRawBadStatuses": 0,
+    "expected403Probes": [
+      {
+        "role": "rep",
+        "phase": "candidate:continuation:rep:unassigned-denial",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "status": 403
+      },
+      {
+        "role": "pending",
+        "phase": "candidate:continuation:pending:deal-read-denial",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "status": 403
+      }
+    ],
+    "expected403ProbeConsoleErrors": [
+      {
+        "role": "rep",
+        "phase": "candidate:continuation:rep:unassigned-denial",
+        "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      },
+      {
+        "role": "pending",
+        "phase": "candidate:continuation:pending:deal-read-denial",
+        "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      }
+    ],
+    "tableWarning": "Report intentional denied security probes separately; do not label combined raw status/console totals clean."
+  },
+  "leads": {
+    "interactions": 13,
+    "screenshots": 0,
+    "screenshotsExpected": 8,
+    "interactionSteps": [
+      "lead-search-name",
+      "lead-search-company",
+      "lead-status-filter",
+      "lead-status-filter-reset",
+      "lead-type-filter",
+      "lead-representative-filter",
+      "lead-oldest-sort",
+      "lead-blank-row-noop",
+      "lead-phone-action",
+      "lead-email-opens-comms",
+      "lead-detail-phone-action",
+      "lead-name-link-opens-detail",
+      "lead-company-link-opens-detail"
+    ],
+    "actualPwrResponseStatusCounts": {
+      "200": 416,
+      "307": 16
+    }
+  },
+  "campaign13": {
+    "section": "campaign-13",
+    "step": "admin-results-metrics-13",
+    "status": "passed",
+    "api": {
+      "resultsStatus": 200,
+      "metricsStatus": 200,
+      "results": {
+        "counts": {
+          "eligible": 13,
+          "excluded": 0,
+          "sent": 13,
+          "failed": 0,
+          "deferred": 0,
+          "nextAvailableAt": null
+        },
+        "launches": [
+          {
+            "id": 5,
+            "status": "completed",
+            "sentCount": 13
+          }
+        ]
+      },
+      "metrics": {
+        "sent": 13,
+        "trackingSince": null,
+        "replies": null
+      }
+    },
+    "dom": {
+      "legacySent": "SENT 13",
+      "sentKpi": "SENT 13",
+      "panel": "PERFORMANCE Historical tracking not available · Reply capture not configured SENT 13 DELIVERED % 61.5% Delivered email ÷ accepted email sends BOUNCED 0 BLOCKED 0 OPENS (APPROXIMATE) 5 Mail apps may preload images UNIQUE FLYER CLICKS Not tracked TOTAL FLYER CLICKS Not tracked FIRST CLICK — REPLIES Not tracked CALLS Not tracked REFERRED LEADS Not tracked SUBMITTED Not tracked APPROVED Not tracked FUNDED Not tracked $ FUNDED (REFERRED DEALS) Not tracked MBS POINTS (REFERRED DEALS) Not tracked",
+      "uniqueClicks": "UNIQUE FLYER CLICKS Not tracked",
+      "replies": "REPLIES Not tracked"
+    },
+    "at": "2026-10-06T04:31:05.354Z"
+  },
+  "currentRun": {
+    "pwrResponseCount": 432,
+    "pwrResponseStatusCounts": {
+      "200": 416,
+      "307": 16
+    },
+    "unexpectedPwrBadStatuses": [],
+    "unexpectedCdpBadStatuses": [],
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "requestFailures": 4,
+    "fixture": {
+      "sourceKind": "schema-only fixture",
+      "campaignId": 5,
+      "sends": 13,
+      "historicalLeadRowsAdded": 13,
+      "fixtureDatabase": "visual_refresh_fixture_9048_1791261016975",
+      "productionDataRehearsalCertified": false
+    },
+    "completed": false
+  },
+  "task3Provenance": {
+    "taskId": "3_fdWq7W",
+    "exitCode": 1,
+    "failureRetained": true,
+    "cause": "Leads runner expected exactly two rows after clearing search, but campaign fixture seed adds 13 historical leads; this is a harness assumption, not a product edit.",
+    "originalManager403sPreserved": true,
+    "newManagerReplacementPassed": true
+  },
+  "completedAt": "2026-10-06T04:31:21.640Z",
+  "fixtureCleanup": {
+    "fixtureDatabaseAbsent": true,
+    "syntheticUsersAbsent": 3
+  }
+}

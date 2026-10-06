@@ -1,0 +1,221 @@
+[
+  {
+    "parent": "2317871f9626a32440c2892112f69f430ee73815",
+    "commit": "297e03c8ce7b602cf300c66a3ada1dbe062ab4cd",
+    "tree": "e0ecff5ee5caa1c491e726f1938676d7b7af23c2",
+    "files": [
+      {
+        "path": ".agents/memory/web-visual-scope.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "bcbc4c3461b13f14af1fe6e4872678217fb9c9cd"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/browserTelephonyReadiness.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "e4610ea1c18721aa28ce1837d7133a2d32377f45"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/integrationHealth.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ec616bb46b62b35dbafcdedea9e1b6218d13ca32"
+      },
+      {
+        "path": "artifacts/api-server/src/routes/applications.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "5593e9bf33e85b2a84ac23eebae36f20c7fbd3b1"
+      },
+      {
+        "path": "artifacts/api-server/src/routes/twilio.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "4a7f3347671aabd984ebf6d6ecd3f3f6d628f063"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/components/softphone-widget.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "1863244dfdb4f29c0178a5acd3524fbbe23ffcbb"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/hooks/use-manager-directory.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "2c58926592be36556a947d4af091577e9bb7018c"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/lib/managerDirectory.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ba4a0f69849838175de18b694b1105ed0ced9c87"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/campaign-detail.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "b02f2e04d9df3f32e8dff4e83a3328e12bade616"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/credit-compliance.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "6285e3aac510ff64d61ce2ce089958b580cb1151"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/dashboard.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "1e4a64c7e38edc6721c1fe5de564adcd0d107538"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/deal-detail.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "3cd067476c1a53dc3b0a0d56d1cd3734baccf076"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/deals.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "4dc53b05150ad5d84beb0a3c72b8c16a2c41a8ec"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/governance.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "ad40c6fa6d6ef8153b539687303d944a4c89c15f"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/lead-detail/header.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "c8a49529a496ed7f6d4a874bf38d540434845e80"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/leads.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "cae467e75f308acef20df1a87a0e85dce2a8a37e"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/new-deal.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "9b6e04022ebae0ce01efb6828e6be6695af50034"
+      },
+      {
+        "path": "artifacts/mbs-crm/src/pages/settings.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "659b8e844ca94fb0802a2d6f712e204facb53df3"
+      },
+      {
+        "path": "lib/api-client-react/src/generated/api.schemas.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "14ab8a3adab5d79ca0aee64c0657aa35e0ebe782"
+      },
+      {
+        "path": "lib/api-client-react/src/generated/api.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "b9b921f1517ad182be3afd8ce0c1bc269b2859c3"
+      },
+      {
+        "path": "lib/api-spec/openapi.yaml",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "3fb64848688e66c4444a2632c80ec1077605823d"
+      },
+      {
+        "path": "lib/api-zod/src/generated/api.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "2dec6f3bddd3b2e46a16ebc09c2b4ab8ba46bf22"
+      }
+    ],
+    "verified": true,
+    "published": false
+  },
+  {
+    "parent": "297e03c8ce7b602cf300c66a3ada1dbe062ab4cd",
+    "commit": "a9593c3dbc3e43c53aec92a4d7b8813f36d5ec12",
+    "tree": "60453e6be59dadf457c93bdce674fb9d0c06aeae",
+    "files": [
+      {
+        "path": "artifacts/api-server/src/lib/authMatrix.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "9a3e6a490a9c9f3a4929c5794bcc79a678b16202"
+      },
+      {
+        "path": "docs/AUTH_MATRIX.md",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "13e26d46d17f734c1f3b2c9a13fe110ae836df0d"
+      }
+    ],
+    "verified": true,
+    "published": false
+  },
+  {
+    "parent": "a9593c3dbc3e43c53aec92a4d7b8813f36d5ec12",
+    "commit": "ad51f812eee70b622d56705cbd5c0928a9d53354",
+    "tree": "4117ae66481a24fd33b4efd4fe66e6d45e220ede",
+    "files": [
+      {
+        "path": "artifacts/mbs-crm/src/lib/managerDirectory.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "572668a969cc6dea0ed1f99a189b9fbb754ef018"
+      }
+    ],
+    "verified": true,
+    "published": false
+  },
+  {
+    "parent": "ad51f812eee70b622d56705cbd5c0928a9d53354",
+    "commit": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+    "tree": "30d9c736895bb54413660134773e851746a8b2eb",
+    "files": [
+      {
+        "path": "artifacts/mbs-crm/src/App.tsx",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "9047514fc789637ff383c17e1467b12cdef764c7"
+      }
+    ],
+    "verified": true,
+    "published": false
+  },
+  {
+    "parent": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+    "commit": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+    "tree": "6ff0edfbf273f1c58f41b942db7b069d150c9946",
+    "files": [
+      {
+        "path": "artifacts/api-server/src/lib/dealSubmissionAccess.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "53c0f15243f6e18cf6457b38d28557b0a2ff302a"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/dealSubmissionAccess.test.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "fb4ede04caeb44efbffea485cc8e22285ef7f24f"
+      },
+      {
+        "path": "artifacts/api-server/src/routes/lenders.ts",
+        "mode": "100644",
+        "type": "blob",
+        "sha": "1e9aad39a57cbbc35ebc64f2542ec63ce787d925"
+      }
+    ],
+    "verified": true,
+    "published": false
+  }
+]

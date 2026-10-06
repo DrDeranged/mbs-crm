@@ -1,0 +1,22 @@
+{
+  "sourceKind": "schema-only fixture",
+  "fixtureDatabase": "visual_refresh_fixture_9048_1791261016975",
+  "campaignId": 5,
+  "sends": 13,
+  "historicalLeadRowsAdded": 13,
+  "totalExpectedLeads": 15,
+  "productionDataRehearsalCertified": false,
+  "campaignVerification": {
+    "id": 5,
+    "status": "completed",
+    "owner_id": 1,
+    "created_by": 1,
+    "requested_by": 1,
+    "sent_count": 13,
+    "recipient_sent": 13,
+    "email_sent": 13,
+    "recipient_sent_at_null": 13,
+    "email_sent_at_retained": 13
+  },
+  "note": "Historical campaign seed adds 13 older leads; UI reset assertions use the captured API total/page IDs."
+}

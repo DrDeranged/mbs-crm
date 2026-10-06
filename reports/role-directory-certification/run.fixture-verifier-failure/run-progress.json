@@ -1,0 +1,14 @@
+{
+  "status": "incomplete-or-failed",
+  "phase": "fixture-ready",
+  "targetRevision": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+  "localSnapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "requiredBaselineCaptures": 36,
+  "requiredCandidateCaptures": 36,
+  "completedCaptures": [],
+  "journeys": [],
+  "screenshots": [],
+  "startedAt": "2026-10-06T03:38:39.209Z",
+  "updatedAt": "2026-10-06T03:38:50.127Z",
+  "failure": "Error: Campaign fixture row verification failed: \"5|completed|1|1|1|13|13|13|13|13\"     at check (file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:49:60)     at campaignSql (file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:580:5)     at async file:///home/runner/workspace/reports/role-directory-certification/role-directory-certification.mjs:648:24"
+}

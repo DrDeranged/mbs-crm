@@ -1,0 +1,15 @@
+{
+  "pwrResponses": 225,
+  "pwrStatusCounts": {
+    "200": 213,
+    "307": 12
+  },
+  "cdpEvents": 212,
+  "cdpStatusCounts": {
+    "200": 212
+  },
+  "consoleErrors": 0,
+  "pageErrors": 0,
+  "requestFailures": 0,
+  "safeUrlsOnly": true
+}

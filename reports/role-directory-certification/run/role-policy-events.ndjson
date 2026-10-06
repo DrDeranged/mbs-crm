@@ -1,0 +1,11 @@
+{"route":"leads-filter","requestedPath":"/leads","renderedPath":"/leads","controls":[],"at":"2026-10-06T03:48:40.037Z"}
+{"route":"lead-detail-header","requestedPath":"/leads/1","renderedPath":"/leads/[REDACTED_ID]","controls":[],"at":"2026-10-06T03:48:42.266Z"}
+{"route":"dashboard-assignment","requestedPath":"/dashboard","renderedPath":"/dashboard","controls":[],"at":"2026-10-06T03:48:44.490Z"}
+{"route":"deal-pipeline","requestedPath":"/deals","renderedPath":"/deals","controls":[],"at":"2026-10-06T03:48:46.667Z"}
+{"route":"new-deal-assignment","requestedPath":"/deals/new","renderedPath":"/deals/[REDACTED_ID]","controls":[],"at":"2026-10-06T03:48:47.590Z"}
+{"route":"deal-detail-assignment","requestedPath":"/deals/1","renderedPath":"/deals/[REDACTED_ID]","controls":[],"at":"2026-10-06T03:48:56.042Z"}
+{"route":"campaign-audience","requestedPath":"/campaigns/5","renderedPath":"/campaigns/5","controls":[],"repCampaignManagerGate":{"renderedDeniedUi":true,"heading":"Manager Access Required","supportingRequestCount":0,"supportPrefixesChecked":["/api/campaign","/api/flyer","/api/email-templates","/api/analytics/sources","/api/users"]},"at":"2026-10-06T03:48:56.504Z"}
+{"route":"settings-directory","requestedPath":"/settings","renderedPath":"/settings","controls":[],"at":"2026-10-06T03:48:58.650Z"}
+{"route":"documents-directory","requestedPath":"/documents","renderedPath":"/documents","controls":[],"at":"2026-10-06T03:49:00.823Z"}
+{"route":"credit-compliance-filter","requestedPath":"/credit/compliance","renderedPath":"/credit/compliance","controls":[],"at":"2026-10-06T03:49:09.262Z"}
+{"route":"governance-role-policy","requestedPath":"/governance","renderedPath":"/governance","controls":[],"at":"2026-10-06T03:49:17.696Z"}

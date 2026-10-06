@@ -1,0 +1,188 @@
+{
+  "revision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "runStatus": "FAILED_HARNESS_RESET_COUNT_NOT_FULL_PASS",
+  "validSections": [
+    "deal-read-retention",
+    "retention",
+    "pending-denial"
+  ],
+  "successfulSteps": [
+    {
+      "section": "deal-read-retention",
+      "step": "admin-assigned-deal-read-200",
+      "status": 200,
+      "at": "2026-10-06T04:08:24.005Z",
+      "role": "admin",
+      "method": "GET",
+      "submissionCount": 0
+    },
+    {
+      "section": "retention",
+      "step": "admin-representative-filter-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:26.524Z",
+      "role": "admin",
+      "options": [
+        "All Reps",
+        "Visual Fixturefixture-rep@example.invalid"
+      ]
+    },
+    {
+      "section": "retention",
+      "step": "admin-assignee-picker-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:28.875Z",
+      "role": "admin",
+      "options": [
+        "Unassigned",
+        "Visual Fixture"
+      ],
+      "noSave": true
+    },
+    {
+      "section": "retention",
+      "step": "admin-edit-deal-picker-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:31.345Z",
+      "role": "admin",
+      "noSave": true,
+      "fixtureOptionPresent": true
+    },
+    {
+      "section": "retention",
+      "step": "admin-credit-filter-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:33.788Z",
+      "role": "admin",
+      "options": [
+        "All Reps",
+        "Visual Fixturefixture-rep@example.invalid"
+      ]
+    },
+    {
+      "section": "deal-read-retention",
+      "step": "manager-assigned-deal-read-200",
+      "status": 200,
+      "at": "2026-10-06T04:08:37.720Z",
+      "role": "manager",
+      "method": "GET",
+      "submissionCount": 0
+    },
+    {
+      "section": "retention",
+      "step": "manager-representative-filter-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:40.055Z",
+      "role": "manager",
+      "options": [
+        "All Reps",
+        "Visual Fixturefixture-rep@example.invalid"
+      ]
+    },
+    {
+      "section": "retention",
+      "step": "manager-assignee-picker-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:42.356Z",
+      "role": "manager",
+      "options": [
+        "Unassigned",
+        "Visual Fixture"
+      ],
+      "noSave": true
+    },
+    {
+      "section": "retention",
+      "step": "manager-edit-deal-picker-retained",
+      "status": "passed",
+      "at": "2026-10-06T04:08:44.831Z",
+      "role": "manager",
+      "noSave": true,
+      "fixtureOptionPresent": true
+    },
+    {
+      "section": "retention",
+      "step": "manager-credit-compliance-admin-gate",
+      "status": "passed",
+      "at": "2026-10-06T04:08:47.026Z",
+      "role": "manager"
+    },
+    {
+      "section": "deal-read-retention",
+      "step": "rep-assigned-deal-read-200",
+      "status": 200,
+      "at": "2026-10-06T04:08:50.863Z",
+      "role": "rep",
+      "method": "GET",
+      "submissionCount": 0
+    },
+    {
+      "section": "deal-read-retention",
+      "step": "rep-unassigned-deal-denied",
+      "status": 403,
+      "at": "2026-10-06T04:08:50.877Z",
+      "role": "rep",
+      "method": "GET",
+      "expectedDenial": true
+    },
+    {
+      "section": "pending-denial",
+      "step": "pending-deal-read-denied",
+      "status": 403,
+      "at": "2026-10-06T04:08:52.468Z",
+      "role": "pending",
+      "method": "GET",
+      "code": "ACCOUNT_PENDING",
+      "expectedDenial": true
+    }
+  ],
+  "authorizedUiBadStatusObservations": [],
+  "expectedSecurityProbes": [
+    {
+      "role": "rep",
+      "phase": "candidate:continuation:rep:unassigned-denial",
+      "page": "/deals/[REDACTED_ID]",
+      "path": "/api/deals/[REDACTED_ID]/submissions",
+      "status": 403,
+      "classification": "EXPECTED_EXPLICIT_ACCESS_DENIAL_PROBE_NOT_UI_DEFECT"
+    },
+    {
+      "role": "pending",
+      "phase": "candidate:continuation:pending:deal-read-denial",
+      "page": "/sign-in",
+      "path": "/api/deals/[REDACTED_ID]/submissions",
+      "status": 403,
+      "classification": "EXPECTED_EXPLICIT_ACCESS_DENIAL_PROBE_NOT_UI_DEFECT"
+    }
+  ],
+  "authorizedUiConsoleErrors": [],
+  "expectedProbeConsoleErrors": 2,
+  "cleanup": {
+    "sourceKind": "schema-only fixture",
+    "fixtureDatabase": "visual_refresh_fixture_7456_1791259686363",
+    "fixtureDatabaseAbsent": true,
+    "fixtureClosedBySandbox": true,
+    "createdSyntheticUsers": 4,
+    "deletedAndAbsentUsers": 4,
+    "individualUserAbsenceChecks": [
+      {
+        "id": "user_3KIz6eciJHkdgEo8C6xopp9sVdV",
+        "absent": true
+      },
+      {
+        "id": "user_3KIz6ZhZabDimd7qaSoW6rMyME8",
+        "absent": true
+      },
+      {
+        "id": "user_3KIz6jc38UQ4zVoiMj4NcQDeaMY",
+        "absent": true
+      },
+      {
+        "id": "user_3KIz719ywtLbXee6yHPUtvUoxXx",
+        "absent": true
+      }
+    ],
+    "verifiedAt": "2026-10-06T04:09:15.977Z"
+  },
+  "published": false
+}

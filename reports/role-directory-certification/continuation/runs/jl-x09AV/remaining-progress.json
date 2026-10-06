@@ -1,0 +1,222 @@
+{
+  "runId": "jl-x09AV",
+  "status": "failed",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "remainingRunnerSha256": "c803269300e6fbdaf43e833fd8dc12d567efa47f93e7c68f8d03278cf1e51d4e",
+  "remainingSections": [
+    "Leads 13 interactions",
+    "Leads 8 screenshots",
+    "admin Campaign 13"
+  ],
+  "completedSteps": 14,
+  "startedAt": "2026-10-06T04:30:16.973Z",
+  "updatedAt": "2026-10-06T04:31:21.642Z",
+  "phase": "finished",
+  "sectionStatus": "13-interactions-passed",
+  "sections": {
+    "campaign-fixture": {
+      "status": "passed",
+      "database": "visual_refresh_fixture_9048_1791261016975",
+      "historicalLeadRowsAdded": 13,
+      "campaignId": 5,
+      "sends": 13,
+      "at": "2026-10-06T04:30:44.963Z"
+    },
+    "leads-screenshots": {
+      "status": "failed",
+      "failure": "screenshot-list-light-390: DOM row IDs did not match API snapshot {\"section\":\"leads\",\"assertion\":\"screenshot-list-light-390\",\"apiBody\":{\"total\":15,\"page\":1,\"limit\":20,\"totalPages\":1,\"leads\":[{\"id\":3,\"firstName\":\"Historical\",\"lastName\":\"Fixture Recipient 01\",\"companyName\":\"Synthetic Campaign Recipient 01\",\"status\":\"contacted\",\"applicationType\":\"equipment\",\"assignedRepId\":3},{\"id\":4,\"firstName\":\"Historical\",\"lastName\":\"Fixture Recipient 02\",\"companyName\":\"Synthetic Campaign Recipient 02\",\"status\":\"contacted\",\"applicationType\":\"equipment\",\"assignedRepId\":3},{\"id\":5,\"firstName\":\"Historical\",\"lastName\":\"Fixture Recipient 03\",\"companyName\":\"Synthetic Campaign Recipient 03\",\"status\":\"contacted\",\"applicationType\":\"equipment\",\"assignedRepId\":3},{\"id\":6,\"firstName\":\"Historical\",\"lastName\":\"Fixture R",
+      "diagnostic": {
+        "section": "leads",
+        "assertion": "screenshot-list-light-390",
+        "apiBody": {
+          "total": 15,
+          "page": 1,
+          "limit": 20,
+          "totalPages": 1,
+          "leads": [
+            {
+              "id": 3,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 01",
+              "companyName": "Synthetic Campaign Recipient 01",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 4,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 02",
+              "companyName": "Synthetic Campaign Recipient 02",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 5,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 03",
+              "companyName": "Synthetic Campaign Recipient 03",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 6,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 04",
+              "companyName": "Synthetic Campaign Recipient 04",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 7,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 05",
+              "companyName": "Synthetic Campaign Recipient 05",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 8,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 06",
+              "companyName": "Synthetic Campaign Recipient 06",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 9,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 07",
+              "companyName": "Synthetic Campaign Recipient 07",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 10,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 08",
+              "companyName": "Synthetic Campaign Recipient 08",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 11,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 09",
+              "companyName": "Synthetic Campaign Recipient 09",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 12,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 10",
+              "companyName": "Synthetic Campaign Recipient 10",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 13,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 11",
+              "companyName": "Synthetic Campaign Recipient 11",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 14,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 12",
+              "companyName": "Synthetic Campaign Recipient 12",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 15,
+              "firstName": "Historical",
+              "lastName": "Fixture Recipient 13",
+              "companyName": "Synthetic Campaign Recipient 13",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 1,
+              "firstName": "Synthetic",
+              "lastName": "Contact",
+              "companyName": "Fixture Equipment LLC",
+              "status": "contacted",
+              "applicationType": "equipment",
+              "assignedRepId": 3
+            },
+            {
+              "id": 2,
+              "firstName": "Sample",
+              "lastName": "Applicant",
+              "companyName": "Fixture Services LLC",
+              "status": "new_lead",
+              "applicationType": "working_capital",
+              "assignedRepId": 3
+            }
+          ]
+        },
+        "domRows": [],
+        "at": "2026-10-06T04:30:50.417Z",
+        "error": "page.waitForFunction: Timeout 12000ms exceeded."
+      },
+      "at": "2026-10-06T04:31:02.490Z"
+    },
+    "campaign-13": {
+      "status": "passed",
+      "sent": 13,
+      "resultsStatus": 200,
+      "metricsStatus": 200,
+      "at": "2026-10-06T04:31:05.355Z"
+    },
+    "leads": {
+      "status": "13-interactions-passed",
+      "interactions": 13,
+      "initialTotal": 15,
+      "at": "2026-10-06T04:31:21.616Z"
+    }
+  },
+  "lastStep": {
+    "section": "leads",
+    "step": "lead-company-link-opens-detail",
+    "status": "passed",
+    "targetLeadId": 1,
+    "href": "/leads/1",
+    "api": {
+      "status": 200,
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/leads/[REDACTED_ID]",
+        "search": ""
+      },
+      "body": {
+        "id": 1,
+        "firstName": "Synthetic",
+        "lastName": "Contact",
+        "companyName": "Fixture Equipment LLC",
+        "status": "contacted",
+        "applicationType": "equipment",
+        "assignedRepId": 3,
+        "entityLabel": "Fixture Equipment LLC — Synthetic Contact"
+      }
+    },
+    "at": "2026-10-06T04:31:21.615Z"
+  },
+  "remainingScopeComplete": false,
+  "completedAt": "2026-10-06T04:31:21.640Z"
+}

@@ -1,0 +1,298 @@
+{
+  "status": "EIGHT_SCREENSHOTS_COMPLETE",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "fixture": "Authenticated synthetic admin, same frozen source/web/API, two disposable default leads; no live production data.",
+  "provenance": "Four valid light captures retained before the collector theme-navigation error; four dark captures completed in an independent exit-0 continuation. Earlier failed aggregate exits remain failed.",
+  "images": [
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-47-56-071Z-10079/screenshots/leads-390-light.png",
+      "sha256": "7e73f9e0464a11d6b33dc4a45a47bd9b7b9d73e0f2db10bf0581107bd957b3f8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "theme": "light",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 390,
+        "theme": "light",
+        "apiStatus": 200,
+        "mobileCardSelector": "[class~=\"md:hidden\"] > div.rounded-lg.border.bg-card",
+        "visibleCardCount": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 900
+        },
+        "document": {
+          "width": 390,
+          "height": 1358
+        }
+      },
+      "capturedAt": "2026-10-06T04:49:11.901Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-47-56-071Z-10079/screenshots/leads-768-light.png",
+      "sha256": "b29681383cb07d5a4451d0383a0d618d2c5d0f8d05d6a31010c44ae78da9002f",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "theme": "light",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 768,
+        "theme": "light",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 768,
+          "height": 900
+        },
+        "document": {
+          "width": 768,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:49:12.762Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-47-56-071Z-10079/screenshots/leads-1280-light.png",
+      "sha256": "09c2abd50cf6b1cea9dac66d9cddee490cbfd8beb365f5b116c68425ffe168cc",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "light",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 1280,
+        "theme": "light",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "document": {
+          "width": 1280,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:49:13.714Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-47-56-071Z-10079/screenshots/leads-1440-light.png",
+      "sha256": "bfe8dc683f6af86fc62feeba56ac597b9e8511088f9e4be165d3122b3b11a5bd",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 1440,
+        "theme": "light",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "document": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:49:14.570Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-51-24-064Z-10339/screenshots/leads-390-dark.png",
+      "sha256": "ac99470aa1247b0adfe0a56e0b28fedf0c107cda6c28568630043c0119f9e9e0",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "theme": "dark",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 390,
+        "theme": "dark",
+        "apiStatus": 200,
+        "mobileCardSelector": "[class~=\"md:hidden\"] > div.rounded-lg.border.bg-card",
+        "visibleCardCount": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 900
+        },
+        "document": {
+          "width": 390,
+          "height": 1358
+        }
+      },
+      "capturedAt": "2026-10-06T04:52:44.307Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-51-24-064Z-10339/screenshots/leads-768-dark.png",
+      "sha256": "0e6f0ef30821baa3aecd22a757b76ad83c6f57e96e4341832af9575cc2ab5323",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "theme": "dark",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 768,
+        "theme": "dark",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 768,
+          "height": 900
+        },
+        "document": {
+          "width": 768,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:52:45.174Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-51-24-064Z-10339/screenshots/leads-1280-dark.png",
+      "sha256": "84d9a8d3fe8d70180fd9351806cdfb9a1ac55ee86d772bb48743009fbb6cbbc9",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "dark",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 1280,
+        "theme": "dark",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "document": {
+          "width": 1280,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:52:46.077Z"
+    },
+    {
+      "path": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-51-24-064Z-10339/screenshots/leads-1440-dark.png",
+      "sha256": "a18047d16de5639cf1bfecba14c188ffa00dafdbb5e0407e5ecc2394bd918e70",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "pageUrl": "http://127.0.0.1:4360/leads",
+      "apiUrl": "http://127.0.0.1:4360/api/leads",
+      "apiStatus": 200,
+      "readiness": {
+        "h1": "Leads",
+        "viewportWidth": 1440,
+        "theme": "dark",
+        "apiStatus": 200,
+        "visibleDesktopRows": 2
+      },
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "document": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "capturedAt": "2026-10-06T04:52:47.045Z"
+    }
+  ],
+  "sections": [
+    {
+      "directory": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-47-56-071Z-10079",
+      "network": {
+        "pwrResponses": 225,
+        "pwrStatusCounts": {
+          "200": 213,
+          "307": 12
+        },
+        "cdpEvents": 212,
+        "cdpStatusCounts": {
+          "200": 212
+        },
+        "consoleErrors": 0,
+        "pageErrors": 0,
+        "requestFailures": 0,
+        "safeUrlsOnly": true
+      },
+      "cleanup": {
+        "fixtureClosed": true,
+        "disposableSchemaDbAndClerkUsersRemovedBySandboxClose": true,
+        "at": "2026-10-06T04:49:30.641Z"
+      }
+    },
+    {
+      "directory": "reports/role-directory-certification/continuation/runs/shots-only-2026-10-06T04-51-24-064Z-10339",
+      "network": {
+        "pwrResponses": 262,
+        "pwrStatusCounts": {
+          "200": 248,
+          "307": 14
+        },
+        "cdpEvents": 246,
+        "cdpStatusCounts": {
+          "200": 246
+        },
+        "consoleErrors": 0,
+        "pageErrors": 0,
+        "requestFailures": 0,
+        "safeUrlsOnly": true
+      },
+      "cleanup": {
+        "fixtureClosed": true,
+        "disposableSchemaDbAndClerkUsersRemovedBySandboxClose": true,
+        "at": "2026-10-06T04:52:48.255Z"
+      }
+    }
+  ]
+}

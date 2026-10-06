@@ -1,0 +1,42 @@
+{
+  "task": "de3-g5pQ",
+  "status": "INTERRUPTED_BY_WORKSPACE_RESTART_NOT_PASS",
+  "targetRevision": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+  "managedExitCode": null,
+  "structure": "36/36 PASS",
+  "repRoleRoutes": 11,
+  "completedRetentionJourneys": [
+    "manager-representative-filter-retained",
+    "manager-assignee-picker-retained",
+    "manager-edit-deal-picker-retained",
+    "manager-credit-compliance-admin-gate"
+  ],
+  "candidateBadStatusObservations": [
+    {
+      "type": "playwright-response",
+      "requestId": "manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-pw-152",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "method": "GET",
+      "path": "/api/deals/[REDACTED_ID]/submissions",
+      "status": 403
+    },
+    {
+      "type": "playwright-response",
+      "requestId": "manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-pw-153",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "method": "GET",
+      "path": "/api/deals/[REDACTED_ID]/submissions",
+      "status": 403
+    }
+  ],
+  "defect": "Manager deal-submission metadata read rejected despite documented deal-access scope.",
+  "fixRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "missingSections": [
+    "fresh affected deal-read/picker checks",
+    "Leads functional interactions and eight screenshots",
+    "browser Campaign Results/Metrics Sent13"
+  ],
+  "published": false
+}

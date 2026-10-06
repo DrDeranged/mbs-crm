@@ -55,3 +55,4 @@
 - [Fixture authentication lifecycle](fixture-auth-lifecycle.md) — isolate Clerk role contexts; already-deleted test users must not prevent database cleanup.
 - [Optional campaign reply capture](campaign-reply-rollout.md) — disabled Parse must preserve configured campaign Reply-To, not block ordinary sends.
 - [Persistent certification runners](persistent-certification-runners.md) — use main-managed background tasks; tester-shell detached children may die at the command ceiling.
+- [Web hook test resolution](web-hook-test-resolution.md) — native Node type stripping does not resolve extensionless generated-client imports; check the actual test command.

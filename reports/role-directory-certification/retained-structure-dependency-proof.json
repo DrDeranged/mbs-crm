@@ -1,0 +1,14 @@
+{
+  "capturedRevision": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+  "currentRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "changedEndpoint": "GET /api/deals/:id/submissions",
+  "structuralDependencyRequests": 0,
+  "observedChangedEndpointPhases": [
+    "candidate:rep-policy:deal-detail-assignment",
+    "candidate:manager-retention:deal-edit"
+  ],
+  "retainedMobileCases": 36,
+  "rule": "Retain only unchanged-frontend structural cases whose traced dependencies do not include the changed read endpoint. Fresh replacement is required for the failing manager deal-read flow.",
+  "interrupted": true,
+  "published": false
+}

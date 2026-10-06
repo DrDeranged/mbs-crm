@@ -1,0 +1,27 @@
+{
+  "runId": "3_fdWq7W",
+  "status": "failed",
+  "taskKind": "focused-continuation",
+  "originalRun": "INTERRUPTED_NO_TERMINAL_RECORD",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "candidateApiSourceTreeSha256": "e8f022ca14076201ede0715423b1458525f326bef8d026792c63a569663bf77d",
+  "candidateApiDistSha256": "d33f4b9894d7399099942508e7266ba5720a2cef2ec16259d6fdac2629bfef9d",
+  "expectedSections": [
+    "admin-manager-rep deal reads/retention",
+    "pending denial",
+    "Leads 13 interactions",
+    "Leads 8 screenshots",
+    "admin Campaign 13"
+  ],
+  "completedSteps": 15,
+  "startedAt": "2026-10-06T04:08:06.363Z",
+  "phase": "leads-13-plus-eight-shots",
+  "updatedAt": "2026-10-06T04:09:15.978Z",
+  "lastStep": {
+    "section": "leads",
+    "step": "lead-search-company",
+    "status": "passed",
+    "at": "2026-10-06T04:08:57.449Z"
+  },
+  "failure": "page.waitForFunction: Timeout 15000ms exceeded."
+}

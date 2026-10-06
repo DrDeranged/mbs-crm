@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "fixtureDatabase": "visual_refresh_fixture_21284_1791258059755",
+  "generatedStatements": 46,
+  "transaction": "BEGIN; complete generated SQL; ROLLBACK",
+  "beforeBrowser": true,
+  "sourceSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0"
+}

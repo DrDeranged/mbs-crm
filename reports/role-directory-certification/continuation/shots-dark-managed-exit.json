@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-10-06T04:51:23.421Z",
+  "finishedAt": "2026-10-06T04:52:50.297Z",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "runnerSha256": "575aff4e6e6d2734b42859b8bba251c077880d0f2591994ccc1001801e70782a",
+  "scope": "Four dark screenshots only; retain prior four light captures unchanged.",
+  "exitCode": 0,
+  "signal": null,
+  "published": false
+}

@@ -1,0 +1,12 @@
+{
+  "sourceKind": "schema-only fixture",
+  "fixtureDatabase": "visual_refresh_fixture_7456_1791259686363",
+  "productionDataRehearsalCertified": false,
+  "campaignId": 5,
+  "sends": 13,
+  "roleProbes": {
+    "assignedDealId": 1,
+    "unassignedDealId": 3,
+    "pendingUserId": 4
+  }
+}

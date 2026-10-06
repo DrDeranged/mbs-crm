@@ -1,0 +1,23 @@
+{
+  "sourceKind": "schema-only fixture",
+  "fixtureDatabase": "visual_refresh_fixture_9048_1791261016975",
+  "fixtureDatabaseAbsent": true,
+  "createdSyntheticUsers": 3,
+  "deletedAndAbsentUsers": 3,
+  "individualUserAbsenceChecks": [
+    {
+      "id": "user_3KJ1oF5fCOm29sm7FUElNxkpugE",
+      "absent": true
+    },
+    {
+      "id": "user_3KJ1oI5uJePOlRQAGPZ3oPn7w1B",
+      "absent": true
+    },
+    {
+      "id": "user_3KJ1oJKvz3U95hGTjEvANNmNEjj",
+      "absent": true
+    }
+  ],
+  "fixtureCloseError": null,
+  "verifiedAt": "2026-10-06T04:31:23.182Z"
+}

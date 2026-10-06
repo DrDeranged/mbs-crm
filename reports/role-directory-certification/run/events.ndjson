@@ -1,0 +1,6 @@
+{"type":"phase","phase":"source-and-sandbox-proof","at":"2026-10-06T03:40:59.753Z"}
+{"type":"phase","phase":"fixture-ready","at":"2026-10-06T03:41:08.088Z","fixtureDatabase":"visual_refresh_fixture_21284_1791258059755","fixtureUrl":"http://127.0.0.1:4360","providerCredentialsRemoved":true}
+{"type":"phase","phase":"campaign-fixture-seeded","at":"2026-10-06T03:41:08.197Z","campaignId":5,"launches":1,"recipients":13,"sends":13}
+{"type":"phase","phase":"capture-baseline-36","at":"2026-10-06T03:41:08.769Z"}
+{"type":"phase","phase":"capture-candidate-36","at":"2026-10-06T03:43:53.428Z"}
+{"type":"phase","phase":"rep-role-policy-routes","at":"2026-10-06T03:47:32.639Z"}

@@ -1,0 +1,145 @@
+{
+  "runId": "f9i-LwP9",
+  "status": "failed",
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "remainingRunnerSha256": "747f93949d619555b1f1a62b8128b9691df0083311805c73b3e54d1c6d5e3c5b",
+  "remainingSections": [
+    "Leads 13 interactions",
+    "Leads 8 screenshots",
+    "admin Campaign 13"
+  ],
+  "completedSteps": 2,
+  "startedAt": "2026-10-06T04:21:43.439Z",
+  "updatedAt": "2026-10-06T04:22:33.435Z",
+  "phase": "remaining:leads:lead-search-reset-initial-list",
+  "sectionStatus": "initial-list-captured",
+  "sections": {
+    "campaign-fixture": {
+      "status": "passed",
+      "database": "visual_refresh_fixture_8502_1791260503441",
+      "historicalLeadRowsAdded": 13,
+      "campaignId": 5,
+      "sends": 13,
+      "at": "2026-10-06T04:22:10.364Z"
+    },
+    "leads": {
+      "status": "initial-list-captured",
+      "initialTotal": 15,
+      "initialVisible": 7,
+      "initialIds": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "at": "2026-10-06T04:22:15.871Z"
+    }
+  },
+  "lastStep": {
+    "section": "leads",
+    "step": "lead-search-company",
+    "status": "passed",
+    "api": {
+      "requestStatus": 200,
+      "requestUrl": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/leads",
+        "search": "?search=Fixture+Services+LLC&page=1&limit=7&sortBy=updatedAt&sortOrder=desc"
+      },
+      "body": {
+        "total": 1,
+        "page": 1,
+        "limit": 7,
+        "totalPages": 1,
+        "leads": [
+          {
+            "id": 2,
+            "firstName": "Sample",
+            "lastName": "Applicant",
+            "companyName": "Fixture Services LLC",
+            "status": "new_lead",
+            "applicationType": "working_capital",
+            "assignedRepId": 3
+          }
+        ]
+      },
+      "domRowIds": [
+        "2"
+      ],
+      "domRows": [
+        {
+          "rowId": "2",
+          "linkIds": [
+            "2"
+          ],
+          "testId": null,
+          "text": " Fixture Services LLC — Sample Applicant Fixture Services LLC [PHONE] [EMAIL] New Lead 21d idle Working Capital Assigned Rep: Visual Fixture Created by System 65 21 days ago · System Updated Sep 15, 2026"
+        }
+      ],
+      "at": "2026-10-06T04:22:17.006Z"
+    },
+    "at": "2026-10-06T04:22:17.006Z"
+  },
+  "failure": "page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"",
+  "diagnostic": {
+    "section": "leads",
+    "assertion": "lead-search-company",
+    "apiBody": {
+      "total": 1,
+      "page": 1,
+      "limit": 7,
+      "totalPages": 1,
+      "leads": [
+        {
+          "id": 2,
+          "firstName": "Sample",
+          "lastName": "Applicant",
+          "companyName": "Fixture Services LLC",
+          "status": "new_lead",
+          "applicationType": "working_capital",
+          "assignedRepId": 3
+        }
+      ]
+    },
+    "domRows": [
+      {
+        "rowId": "2",
+        "linkIds": [
+          "2"
+        ],
+        "testId": null,
+        "text": " Fixture Services LLC — Sample Applicant Fixture Services LLC [PHONE] [EMAIL] New Lead 21d idle Working Capital Assigned Rep: Visual Fixture Created by System 65 21 days ago · System Updated Sep 15, 2026"
+      }
+    ],
+    "at": "2026-10-06T04:22:17.006Z",
+    "requestStatus": 200,
+    "requestUrl": {
+      "origin": "http://127.0.0.1:4360",
+      "path": "/api/leads",
+      "search": "?search=Fixture+Services+LLC&page=1&limit=7&sortBy=updatedAt&sortOrder=desc"
+    },
+    "body": {
+      "total": 1,
+      "page": 1,
+      "limit": 7,
+      "totalPages": 1,
+      "leads": [
+        {
+          "id": 2,
+          "firstName": "Sample",
+          "lastName": "Applicant",
+          "companyName": "Fixture Services LLC",
+          "status": "new_lead",
+          "applicationType": "working_capital",
+          "assignedRepId": 3
+        }
+      ]
+    },
+    "domRowIds": [
+      "2"
+    ]
+  }
+}

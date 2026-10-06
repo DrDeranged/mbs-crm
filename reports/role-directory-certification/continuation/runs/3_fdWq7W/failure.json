@@ -1,0 +1,5 @@
+{
+  "status": "FAILED",
+  "message": "page.waitForFunction: Timeout 15000ms exceeded.     at leadsJourney (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:484:16)     at async main (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:638:5)",
+  "at": "2026-10-06T04:09:15.977Z"
+}

@@ -1,0 +1,4 @@
+{"section":"campaign-fixture","status":"starting","detail":{"dataSource":"schema-only"},"at":"2026-10-06T04:21:43.440Z"}
+{"section":"campaign-fixture","status":"passed","detail":{"database":"visual_refresh_fixture_8502_1791260503441","historicalLeadRowsAdded":13,"campaignId":5,"sends":13},"at":"2026-10-06T04:22:10.364Z"}
+{"section":"leads","status":"running","detail":{"interactionsExpected":13,"screenshotsExpected":8},"at":"2026-10-06T04:22:11.143Z"}
+{"section":"leads","status":"initial-list-captured","detail":{"initialTotal":15,"initialVisible":7,"initialIds":[3,4,5,6,7,8,9]},"at":"2026-10-06T04:22:15.871Z"}

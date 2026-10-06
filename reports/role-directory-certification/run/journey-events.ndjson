@@ -1,0 +1,4 @@
+{"step":"manager-representative-filter-retained","status":"passed","at":"2026-10-06T03:50:24.749Z","options":["All Reps","Visual Fixturefixture-rep@example.invalid"]}
+{"step":"manager-assignee-picker-retained","status":"passed","at":"2026-10-06T03:50:25.617Z","options":["Unassigned","Visual Fixture"]}
+{"step":"manager-edit-deal-picker-retained","status":"passed","at":"2026-10-06T03:50:34.287Z","options":["Unassigned","Visual Fixture"],"noSave":true}
+{"step":"manager-credit-compliance-admin-gate","status":"passed","at":"2026-10-06T03:50:42.840Z"}

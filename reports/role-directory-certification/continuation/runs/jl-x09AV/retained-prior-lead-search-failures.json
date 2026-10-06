@@ -1,0 +1,39 @@
+{
+  "preserved": true,
+  "task3": {
+    "run": "3_fdWq7W",
+    "failureFile": "continuation/runs/3_fdWq7W/failure.json",
+    "message": "page.waitForFunction: Timeout 15000ms exceeded.     at leadsJourney (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:484:16)     at async main (/home/runner/workspace/reports/role-directory-certification/continuation-runner.mjs:638:5)",
+    "interpretation": "The historical-count assertion was invalid after the isolated seed added 13 rows: 15 total, page limit 7; keep as harness failure, not product defect."
+  },
+  "cacheReset": {
+    "run": "f9i-LwP9",
+    "failureFile": "continuation/runs/f9i-LwP9/failure.json",
+    "phase": "remaining:leads:lead-search-reset-initial-list",
+    "message": "page.waitForResponse: Timeout 15000ms exceeded while waiting for event \"response\"     at getLeadListAfter (/home/runner/workspace/reports/role-directory-certification/remaining-runner.mjs:432:32)     at leadsJourney (/home/runner/workspace/reports/role-directory-certification/remaining-runner.mjs:513:20)     at async execute (/home/runner/workspace/reports/role-directory-certification/remaining-runner.mjs:800:5)",
+    "initialTotal": 15,
+    "initialVisible": 7,
+    "lastObservedQuery": {
+      "total": 1,
+      "page": 1,
+      "limit": 7,
+      "totalPages": 1,
+      "leads": [
+        {
+          "id": 2,
+          "firstName": "Sample",
+          "lastName": "Applicant",
+          "companyName": "Fixture Services LLC",
+          "status": "new_lead",
+          "applicationType": "working_capital",
+          "assignedRepId": 3
+        }
+      ]
+    },
+    "lastObservedDomRows": [
+      "2"
+    ],
+    "resetLeadApiRequestsObserved": 0,
+    "interpretation": "Previously observed unfiltered query returned from cache; no new /api/leads request is correct."
+  }
+}

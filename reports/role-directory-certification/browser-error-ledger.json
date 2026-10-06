@@ -1,0 +1,2226 @@
+{
+  "targetRevision": "fd9816d3bf32fc221d11e2eb532be87cc585a968",
+  "authorizedCurrentUi403404503": 0,
+  "authorizedCurrentUiConsoleErrors": 0,
+  "scope": "All retained primary Playwright status and console streams. CDP corroboration preserved separately; old baseline and deliberate probes are not counted as current UI defects.",
+  "requests": [
+    {
+      "evidence": "reports/role-directory-certification/continuation/runs/3_fdWq7W/http-status-events.ndjson",
+      "line": 1,
+      "source": "Playwright",
+      "eventType": "response",
+      "runId": "3_fdWq7W",
+      "traceId": "8ed8b6a7-2499-470d-88a7-0d0a74c48742",
+      "phaseGroup": "continuation",
+      "section": "deal-read-retention",
+      "role": "rep",
+      "phase": "candidate:continuation:rep:unassigned-denial",
+      "requestId": "8ed8b6a7-2499-470d-88a7-0d0a74c48742-pw-35307f81-7430-4c36-8a76-8b33bde25ac0",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "search": ""
+      },
+      "pagePathAtInitiation": "/deals/[REDACTED_ID]",
+      "status": 403,
+      "observedAt": "2026-10-06T04:08:50.875Z",
+      "classification": "Expected deliberate security denial probe; preserve 403 and corresponding console error."
+    },
+    {
+      "evidence": "reports/role-directory-certification/continuation/runs/3_fdWq7W/http-status-events.ndjson",
+      "line": 2,
+      "source": "Playwright",
+      "eventType": "response",
+      "runId": "3_fdWq7W",
+      "traceId": "b5d47c23-e41e-4a89-b642-dd5ab2629725",
+      "phaseGroup": "continuation",
+      "section": "pending-denial",
+      "role": "pending",
+      "phase": "candidate:continuation:pending:deal-read-denial",
+      "requestId": "b5d47c23-e41e-4a89-b642-dd5ab2629725-pw-01a9248f-6d3e-4386-acb4-37c77c9778da",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "search": ""
+      },
+      "pagePathAtInitiation": "/sign-in",
+      "status": 403,
+      "observedAt": "2026-10-06T04:08:52.467Z",
+      "classification": "Expected deliberate security denial probe; preserve 403 and corresponding console error."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 178,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-63",
+      "role": "rep",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:24.124Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 181,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-62",
+      "role": "manager",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:24.154Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 183,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-63",
+      "role": "admin",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:24.159Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 287,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-103",
+      "role": "manager",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:26.651Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 289,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-103",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:26.650Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 313,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-107",
+      "role": "admin",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:26.730Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 318,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-108",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:26.923Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 323,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-109",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:27.942Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 389,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-163",
+      "role": "manager",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:28.965Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 438,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-167",
+      "role": "admin",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:29.144Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 497,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-164",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:29.674Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 502,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-168",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:29.946Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 519,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-170",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:30.961Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 542,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-197",
+      "role": "manager",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:31.146Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 565,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-200",
+      "role": "admin",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:31.335Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 601,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-199",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:31.893Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 606,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-204",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:32.179Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 636,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-205",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:33.209Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 719,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-255",
+      "role": "manager",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:35.355Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 741,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-259",
+      "role": "admin",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:35.505Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 753,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-269",
+      "role": "admin",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/settings/telephony/owned-numbers"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:35.836Z",
+      "reason": {
+        "error": "Twilio owned-number lookup unavailable"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 782,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-258",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:36.759Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 787,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-262",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:37.041Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 830,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-293",
+      "role": "manager",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:37.635Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 856,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-303",
+      "role": "admin",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:37.834Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 870,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-264",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:38.055Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 916,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-297",
+      "role": "rep",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/dashboard",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:39.009Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 966,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-336",
+      "role": "manager",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:39.954Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 992,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-349",
+      "role": "admin",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:40.201Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1029,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-339",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:41.335Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1033,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-344",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:41.624Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1140,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-396",
+      "role": "manager",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:42.591Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1144,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-409",
+      "role": "admin",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:42.687Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1150,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-345",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:42.722Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1212,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-400",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:44.360Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1227,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-404",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:44.573Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1252,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-443",
+      "role": "admin",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:44.812Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1275,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-430",
+      "role": "manager",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:44.956Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1283,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-406",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:45.602Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1314,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-432",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:46.627Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1353,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-440",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:46.885Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1368,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-441",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/deals",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:47.899Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1406,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-501",
+      "role": "admin",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:48.986Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1442,
+      "type": "playwright-response",
+      "requestId": "manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-pw-487",
+      "role": "manager",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:49.159Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1454,
+      "type": "playwright-response",
+      "requestId": "admin-ea07e369-749f-4014-b89a-6fba2947778a-pw-511",
+      "role": "admin",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/settings/telephony/owned-numbers"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:49.286Z",
+      "reason": {
+        "error": "Twilio owned-number lookup unavailable"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1493,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-494",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/twilio/token"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T03:43:51.668Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1498,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-498",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:51.947Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 1499,
+      "type": "playwright-response",
+      "requestId": "rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-pw-500",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/users"
+      },
+      "pagePathAtInitiation": "/settings",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:43:52.963Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 3734,
+      "type": "playwright-response",
+      "requestId": "manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-pw-152",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "phaseGroup": "candidate",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions"
+      },
+      "pagePathAtInitiation": "/deals/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:50:26.399Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Pre-fix manager deal metadata access defect; fd9816d fresh manager request returned 200."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/http-status-events.ndjson",
+      "line": 3735,
+      "type": "playwright-response",
+      "requestId": "manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-pw-153",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "phaseGroup": "candidate",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions"
+      },
+      "pagePathAtInitiation": "/deals/[REDACTED_ID]",
+      "status": 403,
+      "statusText": "Forbidden",
+      "observedAt": "2026-10-06T03:50:27.412Z",
+      "reason": {
+        "error": "Forbidden"
+      },
+      "classification": "Pre-fix manager deal metadata access defect; fd9816d fresh manager request returned 200."
+    }
+  ],
+  "consoleEvents": [
+    {
+      "evidence": "reports/role-directory-certification/continuation/runs/3_fdWq7W/console-events.ndjson",
+      "line": 1,
+      "source": "Playwright",
+      "runId": "3_fdWq7W",
+      "traceId": "8ed8b6a7-2499-470d-88a7-0d0a74c48742",
+      "phaseGroup": "continuation",
+      "section": "deal-read-retention",
+      "role": "rep",
+      "phase": "candidate:continuation:rep:unassigned-denial",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "location": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "search": ""
+      },
+      "observedAt": "2026-10-06T04:08:50.876Z",
+      "classification": "Expected deliberate security denial probe; preserve 403 and corresponding console error."
+    },
+    {
+      "evidence": "reports/role-directory-certification/continuation/runs/3_fdWq7W/console-events.ndjson",
+      "line": 2,
+      "source": "Playwright",
+      "runId": "3_fdWq7W",
+      "traceId": "b5d47c23-e41e-4a89-b642-dd5ab2629725",
+      "phaseGroup": "continuation",
+      "section": "pending-denial",
+      "role": "pending",
+      "phase": "candidate:continuation:pending:deal-read-denial",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "location": {
+        "origin": "http://127.0.0.1:4360",
+        "path": "/api/deals/[REDACTED_ID]/submissions",
+        "search": ""
+      },
+      "observedAt": "2026-10-06T04:08:52.467Z",
+      "classification": "Expected deliberate security denial probe; preserve 403 and corresponding console error."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 7,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-7",
+      "role": "rep",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:24.124Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 8,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-8",
+      "role": "manager",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:24.154Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 9,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-9",
+      "role": "admin",
+      "phase": "baseline:dashboard:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:24.159Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 13,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-13",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:26.651Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 14,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-14",
+      "role": "manager",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:26.651Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 15,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-15",
+      "role": "admin",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:26.730Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 16,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-16",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:26.923Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 17,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-17",
+      "role": "rep",
+      "phase": "baseline:leads:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:27.942Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 20,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-20",
+      "role": "manager",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:28.965Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 21,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-21",
+      "role": "admin",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:29.144Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 23,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-23",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:29.674Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 24,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-24",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:29.947Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 27,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-27",
+      "role": "rep",
+      "phase": "baseline:lead-detail:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:30.962Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 28,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-28",
+      "role": "manager",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:31.146Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 29,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-29",
+      "role": "admin",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:31.335Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 31,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-31",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:31.893Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 32,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-32",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:32.180Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 34,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-34",
+      "role": "rep",
+      "phase": "baseline:pipeline:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:33.209Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 39,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-39",
+      "role": "manager",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:35.355Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 40,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-40",
+      "role": "admin",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:35.505Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 41,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-41",
+      "role": "admin",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:35.837Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 43,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-43",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:36.759Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 44,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-44",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:37.041Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 47,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-47",
+      "role": "manager",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:37.636Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 48,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-48",
+      "role": "admin",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:37.834Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 49,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-49",
+      "role": "rep",
+      "phase": "baseline:settings:390",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:38.055Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 51,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-51",
+      "role": "rep",
+      "phase": "baseline:dashboard:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:39.009Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 54,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-54",
+      "role": "manager",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:39.955Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 55,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-55",
+      "role": "admin",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:40.202Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 57,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-57",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:41.336Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 58,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-58",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:41.624Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 61,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-61",
+      "role": "manager",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:42.591Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 62,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-62",
+      "role": "admin",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:42.687Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 63,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-63",
+      "role": "rep",
+      "phase": "baseline:leads:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:42.723Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 65,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-65",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:44.360Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 68,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-68",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:44.573Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 69,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-69",
+      "role": "admin",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:44.812Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 70,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-70",
+      "role": "manager",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:44.956Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 71,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-71",
+      "role": "rep",
+      "phase": "baseline:lead-detail:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/leads/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:45.603Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 73,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-73",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:46.627Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 76,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-76",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:46.885Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 77,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-77",
+      "role": "rep",
+      "phase": "baseline:pipeline:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:47.900Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 80,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-80",
+      "role": "admin",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:48.986Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 82,
+      "eventId": "console-manager-fbf724c3-f13d-4c0a-b600-e944997ae0ce-82",
+      "role": "manager",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:49.160Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 83,
+      "eventId": "console-admin-ea07e369-749f-4014-b89a-6fba2947778a-83",
+      "role": "admin",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:49.286Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 85,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-85",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T03:43:51.668Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline missing telephony configuration: expected service refusal; unnecessary UI probe fixed by readiness gating."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 86,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-86",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:51.947Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 87,
+      "eventId": "console-rep-9baa8beb-02cd-41c9-b48a-610cc86b5048-87",
+      "role": "rep",
+      "phase": "baseline:settings:768",
+      "phaseGroup": "baseline",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:43:52.963Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Baseline rep-directory UI defect; fixed by manager-only directory query and hidden controls."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 88,
+      "eventId": "console-manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-88",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "phaseGroup": "candidate",
+      "pagePath": "/deals/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:50:26.400Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/deals/[REDACTED_ID]/submissions"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Pre-fix manager deal metadata access defect; fd9816d fresh manager request returned 200."
+    },
+    {
+      "evidence": "reports/role-directory-certification/run/console-events.ndjson",
+      "line": 89,
+      "eventId": "console-manager-9cc6f172-07c1-476b-9af0-3c78343ea96d-89",
+      "role": "manager",
+      "phase": "candidate:manager-retention:deal-edit",
+      "phaseGroup": "candidate",
+      "pagePath": "/deals/[REDACTED_ID]",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T03:50:27.412Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4360",
+          "path": "/api/deals/[REDACTED_ID]/submissions"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "classification": "Pre-fix manager deal metadata access defect; fd9816d fresh manager request returned 200."
+    }
+  ],
+  "unclassified": 0,
+  "note": "Repeated request IDs are deduplicated across the primary HTTP/status/network streams; raw evidence is retained."
+}

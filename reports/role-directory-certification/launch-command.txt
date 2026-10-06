@@ -1,0 +1,9 @@
+PREPARED ONLY — do not launch from this agent shell and do not launch before Main confirms final source, the 11-gate preflight, and frozen immutable pins.
+
+cd /home/runner/workspace
+cp reports/role-directory-certification/launch-authorization.template.json reports/role-directory-certification/launch-authorization.json
+# Main fills every immutable hash/revision and sets the four readiness fields only after the gates pass.
+node reports/role-directory-certification/role-directory-certification.mjs --check-ready-only
+
+# Main launches this command as the persistent managed task only after check-ready-only passes:
+node reports/role-directory-certification/role-directory-certification.mjs

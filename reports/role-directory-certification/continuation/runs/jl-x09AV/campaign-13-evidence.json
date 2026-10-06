@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "api": {
+    "resultsStatus": 200,
+    "metricsStatus": 200,
+    "results": {
+      "counts": {
+        "eligible": 13,
+        "excluded": 0,
+        "sent": 13,
+        "failed": 0,
+        "deferred": 0,
+        "nextAvailableAt": null
+      },
+      "launches": [
+        {
+          "id": 5,
+          "status": "completed",
+          "sentCount": 13
+        }
+      ]
+    },
+    "metrics": {
+      "sent": 13,
+      "trackingSince": null,
+      "replies": null
+    }
+  },
+  "dom": {
+    "legacySent": "SENT 13",
+    "sentKpi": "SENT 13",
+    "panel": "PERFORMANCE Historical tracking not available · Reply capture not configured SENT 13 DELIVERED % 61.5% Delivered email ÷ accepted email sends BOUNCED 0 BLOCKED 0 OPENS (APPROXIMATE) 5 Mail apps may preload images UNIQUE FLYER CLICKS Not tracked TOTAL FLYER CLICKS Not tracked FIRST CLICK — REPLIES Not tracked CALLS Not tracked REFERRED LEADS Not tracked SUBMITTED Not tracked APPROVED Not tracked FUNDED Not tracked $ FUNDED (REFERRED DEALS) Not tracked MBS POINTS (REFERRED DEALS) Not tracked",
+    "uniqueClicks": "UNIQUE FLYER CLICKS Not tracked",
+    "replies": "REPLIES Not tracked"
+  }
+}

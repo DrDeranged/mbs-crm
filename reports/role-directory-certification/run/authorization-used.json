@@ -1,0 +1,30 @@
+{
+  "sourceFinalized": true,
+  "elevenGatePreflightExit": 0,
+  "immutablePinsFrozen": true,
+  "launchAuthorized": true,
+  "targetRevision": "4598003285d7f82c51caa0e401e5d67600f76a6e",
+  "localSnapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "candidateWebRoot": ".local/role-directory-final-certified/public",
+  "candidateWebSourceTreeSha256": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+  "candidateApiSourceTreeSha256": "ab292ebbcfe0942ca43052da465a5e20d7ecaf46a6062923f7303c98a02f0ecf",
+  "candidateIndexSha256": "13aa61616fa8a616eda427a3117abb095f21b598a1c28046faf95aa873cebe92",
+  "candidateWebTreeSha256": "8f34cd1e9b2374b504cff9179d7ae7dd844cf2b55329894d8476cf4c8c189a0c",
+  "candidateApiDistSha256": "1f99ab80bd15389ebc1078779bdb5cb707b9e843ed0902ff0ed28299f265ec2d",
+  "baselineRevision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+  "baselineWebTreeSha256": "5dddd32e40aa8551629615445840c156c838d45731f7dc4173af6be6c2deb4a6",
+  "approvalPolicySha256": "033c900d72e966bd30a25bc34b52a00e4581b8eaaf717ffa70b8b1553bb0f11e",
+  "runnerSha256": "ad0694123a0c46672c7741df346e968b5b09d9d2d474a75fcc42eeede0f2e766",
+  "sandboxHelperSha256": "809004c2053b0d40697e98284b19ca78ec71487cb8a5a0f3d5709ee25a827953",
+  "readinessHelperSha256": "49e57f306dff7e7885ef300251b36b0a4d548b4e0624a8e165e860232095de61",
+  "historicalCampaignFixtureSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+  "port": 4360,
+  "preflightEvidence": {
+    "path": "reports/role-directory-certification/preflight.txt",
+    "exitCode": 0,
+    "sha256": "15b60dd0ee72e09049a1b1386e0f9161dfda88c6ed788daeb1e53e290a268413"
+  },
+  "frozenAt": "2026-10-06T03:40:34.527Z",
+  "authorizationFile": "launch-authorization.json",
+  "verifiedAt": "2026-10-06T03:40:59.751Z"
+}

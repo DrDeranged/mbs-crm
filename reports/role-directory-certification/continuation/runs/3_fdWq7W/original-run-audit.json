@@ -1,0 +1,194 @@
+{
+  "originalRunStatus": "INTERRUPTED_NO_TERMINAL_RECORD",
+  "originalProgressPhase": "rep-role-policy-routes",
+  "originalTerminalSummaryPresent": false,
+  "originalRetentionJourneyEvents": 4,
+  "originalRetentionJourneySteps": [
+    "manager-representative-filter-retained",
+    "manager-assignee-picker-retained",
+    "manager-edit-deal-picker-retained",
+    "manager-credit-compliance-admin-gate"
+  ],
+  "originalRawCandidateByRole": {
+    "admin": {
+      "responses": 583,
+      "badStatuses": [],
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "requestFailures": 0
+    },
+    "manager": {
+      "responses": 723,
+      "badStatuses": [
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "method": "GET",
+          "path": "/api/deals/[REDACTED_ID]/submissions",
+          "status": 403
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "method": "GET",
+          "path": "/api/deals/[REDACTED_ID]/submissions",
+          "status": 403
+        }
+      ],
+      "consoleErrors": 2,
+      "pageErrors": 0,
+      "requestFailures": 0
+    },
+    "rep": {
+      "responses": 985,
+      "badStatuses": [],
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "requestFailures": 0
+    }
+  },
+  "supersededManagerFailurePhase": {
+    "phase": "candidate:manager-retention:deal-edit",
+    "pwr403": 2,
+    "consoleErrors": 2
+  },
+  "repDirectoryListRequests": 0,
+  "priorCampaignSqlPreflight": {
+    "status": "PASS",
+    "generatedStatements": 46,
+    "transaction": "BEGIN; complete generated SQL; ROLLBACK"
+  },
+  "retainedStructureProof": {
+    "status": "RETAINED_PENDING_API_PIN_REVALIDATION",
+    "generatedAt": "2026-10-06T04:01:05.591Z",
+    "sourceRun": "reports/role-directory-certification/run",
+    "runRemainsIncomplete": true,
+    "structuralComparison": {
+      "pass": true,
+      "cases": 36,
+      "baselineCaptures": 36,
+      "candidateCaptures": 36,
+      "approvedExceptionCategories": 3
+    },
+    "frontendPinComparison": {
+      "actual": {
+        "webSourceTree": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+        "webTree": "8f34cd1e9b2374b504cff9179d7ae7dd844cf2b55329894d8476cf4c8c189a0c",
+        "index": "13aa61616fa8a616eda427a3117abb095f21b598a1c28046faf95aa873cebe92"
+      },
+      "expected": {
+        "webSourceTree": "fe53a5d628cc1b98e5846831a9bf915f49d93462e099813e71de2b0ddc77e532",
+        "webTree": "8f34cd1e9b2374b504cff9179d7ae7dd844cf2b55329894d8476cf4c8c189a0c",
+        "index": "13aa61616fa8a616eda427a3117abb095f21b598a1c28046faf95aa873cebe92"
+      },
+      "allMatch": true
+    },
+    "changedEndpointTraceAudit": {
+      "endpoint": "/api/deals/:id/submissions",
+      "structuralCapturePhases": 72,
+      "playwrightRequestsOrResponsesInStructuralPhases": 0,
+      "cdpEventsInStructuralPhases": 0,
+      "allPwrObservations": [
+        {
+          "phase": "candidate:rep-policy:deal-detail-assignment",
+          "role": "rep",
+          "method": "GET"
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "method": "GET"
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "method": "GET"
+        }
+      ],
+      "allCdpObservations": [
+        {
+          "phase": "candidate:rep-policy:deal-detail-assignment",
+          "role": "rep",
+          "eventType": "cdp-request",
+          "method": "GET"
+        },
+        {
+          "phase": "candidate:rep-policy:deal-detail-assignment",
+          "role": "rep",
+          "eventType": "cdp-response",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "eventType": "cdp-request",
+          "method": "GET"
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "eventType": "cdp-response",
+          "method": "GET",
+          "status": 403
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "eventType": "cdp-request",
+          "method": "GET"
+        },
+        {
+          "phase": "candidate:manager-retention:deal-edit",
+          "role": "manager",
+          "eventType": "cdp-response",
+          "method": "GET",
+          "status": 403
+        }
+      ]
+    },
+    "candidateRawEvidence": {
+      "statusesByRole": {
+        "admin": {
+          "responses": 583,
+          "bad403_404_503": []
+        },
+        "manager": {
+          "responses": 723,
+          "bad403_404_503": [
+            {
+              "status": 403,
+              "phase": "candidate:manager-retention:deal-edit",
+              "path": "/api/deals/[REDACTED_ID]/submissions"
+            },
+            {
+              "status": 403,
+              "phase": "candidate:manager-retention:deal-edit",
+              "path": "/api/deals/[REDACTED_ID]/submissions"
+            }
+          ]
+        },
+        "rep": {
+          "responses": 985,
+          "bad403_404_503": []
+        }
+      },
+      "consoleErrorsByRole": {
+        "admin": 0,
+        "manager": 2,
+        "rep": 0
+      },
+      "repUsersDirectoryReads": 0
+    },
+    "retentionEvidence": {
+      "journeyEvents": 4,
+      "steps": [
+        "manager-representative-filter-retained",
+        "manager-assignee-picker-retained",
+        "manager-edit-deal-picker-retained",
+        "manager-credit-compliance-admin-gate"
+      ],
+      "note": "Current durable journey-events.ndjson contains 4 manager events; it does not substantiate 8 retention journeys."
+    }
+  },
+  "rolePolicyRoutes": 11,
+  "rolePolicyAllZeroControls": true
+}
