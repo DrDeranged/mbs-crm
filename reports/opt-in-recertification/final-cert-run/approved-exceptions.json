@@ -1,0 +1,1067 @@
+{
+  "manifest": {
+    "schemaVersion": 1,
+    "additions": {
+      "label": "approved Lead Detail additions",
+      "controls": [
+        {
+          "tag": "INPUT",
+          "role": null,
+          "type": null,
+          "name": "Search referrer",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": null,
+          "name": "Share referral link",
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "cases": [
+        "lead-detail-390-admin",
+        "lead-detail-768-admin",
+        "lead-detail-390-manager",
+        "lead-detail-768-manager",
+        "lead-detail-390-rep",
+        "lead-detail-768-rep"
+      ],
+      "expectedOccurrencesPerControlPerCase": 1,
+      "expectedTotal": 12,
+      "candidateMustContain": true
+    },
+    "removals": [
+      {
+        "label": "approved directory-error Retry removal",
+        "control": {
+          "tag": "BUTTON",
+          "role": null,
+          "type": "button",
+          "name": "Retry",
+          "href": null,
+          "disabled": false
+        },
+        "cases": [
+          "leads-390-rep",
+          "leads-768-rep",
+          "pipeline-390-rep",
+          "pipeline-768-rep"
+        ],
+        "expectedBaselineOccurrencesPerCase": 1,
+        "expectedArchivedOccurrencesPerCase": 1,
+        "expectedCandidateOccurrencesPerCase": 0,
+        "expectedBaselineTotal": 4,
+        "expectedArchivedTotal": 4,
+        "expectedCandidateTotal": 0,
+        "applyOnlyToListedCases": true,
+        "doNotFilterOtherRetryControls": true
+      }
+    ],
+    "existingExemptions": {
+      "archivedInventory": "reports/structural-certification-2026-10-03/after/exempt-controls.json",
+      "mustRemainUnchangedForAll36RolePageViewportCases": true,
+      "mayNotBeWidened": true
+    },
+    "strictRemainder": {
+      "caseCount": 36,
+      "targetControlsAfterOnlyTheseApprovedDeltasMustEqualBaselineAndArchivedInventoryInOriginalOrder": true,
+      "anyOtherDifferenceFails": true
+    }
+  },
+  "additions": {
+    "expectedTotal": 12,
+    "actualTotal": 12,
+    "rows": [
+      {
+        "key": "dashboard-390-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "dashboard-390-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "dashboard-390-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-390-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-390-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-390-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-390-manager",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-390-admin",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-390-rep",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-390-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-390-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-390-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-390-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-390-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-390-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-390-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-390-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-390-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "dashboard-768-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "dashboard-768-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "dashboard-768-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-768-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-768-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "leads-768-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-768-manager",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-768-admin",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "lead-detail-768-rep",
+        "expectedCount": 2,
+        "actualCount": 2,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 1
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-768-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-768-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-768-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-768-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "pipeline-768-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-768-manager",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "apply-768-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-768-admin",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      },
+      {
+        "key": "settings-768-rep",
+        "expectedCount": 0,
+        "actualCount": 0,
+        "observed": [
+          {
+            "tag": "INPUT",
+            "role": null,
+            "type": null,
+            "name": "Search referrer",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          },
+          {
+            "tag": "BUTTON",
+            "role": null,
+            "type": null,
+            "name": "Share referral link",
+            "href": null,
+            "disabled": false,
+            "count": 0
+          }
+        ],
+        "pass": true
+      }
+    ]
+  },
+  "removals": {
+    "expectedBaselineTotal": 4,
+    "actualBaselineTotal": 4,
+    "expectedArchivedTotal": 4,
+    "actualArchivedTotal": 4,
+    "expectedCandidateTotal": 0,
+    "actualCandidateTotal": 0,
+    "rows": [
+      {
+        "key": "leads-390-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      },
+      {
+        "key": "pipeline-390-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      },
+      {
+        "key": "leads-768-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      },
+      {
+        "key": "pipeline-768-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      }
+    ]
+  },
+  "baselineExemptionsUnchanged": "separately compared for every role/page/width; never widened"
+}

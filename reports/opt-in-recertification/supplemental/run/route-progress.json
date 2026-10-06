@@ -1,0 +1,186 @@
+{
+  "completed": 18,
+  "required": 18,
+  "visits": [
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "dashboard",
+      "path": "/dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 25,
+      "observedAt": "2026-10-06T02:40:07.965Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "dashboard",
+      "path": "/dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 29,
+      "observedAt": "2026-10-06T02:40:07.997Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "dashboard",
+      "path": "/dashboard",
+      "width": 390,
+      "status": "completed",
+      "controls": 44,
+      "observedAt": "2026-10-06T02:40:08.040Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "leads",
+      "path": "/leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 61,
+      "observedAt": "2026-10-06T02:40:10.172Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "leads",
+      "path": "/leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 71,
+      "observedAt": "2026-10-06T02:40:10.190Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "leads",
+      "path": "/leads",
+      "width": 390,
+      "status": "completed",
+      "controls": 79,
+      "observedAt": "2026-10-06T02:40:10.278Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "lead-detail",
+      "path": "/leads/1",
+      "width": 390,
+      "status": "completed",
+      "controls": 44,
+      "observedAt": "2026-10-06T02:40:12.459Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "lead-detail",
+      "path": "/leads/1",
+      "width": 390,
+      "status": "completed",
+      "controls": 41,
+      "observedAt": "2026-10-06T02:40:12.464Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "lead-detail",
+      "path": "/leads/1",
+      "width": 390,
+      "status": "completed",
+      "controls": 52,
+      "observedAt": "2026-10-06T02:40:12.579Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "pipeline",
+      "path": "/deals",
+      "width": 390,
+      "status": "completed",
+      "controls": 36,
+      "observedAt": "2026-10-06T02:40:14.683Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "pipeline",
+      "path": "/deals",
+      "width": 390,
+      "status": "completed",
+      "controls": 38,
+      "observedAt": "2026-10-06T02:40:14.730Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "pipeline",
+      "path": "/deals",
+      "width": 390,
+      "status": "completed",
+      "controls": 47,
+      "observedAt": "2026-10-06T02:40:14.797Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "apply",
+      "path": "/apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "observedAt": "2026-10-06T02:40:16.517Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "apply",
+      "path": "/apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "observedAt": "2026-10-06T02:40:16.578Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "apply",
+      "path": "/apply",
+      "width": 390,
+      "status": "completed",
+      "controls": 5,
+      "observedAt": "2026-10-06T02:40:16.656Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "rep",
+      "page": "settings",
+      "path": "/settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 26,
+      "observedAt": "2026-10-06T02:40:18.685Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "manager",
+      "page": "settings",
+      "path": "/settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 28,
+      "observedAt": "2026-10-06T02:40:18.778Z"
+    },
+    {
+      "phase": "supplemental:target",
+      "role": "admin",
+      "page": "settings",
+      "path": "/settings",
+      "width": 390,
+      "status": "completed",
+      "controls": 83,
+      "observedAt": "2026-10-06T02:40:18.954Z"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "host": "127.0.0.1",
+  "port": 55432,
+  "username": "postgres",
+  "database": "production_clone",
+  "sourceKind": "schema-only",
+  "sourceFingerprint": "af563ce7e8e75c4643694b3a0e82582996fb82dc2ee44aed0ac681b82dbc68c5",
+  "restoredAt": "2026-10-06T01:49:15.899Z",
+  "realProductionBackup": false,
+  "productionDataRehearsalCertified": false,
+  "preflightExit": 0,
+  "candidate": "5221ff2c54d908c2c2a06bd2e7fa6da55aa627de"
+}

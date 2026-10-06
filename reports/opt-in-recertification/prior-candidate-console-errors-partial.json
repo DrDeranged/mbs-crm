@@ -1,0 +1,1577 @@
+[
+  {
+    "eventId": "console-1",
+    "role": "admin",
+    "phase": "login",
+    "pagePathAtConsole": "/sign-in",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:42:53.413Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-2",
+    "role": "admin",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:43:53.681Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-3",
+    "role": "admin",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:43:54.353Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-1",
+        "http-2"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-1",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-2",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-4",
+    "role": "admin",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:43:55.712Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-5",
+    "role": "admin",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:43:56.109Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-3",
+        "http-4"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-3",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-4",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-6",
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:43:57.237Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-7",
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:43:57.688Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-5",
+        "http-7"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-5",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-7",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-8",
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/leads/[REDACTED_ID]/application"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:43:57.689Z",
+    "responseCorrelation": {
+      "status": 404,
+      "candidateEventIds": [
+        "http-6",
+        "http-8"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-6",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-8",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": {
+            "error": "No application on file"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-9",
+    "role": "admin",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:43:58.789Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-10",
+    "role": "admin",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:43:59.159Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-9",
+        "http-10"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-9",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-10",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-11",
+    "role": "admin",
+    "phase": "page:apply",
+    "pagePathAtConsole": "/apply",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:44:00.355Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-12",
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:44:16.750Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-13",
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:44:17.123Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-11",
+        "http-12",
+        "http-13",
+        "http-14"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-11",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-12",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        {
+          "eventId": "http-13",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-14",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "reason": {
+            "error": "Twilio owned-number lookup unavailable"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-14",
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/settings/telephony/owned-numbers"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:44:17.439Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-11",
+        "http-12",
+        "http-13",
+        "http-14"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-11",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-12",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        {
+          "eventId": "http-13",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-14",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "reason": {
+            "error": "Twilio owned-number lookup unavailable"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-15",
+    "role": "manager",
+    "phase": "login",
+    "pagePathAtConsole": "/sign-in",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:44:18.779Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-16",
+    "role": "manager",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:21.714Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-17",
+    "role": "manager",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:22.156Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-15",
+        "http-16"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-15",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-16",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-18",
+    "role": "manager",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:23.429Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-19",
+    "role": "manager",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:23.837Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-17",
+        "http-18"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-17",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-18",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-20",
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:24.959Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-21",
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/leads/[REDACTED_ID]/application"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:25.385Z",
+    "responseCorrelation": {
+      "status": 404,
+      "candidateEventIds": [
+        "http-19",
+        "http-20",
+        "http-23"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-19",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": {
+            "bodyUnavailable": "response.text: Protocol error (Network.getResponseBody): No resource with given identifier found\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation."
+          }
+        },
+        {
+          "eventId": "http-20",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": {
+            "error": "No application on file"
+          }
+        },
+        {
+          "eventId": "http-23",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": null
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-22",
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:25.405Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-21",
+        "http-22"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-21",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-22",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-23",
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/leads/[REDACTED_ID]/application"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:26.472Z",
+    "responseCorrelation": {
+      "status": 404,
+      "candidateEventIds": [],
+      "confidence": "unmatched: no nearby response event",
+      "candidates": []
+    }
+  },
+  {
+    "eventId": "console-24",
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:26.643Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-25",
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:26.993Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-24",
+        "http-25"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-24",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-25",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-26",
+    "role": "manager",
+    "phase": "page:apply",
+    "pagePathAtConsole": "/apply",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:28.195Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-27",
+    "role": "manager",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:44.357Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-28",
+    "role": "manager",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:45:44.751Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-26",
+        "http-27"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-26",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-27",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-29",
+    "role": "rep",
+    "phase": "login",
+    "pagePathAtConsole": "/sign-in",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:45:46.557Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-30",
+    "role": "rep",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:46:50.157Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-31",
+    "role": "rep",
+    "phase": "page:dashboard",
+    "pagePathAtConsole": "/dashboard",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:50.722Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-28",
+        "http-29"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-28",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-29",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-32",
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:46:51.935Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-33",
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:52.325Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-30",
+        "http-31"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-30",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-31",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-34",
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtConsole": "/leads",
+    "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/users",
+        "query": {
+          "isActive": "[REDACTED]",
+          "role": "[REDACTED]"
+        }
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:52.608Z",
+    "responseCorrelation": {
+      "status": 403,
+      "candidateEventIds": [
+        "http-32",
+        "http-33"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-32",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users",
+            "query": {
+              "isActive": "[REDACTED]",
+              "role": "[REDACTED]"
+            }
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-33",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users",
+            "query": {
+              "isActive": "[REDACTED]",
+              "role": "[REDACTED]"
+            }
+          },
+          "reason": {
+            "error": "Forbidden"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-35",
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:46:53.459Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-36",
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:53.876Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-34",
+        "http-35"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-34",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-35",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-37",
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/leads/[REDACTED_ID]/application"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:53.882Z",
+    "responseCorrelation": {
+      "status": 404,
+      "candidateEventIds": [
+        "http-36",
+        "http-37"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-36",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-37",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "reason": {
+            "error": "No application on file"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-38",
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtConsole": "/leads/1",
+    "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/users",
+        "query": {
+          "isActive": "[REDACTED]",
+          "role": "[REDACTED]"
+        }
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:54.125Z",
+    "responseCorrelation": {
+      "status": 403,
+      "candidateEventIds": [
+        "http-38",
+        "http-39"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-38",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users",
+            "query": {
+              "isActive": "[REDACTED]",
+              "role": "[REDACTED]"
+            }
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-39",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users",
+            "query": {
+              "isActive": "[REDACTED]",
+              "role": "[REDACTED]"
+            }
+          },
+          "reason": {
+            "error": "Forbidden"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-39",
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:46:55.005Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-40",
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:55.356Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-40",
+        "http-41"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-40",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-41",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-41",
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtConsole": "/deals",
+    "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/users"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:46:55.649Z",
+    "responseCorrelation": {
+      "status": 403,
+      "candidateEventIds": [
+        "http-42",
+        "http-43"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-42",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-43",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users"
+          },
+          "reason": {
+            "error": "Forbidden"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-42",
+    "role": "rep",
+    "phase": "page:apply",
+    "pagePathAtConsole": "/apply",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:46:56.530Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-43",
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-CbxILtjv.js:68:80007",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/assets/index-CbxILtjv.js"
+      },
+      "lineNumber": 67,
+      "columnNumber": 80060
+    },
+    "observedAt": "2026-10-06T01:47:13.370Z",
+    "responseCorrelation": {
+      "confidence": "console text contains no 403/404/503 status"
+    }
+  },
+  {
+    "eventId": "console-44",
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/twilio/token"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:47:14.391Z",
+    "responseCorrelation": {
+      "status": 503,
+      "candidateEventIds": [
+        "http-44",
+        "http-45"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-44",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-45",
+          "method": "POST",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/twilio/token"
+          },
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "eventId": "console-45",
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtConsole": "/settings",
+    "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "location": {
+      "url": {
+        "origin": "http://127.0.0.1:4320",
+        "path": "/api/users"
+      },
+      "lineNumber": 0,
+      "columnNumber": 0
+    },
+    "observedAt": "2026-10-06T01:47:14.536Z",
+    "responseCorrelation": {
+      "status": 403,
+      "candidateEventIds": [
+        "http-46",
+        "http-47"
+      ],
+      "confidence": "ambiguous: multiple nearby responses",
+      "candidates": [
+        {
+          "eventId": "http-46",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users"
+          },
+          "reason": null
+        },
+        {
+          "eventId": "http-47",
+          "method": "GET",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/api/users"
+          },
+          "reason": {
+            "error": "Forbidden"
+          }
+        }
+      ]
+    }
+  }
+]

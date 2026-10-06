@@ -1,0 +1,28 @@
+{
+  "status": "CAMPAIGN_ONLY_INCOMPLETE_OR_FAILED",
+  "target": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "snapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "webIndexSha256": "704b9236468e84d7fd5c85f7c5305ee8659cc4ca2c2c87c5db7786d45ad5d6ca",
+  "apiDistSha256": "fbb87d2f59917f20c4bf42f8dfd1da8149611add98d6269d189566cb09bfc79c",
+  "structureEvidence": "attempt 6, separately preserved, 36/36 pass",
+  "priorSupplementalExecution": {
+    "status": "INCOMPLETE_OR_FAILED",
+    "exitCode": 1,
+    "candidateHttpVisits": 18,
+    "leadsJourneys": 22,
+    "leadsScreenshots": 8
+  },
+  "campaignOnlyAssertions": {
+    "generatedSqlTransactionPassedAndRolledBack": true,
+    "campaignResultsSent13": true,
+    "campaignApiStatusesAndCountsVerified": true,
+    "allCampaignHttpErrorsClassified": false,
+    "campaignConsoleErrorsClassified": false,
+    "serviceWorkerConsoleErrorsZero": true,
+    "pageExceptionsZero": true
+  },
+  "campaignScreenshot": "screenshots/campaign-5-results.png",
+  "noSingleRunExitClaim": true,
+  "productionDataRehearsalCertified": false,
+  "failure": "Error: Campaign-only assertion failed: {\"generatedSqlTransactionPassedAndRolledBack\":true,\"campaignResultsSent13\":true,\"campaignApiStatusesAndCountsVerified\":true,\"allCampaignHttpErrorsClassified\":false,\"campaignConsoleErrorsClassified\":false,\"serviceWorkerConsoleErrorsZero\":true,\"pageExceptionsZero\":true}\n    at check (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:42:46)\n    at file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:694:5"
+}

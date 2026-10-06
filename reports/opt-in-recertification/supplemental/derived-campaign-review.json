@@ -1,0 +1,236 @@
+{
+  "reviewStatus": "DERIVED_CAMPAIGN_APPLICATION_ASSERTIONS_PASS_WITH_RECORDED_STRICT_CLASSIFIER_FAILURE",
+  "generatedFrom": [
+    "supplemental/campaign-only-run/http-events.ndjson",
+    "supplemental/campaign-only-run/console-events.ndjson",
+    "supplemental/campaign-only-run/runtime-error-classification.json",
+    "supplemental/campaign-only-run/campaign-sql-preflight.json",
+    "supplemental/campaign-only-run/campaign-fixture-verification.json",
+    "supplemental/campaign-only-run/campaign-api-results.json",
+    "supplemental/campaign-only-run/campaign-results-verification.json",
+    "supplemental/campaign-only-run/source-branch-validation.json",
+    "supplemental/campaign-only-run/cleanup-verification.json",
+    "supplemental/campaign-only-run/original-evidence-integrity.json"
+  ],
+  "managedTask": {
+    "taskId": "9603edb7-1b92-448e-a66e-74003e461b43",
+    "log": "/tmp/replit-background-tasks/9603edb7-1b92-448e-a66e-74003e461b43.log",
+    "mode": "--campaign-only",
+    "port": 4340,
+    "exitCode": 1,
+    "strictTaskExitPreserved": true,
+    "strictAssertions": {
+      "generatedSqlTransactionPassedAndRolledBack": true,
+      "campaignResultsSent13": true,
+      "campaignApiStatusesAndCountsVerified": true,
+      "allCampaignHttpErrorsClassified": false,
+      "campaignConsoleErrorsClassified": false,
+      "serviceWorkerConsoleErrorsZero": true,
+      "pageExceptionsZero": true
+    },
+    "strictUnexpectedHttpCount": 1,
+    "strictUnexpectedConsoleCount": 1
+  },
+  "fixture": {
+    "sqlTransactionPreflight": {
+      "status": "PASS",
+      "executedInFreshGuardedFixture": true,
+      "explicitBeginAndRollback": true,
+      "completedBeforeChromiumLaunch": true
+    },
+    "schemaOnly": true,
+    "productionDataRehearsalCertified": false,
+    "campaign": {
+      "id": 5,
+      "status": "completed",
+      "channel": "email",
+      "launches": 1,
+      "recipients": 13,
+      "sends": 13,
+      "sentCount": 13,
+      "recipientSentAtNull": 13,
+      "emailSentAtRetained": 13
+    },
+    "sourceBranchesProven": {
+      "value": true,
+      "evidence": "supplemental/campaign-only-run/source-branch-validation.json",
+      "fixtureSourceProof": "verified hashes for the schema sandbox, Twilio token handler, integration health, telephony settings route, owned-number route, and application bundle"
+    },
+    "sandboxCredentialStripping": {
+      "verifiedFrom": "scripts/visual-refresh/sandbox.mjs:76-84",
+      "providerPrefixesRemovedFromChildEnvironment": [
+        "TWILIO_",
+        "SENDGRID_",
+        "VAPID_",
+        "AI_INTEGRATIONS_",
+        "OPENAI_",
+        "ANTHROPIC_",
+        "SENTRY_",
+        "PRIVATE_OBJECT_",
+        "PUBLIC_OBJECT_",
+        "DEFAULT_OBJECT_",
+        "GOOGLE_",
+        "GCLOUD_",
+        "GCP_"
+      ]
+    }
+  },
+  "campaignFunctionalAssertions": {
+    "page": "http://127.0.0.1:4340/campaigns/5",
+    "title": "Vendors — Heavy Equipment",
+    "resultsApiStatus": 200,
+    "metricsApiStatus": 200,
+    "resultsCounts": {
+      "eligible": 13,
+      "excluded": 0,
+      "sent": 13,
+      "failed": 0,
+      "deferred": 0
+    },
+    "launchCount": 1,
+    "metricsSent": 13,
+    "trackingSince": null,
+    "legacySentKpi": "SENT\n13",
+    "newSentKpi": "SENT\n13",
+    "historicalTrackingDisclosure": "Historical tracking not available",
+    "unknownMetrics": [
+      "Not tracked",
+      "Not tracked"
+    ],
+    "screenshot": "supplemental/campaign-only-run/screenshots/campaign-5-results.png",
+    "screenshotShowsResultsSelectedAndSent13": true
+  },
+  "rawHttpObservations": [
+    {
+      "layer": "CDP",
+      "type": "cdp-status",
+      "eventId": "http-1",
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "method": "POST",
+      "origin": "http://127.0.0.1:4340",
+      "path": "/api/twilio/token",
+      "status": 503,
+      "page": "/campaigns/5",
+      "observedAt": "2026-10-06T02:51:43.720Z",
+      "reason": null,
+      "reasonWasInvented": false,
+      "strictClassifierMetadata": {
+        "note": "Duplicate same-role/page/phase response; this response body was unavailable.",
+        "supportingResponse": {
+          "eventId": "http-1",
+          "status": 503,
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      }
+    },
+    {
+      "layer": "Playwright response",
+      "type": "playwright-response",
+      "eventId": "http-1",
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "method": "POST",
+      "origin": "http://127.0.0.1:4340",
+      "path": "/api/twilio/token",
+      "status": 503,
+      "page": "/campaigns/5",
+      "observedAt": "2026-10-06T02:51:43.719Z",
+      "responseBody": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "reasonScope": "This response body belongs to the Playwright response record; it is not retroactively copied into the raw CDP row."
+    }
+  ],
+  "normalizedHttpReview": {
+    "underlyingRequestCount": 1,
+    "normalizationKey": [
+      "role",
+      "phase",
+      "method",
+      "status",
+      "origin",
+      "path",
+      "page"
+    ],
+    "eventId": "http-1",
+    "observedAtDeltaMilliseconds": 1,
+    "rawRepresentationsAreProtocolDuplicates": true,
+    "classification": "expected fixture Twilio 503",
+    "reason": "missing:TWILIO_ACCOUNT_SID",
+    "reasonEvidence": "the strict classifier's reasonOrExplicitAmbiguity.supportingResponse points to the exact eventId http-1/status 503/reason; the raw trace also has one matching Playwright response record with the same role/phase/method/status/origin/path/page and timestamp 1 ms apart",
+    "responseAmbiguity": "the CDP-only row retains reason=null and its note that its response body was unavailable; the captured Playwright response is explicit supporting evidence, not a body copied into the CDP event",
+    "confidence": "expected-fixture classification by explicit matched-response inference; underlying request deduplicated across protocol layers",
+    "productDefect": false
+  },
+  "rawConsoleReview": {
+    "eventCount": 1,
+    "eventId": "console-1",
+    "role": "admin",
+    "phase": "campaign-only:results",
+    "page": "/campaigns/5",
+    "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "locationPath": "/api/twilio/token",
+    "rawMatchedResponseIds": [
+      "http-1",
+      "http-1"
+    ],
+    "strictMatchConfidence": "ambiguous multiple exact matches (duplicate protocol representations)",
+    "normalizedUnderlyingRequestMatches": 1,
+    "normalizedClassification": "expected console resource-error for the same expected fixture 503",
+    "strictAssertionRemainsFalse": true
+  },
+  "taskFailureAnalysis": {
+    "strictHttpClassifierFailure": "The CDP row was retained with reason=null and classified unexpected; the matching Playwright response row was classified expected.",
+    "strictConsoleClassifierFailure": "The single console record matched both duplicated http-1 representations and was marked ambiguous/defective.",
+    "normalizedInterpretation": "One expected credential-stripped fixture 503, not two requests or an unexpected Campaign Results API response.",
+    "strictFailureAndExitArePreserved": true,
+    "originalRuntimeClassificationFileModified": false
+  },
+  "cleanup": {
+    "syntheticClerkUsersDeletedAndAbsent": 3,
+    "fixtureDatabase": "visual_refresh_fixture_1903_1791255048704",
+    "fixtureDatabaseAbsent": true,
+    "attempt6EvidenceHashesUnchanged": true
+  },
+  "separateExecutionLedger": {
+    "attempt6Structure": "36/36 comparison pass; separate execution",
+    "firstSupplement": {
+      "exitCode": 1,
+      "candidateRouteVisits": 18,
+      "leadsJourneys": 22,
+      "leadsScreenshots": 8,
+      "campaignReached": false,
+      "exitCause": "historical fixture SQL quoting defect; corrected helper used by the later campaign-only run"
+    },
+    "campaignOnly": {
+      "exitCode": 1,
+      "resultsMetricsUiAssertions": "pass",
+      "strictTraceClassifier": "failed due to duplicate instrumentation representations",
+      "campaignScreenshotCount": 1
+    },
+    "singleRunSuccessClaim": false,
+    "allNineScreenshots": {
+      "leads": 8,
+      "campaign": 1,
+      "total": 9,
+      "themeMatrix": "Leads: 390/768/1280/1440 light and dark; campaign Results: light"
+    }
+  },
+  "attributionLimits": {
+    "attempt6PrimitiveConsoleEvents": 143,
+    "originalPrimitiveConsoleEntries": 229,
+    "retroactiveEndpointAttributionPerformed": false
+  },
+  "certificationBoundary": {
+    "pinnedAppUiBehaviorVerifiedAgainst": "anonymized schema-only fixture",
+    "nativeProductionBackupVerified": false,
+    "productionDataRehearsalCertified": false,
+    "productionDataBehaviorVerified": false,
+    "shipmentReadinessEstablished": false
+  }
+}

@@ -54,3 +54,4 @@
 - [Vite cache ownership](vite-cache-ownership.md) — missing optimized files can break lazy routes while initial pages still work; isolate live development caches from builds.
 - [Fixture authentication lifecycle](fixture-auth-lifecycle.md) — isolate Clerk role contexts; already-deleted test users must not prevent database cleanup.
 - [Optional campaign reply capture](campaign-reply-rollout.md) — disabled Parse must preserve configured campaign Reply-To, not block ordinary sends.
+- [Persistent certification runners](persistent-certification-runners.md) — use main-managed background tasks; tester-shell detached children may die at the command ceiling.

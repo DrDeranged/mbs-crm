@@ -1,0 +1,2852 @@
+{
+  "target": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "localSnapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "baselineRevision": "2af927ca2830926bf325cef2eecfffc24ab5c110",
+  "baselineIndexSha256": "6461ce1e711e63e4678a0d1f7c29c7e5ca210502974b1a20e7bf835b47d8b72d",
+  "candidateIndexSha256": "704b9236468e84d7fd5c85f7c5305ee8659cc4ca2c2c87c5db7786d45ad5d6ca",
+  "candidateApiDistSha256": "fbb87d2f59917f20c4bf42f8dfd1da8149611add98d6269d189566cb09bfc79c",
+  "candidateApiDistRoot": "artifacts/api-server/dist",
+  "baselineRoot": ".local/certification-2af927c/baselines/target-2af927c",
+  "strictRequired": 36,
+  "comparisons": [
+    {
+      "key": "dashboard-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "dashboard-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "dashboard-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": {
+        "key": "leads-390-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      }
+    },
+    {
+      "key": "lead-detail-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "lead-detail-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "lead-detail-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": {
+        "key": "pipeline-390-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      }
+    },
+    {
+      "key": "apply-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "apply-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "apply-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "settings-390-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "settings-390-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "settings-390-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "dashboard-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "dashboard-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "dashboard-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "leads-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": {
+        "key": "leads-768-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      }
+    },
+    {
+      "key": "lead-detail-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "lead-detail-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "lead-detail-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 2,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "apply-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "apply-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "pipeline-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": {
+        "key": "pipeline-768-rep",
+        "expectedBaselineCount": 1,
+        "actualBaselineCount": 1,
+        "expectedArchivedCount": 1,
+        "actualArchivedCount": 1,
+        "expectedCandidateCount": 0,
+        "actualCandidateCount": 0,
+        "pass": true
+      }
+    },
+    {
+      "key": "settings-768-manager",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "apply-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "settings-768-admin",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    },
+    {
+      "key": "settings-768-rep",
+      "controlsEqual": true,
+      "exemptionsEqual": true,
+      "certifiedInventoryEqual": true,
+      "certifiedExemptionsEqual": true,
+      "approvedAdditionPass": true,
+      "approvedRemovalPass": true,
+      "approvedAdditionCount": 0,
+      "approvedRetryRemoval": null
+    }
+  ],
+  "approvedStructureDeltaPolicy": {
+    "additions": {
+      "exactControls": [
+        {
+          "tag": "INPUT",
+          "role": null,
+          "type": null,
+          "name": "Search referrer",
+          "href": null,
+          "disabled": false
+        },
+        {
+          "tag": "BUTTON",
+          "role": null,
+          "type": null,
+          "name": "Share referral link",
+          "href": null,
+          "disabled": false
+        }
+      ],
+      "cases": [
+        "lead-detail-390-admin",
+        "lead-detail-768-admin",
+        "lead-detail-390-manager",
+        "lead-detail-768-manager",
+        "lead-detail-390-rep",
+        "lead-detail-768-rep"
+      ],
+      "expectedPerCase": 2,
+      "expectedTotal": 12,
+      "actualTotal": 12
+    },
+    "removals": {
+      "exactControl": {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Retry",
+        "href": null,
+        "disabled": false
+      },
+      "cases": [
+        "leads-390-rep",
+        "leads-768-rep",
+        "pipeline-390-rep",
+        "pipeline-768-rep"
+      ],
+      "expectedBaselineTotal": 4,
+      "expectedArchivedTotal": 4,
+      "expectedCandidateTotal": 0
+    }
+  },
+  "structurePass": true,
+  "widths": [
+    390,
+    768,
+    1280,
+    1440
+  ],
+  "height": 900,
+  "screenshots": [],
+  "fixtureAgeEvidence": "1|2026-09-17 11:56:01|2026-09-15 00:00:00|2026-09-17 11:56:01|18\n2|2026-09-17 11:56:01|2026-09-15 00:00:00|2026-09-17 11:56:01|18",
+  "journeys": [],
+  "errors": [
+    {
+      "phase": "baseline:login",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/sign-in",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:20:01.974Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:login",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/sign-in",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:20:01.976Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:login",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/sign-in",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:20:02.019Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:04.458Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:04.693Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:04.703Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:04.965Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:05.117Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:dashboard:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:05.177Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:07.135Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:07.345Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:07.347Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:07.627Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:07.846Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:07.852Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:08.059Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:09.074Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:09.495Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:09.628Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:09.909Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:09.920Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:10.040Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:10.042Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:10.289Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:10.733Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:10.734Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:10.935Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:10.979Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:11.059Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:11.754Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:11.761Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:11.894Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:11.991Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:12.134Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:12.281Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:12.570Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:12.955Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:13.243Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:apply:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:14.017Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:apply:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:14.145Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:14.255Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:apply:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:15.420Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:16.026Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:16.081Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:16.403Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:16.459Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:16.788Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:17.297Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:17.665Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:17.946Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:18.246Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:18.414Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:18.628Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:18.788Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:18.988Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:19.505Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:dashboard:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:19.945Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:20.542Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:20.702Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:20.930Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:21.084Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:21.849Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:22.263Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:22.536Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:22.772Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:22.928Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:23.193Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:23.198Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:23.385Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:23.393Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:leads:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:23.553Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:24.213Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:24.410Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:24.711Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:25.024Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:25.157Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:25.158Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:25.278Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:25.387Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:25.499Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:25.670Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:21:26.172Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:26.398Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users",
+          "query": {
+            "isActive": "[REDACTED]",
+            "role": "[REDACTED]"
+          }
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:26.966Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:27.382Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:apply:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:27.408Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:apply:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:27.545Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:27.640Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:pipeline:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:28.653Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:29.386Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:29.456Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:29.738Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:29.876Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:apply:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/apply",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:29.897Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:30.190Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "SW reg error: TypeError: Cannot read properties of undefined (reading 'addEventListener')\n    at http://127.0.0.1:4320/assets/index-Bv6Lxi0K.js:68:122912",
+      "observedAt": "2026-10-06T02:21:31.818Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/assets/index-Bv6Lxi0K.js"
+        },
+        "lineNumber": 67,
+        "columnNumber": 122965
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:21:32.176Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:32.458Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "baseline:settings:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "observedAt": "2026-10-06T02:21:33.473Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/users"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:29.878Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:29.963Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:30.047Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:32.415Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:32.420Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:32.430Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:35.001Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:35.038Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:35.123Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:35.144Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:35.305Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:35.315Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:36.066Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:36.223Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:36.377Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:37.462Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:37.519Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:37.550Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:390",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:41.630Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:390",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:41.648Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:41.660Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:390",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:41.921Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:43.835Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:43.860Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:dashboard:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:43.954Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:46.115Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:46.153Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:leads:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:46.228Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:48.349Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:48.390Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:48.496Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:48.589Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:48.610Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:48.690Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:49.603Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:49.626Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:lead-detail:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/leads/1",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "observedAt": "2026-10-06T02:24:49.710Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:50.610Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:50.622Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:pipeline:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/deals",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:50.692Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:768",
+      "role": "rep",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:54.647Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:768",
+      "role": "manager",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:54.657Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:54.775Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "phase": "target:settings:768",
+      "role": "admin",
+      "kind": "console",
+      "pagePath": "/settings",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:24:55.093Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4320",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "sourceProof": {
+    "files": {
+      "sandbox": "scripts/visual-refresh/sandbox.mjs",
+      "twilioToken": "artifacts/api-server/src/routes/twilio.ts",
+      "integrationHealth": "artifacts/api-server/src/lib/integrationHealth.ts",
+      "telephonySettingsRoute": "artifacts/api-server/src/routes/settings.ts",
+      "ownedNumbers": "artifacts/api-server/src/lib/telephonySettings.ts",
+      "application": "artifacts/api-server/src/routes/applications.ts"
+    },
+    "filesSha256": {
+      "sandbox": "809004c2053b0d40697e98284b19ca78ec71487cb8a5a0f3d5709ee25a827953",
+      "twilioToken": "cdbadcd8feecc380e24edfd6b92fd1a55dfc6613364303a7ceb39eb551639117",
+      "integrationHealth": "fee76a731c4c13176df106a1d22fda407e96cc1bcac94832e2c9a90f06e51ab7",
+      "telephonySettingsRoute": "b767ee4e3810c418db6ec431b59841be88a52dd03071f8b989ddd4fb574c0f0d",
+      "ownedNumbers": "f3aae163f7ea53d727170f5e7aba1fd01070defd27a1ada38ca05e7257d3a970",
+      "application": "80cfabd5e553d800a812dd2fa022e1fd97214f55867d8d8a21071e1c2031adb4"
+    },
+    "sandboxStripsTwilioEnvironment": true,
+    "routeResponsesProven": true
+  },
+  "authentication": "real development Clerk tickets; fixture.login; admin/manager/rep fixture claims",
+  "database": "isolated schema-only clone; synthetic contacts; delivery credentials removed; background jobs disabled; no live delivery"
+}

@@ -1,0 +1,3 @@
+Launch attempt 2 (pre-final) did not produce certification results and is retained for audit. Its stdout/stderr are in `final-certification.log`; the first source-proof failure is separately preserved as `corrected-run-failure.txt` and `launch-attempt-1-source-proof-failure.log`.
+
+The attempt-2 runner PID recorded was 15471. It created isolated DB `visual_refresh_fixture_15471_1791252109053` (about 9.7 MiB) but no capture progress, screenshots, or certification summary was produced. Subsequent process inspection found no active certification/API child for that fixture and zero DB sessions; that exact fixture DB was dropped. It is not counted as a full certification attempt/pass/fail. No workflow restart or product-source change was made for cleanup.

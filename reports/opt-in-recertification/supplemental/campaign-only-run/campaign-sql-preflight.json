@@ -1,0 +1,9 @@
+{
+  "status": "PASS: generated campaign SQL executed in the isolated fixture and rolled back before browser launch",
+  "fixtureDatabase": "visual_refresh_fixture_1903_1791255048704",
+  "campaignId": 5,
+  "generatedStatements": 46,
+  "expectedRecipients": 13,
+  "expectedSends": 13,
+  "rollback": "explicit ROLLBACK"
+}

@@ -1,0 +1,182 @@
+[
+  {
+    "role": "admin",
+    "phase": "page:dashboard",
+    "requestedPath": "/dashboard",
+    "finalPath": "/dashboard",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Dashboard"
+  },
+  {
+    "role": "admin",
+    "phase": "page:leads",
+    "requestedPath": "/leads",
+    "finalPath": "/leads",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Leads"
+  },
+  {
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "requestedPath": "/leads/1",
+    "finalPath": "/leads/1",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Fixture Equipment LLC — Synthetic Contact"
+  },
+  {
+    "role": "admin",
+    "phase": "page:pipeline",
+    "requestedPath": "/deals",
+    "finalPath": "/deals",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Deals"
+  },
+  {
+    "role": "admin",
+    "phase": "page:apply",
+    "requestedPath": "/apply",
+    "finalPath": "/apply",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": null
+  },
+  {
+    "role": "admin",
+    "phase": "page:settings",
+    "requestedPath": "/settings",
+    "finalPath": "/settings",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Settings"
+  },
+  {
+    "role": "manager",
+    "phase": "page:dashboard",
+    "requestedPath": "/dashboard",
+    "finalPath": "/dashboard",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Dashboard"
+  },
+  {
+    "role": "manager",
+    "phase": "page:leads",
+    "requestedPath": "/leads",
+    "finalPath": "/leads",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Leads"
+  },
+  {
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "requestedPath": "/leads/1",
+    "finalPath": "/leads/1",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Fixture Equipment LLC — Synthetic Contact"
+  },
+  {
+    "role": "manager",
+    "phase": "page:pipeline",
+    "requestedPath": "/deals",
+    "finalPath": "/deals",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Deals"
+  },
+  {
+    "role": "manager",
+    "phase": "page:apply",
+    "requestedPath": "/apply",
+    "finalPath": "/apply",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": null
+  },
+  {
+    "role": "manager",
+    "phase": "page:settings",
+    "requestedPath": "/settings",
+    "finalPath": "/settings",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Settings"
+  },
+  {
+    "role": "rep",
+    "phase": "page:dashboard",
+    "requestedPath": "/dashboard",
+    "finalPath": "/dashboard",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Dashboard"
+  },
+  {
+    "role": "rep",
+    "phase": "page:leads",
+    "requestedPath": "/leads",
+    "finalPath": "/leads",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Leads"
+  },
+  {
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "requestedPath": "/leads/1",
+    "finalPath": "/leads/1",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Fixture Equipment LLC — Synthetic Contact"
+  },
+  {
+    "role": "rep",
+    "phase": "page:pipeline",
+    "requestedPath": "/deals",
+    "finalPath": "/deals",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Deals"
+  },
+  {
+    "role": "rep",
+    "phase": "page:apply",
+    "requestedPath": "/apply",
+    "finalPath": "/apply",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": null
+  },
+  {
+    "role": "rep",
+    "phase": "page:settings",
+    "requestedPath": "/settings",
+    "finalPath": "/settings",
+    "navigationStatus": 200,
+    "markerVisible": true,
+    "markerFailure": null,
+    "heading": "Settings"
+  }
+]

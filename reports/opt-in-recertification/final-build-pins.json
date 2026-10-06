@@ -1,0 +1,11 @@
+{
+  "candidate": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "localSnapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "webRoot": ".local/opt-in-recertification/public",
+  "indexSha256": "704b9236468e84d7fd5c85f7c5305ee8659cc4ca2c2c87c5db7786d45ad5d6ca",
+  "webTreeSha256": "f48cc0f36429201a25fd042c8c5201c24ea4678b84fa16761a9a4a18250b1c43",
+  "apiDistSha256": "fbb87d2f59917f20c4bf42f8dfd1da8149611add98d6269d189566cb09bfc79c",
+  "preflightExit": 0,
+  "note": "Local snapshot differs from remote source commit; all 881 runtime source blobs are verified to match GitHub candidate in final-source-binding.json. Frozen web tree built by passing preflight, exact API tree copied by fixture.",
+  "published": false
+}

@@ -1,0 +1,22 @@
+{
+  "target": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "snapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "webIndexSha256": "704b9236468e84d7fd5c85f7c5305ee8659cc4ca2c2c87c5db7786d45ad5d6ca",
+  "apiDistSha256": "fbb87d2f59917f20c4bf42f8dfd1da8149611add98d6269d189566cb09bfc79c",
+  "sourceFilesMatched": 881,
+  "structurePass": true,
+  "comparisonCount": 36,
+  "additions": 12,
+  "retryBaseline": 4,
+  "retryArchived": 4,
+  "retryCandidate": 0,
+  "rawPrimitiveConsoleEvents": 143,
+  "importedOrReclassifiedPrimitiveErrors": false,
+  "originalEvidenceHashes": {
+    "leads-certification.json": "291b08098199723d28776dd82ab5ff7868ab3e29b9bed506af9c39b69fb908a5",
+    "structure-controls.json": "cd262121a71e01a2b2c04a23935d9e1763aa8ab29a8516abbaeb9d088eaa5a13",
+    "structure-differences.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "approved-exceptions.json": "a10a0f6f1ae9bd4bb8f4b79cbff13208426d32a2f8cec3abd4d7286d77e45fd5",
+    "capture-progress.json": "6fbad3fed0f35d20bc0ad6b33f30f64ce8507b85d343673fe2c4b57d524b9975"
+  }
+}

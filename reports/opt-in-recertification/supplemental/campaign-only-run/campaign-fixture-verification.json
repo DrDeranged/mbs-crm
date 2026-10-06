@@ -1,0 +1,29 @@
+{
+  "campaign": {
+    "id": 5,
+    "status": "completed",
+    "channel": "email"
+  },
+  "launch": {
+    "id": 5,
+    "status": "completed",
+    "sent_count": 13
+  },
+  "sourceSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+  "syntheticRecipients": 13,
+  "syntheticSends": 13,
+  "fixtureVerification": {
+    "id": 5,
+    "name": "Vendors — Heavy Equipment",
+    "status": "completed",
+    "no_tracking": true,
+    "launch_id": 5,
+    "launch_sent_count": 13,
+    "recipients_sent": 13,
+    "sent_emails": 13,
+    "recipient_sent_at_null": 13,
+    "email_sent_at_retained": 13
+  },
+  "fixtureDatabase": "visual_refresh_fixture_1903_1791255048704",
+  "productionDataRehearsalCertified": false
+}

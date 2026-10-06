@@ -1,0 +1,2271 @@
+[
+  {
+    "eventId": "http-1",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:54.293Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:43:54.353Z",
+    "cdpRequestId": "1769.72"
+  },
+  {
+    "eventId": "http-2",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:43:54.292Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:54.370Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-3",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:56.081Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:43:56.109Z",
+    "cdpRequestId": "1769.128"
+  },
+  {
+    "eventId": "http-4",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:43:56.082Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:56.118Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-5",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:57.597Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:43:57.689Z",
+    "cdpRequestId": "1769.203"
+  },
+  {
+    "eventId": "http-6",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:57.597Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:43:57.689Z",
+    "cdpRequestId": "1769.202"
+  },
+  {
+    "eventId": "http-7",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:43:57.596Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:57.699Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-8",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:43:57.596Z",
+    "status": 404,
+    "statusText": "Not Found",
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:43:57.699Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-9",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:59.144Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:43:59.159Z",
+    "cdpRequestId": "1769.249"
+  },
+  {
+    "eventId": "http-10",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:43:59.142Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:59.168Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-11",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:44:17.103Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:44:17.123Z",
+    "cdpRequestId": "1769.323"
+  },
+  {
+    "eventId": "http-12",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:44:17.100Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:44:17.134Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-13",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/settings/telephony/owned-numbers"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "(anonymous)",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/settings-BRTCoO7i.js"
+          },
+          "lineNumber": 7,
+          "columnNumber": 11156
+        },
+        {
+          "functionName": "fa",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 83754
+        },
+        {
+          "functionName": "Ki",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 99389
+        },
+        {
+          "functionName": "xb",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 99093
+        },
+        {
+          "functionName": "rs",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 98363
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:44:17.403Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:44:17.439Z",
+    "cdpRequestId": "1769.330"
+  },
+  {
+    "eventId": "http-14",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/settings/telephony/owned-numbers"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:44:17.401Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio owned-number lookup unavailable"
+    },
+    "responseObservedAt": "2026-10-06T01:44:17.455Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-15",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:22.119Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:22.156Z",
+    "cdpRequestId": "2020.72"
+  },
+  {
+    "eventId": "http-16",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:22.118Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:22.162Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-17",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:23.782Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:23.837Z",
+    "cdpRequestId": "2020.125"
+  },
+  {
+    "eventId": "http-18",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:23.788Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:23.838Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-19",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:25.315Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "bodyUnavailable": "response.text: Protocol error (Network.getResponseBody): No resource with given identifier found\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation."
+    },
+    "responseObservedAt": "2026-10-06T01:45:25.385Z",
+    "cdpRequestId": "2020.197"
+  },
+  {
+    "eventId": "http-20",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:25.298Z",
+    "status": 404,
+    "statusText": "Not Found",
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:45:25.389Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-21",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:25.315Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:25.406Z",
+    "cdpRequestId": "2020.198"
+  },
+  {
+    "eventId": "http-22",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:25.298Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:25.406Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-23",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:26.406Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:26.472Z",
+    "cdpRequestId": "2020.206"
+  },
+  {
+    "eventId": "http-24",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:26.980Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:26.993Z",
+    "cdpRequestId": "2020.244"
+  },
+  {
+    "eventId": "http-25",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:26.979Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:27.008Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-26",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:44.714Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:44.751Z",
+    "cdpRequestId": "2020.320"
+  },
+  {
+    "eventId": "http-27",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:45:44.713Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:44.756Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-28",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:50.678Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:50.722Z",
+    "cdpRequestId": "3753.72"
+  },
+  {
+    "eventId": "http-29",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:50.677Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:50.771Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-30",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:52.288Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:52.325Z",
+    "cdpRequestId": "3753.124"
+  },
+  {
+    "eventId": "http-31",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:52.290Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:52.336Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-32",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:52.594Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:52.608Z",
+    "cdpRequestId": "3753.126"
+  },
+  {
+    "eventId": "http-33",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:52.594Z",
+    "status": 403,
+    "statusText": "Forbidden",
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:52.618Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-34",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:53.802Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:53.876Z",
+    "cdpRequestId": "3753.199"
+  },
+  {
+    "eventId": "http-35",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:53.799Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:53.879Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-36",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:53.802Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:53.882Z",
+    "cdpRequestId": "3753.198"
+  },
+  {
+    "eventId": "http-37",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:53.799Z",
+    "status": 404,
+    "statusText": "Not Found",
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:46:53.907Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-38",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:54.119Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:54.132Z",
+    "cdpRequestId": "3753.200"
+  },
+  {
+    "eventId": "http-39",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:54.117Z",
+    "status": 403,
+    "statusText": "Forbidden",
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:54.142Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-40",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:55.340Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:55.356Z",
+    "cdpRequestId": "3753.243"
+  },
+  {
+    "eventId": "http-41",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:55.342Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:55.363Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-42",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:55.633Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:46:55.649Z",
+    "cdpRequestId": "3753.247"
+  },
+  {
+    "eventId": "http-43",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:46:55.634Z",
+    "status": 403,
+    "statusText": "Forbidden",
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:55.655Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-44",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:47:14.244Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:47:14.392Z",
+    "cdpRequestId": "3753.319"
+  },
+  {
+    "eventId": "http-45",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:47:14.246Z",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:47:14.403Z",
+    "initiator": null
+  },
+  {
+    "eventId": "http-46",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:47:14.527Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:47:14.536Z",
+    "cdpRequestId": "3753.320"
+  },
+  {
+    "eventId": "http-47",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "resourceType": "fetch",
+    "initiatedAt": "2026-10-06T01:47:14.528Z",
+    "status": 403,
+    "statusText": "Forbidden",
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:47:14.561Z",
+    "initiator": null
+  }
+]

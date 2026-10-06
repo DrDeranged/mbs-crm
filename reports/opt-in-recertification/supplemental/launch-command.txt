@@ -1,0 +1,3 @@
+HISTORICAL COMMAND — ALREADY EXECUTED by Main's managed task; exit=1.
+Do NOT rerun this full supplemental command: its 18 candidate route visits, 22 Leads journeys, and eight screenshots are complete and retained under `supplemental/run/`.
+The remaining work is Campaign Results only. Use `supplemental/campaign-only-command.txt`, which targets a separate output directory and does not replay the completed Leads stage.

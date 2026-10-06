@@ -1,0 +1,74 @@
+{
+  "candidate": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "testSource": "artifacts/api-server/src/lib/campaignReplySend.test.ts",
+  "testSourceSha256": "79609fe934500a4e6d079fc965a3c6ffaba3a2e0050e51c3bf84583cfe11e6a4",
+  "execution": "Full API test suite in passing11-gate preflight; one regression test loops over all7 configurations, invoking actual doSendEmail.",
+  "result": "PASS",
+  "cases": [
+    {
+      "secretState": "absent",
+      "enabledState": "absent",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "absent",
+      "enabledState": "true",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "empty",
+      "enabledState": "true",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "whitespace",
+      "enabledState": "true",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "nonempty fixture secret",
+      "enabledState": "absent",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "nonempty fixture secret",
+      "enabledState": "false",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "configured@example.invalid",
+      "expectedPersistedReplyToken": null,
+      "expectedOriginalReplyTo": null
+    },
+    {
+      "secretState": "nonempty fixture secret",
+      "enabledState": "true",
+      "expectedStatus": "sent",
+      "expectedReplyTo": "48-character token at replies.my-business-solutions.com",
+      "expectedPersistedReplyToken": "matching SHA256 digest",
+      "expectedOriginalReplyTo": "configured@example.invalid"
+    }
+  ],
+  "externalProviderCalls": 0,
+  "realDatabaseWrites": 0,
+  "mocks": "SendGrid send and database query/write builders are intercepted. Assertions require each send to succeed, provider payload Reply-To to match and token provenance to match.",
+  "fullSuite": {
+    "passed": 724,
+    "skipped": 1,
+    "failed": 0
+  },
+  "published": false
+}

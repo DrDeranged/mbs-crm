@@ -1,0 +1,20 @@
+{
+  "files": {
+    "sandbox": "scripts/visual-refresh/sandbox.mjs",
+    "twilioToken": "artifacts/api-server/src/routes/twilio.ts",
+    "integrationHealth": "artifacts/api-server/src/lib/integrationHealth.ts",
+    "telephonySettingsRoute": "artifacts/api-server/src/routes/settings.ts",
+    "ownedNumbers": "artifacts/api-server/src/lib/telephonySettings.ts",
+    "application": "artifacts/api-server/src/routes/applications.ts"
+  },
+  "filesSha256": {
+    "sandbox": "809004c2053b0d40697e98284b19ca78ec71487cb8a5a0f3d5709ee25a827953",
+    "twilioToken": "cdbadcd8feecc380e24edfd6b92fd1a55dfc6613364303a7ceb39eb551639117",
+    "integrationHealth": "fee76a731c4c13176df106a1d22fda407e96cc1bcac94832e2c9a90f06e51ab7",
+    "telephonySettingsRoute": "b767ee4e3810c418db6ec431b59841be88a52dd03071f8b989ddd4fb574c0f0d",
+    "ownedNumbers": "f3aae163f7ea53d727170f5e7aba1fd01070defd27a1ada38ca05e7257d3a970",
+    "application": "80cfabd5e553d800a812dd2fa022e1fd97214f55867d8d8a21071e1c2031adb4"
+  },
+  "sandboxStripsTwilioEnvironment": true,
+  "routeResponsesProven": true
+}

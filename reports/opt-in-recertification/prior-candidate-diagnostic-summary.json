@@ -1,0 +1,270 @@
+{
+  "build": {
+    "target": "853f4e49378b10daf3d59d81769c81fe812ca0ea",
+    "localSnapshot": "4165874ad76bdfbba46a115d7c3b404ec1752b6d",
+    "publicIndexSha256": "cb197aedc76dd1c19ec7c96206b6e9a125bf9a9ed57d5980ac5290cf76afae55",
+    "buildMode": "build:false; frozen candidate public directory",
+    "fixtureDatabase": "visual_refresh_fixture_1634_1791250965097"
+  },
+  "viewport": {
+    "width": 390,
+    "height": 900
+  },
+  "pagesPerRole": 6,
+  "visits": [
+    {
+      "role": "admin",
+      "phase": "page:dashboard",
+      "requestedPath": "/dashboard",
+      "finalPath": "/dashboard",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Dashboard"
+    },
+    {
+      "role": "admin",
+      "phase": "page:leads",
+      "requestedPath": "/leads",
+      "finalPath": "/leads",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Leads"
+    },
+    {
+      "role": "admin",
+      "phase": "page:lead-detail",
+      "requestedPath": "/leads/1",
+      "finalPath": "/leads/1",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Fixture Equipment LLC — Synthetic Contact"
+    },
+    {
+      "role": "admin",
+      "phase": "page:pipeline",
+      "requestedPath": "/deals",
+      "finalPath": "/deals",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Deals"
+    },
+    {
+      "role": "admin",
+      "phase": "page:apply",
+      "requestedPath": "/apply",
+      "finalPath": "/apply",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": null
+    },
+    {
+      "role": "admin",
+      "phase": "page:settings",
+      "requestedPath": "/settings",
+      "finalPath": "/settings",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Settings"
+    },
+    {
+      "role": "manager",
+      "phase": "page:dashboard",
+      "requestedPath": "/dashboard",
+      "finalPath": "/dashboard",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Dashboard"
+    },
+    {
+      "role": "manager",
+      "phase": "page:leads",
+      "requestedPath": "/leads",
+      "finalPath": "/leads",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Leads"
+    },
+    {
+      "role": "manager",
+      "phase": "page:lead-detail",
+      "requestedPath": "/leads/1",
+      "finalPath": "/leads/1",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Fixture Equipment LLC — Synthetic Contact"
+    },
+    {
+      "role": "manager",
+      "phase": "page:pipeline",
+      "requestedPath": "/deals",
+      "finalPath": "/deals",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Deals"
+    },
+    {
+      "role": "manager",
+      "phase": "page:apply",
+      "requestedPath": "/apply",
+      "finalPath": "/apply",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": null
+    },
+    {
+      "role": "manager",
+      "phase": "page:settings",
+      "requestedPath": "/settings",
+      "finalPath": "/settings",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Settings"
+    },
+    {
+      "role": "rep",
+      "phase": "page:dashboard",
+      "requestedPath": "/dashboard",
+      "finalPath": "/dashboard",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Dashboard"
+    },
+    {
+      "role": "rep",
+      "phase": "page:leads",
+      "requestedPath": "/leads",
+      "finalPath": "/leads",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Leads"
+    },
+    {
+      "role": "rep",
+      "phase": "page:lead-detail",
+      "requestedPath": "/leads/1",
+      "finalPath": "/leads/1",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Fixture Equipment LLC — Synthetic Contact"
+    },
+    {
+      "role": "rep",
+      "phase": "page:pipeline",
+      "requestedPath": "/deals",
+      "finalPath": "/deals",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Deals"
+    },
+    {
+      "role": "rep",
+      "phase": "page:apply",
+      "requestedPath": "/apply",
+      "finalPath": "/apply",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": null
+    },
+    {
+      "role": "rep",
+      "phase": "page:settings",
+      "requestedPath": "/settings",
+      "finalPath": "/settings",
+      "navigationStatus": 200,
+      "markerVisible": true,
+      "markerFailure": null,
+      "heading": "Settings"
+    }
+  ],
+  "campaignResults": {
+    "path": "/campaigns/5",
+    "resultsStatus": 200,
+    "metricsStatus": 200,
+    "counts": {
+      "eligible": 13,
+      "excluded": 0,
+      "sent": 13,
+      "failed": 0,
+      "deferred": 0,
+      "nextAvailableAt": null
+    },
+    "metrics": {
+      "campaignId": 5,
+      "name": "Vendors — Heavy Equipment",
+      "trackingSince": null,
+      "replyCaptureConfigured": false,
+      "sent": 13,
+      "delivered": 8,
+      "deliveredPct": 61.54,
+      "bounced": 0,
+      "blocked": 0,
+      "opensApproximate": 5,
+      "uniqueFlyerClicks": null,
+      "totalFlyerClicks": null,
+      "firstClickAt": null,
+      "replies": null,
+      "calls": null,
+      "referredLeads": null,
+      "submitted": null,
+      "approved": null,
+      "funded": null,
+      "fundedDollars": null,
+      "mbsPoints": null,
+      "unpricedFundedDeals": 0,
+      "definitions": [
+        "Sent counts accepted live recipient/channel sends, including SMS. Delivery percentage uses accepted email sends only; bounce and block count distinct email sends.",
+        "Opens are approximate and may include privacy proxies. Flyer unique counts distinct leads; total counts every validated request, including scanners/repeated requests. First-click time is the earliest recorded request.",
+        "Calls and referrals use the most recent successful campaign receipt within 30 days (inclusive). Queued, failed, suppressed, test and known bounced/blocked sends cannot qualify. Signed referral provenance takes precedence.",
+        "Referral campaign credit is fixed at creation. Later referral corrections are audited and do not silently change historical campaign credit.",
+        "Conversion counts distinct leads across recipients and attributed referrals, using submitted/approved/funded milestones at or after cohort entry. A lead in both groups counts once.",
+        "Funded dollars and MBS points count distinct referred deals only, funded at or after referral attribution. MBS points are summed authoritative rate/points calculations, not guessed GM splits. Unpriced deals are disclosed.",
+        "Not tracked means historical provenance is unavailable; zero means tracking was available and no matching event was recorded."
+      ],
+      "engagedLeads": []
+    },
+    "sentKpi": "SENT\n13",
+    "unknownMetricExamples": [
+      "Not tracked"
+    ]
+  },
+  "httpErrorCount": 49,
+  "consoleErrorCount": 48,
+  "pageErrorCount": 0,
+  "httpStatuses": {
+    "403": 8,
+    "404": 7,
+    "503": 34
+  },
+  "campaignProvenance": {
+    "source": ".local/certification-853f4e4/historical-campaign.json",
+    "sha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+    "fixtureDatabase": "visual_refresh_fixture_1634_1791250965097",
+    "campaignId": 5,
+    "campaignStatus": "completed",
+    "rowsInserted": {
+      "leads": 13,
+      "campaignLaunches": 1,
+      "recipients": 13,
+      "emailSends": 13
+    },
+    "preservation": "synthetic lead identities/emails and fixture users/template; historical relationships/status/timestamps retained; recipient sent_at NULL; email send sent_at retained; tracking_since NULL"
+  },
+  "cleanupExpectation": "startSandbox.close removes isolated API, schema-only fixture DB, storage temp directory, and synthetic Clerk users"
+}

@@ -1,0 +1,2048 @@
+[
+  {
+    "eventId": "response-1769.72",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:54.293Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:54.353Z",
+    "cdpRequestId": "1769.72",
+    "instrumentationRecordsMerged": [
+      "http-1",
+      "http-2"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.128",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:56.081Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:56.109Z",
+    "cdpRequestId": "1769.128",
+    "instrumentationRecordsMerged": [
+      "http-3",
+      "http-4"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.203",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:57.597Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:57.689Z",
+    "cdpRequestId": "1769.203",
+    "instrumentationRecordsMerged": [
+      "http-5",
+      "http-7"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.202",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "admin",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:57.597Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:43:57.689Z",
+    "cdpRequestId": "1769.202",
+    "instrumentationRecordsMerged": [
+      "http-6",
+      "http-8"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.249",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:43:59.144Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:43:59.159Z",
+    "cdpRequestId": "1769.249",
+    "instrumentationRecordsMerged": [
+      "http-9",
+      "http-10"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.323",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:44:17.103Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:44:17.123Z",
+    "cdpRequestId": "1769.323",
+    "instrumentationRecordsMerged": [
+      "http-11",
+      "http-12"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-1769.330",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/settings/telephony/owned-numbers"
+    },
+    "role": "admin",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "(anonymous)",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/settings-BRTCoO7i.js"
+          },
+          "lineNumber": 7,
+          "columnNumber": 11156
+        },
+        {
+          "functionName": "fa",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 83754
+        },
+        {
+          "functionName": "Ki",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 99389
+        },
+        {
+          "functionName": "xb",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 99093
+        },
+        {
+          "functionName": "rs",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 8,
+          "columnNumber": 98363
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:44:17.403Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio owned-number lookup unavailable"
+    },
+    "responseObservedAt": "2026-10-06T01:44:17.439Z",
+    "cdpRequestId": "1769.330",
+    "instrumentationRecordsMerged": [
+      "http-13",
+      "http-14"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.72",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:22.119Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:22.156Z",
+    "cdpRequestId": "2020.72",
+    "instrumentationRecordsMerged": [
+      "http-15",
+      "http-16"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.125",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:23.782Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:23.837Z",
+    "cdpRequestId": "2020.125",
+    "instrumentationRecordsMerged": [
+      "http-17",
+      "http-18"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.197",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:25.315Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:45:25.385Z",
+    "cdpRequestId": "2020.197",
+    "instrumentationRecordsMerged": [
+      "http-19",
+      "http-20"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.198",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:25.315Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:25.406Z",
+    "cdpRequestId": "2020.198",
+    "instrumentationRecordsMerged": [
+      "http-21",
+      "http-22"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.206",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "manager",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:26.406Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": null,
+    "responseObservedAt": "2026-10-06T01:45:26.472Z",
+    "cdpRequestId": "2020.206",
+    "instrumentationRecordsMerged": [
+      "http-23"
+    ],
+    "traceNote": "CDP response; no Playwright companion observed"
+  },
+  {
+    "eventId": "response-2020.244",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:26.980Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:26.993Z",
+    "cdpRequestId": "2020.244",
+    "instrumentationRecordsMerged": [
+      "http-24",
+      "http-25"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-2020.320",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "manager",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:45:44.714Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:45:44.751Z",
+    "cdpRequestId": "2020.320",
+    "instrumentationRecordsMerged": [
+      "http-26",
+      "http-27"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.72",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:dashboard",
+    "pagePathAtInitiation": "/dashboard",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:50.678Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:50.722Z",
+    "cdpRequestId": "3753.72",
+    "instrumentationRecordsMerged": [
+      "http-28",
+      "http-29"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.124",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:52.288Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:52.325Z",
+    "cdpRequestId": "3753.124",
+    "instrumentationRecordsMerged": [
+      "http-30",
+      "http-31"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.126",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:leads",
+    "pagePathAtInitiation": "/leads",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:52.594Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:52.608Z",
+    "cdpRequestId": "3753.126",
+    "instrumentationRecordsMerged": [
+      "http-32",
+      "http-33"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.199",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:53.802Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:53.876Z",
+    "cdpRequestId": "3753.199",
+    "instrumentationRecordsMerged": [
+      "http-34",
+      "http-35"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.198",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/leads/[REDACTED_ID]/application"
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "iF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 173865
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 174031
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:53.802Z",
+    "resourceType": "Fetch",
+    "status": 404,
+    "statusText": "Not Found",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "No application on file"
+    },
+    "responseObservedAt": "2026-10-06T01:46:53.882Z",
+    "cdpRequestId": "3753.198",
+    "instrumentationRecordsMerged": [
+      "http-36",
+      "http-37"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.200",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users",
+      "query": {
+        "isActive": "[REDACTED]",
+        "role": "[REDACTED]"
+      }
+    },
+    "role": "rep",
+    "phase": "page:lead-detail",
+    "pagePathAtInitiation": "/leads/1",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:54.119Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:54.132Z",
+    "cdpRequestId": "3753.200",
+    "instrumentationRecordsMerged": [
+      "http-38",
+      "http-39"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.243",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:55.340Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:46:55.356Z",
+    "cdpRequestId": "3753.243",
+    "instrumentationRecordsMerged": [
+      "http-40",
+      "http-41"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.247",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:pipeline",
+    "pagePathAtInitiation": "/deals",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:46:55.633Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:46:55.649Z",
+    "cdpRequestId": "3753.247",
+    "instrumentationRecordsMerged": [
+      "http-42",
+      "http-43"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.319",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:47:14.244Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:47:14.392Z",
+    "cdpRequestId": "3753.319",
+    "instrumentationRecordsMerged": [
+      "http-44",
+      "http-45"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-3753.320",
+    "method": "GET",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/users"
+    },
+    "role": "rep",
+    "phase": "page:settings",
+    "pagePathAtInitiation": "/settings",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "jI",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154793
+        },
+        {
+          "functionName": "queryFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 154954
+        },
+        {
+          "functionName": "a",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 21274
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:47:14.527Z",
+    "resourceType": "Fetch",
+    "status": 403,
+    "statusText": "Forbidden",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Forbidden"
+    },
+    "responseObservedAt": "2026-10-06T01:47:14.536Z",
+    "cdpRequestId": "3753.320",
+    "instrumentationRecordsMerged": [
+      "http-46",
+      "http-47"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  },
+  {
+    "eventId": "response-5563.82",
+    "method": "POST",
+    "url": {
+      "origin": "http://127.0.0.1:4320",
+      "path": "/api/twilio/token"
+    },
+    "role": "admin",
+    "phase": "campaign-results",
+    "pagePathAtInitiation": "/campaigns/5",
+    "initiator": {
+      "type": "script",
+      "url": null,
+      "stack": [
+        {
+          "functionName": "W",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 152895
+        },
+        {
+          "functionName": "SF",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175574
+        },
+        {
+          "functionName": "mutationFn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 23,
+          "columnNumber": 175724
+        },
+        {
+          "functionName": "fn",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 31954
+        },
+        {
+          "functionName": "O",
+          "url": {
+            "origin": "http://127.0.0.1:4320",
+            "path": "/assets/index-CbxILtjv.js"
+          },
+          "lineNumber": 16,
+          "columnNumber": 15845
+        }
+      ]
+    },
+    "initiatedAt": "2026-10-06T01:47:26.951Z",
+    "resourceType": "Fetch",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "responseHeaders": {
+      "contentType": "application/json",
+      "fromDiskCache": false,
+      "fromServiceWorker": false
+    },
+    "reason": {
+      "error": "Twilio token unavailable",
+      "reason": "missing:TWILIO_ACCOUNT_SID"
+    },
+    "responseObservedAt": "2026-10-06T01:47:27.530Z",
+    "cdpRequestId": "5563.82",
+    "instrumentationRecordsMerged": [
+      "http-48",
+      "http-49"
+    ],
+    "traceNote": "one Chromium CDP response and its matching Playwright response event; merged, not two HTTP requests"
+  }
+]

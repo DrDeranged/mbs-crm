@@ -1,0 +1,151 @@
+{
+  "status": "incomplete-or-failed",
+  "phase": "campaign-results-journey",
+  "target": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+  "snapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+  "expectedRouteVisits": 0,
+  "completedRouteVisits": [],
+  "journeys": [
+    {
+      "at": "2026-10-06T02:51:42.653Z",
+      "step": "campaign-only-admin-login",
+      "outcome": "completed"
+    },
+    {
+      "at": "2026-10-06T02:51:42.665Z",
+      "step": "campaign-fixture-restored",
+      "outcome": "isolated historical campaign fixture is verified",
+      "campaignId": 5
+    },
+    {
+      "at": "2026-10-06T02:51:44.240Z",
+      "step": "campaign-details-rendered",
+      "outcome": "campaign title rendered",
+      "campaignId": 5
+    },
+    {
+      "at": "2026-10-06T02:51:44.316Z",
+      "step": "campaign-results-tab-selected",
+      "outcome": "Results tab selected",
+      "campaignId": 5
+    },
+    {
+      "at": "2026-10-06T02:51:44.412Z",
+      "step": "campaign-results-sent-count",
+      "outcome": "legacy and new Results show Sent=13; unknown tracking disclosed",
+      "evidence": {
+        "status": "completed",
+        "url": {
+          "origin": "http://127.0.0.1:4340",
+          "path": "/campaigns/5"
+        },
+        "campaignTitle": "Vendors — Heavy Equipment",
+        "resultsApi": {
+          "status": 200,
+          "counts": {
+            "eligible": 13,
+            "excluded": 0,
+            "sent": 13,
+            "failed": 0,
+            "deferred": 0,
+            "nextAvailableAt": null
+          },
+          "launches": 1
+        },
+        "metricsApi": {
+          "status": 200,
+          "sent": 13,
+          "trackingSince": null
+        },
+        "legacyResultsSent": "SENT\n13",
+        "kpiSent": "SENT\n13",
+        "trackingDisclosure": "Historical tracking not available",
+        "unknownMetrics": [
+          "Not tracked",
+          "Not tracked"
+        ],
+        "screenshot": "screenshots/campaign-5-results.png",
+        "fixtureEvidence": {
+          "campaign": {
+            "id": 5,
+            "status": "completed",
+            "channel": "email"
+          },
+          "launch": {
+            "id": 5,
+            "status": "completed",
+            "sent_count": 13
+          },
+          "sourceSha256": "ddf76476fafc79810b0219a4d5819d66dd56ca60a337925d01efd16568b0c9a0",
+          "syntheticRecipients": 13,
+          "syntheticSends": 13,
+          "fixtureVerification": {
+            "id": 5,
+            "name": "Vendors — Heavy Equipment",
+            "status": "completed",
+            "no_tracking": true,
+            "launch_id": 5,
+            "launch_sent_count": 13,
+            "recipients_sent": 13,
+            "sent_emails": 13,
+            "recipient_sent_at_null": 13,
+            "email_sent_at_retained": 13
+          },
+          "fixtureDatabase": "visual_refresh_fixture_1903_1791255048704",
+          "productionDataRehearsalCertified": false
+        },
+        "sourceRows": {
+          "launches": 1,
+          "sends": 13,
+          "recipients": 13
+        },
+        "noLaunchAction": true,
+        "noDeliveryAction": true,
+        "productionDataRehearsalCertified": false
+      }
+    }
+  ],
+  "screenshots": [],
+  "startedAt": "2026-10-06T02:50:48.459Z",
+  "updatedAt": "2026-10-06T02:51:44.449Z",
+  "build": false,
+  "routePort": 4340,
+  "routeVisits": 0,
+  "fixtureDatabase": "visual_refresh_fixture_1903_1791255048704",
+  "fixtureUrl": "http://127.0.0.1:4340",
+  "syntheticClerkUserIds": [
+    "user_3KIphcZqe5vWxPefxIZTRnDmJt0",
+    "user_3KIphgLqfU2jwnY0IDBShgvALbO",
+    "user_3KIphdA61gG9l5iB6U1qNvZIb7N"
+  ],
+  "campaignFixture": "writing only to guarded disposable schema-only clone",
+  "failure": "Error: Campaign-only assertion failed: {\"generatedSqlTransactionPassedAndRolledBack\":true,\"campaignResultsSent13\":true,\"campaignApiStatusesAndCountsVerified\":true,\"allCampaignHttpErrorsClassified\":false,\"campaignConsoleErrorsClassified\":false,\"serviceWorkerConsoleErrorsZero\":true,\"pageExceptionsZero\":true}\n    at check (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:42:46)\n    at file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:694:5",
+  "finalSummary": {
+    "status": "CAMPAIGN_ONLY_INCOMPLETE_OR_FAILED",
+    "target": "b3975aea8761ce5cdb43ec3206fe995ee012883a",
+    "snapshot": "3d40d822dae9eeb103ba65923b4e445a7c8531a2",
+    "webIndexSha256": "704b9236468e84d7fd5c85f7c5305ee8659cc4ca2c2c87c5db7786d45ad5d6ca",
+    "apiDistSha256": "fbb87d2f59917f20c4bf42f8dfd1da8149611add98d6269d189566cb09bfc79c",
+    "structureEvidence": "attempt 6, separately preserved, 36/36 pass",
+    "priorSupplementalExecution": {
+      "status": "INCOMPLETE_OR_FAILED",
+      "exitCode": 1,
+      "candidateHttpVisits": 18,
+      "leadsJourneys": 22,
+      "leadsScreenshots": 8
+    },
+    "campaignOnlyAssertions": {
+      "generatedSqlTransactionPassedAndRolledBack": true,
+      "campaignResultsSent13": true,
+      "campaignApiStatusesAndCountsVerified": true,
+      "allCampaignHttpErrorsClassified": false,
+      "campaignConsoleErrorsClassified": false,
+      "serviceWorkerConsoleErrorsZero": true,
+      "pageExceptionsZero": true
+    },
+    "campaignScreenshot": "screenshots/campaign-5-results.png",
+    "noSingleRunExitClaim": true,
+    "productionDataRehearsalCertified": false,
+    "failure": "Error: Campaign-only assertion failed: {\"generatedSqlTransactionPassedAndRolledBack\":true,\"campaignResultsSent13\":true,\"campaignApiStatusesAndCountsVerified\":true,\"allCampaignHttpErrorsClassified\":false,\"campaignConsoleErrorsClassified\":false,\"serviceWorkerConsoleErrorsZero\":true,\"pageExceptionsZero\":true}\n    at check (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:42:46)\n    at file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:694:5"
+  }
+}

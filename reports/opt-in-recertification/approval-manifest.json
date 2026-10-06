@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "additions": {
+    "label": "approved Lead Detail additions",
+    "controls": [
+      {
+        "tag": "INPUT",
+        "role": null,
+        "type": null,
+        "name": "Search referrer",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "name": "Share referral link",
+        "href": null,
+        "disabled": false
+      }
+    ],
+    "cases": [
+      "lead-detail-390-admin",
+      "lead-detail-768-admin",
+      "lead-detail-390-manager",
+      "lead-detail-768-manager",
+      "lead-detail-390-rep",
+      "lead-detail-768-rep"
+    ],
+    "expectedOccurrencesPerControlPerCase": 1,
+    "expectedTotal": 12,
+    "candidateMustContain": true
+  },
+  "removals": [
+    {
+      "label": "approved directory-error Retry removal",
+      "control": {
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "name": "Retry",
+        "href": null,
+        "disabled": false
+      },
+      "cases": [
+        "leads-390-rep",
+        "leads-768-rep",
+        "pipeline-390-rep",
+        "pipeline-768-rep"
+      ],
+      "expectedBaselineOccurrencesPerCase": 1,
+      "expectedArchivedOccurrencesPerCase": 1,
+      "expectedCandidateOccurrencesPerCase": 0,
+      "expectedBaselineTotal": 4,
+      "expectedArchivedTotal": 4,
+      "expectedCandidateTotal": 0,
+      "applyOnlyToListedCases": true,
+      "doNotFilterOtherRetryControls": true
+    }
+  ],
+  "existingExemptions": {
+    "archivedInventory": "reports/structural-certification-2026-10-03/after/exempt-controls.json",
+    "mustRemainUnchangedForAll36RolePageViewportCases": true,
+    "mayNotBeWidened": true
+  },
+  "strictRemainder": {
+    "caseCount": 36,
+    "targetControlsAfterOnlyTheseApprovedDeltasMustEqualBaselineAndArchivedInventoryInOriginalOrder": true,
+    "anyOtherDifferenceFails": true
+  }
+}

@@ -1,0 +1,14 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: Twilio token source proof no longer matches expected missing-credential 503
+    at check (file:///home/runner/workspace/reports/opt-in-recertification/final-certification.mjs:42:46)
+    at verifyExpectedFixtureSources (file:///home/runner/workspace/reports/opt-in-recertification/final-certification.mjs:121:3)
+    at async file:///home/runner/workspace/reports/opt-in-recertification/final-certification.mjs:587:17
+
+Node.js v24.13.0

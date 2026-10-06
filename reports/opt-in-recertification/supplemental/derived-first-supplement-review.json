@@ -1,0 +1,4742 @@
+{
+  "status": "DERIVED_FIRST_SUPPLEMENT_REVIEW; campaign step still incomplete",
+  "scope": "fresh supplemental trace only; attempt-6 primitive console events not imported or reclassified",
+  "http": {
+    "statusRows": [
+      {
+        "type": "cdp-status",
+        "eventId": "http-1",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePathAtInitiation": "/dashboard",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:06.007Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:06.248Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-1",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePathAtInitiation": "/dashboard",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:06.002Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:06.255Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-1",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePathAtInitiation": "/dashboard",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:06.001Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:06.259Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 2
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-7",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:leads:390",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:08.430Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:08.458Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-7",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:leads:390",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:08.407Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:08.463Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 2
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-11",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:leads:390",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:08.517Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:08.543Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-13",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.627Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:10.733Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-13",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.627Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:10.734Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "No application on file"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-13",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.618Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:10.735Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-13",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.618Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:10.736Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "No application on file"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-21",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.799Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:10.902Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-21",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:10.799Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:10.902Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "No application on file"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-25",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:11.743Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:11.761Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-25",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:11.743Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:11.764Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-27",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:11.909Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:11.934Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-28",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePathAtInitiation": "/deals",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:12.930Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:12.951Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-30",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePathAtInitiation": "/deals",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:12.977Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:13.013Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 2
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-32",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePathAtInitiation": "/deals",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:13.050Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:13.074Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 2
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-34",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "rep",
+        "phase": "supplemental:target:settings:390",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:16.939Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:16.965Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-36",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "manager",
+        "phase": "supplemental:target:settings:390",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:17.034Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:17.049Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-38",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:settings:390",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:17.100Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:17.116Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-40",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "role": "admin",
+        "phase": "supplemental:target:settings:390",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/settings-X4UtzK5H.js"
+              },
+              "lineNumber": 7,
+              "columnNumber": 11166
+            },
+            {
+              "functionName": "fa",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 83754
+            },
+            {
+              "functionName": "Ki",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 99389
+            },
+            {
+              "functionName": "xb",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 99093
+            },
+            {
+              "functionName": "rs",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 98363
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:17.407Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:17.433Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio owned-number lookup unavailable"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-42",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:52.398Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:52.466Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 2
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-44",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:55.518Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:55.536Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-46",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:57.304Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:57.555Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "No application on file"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-48",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:58.122Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:40:58.188Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-50",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:58.718Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:58.815Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-51",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:40:59.819Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:40:59.832Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-52",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:00.857Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:00.891Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-54",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:01.350Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:41:01.495Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-55",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/leads/[REDACTED_ID]/application"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads/[REDACTED_ID]",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "iF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 173865
+            },
+            {
+              "functionName": "queryFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 174031
+            },
+            {
+              "functionName": "a",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 21274
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:02.497Z",
+        "status": 404,
+        "statusText": "Not Found",
+        "observedAt": "2026-10-06T02:41:02.508Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected fixture application absence; explicit response-body association ambiguity",
+        "reasonOrAmbiguity": {
+          "ambiguity": "7 response-body-reason events lack role/page/request fields because parallel CDP request IDs collide",
+          "supportingReason": {
+            "error": "No application on file"
+          },
+          "sourceBranchValidated": true
+        },
+        "bodyAssociation": "explicitly ambiguous",
+        "responseDeltaMs": null
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-56",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:03.439Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:03.477Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-58",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:05.668Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:05.712Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-60",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:07.990Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:08.011Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-62",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:10.239Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:10.277Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-64",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:12.522Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:12.547Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-66",
+        "method": "GET",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/settings/telephony/owned-numbers"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/settings",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/settings-X4UtzK5H.js"
+              },
+              "lineNumber": 7,
+              "columnNumber": 11166
+            },
+            {
+              "functionName": "fa",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 83754
+            },
+            {
+              "functionName": "Ki",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 99389
+            },
+            {
+              "functionName": "xb",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 99093
+            },
+            {
+              "functionName": "rs",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 8,
+              "columnNumber": 98363
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:12.826Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:12.846Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio owned-number lookup unavailable"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-68",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:14.777Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:14.805Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-70",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:16.984Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:17.021Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-72",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:19.239Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:19.280Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 0
+      },
+      {
+        "type": "cdp-status",
+        "eventId": "http-74",
+        "method": "POST",
+        "url": {
+          "origin": "http://127.0.0.1:4330",
+          "path": "/api/twilio/token"
+        },
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePathAtInitiation": "/leads",
+        "initiator": {
+          "type": "script",
+          "url": null,
+          "stack": [
+            {
+              "functionName": "W",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 152895
+            },
+            {
+              "functionName": "SF",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175574
+            },
+            {
+              "functionName": "mutationFn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 23,
+              "columnNumber": 175724
+            },
+            {
+              "functionName": "fn",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 31954
+            },
+            {
+              "functionName": "O",
+              "url": {
+                "origin": "http://127.0.0.1:4330",
+                "path": "/assets/index-C8h006Vw.js"
+              },
+              "lineNumber": 16,
+              "columnNumber": 15845
+            }
+          ]
+        },
+        "resourceType": "Fetch",
+        "initiatedAt": "2026-10-06T02:41:21.569Z",
+        "status": 503,
+        "statusText": "Service Unavailable",
+        "observedAt": "2026-10-06T02:41:21.598Z",
+        "reason": null,
+        "playwrightResponseMerged": false,
+        "classification": "expected isolated-fixture missing Twilio credentials",
+        "reasonOrAmbiguity": {
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        },
+        "bodyAssociation": "direct",
+        "responseDeltaMs": 1
+      }
+    ],
+    "counts": {
+      "total": 41,
+      "status403": 0,
+      "status404": 11,
+      "status503": 30,
+      "directBody": 34,
+      "explicitAmbiguity": 7,
+      "unexpectedOrInsufficient": 0
+    }
+  },
+  "console": {
+    "rows": [
+      {
+        "eventId": "console-1",
+        "role": "admin",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePath": "/dashboard",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:06.248Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/dashboard",
+            "phase": "supplemental:target:dashboard:390",
+            "observedAt": "2026-10-06T02:40:06.248Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-2",
+        "role": "manager",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePath": "/dashboard",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:06.254Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "manager",
+            "page": "/dashboard",
+            "phase": "supplemental:target:dashboard:390",
+            "observedAt": "2026-10-06T02:40:06.255Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-3",
+        "role": "rep",
+        "phase": "supplemental:target:dashboard:390",
+        "pagePath": "/dashboard",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:06.258Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "rep",
+            "page": "/dashboard",
+            "phase": "supplemental:target:dashboard:390",
+            "observedAt": "2026-10-06T02:40:06.259Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-4",
+        "role": "manager",
+        "phase": "supplemental:target:leads:390",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:08.458Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "manager",
+            "page": "/leads",
+            "phase": "supplemental:target:leads:390",
+            "observedAt": "2026-10-06T02:40:08.458Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-5",
+        "role": "rep",
+        "phase": "supplemental:target:leads:390",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:08.463Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "rep",
+            "page": "/leads",
+            "phase": "supplemental:target:leads:390",
+            "observedAt": "2026-10-06T02:40:08.463Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-6",
+        "role": "admin",
+        "phase": "supplemental:target:leads:390",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:08.542Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:target:leads:390",
+            "observedAt": "2026-10-06T02:40:08.543Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-7",
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:10.733Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "manager",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.733Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-8",
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:10.734Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "manager",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.734Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "manager",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.761Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-9",
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:10.735Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "rep",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.735Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-10",
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:10.736Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "rep",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.736Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "rep",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.764Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-11",
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:10.901Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.902Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-12",
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:10.902Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.902Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.934Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-13",
+        "role": "manager",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:11.759Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "manager",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.734Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "manager",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.761Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-14",
+        "role": "rep",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:11.764Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "rep",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.736Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "rep",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.764Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-15",
+        "role": "admin",
+        "phase": "supplemental:target:lead-detail:390",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:11.933Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:10.902Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:target:lead-detail:390",
+            "observedAt": "2026-10-06T02:40:11.934Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-16",
+        "role": "rep",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePath": "/deals",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:12.950Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "rep",
+            "page": "/deals",
+            "phase": "supplemental:target:pipeline:390",
+            "observedAt": "2026-10-06T02:40:12.951Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-17",
+        "role": "manager",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePath": "/deals",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:13.012Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "manager",
+            "page": "/deals",
+            "phase": "supplemental:target:pipeline:390",
+            "observedAt": "2026-10-06T02:40:13.013Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-18",
+        "role": "admin",
+        "phase": "supplemental:target:pipeline:390",
+        "pagePath": "/deals",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:13.073Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/deals",
+            "phase": "supplemental:target:pipeline:390",
+            "observedAt": "2026-10-06T02:40:13.074Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-19",
+        "role": "rep",
+        "phase": "supplemental:target:settings:390",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:16.965Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "rep",
+            "page": "/settings",
+            "phase": "supplemental:target:settings:390",
+            "observedAt": "2026-10-06T02:40:16.965Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-20",
+        "role": "manager",
+        "phase": "supplemental:target:settings:390",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:17.049Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "manager",
+            "page": "/settings",
+            "phase": "supplemental:target:settings:390",
+            "observedAt": "2026-10-06T02:40:17.049Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-21",
+        "role": "admin",
+        "phase": "supplemental:target:settings:390",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:17.116Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/settings",
+            "phase": "supplemental:target:settings:390",
+            "observedAt": "2026-10-06T02:40:17.116Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-22",
+        "role": "admin",
+        "phase": "supplemental:target:settings:390",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:17.433Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/settings/telephony/owned-numbers",
+            "status": 503,
+            "role": "admin",
+            "page": "/settings",
+            "phase": "supplemental:target:settings:390",
+            "observedAt": "2026-10-06T02:40:17.433Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-23",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:52.465Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:52.466Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-24",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:55.535Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:55.536Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-25",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:57.554Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:57.555Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:58.815Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-26",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:40:58.188Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:58.188Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-27",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:58.815Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:57.555Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:58.815Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:59.832Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-28",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:40:59.832Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:58.815Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:59.832Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:01.495Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-29",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:00.891Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:00.891Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-30",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:41:01.495Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:40:59.832Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:01.495Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:02.508Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-31",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads/[REDACTED_ID]",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "observedAt": "2026-10-06T02:41:02.508Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/leads/[REDACTED_ID]/application"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:01.495Z"
+          },
+          {
+            "method": "GET",
+            "path": "/api/leads/[REDACTED_ID]/application",
+            "status": 404,
+            "role": "admin",
+            "page": "/leads/[REDACTED_ID]",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:02.508Z"
+          }
+        ],
+        "matchConfidence": "ambiguous multiple exact matches",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-32",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:03.477Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:03.477Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-33",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:05.712Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:05.712Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-34",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:08.011Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:08.011Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-35",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:10.277Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:10.277Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-36",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:12.547Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/settings",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:12.547Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-37",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/settings",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:12.846Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/settings/telephony/owned-numbers"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "GET",
+            "path": "/api/settings/telephony/owned-numbers",
+            "status": 503,
+            "role": "admin",
+            "page": "/settings",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:12.846Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-38",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:14.805Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:14.805Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-39",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:17.021Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:17.021Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-40",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:19.280Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:19.280Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      },
+      {
+        "eventId": "console-41",
+        "role": "admin",
+        "phase": "supplemental:journey:login",
+        "pagePath": "/leads",
+        "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "observedAt": "2026-10-06T02:41:21.598Z",
+        "location": {
+          "url": {
+            "origin": "http://127.0.0.1:4330",
+            "path": "/api/twilio/token"
+          },
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "matchedStatusRows": [
+          {
+            "method": "POST",
+            "path": "/api/twilio/token",
+            "status": 503,
+            "role": "admin",
+            "page": "/leads",
+            "phase": "supplemental:journey:login",
+            "observedAt": "2026-10-06T02:41:21.598Z"
+          }
+        ],
+        "matchConfidence": "unique exact role/url/page/status/time",
+        "serviceWorkerException": false,
+        "classification": "expected response-status console event"
+      }
+    ],
+    "counts": {
+      "total": 41,
+      "unique": 30,
+      "ambiguous": 11,
+      "unmatched": 0,
+      "serviceWorkerErrors": 0
+    }
+  },
+  "journeys": {
+    "candidateRouteVisits": 18,
+    "requiredRouteVisits": 18,
+    "functionalSteps": 22,
+    "screenshotFiles": [
+      "leads-1280-dark.png",
+      "leads-1280-light.png",
+      "leads-1440-dark.png",
+      "leads-1440-light.png",
+      "leads-390-dark.png",
+      "leads-390-light.png",
+      "leads-768-dark.png",
+      "leads-768-light.png"
+    ],
+    "screenshotCount": 8,
+    "campaignSent13": false,
+    "campaignInsertFailure": "Error: Historical campaign fixture insert failed: ERROR:  syntax error at or near \"Synthetic\"\nLINE 3:       'Synthetic Campaign Recipient 01','equipment','contact...\n               ^\n\n    at check (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:39:46)\n    at restoreHistoricalCampaign (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:533:3)\n    at async campaignJourney (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:547:43)\n    at async file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:661:3"
+  },
+  "assertions": {
+    "candidateRouteVisits18": true,
+    "leadsJourneys22Recorded": true,
+    "pageExceptionsZero": true,
+    "candidateRepGetUsersRequestsZero": true,
+    "serviceWorkerErrorsZero": true,
+    "everyConsoleErrorMatched": true,
+    "allHttpStatusesExpectedOrExplicitlyAmbiguous": true,
+    "eightLeadsScreenshots": true,
+    "originalAttempt6EvidenceUnchanged": true,
+    "sourceBranchesProven": true,
+    "campaignResultsSent13": false,
+    "supplementalUsersDeletedAndAbsent": true,
+    "supplementalFixtureDatabaseAbsent": true
+  },
+  "requestFailures": [
+    {
+      "role": "admin",
+      "phase": "supplemental:journey:login",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4330",
+        "path": "/api/deals",
+        "query": {
+          "lead_id": "[REDACTED]"
+        }
+      },
+      "pagePath": "/leads/[REDACTED_ID]",
+      "failure": "net::ERR_ABORTED",
+      "observedAt": "2026-10-06T02:40:57.651Z"
+    },
+    {
+      "role": "admin",
+      "phase": "supplemental:journey:login",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4330",
+        "path": "/api/referrals/lead/1"
+      },
+      "pagePath": "/leads/[REDACTED_ID]",
+      "failure": "net::ERR_ABORTED",
+      "observedAt": "2026-10-06T02:40:57.651Z"
+    },
+    {
+      "role": "admin",
+      "phase": "supplemental:journey:login",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4330",
+        "path": "/api/leads/[REDACTED_ID]/campaign-engagement"
+      },
+      "pagePath": "/leads/[REDACTED_ID]",
+      "failure": "net::ERR_ABORTED",
+      "observedAt": "2026-10-06T02:40:57.652Z"
+    },
+    {
+      "role": "admin",
+      "phase": "supplemental:journey:login",
+      "method": "GET",
+      "url": {
+        "origin": "http://127.0.0.1:4330",
+        "path": "/api/leads/[REDACTED_ID]/campaign-replies"
+      },
+      "pagePath": "/leads/[REDACTED_ID]",
+      "failure": "net::ERR_ABORTED",
+      "observedAt": "2026-10-06T02:40:57.652Z"
+    }
+  ],
+  "attempt6OriginalRawEventCount": 143,
+  "originalRunSummaryStatus": "INCOMPLETE_OR_FAILED",
+  "originalEvidenceIntegrity": {
+    "before": {
+      "leads-certification.json": "291b08098199723d28776dd82ab5ff7868ab3e29b9bed506af9c39b69fb908a5",
+      "structure-controls.json": "cd262121a71e01a2b2c04a23935d9e1763aa8ab29a8516abbaeb9d088eaa5a13",
+      "structure-differences.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "approved-exceptions.json": "a10a0f6f1ae9bd4bb8f4b79cbff13208426d32a2f8cec3abd4d7286d77e45fd5",
+      "capture-progress.json": "6fbad3fed0f35d20bc0ad6b33f30f64ce8507b85d343673fe2c4b57d524b9975"
+    },
+    "after": {
+      "leads-certification.json": "291b08098199723d28776dd82ab5ff7868ab3e29b9bed506af9c39b69fb908a5",
+      "structure-controls.json": "cd262121a71e01a2b2c04a23935d9e1763aa8ab29a8516abbaeb9d088eaa5a13",
+      "structure-differences.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "approved-exceptions.json": "a10a0f6f1ae9bd4bb8f4b79cbff13208426d32a2f8cec3abd4d7286d77e45fd5",
+      "capture-progress.json": "6fbad3fed0f35d20bc0ad6b33f30f64ce8507b85d343673fe2c4b57d524b9975"
+    },
+    "unchanged": true
+  },
+  "cleanup": {
+    "verifiedAt": "2026-10-06T02:41:24.645Z",
+    "createdSyntheticUsers": 3,
+    "deletedAndAbsentUsers": 3,
+    "fixtureDatabase": "visual_refresh_fixture_610_1791254290346",
+    "fixtureDatabaseAbsent": true
+  },
+  "pageErrors": [],
+  "sourceProof": {
+    "routeResponsesProven": true
+  },
+  "note": "CDP request IDs collide across parallel contexts. Direct Playwright response bodies are matched by role, phase, method, status, URL, page, and time; the seven remaining application-404 bodies are explicitly ambiguous. The campaign SQL failure does not invalidate the saved Leads-stage evidence.",
+  "generatedAt": "2026-10-06T02:52:50.248Z"
+}

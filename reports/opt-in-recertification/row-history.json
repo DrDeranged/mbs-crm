@@ -1,0 +1,53 @@
+{
+  "revision": "1316888e5ead2f19986fa6fc1d6abe6755c43fe2",
+  "path": "artifacts/mbs-crm/src/pages/leads.tsx",
+  "blob": "04b52039d2ea0b411528094bd95fb80e5035dc76",
+  "sha256": "7cab885ff9e8faac6a31e0e0d3f6c46f426e687e9efc607018aa29f146b8bea3",
+  "tableRows": [
+    {
+      "line": 203,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 211,
+      "opening": "<TableRow key={h}>"
+    },
+    {
+      "line": 232,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 235,
+      "opening": "<TableRow key={i}>"
+    },
+    {
+      "line": 282,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 285,
+      "opening": "<TableRow key={i}>"
+    },
+    {
+      "line": 882,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 915,
+      "opening": "<TableRow key={i}>"
+    },
+    {
+      "line": 932,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 938,
+      "opening": "<TableRow>"
+    },
+    {
+      "line": 984,
+      "opening": "<TableRow\n                  key={lead.id}\n                  className={`cursor-pointer hover:bg-muted transition-colors ${selectedIds.has(lead.id) ? \"bg-info-bg/40\" : \"\"}`}\n                >"
+    }
+  ],
+  "wholeRowClickHandlers": 0
+}

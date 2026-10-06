@@ -1,0 +1,35 @@
+{
+  "status": "INCOMPLETE_OR_FAILED",
+  "sameImmutablePins": true,
+  "structureEvidence": {
+    "source": "reports/opt-in-recertification/final-cert-run/leads-certification.json (Main attempt 6)",
+    "completedSeparately": true,
+    "pass": true,
+    "comparisons": 36,
+    "additions": 12,
+    "retryBaseline": 4,
+    "retryArchived": 4,
+    "retryCandidate": 0
+  },
+  "supplementalEvidence": {
+    "candidateHttpVisits": 18,
+    "screenshots": [
+      "screenshots/leads-390-light.png",
+      "screenshots/leads-768-light.png",
+      "screenshots/leads-1280-light.png",
+      "screenshots/leads-1440-light.png",
+      "screenshots/leads-390-dark.png",
+      "screenshots/leads-768-dark.png",
+      "screenshots/leads-1280-dark.png",
+      "screenshots/leads-1440-dark.png"
+    ],
+    "journeys": 22,
+    "runtimeAssertions": null,
+    "campaignSent13": false,
+    "priorPrimitiveConsoleEventsImportedOrReclassified": false
+  },
+  "separateRunNoFabricatedSingleRunExit": true,
+  "productionDataRehearsalCertified": false,
+  "failure": "Error: Historical campaign fixture insert failed: ERROR:  syntax error at or near \"Synthetic\"\nLINE 3:       'Synthetic Campaign Recipient 01','equipment','contact...\n               ^\n\n    at check (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:39:46)\n    at restoreHistoricalCampaign (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:533:3)\n    at async campaignJourney (file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:547:43)\n    at async file:///home/runner/workspace/reports/opt-in-recertification/supplemental/supplemental-certification.mjs:661:3",
+  "completedAt": "2026-10-06T02:41:24.651Z"
+}

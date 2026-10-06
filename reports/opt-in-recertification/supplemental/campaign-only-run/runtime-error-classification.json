@@ -1,0 +1,286 @@
+{
+  "sourceProof": {
+    "files": {
+      "sandbox": "scripts/visual-refresh/sandbox.mjs",
+      "twilioToken": "artifacts/api-server/src/routes/twilio.ts",
+      "integrationHealth": "artifacts/api-server/src/lib/integrationHealth.ts",
+      "telephonySettingsRoute": "artifacts/api-server/src/routes/settings.ts",
+      "ownedNumbers": "artifacts/api-server/src/lib/telephonySettings.ts",
+      "application": "artifacts/api-server/src/routes/applications.ts"
+    },
+    "filesSha256": {
+      "sandbox": "809004c2053b0d40697e98284b19ca78ec71487cb8a5a0f3d5709ee25a827953",
+      "twilioToken": "cdbadcd8feecc380e24edfd6b92fd1a55dfc6613364303a7ceb39eb551639117",
+      "integrationHealth": "fee76a731c4c13176df106a1d22fda407e96cc1bcac94832e2c9a90f06e51ab7",
+      "telephonySettingsRoute": "b767ee4e3810c418db6ec431b59841be88a52dd03071f8b989ddd4fb574c0f0d",
+      "ownedNumbers": "f3aae163f7ea53d727170f5e7aba1fd01070defd27a1ada38ca05e7257d3a970",
+      "application": "80cfabd5e553d800a812dd2fa022e1fd97214f55867d8d8a21071e1c2031adb4"
+    },
+    "sandboxStripsTwilioEnvironment": true,
+    "routeResponsesProven": true
+  },
+  "assertions": {
+    "generatedSqlTransactionPassedAndRolledBack": true,
+    "campaignResultsSent13": true,
+    "campaignApiStatusesAndCountsVerified": true,
+    "allCampaignHttpErrorsClassified": false,
+    "campaignConsoleErrorsClassified": false,
+    "serviceWorkerConsoleErrorsZero": true,
+    "pageExceptionsZero": true
+  },
+  "incompleteHttp": [],
+  "unexpectedHttp": [
+    {
+      "eventId": "http-1",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4340",
+        "path": "/api/twilio/token"
+      },
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "pagePathAtInitiation": "/campaigns/5",
+      "initiator": {
+        "type": "script",
+        "url": null,
+        "stack": [
+          {
+            "functionName": "W",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 152895
+          },
+          {
+            "functionName": "SF",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 175574
+          },
+          {
+            "functionName": "mutationFn",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 175724
+          },
+          {
+            "functionName": "fn",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 16,
+            "columnNumber": 31954
+          },
+          {
+            "functionName": "O",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 16,
+            "columnNumber": 15845
+          }
+        ]
+      },
+      "resourceType": "Fetch",
+      "initiatedAt": "2026-10-06T02:51:43.545Z",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T02:51:43.720Z",
+      "reason": null,
+      "playwrightResponseMerged": false,
+      "detailComplete": true,
+      "reasonOrExplicitAmbiguity": {
+        "note": "Duplicate same-role/page/phase response; this response body was unavailable.",
+        "supportingResponse": {
+          "eventId": "http-1",
+          "status": 503,
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      },
+      "classification": "defect: unexpected status/path/reason",
+      "candidateResponse": true
+    }
+  ],
+  "unexpectedConsole": [
+    {
+      "eventId": "console-1",
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "pagePath": "/campaigns/5",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:51:43.720Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4340",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "matchedResponseIds": [
+        "http-1",
+        "http-1"
+      ],
+      "matchConfidence": "ambiguous multiple exact matches",
+      "serviceWorkerException": false,
+      "classification": "defect: unmatched/unexpected HTTP console error",
+      "candidateError": true
+    }
+  ],
+  "swErrors": [],
+  "pageErrors": [],
+  "httpResponses": [
+    {
+      "eventId": "http-1",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4340",
+        "path": "/api/twilio/token"
+      },
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "pagePathAtInitiation": "/campaigns/5",
+      "initiator": {
+        "type": "script",
+        "url": null,
+        "stack": [
+          {
+            "functionName": "W",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 152895
+          },
+          {
+            "functionName": "SF",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 175574
+          },
+          {
+            "functionName": "mutationFn",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 23,
+            "columnNumber": 175724
+          },
+          {
+            "functionName": "fn",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 16,
+            "columnNumber": 31954
+          },
+          {
+            "functionName": "O",
+            "url": {
+              "origin": "http://127.0.0.1:4340",
+              "path": "/assets/index-C8h006Vw.js"
+            },
+            "lineNumber": 16,
+            "columnNumber": 15845
+          }
+        ]
+      },
+      "resourceType": "Fetch",
+      "initiatedAt": "2026-10-06T02:51:43.545Z",
+      "status": 503,
+      "statusText": "Service Unavailable",
+      "observedAt": "2026-10-06T02:51:43.720Z",
+      "reason": null,
+      "playwrightResponseMerged": false,
+      "detailComplete": true,
+      "reasonOrExplicitAmbiguity": {
+        "note": "Duplicate same-role/page/phase response; this response body was unavailable.",
+        "supportingResponse": {
+          "eventId": "http-1",
+          "status": 503,
+          "reason": {
+            "error": "Twilio token unavailable",
+            "reason": "missing:TWILIO_ACCOUNT_SID"
+          }
+        }
+      },
+      "classification": "defect: unexpected status/path/reason",
+      "candidateResponse": true
+    },
+    {
+      "eventId": "http-1",
+      "method": "POST",
+      "url": {
+        "origin": "http://127.0.0.1:4340",
+        "path": "/api/twilio/token"
+      },
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "pagePathAtInitiation": "/campaigns/5",
+      "status": 503,
+      "observedAt": "2026-10-06T02:51:43.719Z",
+      "reason": {
+        "error": "Twilio token unavailable",
+        "reason": "missing:TWILIO_ACCOUNT_SID"
+      },
+      "playwrightResponseMerged": true,
+      "statusText": "Service Unavailable",
+      "detailComplete": true,
+      "reasonOrExplicitAmbiguity": {
+        "reason": {
+          "error": "Twilio token unavailable",
+          "reason": "missing:TWILIO_ACCOUNT_SID"
+        }
+      },
+      "classification": "expected isolated-fixture missing Twilio credentials",
+      "candidateResponse": true
+    }
+  ],
+  "consoleEvents": [
+    {
+      "eventId": "console-1",
+      "role": "admin",
+      "phase": "campaign-only:results",
+      "pagePath": "/campaigns/5",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "observedAt": "2026-10-06T02:51:43.720Z",
+      "location": {
+        "url": {
+          "origin": "http://127.0.0.1:4340",
+          "path": "/api/twilio/token"
+        },
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "matchedResponseIds": [
+        "http-1",
+        "http-1"
+      ],
+      "matchConfidence": "ambiguous multiple exact matches",
+      "serviceWorkerException": false,
+      "classification": "defect: unmatched/unexpected HTTP console error",
+      "candidateError": true
+    }
+  ],
+  "requestFailures": [],
+  "scope": "campaign-only continuation; does not rerun route capture or Leads journeys"
+}

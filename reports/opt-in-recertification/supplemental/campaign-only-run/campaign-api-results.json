@@ -1,0 +1,20 @@
+{
+  "resultsStatus": 200,
+  "resultsCounts": {
+    "eligible": 13,
+    "excluded": 0,
+    "sent": 13,
+    "failed": 0,
+    "deferred": 0,
+    "nextAvailableAt": null
+  },
+  "launches": 1,
+  "metricsStatus": 200,
+  "metrics": {
+    "sent": 13,
+    "trackingSince": null,
+    "uniqueFlyerClicks": null,
+    "replies": null,
+    "fundedDollars": null
+  }
+}
