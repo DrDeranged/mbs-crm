@@ -92,6 +92,20 @@ function validGmSplitPct(value: number | undefined): boolean {
   );
 }
 
+export function dealIdentityLabel(
+  deal: Pick<typeof dealsTable.$inferSelect, "leadId" | "dealName">,
+  contact?: Pick<DealLeadContact, "companyName" | "contactName"> | null,
+): string {
+  // An unlinked deal's own business label is not a projection of a private lead.
+  // Never fall back to it when a linked lead is missing or inaccessible.
+  const storedLabel = deal.leadId == null ? deal.dealName?.trim() ?? "" : "";
+  const safeStoredLabel = /\bdeal\s*#?\s*\d+/i.test(storedLabel) ? "" : storedLabel;
+  const unavailable = deal.leadId == null
+    ? "No lead linked"
+    : contact ? "Contact not recorded" : "Lead details unavailable";
+  return entityLabel(contact?.companyName, contact?.contactName, safeStoredLabel || unavailable);
+}
+
 function toApi(
   deal: typeof dealsTable.$inferSelect,
   assignedUser?: typeof usersTable.$inferSelect | null,
@@ -110,8 +124,8 @@ function toApi(
     contactEmail: contact?.contactEmail ?? null,
     contactPhone: contact?.contactPhone ?? null,
     businessAddress: contact?.businessAddress ?? null,
-    dealName: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
-    entityLabel: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
+    dealName: dealIdentityLabel(deal, contact),
+    entityLabel: dealIdentityLabel(deal, contact),
     stage: deal.stage,
     amount: deal.amount ?? null,
     approxGm: deal.approxGm ?? null,
@@ -255,10 +269,22 @@ async function findDeal(id: number, database: typeof db = db) {
   });
 }
 
-function dealSearchCondition(search: string, user: Pick<typeof usersTable.$inferSelect, "id" | "role">) {
+export function dealSearchCondition(search: string, user: Pick<typeof usersTable.$inferSelect, "id" | "role">) {
   const pattern = `%${sanitizeLikeInput(search)}%`;
+  const storedNameSearch = ilike(dealsTable.dealName, pattern);
+  // Reps may search an unlinked deal's own name, but not a stored label
+  // associated with a lead whose contact details they cannot access.
+  const visibleStoredNameSearch = user.role === "rep"
+    ? and(storedNameSearch, or(
+      isNull(dealsTable.leadId),
+      exists(db.select({ id: leadsTable.id }).from(leadsTable).where(and(
+        eq(leadsTable.id, dealsTable.leadId),
+        eq(leadsTable.assignedRepId, user.id),
+      ))),
+    ))
+    : storedNameSearch;
   return or(
-    ilike(dealsTable.dealName, pattern),
+    visibleStoredNameSearch,
     exists(
       db.select({ id: leadsTable.id }).from(leadsTable).where(and(
         eq(leadsTable.id, dealsTable.leadId),
@@ -539,7 +565,7 @@ export function createExportDealsHandler(dependencies: {
         const contact = contacts.get(deal.leadId ?? -1);
         await writeCsvRow(res, dealCsvRow({
           ...deal,
-          dealName: entityLabel(contact?.companyName, contact?.contactName, "Deal"),
+          dealName: dealIdentityLabel(deal, contact),
         }, activityDates.get(deal.id)));
         exported++;
       }

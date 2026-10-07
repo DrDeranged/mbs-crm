@@ -18,6 +18,13 @@ test("contactName trims and combines available name parts only", () => {
   assert.equal(contactName({ firstName: " ", lastName: "" }), "");
 });
 
+test("deal cards accept authorized server business labels and explicit missing-contact states", () => {
+  assert.equal(formatDealIdentity({ entityLabel: "Existing Business LLC", companyName: null, contactName: null }), "Existing Business LLC");
+  assert.equal(formatDealIdentity({ entityLabel: "No lead linked" }), "No lead linked");
+  assert.equal(formatDealIdentity({ entityLabel: "Lead details unavailable" }), "Lead details unavailable");
+  assert.equal(formatDealIdentity({ entityLabel: "Current Lead Company — Jane Smith", companyName: "Current Lead Company", contactName: "Jane Smith" }), "Current Lead Company — Jane Smith");
+});
+
 test("formats deal identity using authorized linked lead fields with neutral fallback", () => {
   assert.equal(formatDealIdentity({
     id: 4,

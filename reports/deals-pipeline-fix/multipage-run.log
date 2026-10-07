@@ -1,0 +1,10 @@
+
+Running 1 test using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  1 tests/deals-pipeline-fix.spec.ts:273:5 › automatically loads every page when the pipeline has more than 100 deals (8.1s)
+
+  1 passed (1.1m)

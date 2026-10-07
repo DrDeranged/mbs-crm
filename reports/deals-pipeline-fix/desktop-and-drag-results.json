@@ -1,0 +1,307 @@
+{
+  "config": {
+    "argv": [
+      "/nix/store/9cyx2v23dip6p9q98384k9v06c96qskb-nodejs-24.13.0/bin/node",
+      "/home/runner/workspace/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "playwright.deals-pipeline-fix.config.ts"
+    ],
+    "configFile": "/home/runner/workspace/playwright.deals-pipeline-fix.config.ts",
+    "rootDir": "/home/runner/workspace/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/workspace/reports/deals-pipeline-fix/test-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/workspace/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/deals-pipeline-fix\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/deals-pipeline-fix/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "deals-pipeline-fix.spec.ts",
+      "file": "deals-pipeline-fix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "desktop pipeline identities and stage scrolling at target sizes, themes, and densities",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 20359,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m [\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m\n] {\n  clientWidth: \u001b[33m968\u001b[39m,\n  scrollWidth: \u001b[33m1360\u001b[39m,\n  inner: {\n    x: \u001b[33m64\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1344\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1408\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m64\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1344\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m light compact {\n  scrollTop: \u001b[33m5572\u001b[39m,\n  clientHeight: \u001b[33m325\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m365\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m142\u001b[39m,\n    height: \u001b[33m325\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m507\u001b[39m,\n    bottom: \u001b[33m546\u001b[39m,\n    left: \u001b[33m365\u001b[39m\n  },\n  board: {\n    x: \u001b[33m364\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m144\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m508\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m364\u001b[39m\n  },\n  last: {\n    x: \u001b[33m369\u001b[39m,\n    y: \u001b[33m326\u001b[39m,\n    width: \u001b[33m124\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m326\u001b[39m,\n    right: \u001b[33m493\u001b[39m,\n    bottom: \u001b[33m542.375\u001b[39m,\n    left: \u001b[33m369\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m light comfortable {\n  scrollTop: \u001b[33m4358\u001b[39m,\n  clientHeight: \u001b[33m325\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m402\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m325\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m688\u001b[39m,\n    bottom: \u001b[33m546\u001b[39m,\n    left: \u001b[33m402\u001b[39m\n  },\n  board: {\n    x: \u001b[33m401\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m689\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m401\u001b[39m\n  },\n  last: {\n    x: \u001b[33m410\u001b[39m,\n    y: \u001b[33m359\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m359\u001b[39m,\n    right: \u001b[33m670\u001b[39m,\n    bottom: \u001b[33m538\u001b[39m,\n    left: \u001b[33m410\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m [\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m\n] {\n  clientWidth: \u001b[33m968\u001b[39m,\n  scrollWidth: \u001b[33m1360\u001b[39m,\n  inner: {\n    x: \u001b[33m-187\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1344\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1157\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m-187\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1344\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m dark compact {\n  scrollTop: \u001b[33m5572\u001b[39m,\n  clientHeight: \u001b[33m325\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m114\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m142\u001b[39m,\n    height: \u001b[33m325\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m256\u001b[39m,\n    bottom: \u001b[33m546\u001b[39m,\n    left: \u001b[33m114\u001b[39m\n  },\n  board: {\n    x: \u001b[33m113\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m144\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m257\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m113\u001b[39m\n  },\n  last: {\n    x: \u001b[33m118\u001b[39m,\n    y: \u001b[33m326\u001b[39m,\n    width: \u001b[33m124\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m326\u001b[39m,\n    right: \u001b[33m242\u001b[39m,\n    bottom: \u001b[33m542.375\u001b[39m,\n    left: \u001b[33m118\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1024\u001b[39m \u001b[33m600\u001b[39m dark comfortable {\n  scrollTop: \u001b[33m4358\u001b[39m,\n  clientHeight: \u001b[33m325\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m402\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m325\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m688\u001b[39m,\n    bottom: \u001b[33m546\u001b[39m,\n    left: \u001b[33m402\u001b[39m\n  },\n  board: {\n    x: \u001b[33m401\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m366\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m689\u001b[39m,\n    bottom: \u001b[33m547\u001b[39m,\n    left: \u001b[33m401\u001b[39m\n  },\n  last: {\n    x: \u001b[33m410\u001b[39m,\n    y: \u001b[33m359\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m359\u001b[39m,\n    right: \u001b[33m670\u001b[39m,\n    bottom: \u001b[33m538\u001b[39m,\n    left: \u001b[33m410\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m [\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m\n] {\n  clientWidth: \u001b[33m1224\u001b[39m,\n  scrollWidth: \u001b[33m1360\u001b[39m,\n  inner: {\n    x: \u001b[33m-72\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1344\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1272\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m-72\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1344\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m light compact {\n  scrollTop: \u001b[33m5452\u001b[39m,\n  clientHeight: \u001b[33m445\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m229\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m142\u001b[39m,\n    height: \u001b[33m445\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m371\u001b[39m,\n    bottom: \u001b[33m666\u001b[39m,\n    left: \u001b[33m229\u001b[39m\n  },\n  board: {\n    x: \u001b[33m228\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m144\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m372\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m228\u001b[39m\n  },\n  last: {\n    x: \u001b[33m233\u001b[39m,\n    y: \u001b[33m446\u001b[39m,\n    width: \u001b[33m124\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m446\u001b[39m,\n    right: \u001b[33m357\u001b[39m,\n    bottom: \u001b[33m662.375\u001b[39m,\n    left: \u001b[33m233\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m light comfortable {\n  scrollTop: \u001b[33m4238\u001b[39m,\n  clientHeight: \u001b[33m445\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m530\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m445\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m816\u001b[39m,\n    bottom: \u001b[33m666\u001b[39m,\n    left: \u001b[33m530\u001b[39m\n  },\n  board: {\n    x: \u001b[33m529\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m817\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m529\u001b[39m\n  },\n  last: {\n    x: \u001b[33m538\u001b[39m,\n    y: \u001b[33m479\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m479\u001b[39m,\n    right: \u001b[33m798\u001b[39m,\n    bottom: \u001b[33m658\u001b[39m,\n    left: \u001b[33m538\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m [\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m,\n  \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m, \u001b[33m144\u001b[39m\n] {\n  clientWidth: \u001b[33m1224\u001b[39m,\n  scrollWidth: \u001b[33m1360\u001b[39m,\n  inner: {\n    x: \u001b[33m-59\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1344\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1285\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m-59\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1344\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m dark compact {\n  scrollTop: \u001b[33m5452\u001b[39m,\n  clientHeight: \u001b[33m445\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m242\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m142\u001b[39m,\n    height: \u001b[33m445\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m384\u001b[39m,\n    bottom: \u001b[33m666\u001b[39m,\n    left: \u001b[33m242\u001b[39m\n  },\n  board: {\n    x: \u001b[33m241\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m144\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m385\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m241\u001b[39m\n  },\n  last: {\n    x: \u001b[33m246\u001b[39m,\n    y: \u001b[33m446\u001b[39m,\n    width: \u001b[33m124\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m446\u001b[39m,\n    right: \u001b[33m370\u001b[39m,\n    bottom: \u001b[33m662.375\u001b[39m,\n    left: \u001b[33m246\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1280\u001b[39m \u001b[33m720\u001b[39m dark comfortable {\n  scrollTop: \u001b[33m4238\u001b[39m,\n  clientHeight: \u001b[33m445\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m530\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m445\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m816\u001b[39m,\n    bottom: \u001b[33m666\u001b[39m,\n    left: \u001b[33m530\u001b[39m\n  },\n  board: {\n    x: \u001b[33m529\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m486\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m817\u001b[39m,\n    bottom: \u001b[33m667\u001b[39m,\n    left: \u001b[33m529\u001b[39m\n  },\n  last: {\n    x: \u001b[33m538\u001b[39m,\n    y: \u001b[33m479\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m479\u001b[39m,\n    right: \u001b[33m798\u001b[39m,\n    bottom: \u001b[33m658\u001b[39m,\n    left: \u001b[33m538\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m [\n   \u001b[33m146.65625\u001b[39m, \u001b[33m146.671875\u001b[39m,\n  \u001b[33m146.671875\u001b[39m,  \u001b[33m146.65625\u001b[39m,\n  \u001b[33m146.671875\u001b[39m, \u001b[33m146.671875\u001b[39m,\n   \u001b[33m146.65625\u001b[39m, \u001b[33m146.671875\u001b[39m,\n  \u001b[33m146.671875\u001b[39m\n] {\n  clientWidth: \u001b[33m1384\u001b[39m,\n  scrollWidth: \u001b[33m1384\u001b[39m,\n  inner: {\n    x: \u001b[33m64\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1368\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1432\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m64\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1368\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m light compact {\n  scrollTop: \u001b[33m5272\u001b[39m,\n  clientHeight: \u001b[33m625\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m370.328125\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m144.671875\u001b[39m,\n    height: \u001b[33m625\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m515\u001b[39m,\n    bottom: \u001b[33m846\u001b[39m,\n    left: \u001b[33m370.328125\u001b[39m\n  },\n  board: {\n    x: \u001b[33m369.328125\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m146.671875\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m516\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m369.328125\u001b[39m\n  },\n  last: {\n    x: \u001b[33m374.328125\u001b[39m,\n    y: \u001b[33m626\u001b[39m,\n    width: \u001b[33m126.671875\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m626\u001b[39m,\n    right: \u001b[33m501\u001b[39m,\n    bottom: \u001b[33m842.375\u001b[39m,\n    left: \u001b[33m374.328125\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m light comfortable {\n  scrollTop: \u001b[33m4058\u001b[39m,\n  clientHeight: \u001b[33m625\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m610\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m625\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m896\u001b[39m,\n    bottom: \u001b[33m846\u001b[39m,\n    left: \u001b[33m610\u001b[39m\n  },\n  board: {\n    x: \u001b[33m609\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m897\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m609\u001b[39m\n  },\n  last: {\n    x: \u001b[33m618\u001b[39m,\n    y: \u001b[33m659\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m659\u001b[39m,\n    right: \u001b[33m878\u001b[39m,\n    bottom: \u001b[33m838\u001b[39m,\n    left: \u001b[33m618\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "compact column metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m [\n   \u001b[33m146.65625\u001b[39m, \u001b[33m146.671875\u001b[39m,\n  \u001b[33m146.671875\u001b[39m,  \u001b[33m146.65625\u001b[39m,\n  \u001b[33m146.671875\u001b[39m, \u001b[33m146.671875\u001b[39m,\n   \u001b[33m146.65625\u001b[39m, \u001b[33m146.671875\u001b[39m,\n  \u001b[33m146.671875\u001b[39m\n] {\n  clientWidth: \u001b[33m1384\u001b[39m,\n  scrollWidth: \u001b[33m1384\u001b[39m,\n  inner: {\n    x: \u001b[33m64\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m1368\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m1432\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m64\u001b[39m\n  },\n  innerScrollWidth: \u001b[33m1368\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m dark compact {\n  scrollTop: \u001b[33m5272\u001b[39m,\n  clientHeight: \u001b[33m625\u001b[39m,\n  scrollHeight: \u001b[33m5897\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m370.328125\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m144.671875\u001b[39m,\n    height: \u001b[33m625\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m515\u001b[39m,\n    bottom: \u001b[33m846\u001b[39m,\n    left: \u001b[33m370.328125\u001b[39m\n  },\n  board: {\n    x: \u001b[33m369.328125\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m146.671875\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m516\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m369.328125\u001b[39m\n  },\n  last: {\n    x: \u001b[33m374.328125\u001b[39m,\n    y: \u001b[33m626\u001b[39m,\n    width: \u001b[33m126.671875\u001b[39m,\n    height: \u001b[33m216.375\u001b[39m,\n    top: \u001b[33m626\u001b[39m,\n    right: \u001b[33m501\u001b[39m,\n    bottom: \u001b[33m842.375\u001b[39m,\n    left: \u001b[33m374.328125\u001b[39m\n  }\n}\n"
+                    },
+                    {
+                      "text": "deals scroll metrics \u001b[33m1440\u001b[39m \u001b[33m900\u001b[39m dark comfortable {\n  scrollTop: \u001b[33m4058\u001b[39m,\n  clientHeight: \u001b[33m625\u001b[39m,\n  scrollHeight: \u001b[33m4683\u001b[39m,\n  overflowY: \u001b[32m'auto'\u001b[39m,\n  stage: {\n    x: \u001b[33m610\u001b[39m,\n    y: \u001b[33m221\u001b[39m,\n    width: \u001b[33m286\u001b[39m,\n    height: \u001b[33m625\u001b[39m,\n    top: \u001b[33m221\u001b[39m,\n    right: \u001b[33m896\u001b[39m,\n    bottom: \u001b[33m846\u001b[39m,\n    left: \u001b[33m610\u001b[39m\n  },\n  board: {\n    x: \u001b[33m609\u001b[39m,\n    y: \u001b[33m181\u001b[39m,\n    width: \u001b[33m288\u001b[39m,\n    height: \u001b[33m666\u001b[39m,\n    top: \u001b[33m181\u001b[39m,\n    right: \u001b[33m897\u001b[39m,\n    bottom: \u001b[33m847\u001b[39m,\n    left: \u001b[33m609\u001b[39m\n  },\n  last: {\n    x: \u001b[33m618\u001b[39m,\n    y: \u001b[33m659\u001b[39m,\n    width: \u001b[33m260\u001b[39m,\n    height: \u001b[33m179\u001b[39m,\n    top: \u001b[33m659\u001b[39m,\n    right: \u001b[33m878\u001b[39m,\n    bottom: \u001b[33m838\u001b[39m,\n    left: \u001b[33m618\u001b[39m\n  }\n}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T13:55:00.509Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ba3e105635a0cca4acaa-62348445ea6dfc4d2126",
+          "file": "deals-pipeline-fix.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "authorized and private identities, no communication handoff, table/mobile fallback",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 15928,
+                  "error": {
+                    "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30",
+                    "stack": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:262:20)\n    at open (/home/runner/workspace/tests/deals-pipeline-fix.spec.ts:34:3)\n    at /home/runner/workspace/tests/deals-pipeline-fix.spec.ts:208:3",
+                    "location": {
+                      "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                      "column": 171,
+                      "line": 44
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                        "column": 171,
+                        "line": 44
+                      },
+                      "message": "Error: page.evaluate: e: You're already signed in.\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)\n    at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)\n    at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)\n    at async eval (eval at evaluate (:311:30), <anonymous>:2:26)\n    at async <anonymous>:337:30\n    at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:262:20)\n    at open (/home/runner/workspace/tests/deals-pipeline-fix.spec.ts:34:3)\n    at /home/runner/workspace/tests/deals-pipeline-fix.spec.ts:208:3"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "table scroll metrics { clientWidth: \u001b[33m918\u001b[39m, scrollWidth: \u001b[33m1318\u001b[39m, overflowX: \u001b[32m'auto'\u001b[39m }\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T13:56:29.359Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/deals-pipeline-fix/test-output/deals-pipeline-fix-authori-cfc04-ndoff-table-mobile-fallback/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/runner/workspace/reports/deals-pipeline-fix/test-output/deals-pipeline-fix-authori-cfc04-ndoff-table-mobile-fallback/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js",
+                    "column": 171,
+                    "line": 44
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ba3e105635a0cca4acaa-a6394bcd8e090b830e22",
+          "file": "deals-pipeline-fix.spec.ts",
+          "line": 150,
+          "column": 5
+        },
+        {
+          "title": "synthetic drag/drop changes and persists stage; tablet/phone kanban remains scrollable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13254,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T13:56:48.950Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ba3e105635a0cca4acaa-f4a5b3398983d8fc61ac",
+          "file": "deals-pipeline-fix.spec.ts",
+          "line": 236,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T13:54:59.250Z",
+    "duration": 192366.961,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

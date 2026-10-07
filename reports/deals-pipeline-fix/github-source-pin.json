@@ -1,0 +1,166 @@
+{
+  "localTestedSource": "313a5d4be0807f19a1c23d25b8a729a06f1081da",
+  "previousGitHubMain": "7f0c433f8e32977eda16640a34a6d1685933983f",
+  "scope": "Verified Deals pipeline fix and focused evidence only; not a full preflight",
+  "sharedCss": "Pipeline section matches tested source; GitHub Lead Detail section preserved",
+  "generatedClient": "listDeals, getListDealsUrl and getListDealsQueryKey match tested source semantically",
+  "published": false,
+  "files": [
+    {
+      "path": ".agents/memory/contact-action-boundaries.md",
+      "sha": "c5a686bd99598099285633b15805331dcf28cc0f"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/dealContactProjection.test.ts",
+      "sha": "9ab27143b6f3aa64eb77deb0319ed1272769fd3c"
+    },
+    {
+      "path": "artifacts/api-server/src/routes/deals.ts",
+      "sha": "d0b6fc7adb3cc546441be0269a4648b4bfd9fb3f"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/lib/recordIdentity.test.ts",
+      "sha": "91b3c6c2e97750ec4d91d7ec744c7c166ca9230d"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/pages/deals.tsx",
+      "sha": "7f8a8e93a0903039f07fcad103e94d84d17d59f8"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/styles/desktop-workspace.css",
+      "sha": "d1302f9ae659df05d600d2afff9e27350227f8a6"
+    },
+    {
+      "path": "playwright.deals-pipeline-fix.config.ts",
+      "sha": "afa8ed19f93c1b1409515b08abdf6972cd25f6cf"
+    },
+    {
+      "path": "tests/deals-pipeline-fix.spec.ts",
+      "sha": "e676bdff8ee1e6f99dfca115211597033f5cee2b"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/final-verification.md",
+      "sha": "a2a784be4588e9344d81e6c7cc247eac678eebba"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/focused-run-results.md",
+      "sha": "d92a992fe15c4d9acfcbc7daa1b91075141f83db"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/production-identity-audit.md",
+      "sha": "b744186e122bf2e4506b3939262eb8f135386abf"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/api-tests.txt",
+      "sha": "ffe19d57eac2d6b04e37df081ea9fe8fa3918054"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/web-tests.txt",
+      "sha": "3257225fb5d23d956669d1ec01308736cb32f0f8"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/api-typecheck.txt",
+      "sha": "6fddd8bc0db790e88b4a1d6c8a2e4d032528d583"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/web-typecheck.txt",
+      "sha": "45096c97da29aa3686e51b35a0cc165bdcab374b"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/cleanup.json",
+      "sha": "f6d797117edee98598448e273d775b48003e2df1"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-and-drag-results.json",
+      "sha": "2d5146fc16cedb992559910bf6ea15c4245172b7"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/role-and-mobile-results.json",
+      "sha": "0d8e693c4a48872592f47e1f556d60ffea633ad8"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/playwright-results.json",
+      "sha": "27cd4c450d9d7e1ccabf3df3d1e295e8cb9cd2a5"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/browser-run.log",
+      "sha": "ac0b90ba823245d051cfc42246bcfb36ff6f5469"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/role-and-mobile-run.log",
+      "sha": "8c6267e5557156942e2ec703ff1192a3a2bf8b36"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/multipage-run.log",
+      "sha": "ced8cab5706e9f298e987227f13b0f96d612e671"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/deal-drag-drop-persisted.png",
+      "sha": "d23312c08280f1e1bd23e7dce560242788be6291"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/deals-table-390.png",
+      "sha": "994d0d1a3a57b34dd8b7512162bc05a66a6ef180"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/deals-table-768.png",
+      "sha": "67549418d91d86f9b497351c2088de1c927571b2"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/deals-table.png",
+      "sha": "eeb78ef99fb27ddbf276549478a278d80d52bb6f"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1024x600-dark-comfortable.png",
+      "sha": "fa0e4a3a96f903820c30666042cd7abe55ed4aba"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1024x600-dark-compact.png",
+      "sha": "f6f2d219ab96da4ed694ab15afa4f28ef97904c6"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1024x600-light-comfortable.png",
+      "sha": "0e6d019a77b2f22805b882981ce04a6798979c6c"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1024x600-light-compact.png",
+      "sha": "11f5c1a7d80e2bd8eb93195147152a5c0d91b81d"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1280x720-dark-comfortable.png",
+      "sha": "5e602576469a2052c1f0d32ca68a76876099fc6c"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1280x720-dark-compact.png",
+      "sha": "cb185a6331b4ad9a897fdd3a52de13701d7e00ed"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1280x720-light-comfortable.png",
+      "sha": "f943cc18c53462e724b3e3bb1b75f547472c915d"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1280x720-light-compact.png",
+      "sha": "096e747c4dc3710d592067491cc53941945595d4"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1440x900-dark-comfortable.png",
+      "sha": "c19e72ae8d3151c5bd599dda261a6cc88f386eab"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1440x900-dark-compact.png",
+      "sha": "69fd7bf540745d8f3fbc3dac201582c110613f74"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1440x900-light-comfortable.png",
+      "sha": "94f78435c244ff370618060ef8b045e28f94ca0d"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/desktop-1440x900-light-compact.png",
+      "sha": "73acf61b2fac4c39d2fcc3803f60458af46c4c40"
+    },
+    {
+      "path": "reports/deals-pipeline-fix/rep-private-identity-check.png",
+      "sha": "6614db134990ce3f4aa93ff455ffbaca9f4b8e80"
+    }
+  ]
+}

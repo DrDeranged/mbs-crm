@@ -1,0 +1,4 @@
+
+> @workspace/mbs-crm@0.0.0 typecheck /home/runner/workspace/artifacts/mbs-crm
+> tsc -p tsconfig.json --noEmit
+

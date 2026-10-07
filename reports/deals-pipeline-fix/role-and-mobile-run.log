@@ -1,0 +1,11 @@
+
+Running 1 test using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+table scroll metrics { clientWidth: 918, scrollWidth: 1318, overflowX: 'auto' }
+  ✓  1 tests/deals-pipeline-fix.spec.ts:150:5 › authorized and private identities, no communication handoff, table/mobile fallback (26.8s)
+
+  1 passed (1.5m)

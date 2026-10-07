@@ -1,0 +1,591 @@
+
+Running 3 tests using 1 worker
+
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+compact column metrics 1024 600 [
+  144, 144, 144,
+  144, 144, 144,
+  144, 144, 144
+] {
+  clientWidth: 968,
+  scrollWidth: 1360,
+  inner: {
+    x: 64,
+    y: 181,
+    width: 1344,
+    height: 366,
+    top: 181,
+    right: 1408,
+    bottom: 547,
+    left: 64
+  },
+  innerScrollWidth: 1344
+}
+deals scroll metrics 1024 600 light compact {
+  scrollTop: 5572,
+  clientHeight: 325,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 365,
+    y: 221,
+    width: 142,
+    height: 325,
+    top: 221,
+    right: 507,
+    bottom: 546,
+    left: 365
+  },
+  board: {
+    x: 364,
+    y: 181,
+    width: 144,
+    height: 366,
+    top: 181,
+    right: 508,
+    bottom: 547,
+    left: 364
+  },
+  last: {
+    x: 369,
+    y: 326,
+    width: 124,
+    height: 216.375,
+    top: 326,
+    right: 493,
+    bottom: 542.375,
+    left: 369
+  }
+}
+deals scroll metrics 1024 600 light comfortable {
+  scrollTop: 4358,
+  clientHeight: 325,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 402,
+    y: 221,
+    width: 286,
+    height: 325,
+    top: 221,
+    right: 688,
+    bottom: 546,
+    left: 402
+  },
+  board: {
+    x: 401,
+    y: 181,
+    width: 288,
+    height: 366,
+    top: 181,
+    right: 689,
+    bottom: 547,
+    left: 401
+  },
+  last: {
+    x: 410,
+    y: 359,
+    width: 260,
+    height: 179,
+    top: 359,
+    right: 670,
+    bottom: 538,
+    left: 410
+  }
+}
+compact column metrics 1024 600 [
+  144, 144, 144,
+  144, 144, 144,
+  144, 144, 144
+] {
+  clientWidth: 968,
+  scrollWidth: 1360,
+  inner: {
+    x: -187,
+    y: 181,
+    width: 1344,
+    height: 366,
+    top: 181,
+    right: 1157,
+    bottom: 547,
+    left: -187
+  },
+  innerScrollWidth: 1344
+}
+deals scroll metrics 1024 600 dark compact {
+  scrollTop: 5572,
+  clientHeight: 325,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 114,
+    y: 221,
+    width: 142,
+    height: 325,
+    top: 221,
+    right: 256,
+    bottom: 546,
+    left: 114
+  },
+  board: {
+    x: 113,
+    y: 181,
+    width: 144,
+    height: 366,
+    top: 181,
+    right: 257,
+    bottom: 547,
+    left: 113
+  },
+  last: {
+    x: 118,
+    y: 326,
+    width: 124,
+    height: 216.375,
+    top: 326,
+    right: 242,
+    bottom: 542.375,
+    left: 118
+  }
+}
+deals scroll metrics 1024 600 dark comfortable {
+  scrollTop: 4358,
+  clientHeight: 325,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 402,
+    y: 221,
+    width: 286,
+    height: 325,
+    top: 221,
+    right: 688,
+    bottom: 546,
+    left: 402
+  },
+  board: {
+    x: 401,
+    y: 181,
+    width: 288,
+    height: 366,
+    top: 181,
+    right: 689,
+    bottom: 547,
+    left: 401
+  },
+  last: {
+    x: 410,
+    y: 359,
+    width: 260,
+    height: 179,
+    top: 359,
+    right: 670,
+    bottom: 538,
+    left: 410
+  }
+}
+compact column metrics 1280 720 [
+  144, 144, 144,
+  144, 144, 144,
+  144, 144, 144
+] {
+  clientWidth: 1224,
+  scrollWidth: 1360,
+  inner: {
+    x: -72,
+    y: 181,
+    width: 1344,
+    height: 486,
+    top: 181,
+    right: 1272,
+    bottom: 667,
+    left: -72
+  },
+  innerScrollWidth: 1344
+}
+deals scroll metrics 1280 720 light compact {
+  scrollTop: 5452,
+  clientHeight: 445,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 229,
+    y: 221,
+    width: 142,
+    height: 445,
+    top: 221,
+    right: 371,
+    bottom: 666,
+    left: 229
+  },
+  board: {
+    x: 228,
+    y: 181,
+    width: 144,
+    height: 486,
+    top: 181,
+    right: 372,
+    bottom: 667,
+    left: 228
+  },
+  last: {
+    x: 233,
+    y: 446,
+    width: 124,
+    height: 216.375,
+    top: 446,
+    right: 357,
+    bottom: 662.375,
+    left: 233
+  }
+}
+deals scroll metrics 1280 720 light comfortable {
+  scrollTop: 4238,
+  clientHeight: 445,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 530,
+    y: 221,
+    width: 286,
+    height: 445,
+    top: 221,
+    right: 816,
+    bottom: 666,
+    left: 530
+  },
+  board: {
+    x: 529,
+    y: 181,
+    width: 288,
+    height: 486,
+    top: 181,
+    right: 817,
+    bottom: 667,
+    left: 529
+  },
+  last: {
+    x: 538,
+    y: 479,
+    width: 260,
+    height: 179,
+    top: 479,
+    right: 798,
+    bottom: 658,
+    left: 538
+  }
+}
+compact column metrics 1280 720 [
+  144, 144, 144,
+  144, 144, 144,
+  144, 144, 144
+] {
+  clientWidth: 1224,
+  scrollWidth: 1360,
+  inner: {
+    x: -59,
+    y: 181,
+    width: 1344,
+    height: 486,
+    top: 181,
+    right: 1285,
+    bottom: 667,
+    left: -59
+  },
+  innerScrollWidth: 1344
+}
+deals scroll metrics 1280 720 dark compact {
+  scrollTop: 5452,
+  clientHeight: 445,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 242,
+    y: 221,
+    width: 142,
+    height: 445,
+    top: 221,
+    right: 384,
+    bottom: 666,
+    left: 242
+  },
+  board: {
+    x: 241,
+    y: 181,
+    width: 144,
+    height: 486,
+    top: 181,
+    right: 385,
+    bottom: 667,
+    left: 241
+  },
+  last: {
+    x: 246,
+    y: 446,
+    width: 124,
+    height: 216.375,
+    top: 446,
+    right: 370,
+    bottom: 662.375,
+    left: 246
+  }
+}
+deals scroll metrics 1280 720 dark comfortable {
+  scrollTop: 4238,
+  clientHeight: 445,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 530,
+    y: 221,
+    width: 286,
+    height: 445,
+    top: 221,
+    right: 816,
+    bottom: 666,
+    left: 530
+  },
+  board: {
+    x: 529,
+    y: 181,
+    width: 288,
+    height: 486,
+    top: 181,
+    right: 817,
+    bottom: 667,
+    left: 529
+  },
+  last: {
+    x: 538,
+    y: 479,
+    width: 260,
+    height: 179,
+    top: 479,
+    right: 798,
+    bottom: 658,
+    left: 538
+  }
+}
+compact column metrics 1440 900 [
+   146.65625, 146.671875,
+  146.671875,  146.65625,
+  146.671875, 146.671875,
+   146.65625, 146.671875,
+  146.671875
+] {
+  clientWidth: 1384,
+  scrollWidth: 1384,
+  inner: {
+    x: 64,
+    y: 181,
+    width: 1368,
+    height: 666,
+    top: 181,
+    right: 1432,
+    bottom: 847,
+    left: 64
+  },
+  innerScrollWidth: 1368
+}
+deals scroll metrics 1440 900 light compact {
+  scrollTop: 5272,
+  clientHeight: 625,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 370.328125,
+    y: 221,
+    width: 144.671875,
+    height: 625,
+    top: 221,
+    right: 515,
+    bottom: 846,
+    left: 370.328125
+  },
+  board: {
+    x: 369.328125,
+    y: 181,
+    width: 146.671875,
+    height: 666,
+    top: 181,
+    right: 516,
+    bottom: 847,
+    left: 369.328125
+  },
+  last: {
+    x: 374.328125,
+    y: 626,
+    width: 126.671875,
+    height: 216.375,
+    top: 626,
+    right: 501,
+    bottom: 842.375,
+    left: 374.328125
+  }
+}
+deals scroll metrics 1440 900 light comfortable {
+  scrollTop: 4058,
+  clientHeight: 625,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 610,
+    y: 221,
+    width: 286,
+    height: 625,
+    top: 221,
+    right: 896,
+    bottom: 846,
+    left: 610
+  },
+  board: {
+    x: 609,
+    y: 181,
+    width: 288,
+    height: 666,
+    top: 181,
+    right: 897,
+    bottom: 847,
+    left: 609
+  },
+  last: {
+    x: 618,
+    y: 659,
+    width: 260,
+    height: 179,
+    top: 659,
+    right: 878,
+    bottom: 838,
+    left: 618
+  }
+}
+compact column metrics 1440 900 [
+   146.65625, 146.671875,
+  146.671875,  146.65625,
+  146.671875, 146.671875,
+   146.65625, 146.671875,
+  146.671875
+] {
+  clientWidth: 1384,
+  scrollWidth: 1384,
+  inner: {
+    x: 64,
+    y: 181,
+    width: 1368,
+    height: 666,
+    top: 181,
+    right: 1432,
+    bottom: 847,
+    left: 64
+  },
+  innerScrollWidth: 1368
+}
+deals scroll metrics 1440 900 dark compact {
+  scrollTop: 5272,
+  clientHeight: 625,
+  scrollHeight: 5897,
+  overflowY: 'auto',
+  stage: {
+    x: 370.328125,
+    y: 221,
+    width: 144.671875,
+    height: 625,
+    top: 221,
+    right: 515,
+    bottom: 846,
+    left: 370.328125
+  },
+  board: {
+    x: 369.328125,
+    y: 181,
+    width: 146.671875,
+    height: 666,
+    top: 181,
+    right: 516,
+    bottom: 847,
+    left: 369.328125
+  },
+  last: {
+    x: 374.328125,
+    y: 626,
+    width: 126.671875,
+    height: 216.375,
+    top: 626,
+    right: 501,
+    bottom: 842.375,
+    left: 374.328125
+  }
+}
+deals scroll metrics 1440 900 dark comfortable {
+  scrollTop: 4058,
+  clientHeight: 625,
+  scrollHeight: 4683,
+  overflowY: 'auto',
+  stage: {
+    x: 610,
+    y: 221,
+    width: 286,
+    height: 625,
+    top: 221,
+    right: 896,
+    bottom: 846,
+    left: 610
+  },
+  board: {
+    x: 609,
+    y: 181,
+    width: 288,
+    height: 666,
+    top: 181,
+    right: 897,
+    bottom: 847,
+    left: 609
+  },
+  last: {
+    x: 618,
+    y: 659,
+    width: 260,
+    height: 179,
+    top: 659,
+    right: 878,
+    bottom: 838,
+    left: 618
+  }
+}
+  ✓  1 tests/deals-pipeline-fix.spec.ts:52:5 › desktop pipeline identities and stage scrolling at target sizes, themes, and densities (20.4s)
+table scroll metrics { clientWidth: 918, scrollWidth: 1318, overflowX: 'auto' }
+  ✘  2 tests/deals-pipeline-fix.spec.ts:150:5 › authorized and private identities, no communication handoff, table/mobile fallback (15.9s)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+  ✓  3 tests/deals-pipeline-fix.spec.ts:236:5 › synthetic drag/drop changes and persists stage; tablet/phone kanban remains scrollable (13.3s)
+
+
+  1) tests/deals-pipeline-fix.spec.ts:150:5 › authorized and private identities, no communication handoff, table/mobile fallback 
+
+    Error: page.evaluate: e: You're already signed in.
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at ip._baseFetch (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:171)
+        at async iu.execute (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:43:6812)
+        at async nX._baseMutate (https://select-humpback-65.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js:44:717)
+        at async eval (eval at evaluate (:311:30), <anonymous>:2:26)
+        at async <anonymous>:337:30
+        at Object.login (/home/runner/workspace/scripts/visual-refresh/sandbox.mjs:262:20)
+        at open (/home/runner/workspace/tests/deals-pipeline-fix.spec.ts:34:3)
+        at /home/runner/workspace/tests/deals-pipeline-fix.spec.ts:208:3
+
+    Error Context: reports/deals-pipeline-fix/test-output/deals-pipeline-fix-authori-cfc04-ndoff-table-mobile-fallback/error-context.md
+
+    Error Context: reports/deals-pipeline-fix/test-output/deals-pipeline-fix-authori-cfc04-ndoff-table-mobile-fallback/error-context.md
+
+  1 failed
+    tests/deals-pipeline-fix.spec.ts:150:5 › authorized and private identities, no communication handoff, table/mobile fallback 
+  2 passed (3.2m)

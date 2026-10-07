@@ -9,11 +9,11 @@ An authorized deal does not grant access to its linked lead. Lead-owned document
 
 **How to apply:** Keep related-record enrichment and action targets permission-scoped. A terminal status is not an action authorization rule; preserve financial validation, signed-document immutability and application-scoped SMS consent independently.
 
-Contact identity is company first, contact second, with a neutral record fallback when both are blank. Custom deal names remain secondary and searchable; historical notification/audit text must not be rewritten for display formatting.
+Contact identity is company first, contact second. A truly unlinked deal may display its own stored, non-numbered business label; a linked deal whose lead is missing or inaccessible must retain a neutral unavailable label, never fall back to the stored name.
 
-**Why:** Reps need consistent contact identification without changing stored business labels or historical evidence.
+**Why:** Reps need consistent contact identification without changing stored business labels or historical evidence. The user reported legitimate legacy pipeline business names disappearing as “Deal”; preserving authorized deal-owned metadata must not expose an inaccessible linked lead.
 
-**How to apply:** Use structured, authorized record data for current labels rather than editing historical text or inferring private contact details.
+**How to apply:** Use structured, authorized record data for current labels rather than editing historical text or inferring private contact details. Keep an unlinked business label separate from company/contact fields, do not invent lead links, and continue suppressing visible deal numbers.
 
 Mobile-web contact calls always use the device's native phone link, including landscape/touch layouts. Desktop CRM calling requires an actually registered, idle device, not merely an open dialer. Detail action areas must stay usable while scrolling without another floating control covering them or form fields.
 

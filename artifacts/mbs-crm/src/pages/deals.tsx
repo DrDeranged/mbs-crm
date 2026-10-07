@@ -3,7 +3,7 @@ import { useAssignmentDirectory as useListUsers } from "@/hooks/use-assignment-d
 import { PipelineSkeleton } from "@/components/page-skeletons";
 import { Link } from "wouter";
 import {
-  useListDeals,
+  listDeals,
   getListDealsQueryKey,
   useUpdateDeal,
   useSeedDeals,
@@ -46,7 +46,7 @@ import {
   User as UserIcon,
   ArrowUpDown,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -174,10 +174,27 @@ export default function DealsPage() {
     sort_by: sortBy,
     sort_order: sortOrder,
   };
-  const { data: response, isLoading, error: dealsError, refetch: refetchDeals } = useListDeals(listParams, {
-    query: { queryKey: getListDealsQueryKey(listParams) },
+  const {
+    data: dealPages,
+    isLoading,
+    error: dealsError,
+    refetch: refetchDeals,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: [...getListDealsQueryKey({ ...listParams, limit: 100 }), "pipeline"],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => listDeals({ ...listParams, page: pageParam, limit: 100 }),
+    getNextPageParam: (lastPage) => lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
   });
-  const deals = response?.deals || [];
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && !dealsError) {
+      void fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, dealsError, fetchNextPage]);
+  const response = dealPages?.pages[0];
+  const deals = dealPages?.pages.flatMap((page) => page.deals) ?? [];
 
   const {
     data: users,
@@ -361,7 +378,7 @@ export default function DealsPage() {
   const totals = visibleDealTotals(deals);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-muted">
+    <div className="flex-1 min-h-0 min-w-0 flex flex-col h-full bg-muted">
       <div className="flex-none px-6 py-4 border-b bg-card flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Deals</h1>
@@ -525,7 +542,7 @@ export default function DealsPage() {
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 min-h-0 min-w-0 overflow-hidden relative">
         {isLoading ? (
           <PipelineSkeleton />
         ) : dealsError && !response ? (
@@ -543,15 +560,15 @@ export default function DealsPage() {
             </div>
           </div>
         ) : view === "kanban" && isDesktop ? (
-          <div className="h-full overflow-hidden p-2" data-testid="deals-board-desktop">
-            <div className="deals-board-desktop h-full">
+          <div className="h-full min-h-0 overflow-x-auto overflow-y-hidden p-2" data-testid="deals-board-desktop">
+            <div className="deals-board-desktop h-full" data-density={compactKanban ? "compact" : "comfortable"}>
               {STAGES.map((stage) => {
                 const stageDeals = deals.filter((d) => d.stage === stage.id);
                 return (
                   <div
                     key={stage.id}
                     className={cn(
-                      "flex min-w-0 flex-col h-full rounded-xl border border-border bg-secondary/50 transition-colors",
+                      "flex min-h-0 min-w-0 flex-col h-full rounded-xl border border-border bg-secondary/50 transition-colors",
                       dragOverStage === stage.id ? "bg-info-bg border-info/30" : "",
                     )}
                     onDragOver={(e) => handleDragOver(e, stage.id)}
@@ -562,7 +579,14 @@ export default function DealsPage() {
                       <h3 className="deal-wrap min-w-0 text-xs font-semibold text-foreground">{stage.label}</h3>
                       <Badge variant="secondary" className="bg-card shrink-0">{stageDeals.length}</Badge>
                     </div>
-                    <div className="custom-scrollbar flex-1 space-y-1 overflow-y-auto p-1">
+                    <div
+                      className={cn("deals-stage-scroll custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain",
+                        compactKanban ? "space-y-1 p-1" : "space-y-2 p-2")}
+                      role="region"
+                      aria-label={`${stage.label} deals`}
+                      tabIndex={0}
+                      data-testid={`deals-stage-scroll-${stage.id}`}
+                    >
                       {stageDeals.map((deal) => {
                         const rep = users?.find((u) => u.id === deal.assignedTo);
                         const linkedContact = (deal as any).lead ?? (deal as any).contact;
@@ -592,7 +616,8 @@ export default function DealsPage() {
                               if ((e.target as HTMLElement).closest("[data-no-deal-drag]")) { e.preventDefault(); return; }
                               handleDragStart(e, deal);
                             }}
-                            className="deal-wrap group relative cursor-grab overflow-hidden rounded-lg border bg-card p-2 text-[11px] leading-snug active:cursor-grabbing"
+                            className={cn("deal-wrap group relative cursor-grab overflow-hidden rounded-lg border bg-card text-[11px] leading-snug active:cursor-grabbing",
+                              compactKanban ? "p-2" : "p-3")}
                           >
                             <Link href={`/deals/${deal.id}`} className="absolute inset-0 z-[var(--z-deal-card-bg)]" aria-label={`Open ${companyName || dealIdentity}`} />
                             <div className="pointer-events-none relative z-[var(--z-deal-card-content)] space-y-0.5">

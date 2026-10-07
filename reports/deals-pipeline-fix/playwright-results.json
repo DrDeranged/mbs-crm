@@ -1,0 +1,136 @@
+{
+  "config": {
+    "argv": [
+      "/nix/store/9cyx2v23dip6p9q98384k9v06c96qskb-nodejs-24.13.0/bin/node",
+      "/home/runner/workspace/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "playwright.deals-pipeline-fix.config.ts",
+      "--grep",
+      "automatically loads every page"
+    ],
+    "configFile": "/home/runner/workspace/playwright.deals-pipeline-fix.config.ts",
+    "rootDir": "/home/runner/workspace/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/workspace/reports/deals-pipeline-fix/test-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/workspace/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/deals-pipeline-fix\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/deals-pipeline-fix/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "deals-pipeline-fix.spec.ts",
+      "file": "deals-pipeline-fix.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "automatically loads every page when the pipeline has more than 100 deals",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8081,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Attention: Clerk collects telemetry data from its SDKs when connected to development instances.\n"
+                    },
+                    {
+                      "text": "The data collected is used to inform Clerk's product roadmap.\n"
+                    },
+                    {
+                      "text": "To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.\n"
+                    },
+                    {
+                      "text": "\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T14:07:38.522Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ba3e105635a0cca4acaa-bff87239c8a0f6eb5a0f",
+          "file": "deals-pipeline-fix.spec.ts",
+          "line": 273,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T14:07:37.165Z",
+    "duration": 67572.40299999999,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

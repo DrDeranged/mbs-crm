@@ -1,0 +1,19 @@
+✔ kanban has exactly nine supported deal-stage columns (2.13065ms)
+✔ compact Kanban sizing keeps nine columns at least 120px wide (0.178649ms)
+✔ compact is the default while explicit per-user preferences still win (0.142593ms)
+✔ compact Kanban fits the actual board area at 1280px and 1440px (0.625875ms)
+✔ uses the exact built-in view stage predicates and serialization (0.151173ms)
+✔ formats split GM without changing the underlying amount (18.575944ms)
+✔ totals nullable fields after exact view filtering (0.727305ms)
+✔ formats lead identity company first and tolerates missing or blank fields (1.415089ms)
+✔ contactName trims and combines available name parts only (0.222654ms)
+✔ deal cards accept authorized server business labels and explicit missing-contact states (0.457186ms)
+✔ formats deal identity using authorized linked lead fields with neutral fallback (0.347451ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 330.941668
