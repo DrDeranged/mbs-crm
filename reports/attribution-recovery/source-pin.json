@@ -1,0 +1,108 @@
+{
+  "candidate": "2f002b1419b7862ac51cf951b9ae0b110c4c5c77",
+  "parent": "e2255dffba0fa8dffb96660ceed5c345755bc53b",
+  "tree": "101275cfd0e6ef9ea2ba17baa25dbc7a3993abf7",
+  "root": "/home/runner/workspace/.local/predeploy-c6fc40f-source",
+  "downloaded": 0,
+  "files": [
+    {
+      "path": "artifacts/api-server/src/runtime.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a6c91b47d0131ebd6de5a32910caeed87a12ce94"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/schemaBoot.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4bffa9d6287eb6353fdb750aa9da764f9731fdf9"
+    },
+    {
+      "path": "lib/db/migrations/069_campaign_attribution_recovery.sql",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cbcbb2552b2eb47cec038dc5d4fdcf5a2a97d8ff"
+    },
+    {
+      "path": "lib/db/src/attributionCatalog.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4857cd8ad2b66b55a299308b4fd4b9aa31a6b05b"
+    },
+    {
+      "path": "lib/db/src/attributionCatalog.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0b322682a8bc1e9d00ca21f31da502e42cd30149"
+    },
+    {
+      "path": "lib/db/src/attributionRehearsal.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fff2c1d43ac4d50b9b4b42b5c85031aa0420e9e9"
+    },
+    {
+      "path": "lib/db/src/migrate.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "974a6aa75e60bae3cba44cb681428e33372841ad"
+    },
+    {
+      "path": "lib/db/src/migrationRehearsalRunner.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "697651f3b9ccd16c8726150f5be2e25fe3058ced"
+    },
+    {
+      "path": "scripts/src/lint-migrations.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28d6cb3b41dc0e1f5f9c1f7210f308ff15602a14"
+    },
+    {
+      "path": "scripts/src/lint-migrations.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fce01a5bc0dbff6b4766d441dcd10ad62650acc5"
+    },
+    {
+      "path": "scripts/src/migrate-rehearse.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f02df520fb59c52a1c644891018817e5a6ed690"
+    },
+    {
+      "path": "scripts/src/publish-sync-rehearsal.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "002edeb4b812b74d464697cfef40c00983be9973"
+    },
+    {
+      "path": "scripts/src/forbid-schema-push.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "560767ab4e298281937610bba15b19602b83dbf0"
+    },
+    {
+      "path": "scripts/src/forbid-schema-push.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8f0ea93110e6810ac8dba7e7b56347aa2d84da02"
+    },
+    {
+      "path": ".agents/memory/publish-sync-ledger-overlap.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c0b645c199666cba2ef4ef288e0451c3bc2258a"
+    },
+    {
+      "path": ".agents/memory/MEMORY.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a4dd5df22b2254347c8dcf6d5e02279f49ea9fde"
+    }
+  ],
+  "exactGitTreeVerified": true,
+  "refUpdated": false,
+  "published": false
+}

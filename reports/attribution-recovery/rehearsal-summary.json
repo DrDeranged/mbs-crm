@@ -1,0 +1,66 @@
+[
+  {
+    "scenario": "production-profile",
+    "before": "067=failed",
+    "after": "067=superseded, 068=applied, 069=applied",
+    "ledgerRowsBefore": 67,
+    "ledgerRowsAfter": 69,
+    "ddlBatches": 0,
+    "postgresDdlStatements": 0,
+    "catalogUnchanged": true,
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "publish-model-sync",
+    "before": "067/068/069 absent",
+    "after": "067=superseded, 068=applied, 069=applied",
+    "ledgerRowsBefore": 66,
+    "ledgerRowsAfter": 69,
+    "ddlBatches": 0,
+    "postgresDdlStatements": 0,
+    "catalogUnchanged": true,
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "partial-profile",
+    "before": "067=failed",
+    "after": "067=superseded, 068=applied, 069=applied",
+    "ledgerRowsBefore": 67,
+    "ledgerRowsAfter": 69,
+    "ddlBatches": 3,
+    "postgresDdlStatements": 3,
+    "catalogUnchanged": false,
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "fresh-empty",
+    "before": "067/068/069 absent",
+    "after": "067=applied, 068=applied, 069=applied",
+    "ledgerRowsBefore": 0,
+    "ledgerRowsAfter": 69,
+    "ddlBatches": 68,
+    "postgresDdlStatements": 65,
+    "catalogUnchanged": false,
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  }
+]
