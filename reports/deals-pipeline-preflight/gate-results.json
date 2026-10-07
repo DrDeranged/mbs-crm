@@ -1,0 +1,64 @@
+{
+  "source": "8003ce473fa38b56e76636b650c38c4cf784e4f8",
+  "tree": "314dc1c757f320a85909c883b75eb1f899b8b79a",
+  "gates": [
+    {
+      "index": 1,
+      "label": "schema path guard",
+      "line": 5
+    },
+    {
+      "index": 2,
+      "label": "recovery guard",
+      "line": 11
+    },
+    {
+      "index": 3,
+      "label": "typecheck",
+      "line": 21
+    },
+    {
+      "index": 4,
+      "label": "full suite",
+      "line": 41
+    },
+    {
+      "index": 5,
+      "label": "migration lint",
+      "line": 1375
+    },
+    {
+      "index": 6,
+      "label": "schema parity",
+      "line": 1395
+    },
+    {
+      "index": 7,
+      "label": "built-app smoke",
+      "line": 1420
+    },
+    {
+      "index": 8,
+      "label": "migration dependency lint",
+      "line": 1538
+    },
+    {
+      "index": 9,
+      "label": "production database clone",
+      "line": 1553
+    },
+    {
+      "index": 10,
+      "label": "migration rehearsal",
+      "line": 1563
+    },
+    {
+      "index": 11,
+      "label": "database divergence",
+      "line": 1693
+    }
+  ],
+  "exit": 0,
+  "cloneProvenance": "DB clone source: schema-only",
+  "published": false
+}

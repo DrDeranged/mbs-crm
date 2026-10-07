@@ -1,0 +1,9 @@
+{
+  "source": "8003ce473fa38b56e76636b650c38c4cf784e4f8",
+  "parent": "428c88969bae5667373292deec51fdd7c8e16dd4",
+  "tree": "314dc1c757f320a85909c883b75eb1f899b8b79a",
+  "files": [
+    "artifacts/api-server/src/lib/dealLinkedDocument.test.ts"
+  ],
+  "refUpdated": false
+}
