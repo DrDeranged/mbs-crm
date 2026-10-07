@@ -39,7 +39,10 @@ async function initializeSchema(): Promise<void> {
     || (process.env.NODE_ENV === "production" && process.env.MIGRATE_ON_BOOT !== "false");
 
   if (migrateOnBoot) {
-    await runSchemaBoot({ pool, logger });
+    const report = await runSchemaBoot({ pool, logger });
+    if (process.env.NODE_ENV === "production" && (!report || report.failed || report.pending.length || report.mismatches.length)) {
+      throw new Error("Production schema verification failed; business traffic remains gated");
+    }
   } else {
     await validateSchemaOnBoot();
   }

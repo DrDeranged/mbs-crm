@@ -22,9 +22,16 @@ const allowedSchemaParityInspectionLines = new Set([
   `const diff = await ${apiFunction}(schema, database, ["public"], [...SCHEMA_PARITY_TABLE_FILTER]);`,
 ]);
 
-function isAllowedSchemaParityInspection(file: string, text: string): boolean {
-  return file === "lib/db/src/schemaCiCheck.ts"
-    && allowedSchemaParityInspectionLines.has(text.trim());
+const isolatedSimulationGuard = 'if (source.hostname !== "127.0.0.1" || source.pathname !== "/postgres") throw new Error("Rehearsal requires isolated local PostgreSQL");';
+const isolatedSimulationCall = `const diff = await ${apiFunction}(schema, database, ["public"], ["*"]);`;
+function isAllowedSchemaParityInspection(file: string, text: string, contents: string): boolean {
+  if (file === "lib/db/src/schemaCiCheck.ts" && allowedSchemaParityInspectionLines.has(text.trim())) return true;
+  // Only the local-cluster worker may simulate managed Publish's model diff.
+  // Application entrypoints and all other call sites remain prohibited.
+  return file === "lib/db/src/attributionRehearsal.ts"
+    && contents.includes(isolatedSimulationGuard)
+    && contents.indexOf(isolatedSimulationGuard) < contents.indexOf(isolatedSimulationCall)
+    && [isolatedSimulationCall, `import { ${apiFunction} } from "${kitCommand}/api";`].includes(text.trim());
 }
 
 const sourceOrConfigExtension = new Set([
@@ -45,7 +52,7 @@ export function findForbiddenSchemaPushes(files: ScannedFile[]): ForbiddenSchema
   const findings: ForbiddenSchemaPush[] = [];
   for (const file of files) {
     for (const [index, text] of file.content.split(/\r?\n/).entries()) {
-      if (isAllowedSchemaParityInspection(file.path, text)) continue;
+      if (isAllowedSchemaParityInspection(file.path, text, file.content)) continue;
       if (forbiddenPatterns.some((pattern) => pattern.test(text))) {
         findings.push({ path: file.path, line: index + 1, text: text.trim() });
       }

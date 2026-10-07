@@ -30,6 +30,17 @@ test("schema path guard ignores ordinary product push references", () => {
   ]), []);
 });
 
+test("model-sync simulation is allowed only in its guarded isolated-cluster worker", () => {
+  const guard = 'if (source.hostname !== "127.0.0.1" || source.pathname !== "/postgres") throw new Error("Rehearsal requires isolated local PostgreSQL");';
+  const lines = [`import { ${api} } from "${kit}/api";`, guard,
+    `const diff = await ${api}(schema, database, ["public"], ["*"]);`];
+  const worker = "lib/db/src/attributionRehearsal.ts";
+  assert.deepEqual(findForbiddenSchemaPushes([{ path: worker, content: lines.join("\n") }]), []);
+  assert.equal(findForbiddenSchemaPushes([{ path: "artifacts/api-server/src/runtime.ts", content: lines.join("\n") }]).length, 2);
+  assert.equal(findForbiddenSchemaPushes([{ path: worker, content: lines.filter(line => line !== guard).join("\n") }]).length, 2);
+  assert.equal(findForbiddenSchemaPushes([{ path: worker, content: [...lines, `await ${api}(schema, productionDb);`].join("\n") }]).length, 1);
+});
+
 test("schema path guard permits only the audited schema parity inspection", () => {
   assert.deepEqual(findForbiddenSchemaPushes([
     {

@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sql } from "drizzle-orm";
+import { inspectAttributionCatalog } from "./attributionCatalog";
 
 type QueryResult = { rows?: unknown[] };
 type Executor = {
@@ -733,6 +734,8 @@ export async function runMigrations(options: {
   migrationsDir?: string;
   dryRun?: boolean;
   allowDependencyReordering?: boolean;
+  /** Managed production may verify schema and adopt ledger identities, never DDL. */
+  metadataOnly?: boolean;
 } = {}): Promise<MigrationReport> {
   if (!options.db) {
     throw new Error("A database executor is required to run migrations");
@@ -740,8 +743,9 @@ export async function runMigrations(options: {
   const database = options.db;
   const migrations = await discoverMigrations(options.migrationsDir);
   const report = emptyReport();
+  const metadataOnly = options.metadataOnly ?? process.env.NODE_ENV === "production";
 
-  if (!options.dryRun) {
+  if (!options.dryRun && !metadataOnly) {
     await database.execute(sql`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         name text PRIMARY KEY,
@@ -761,7 +765,77 @@ export async function runMigrations(options: {
         ADD COLUMN IF NOT EXISTS superseded_at timestamptz
     `);
   }
-  const ledger = await readLedger(database);
+  let ledger = await readLedger(database);
+  const recovery = migrations.find(m => m.id === "069_campaign_attribution_recovery");
+  const attribution = migrations.find(m => m.id === "067_campaign_attribution");
+  const rename = migrations.find(m => m.id === "068_campaign_attribution_fk_names");
+  // Recovery is a verified prerequisite of 068, not a broad duplicate-object
+  // bypass. Never alter history or accept a mismatched recorded checksum.
+  if (recovery && attribution && rename && !options.dryRun) {
+    for (const migration of migrations) {
+      const entry = ledger.get(migration.id) ?? ledger.get(migration.name);
+      if (entry && entry.checksum !== migration.checksum) {
+        report.mismatches.push({ name: migration.name, expected: migration.checksum, actual: entry.checksum });
+      }
+    }
+    if (report.mismatches.length) return report;
+    const priorComplete = migrations.filter(m => m.id < attribution.id).every(m => {
+      const entry = ledger.get(m.id) ?? ledger.get(m.name);
+      return entry && (entry.supersededAt || (!entry.failedAt && !entry.error));
+    });
+    const recoveryEntry = ledger.get(recovery.id) ?? ledger.get(recovery.name);
+    if (priorComplete && (!recoveryEntry || recoveryEntry.failedAt || recoveryEntry.error)) {
+      if (attribution.checksum !== "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba"
+        || rename.checksum !== "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66") {
+        report.failed = { name: recovery.name, error: "Recovery requires immutable 067/068 checksums" };
+        return report;
+      }
+      try {
+        await database.transaction(async tx => {
+          const before = await inspectAttributionCatalog(tx);
+          if (before.conflicts.length || (metadataOnly && before.missing.length)) {
+            throw new Error(`Attribution catalog does not match: ${[...before.conflicts, ...before.missing].join(", ")}`);
+          }
+          if (before.missing.length) await tx.execute(sql.raw(recovery.sql));
+          const after = await inspectAttributionCatalog(tx);
+          if (after.missing.length || after.conflicts.length) throw new Error(`Incomplete recovery: ${JSON.stringify(after)}`);
+          // Record 069 first, then supersede only the failed/absent historical
+          // creator, then adopt 068 whose canonical rename targets are proven.
+          await tx.execute(sql`
+            INSERT INTO schema_migrations (name, checksum) VALUES (${recovery.id}, ${recovery.checksum})
+            ON CONFLICT (name) DO UPDATE SET failed_at=NULL, error=NULL, superseded_at=NULL
+          `);
+          const old = ledger.get(attribution.id) ?? ledger.get(attribution.name);
+          if (!old || old.failedAt || old.error) {
+            await tx.execute(sql`
+              INSERT INTO schema_migrations (name, checksum, superseded_by, superseded_at)
+              VALUES (${attribution.id}, ${attribution.checksum}, ${recovery.id}, now())
+              ON CONFLICT (name) DO UPDATE SET superseded_by=EXCLUDED.superseded_by, superseded_at=EXCLUDED.superseded_at
+            `);
+          }
+          const named = ledger.get(rename.id) ?? ledger.get(rename.name);
+          if (!named) await tx.execute(sql`INSERT INTO schema_migrations (name, checksum) VALUES (${rename.id}, ${rename.checksum})`);
+          else if (named.failedAt || named.error) {
+            await tx.execute(sql`UPDATE schema_migrations SET failed_at=NULL, error=NULL WHERE name IN (${rename.id}, ${rename.name})`);
+          }
+        });
+        report.applied.push(recovery.name);
+        if (!ledger.has(rename.id) && !ledger.has(rename.name)) report.applied.push(rename.name);
+        ledger = await readLedger(database);
+      } catch (error) {
+        report.failed = { name: recovery.name, error: formatMigrationError(error) };
+        return report;
+      }
+    }
+    // Even a previously adopted recovery must not conceal later schema drift.
+    if (metadataOnly) {
+      const evidence = await inspectAttributionCatalog(database);
+      if (evidence.missing.length || evidence.conflicts.length) {
+        report.failed = { name: recovery.name, error: `Attribution schema drift: ${JSON.stringify(evidence)}` };
+        return report;
+      }
+    }
+  }
 
   // Do the complete first-boot reconciliation before running any migration.
   // This matters for databases created before the ledger was introduced: all
@@ -792,7 +866,7 @@ export async function runMigrations(options: {
             appliedChecksum: ledgerEntry.checksum, detectedAsApplied: true, supersededAt: ledgerEntry.supersededAt });
         } else if (ledgerEntry.failedAt || ledgerEntry.error) {
           const priorError = ledgerEntry.error ?? "Migration previously failed";
-          if (options.dryRun) {
+          if (options.dryRun || metadataOnly) {
             report.pending.push(migration.name);
             report.migrations.push({ ...migration, status: "pending", appliedAt: ledgerEntry.appliedAt,
               appliedChecksum: ledgerEntry.checksum });
@@ -899,12 +973,20 @@ export async function runMigrations(options: {
     const migration = pendingMigrations[migrationIndex];
     if (appliedOutOfOrder.has(migration.id)) continue;
     if (options.dryRun) continue;
+    if (metadataOnly) {
+      report.failed = { name: migration.name, error: "Managed production schema is not ready; DDL is prohibited at startup" };
+      return report;
+    }
 
     let retriedAfterDependency = false;
     while (true) {
     try {
       await database.transaction(async (tx) => {
         await tx.execute(sql.raw(migration.sql));
+        if (migration.id === recovery?.id) {
+          const evidence = await inspectAttributionCatalog(tx);
+          if (evidence.missing.length || evidence.conflicts.length) throw new Error(`Recovery catalog verification failed: ${JSON.stringify(evidence)}`);
+        }
         await tx.execute(sql`
           INSERT INTO schema_migrations (name, checksum)
           VALUES (${migration.id}, ${migration.checksum})

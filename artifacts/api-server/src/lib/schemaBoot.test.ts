@@ -103,6 +103,7 @@ test("production-partial partner recovery reaches the current migration head", a
            "066_bundled_vendor_equipment_flyers.sql",
             "067_campaign_attribution.sql",
             "068_campaign_attribution_fk_names.sql",
+            "069_campaign_attribution_recovery.sql",
     ];
     const evidence = {
       applied: report.applied,

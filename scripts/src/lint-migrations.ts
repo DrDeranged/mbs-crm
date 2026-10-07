@@ -27,48 +27,94 @@ function lineAt(sql: string, index: number): number {
   return sql.slice(0, index).split("\n").length;
 }
 
-function guardedDoRanges(sql: string): Array<[number, number]> {
-  const ranges: Array<[number, number]> = [];
-  const blocks = /\bDO\s+\$\$[\s\S]*?END\s+\$\$\s*;/gi;
+type Guard = { start: number; end: number; condition: string; duplicateHandler: boolean };
+function maskSqlComments(contents: string): string {
+  let output = "", quote = "", blockDepth = 0;
+  for (let i = 0; i < contents.length; i++) {
+    const c = contents[i], next = contents[i + 1];
+    if (blockDepth) {
+      if (c === "/" && next === "*") { blockDepth++; output += "  "; i++; }
+      else if (c === "*" && next === "/") { blockDepth--; output += "  "; i++; }
+      else output += c === "\n" ? "\n" : " ";
+    } else if (quote) {
+      output += c;
+      if (c === quote) {
+        if (next === quote) { output += next; i++; }
+        else quote = "";
+      }
+    } else if (c === "'" || c === '"') { quote = c; output += c; }
+    else if (c === "/" && next === "*") { blockDepth = 1; output += "  "; i++; }
+    else if (c === "-" && next === "-") {
+      while (i < contents.length && contents[i] !== "\n") { output += " "; i++; }
+      if (i < contents.length) output += "\n";
+    } else output += c;
+  }
+  return output;
+}
+function guardedDoRanges(sql: string): Guard[] {
+  const ranges: Guard[] = [];
+  const blocks = /\bDO\s+(\$[a-z_0-9]*\$)[\s\S]*?END\s+\1\s*;/gi;
   for (const match of sql.matchAll(blocks)) {
     const block = match[0];
-    if (
-      /EXCEPTION\s+WHEN\s+duplicate_object/i.test(block)
-      || /pg_constraint|information_schema\.(?:columns|tables)/i.test(block)
-    ) {
-      ranges.push([match.index, match.index + block.length]);
+    if (/EXCEPTION\s+WHEN\s+duplicate_object\s+THEN\s+NULL\s*;/i.test(block)) {
+      ranges.push({ start: match.index, end: match.index + block.length, condition: "", duplicateHandler: true });
+    }
+    const stack: Array<{ start: number; condition: string; thenEnd?: number }> = [];
+    // Track actual control-flow guards; an unrelated pg_constraint query no
+    // longer exempts every DDL statement in a procedural block.
+    const control = block.replace(/'(?:''|[^'])*'/g, text => " ".repeat(text.length));
+    for (const token of control.matchAll(/\bIF\s+(?:NOT\s+)?EXISTS\s*\([\s\S]*?\)\s*THEN|\bEND\s+IF\b|\bELSE\b/gi)) {
+      if (/^END/i.test(token[0])) {
+        const open = stack.pop();
+        if (open && /^IF\s+NOT\s+EXISTS/i.test(open.condition)) {
+          ranges.push({ start: match.index + open.start, end: match.index + (open.thenEnd ?? token.index), condition: open.condition, duplicateHandler: false });
+        }
+      } else if (/^ELSE/i.test(token[0])) {
+        if (stack.length) stack[stack.length - 1].thenEnd = token.index;
+      } else stack.push({ start: token.index + token[0].length, condition: block.slice(token.index, token.index + token[0].length) });
     }
   }
   return ranges;
 }
 
-function inGuardedRange(index: number, ranges: Array<[number, number]>): boolean {
-  return ranges.some(([start, end]) => index >= start && index < end);
+function inGuardedRange(index: number, ranges: Guard[], operation: string, name: string): boolean {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return ranges.some(({ start, end, condition, duplicateHandler }) => {
+    if (index < start || index >= end) return false;
+    if (duplicateHandler) return operation === "ADD CONSTRAINT";
+    const column = operation === "ADD CONSTRAINT" ? "conname" : operation === "ADD COLUMN" ? "column_name"
+      : operation === "CREATE INDEX" ? "indexname" : "table_name";
+    const catalog = operation === "ADD CONSTRAINT" ? /pg_constraint/i : operation === "CREATE INDEX" ? /pg_indexes/i : /information_schema\.(columns|tables)/i;
+    return catalog.test(condition) && new RegExp(`\\b${column}\\s*=\\s*'${escaped}'`, "i").test(condition);
+  });
 }
 
 export function lintMigrationSql(file: string, contents: string): MigrationLintViolation[] {
-  const withoutComments = contents.replace(/--.*$/gm, (comment) => " ".repeat(comment.length));
+  const withoutComments = maskSqlComments(contents);
   const guardedRanges = guardedDoRanges(withoutComments);
   const violations: MigrationLintViolation[] = [];
   const checks: Array<{ operation: string; regex: RegExp }> = [
-    { operation: "CREATE TABLE", regex: /\bCREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS\b)/gi },
-    { operation: "CREATE INDEX", regex: /\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?!IF\s+NOT\s+EXISTS\b)/gi },
-    { operation: "ADD COLUMN", regex: /\bADD\s+COLUMN\s+(?!IF\s+NOT\s+EXISTS\b)/gi },
+    { operation: "CREATE TABLE", regex: /\bCREATE\s+(?:(?:UNLOGGED|TEMP(?:ORARY)?)\s+)?TABLE\b\s*/gi },
+    { operation: "CREATE INDEX", regex: /\bCREATE\s+(?:UNIQUE\s+)?INDEX\b\s*(?:CONCURRENTLY\b\s*)?/gi },
+    { operation: "ADD COLUMN", regex: /\bADD\s+COLUMN\b\s*/gi },
   ];
 
   for (const { operation, regex } of checks) {
     for (const match of withoutComments.matchAll(regex)) {
-      if (!inGuardedRange(match.index, guardedRanges)) {
+      if (/^\s*IF\s+NOT\s+EXISTS\b/i.test(withoutComments.slice(match.index + match[0].length))) continue;
+      const name = withoutComments.slice(match.index + match[0].length).match(/^\s*("(?:""|[^"])+"|[\w$]+)/)?.[1]?.replace(/^"|"$/g, "").replaceAll('""', '"') ?? "";
+      if (!inGuardedRange(match.index, guardedRanges, operation, name)) {
         violations.push({ file, line: lineAt(contents, match.index), operation });
       }
     }
   }
 
-  for (const match of withoutComments.matchAll(/\bADD\s+CONSTRAINT\s+([a-zA-Z_][\w$]*)/gi)) {
-    if (inGuardedRange(match.index, guardedRanges)) continue;
-    const constraint = match[1];
+  for (const match of withoutComments.matchAll(/\bADD\s+CONSTRAINT\s+("(?:""|[^"])+"|[a-zA-Z_][\w$]*)/gi)) {
+    const constraint = match[1].replace(/^"|"$/g, "").replaceAll('""', '"');
+    if (inGuardedRange(match.index, guardedRanges, "ADD CONSTRAINT", constraint)) continue;
     const prefix = withoutComments.slice(Math.max(0, match.index - 500), match.index);
-    const dropGuard = new RegExp(`DROP\\s+CONSTRAINT\\s+IF\\s+EXISTS\\s+${constraint}\\b`, "i");
+    const escaped = constraint.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const dropGuard = new RegExp(`DROP\\s+CONSTRAINT\\s+IF\\s+EXISTS\\s+"?${escaped}"?(?=\\s|;)`, "i");
     if (!dropGuard.test(prefix)) {
       violations.push({
         file,

@@ -50,7 +50,7 @@ export async function snapshotLedger(pool: Pool): Promise<LedgerSnapshot> {
     rows: result.rows.map((row) => ({
       name: String(row.name),
       checksum: String(row.checksum),
-      state: row.failed_at || row.error ? "failed" : row.superseded_at ? "superseded" : "applied",
+      state: row.superseded_at ? "superseded" : row.failed_at || row.error ? "failed" : "applied",
     })),
   };
 }

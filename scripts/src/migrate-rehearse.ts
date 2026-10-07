@@ -8,6 +8,7 @@ import {
 import { rehearseEmptySchema } from "./empty-schema-rehearsal";
 import { assertLocalPostgresUrl, localPostgresUrl } from "./localPostgres";
 import { formatFailedLine, run } from "./process";
+import { rehearsePublishSync } from "./publish-sync-rehearsal";
 
 const config = defaultCloneConfig(path.resolve(import.meta.dirname, "../.."));
 export async function runManagedRehearsal(
@@ -33,6 +34,7 @@ async function main(): Promise<void> {
   assertLocalPostgresUrl(targetUrl);
   await runManagedRehearsal(targetUrl);
   await rehearseEmptySchema();
+  await rehearsePublishSync();
   console.log("MIGRATION REHEARSAL PASS");
 } catch (error) {
    console.error(formatFailedLine("MIGRATION REHEARSAL", error));
