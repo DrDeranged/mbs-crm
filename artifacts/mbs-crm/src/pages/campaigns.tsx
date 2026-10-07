@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { CampaignSkeleton } from "@/components/page-skeletons";
 import { Link, useLocation } from "wouter";
-import { useGetMe, useListCampaignMetrics, useListCampaigns, useCreateCampaign, useDuplicateCampaign, useCancelCampaign } from "@workspace/api-client-react";
+import { type Campaign, useGetMe, useListCampaignMetrics, useListCampaigns, useCreateCampaign, useDuplicateCampaign } from "@workspace/api-client-react";
+import { CampaignCancelDialog, CampaignRemainingAction } from "@/components/campaign-safety-actions";
 import { Plus, Mail, Copy, XCircle, Search, CalendarClock, PlayCircle, Clock, AlertTriangle, FileEdit } from "lucide-react";
 import { format } from "date-fns";
 
@@ -63,7 +64,7 @@ export default function CampaignsPage() {
 
   const createCampaign = useCreateCampaign();
   const duplicateCampaign = useDuplicateCampaign();
-  const cancelCampaign = useCancelCampaign();
+  const [cancelTarget, setCancelTarget] = useState<Campaign | null>(null);
 
   const filteredCampaigns = campaigns?.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -102,21 +103,10 @@ export default function CampaignsPage() {
     );
   };
 
-  const handleCancel = (id: number) => {
-    cancelCampaign.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey() });
-          toast.success("Campaign cancelled");
-        },
-        onError: () => toast.error("Failed to cancel campaign")
-      }
-    );
-  };
 
   return (
     <div className="flex h-full flex-col">
+      <CampaignCancelDialog campaign={cancelTarget} onClose={() => setCancelTarget(null)} />
       <header className="flex flex-shrink-0 items-center justify-between border-b bg-card px-6 py-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Campaigns</h1>
@@ -257,11 +247,12 @@ export default function CampaignsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <CampaignRemainingAction campaign={campaign} menu />
                             <DropdownMenuItem onClick={() => handleDuplicate(campaign.id)}>
                               <Copy className="mr-2 h-4 w-4" /> Duplicate
                             </DropdownMenuItem>
                             {["scheduled", "running", "paused"].includes(campaign.status) && (
-                              <DropdownMenuItem onClick={() => handleCancel(campaign.id)} className="text-danger focus:text-danger">
+                              <DropdownMenuItem onClick={() => setCancelTarget(campaign)} className="text-danger focus:text-danger">
                                 <XCircle className="mr-2 h-4 w-4" /> Cancel Campaign
                               </DropdownMenuItem>
                             )}

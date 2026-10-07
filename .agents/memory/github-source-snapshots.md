@@ -3,6 +3,19 @@ name: Verified GitHub source snapshots
 description: Why a blob-verified source snapshot still needs exact Git metadata for certification guards.
 ---
 
+Certify feature-only pushes on an exact remote-parent checkout with the reviewed
+feature delta applied, rather than certifying a broader local integration and
+uploading selected generated files from it.
+
+**Why:** A combined checkout can contain unshipped contracts and routes. Its
+generated clients and authorization inventory can be valid locally while
+bringing unrelated work into a scoped remote push.
+
+**How to apply:** Replay the scoped delta onto the verified remote tree, regenerate
+contracts with that checkout's dependencies, derive authorization inventory from
+its actual router, and run preflight there. Retain byte-level dependency evidence
+when browser coverage was collected against the same feature in the live workspace.
+
 Run certification on the requested immutable remote revision, not the current workspace checkpoint. A verified file snapshot also needs its exact commit and reachable history for Git-based guards.
 
 **Why:** Schema-path and recovery guards require a Git repository and traverse parent commits. A file-only snapshot can fail before testing any product behavior. GitHub's REST commit timestamps are normalized to UTC, while the stored Git object can retain different offsets, so naive commit reconstruction produces a different hash.

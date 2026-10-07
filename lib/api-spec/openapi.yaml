@@ -5050,6 +5050,17 @@ paths:
       tags: [campaigns]
       parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
       responses: { "201": { description: Duplicated, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+  /campaigns/{id}/send-remaining:
+    post:
+      operationId: createRemainingCampaign
+      tags: [campaigns]
+      summary: Admin-only draft for the eligible unsent recipients of a cancelled or paused email campaign
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "201": { description: Draft created; preview and approval required before sending, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+        "403": { description: Admin access required }
+        "404": { description: Campaign not found }
+        "409": { description: Invalid source state or no eligible unsent recipients }
   /campaigns/{id}/preview:
     post:
       operationId: previewCampaignAudience
@@ -5267,6 +5278,14 @@ components:
     CampaignAudienceRules:
       type: object
       properties:
+        remainingFromCampaignId:
+          type: integer
+          readOnly: true
+          description: Server-owned source campaign; fixes the audience to its unsent recipients.
+        remainingRootCampaignId:
+          type: integer
+          readOnly: true
+          description: Server-owned recovery family for cross-campaign duplicate-send protection.
         deals:
           type: string
           enum: [all, open, exclude_open]
@@ -5563,6 +5582,7 @@ components:
             excluded: { type: integer }
             sent: { type: integer }
             failed: { type: integer }
+            queued: { type: integer, description: Pending eligible, queued and deferred recipients awaiting dispatch. }
     CampaignLaunchResult:
       type: object
       required: [launch]

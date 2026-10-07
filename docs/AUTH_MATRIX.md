@@ -289,6 +289,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign detail |
 | PATCH | `/api/campaigns/:id` | `routes/campaigns.ts` | A | manager/admin campaign update |
 | POST | `/api/campaigns/:id/duplicate` | `routes/campaigns.ts` | A | manager/admin campaign duplication |
+| POST | `/api/campaigns/:id/send-remaining` | `routes/campaigns.ts` | A | admin only; cancelled/paused email campaign; fixed unsent audience, live suppression and duplicate-delivery guards |
 | POST | `/api/campaigns/:id/preview` | `routes/campaigns.ts` | A | manager/admin audience eligibility preview |
 | POST | `/api/campaigns/:id/approve` | `routes/campaigns.ts` | A | manager/admin campaign approval |
 | POST | `/api/campaigns/:id/test` | `routes/campaigns.ts` | A | manager/admin provider-free test dry run |

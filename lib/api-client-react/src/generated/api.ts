@@ -16668,6 +16668,76 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDuplicateCampaignMutationOptions(options));
     }
 
+export const getCreateRemainingCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/send-remaining`
+}
+
+/**
+ * @summary Admin-only draft for the eligible unsent recipients of a cancelled or paused email campaign
+ */
+export const createRemainingCampaign = async (id: number, options?: RequestInit): Promise<Campaign> => {
+
+  return customFetch<Campaign>(getCreateRemainingCampaignUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateRemainingCampaignMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRemainingCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRemainingCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['createRemainingCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRemainingCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  createRemainingCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateRemainingCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof createRemainingCampaign>>>
+
+    export type CreateRemainingCampaignMutationError = ErrorType<void>
+
+    /**
+ * @summary Admin-only draft for the eligible unsent recipients of a cancelled or paused email campaign
+ */
+export const useCreateRemainingCampaign = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRemainingCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createRemainingCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCreateRemainingCampaignMutationOptions(options));
+    }
+
 export const getPreviewCampaignAudienceUrl = (id: number,) => {
 
 

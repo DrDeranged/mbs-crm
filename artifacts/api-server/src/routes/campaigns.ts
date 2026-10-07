@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql } from "drizzle-orm";
 import { campaignDealAudienceCondition } from "../lib/campaignDealAudience";
+import { eligibleRemainingLeadIds, pendingCampaignRecipient, remainingCampaignLeadIds } from "../lib/campaignRemaining";
 import { db } from "@workspace/db";
 import {
   campaignsTable,
@@ -16,6 +17,7 @@ import {
   companiesTable,
   emailTemplatesTable,
   leadsTable,
+  emailSendsTable,
   usersTable,
 } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
@@ -83,6 +85,8 @@ const rulesSchema = z.object({
   minAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   maxAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   pickedLeadIds: z.array(z.number().int().positive()).max(1000).refine((ids) => new Set(ids).size === ids.length, "pickedLeadIds must be unique").optional(),
+  remainingFromCampaignId: id.optional(),
+  remainingRootCampaignId: id.optional(),
 });
 const campaignBody = z.object({
   name: z.string().trim().min(1).max(160),
@@ -240,6 +244,9 @@ function requestedChannels(channel: "email" | "sms" | "email_sms"): Array<"email
 
 async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
   const rules = rulesSchema.parse(campaign.audienceRules ?? {});
+  const recoveryIds = rules.remainingFromCampaignId
+    ? new Set(await remainingAudience(rules.remainingFromCampaignId, rules.remainingRootCampaignId ?? rules.remainingFromCampaignId))
+    : null;
   const conditions = [];
   if (rules.statuses?.length) conditions.push(inArray(leadsTable.status, rules.statuses as any));
   if (rules.programTypes?.length) conditions.push(inArray(leadsTable.applicationType, rules.programTypes));
@@ -275,7 +282,7 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
       inArray(leadsTable.id, union.map(lead => lead.id)), dealCondition,
     ))).map(lead => lead.id))
     : null;
-  const leads = union.filter(lead => !dealMatchedIds || dealMatchedIds.has(lead.id));
+  const leads = union.filter(lead => (!dealMatchedIds || dealMatchedIds.has(lead.id)) && (!recoveryIds || recoveryIds.has(lead.id)));
   const filterMatchIds = new Set(filterMatches.map((lead) => lead.id));
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
@@ -506,6 +513,9 @@ router.post("/campaigns", async (req, res): Promise<void> => {
   const parsed = campaignBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  if (data.audienceRules?.remainingFromCampaignId || data.audienceRules?.remainingRootCampaignId) {
+    res.status(400).json({ error: "Remaining-recipient audiences must be created with the admin recovery action" }); return;
+  }
   const modeError = flyerModeError(data.flyer, data.flyerDeliveryMode ?? "link");
   if (modeError) { res.status(400).json({ error: modeError }); return; }
   const tokenError = await campaignTemplateTokenError(data.emailTemplateId, data.channel ?? "email");
@@ -541,6 +551,16 @@ router.patch("/campaigns/:id", async (req, res): Promise<void> => {
   const parsed = campaignBody.partial().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid campaign" }); return; }
   const data = parsed.data;
+  const existingRules = rulesSchema.parse(campaign.audienceRules ?? {});
+  if (existingRules.remainingFromCampaignId) {
+    // Membership/provenance is server-owned; ordinary edits cannot broaden it.
+    data.audienceRules = existingRules;
+    if (data.channel && data.channel !== campaign.channel) {
+      res.status(409).json({ error: "A remaining-recipient campaign cannot change channels" }); return;
+    }
+  } else if (data.audienceRules?.remainingFromCampaignId || data.audienceRules?.remainingRootCampaignId) {
+    res.status(400).json({ error: "Recovery provenance is server-owned" }); return;
+  }
   const modeError = flyerModeError(
     data.flyer === undefined ? flyerSchema.parse(campaign.flyer) : data.flyer,
     data.flyerDeliveryMode ?? campaign.flyerDeliveryMode,
@@ -591,10 +611,73 @@ router.post("/campaigns/:id/duplicate", async (req, res): Promise<void> => {
     trackingSince: new Date(),
     name, description: campaign.description, channel: campaign.channel, status: "draft",
     emailTemplateId: campaign.emailTemplateId, smsBody: campaign.smsBody, flyer: campaign.flyer, flyerDeliveryMode: campaign.flyerDeliveryMode, audienceRules: campaign.audienceRules,
-    ownerId: user.id, createdBy: user.id,
+    replyToEmail: campaign.replyToEmail, ownerId: user.id, createdBy: user.id,
   }).returning();
   await audit(copy.id, user.id, "duplicated", null, "draft", { sourceCampaignId: campaign.id });
   res.status(201).json(copy);
+});
+
+async function recoveryFamily(rootId: number) {
+  return db.select({ id: campaignsTable.id }).from(campaignsTable).where(or(
+    eq(campaignsTable.id, rootId),
+    sql`${campaignsTable.audienceRules}->>'remainingRootCampaignId' = ${String(rootId)}`,
+  ));
+}
+
+async function remainingAudience(sourceId: number, rootId: number) {
+  const family = await recoveryFamily(rootId);
+  const ids = family.map(row => row.id);
+  const source = await db.select({
+    leadId: campaignRecipientsTable.leadId, channel: campaignRecipientsTable.channel,
+    status: campaignRecipientsTable.status, mode: campaignLaunchesTable.mode,
+  }).from(campaignRecipientsTable).innerJoin(campaignLaunchesTable, eq(campaignRecipientsTable.launchId, campaignLaunchesTable.id))
+    .where(eq(campaignRecipientsTable.campaignId, sourceId));
+  const sent = ids.length ? await db.select().from(campaignRecipientsTable).where(and(
+    inArray(campaignRecipientsTable.campaignId, ids), eq(campaignRecipientsTable.status, "sent"),
+  )) : [];
+  const attempts = ids.length ? await db.select({
+    leadId: emailSendsTable.leadId, toEmail: emailSendsTable.toEmail,
+  }).from(emailSendsTable).where(inArray(emailSendsTable.campaignId, ids)) : [];
+  const candidates = remainingCampaignLeadIds([...source, ...sent], attempts);
+  const leads = candidates.length ? await db.select().from(leadsTable).where(inArray(leadsTable.id, candidates)).orderBy(asc(leadsTable.id)) : [];
+  return eligibleRemainingLeadIds(leads, attempts, isEmailSuppressed);
+}
+
+router.post("/campaigns/:id/send-remaining", async (req, res): Promise<void> => {
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  if (user.role !== "admin") { res.status(403).json({ error: "Only admins can create a remaining-recipient campaign" }); return; }
+  const campaignId = parseId(req);
+  if (!campaignId) { res.status(400).json({ error: "Invalid campaign id" }); return; }
+  const source = await getCampaign(campaignId);
+  if (!source) { res.status(404).json({ error: "Campaign not found" }); return; }
+  const rootId = rulesSchema.parse(source.audienceRules ?? {}).remainingRootCampaignId ?? source.id;
+  const outcome = await db.transaction(async tx => {
+    // Shared with dispatch: no provider attempt can race this snapshot.
+    const [root] = await tx.select().from(campaignsTable).where(eq(campaignsTable.id, rootId)).for("no key update");
+    if (!root) return { error: "Original campaign no longer exists" };
+    const current = await getCampaign(campaignId);
+    if (!current || !["cancelled", "paused"].includes(current.status)) return { error: "Only cancelled or paused campaigns can send remaining recipients as a new campaign" };
+    if (current.channel !== "email") return { error: "Only email campaigns support remaining-recipient delivery" };
+    const leadIds = await remainingAudience(current.id, rootId);
+    if (!leadIds.length) return { error: "No eligible unsent recipients remain" };
+    if (leadIds.length > 1000) return { error: "Remaining audience exceeds the 1,000-recipient campaign limit" };
+    const [copy] = await tx.insert(campaignsTable).values({
+      name: `${current.name.slice(0, 148)} — Remaining`, description: current.description,
+      channel: current.channel, status: "draft", emailTemplateId: current.emailTemplateId,
+      smsBody: current.smsBody, flyer: current.flyer, flyerDeliveryMode: current.flyerDeliveryMode,
+      replyToEmail: current.replyToEmail, trackingSince: new Date(),
+      audienceRules: { deals: "all", pickedLeadIds: leadIds, remainingFromCampaignId: current.id, remainingRootCampaignId: rootId },
+      ownerId: user.id, createdBy: user.id,
+    }).returning();
+    await tx.insert(campaignAuditEventsTable).values({
+      campaignId: copy.id, actorUserId: user.id, action: "remaining_recipients_created",
+      toStatus: "draft", details: { sourceCampaignId: current.id, rootCampaignId: rootId, recipientCount: leadIds.length },
+    });
+    return { copy };
+  });
+  if (outcome.error) { res.status(409).json({ error: outcome.error }); return; }
+  res.status(201).json(outcome.copy);
 });
 
 router.post("/campaigns/:id/preview", async (req, res): Promise<void> => {
@@ -983,7 +1066,24 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
     const withoutAttachment = !resolvedFlyer;
     let result;
     try {
-       result = await doSendEmail({
+      const rootId = rulesSchema.parse(campaign.audienceRules ?? {}).remainingRootCampaignId ?? campaign.id;
+      result = await db.transaction(async tx => {
+        const [root] = await tx.select().from(campaignsTable).where(eq(campaignsTable.id, rootId)).for("no key update");
+        if (!root) return { send: undefined, error: "Original campaign no longer exists" };
+        const family = await recoveryFamily(rootId);
+        if (family.length > 1) {
+          const familyIds = family.map(row => row.id);
+          const [prior] = await db.select({ id: emailSendsTable.id }).from(emailSendsTable).where(and(
+            inArray(emailSendsTable.campaignId, familyIds),
+            or(eq(emailSendsTable.leadId, lead.id), sql`lower(trim(${emailSendsTable.toEmail})) = ${target.trim().toLowerCase()}`),
+          )).limit(1);
+          const [sentRecipient] = await db.select({ id: campaignRecipientsTable.id }).from(campaignRecipientsTable).where(and(
+            inArray(campaignRecipientsTable.campaignId, familyIds),
+            eq(campaignRecipientsTable.leadId, lead.id), eq(campaignRecipientsTable.status, "sent"),
+          )).limit(1);
+          if (prior || sentRecipient) return { send: undefined, error: "Original or recovery campaign already attempted this recipient" };
+        }
+        return doSendEmail({
       leadId: lead.id, userId: user.id, templateId: template.id,
       subject: renderTemplate(template.subject, vars),
       bodyHtml,
@@ -993,6 +1093,7 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
         replyToEmail: campaign.replyToEmail ?? DEFAULT_REPLY_TO,
        attachments,
         minimalNoImages: withoutAttachment,
+      });
       });
     } catch (error) {
       failed++;
@@ -1085,6 +1186,7 @@ router.get("/campaigns/:id/results", async (req, res): Promise<void> => {
   const launches = await db.select().from(campaignLaunchesTable).where(eq(campaignLaunchesTable.campaignId, campaignId)).orderBy(desc(campaignLaunchesTable.createdAt));
   const recipients = await db.select().from(campaignRecipientsTable).where(eq(campaignRecipientsTable.campaignId, campaignId));
   const deferred = recipients.filter((row) => row.status === "deferred");
+  const liveLaunchIds = new Set(launches.filter(row => row.mode === "live").map(row => row.id));
   const nextAvailableAt = deferred.map((row) => row.availableAt).filter((value): value is Date => Boolean(value))
     .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
   res.json({ launches, counts: {
@@ -1092,6 +1194,7 @@ router.get("/campaigns/:id/results", async (req, res): Promise<void> => {
     excluded: recipients.filter((row) => row.status === "excluded").length,
     sent: recipients.filter((row) => row.status === "sent").length,
     failed: recipients.filter((row) => row.status === "failed").length,
+    queued: recipients.filter((row) => liveLaunchIds.has(row.launchId) && pendingCampaignRecipient(row.status)).length,
     deferred: deferred.length,
     nextAvailableAt,
   }});

@@ -16,7 +16,6 @@ import {
   getGetCampaignResultsQueryKey,
   useGetCampaignResults,
   usePauseCampaign,
-  useCancelCampaign,
   useListCampaignAudiencePresets,
   useCreateCampaignAudiencePreset,
   useUpdateCampaignAudiencePreset,
@@ -47,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CampaignCancelAction, CampaignRemainingAction } from "@/components/campaign-safety-actions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -191,7 +191,6 @@ export default function CampaignDetailPage() {
   const launchCampaign = useLaunchCampaign();
   const dryRunTest = useDryRunCampaignTest();
   const pauseCampaign = usePauseCampaign();
-  const cancelCampaign = useCancelCampaign();
   
   const createPreset = useCreateCampaignAudiencePreset();
   const deletePreset = useDeleteCampaignAudiencePreset();
@@ -610,14 +609,8 @@ export default function CampaignDetailPage() {
             </Button>
           )}
 
-          {(campaign.status === "scheduled" || campaign.status === "paused") && (
-            <Button variant="destructive" onClick={() => cancelCampaign.mutate({ id }, {
-              onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) }),
-              onError: (err: any) => toast.error(getErrorMsg(err, "Failed to cancel"))
-            })} disabled={cancelCampaign.isPending}>
-              <XCircle className="mr-2 h-4 w-4" /> Cancel Campaign
-            </Button>
-          )}
+          <CampaignCancelAction campaign={campaign} />
+          <CampaignRemainingAction campaign={campaign} />
 
           {campaign.status === "draft" && (
             <div className="flex items-center gap-2">
@@ -897,6 +890,11 @@ export default function CampaignDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="audience" className="space-y-6">
+                  {campaign.audienceRules?.remainingFromCampaignId && <p className="rounded-md border p-3 text-sm">
+                    This audience is fixed to the unsent recipients of campaign {campaign.audienceRules.remainingFromCampaignId}.
+                    Previously attempted deliveries, unsubscribes and suppressions are excluded and rechecked before sending.
+                  </p>}
+                  <fieldset disabled={!!campaign.audienceRules?.remainingFromCampaignId} className="space-y-6">
                   <Card>
                     <CardHeader className="flex flex-row items-start justify-between pb-4">
                       <div>
@@ -1111,6 +1109,7 @@ export default function CampaignDetailPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </fieldset>
                 </TabsContent>
 
                 <TabsContent value="review" className="space-y-6">

@@ -105,6 +105,10 @@ export const CampaignAudienceRulesProgramTypesItem = {
 } as const;
 
 export interface CampaignAudienceRules {
+  /** Server-owned source campaign; fixes the audience to its unsent recipients. */
+  readonly remainingFromCampaignId?: number;
+  /** Server-owned recovery family for cross-campaign duplicate-send protection. */
+  readonly remainingRootCampaignId?: number;
   /** Open means a non-archived deal in an active stage; also applies to manually picked leads. */
   deals?: CampaignAudienceRulesDeals;
   statuses?: string[];
@@ -526,6 +530,8 @@ export type CampaignResultsCounts = {
   excluded: number;
   sent: number;
   failed: number;
+  /** Pending eligible */
+  queued?: number;
 };
 
 export interface CampaignResults {

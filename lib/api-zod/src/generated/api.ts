@@ -8008,6 +8008,8 @@ export const ListCampaignsResponseItem = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(listCampaignsResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8068,6 +8070,8 @@ export const CreateCampaignBody = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(createCampaignBodyAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8210,6 +8214,8 @@ export const GetCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(getCampaignResponseCampaignAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8295,6 +8301,8 @@ export const UpdateCampaignBody = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignBodyAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8351,6 +8359,8 @@ export const UpdateCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8369,6 +8379,14 @@ export const UpdateCampaignResponse = zod.object({
 
 
 export const DuplicateCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Admin-only draft for the eligible unsent recipients of a cancelled or paused email campaign
+ */
+export const CreateRemainingCampaignParams = zod.object({
   "id": zod.coerce.number()
 })
 
@@ -8471,6 +8489,8 @@ export const ApproveCampaignResponse = zod.object({
   "name": zod.string()
 })]).nullish(),
   "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(approveCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8559,7 +8579,8 @@ export const GetCampaignResultsResponse = zod.object({
   "eligible": zod.number(),
   "excluded": zod.number(),
   "sent": zod.number(),
-  "failed": zod.number()
+  "failed": zod.number(),
+  "queued": zod.number().optional().describe('Pending eligible')
 })
 })
 
@@ -8863,6 +8884,8 @@ export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "rules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(listCampaignAudiencePresetsResponseRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8895,6 +8918,8 @@ export const createCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 export const CreateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1),
   "rules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(createCampaignAudiencePresetBodyRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8927,6 +8952,8 @@ export const updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 export const UpdateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1).optional(),
   "rules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignAudiencePresetBodyRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
@@ -8954,6 +8981,8 @@ export const UpdateCampaignAudiencePresetResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "rules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
   "deals": zod.enum(['all', 'open', 'exclude_open']).default(updateCampaignAudiencePresetResponseRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
   "statuses": zod.array(zod.string()).optional(),
   "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
