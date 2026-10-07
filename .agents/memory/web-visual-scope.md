@@ -113,3 +113,27 @@ also change height while a page-size query is pending and trigger a sizing loop.
 **How to apply:** Click pagination and selection-clear controls in narrow,
 pinned and bulk states using synthetic fixtures; inspect overlay hit targets
 without initiating a call. Preserve toolbar geometry through pending queries.
+
+Include short laptop heights and open detail dialogs in viewport-fit checks,
+not just tables or page widths. Long records may scroll, but dialog headings,
+close controls, and action footers must remain accessible without sideways
+scrolling or shrinking the whole interface.
+
+**Why:** The user reported wasted bottom space on Lead Detail and a lender
+package dialog whose contents slid sideways and whose lower controls did not
+fit. A width-only or default-height check does not detect that experience.
+
+**How to apply:** Check realistic long document names and a short desktop
+viewport alongside phone sizing. Verify the scrollable content and the fixed
+controls separately; reaching the end of a long panel does not mean earlier
+content should remain visible at the same time.
+
+On 2026-10-06, the user approved restoring continuous desktop Leads scrolling:
+keep filters visible and load additional records while scrolling, rather than
+forcing manual Next clicks after a viewport-sized handful of rows. This
+supersedes the earlier adaptive-pagination interpretation; mobile is unchanged.
+
+**Why:** Seven-row pages made browsing 577 leads unnecessarily repetitive.
+
+**How to apply:** Fit the workspace shell without preventing the records region
+from scrolling. Do not reintroduce viewport-derived desktop query limits.

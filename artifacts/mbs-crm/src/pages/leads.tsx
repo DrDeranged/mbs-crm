@@ -4,7 +4,9 @@ import "./leads-fit.css";
 import { useIsDesktop } from "@/hooks/use-desktop-sidebar";
 import { useLeadsFit } from "@/hooks/use-leads-fit";
 import { LeadsFitTable } from "@/components/leads-fit-table";
-import { LEADS_MOBILE_PAGE_SIZE, clampPage, pageRange, remapPage } from "@/lib/leadsPageSizing";
+import { LEADS_MOBILE_PAGE_SIZE, clampPage, pageRange } from "@/lib/leadsPageSizing";
+import { DESKTOP_LEADS_BATCH_SIZE } from "@/lib/leadsScroll";
+import { useScrollingLeads } from "@/hooks/use-scrolling-leads";
 import { Link, useLocation } from "wouter";
 import {
   useListLeads, getListLeadsQueryKey, ListLeadsSortOrder, getListUsersQueryKey,
@@ -329,17 +331,8 @@ export default function Leads() {
   const [staleOnly, setStaleOnly] = useState(false);
   const desktop = useIsDesktop();
   const fit = useLeadsFit(desktop);
-  const limit = desktop ? (fit.pageSize ?? LEADS_MOBILE_PAGE_SIZE) : LEADS_MOBILE_PAGE_SIZE;
-  const limitReady = !desktop || fit.pageSize !== null;
-  const prevLimitRef = useRef(limit);
-  useEffect(() => {
-    if (!limitReady) return;
-    if (prevLimitRef.current !== limit) {
-      const old = prevLimitRef.current;
-      prevLimitRef.current = limit;
-      setPage((p) => remapPage(p, old, limit));
-    }
-  }, [limit, limitReady]);
+  const limit = desktop ? DESKTOP_LEADS_BATCH_SIZE : LEADS_MOBILE_PAGE_SIZE;
+  const scrollEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handler = () => setImportOpen(true);
@@ -533,9 +526,29 @@ export default function Leads() {
     ...((staleOnly || isStaleView) ? { stale: true } : {}),
   };
 
-  const { data, isLoading, error, refetch } = useListLeads(queryParams, {
-    query: { queryKey: getListLeadsQueryKey(queryParams), enabled: limitReady },
+  const mobileQuery = useListLeads(queryParams, {
+    query: { queryKey: getListLeadsQueryKey(queryParams), enabled: !desktop },
   });
+  const scrollingQuery = useScrollingLeads(queryParams, desktop && !!currentUser, currentUser?.id, currentUser?.role);
+  const { data, isLoading, refetch } = desktop ? scrollingQuery : mobileQuery;
+  const error = desktop
+    ? (scrollingQuery.isFetchNextPageError ? null : scrollingQuery.error)
+    : mobileQuery.error;
+  const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = scrollingQuery;
+  const scrollFiltersKey = JSON.stringify({ ...queryParams, page: undefined });
+  useEffect(() => {
+    if (desktop && fit.regionRef.current) fit.regionRef.current.scrollTop = 0;
+  }, [desktop, scrollFiltersKey, currentUser?.id]);
+  useEffect(() => {
+    const root = fit.regionRef.current;
+    const end = scrollEndRef.current;
+    if (!desktop || !root || !end || !hasNextPage || isFetchingNextPage || isFetchNextPageError) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) void fetchNextPage({ cancelRefetch: false });
+    }, { root, rootMargin: "0px 0px 240px 0px" });
+    observer.observe(end);
+    return () => observer.disconnect();
+  }, [desktop, hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage, data?.leads.length]);
 
   const toggleActivitySort = () => {
     if (sortBy === "lastActivityAt") {
@@ -555,8 +568,8 @@ export default function Leads() {
     query: { queryKey: getListUsersQueryKey({ role: "rep", isActive: true }), enabled: isManagerOrAdmin },
   });
   useEffect(() => {
-    if (data && data.totalPages >= 1 && page > data.totalPages) setPage(clampPage(page, data.totalPages));
-  }, [data, page]);
+    if (!desktop && data && data.totalPages >= 1 && page > data.totalPages) setPage(clampPage(page, data.totalPages));
+  }, [data, page, desktop]);
   // Keep selection toolbar geometry stable while a new page-size query is pending.
   // Its "select all matching" prompt must not disappear/reappear with query data.
   const lastSelectionData = useRef<typeof data>(undefined);
@@ -1039,10 +1052,17 @@ export default function Leads() {
 
       {desktop ? (
         <>
-          <div ref={fit.regionRef} className="leads-fit-region">
+          <div ref={fit.regionRef} className="leads-fit-region" role="region" aria-label="Leads list" tabIndex={0}
+            onScroll={event => {
+              const region = event.currentTarget;
+              if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError
+                && region.scrollHeight - region.scrollTop - region.clientHeight < 240) {
+                void fetchNextPage({ cancelRefetch: false });
+              }
+            }}>
             <LeadsFitTable
               leads={data?.leads}
-              isLoading={isLoading || !limitReady}
+              isLoading={isLoading}
               unavailable={!!error && !data}
               skeletonRows={Math.min(limit, 12)}
               hasFilters={hasFilters}
@@ -1060,6 +1080,16 @@ export default function Leads() {
               onClearFilters={clearFilters}
               onImport={() => setImportOpen(true)}
             />
+            <div ref={scrollEndRef} className="p-3 text-center text-sm text-muted-foreground"
+              data-testid="leads-scroll-status" role="status">
+              {isFetchingNextPage ? "Loading more leads…" : isFetchNextPageError ? (
+                <span>More leads could not be loaded.{" "}
+                  <Button variant="outline" size="sm" onClick={() => void fetchNextPage({ cancelRefetch: false })}>
+                    Retry loading more
+                  </Button>
+                </span>
+              ) : data && (hasNextPage ? "Scroll for more leads" : data.leads.length > 0 ? "All matching leads loaded" : null)}
+            </div>
           </div>
           {isManagerOrAdmin && <div className="leads-fit-bulk-slot" data-testid="slot-leads-bulk">{bulkBar}</div>}
         </>
@@ -1300,9 +1330,10 @@ export default function Leads() {
       {(desktop || (data && data.totalPages > 1)) && (
         <div className={desktop ? "leads-fit-footer" : "flex items-center justify-between mt-4"} data-testid="pagination-leads">
           <div className="text-sm text-muted-foreground">
-            {data ? (() => { const r = pageRange(page, limit, data.total); return `Showing ${r.start} to ${r.end} of ${data.total} entries`; })() : error ? "Lead results unavailable" : "Loading leads…"}
+            {data ? desktop ? `${data.leads.length} of ${data.total} leads loaded`
+              : (() => { const r = pageRange(page, limit, data.total); return `Showing ${r.start} to ${r.end} of ${data.total} entries`; })() : error ? "Lead results unavailable" : "Loading leads…"}
           </div>
-          <div className="flex gap-2">
+          {!desktop && <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -1319,7 +1350,7 @@ export default function Leads() {
             >
               Next
             </Button>
-          </div>
+          </div>}
         </div>
       )}
 
