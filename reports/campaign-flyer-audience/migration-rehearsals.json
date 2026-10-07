@@ -1,0 +1,2477 @@
+[
+  {
+    "scenario": "production-profile",
+    "sourceKind": "isolated-metadata-matched-fixture-not-production-data",
+    "ledgerBefore": {
+      "count": 67,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "failed"
+        }
+      ]
+    },
+    "ledgerAfter": {
+      "count": 69,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "superseded"
+        },
+        {
+          "name": "068_campaign_attribution_fk_names",
+          "checksum": "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66",
+          "state": "applied"
+        },
+        {
+          "name": "069_campaign_attribution_recovery",
+          "checksum": "6cec18c4f246402baa5387fd182ae181cf2ba3fa11d34472b1101bdcc883c7f0",
+          "state": "applied"
+        }
+      ]
+    },
+    "ddlBatches": 0,
+    "postgresDdlStatements": 0,
+    "catalogBefore": "602c484a50ed26f015e0359013d3b604b089b958f53b84905319e561df6cd9a3",
+    "catalogAfter": "602c484a50ed26f015e0359013d3b604b089b958f53b84905319e561df6cd9a3",
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "publish-model-sync",
+    "sourceKind": "isolated-metadata-matched-fixture-not-production-data",
+    "ledgerBefore": {
+      "count": 66,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        }
+      ]
+    },
+    "ledgerAfter": {
+      "count": 69,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "superseded"
+        },
+        {
+          "name": "068_campaign_attribution_fk_names",
+          "checksum": "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66",
+          "state": "applied"
+        },
+        {
+          "name": "069_campaign_attribution_recovery",
+          "checksum": "6cec18c4f246402baa5387fd182ae181cf2ba3fa11d34472b1101bdcc883c7f0",
+          "state": "applied"
+        }
+      ]
+    },
+    "ddlBatches": 0,
+    "postgresDdlStatements": 0,
+    "catalogBefore": "3ac4d87cbde8b0f448aa8574203064cbc7c42a7208022fe051c5cc16e0f5a0de",
+    "catalogAfter": "3ac4d87cbde8b0f448aa8574203064cbc7c42a7208022fe051c5cc16e0f5a0de",
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "partial-profile",
+    "sourceKind": "isolated-metadata-matched-fixture-not-production-data",
+    "ledgerBefore": {
+      "count": 67,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "failed"
+        }
+      ]
+    },
+    "ledgerAfter": {
+      "count": 69,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "superseded"
+        },
+        {
+          "name": "068_campaign_attribution_fk_names",
+          "checksum": "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66",
+          "state": "applied"
+        },
+        {
+          "name": "069_campaign_attribution_recovery",
+          "checksum": "6cec18c4f246402baa5387fd182ae181cf2ba3fa11d34472b1101bdcc883c7f0",
+          "state": "applied"
+        }
+      ]
+    },
+    "ddlBatches": 3,
+    "postgresDdlStatements": 3,
+    "catalogBefore": "fac486ab1cb853b0237be9fa25c986ba7ba283d88c2636a858cf8bb88cbc2a1c",
+    "catalogAfter": "602c484a50ed26f015e0359013d3b604b089b958f53b84905319e561df6cd9a3",
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  },
+  {
+    "scenario": "fresh-empty",
+    "sourceKind": "isolated-metadata-matched-fixture-not-production-data",
+    "ledgerBefore": {
+      "rows": [],
+      "count": 0
+    },
+    "ledgerAfter": {
+      "count": 69,
+      "rows": [
+        {
+          "name": "000_baseline",
+          "checksum": "a07aee3fbf5a174ff94c05859a401cac808b0c89435fd834e4bae09e75117902",
+          "state": "applied"
+        },
+        {
+          "name": "001_create_credit_tables",
+          "checksum": "5a3914c1b6bad5369a994291aac3617ceda45e98b0401a50a2cb861662f8c881",
+          "state": "applied"
+        },
+        {
+          "name": "002_rep_slugs",
+          "checksum": "46d83e32152a948c363f6ca17dc92bd9d9f2a91c79f08929af4c9035384c9672",
+          "state": "applied"
+        },
+        {
+          "name": "003_deals",
+          "checksum": "ed582ec3e291049d0c411d9793704802cccd64cae108a7a00735890b28eaa233",
+          "state": "applied"
+        },
+        {
+          "name": "004_deal_intended_rep_slug",
+          "checksum": "34b24e6e50cdfe1ea9922f458f33309c92c6e9680fe138eb1172e4fe49a7c26c",
+          "state": "applied"
+        },
+        {
+          "name": "005_lead_distribution_settings",
+          "checksum": "f3ea1cd2887f39f9cc5d2cd66c3a1626d36b43c0b84e5fef0a0e4946dc2d46a4",
+          "state": "applied"
+        },
+        {
+          "name": "006_drip_sequence_ownership",
+          "checksum": "09459bd62d55597d4758b75d593810755d14a6076c186127d5134614cb0380ba",
+          "state": "applied"
+        },
+        {
+          "name": "007_lead_staleness_threshold",
+          "checksum": "2771bb13b11489bf588742b6e2f461474e4f17e2835abeee158be1652f9ebb95",
+          "state": "applied"
+        },
+        {
+          "name": "008_email_safety_settings",
+          "checksum": "9d9805015f069ad2bb33abff0150018397a02a4caf0b8d6de28400a9e54d2400",
+          "state": "applied"
+        },
+        {
+          "name": "009_email_send_failure_reason",
+          "checksum": "b6e7000f176009602ea54453ef8fec4e0dd379024caa68f7d26292ef8b5765f0",
+          "state": "applied"
+        },
+        {
+          "name": "010_email_webhook_events",
+          "checksum": "c215003f45148264d1bd30add3e2d82d017a7492e10ea51da1f348a808eaa9d3",
+          "state": "applied"
+        },
+        {
+          "name": "011_email_rate_slots",
+          "checksum": "b4efc9d24cb78f72f9baa9809823c3e75159c9cc66ba0c0361a4d98d45ddbdb4",
+          "state": "applied"
+        },
+        {
+          "name": "012_application_signature",
+          "checksum": "5c42b2d9a3f7c5dd7e06f132413384e331077ad632883e12bc609cbd2eee2c8d",
+          "state": "applied"
+        },
+        {
+          "name": "013_retired_rep_slugs",
+          "checksum": "88acbb2d9265cc349e3aaf0e8ef79f1f2edb4af417d0e6bcbdfa8e4d6f1b7c30",
+          "state": "applied"
+        },
+        {
+          "name": "014_application_optional_fields",
+          "checksum": "2fc4bea96e83512ab1ddd4c9bb670a2ef55b5836fb5ac8ae02cf9e0872fe0f45",
+          "state": "applied"
+        },
+        {
+          "name": "015_application_consent_text_version",
+          "checksum": "bb518329ba39771c0697155d75cb9701219b16c05d6468a795c48e770261edee",
+          "state": "applied"
+        },
+        {
+          "name": "016_user_titles",
+          "checksum": "043ede312d09b85daf6f60cbebcc74adb99ff68d2a9c322ab3932f4ca0db4e83",
+          "state": "applied"
+        },
+        {
+          "name": "017_deal_notes_gm_split",
+          "checksum": "cb8cc5ef51ea9baae90858fa774cf5dab6e1f86cf948a9a75718b41d67a005b7",
+          "state": "applied"
+        },
+        {
+          "name": "018_lender_matcher_gates",
+          "checksum": "cc7df9b47f0119b2ddc249086feaf6084d78964bb6fec0e96239765c80c502cd",
+          "state": "applied"
+        },
+        {
+          "name": "019_document_categories",
+          "checksum": "681bbfb3858c481d6d0cbe15d9c5f4129a783f28816a628a445dfeefc760d374",
+          "state": "applied"
+        },
+        {
+          "name": "020_lender_submissions",
+          "checksum": "1ef5d4e359cd3626037a5ea45a08087aaf783b8816ad2b7e5be0301476719f48",
+          "state": "applied"
+        },
+        {
+          "name": "021_lead_package_config",
+          "checksum": "ce5c5a0a00688d29b7bc5c5f4e35ad2797088defb969e36fd4d2c0cc1693e5f3",
+          "state": "applied"
+        },
+        {
+          "name": "022_lender_submission_package_snapshots",
+          "checksum": "fc16b93c7a074a22888d8197a6a88b9bb8ff71283d912e3325add8ad330116f3",
+          "state": "applied"
+        },
+        {
+          "name": "023_routing_and_marketing_ownership",
+          "checksum": "08da9afb034d57bc56219d1444cf5557775c23f71a8732169aa8ee244f0541ad",
+          "state": "applied"
+        },
+        {
+          "name": "024_email_compliance_daily_budget",
+          "checksum": "bad7383e9ed8df253c20bd4bd8725a8773dc1d034fcba1c7417e3234fd14f530",
+          "state": "applied"
+        },
+        {
+          "name": "025_usfa_intake",
+          "checksum": "6bb0033bd971fcf0d0a2274b01c78556799af5ee9738ec6b0d9f08f2b1170a50",
+          "state": "applied"
+        },
+        {
+          "name": "026_usfa_intake_runtime_support",
+          "checksum": "9d13c871f3c5799751e2698cd6771636b6e4b337ef9098f8e7b5674a69888b55",
+          "state": "applied"
+        },
+        {
+          "name": "028_merge_going_to_funding_stage",
+          "checksum": "09d6ed0446929d5f0f8c47a7799a2ea8b006854a919a8702cd0dafb4bcc0dce4",
+          "state": "applied"
+        },
+        {
+          "name": "029_deal_approvals",
+          "checksum": "90b2d5390a2560b35c2f15981cd3087de9ea3d3b937b55edbaffa819b46a3c39",
+          "state": "applied"
+        },
+        {
+          "name": "030_add_application_collateral",
+          "checksum": "33c910dadd587a5cc37c2f499c4f185a9b8e3cdb624a515b9ae2b967fb583fdb",
+          "state": "applied"
+        },
+        {
+          "name": "031_collateral_library",
+          "checksum": "adbd86747569c0b02956d5b38debfc81e326c874aa7bbede7a73398d95fde4b3",
+          "state": "applied"
+        },
+        {
+          "name": "032_finance_application_collateral",
+          "checksum": "57c07e85f37a80aae9c0c2ea3f2f2445887b4728386f4dfcfe3f0e776c25804c",
+          "state": "applied"
+        },
+        {
+          "name": "033_lender_submission_review_fields",
+          "checksum": "1de8df04ade0e8160715e4716908b05ba4e2425a85c4c5cb951083ca827efa6d",
+          "state": "applied"
+        },
+        {
+          "name": "034_application_sms_consent",
+          "checksum": "1831bc9ac93e3e9dfd6234caef56c3e0ccdf06d18fa623db53a192a8224623b5",
+          "state": "applied"
+        },
+        {
+          "name": "035_user_identities",
+          "checksum": "184edad6d31e1bf079ab45da6fd691608d37783cb710d5a031c21dc7067cbdbd",
+          "state": "applied"
+        },
+        {
+          "name": "036_partners_contacts",
+          "checksum": "35f6d26c0369bd046876d06ad7abfe636c499ddf4d4786bdb4c28e19f59952c9",
+          "state": "applied"
+        },
+        {
+          "name": "037_partner_flows_and_texting",
+          "checksum": "31de09eb3327b34727006e986f2d593a71c6851ffc832674bda61beac6b8b223",
+          "state": "applied"
+        },
+        {
+          "name": "038_partner_texting",
+          "checksum": "3bb622d378f1f73eef3accec85e51608cddb7e9cf08f1b10c7056642ecaeb29d",
+          "state": "applied"
+        },
+        {
+          "name": "039_ridgestone_partner_profile",
+          "checksum": "4a1bba89fc6a725f23ce8468df1ebad33d27c4b92315816a7392c7c0f59bc23c",
+          "state": "applied"
+        },
+        {
+          "name": "040_release_schema_parity",
+          "checksum": "5828af4a1b3664252cd0eb52506626bf14948bf5851e6882c2842ae44dbcb179",
+          "state": "applied"
+        },
+        {
+          "name": "041_push_notifications",
+          "checksum": "2e45ec1de0773fb243dd51d60ba27df5a4a107aa4af86b5774d097349ba996b0",
+          "state": "applied"
+        },
+        {
+          "name": "042_push_delivery_ledger",
+          "checksum": "d2f191455da390cbdebcd3b87aa377fbcb08044b9707078b2d39ddf0f4ee6e7a",
+          "state": "applied"
+        },
+        {
+          "name": "043_align_push_schema",
+          "checksum": "73e384983cab81b55914dc905884eb2c4229169b699b8618fafa26ad7027365b",
+          "state": "applied"
+        },
+        {
+          "name": "044_notification_delivery_claims",
+          "checksum": "efaec622e931eb624efec6a658a473bd09159e704b317e602e9a1a16d3c6a295",
+          "state": "applied"
+        },
+        {
+          "name": "045_application_equipment_category_homeowner",
+          "checksum": "5e04725aaa480af54a339ba1d1414d35ea4033cba59825b79276aca6c29a7fc9",
+          "state": "applied"
+        },
+        {
+          "name": "046_complete_partner_contacts_recovery",
+          "checksum": "598d709d7fac1b3f4497cc6da7118b7b12b4bbdb87c26f1ec534c3989230751c",
+          "state": "applied"
+        },
+        {
+          "name": "047_partner_contacts_prerequisite",
+          "checksum": "d9c8ade860b0dd7d4dd7281c437a0b961f3b6cd3d305f87ade6fa18c78364399",
+          "state": "applied"
+        },
+        {
+          "name": "048_financing_campaign_draft",
+          "checksum": "e32cc9a267265db14871d7980065623138873a1b0a019fe2f28f6261b0a898b7",
+          "state": "applied"
+        },
+        {
+          "name": "049_lender_underwriting_intelligence",
+          "checksum": "ac06ab7c7670b7884d100e849a404a0dca67d2d48fc2fe90cdbe8df9753b5624",
+          "state": "applied"
+        },
+        {
+          "name": "050_lender_guideline_versions",
+          "checksum": "38e3ec493dfb3963c10cece011d62ebed00daeb6b253943f35ba094559dcd458",
+          "state": "applied"
+        },
+        {
+          "name": "051_users_role_default_pending",
+          "checksum": "04cee486a4d7fcd49bb92db32f230baa7f8af7016d6d31912367b354d7d204e4",
+          "state": "applied"
+        },
+        {
+          "name": "052_reusable_campaign_launcher",
+          "checksum": "cfd8d92a060e40ce3710a761f674325d43078fac3cfea6144c74b51bd9f87959",
+          "state": "applied"
+        },
+        {
+          "name": "053_campaign_preview_approval_snapshots",
+          "checksum": "cac7747dfd8f3aa3467bfb26c30ddde4e736b10ef2882a1d4d25d9b9e2f03e27",
+          "state": "applied"
+        },
+        {
+          "name": "054_campaign_preview_recipient_snapshots",
+          "checksum": "efc6aaf9e7a82359f63d725c5963d1ffba1f8b70e45db9d2b9e3e42a10890ddc",
+          "state": "applied"
+        },
+        {
+          "name": "055_campaign_launch_execution_leases",
+          "checksum": "2bc3bc65a6b5ee415a7be5298e77412fd6df21aafe61e136fca0610924c829af",
+          "state": "applied"
+        },
+        {
+          "name": "056_campaign_flyer",
+          "checksum": "4cddc8265dc8e756366b921a5e174fc2a01e0415902025cff5462f203e9294f3",
+          "state": "applied"
+        },
+        {
+          "name": "057_telephony_settings",
+          "checksum": "a4687cf976ff9c566c1bc415d62dd69aa21b8e5e5ba9830b976669a3a45ef343",
+          "state": "applied"
+        },
+        {
+          "name": "058_telephony_business_defaults",
+          "checksum": "8f06131c93a39bd45f852e9a9ee54e2902e2685924b56749d1da4fffacfff018",
+          "state": "applied"
+        },
+        {
+          "name": "059_inbound_voice_settings",
+          "checksum": "6099effcdbb354a180973b1be07d9a001d5111bfb3d3ce6e1b1b8c7562ef9955",
+          "state": "applied"
+        },
+        {
+          "name": "060_inbound_voice_array_defaults",
+          "checksum": "4f119252a69277b176a7dd109395be85ff71aeb2529fee7b1fdc42ab34da4162",
+          "state": "applied"
+        },
+        {
+          "name": "061_telephony_completion",
+          "checksum": "8df6562600dbe97028914991d1a1676d959dff39a13714c66217baab42e661a2",
+          "state": "applied"
+        },
+        {
+          "name": "062_email_readiness_daily_cap",
+          "checksum": "e477ea7fe3fe02de4e97a67d5c507cad004b93a65efb9f0bd28921b913967470",
+          "state": "applied"
+        },
+        {
+          "name": "063_lead_vertical",
+          "checksum": "58327cfc2b57fc66b0c8576e114625dab4e742d1eb7fba436e801080c4166f05",
+          "state": "applied"
+        },
+        {
+          "name": "064_collateral_flyer_library",
+          "checksum": "6ee2b26ee412d85fa177a3c2cf5dcf0dad693cbab1836dedc081f36842eed29a",
+          "state": "applied"
+        },
+        {
+          "name": "065_campaign_flyer_link_vendor_template",
+          "checksum": "e8296fc3f597f8e2e60e073eff6b466ee2e5a25e80ad86375ef7d2416c1f2b6b",
+          "state": "applied"
+        },
+        {
+          "name": "066_bundled_vendor_equipment_flyers",
+          "checksum": "8cdd91542020c136efbaf0a703bb7aa3b93a14472d97b4e50455bfaa0994a26e",
+          "state": "applied"
+        },
+        {
+          "name": "067_campaign_attribution",
+          "checksum": "f2990978aa8e8a905a11dd746986b21e89a97d428474651a703d97559b2988ba",
+          "state": "applied"
+        },
+        {
+          "name": "068_campaign_attribution_fk_names",
+          "checksum": "061300fbfd0a7a899ca5141094b960b1507703247aa103264912e62ce688df66",
+          "state": "applied"
+        },
+        {
+          "name": "069_campaign_attribution_recovery",
+          "checksum": "6cec18c4f246402baa5387fd182ae181cf2ba3fa11d34472b1101bdcc883c7f0",
+          "state": "applied"
+        }
+      ]
+    },
+    "ddlBatches": 68,
+    "postgresDdlStatements": 65,
+    "catalogBefore": "f3aaf7b36a1979fa8eb0d3f37b64b3bc600229946ec0294b71e0bf595c3a1036",
+    "catalogAfter": "602c484a50ed26f015e0359013d3b604b089b958f53b84905319e561df6cd9a3",
+    "boot": {
+      "http": 200,
+      "phase": "ready",
+      "schemaFailure": false
+    },
+    "verdict": "PASS"
+  }
+]

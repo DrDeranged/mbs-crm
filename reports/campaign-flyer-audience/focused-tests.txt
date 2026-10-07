@@ -1,0 +1,59 @@
+(node:889) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ campaign APIs are restricted to manager and admin roles (3.979714ms)
+✔ campaign without a flyer produces plain text and one remote logo HTML alternative (0.830318ms)
+✔ Link sends no attachment and renders an expiring URL in both email alternatives; Attach is unchanged (3.391273ms)
+✔ vendor vertical mappings use imported lead vertical first and default to equipment (0.673813ms)
+✔ flyer link defaults follow the selected flyer's audience in text and HTML (1.167356ms)
+✔ flyer link overrides survive merge rendering, are HTML escaped, and are accepted for approval (2.739493ms)
+✔ daily overflow is deferred to the next New York business day (26.440029ms)
+✔ future scheduled launches are rejected when no delivery worker exists (0.198147ms)
+✔ resume candidates exclude sent, uncertain, and early deferred rows (0.295324ms)
+✔ audience classification preserves actionable email exclusion reasons (0.922973ms)
+✔ campaign audience union deduplicates IDs, prioritizes picked origin, and sorts by ID (1.198354ms)
+✔ campaign exclusion breakdown distinguishes consent, suppression, prior sends and duplicates (0.767401ms)
+✔ a picked lead outside the filters is included but suppression excludes it with a visible reason (0.518083ms)
+✔ manual picks without filters never expand into an all-leads campaign (0.084087ms)
+✔ SMS preview explains missing, duplicate, consent, and unsupported launch outcomes (0.259028ms)
+✔ editing a campaign invalidates its approval version (0.13766ms)
+✔ repeat launch lifecycle is idempotent and transitions are explicit (0.31478ms)
+✔ future scheduling advances the campaign, while an unscheduled dry run does not (0.083023ms)
+✔ campaign content hashes are stable and change when approved template content changes (0.608511ms)
+✔ campaign Reply-To defaults and participates in approval hash (0.103011ms)
+✔ approval blocks unknown merge tokens before any provider send (0.161275ms)
+✔ campaign flyer delivery uses the approved immutable creative (0.150956ms)
+✔ approval requires the current hash and explicit claims affirmation (0.273086ms)
+✔ approval and launch reject empty or malformed eligible audience counts (0.096606ms)
+✔ provider-free validation reports no-send, tested address, audience count, and timestamp (0.13514ms)
+✔ provider-free validation rejects inactive or missing content and exercises rendering (0.145071ms)
+✔ approved audience remains the launch source after reload or newer preview changes (0.507169ms)
+✔ assigned representative reply-to contract preserves routing (0.54819ms)
+✔ same-key resume only selects eligible recipients and never retries uncertain queued rows (0.134707ms)
+✔ recipient ledger summaries are cumulative across partial runs (0.127826ms)
+✔ execution lease refuses active owners and allows expiry takeover (0.068656ms)
+✔ resume continues past already-processed queued recipient (0.063417ms)
+(node:889) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:890) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ documents and strictly rejects unknown merge tokens (1.474815ms)
+✔ data:image URIs are rejected separately from merge-token validation (0.289761ms)
+✔ every inline starter template uses only supported merge tokens (0.558236ms)
+✔ rendering uses Hi there fallback and omits a missing company phrase (0.923454ms)
+✔ supported per-send footer tokens render without creating a second footer (0.406848ms)
+✔ HTML and plain-text compliance footer is exact once and never data URI (3.879791ms)
+✔ provider dispatch keeps test-send Reply-To on the admin address (1.390862ms)
+(node:890) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4639.335536

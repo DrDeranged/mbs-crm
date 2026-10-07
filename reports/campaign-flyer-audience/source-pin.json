@@ -1,0 +1,42 @@
+{
+  "candidate": "aef093f674f6b5e6f51223ff8f42ecff9a3773c5",
+  "parent": "dc70517b53d9493e40e110e12b5e13086253a9a9",
+  "tree": "c616f5ba58d2587f00346b3bda6da380ce7c889a",
+  "root": "/home/runner/workspace/.local/predeploy-c6fc40f-source",
+  "downloaded": 1,
+  "files": [
+    {
+      "path": "artifacts/api-server/src/lib/campaignCore.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06e8e73e9302164965b431b1cffa07592fda25a2"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/campaigns.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b9fcb09b3de5d64fb0e37714dc71132960075498"
+    },
+    {
+      "path": "artifacts/api-server/src/routes/campaigns.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "73b8da5692e0bbb6c172febd1fa4c79c142019b9"
+    },
+    {
+      "path": "artifacts/api-server/src/routes/email.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "64cf3e38d16276799ecdddcc2f37b42a421e264a"
+    },
+    {
+      "path": "lib/db/src/attributionRehearsal.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a10d85a3beb997832f8daaf344c165cb7e6e8909"
+    }
+  ],
+  "exactGitTreeVerified": true,
+  "refUpdated": false,
+  "published": false
+}
