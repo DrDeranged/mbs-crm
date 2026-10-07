@@ -29,9 +29,14 @@ The first two cases execute zero schema DDL in both recovery and application boo
 
 ## Clone provenance emitted by the standard preflight
 
-DB clone source: backup
-DB clone source: backup
 DB clone source: schema-only
+
+This is the actual gate 9 result, excluding mock clone-source messages printed
+by unit tests. No production backup was present in the pinned checkout, so the
+standard clone gate used its repository schema fallback. The dedicated 4a fixture
+separately reproduces the verified production schema/ledger state, but neither
+is a fresh production-data-backed clone. This report does not certify live
+customer data or authorize publishing.
 
 ## Evidence
 
