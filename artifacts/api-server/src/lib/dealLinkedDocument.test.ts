@@ -163,19 +163,19 @@ test("visible deal does not disclose or authorize its other-rep lead", async () 
   assert.equal(result.dealResponse.status, 200);
   assert.equal(result.dealPayload.leadId, null);
   assert.equal(result.dealPayload.lead, null);
-  assert.equal(result.dealPayload.entityLabel, "Deal");
-  assert.equal(result.dealPayload.dealName, "Deal");
+  assert.equal(result.dealPayload.entityLabel, "Lead details unavailable");
+  assert.equal(result.dealPayload.dealName, "Lead details unavailable");
   assert.equal(result.uploadResponse, null);
   assert.match(new PgDialect().sqlToQuery(result.contactWhere).sql, /assigned_rep_id/);
 });
 
-test("linked deal uses a neutral deal fallback when company and contact identity are absent", async () => {
+test("linked deal explicitly reports missing contact identity without using its stored label", async () => {
   const result = await runDealLinkedUpload(user.id, {
     firstName: null,
     lastName: null,
     companyName: null,
   });
   assert.equal(result.dealResponse.status, 200);
-  assert.equal(result.dealPayload.entityLabel, "Deal");
-  assert.equal(result.dealPayload.dealName, "Deal");
+  assert.equal(result.dealPayload.entityLabel, "Contact not recorded");
+  assert.equal(result.dealPayload.dealName, "Contact not recorded");
 });
