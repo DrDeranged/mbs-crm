@@ -48,32 +48,38 @@ export function vendorVertical(vertical?: string | null, industry?: string | nul
 }
 
 const FLYER_LINK_MARKER = "__MBS_CAMPAIGN_FLYER_LINK__";
-export function campaignFlyerLinkMarker(): string { return FLYER_LINK_MARKER; }
+const FLYER_LINK_PATTERN = /__MBS_CAMPAIGN_FLYER_LINK(?:_LABEL_([0-9a-f]+))?__/g;
+export function campaignFlyerLinkMarker(label?: string): string {
+  const text = label?.trim();
+  return text ? `__MBS_CAMPAIGN_FLYER_LINK_LABEL_${Buffer.from(text, "utf8").toString("hex")}__` : FLYER_LINK_MARKER;
+}
 
 function escapeCampaignHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /** The same approved link appears in both the plain-text and HTML alternatives. */
-export function renderCampaignFlyerLink(renderedBody: string, flyerUrl: string | null): { bodyText: string; bodyHtml: string } {
-  const textLink = flyerUrl ? `View our vendor program → ${flyerUrl}` : "";
-  const htmlLink = flyerUrl ? `<a href="${escapeCampaignHtml(flyerUrl)}">View our vendor program →</a>` : "";
-  const hasMarker = renderedBody.includes(FLYER_LINK_MARKER);
+export function renderCampaignFlyerLink(renderedBody: string, flyerUrl: string | null, audience: "vendor" | "end_user" | null = "vendor"): { bodyText: string; bodyHtml: string } {
+  const defaultLabel = audience === "end_user" ? "See your financing options →" : "View our vendor program →";
+  const label = (encoded?: string) => encoded ? Buffer.from(encoded, "hex").toString("utf8") : defaultLabel;
+  const textLink = (encoded?: string) => flyerUrl ? `${label(encoded)} ${flyerUrl}` : "";
+  const htmlLink = (encoded?: string) => flyerUrl ? `<a href="${escapeCampaignHtml(flyerUrl)}">${escapeCampaignHtml(label(encoded))}</a>` : "";
+  const hasMarker = [...renderedBody.matchAll(FLYER_LINK_PATTERN)].length > 0;
   const text = campaignPlainText(renderedBody);
-  const bodyText = (hasMarker ? text.replaceAll(FLYER_LINK_MARKER, textLink) : `${text}${textLink ? `\n\n${textLink}` : ""}`)
+  const bodyText = (hasMarker ? text.replace(FLYER_LINK_PATTERN, (_match, encoded) => textLink(encoded)) : `${text}${flyerUrl ? `\n\n${textLink()}` : ""}`)
     .replace(/\n{3,}/g, "\n\n").trim();
   const hasHtml = /<\/?[a-z][\s>]/i.test(renderedBody);
   if (!hasHtml) {
     // Preserve paragraphs in the plain-text vendor template, and make the HTML alternative clickable.
-    const markerText = hasMarker ? text : `${text}${htmlLink ? `\n\n${FLYER_LINK_MARKER}` : ""}`;
+    const markerText = hasMarker ? text : `${text}${flyerUrl ? `\n\n${FLYER_LINK_MARKER}` : ""}`;
     return {
       bodyText,
-      bodyHtml: minimalCampaignHtml(markerText.replace(/\n{3,}/g, "\n\n").trim()).replaceAll(FLYER_LINK_MARKER, htmlLink),
+      bodyHtml: minimalCampaignHtml(markerText.replace(/\n{3,}/g, "\n\n").trim()).replace(FLYER_LINK_PATTERN, (_match, encoded) => htmlLink(encoded)),
     };
   }
   return {
     bodyText,
-    bodyHtml: (hasMarker ? renderedBody.replaceAll(FLYER_LINK_MARKER, htmlLink) : `${renderedBody}${htmlLink ? `<p>${htmlLink}</p>` : ""}`),
+    bodyHtml: (hasMarker ? renderedBody.replace(FLYER_LINK_PATTERN, (_match, encoded) => htmlLink(encoded)) : `${renderedBody}${flyerUrl ? `<p>${htmlLink()}</p>` : ""}`),
   };
 }
 
@@ -161,7 +167,8 @@ export function unknownCampaignMergeTokens(value: string): string[] {
   const unknown = new Set<string>();
   for (const match of value.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
     const token = match[1].trim();
-    if (!(CAMPAIGN_MERGE_TOKENS as readonly string[]).includes(token)) unknown.add(token);
+    if (!(CAMPAIGN_MERGE_TOKENS as readonly string[]).includes(token) &&
+      !/^flyer_link\s*\|[^{}]+$/.test(token)) unknown.add(token);
   }
   return [...unknown];
 }

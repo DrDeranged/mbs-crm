@@ -169,7 +169,20 @@ try {
       console.log(`ATTRIBUTION-REHEARSAL ${JSON.stringify(result)}`);
     } finally {
       await pool.end();
-      await admin.query(`DROP DATABASE "${name}" WITH (FORCE)`);
+      // Pool.end() can resolve before the clients' TCP shutdown reaches PostgreSQL.
+      // A forced drop then sends 57P01 to an ending idle client and can emit an
+      // unhandled pool error. Wait for real server-side disconnects; do not hide
+      // connection leaks or operational errors behind a FORCE cleanup.
+      const deadline = Date.now() + 10_000;
+      while (true) {
+        const remaining = await admin.query<{ count: string }>(
+          "SELECT count(*)::text AS count FROM pg_stat_activity WHERE datname=$1", [name],
+        );
+        if (remaining.rows[0].count === "0") break;
+        if (Date.now() >= deadline) throw new Error(`Rehearsal connections did not close for ${scenario}`);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      await admin.query(`DROP DATABASE "${name}"`);
     }
   }
   console.log(`ATTRIBUTION RECOVERY REHEARSAL PASS scenarios=${results.length}`);

@@ -35,7 +35,7 @@ import {
 } from "./campaignCore";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignRender, validateCampaignMergeTokens } from "./campaignReadiness";
 import { EMAIL_BRAND_LOGO_URL } from "./brand";
-import { renderTemplate } from "../routes/email";
+import { renderTemplate, validateEmailTemplate } from "../routes/email";
 
 test("campaign APIs are restricted to manager and admin roles", () => {
   assert.equal(canManageCampaign({ role: "admin" }), true);
@@ -83,6 +83,43 @@ test("vendor vertical mappings use imported lead vertical first and default to e
   assert.equal(renderTemplate("Financing for your {{vertical}} buyers", { vertical: vendorVertical("trucking") }), "Financing for your truck and trailer buyers");
   assert.equal(renderTemplate("If a buyer at {{company}} ever stalls on financing", { company: "" }),
     "If a buyer ever stalls on financing");
+});
+
+test("flyer link defaults follow the selected flyer's audience in text and HTML", () => {
+  const url = "https://example.com/flyer";
+  for (const [audience, expected] of [
+    ["vendor", "View our vendor program →"],
+    ["end_user", "See your financing options →"],
+  ] as const) {
+    for (const template of ["{{flyer_link}}", "<p>{{flyer_link}}</p>", "Financing information"]) {
+      const body = renderTemplate(template, { flyer_link: campaignFlyerLinkMarker() });
+      const rendered = renderCampaignFlyerLink(body, url, audience);
+      assert.ok(rendered.bodyText.includes(`${expected} ${url}`));
+      assert.ok(rendered.bodyHtml.includes(`>${expected}</a>`));
+    }
+  }
+});
+
+test("flyer link overrides survive merge rendering, are HTML escaped, and are accepted for approval", () => {
+  const url = "https://example.com/flyer?a=1&b=2";
+  const template = "{{flyer_link|Custom <text> & financing →}}";
+  assert.equal(validateCampaignMergeTokens({ subject: "Financing", bodyHtml: template }), null);
+  assert.deepEqual(validateEmailTemplate("Financing", template), []);
+  for (const audience of ["vendor", "end_user"] as const) {
+    for (const input of [template, `<p>${template}</p>`]) {
+      const body = renderTemplate(input, { flyer_link: campaignFlyerLinkMarker() });
+      const rendered = renderCampaignFlyerLink(body, url, audience);
+      assert.ok(rendered.bodyText.includes(`Custom <text> & financing → ${url}`));
+      assert.ok(rendered.bodyHtml.includes(">Custom &lt;text&gt; &amp; financing →</a>"));
+      assert.ok(!rendered.bodyHtml.includes("__MBS_CAMPAIGN_FLYER_LINK"));
+      assert.ok(!renderCampaignFlyerLink(body, null, audience).bodyText.includes("Custom"));
+    }
+  }
+  const mixed = renderTemplate("{{flyer_link|First}} {{flyer_link|Second}} {{flyer_link|   }}", {
+    flyer_link: campaignFlyerLinkMarker(),
+  });
+  assert.equal(renderCampaignFlyerLink(mixed, "URL", "end_user").bodyText,
+    "First URL Second URL See your financing options → URL");
 });
 
 test("daily overflow is deferred to the next New York business day", () => {

@@ -26,7 +26,7 @@ import { EMAIL_BRAND_LOGO_URL, ensureBrandEmailHeader, getBrandLogoPng, getBrand
 import { isEmailSuppressed, normalizeEmail, suppressEmail } from "../lib/emailSafety";
 import { reserveEmailRateSlot, EMAIL_RATE_RETRY_MS } from "../lib/emailRateLimiter";
 import { seedStarterEmailData } from "../lib/productionMaintenance";
-import { vendorVertical } from "../lib/campaignCore";
+import { vendorVertical, campaignFlyerLinkMarker } from "../lib/campaignCore";
 import { logger } from "../lib/logger";
 
 const UNSUB_SECRET = process.env["UNSUB_SECRET"];
@@ -68,7 +68,8 @@ const EMAIL_MERGE_TOKEN_SET = new Set<string>(EMAIL_MERGE_TOKENS);
 export function validateEmailTemplateTokens(value: string): string[] {
   const unknown = new Set<string>();
   for (const match of value.matchAll(/\{\{([^{}]+)\}\}/g)) {
-    if (!EMAIL_MERGE_TOKEN_SET.has(match[1])) unknown.add(match[1]);
+    if (!EMAIL_MERGE_TOKEN_SET.has(match[1]) &&
+      !/^\s*flyer_link\s*\|[^{}]+$/.test(match[1])) unknown.add(match[1]);
   }
   return [...unknown];
 }
@@ -276,6 +277,7 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
     if (key === "unsubscribe_link") return "__MBS_UNSUBSCRIBE_LINK__";
     if (key === "mailing_address") return escapeHtml(EMAIL_COMPLIANCE_ADDRESS);
     if (key === "lead_first_name" && !vars[key]?.trim()) return "there";
+    if (key === "flyer_link" && vars[key] === campaignFlyerLinkMarker()) return campaignFlyerLinkMarker(fallback);
     const raw = vars[key];
     return raw == null || !String(raw).trim() ? (fallback ? escapeHtml(fallback.trim()) : "") : escapeHtml(String(raw));
   });

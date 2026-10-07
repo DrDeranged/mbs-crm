@@ -153,6 +153,7 @@ async function validateUploadedFlyer(
 
 type ResolvedCampaignFlyer = {
   source: "built_in" | "uploaded" | "library";
+  audience?: "vendor" | "end_user" | null;
   key?: "equipment_financing" | "working_capital";
   templateId?: number;
   objectPath?: string;
@@ -196,6 +197,7 @@ async function resolveCampaignFlyer(raw: unknown): Promise<ResolvedCampaignFlyer
     }
     return {
       source: "library", templateId: item.id, objectPath: item.sourceKey,
+      audience: item.audience,
       name: item.name, ...stored,
       digest,
     };
@@ -211,8 +213,10 @@ async function resolveCampaignFlyer(raw: unknown): Promise<ResolvedCampaignFlyer
 
 function flyerSnapshot(flyer: ResolvedCampaignFlyer | null) {
   if (!flyer) return null;
-  const { bytes: _bytes, ...snapshot } = flyer;
-  return snapshot;
+  const { bytes: _bytes, audience, ...snapshot } = flyer;
+  // Vendor remains the historical default; unchanged vendor approvals stay valid.
+  // End-user copy differs and must be bound into the approved content hash.
+  return audience === "end_user" ? { ...snapshot, audience } : snapshot;
 }
 
 function parseId(req: Request): number | null {
@@ -975,7 +979,7 @@ router.post("/campaigns/:id/launch", async (req, res): Promise<void> => {
       }, 7 * 24 * 60 * 60)
       : null;
     const renderedBody = renderTemplate(template.bodyHtml, vars);
-    const { bodyText, bodyHtml } = renderCampaignFlyerLink(renderedBody, linkUrl);
+    const { bodyText, bodyHtml } = renderCampaignFlyerLink(renderedBody, linkUrl, resolvedFlyer?.audience ?? "vendor");
     const withoutAttachment = !resolvedFlyer;
     let result;
     try {
