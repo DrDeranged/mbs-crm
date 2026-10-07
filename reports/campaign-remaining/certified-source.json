@@ -1,0 +1,81 @@
+{
+  "revision": "0b5d5b9f0d938f331f213b4fe8ac687e4b3046fe",
+  "tree": "3149334a31a82c4a2c43a01c3352b53352f4ce4c",
+  "remoteParent": "6d263866c50de1fed88371c553da0b4e5989d9b0",
+  "remoteTree": "86cdcadfc2e5b8f2a5ddf2f61e1aead1746b4d30",
+  "trackedCheckoutClean": true,
+  "preflightExitCode": 0,
+  "preflightSha256": "f663dd8c8e77fd9c400d57f510d94ad5087c311742dcc57c45ff67f1fcc9be23",
+  "files": [
+    {
+      "path": ".agents/memory/github-source-snapshots.md",
+      "blob": "10e1fd1ce84305951182ed0804f960afbfd69c8a",
+      "sha256": "0516665f31ac55da2bca938abd109e111da03dda045681eaae5e347663e32e35"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/authMatrix.test.ts",
+      "blob": "6618c35ad7258f3d0340acbab343ef53a82db262",
+      "sha256": "a6360d590db3195461af5487c7872806bf80278986dcaf76553b52e0a510d3a0"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/campaignRemaining.test.ts",
+      "blob": "840ce27b7d424c19525fe1bc73a8dea521f95b50",
+      "sha256": "36a601ddba7b47461fe2ac390d0e55fa3fb43bb8a58c71f795d0b6826757cf4e"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/campaignRemaining.ts",
+      "blob": "e7f818629727ee27fdaebab6a697a1c923f46f0e",
+      "sha256": "b5588532d32b3ff442174defbe44379a50e9c9139d012ee9f5e36f4b9275253a"
+    },
+    {
+      "path": "artifacts/api-server/src/routes/campaigns.ts",
+      "blob": "1134e79a0031bfbc6dc2bc74be4850de40026c7f",
+      "sha256": "0040c955e545674035e2fd1362938d15d59e4b38f5be3c97d17188bb696eed3e"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/components/campaign-safety-actions.tsx",
+      "blob": "03c6b834c8a10ebbb9e94f7cd07de8516db51149",
+      "sha256": "4c92b42cbd3a4b3c008f5e4b7dc8a2f474a66bab0118690da7263438bac8433c"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/lib/campaign-safety-actions.test.ts",
+      "blob": "cb877bf92327612464cc17600b86ba3e33fcd3ea",
+      "sha256": "a8c666cd78c154b772b819ca16dab950ecb3afee8ffd03f7d43d0020f0f80ddc"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/pages/campaign-detail.tsx",
+      "blob": "9def1fd08a717e451a0e04e1270202f4ae8f8684",
+      "sha256": "f18a19c486b2b964bd3e561e2d510e3734200521c73882f08bafef27ee7e4797"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/pages/campaigns.tsx",
+      "blob": "141fcab71855a22764d0f609d4f886e53b575814",
+      "sha256": "6c9dd244afe48e8365418392b45faa4571d07a210c597c159e90aa92a2b8450e"
+    },
+    {
+      "path": "docs/AUTH_MATRIX.md",
+      "blob": "c6e8ebfbead19e0404edca1e21866d64a64c95e0",
+      "sha256": "3cbd67e88680cad6e3d05c92aefbc4268177bdb6fcebc4dadb2f25914ef0c99a"
+    },
+    {
+      "path": "lib/api-client-react/src/generated/api.schemas.ts",
+      "blob": "47e0eac72fe9252d0222126309e884bb061c85d1",
+      "sha256": "3001ee54a40f5a9e4efef23559685349adccb6bb69c2727b464ecaf816935dee"
+    },
+    {
+      "path": "lib/api-client-react/src/generated/api.ts",
+      "blob": "a9fa027ef0533aad68d142f09c9aafc88133568b",
+      "sha256": "98c1b20e856ae0af909d5cd8fd463088e3bc52a7acfdb061a8be5550a7e5802e"
+    },
+    {
+      "path": "lib/api-spec/openapi.yaml",
+      "blob": "7a4abc235af80b1e805e054a02b85b21ca26f59c",
+      "sha256": "8279aee716cd925b4b85a93b4b80cec018d53bb80477f31b87294f2809c5d808"
+    },
+    {
+      "path": "lib/api-zod/src/generated/api.ts",
+      "blob": "5b23a46c9719e0468abed0dec5f5299847c1031b",
+      "sha256": "da534d7c85e1e101ac599bf7516fd9bea8b14df87eeefc21e345f12213406e0e"
+    }
+  ]
+}

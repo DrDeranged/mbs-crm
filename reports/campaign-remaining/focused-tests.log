@@ -1,0 +1,7 @@
+Raw final-suite lines from preflight-full.log
+✔ remaining audience excludes the original sent set, including repeated launch rows (2.155898ms)
+✔ deferred, cancelled and internal unclaimed eligible rows are pending; SMS is not silently relaunched (1.983862ms)
+✔ a sent or unresolved provider attempt blocks a stale queued recipient (0.312438ms)
+✔ validation-only launch recipients cannot broaden a live campaign recovery (0.204136ms)
+✔ suppression and unsubscribe are rechecked; sent addresses cannot reenter through another lead (0.475261ms)
+✔ recovery success still refreshes and navigates after its dropdown unmounts (157.223424ms)

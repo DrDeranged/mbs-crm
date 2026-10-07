@@ -1,0 +1,68 @@
+{
+  "applicationCommit": "be381e89ebd3d15114d2acba88b6042dc51dfb31",
+  "applicationParent": "6d263866c50de1fed88371c553da0b4e5989d9b0",
+  "applicationTree": "3149334a31a82c4a2c43a01c3352b53352f4ce4c",
+  "certifiedRevision": "0b5d5b9f0d938f331f213b4fe8ac687e4b3046fe",
+  "certifiedTree": "3149334a31a82c4a2c43a01c3352b53352f4ce4c",
+  "mainVerifiedAtApplicationCommit": true,
+  "forceUsed": false,
+  "files": [
+    {
+      "path": ".agents/memory/github-source-snapshots.md",
+      "blob": "10e1fd1ce84305951182ed0804f960afbfd69c8a"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/authMatrix.test.ts",
+      "blob": "6618c35ad7258f3d0340acbab343ef53a82db262"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/campaignRemaining.test.ts",
+      "blob": "840ce27b7d424c19525fe1bc73a8dea521f95b50"
+    },
+    {
+      "path": "artifacts/api-server/src/lib/campaignRemaining.ts",
+      "blob": "e7f818629727ee27fdaebab6a697a1c923f46f0e"
+    },
+    {
+      "path": "artifacts/api-server/src/routes/campaigns.ts",
+      "blob": "1134e79a0031bfbc6dc2bc74be4850de40026c7f"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/components/campaign-safety-actions.tsx",
+      "blob": "03c6b834c8a10ebbb9e94f7cd07de8516db51149"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/lib/campaign-safety-actions.test.ts",
+      "blob": "cb877bf92327612464cc17600b86ba3e33fcd3ea"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/pages/campaign-detail.tsx",
+      "blob": "9def1fd08a717e451a0e04e1270202f4ae8f8684"
+    },
+    {
+      "path": "artifacts/mbs-crm/src/pages/campaigns.tsx",
+      "blob": "141fcab71855a22764d0f609d4f886e53b575814"
+    },
+    {
+      "path": "docs/AUTH_MATRIX.md",
+      "blob": "c6e8ebfbead19e0404edca1e21866d64a64c95e0"
+    },
+    {
+      "path": "lib/api-client-react/src/generated/api.schemas.ts",
+      "blob": "47e0eac72fe9252d0222126309e884bb061c85d1"
+    },
+    {
+      "path": "lib/api-client-react/src/generated/api.ts",
+      "blob": "a9fa027ef0533aad68d142f09c9aafc88133568b"
+    },
+    {
+      "path": "lib/api-spec/openapi.yaml",
+      "blob": "7a4abc235af80b1e805e054a02b85b21ca26f59c"
+    },
+    {
+      "path": "lib/api-zod/src/generated/api.ts",
+      "blob": "5b23a46c9719e0468abed0dec5f5299847c1031b"
+    }
+  ],
+  "evidenceDisposition": "Reports are attached in a direct evidence-only child; final main hash is returned separately."
+}
