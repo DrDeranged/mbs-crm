@@ -7966,6 +7966,12 @@ export const DownloadSharedCollateralParams = zod.object({
 })
 
 
+export const listCampaignsQueryShowArchivedDefault = false;
+
+export const ListCampaignsQueryParams = zod.object({
+  "showArchived": zod.coerce.boolean().default(listCampaignsQueryShowArchivedDefault)
+})
+
 export const listCampaignsResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
 export const listCampaignsResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
 export const listCampaignsResponseFlyerTwoSizeMax = 15728640;
@@ -8023,7 +8029,10 @@ export const ListCampaignsResponseItem = zod.object({
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
-  "version": zod.number()
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
 })
 export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
 
@@ -8229,7 +8238,10 @@ export const GetCampaignResponse = zod.object({
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
-  "version": zod.number()
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
 }),
   "launches": zod.array(zod.object({
   "id": zod.number(),
@@ -8374,7 +8386,172 @@ export const UpdateCampaignResponse = zod.object({
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
-  "version": zod.number()
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
+})
+
+
+export const DeleteCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const ArchiveCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const archiveCampaignResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
+export const archiveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const archiveCampaignResponseFlyerTwoSizeMax = 15728640;
+
+
+export const archiveCampaignResponseAudienceRulesDealsDefault = `all`;
+export const archiveCampaignResponseAudienceRulesMinAmountMin = 0;
+
+export const archiveCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+export const archiveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+
+export const ArchiveCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(archiveCampaignResponseReplyToEmailDefault),
+  "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(archiveCampaignResponseFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(archiveCampaignResponseFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
+})]).nullish(),
+  "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(archiveCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(archiveCampaignResponseAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(archiveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(archiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
+})
+
+
+export const UnarchiveCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const unarchiveCampaignResponseReplyToEmailDefault = `nate@my-business-solutions.com`;
+export const unarchiveCampaignResponseFlyerTwoObjectPathRegExp = new RegExp('^\/objects\/campaigns');
+export const unarchiveCampaignResponseFlyerTwoSizeMax = 15728640;
+
+
+export const unarchiveCampaignResponseAudienceRulesDealsDefault = `all`;
+export const unarchiveCampaignResponseAudienceRulesMinAmountMin = 0;
+
+export const unarchiveCampaignResponseAudienceRulesMaxAmountMin = 0;
+
+
+export const unarchiveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+
+export const UnarchiveCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "channel": zod.enum(['email', 'sms', 'email_sms']),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'running', 'paused', 'completed', 'cancelled', 'failed']),
+  "emailTemplateId": zod.number().nullish(),
+  "replyToEmail": zod.string().email().default(unarchiveCampaignResponseReplyToEmailDefault),
+  "smsBody": zod.string().nullish(),
+  "flyerDeliveryMode": zod.enum(['attach', 'link']).describe('Existing campaigns retain Attach; new campaigns default to Link.'),
+  "flyer": zod.union([zod.object({
+  "source": zod.literal("built_in"),
+  "key": zod.enum(['equipment_financing', 'working_capital']),
+  "name": zod.string(),
+  "contentType": zod.literal("image/png")
+}),zod.object({
+  "source": zod.literal("uploaded"),
+  "objectPath": zod.string().regex(unarchiveCampaignResponseFlyerTwoObjectPathRegExp),
+  "name": zod.string(),
+  "contentType": zod.enum(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']),
+  "size": zod.number().min(1).max(unarchiveCampaignResponseFlyerTwoSizeMax)
+}),zod.object({
+  "source": zod.literal("library"),
+  "templateId": zod.number().min(1),
+  "name": zod.string()
+})]).nullish(),
+  "audienceRules": zod.object({
+  "remainingFromCampaignId": zod.number().optional().describe('Server-owned source campaign; fixes the audience to its unsent recipients.'),
+  "remainingRootCampaignId": zod.number().optional().describe('Server-owned recovery family for cross-campaign duplicate-send protection.'),
+  "deals": zod.enum(['all', 'open', 'exclude_open']).default(unarchiveCampaignResponseAudienceRulesDealsDefault).describe('Open means a non-archived deal in an active stage; also applies to manually picked leads.'),
+  "statuses": zod.array(zod.string()).optional(),
+  "programTypes": zod.array(zod.enum(['equipment', 'working_capital'])).optional(),
+  "assignedRepId": zod.number().nullish(),
+  "leadSources": zod.array(zod.string()).optional(),
+  "createdFrom": zod.coerce.date().nullish(),
+  "createdTo": zod.coerce.date().nullish(),
+  "minAmount": zod.number().min(unarchiveCampaignResponseAudienceRulesMinAmountMin).nullish(),
+  "maxAmount": zod.number().min(unarchiveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(unarchiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+}),
+  "ownerId": zod.number(),
+  "createdBy": zod.number(),
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
+})
+
+
+export const GetCampaignRecoveryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCampaignRecoveryResponse = zod.object({
+  "notSentHere": zod.number(),
+  "sentViaRecovery": zod.number(),
+  "eligibleRemaining": zod.number(),
+  "pendingViaRecovery": zod.number(),
+  "exclusions": zod.array(zod.object({
+  "reason": zod.string(),
+  "count": zod.number()
+})),
+  "recoveries": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "status": zod.string()
+}))
 })
 
 
@@ -8504,7 +8681,10 @@ export const ApproveCampaignResponse = zod.object({
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
-  "version": zod.number()
+  "version": zod.number(),
+  "archivedAt": zod.coerce.date().nullish(),
+  "canDelete": zod.boolean().optional(),
+  "sendDate": zod.coerce.date().nullish()
 })
 
 
@@ -8584,6 +8764,12 @@ export const GetCampaignResultsResponse = zod.object({
 })
 })
 
+
+export const listCampaignMetricsQueryShowArchivedDefault = false;
+
+export const ListCampaignMetricsQueryParams = zod.object({
+  "showArchived": zod.coerce.boolean().default(listCampaignMetricsQueryShowArchivedDefault)
+})
 
 export const ListCampaignMetricsResponseItem = zod.object({
   "campaignId": zod.number(),

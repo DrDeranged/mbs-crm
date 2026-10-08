@@ -335,3 +335,21 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 reconciliation is route-inventory evidence, not exhaustive authorization proof.
 Runtime suite/typecheck status must be recorded from their actual command
 results; no unresolved Section A source-audit finding is currently listed here.
+
+| Method | Path | Source | Guard | Scope |
+| --- | --- | --- | --- | --- |
+| POST | `/api/campaigns/:id/archive` | `routes/campaigns.ts` | `A` | draft or terminal status; retain history |
+| DELETE | `/api/campaigns/:id/archive` | `routes/campaigns.ts` | `A` | unarchive without changing campaign status |
+| DELETE | `/api/campaigns/:id` | `routes/campaigns.ts` | `A` | never-approved/never-launched draft only |
+| GET | `/api/campaigns/:id/recovery` | `routes/campaigns.ts` | `M` | read-only eligibility and recovery accounting |
+| `I` | Public, rate-limited, schema-validated form intake. This is an explicit exception to the mutation gate. |
+| `T` | Public Twilio callback. `validateTwilioSignature` requires `TWILIO_AUTH_TOKEN`, `x-twilio-signature`, and `twilio.validateRequest(AUTH_TOKEN, signature, absoluteCallbackUrl, req.body)`; invalid requests return 403 (`twilio.ts:31-39`). |
+| `G` | Public SendGrid callback. It requires `SENDGRID_WEBHOOK_VERIFICATION_KEY`, both SendGrid signature headers, the captured raw body, and `EventWebhook.verifySignature`; absent configuration or any invalid input returns 403 (`sendgrid.ts:17-34,72-74`). |
+| `H` | Public signed email action. Tracking and unsubscribe actions require their HMAC token; unsubscribe additionally binds the token email to the persisted send (`email.ts:339-357,369-404,407-443`). |
+| `K` | Public, rate-limited application-status lookup authorized by its opaque status token (`applications.ts:694-739`). |
+| `O` | Authenticated endpoint whose response is not a lead/deal list, detail, export, or download. The route-specific role check shown in its source governs the operation. |
+| `W` | Public USFA webhook. It requires `X-USFA-Signature`, an HMAC-SHA256 over the exact raw body using `USFA_WEBHOOK_SECRET`, strict payload validation, and the database enable flag before intake. |
+
+For `L` and `D`, a client-provided `repId` can only narrow results: it never
+replaces the ownership predicate. `N/A` below means the route has no
+lead/deal payload to scope; it is still guarded by the control in its row.

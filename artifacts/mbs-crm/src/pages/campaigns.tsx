@@ -3,8 +3,10 @@ import { CampaignSkeleton } from "@/components/page-skeletons";
 import { Link, useLocation } from "wouter";
 import { type Campaign, useGetMe, useListCampaignMetrics, useListCampaigns, useCreateCampaign, useDuplicateCampaign } from "@workspace/api-client-react";
 import { CampaignCancelDialog, CampaignRemainingAction } from "@/components/campaign-safety-actions";
+import { CampaignDeleteDialog, CampaignLifecycleActions, useInvalidateCampaigns } from "@/components/campaign-lifecycle-actions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { compareLabel } from "@/lib/campaignLifecycle";
 import { Plus, Mail, Copy, XCircle, Search, CalendarClock, PlayCircle, Clock, AlertTriangle, FileEdit } from "lucide-react";
-import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,8 +33,6 @@ import { CampaignComparisonTable, MetricsDefinitions, MetricsState } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { getListCampaignsQueryKey } from "@workspace/api-client-react";
 
 export function getStatusColor(status: string) {
   switch (status) {
@@ -50,11 +50,12 @@ export function getStatusColor(status: string) {
 
 export default function CampaignsPage() {
   const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
-  const { data: campaigns, isLoading } = useListCampaigns();
+  const invalidateCampaigns = useInvalidateCampaigns();
+  const [showArchived, setShowArchived] = useState(false);
+  const { data: campaigns, isLoading } = useListCampaigns({ showArchived });
   const { data: me } = useGetMe();
   const canCompare = me?.role === "manager" || me?.role === "admin";
-  const metricsQ = useListCampaignMetrics({ query: { enabled: canCompare } as any });
+  const metricsQ = useListCampaignMetrics({ showArchived }, { query: { enabled: canCompare } as any });
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -65,6 +66,8 @@ export default function CampaignsPage() {
   const createCampaign = useCreateCampaign();
   const duplicateCampaign = useDuplicateCampaign();
   const [cancelTarget, setCancelTarget] = useState<Campaign | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
+  const campaignById = new Map((campaigns ?? []).map(c => [c.id, c]));
 
   const filteredCampaigns = campaigns?.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -79,7 +82,7 @@ export default function CampaignsPage() {
       { data: { name: newName, channel: newChannel, audienceRules: {} } },
       {
         onSuccess: (newC) => {
-          queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey() });
+          invalidateCampaigns();
           toast.success("Campaign created");
           setIsCreateOpen(false);
           setLocation(`/campaigns/${newC.id}`);
@@ -94,7 +97,7 @@ export default function CampaignsPage() {
       { id },
       {
         onSuccess: (newC) => {
-          queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey() });
+          invalidateCampaigns();
           toast.success("Campaign duplicated");
           setLocation(`/campaigns/${newC.id}`);
         },
@@ -107,6 +110,7 @@ export default function CampaignsPage() {
   return (
     <div className="flex h-full flex-col">
       <CampaignCancelDialog campaign={cancelTarget} onClose={() => setCancelTarget(null)} />
+      <CampaignDeleteDialog campaign={deleteTarget} onClose={() => setDeleteTarget(null)} />
       <header className="flex flex-shrink-0 items-center justify-between border-b bg-card px-6 py-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Campaigns</h1>
@@ -170,6 +174,10 @@ export default function CampaignsPage() {
                 className="pl-9 bg-card"
               />
             </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Checkbox checked={showArchived} onCheckedChange={(v) => setShowArchived(v === true)} data-testid="checkbox-show-archived" />
+              Show archived
+            </label>
           </div>
 
           {canCompare && <section aria-label="Campaign comparison" className="space-y-3" data-testid="section-campaign-comparison">
@@ -181,8 +189,8 @@ export default function CampaignsPage() {
                     {metricsQ.data.map((m) => {
                       const on = compareIds.includes(m.campaignId);
                       return (
-                        <Button key={m.campaignId} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} data-testid={`toggle-compare-${m.campaignId}`}
-                          onClick={() => setCompareIds((ids) => on ? ids.filter((i) => i !== m.campaignId) : [...ids, m.campaignId].slice(-4))}>{m.name}</Button>
+                        <Button key={m.campaignId} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} data-testid={`toggle-compare-${m.campaignId}`} title={compareLabel({ name: m.name, status: campaignById.get(m.campaignId)?.status, sendDate: campaignById.get(m.campaignId)?.sendDate })}
+                          onClick={() => setCompareIds((ids) => on ? ids.filter((i) => i !== m.campaignId) : [...ids, m.campaignId].slice(-4))}>{compareLabel({ name: m.name, status: campaignById.get(m.campaignId)?.status, sendDate: campaignById.get(m.campaignId)?.sendDate })}</Button>
                       );
                     })}
                   </div>
@@ -204,7 +212,7 @@ export default function CampaignsPage() {
               </div>
               <h3 className="text-lg font-medium text-foreground">No campaigns found</h3>
               <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-                {search ? "No campaigns match your search." : "Get started by creating your first outreach campaign."}
+                {search ? "No campaigns match your search." : showArchived ? "No campaigns yet." : "Get started by creating your first outreach campaign."}
               </p>
             </div>
           ) : (
@@ -220,6 +228,7 @@ export default function CampaignsPage() {
                         <Badge variant="secondary" className={getStatusColor(campaign.status)}>
                           {campaign.status.toUpperCase()}
                         </Badge>
+                        {campaign.archivedAt && <Badge variant="outline" data-testid={`badge-archived-${campaign.id}`}>ARCHIVED</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
                         {campaign.description || "No description provided."}
@@ -248,6 +257,7 @@ export default function CampaignsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <CampaignRemainingAction campaign={campaign} menu />
+                            <CampaignLifecycleActions campaign={campaign} menu onRequestDelete={setDeleteTarget} />
                             <DropdownMenuItem onClick={() => handleDuplicate(campaign.id)}>
                               <Copy className="mr-2 h-4 w-4" /> Duplicate
                             </DropdownMenuItem>

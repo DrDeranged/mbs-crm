@@ -1,32 +1,62 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   type Campaign, useGetMe, useGetCampaignResults, useCancelCampaign,
-  useCreateRemainingCampaign, getListCampaignsQueryKey, getGetCampaignQueryKey,
+  useCreateRemainingCampaign, useGetCampaignRecovery, getGetCampaignRecoveryQueryKey,
   getGetCampaignResultsQueryKey,
 } from "@workspace/api-client-react";
+import { useInvalidateCampaigns } from "@/components/campaign-lifecycle-actions";
+import { cancelledSummary, canViewRecovery, recoveryAction, shouldPollRecovery } from "@/lib/campaignLifecycle";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const errorMessage = (error: any) => error?.data?.error || error?.message || "Campaign action failed";
 
+export function useCampaignRecovery(campaign: Campaign) {
+  const { data: me } = useGetMe();
+  const enabled = canViewRecovery(me?.role) && ["cancelled", "paused"].includes(campaign.status);
+  return useGetCampaignRecovery(campaign.id, { query: {
+    enabled, queryKey: getGetCampaignRecoveryQueryKey(campaign.id),
+    refetchInterval: (q: any) => shouldPollRecovery(q?.state?.data) ? 5000 : false,
+  } as any });
+}
+
+export function CampaignRecoverySummary({ campaign }: { campaign: Campaign }) {
+  const recovery = useCampaignRecovery(campaign);
+  if (!recovery.data) return null;
+  const s = cancelledSummary(recovery.data);
+  return <div className="rounded-lg border bg-muted p-4 text-sm" data-testid="campaign-recovery-summary">
+    <p className="font-medium text-foreground">{s.headline}</p>
+    {s.pending && <p className="mt-1 text-muted-foreground">{s.pending}</p>}
+  </div>;
+}
+
 export function CampaignRemainingAction({ campaign, menu = false }: { campaign: Campaign; menu?: boolean }) {
   const { data: me } = useGetMe();
   const [, navigate] = useLocation();
-  const client = useQueryClient();
+  const invalidate = useInvalidateCampaigns();
+  const recovery = useCampaignRecovery(campaign);
   // Hook-level callbacks survive the dropdown closing/unmounting after selection.
   const mutation = useCreateRemainingCampaign({ mutation: {
     onSuccess: draft => {
-      client.invalidateQueries({ queryKey: getListCampaignsQueryKey() });
+      invalidate();
       toast.success("Remaining-recipient draft created. Review and approve before sending.");
       navigate(`/campaigns/${draft.id}`);
     },
     onError: error => toast.error(errorMessage(error)),
   } });
-  if (me?.role !== "admin" || !["cancelled", "paused"].includes(campaign.status)) return null;
+  if (!["cancelled", "paused"].includes(campaign.status)) return null;
+  const action = recoveryAction(me?.role, recovery.data);
+  if (action.kind === "none") return null;
+  if (action.kind === "create" && campaign.archivedAt) return null;
+  if (action.kind === "linked") {
+    const go = () => navigate(`/campaigns/${action.campaignId}`);
+    return menu
+      ? <DropdownMenuItem onClick={go}>{action.label}</DropdownMenuItem>
+      : <Button variant="outline" onClick={go} data-testid="campaign-recovery-linked">{action.label}</Button>;
+  }
   const create = () => mutation.mutate({ id: campaign.id });
   const label = "Send remaining recipients as a new campaign";
   return menu
@@ -35,7 +65,7 @@ export function CampaignRemainingAction({ campaign, menu = false }: { campaign: 
 }
 
 export function CampaignCancelDialog({ campaign, onClose }: { campaign: Campaign | null; onClose: () => void }) {
-  const client = useQueryClient();
+  const invalidate = useInvalidateCampaigns();
   const mutation = useCancelCampaign();
   const results = useGetCampaignResults(campaign?.id ?? 0, {
     query: { queryKey: getGetCampaignResultsQueryKey(campaign?.id ?? 0), enabled: !!campaign, refetchOnMount: "always", refetchInterval: 5000 },
@@ -57,9 +87,7 @@ export function CampaignCancelDialog({ campaign, onClose }: { campaign: Campaign
           disabled={!campaign || queued == null || results.isError || results.isFetching || mutation.isPending}
           onClick={() => campaign && mutation.mutate({ id: campaign.id }, {
             onSuccess: () => {
-              client.invalidateQueries({ queryKey: getListCampaignsQueryKey() });
-              client.invalidateQueries({ queryKey: getGetCampaignQueryKey(campaign.id) });
-              client.invalidateQueries({ queryKey: getGetCampaignResultsQueryKey(campaign.id) });
+              invalidate();
               toast.success("Campaign cancelled");
               onClose();
             },

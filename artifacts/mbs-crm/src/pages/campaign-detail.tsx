@@ -46,7 +46,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/searchable-select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CampaignCancelAction, CampaignRemainingAction } from "@/components/campaign-safety-actions";
+import { CampaignCancelAction, CampaignRecoverySummary, CampaignRemainingAction } from "@/components/campaign-safety-actions";
+import { CampaignDeleteDialog, CampaignLifecycleActions, useInvalidateCampaigns } from "@/components/campaign-lifecycle-actions";
+import { LAUNCH_STEPS, LAUNCHED_TABS, formatSendDate, isLaunchedStatus, resolveTab } from "@/lib/campaignLifecycle";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -166,6 +168,8 @@ export default function CampaignDetailPage() {
   const [, params] = useRoute("/campaigns/:id");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const invalidateCampaigns = useInvalidateCampaigns();
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const id = Number(params?.id);
 
   const { data, isLoading } = useGetCampaign(id, { query: { enabled: !!id, queryKey: getGetCampaignQueryKey(id) } });
@@ -196,7 +200,9 @@ export default function CampaignDetailPage() {
   const deletePreset = useDeleteCampaignAudiencePreset();
   const updatePreset = useUpdateCampaignAudiencePreset();
 
-  const [activeTab, setActiveTab] = useState("content");
+  const [requestedTab, setActiveTab] = useState<string | null>(null);
+  const launched = campaign ? isLaunchedStatus(campaign.status) : false;
+  const activeTab = resolveTab(campaign?.status ?? "draft", requestedTab);
   const [testEmail, setTestEmail] = useState("");
   const [validationResult, setValidationResult] = useState<
     | { state: "success"; toEmail: string; eligibleCount: number; validatedAt: string; message: string }
@@ -258,6 +264,7 @@ export default function CampaignDetailPage() {
   }, [campaign, templates, form]);
 
   const onSubmit = (values: CampaignFormValues) => {
+    if (launched) return;
     const payload = {
       ...values,
       description: values.description === "" ? null : values.description,
@@ -296,7 +303,7 @@ export default function CampaignDetailPage() {
   };
 
   const handleFlyerUpload = async (file?: File) => {
-    if (!file) return;
+    if (!file || launched) return;
     const validationError = validateCampaignFlyerFile(file);
     if (validationError) {
       setUploadError(validationError);
@@ -348,8 +355,8 @@ export default function CampaignDetailPage() {
     approveCampaign.mutate({ id, data: { previewToken, claimsAffirmed: true } }, {
       onSuccess: () => {
         toast.success("Campaign approved for launch");
-        queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) });
-        setActiveTab("review");
+        invalidateCampaigns();
+        setActiveTab("launch");
       },
       onError: (err: any) => toast.error(getErrorMsg(err, "Failed to approve campaign"))
     });
@@ -429,9 +436,7 @@ export default function CampaignDetailPage() {
           toast.success("Campaign launched successfully in live mode!");
         }
         setLaunchDialogOpen(false);
-        queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) });
-        queryClient.invalidateQueries({ queryKey: getGetCampaignResultsQueryKey(id) });
-        queryClient.invalidateQueries({ queryKey: getGetCampaignMetricsQueryKey(id) });
+        invalidateCampaigns();
       },
       onError: (err: any) => toast.error(getErrorMsg(err, "Failed to launch campaign"))
     });
@@ -588,12 +593,13 @@ export default function CampaignDetailPage() {
               <Badge variant="secondary" className={getStatusColor(campaign.status)}>
                 {campaign.status.toUpperCase()}
               </Badge>
+              {campaign.archivedAt && <Badge variant="outline" data-testid="badge-archived">ARCHIVED</Badge>}
             </div>
             <p className="text-sm text-muted-foreground">Campaign ID: {campaign.id} • Version: {campaign.version}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {(campaign.status === "draft" || campaign.status === "approved" || campaign.status === "paused" || campaign.status === "failed") && (
+          {(campaign.status === "draft" || campaign.status === "approved") && (
             <Button variant="outline" onClick={() => form.handleSubmit(onSubmit)()} disabled={!isDirty || updateCampaign.isPending}>
               <Save className="mr-2 h-4 w-4" />
               {updateCampaign.isPending ? "Saving..." : "Save Changes"}
@@ -602,7 +608,7 @@ export default function CampaignDetailPage() {
 
           {campaign.status === "running" && (
             <Button variant="secondary" onClick={() => pauseCampaign.mutate({ id }, {
-              onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(id) }),
+              onSuccess: () => invalidateCampaigns(),
               onError: (err: any) => toast.error(getErrorMsg(err, "Failed to pause"))
             })} disabled={pauseCampaign.isPending}>
               <Pause className="mr-2 h-4 w-4" /> Pause Campaign
@@ -611,6 +617,7 @@ export default function CampaignDetailPage() {
 
           <CampaignCancelAction campaign={campaign} />
           <CampaignRemainingAction campaign={campaign} />
+          <CampaignLifecycleActions campaign={campaign} onRequestDelete={() => setDeleteOpen(true)} />
 
           {campaign.status === "draft" && (
             <div className="flex items-center gap-2">
@@ -625,7 +632,7 @@ export default function CampaignDetailPage() {
             </div>
           )}
           {isApproved && (
-            <Button variant="outline" className="text-success border-primary/20 hover:bg-primary/5" onClick={() => setActiveTab("review")}>
+            <Button variant="outline" className="text-success border-primary/20 hover:bg-primary/5" onClick={() => setActiveTab("launch")}>
               Ready to Launch →
             </Button>
           )}
@@ -636,30 +643,34 @@ export default function CampaignDetailPage() {
         <div className="mx-auto max-w-5xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="rounded-xl border bg-card p-3 ">
-              <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
-                {[
-                  ["Content", Boolean(form.watch("emailTemplateId") !== "__none__" || !requiresEmailTemplate)],
-                  ["Attachment", true], ["Audience", activeFilters.length > 0],
-                  ["Preview", campaign.status === "approved" || !needsPreview], ["Approval", campaign.status === "approved"], ["Launch", ["scheduled", "running", "completed"].includes(campaign.status)],
-                ].map(([label, complete], index) => (
-                  <div key={String(label)} className={`rounded-lg border px-3 py-2 ${complete ? "border-success/30 bg-success-bg text-success" : "bg-muted text-muted-foreground"}`}>
-                    <span className="mr-1 font-semibold">{index + 1}.</span>{label}
-                    {complete && <CheckCircle2 className="ml-1 inline h-3.5 w-3.5" />}
-                  </div>
-                ))}
-              </div>
-              <TabsList className="grid w-full grid-cols-4 bg-secondary">
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="audience">Audience</TabsTrigger>
-              <TabsTrigger value="review">Review</TabsTrigger>
-              <TabsTrigger value="results">Results</TabsTrigger>
-              </TabsList>
+              {launched ? (
+                <TabsList className="grid w-full grid-cols-3 bg-secondary">
+                  {LAUNCHED_TABS.map(([key, label]) => <TabsTrigger key={key} value={key} data-testid={`tab-${key}`}>{label}</TabsTrigger>)}
+                </TabsList>
+              ) : (
+                <ol className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4" aria-label="Campaign steps" data-testid="campaign-stepper">
+                  {LAUNCH_STEPS.map(([key, label], index) => {
+                    const current = activeTab === key;
+                    return (
+                      <li key={key}>
+                        <button type="button" aria-current={current ? "step" : undefined} onClick={() => setActiveTab(key)} data-testid={`step-${key}`}
+                          className={`w-full rounded-lg border px-3 py-2 text-left ${current ? "border-primary bg-card font-semibold text-foreground" : "bg-muted text-muted-foreground hover:bg-secondary"}`}>
+                          <span className="mr-1 font-semibold">{index + 1}.</span>{label}
+                          {key === "launch" && campaign.status === "scheduled" && <span className="ml-1 text-chart-5">Scheduled</span>}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
             </div>
 
             <Form {...form}>
               <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                 
                 <TabsContent value="content" className="space-y-6">
+                  <fieldset disabled={launched} className="m-0 min-w-0 space-y-6 border-0 p-0" data-testid="fieldset-content">
+                  {launched && <p className="rounded-lg border bg-card p-3 text-sm text-muted-foreground">Read-only. Content cannot change after launch.</p>}
                   <div className="grid gap-6 md:grid-cols-2">
                     <Card>
                       <CardHeader>
@@ -887,6 +898,7 @@ export default function CampaignDetailPage() {
                       )}
                     </CardContent>
                   </Card>
+                  </fieldset>
                 </TabsContent>
 
                 <TabsContent value="audience" className="space-y-6">
@@ -894,7 +906,8 @@ export default function CampaignDetailPage() {
                     This audience is fixed to the unsent recipients of campaign {campaign.audienceRules.remainingFromCampaignId}.
                     Previously attempted deliveries, unsubscribes and suppressions are excluded and rechecked before sending.
                   </p>}
-                  <fieldset disabled={!!campaign.audienceRules?.remainingFromCampaignId} className="space-y-6">
+                  {launched && <p className="rounded-lg border bg-card p-3 text-sm text-muted-foreground">Read-only. Audience cannot change after launch.</p>}
+                  <fieldset disabled={launched || !!campaign.audienceRules?.remainingFromCampaignId} className="space-y-6">
                   <Card>
                     <CardHeader className="flex flex-row items-start justify-between pb-4">
                       <div>
@@ -1273,8 +1286,8 @@ export default function CampaignDetailPage() {
 
                     <Card>
                       <CardHeader>
-                        <CardTitle>{campaign.status === "approved" ? "Schedule & Launch" : "Approval readiness"}</CardTitle>
-                        <CardDescription>{campaign.status === "approved" ? "Approval is complete. Choose the next launch action." : "Complete every requirement below to approve this campaign."}</CardDescription>
+                        <CardTitle>Approval readiness</CardTitle>
+                        <CardDescription>{campaign.status === "draft" ? "Complete every requirement below to approve this campaign." : "Approval is complete."}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {campaign.status === "draft" ? (
@@ -1313,47 +1326,10 @@ export default function CampaignDetailPage() {
                               <ShieldCheck className="mr-2 h-4 w-4" />{approveCampaign.isPending ? "Approving..." : "Approve and continue to launch"}
                             </Button>
                           </div>
-                        ) : campaign.status !== "approved" ? (
-                          <div className="rounded-lg border bg-muted p-6 text-center text-muted-foreground">
-                            This campaign is {campaign.status}. Launch actions are unavailable.
-                          </div>
-                        ) : !canConfirmCampaignLaunch({ status: campaign.status, dirty: isDirty, approvedAudience }) ? (
-                          <div className="rounded-lg border bg-warning-bg p-6 text-center text-warning">
-                            <AlertTriangle className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                            <p>{isDirty ? "Save or discard changes before launching; saving requires re-approval." : "Approved audience is unavailable or empty. Refresh the campaign or edit and approve a new non-empty preview."}</p>
-                          </div>
                         ) : (
-                          <div className="space-y-4">
-                            <div className="flex gap-4">
-                              <Button 
-                                type="button" 
-                                onClick={() => {
-                                  setLaunchMode("live");
-                                  setLaunchDialogOpen(true);
-                                }} 
-                                className="flex-1"
-                              >
-                                <Play className="mr-2 h-4 w-4" />
-                                Launch Now
-                              </Button>
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                disabled
-                                title="Scheduled campaigns are not delivered automatically — launch manually at send time."
-                                className="flex-1"
-                              >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                Schedule Launch
-                              </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground text-center">
-                              Counts are from the immutable audience snapshot recorded at approval. Suppression and consent are checked again before delivery.
-                            </p>
-                            <p className="text-center text-xs font-medium text-warning">
-                              Scheduled campaigns are not delivered automatically — launch manually at send time.
-                            </p>
-                            <p className="text-center text-sm font-medium">{approvedAudience?.eligible} approved eligible · {approvedAudience?.excluded} excluded</p>
+                          <div className="space-y-3 rounded-lg border border-success/30 bg-success-bg p-6 text-center text-success">
+                            <p className="flex items-center justify-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4" />Approved. Continue to Launch.</p>
+                            <Button type="button" variant="outline" onClick={() => setActiveTab("launch")} data-testid="button-go-launch">Go to Launch</Button>
                           </div>
                         )}
                       </CardContent>
@@ -1415,7 +1391,67 @@ export default function CampaignDetailPage() {
                   </div>
                 </TabsContent>
 
+                <TabsContent value="launch" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Launch</CardTitle>
+                      <CardDescription>{campaign.status === "scheduled" ? "This campaign is scheduled." : "Choose the launch action for the approved audience."}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {campaign.status === "scheduled" && (
+                        <div className="rounded-lg border bg-secondary p-4 text-sm" data-testid="launch-scheduled-status">
+                          <p className="font-medium text-foreground">Status: SCHEDULED · {formatSendDate(campaign.sendDate)}</p>
+                          <p className="mt-1 text-muted-foreground">Nothing sends automatically. Scheduled campaigns are not delivered by a worker; the recipients are not messaged until a launch runs.</p>
+                        </div>
+                      )}
+                      {campaign.status !== "approved" ? (
+                          <div className="rounded-lg border bg-muted p-6 text-center text-muted-foreground">
+                            {campaign.status === "draft" ? "Approve this campaign in Review before launching." : campaign.status === "scheduled" ? "Scheduled. Launch actions are unavailable until the send time is handled." : `This campaign is ${campaign.status}. Launch actions are unavailable.`}
+                          </div>
+                        ) : !canConfirmCampaignLaunch({ status: campaign.status, dirty: isDirty, approvedAudience }) ? (
+                          <div className="rounded-lg border bg-warning-bg p-6 text-center text-warning">
+                            <AlertTriangle className="mx-auto mb-2 h-8 w-8 opacity-40" />
+                            <p>{isDirty ? "Save or discard changes before launching; saving requires re-approval." : "Approved audience is unavailable or empty. Refresh the campaign or edit and approve a new non-empty preview."}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="flex gap-4">
+                              <Button 
+                                type="button" 
+                                onClick={() => {
+                                  setLaunchMode("live");
+                                  setLaunchDialogOpen(true);
+                                }} 
+                                className="flex-1"
+                              >
+                                <Play className="mr-2 h-4 w-4" />
+                                Launch Now
+                              </Button>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                disabled
+                                title="Scheduled campaigns are not delivered automatically — launch manually at send time."
+                                className="flex-1"
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Schedule Launch
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">
+                              Counts are from the immutable audience snapshot recorded at approval. Suppression and consent are checked again before delivery.
+                            </p>
+                            <p className="text-center text-xs font-medium text-warning">
+                              Scheduled campaigns are not delivered automatically — launch manually at send time.
+                            </p>
+                            <p className="text-center text-sm font-medium">{approvedAudience?.eligible} approved eligible · {approvedAudience?.excluded} excluded</p>
+                          </div>
+                        )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
                 <TabsContent value="results" className="space-y-6">
+                  {(campaign.status === "cancelled" || campaign.status === "paused") && <CampaignRecoverySummary campaign={campaign} />}
                   {campaign.status !== "draft" && (
                     <MetricsState isLoading={metricsQ.isLoading} isError={metricsQ.isError} onRetry={() => void metricsQ.refetch()}>
                       {metricsQ.data && <><CampaignKpiPanel metrics={metricsQ.data} /><MetricsDefinitions metrics={[metricsQ.data]} /></>}
@@ -1450,10 +1486,12 @@ export default function CampaignDetailPage() {
                             <div className="text-3xl font-bold text-foreground">{results.counts.excluded}</div>
                             <div className="text-xs text-muted-foreground font-medium uppercase mt-1">Excluded</div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-warning">{(results.counts as any).deferred ?? 0}</div>
-                            <div className="text-xs text-muted-foreground font-medium uppercase mt-1">Queued next business day</div>
-                          </div>
+                          {campaign.status !== "cancelled" && (
+                            <div className="text-center">
+                              <div className="text-3xl font-bold text-warning">{(results.counts as any).deferred ?? 0}</div>
+                              <div className="text-xs text-muted-foreground font-medium uppercase mt-1">Queued next business day</div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-4">
@@ -1512,6 +1550,8 @@ export default function CampaignDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      <CampaignDeleteDialog campaign={deleteOpen ? campaign : null} onClose={() => setDeleteOpen(false)} onDeleted={() => setLocation("/campaigns")} />
 
       <Dialog open={launchDialogOpen} onOpenChange={setLaunchDialogOpen}>
         <DialogContent className="max-w-md">

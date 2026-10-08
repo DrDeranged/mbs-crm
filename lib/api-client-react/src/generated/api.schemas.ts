@@ -144,6 +144,11 @@ export interface Campaign {
   ownerId: number;
   createdBy: number;
   version: number;
+  /** @nullable */
+  archivedAt?: string | null;
+  canDelete?: boolean;
+  /** @nullable */
+  sendDate?: string | null;
 }
 
 export type CampaignInputChannel = typeof CampaignInputChannel[keyof typeof CampaignInputChannel];
@@ -554,6 +559,26 @@ export interface CampaignLaunchResult {
   sent?: number;
   failed?: number;
   preview?: CampaignPreview;
+}
+
+export type CampaignRecoveryExclusionsItem = {
+  reason: string;
+  count: number;
+};
+
+export type CampaignRecoveryRecoveriesItem = {
+  id: number;
+  name: string;
+  status: string;
+};
+
+export interface CampaignRecovery {
+  notSentHere: number;
+  sentViaRecovery: number;
+  eligibleRemaining: number;
+  pendingViaRecovery: number;
+  exclusions: CampaignRecoveryExclusionsItem[];
+  recoveries: CampaignRecoveryRecoveriesItem[];
 }
 
 export interface CampaignApprovedAudience {
@@ -5172,6 +5197,10 @@ export type RenderCollateralTemplateParams = {
 repId?: number;
 };
 
+export type ListCampaignsParams = {
+showArchived?: boolean;
+};
+
 export type SearchCampaignLeadPickerParams = {
 /**
  * @maxLength 200
@@ -5198,6 +5227,10 @@ export type SearchCampaignLeadPicker200 = {
 export type ResolveCampaignLeadPickerBody = {
   /** @maxItems 1000 */
   ids: number[];
+};
+
+export type ListCampaignMetricsParams = {
+showArchived?: boolean;
 };
 
 export type ListReferralOptionsParams = {

@@ -61,6 +61,7 @@ import type {
   CampaignLeadPickerLead,
   CampaignMetrics,
   CampaignPreview,
+  CampaignRecovery,
   CampaignReply,
   CampaignResults,
   CampaignUploadedFlyer,
@@ -165,6 +166,8 @@ import type {
   LenderPackageConfigResponse,
   LenderSubmission,
   LenderSubmissionUpdate,
+  ListCampaignMetricsParams,
+  ListCampaignsParams,
   ListCollateralFlyersParams,
   ListCollateralTemplatesParams,
   ListDealsParams,
@@ -16099,17 +16102,24 @@ export function useDownloadSharedCollateral<TData = Awaited<ReturnType<typeof do
 
 
 
-export const getListCampaignsUrl = () => {
+export const getListCampaignsUrl = (params?: ListCampaignsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/campaigns`
+  return stringifiedParams.length > 0 ? `/api/campaigns?${stringifiedParams}` : `/api/campaigns`
 }
 
-export const listCampaigns = async ( options?: RequestInit): Promise<Campaign[]> => {
+export const listCampaigns = async (params?: ListCampaignsParams, options?: RequestInit): Promise<Campaign[]> => {
 
-  return customFetch<Campaign[]>(getListCampaignsUrl(),
+  return customFetch<Campaign[]>(getListCampaignsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -16122,23 +16132,23 @@ export const listCampaigns = async ( options?: RequestInit): Promise<Campaign[]>
 
 
 
-export const getListCampaignsQueryKey = () => {
+export const getListCampaignsQueryKey = (params?: ListCampaignsParams,) => {
     return [
-    `/api/campaigns`
+    `/api/campaigns`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListCampaignsQueryOptions = <TData = Awaited<ReturnType<typeof listCampaigns>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListCampaignsQueryOptions = <TData = Awaited<ReturnType<typeof listCampaigns>>, TError = ErrorType<unknown>>(params?: ListCampaignsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCampaignsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListCampaignsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCampaigns>>> = ({ signal }) => listCampaigns({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCampaigns>>> = ({ signal }) => listCampaigns(params, { signal, ...requestOptions });
 
 
 
@@ -16153,11 +16163,11 @@ export type ListCampaignsQueryError = ErrorType<unknown>
 
 
 export function useListCampaigns<TData = Awaited<ReturnType<typeof listCampaigns>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListCampaignsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListCampaignsQueryOptions(options)
+  const queryOptions = getListCampaignsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -16603,6 +16613,269 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateCampaignMutationOptions(options));
     }
+
+export const getDeleteCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}`
+}
+
+export const deleteCampaign = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCampaignUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCampaignMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCampaign>>>
+
+    export type DeleteCampaignMutationError = ErrorType<void>
+
+    export const useDeleteCampaign = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCampaignMutationOptions(options));
+    }
+
+export const getArchiveCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/archive`
+}
+
+export const archiveCampaign = async (id: number, options?: RequestInit): Promise<Campaign> => {
+
+  return customFetch<Campaign>(getArchiveCampaignUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getArchiveCampaignMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['archiveCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  archiveCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof archiveCampaign>>>
+
+    export type ArchiveCampaignMutationError = ErrorType<void>
+
+    export const useArchiveCampaign = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof archiveCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getArchiveCampaignMutationOptions(options));
+    }
+
+export const getUnarchiveCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/archive`
+}
+
+export const unarchiveCampaign = async (id: number, options?: RequestInit): Promise<Campaign> => {
+
+  return customFetch<Campaign>(getUnarchiveCampaignUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getUnarchiveCampaignMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unarchiveCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unarchiveCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['unarchiveCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unarchiveCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unarchiveCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnarchiveCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof unarchiveCampaign>>>
+
+    export type UnarchiveCampaignMutationError = ErrorType<void>
+
+    export const useUnarchiveCampaign = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unarchiveCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unarchiveCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getUnarchiveCampaignMutationOptions(options));
+    }
+
+export const getGetCampaignRecoveryUrl = (id: number,) => {
+
+
+
+
+  return `/api/campaigns/${id}/recovery`
+}
+
+export const getCampaignRecovery = async (id: number, options?: RequestInit): Promise<CampaignRecovery> => {
+
+  return customFetch<CampaignRecovery>(getGetCampaignRecoveryUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCampaignRecoveryQueryKey = (id: number,) => {
+    return [
+    `/api/campaigns/${id}/recovery`
+    ] as const;
+    }
+
+
+export const getGetCampaignRecoveryQueryOptions = <TData = Awaited<ReturnType<typeof getCampaignRecovery>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignRecovery>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCampaignRecoveryQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaignRecovery>>> = ({ signal }) => getCampaignRecovery(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaignRecovery>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCampaignRecoveryQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaignRecovery>>>
+export type GetCampaignRecoveryQueryError = ErrorType<unknown>
+
+
+
+export function useGetCampaignRecovery<TData = Awaited<ReturnType<typeof getCampaignRecovery>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampaignRecovery>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCampaignRecoveryQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getDuplicateCampaignUrl = (id: number,) => {
 
@@ -17199,17 +17472,24 @@ export function useGetCampaignResults<TData = Awaited<ReturnType<typeof getCampa
 
 
 
-export const getListCampaignMetricsUrl = () => {
+export const getListCampaignMetricsUrl = (params?: ListCampaignMetricsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/campaigns/metrics`
+  return stringifiedParams.length > 0 ? `/api/campaigns/metrics?${stringifiedParams}` : `/api/campaigns/metrics`
 }
 
-export const listCampaignMetrics = async ( options?: RequestInit): Promise<CampaignMetrics[]> => {
+export const listCampaignMetrics = async (params?: ListCampaignMetricsParams, options?: RequestInit): Promise<CampaignMetrics[]> => {
 
-  return customFetch<CampaignMetrics[]>(getListCampaignMetricsUrl(),
+  return customFetch<CampaignMetrics[]>(getListCampaignMetricsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -17222,23 +17502,23 @@ export const listCampaignMetrics = async ( options?: RequestInit): Promise<Campa
 
 
 
-export const getListCampaignMetricsQueryKey = () => {
+export const getListCampaignMetricsQueryKey = (params?: ListCampaignMetricsParams,) => {
     return [
-    `/api/campaigns/metrics`
+    `/api/campaigns/metrics`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListCampaignMetricsQueryOptions = <TData = Awaited<ReturnType<typeof listCampaignMetrics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListCampaignMetricsQueryOptions = <TData = Awaited<ReturnType<typeof listCampaignMetrics>>, TError = ErrorType<unknown>>(params?: ListCampaignMetricsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCampaignMetricsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListCampaignMetricsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCampaignMetrics>>> = ({ signal }) => listCampaignMetrics({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCampaignMetrics>>> = ({ signal }) => listCampaignMetrics(params, { signal, ...requestOptions });
 
 
 
@@ -17253,11 +17533,11 @@ export type ListCampaignMetricsQueryError = ErrorType<unknown>
 
 
 export function useListCampaignMetrics<TData = Awaited<ReturnType<typeof listCampaignMetrics>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListCampaignMetricsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCampaignMetrics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListCampaignMetricsQueryOptions(options)
+  const queryOptions = getListCampaignMetricsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

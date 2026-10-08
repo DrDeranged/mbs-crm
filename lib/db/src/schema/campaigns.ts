@@ -28,6 +28,8 @@ export const campaignsTable = pgTable("campaigns", {
   ownerId: integer("owner_id").notNull(),
   createdBy: integer("created_by").notNull(),
   version: integer("version").notNull().default(1),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

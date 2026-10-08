@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, and, inArray, desc, sql } from "drizzle-orm";
+import { eq, and, inArray, desc, sql, isNull } from "drizzle-orm";
 import { db, campaignsTable, campaignRecipientsTable, campaignLaunchesTable, emailSendsTable, campaignEngagementTable, campaignRepliesTable, emailWebhookEventsTable, leadsTable, dealsTable, leadStatusHistoryTable, activityLogTable, dealApprovalsTable } from "@workspace/db";
 import { requireUser } from "../lib/authHelpers";
 import { replyCaptureConfigured } from "../lib/campaignAttribution";
@@ -41,12 +41,14 @@ async function manager(req: any, res: any) {
 }
 router.get("/campaigns/metrics", async (req, res) => {
   if (!await manager(req, res)) return;
-  const campaigns = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.createdAt));
+  const campaigns = await db.select().from(campaignsTable).where(and(
+    isNull(campaignsTable.deletedAt), req.query.showArchived === "true" ? undefined : isNull(campaignsTable.archivedAt),
+  )).orderBy(desc(campaignsTable.createdAt));
   res.json(await metrics(campaigns));
 });
 router.get("/campaigns/:id/metrics", async (req, res) => {
   if (!await manager(req, res)) return;
-  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(req.params.id))).limit(1);
+  const [campaign] = await db.select().from(campaignsTable).where(and(eq(campaignsTable.id, Number(req.params.id)), isNull(campaignsTable.deletedAt))).limit(1);
   if (!campaign) return void res.status(404).json({ error: "Campaign not found" });
   res.json((await metrics([campaign]))[0]);
 });

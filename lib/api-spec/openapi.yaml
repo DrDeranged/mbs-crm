@@ -4962,6 +4962,7 @@ paths:
   /campaigns:
     get:
       operationId: listCampaigns
+      parameters: [{ name: showArchived, in: query, schema: { type: boolean, default: false } }]
       tags: [campaigns]
       responses:
         "200":
@@ -5044,6 +5045,35 @@ paths:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/CampaignInput" } } }
       responses: { "200": { description: Updated, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } } }
+    delete:
+      operationId: deleteCampaign
+      tags: [campaigns]
+      responses:
+        "204": { description: Never-approved and never-launched draft deleted; history retained }
+        "403": { description: Admin required }
+        "409": { description: Campaign has approval or launch history }
+  /campaigns/{id}/archive:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      operationId: archiveCampaign
+      tags: [campaigns]
+      responses:
+        "200": { description: Archived, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+        "403": { description: Admin required }
+        "409": { description: Cannot archive an active campaign }
+    delete:
+      operationId: unarchiveCampaign
+      tags: [campaigns]
+      responses:
+        "200": { description: Unarchived, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+        "403": { description: Admin required }
+  /campaigns/{id}/recovery:
+    get:
+      operationId: getCampaignRecovery
+      tags: [campaigns]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: Remaining recipient accounting and recovery campaigns, content: { application/json: { schema: { $ref: "#/components/schemas/CampaignRecovery" } } } }
   /campaigns/{id}/duplicate:
     post:
       operationId: duplicateCampaign
@@ -5113,6 +5143,7 @@ paths:
   /campaigns/metrics:
     get:
       operationId: listCampaignMetrics
+      parameters: [{ name: showArchived, in: query, schema: { type: boolean, default: false } }]
       tags: [campaigns]
       responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CampaignMetrics" } } } } } }
   /campaigns/{id}/metrics:
@@ -5256,6 +5287,9 @@ components:
         ownerId: { type: integer }
         createdBy: { type: integer }
         version: { type: integer }
+        archivedAt: { type: [string, "null"], format: date-time }
+        canDelete: { type: boolean }
+        sendDate: { type: [string, "null"], format: date-time }
     CampaignInput:
       type: object
       required: [name]
@@ -5591,6 +5625,31 @@ components:
         sent: { type: integer }
         failed: { type: integer }
         preview: { $ref: "#/components/schemas/CampaignPreview" }
+    CampaignRecovery:
+      type: object
+      required: [notSentHere, sentViaRecovery, eligibleRemaining, pendingViaRecovery, exclusions, recoveries]
+      properties:
+        notSentHere: { type: integer }
+        sentViaRecovery: { type: integer }
+        eligibleRemaining: { type: integer }
+        pendingViaRecovery: { type: integer }
+        exclusions:
+          type: array
+          items:
+            type: object
+            required: [reason, count]
+            properties:
+              reason: { type: string }
+              count: { type: integer }
+        recoveries:
+          type: array
+          items:
+            type: object
+            required: [id, name, status]
+            properties:
+              id: { type: integer }
+              name: { type: string }
+              status: { type: string }
     CampaignDetail:
       type: object
       required: [campaign, launches]

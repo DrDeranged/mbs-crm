@@ -153,9 +153,9 @@ export async function startSandbox({ build = true, webRoot, staffNames, port = N
       seedFixture(sql) {
         // Deliberately narrow fixture-only INSERTs into the disposable clone.
         // No DDL, updates, deletes, arbitrary queries, or caller-selected DB URL.
-        const tuple = "\\([a-z0-9_@.+\\-:', ]+\\)";
-        const safeInsert = new RegExp(`^\\s*INSERT\\s+INTO\\s+(?:public\\.)?(users|leads|deals)\\s*\\([a-z0-9_,\\s]+\\)\\s*VALUES\\s*${tuple}(?:\\s*,\\s*${tuple})*\\s*RETURNING\\s+id\\s*;?\\s*$`, "i");
-        if (!safeInsert.test(sql)) throw new Error("Fixture seed must be literal INSERT tuples into users, leads, or deals with RETURNING id.");
+        const tuple = "\\([a-z0-9_@.+\\-:', \\[\\]{}\"]+\\)";
+        const safeInsert = new RegExp(`^\\s*INSERT\\s+INTO\\s+(?:public\\.)?(users|leads|deals|campaigns|campaign_launches|campaign_recipients|campaign_approvals|campaign_audit_events|email_sends)\\s*\\([a-z0-9_,\\s]+\\)\\s*VALUES\\s*${tuple}(?:\\s*,\\s*${tuple})*\\s*RETURNING\\s+id\\s*;?\\s*$`, "i");
+        if (!safeInsert.test(sql)) throw new Error("Fixture seed must be a literal INSERT into an approved fixture table with RETURNING id.");
         const result = spawnSync("psql", [`--dbname=${databaseUrl}`, "--no-psqlrc", "--quiet", "--tuples-only", "--no-align", "--set=ON_ERROR_STOP=on", "--command", sql], { encoding: "utf8" });
         if (result.status !== 0) throw new Error("Synthetic fixture seed failed.");
         return result.stdout.trim();

@@ -1,7 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
-import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql, getTableColumns } from "drizzle-orm";
+import { archivableCampaign } from "../lib/campaignLifecycle";
+import { campaignRecoverySummary } from "../lib/campaignRecoverySummary";
 import { campaignDealAudienceCondition } from "../lib/campaignDealAudience";
 import { eligibleRemainingLeadIds, pendingCampaignRecipient, remainingCampaignLeadIds } from "../lib/campaignRemaining";
 import { db } from "@workspace/db";
@@ -230,9 +232,20 @@ function parseId(req: Request): number | null {
 }
 
 async function getCampaign(campaignId: number) {
-  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId));
+  const [campaign] = await db.select(campaignSelection).from(campaignsTable).where(and(eq(campaignsTable.id, campaignId), isNull(campaignsTable.deletedAt)));
   return campaign;
 }
+
+const campaignSelection = {
+  ...getTableColumns(campaignsTable),
+  canDelete: sql<boolean>`${campaignsTable.status} = 'draft'
+    AND NOT EXISTS (SELECT 1 FROM campaign_approvals a WHERE a.campaign_id = ${campaignsTable.id})
+    AND NOT EXISTS (SELECT 1 FROM campaign_launches l WHERE l.campaign_id = ${campaignsTable.id})
+    AND NOT EXISTS (SELECT 1 FROM campaign_audit_events a WHERE a.campaign_id = ${campaignsTable.id} AND a.action IN ('approved', 'launched'))`,
+  sendDate: sql<string | null>`coalesce(
+    (SELECT min(e.sent_at) FROM email_sends e WHERE e.campaign_id = ${campaignsTable.id}),
+    (SELECT min(l.created_at) FROM campaign_launches l WHERE l.campaign_id = ${campaignsTable.id} AND l.mode = 'live'))`,
+};
 
 async function audit(campaignId: number, actorUserId: number, action: string, fromStatus: string | null, toStatus: string | null, details?: Record<string, unknown>) {
   await db.insert(campaignAuditEventsTable).values({ campaignId, actorUserId, action, fromStatus, toStatus, details: details ?? null });
@@ -419,9 +432,61 @@ async function requireCampaignManager(req: Request, res: Response) {
 router.get("/campaigns", async (req, res): Promise<void> => {
   const user = await requireCampaignManager(req, res);
   if (!user) return;
-  const rows = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.updatedAt));
+  const rows = await db.select(campaignSelection).from(campaignsTable).where(and(
+    isNull(campaignsTable.deletedAt),
+    req.query.showArchived === "true" ? undefined : isNull(campaignsTable.archivedAt),
+  )).orderBy(desc(campaignsTable.updatedAt));
   res.json(rows);
 });
+
+// Scoped to campaign mutations; never intercept sibling routers or rep-only probes.
+router.use("/campaigns/:id", async (req, res, next) => {
+  if (req.method === "GET" || req.method === "HEAD") { next(); return; }
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  const id = Number(req.params["id"]);
+  if (!Number.isInteger(id)) { next(); return; }
+  const campaign = await getCampaign(id);
+  if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
+  if (campaign.archivedAt && req.path !== "/archive" && !(req.method === "DELETE" && req.path === "/")) {
+    res.status(409).json({ error: "Unarchive the campaign before changing it" }); return;
+  }
+  next();
+});
+
+async function lifecycleAction(req: Request, res: Response, action: "archive" | "unarchive" | "delete") {
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  if (user.role !== "admin") { res.status(403).json({ error: "Only admins can archive or delete campaigns" }); return; }
+  const id = parseId(req);
+  if (!id) { res.status(400).json({ error: "Invalid campaign id" }); return; }
+  const outcome = await db.transaction(async tx => {
+    const [locked] = await tx.select({ id: campaignsTable.id }).from(campaignsTable)
+      .where(and(eq(campaignsTable.id, id), isNull(campaignsTable.deletedAt))).for("no key update");
+    if (!locked) return { error: "Campaign not found", code: 404 };
+    // Fresh statement after acquiring the lock also sees any approval committed while waiting.
+    const [current] = await tx.select(campaignSelection).from(campaignsTable).where(eq(campaignsTable.id, id));
+    if (action === "delete" && !current.canDelete) return { error: "Only never-approved and never-launched drafts can be deleted", code: 409 };
+    if (action === "archive" && !archivableCampaign(current.status)) return { error: "Only draft, completed, cancelled or failed campaigns can be archived", code: 409 };
+    if (action !== "delete" && Boolean(current.archivedAt) === (action === "archive")) return { campaign: current };
+    const now = new Date();
+    const [campaign] = await tx.update(campaignsTable).set({
+      ...(action === "delete" ? { deletedAt: now } : { archivedAt: action === "archive" ? now : null }),
+      updatedAt: now,
+    }).where(eq(campaignsTable.id, id)).returning();
+    await tx.insert(campaignAuditEventsTable).values({
+      campaignId: id, actorUserId: user.id, action: `campaign_${action === "delete" ? "deleted" : action === "archive" ? "archived" : "unarchived"}`,
+      fromStatus: current.status, toStatus: current.status, details: { name: current.name, historyRetained: true },
+    });
+    return { campaign: { ...campaign, canDelete: current.canDelete, sendDate: current.sendDate } };
+  });
+  if (outcome.error) { res.status(outcome.code!).json({ error: outcome.error }); return; }
+  if (action === "delete") { res.sendStatus(204); return; }
+  res.json(outcome.campaign);
+}
+router.post("/campaigns/:id/archive", (req, res) => lifecycleAction(req, res, "archive"));
+router.delete("/campaigns/:id/archive", (req, res) => lifecycleAction(req, res, "unarchive"));
+router.delete("/campaigns/:id", (req, res) => lifecycleAction(req, res, "delete"));
 
 const leadPickerQuerySchema = z.object({
   search: z.string().trim().max(200).optional(),
@@ -643,6 +708,43 @@ async function remainingAudience(sourceId: number, rootId: number) {
   return eligibleRemainingLeadIds(leads, attempts, isEmailSuppressed);
 }
 
+router.get("/campaigns/:id/recovery", async (req, res): Promise<void> => {
+  const user = await requireCampaignManager(req, res);
+  if (!user) return;
+  const source = await getCampaign(parseId(req) ?? 0);
+  if (!source) { res.status(404).json({ error: "Campaign not found" }); return; }
+  const rootId = rulesSchema.parse(source.audienceRules ?? {}).remainingRootCampaignId ?? source.id;
+  const family = await db.select().from(campaignsTable).where(or(
+    eq(campaignsTable.id, rootId), sql`${campaignsTable.audienceRules}->>'remainingRootCampaignId' = ${String(rootId)}`,
+  ));
+  const ids = family.map(row => row.id);
+  const recipients = await db.select({
+    campaignId: campaignRecipientsTable.campaignId, leadId: campaignRecipientsTable.leadId,
+    channel: campaignRecipientsTable.channel, status: campaignRecipientsTable.status, mode: campaignLaunchesTable.mode,
+  }).from(campaignRecipientsTable).innerJoin(campaignLaunchesTable, eq(campaignRecipientsTable.launchId, campaignLaunchesTable.id))
+    .where(inArray(campaignRecipientsTable.campaignId, ids));
+  const sourceLeadIds = [...new Set(recipients.filter(r => r.campaignId === source.id).map(r => r.leadId))];
+  const leads = sourceLeadIds.length ? await db.select().from(leadsTable).where(inArray(leadsTable.id, sourceLeadIds)) : [];
+  const emails = [...new Set(leads.flatMap(l => l.email ? [l.email.trim().toLowerCase()] : []))];
+  const attempts = await db.select({ leadId: emailSendsTable.leadId, toEmail: emailSendsTable.toEmail })
+    .from(emailSendsTable).where(inArray(emailSendsTable.campaignId, ids));
+  const suppressedLeads = emails.length ? await db.select({ email: leadsTable.email }).from(leadsTable)
+    .where(and(eq(leadsTable.isUnsubscribed, true), inArray(sql<string>`lower(trim(${leadsTable.email}))`, emails))) : [];
+  const suppressedEmails = new Set(suppressedLeads.map(l => l.email!.trim().toLowerCase()));
+  const bounces = emails.length ? await db.select({ email: emailSendsTable.toEmail }).from(emailSendsTable)
+    .where(and(eq(emailSendsTable.status, "bounced"), inArray(sql<string>`lower(trim(${emailSendsTable.toEmail}))`, emails))) : [];
+  const recoveries = family.filter(row => !row.deletedAt && row.id !== source.id &&
+    rulesSchema.parse(row.audienceRules ?? {}).remainingFromCampaignId === source.id);
+  res.json(await campaignRecoverySummary({
+    sourceId: source.id, recipients, attempts, leads,
+    recoveries: recoveries.map(row => ({ id: row.id, name: row.name, status: row.status })),
+    reservedLeadIds: recoveries.filter(row => ["draft", "approved", "scheduled", "running", "paused"].includes(row.status))
+      .flatMap(row => rulesSchema.parse(row.audienceRules ?? {}).pickedLeadIds ?? []),
+    bouncedEmails: new Set(bounces.map(row => row.email.trim().toLowerCase())),
+    suppressed: async email => suppressedEmails.has(email),
+  }));
+});
+
 router.post("/campaigns/:id/send-remaining", async (req, res): Promise<void> => {
   const user = await requireCampaignManager(req, res);
   if (!user) return;
@@ -658,7 +760,12 @@ router.post("/campaigns/:id/send-remaining", async (req, res): Promise<void> => 
     if (!root) return { error: "Original campaign no longer exists" };
     const current = await getCampaign(campaignId);
     if (!current || !["cancelled", "paused"].includes(current.status)) return { error: "Only cancelled or paused campaigns can send remaining recipients as a new campaign" };
+    if (current.archivedAt || current.deletedAt) return { error: "Unarchive the campaign before creating a recovery" };
     if (current.channel !== "email") return { error: "Only email campaigns support remaining-recipient delivery" };
+    const [existingRecovery] = await tx.select({ id: campaignsTable.id }).from(campaignsTable).where(and(
+      isNull(campaignsTable.deletedAt), sql`${campaignsTable.audienceRules}->>'remainingFromCampaignId' = ${String(current.id)}`,
+    )).limit(1);
+    if (existingRecovery) return { error: `A recovery campaign already exists: ${existingRecovery.id}` };
     const leadIds = await remainingAudience(current.id, rootId);
     if (!leadIds.length) return { error: "No eligible unsent recipients remain" };
     if (leadIds.length > 1000) return { error: "Remaining audience exceeds the 1,000-recipient campaign limit" };
@@ -796,7 +903,8 @@ router.post("/campaigns/:id/approve", async (req, res): Promise<void> => {
   }
   const [updated] = await db.transaction(async (tx) => {
     const [claimed] = await tx.update(campaignsTable).set({ status: "approved", updatedAt: new Date() })
-      .where(and(eq(campaignsTable.id, campaignId), eq(campaignsTable.version, campaign.version), eq(campaignsTable.status, "draft"))).returning();
+      .where(and(eq(campaignsTable.id, campaignId), eq(campaignsTable.version, campaign.version),
+        eq(campaignsTable.status, "draft"), isNull(campaignsTable.deletedAt), isNull(campaignsTable.archivedAt))).returning();
     if (!claimed) return [];
     await tx.insert(campaignApprovalsTable).values({
       campaignId, approvalType: body.data.approvalType, contentVersion: campaign.version,
