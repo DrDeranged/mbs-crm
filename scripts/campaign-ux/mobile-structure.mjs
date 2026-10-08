@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import { startSandbox } from "../visual-refresh/sandbox.mjs";
+import { waitForPage } from "../visual-refresh/readiness.mjs";
 
 // The baseline is the verified GitHub main immediately preceding this change.
 // Existing screens have NO new exceptions. Campaign navigation/lifecycle controls
@@ -28,7 +29,8 @@ for (const [phase, webRoot] of [["before", baselineRoot], ["after", candidateRoo
       for (const width of [390, 768]) {
         await page.setViewportSize({ width, height: 900 });
         for (const [name, path] of routes) {
-          await page.goto(`${fixture.baseUrl}${path}`);
+          await page.goto(`${fixture.url}${path}`);
+          await waitForPage(page, name);
           await page.waitForTimeout(850);
           const key = `${name}-${width}-${role}`;
           inventories[phase][key] = await page.evaluate(() => {
