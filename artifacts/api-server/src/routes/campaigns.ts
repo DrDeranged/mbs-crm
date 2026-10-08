@@ -1,8 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
-import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql, getTableColumns } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, isNull, isNotNull, sql } from "drizzle-orm";
 import { archivableCampaign } from "../lib/campaignLifecycle";
+import { campaignSelection } from "../lib/campaignSelection";
 import { campaignRecoverySummary } from "../lib/campaignRecoverySummary";
 import { campaignDealAudienceCondition } from "../lib/campaignDealAudience";
 import { eligibleRemainingLeadIds, pendingCampaignRecipient, remainingCampaignLeadIds } from "../lib/campaignRemaining";
@@ -235,17 +236,6 @@ async function getCampaign(campaignId: number) {
   const [campaign] = await db.select(campaignSelection).from(campaignsTable).where(and(eq(campaignsTable.id, campaignId), isNull(campaignsTable.deletedAt)));
   return campaign;
 }
-
-const campaignSelection = {
-  ...getTableColumns(campaignsTable),
-  canDelete: sql<boolean>`${campaignsTable.status} = 'draft'
-    AND NOT EXISTS (SELECT 1 FROM campaign_approvals a WHERE a.campaign_id = ${campaignsTable.id})
-    AND NOT EXISTS (SELECT 1 FROM campaign_launches l WHERE l.campaign_id = ${campaignsTable.id})
-    AND NOT EXISTS (SELECT 1 FROM campaign_audit_events a WHERE a.campaign_id = ${campaignsTable.id} AND a.action IN ('approved', 'launched'))`,
-  sendDate: sql<string | null>`coalesce(
-    (SELECT min(e.sent_at) FROM email_sends e WHERE e.campaign_id = ${campaignsTable.id}),
-    (SELECT min(l.created_at) FROM campaign_launches l WHERE l.campaign_id = ${campaignsTable.id} AND l.mode = 'live'))`,
-};
 
 async function audit(campaignId: number, actorUserId: number, action: string, fromStatus: string | null, toStatus: string | null, details?: Record<string, unknown>) {
   await db.insert(campaignAuditEventsTable).values({ campaignId, actorUserId, action, fromStatus, toStatus, details: details ?? null });
