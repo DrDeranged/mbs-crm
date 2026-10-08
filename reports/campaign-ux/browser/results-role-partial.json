@@ -1,0 +1,337 @@
+{
+  "candidate": ".local/campaign-ux-source",
+  "parent": "5177557",
+  "checks": [
+    {
+      "name": "Draft shows exactly four in-page steps",
+      "pass": true,
+      "detail": "1.Content\n2.Audience\n3.Review\n4.Launch"
+    },
+    {
+      "name": "Draft has no second tab navigation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft content step stays on same campaign route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft audience step stays on same campaign route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft review step stays on same campaign route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft launch step stays on same campaign route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Delete confirmation names campaign",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Confirmed delete hides draft from list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Confirmed delete hides detail",
+      "pass": true,
+      "detail": "status=404"
+    },
+    {
+      "name": "Historical approval/launch campaign 2 reports canDelete false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Historical approval/launch campaign 2 DELETE returns 409",
+      "pass": true,
+      "detail": "status=409"
+    },
+    {
+      "name": "Historical approval/launch campaign 3 reports canDelete false",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Historical approval/launch campaign 3 DELETE returns 409",
+      "pass": true,
+      "detail": "status=409"
+    },
+    {
+      "name": "Active/approved campaign 8 archive returns 409",
+      "pass": true,
+      "detail": "status=409"
+    },
+    {
+      "name": "Active/approved campaign 9 archive returns 409",
+      "pass": true,
+      "detail": "status=409"
+    },
+    {
+      "name": "Admin sees Archive for eligible draft",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Archive hides campaign from default list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Show archived reveals archived draft",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Admin sees Unarchive for archived draft",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Unarchive restores campaign to default list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "completed campaign archive succeeds",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "cancelled campaign archive succeeds",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "failed campaign archive succeeds",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "Cancelled source Results API responds",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "Cancelled campaign defaults to Results",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Launched campaign has only Results Content Audience tabs",
+      "pass": true,
+      "detail": "Results|Content|Audience"
+    },
+    {
+      "name": "Recovery summary accounts for not sent / linked sent / exclusions",
+      "pass": true,
+      "detail": "3 not sent here — 1 sent via linked recovery, 2 excluded: Excluded in original campaign (1), Opted out / suppressed (1)"
+    },
+    {
+      "name": "Suppressed recipient exclusion includes its reason",
+      "pass": true,
+      "detail": "3 not sent here — 1 sent via linked recovery, 2 excluded: Excluded in original campaign (1), Opted out / suppressed (1)"
+    },
+    {
+      "name": "Pending recovery summary is safe and explicit",
+      "pass": true,
+      "detail": "3 not sent here — 1 sent via linked recovery, 2 excluded: Excluded in original campaign (1), Opted out / suppressed (1)"
+    },
+    {
+      "name": "Linked draft replaces recovery-create action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft child copy says awaiting approval, not sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Cancelled Results avoid a misleading queued summary label",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Launched content fields are read-only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Launched audience fields are read-only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Archive leaves Results/tracking history unchanged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Cancelled source archive succeeds",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Completed recovery child copy says sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Admin sees create recovery only when eligible recipients remain",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Eligible recovery source can be archived",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Archived source cannot offer create recovery",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Compare choices disambiguate duplicate name by status/date",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Draft compare label says Not sent",
+      "pass": true,
+      "detail": "Duplicate Compare · Draft · Not sent"
+    },
+    {
+      "name": "Archived campaigns are hidden from default comparison choices",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "manager sees no Archive/Unarchive/Delete UI",
+      "pass": true,
+      "detail": "count=0"
+    },
+    {
+      "name": "manager direct archive mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "manager direct unarchive mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "manager direct delete mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "Manager can see linked recovery summary",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Manager sees linked recovery but no create action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Manager recovery summary endpoint accessible",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "Manager cannot create recovery",
+      "pass": false,
+      "detail": "status=409"
+    },
+    {
+      "name": "rep sees no Archive/Unarchive/Delete UI",
+      "pass": true,
+      "detail": "count=0"
+    },
+    {
+      "name": "rep direct archive mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "rep direct unarchive mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "rep direct delete mutation is denied 403",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "Rep cannot read recovery endpoint",
+      "pass": true,
+      "detail": "status=403"
+    },
+    {
+      "name": "Rep cannot create recovery from UI",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "No unexpected browser 403/404/503 responses",
+      "pass": true,
+      "detail": "[]"
+    }
+  ],
+  "unexpectedHttp": [],
+  "fixtureIds": {
+    "disposableDraft": 1,
+    "approvalDraft": 2,
+    "dryRunDraft": 3,
+    "archivable": {
+      "draft": 4,
+      "completed": 5,
+      "cancelled": 6,
+      "failed": 7
+    },
+    "active": {
+      "approved": 8,
+      "running": 9
+    },
+    "recoveryFamily": {
+      "root": 10,
+      "childDraft": 11,
+      "completedRoot": 12,
+      "completedChild": 13,
+      "eligibleRoot": 14
+    },
+    "compareDuplicates": [
+      15,
+      16
+    ]
+  },
+  "screenshots": [
+    "reports/campaign-ux/browser/campaigns-390.png",
+    "reports/campaign-ux/browser/campaigns-768.png"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true,
+    "completed": true
+  },
+  "summary": {
+    "passed": 57,
+    "failed": 1
+  }
+}

@@ -1,0 +1,223 @@
+{
+  "baselineCommit": "5177557c4d807cb08b7a77200e5f1bbe0de196da",
+  "passed": true,
+  "allowedNewExceptions": [],
+  "comparisons": [
+    {
+      "key": "dashboard-390-admin",
+      "passed": true,
+      "beforeCount": 45,
+      "afterCount": 45
+    },
+    {
+      "key": "leads-390-admin",
+      "passed": true,
+      "beforeCount": 80,
+      "afterCount": 80
+    },
+    {
+      "key": "lead-detail-390-admin",
+      "passed": true,
+      "beforeCount": 67,
+      "afterCount": 67
+    },
+    {
+      "key": "pipeline-390-admin",
+      "passed": true,
+      "beforeCount": 54,
+      "afterCount": 54
+    },
+    {
+      "key": "apply-390-admin",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-390-admin",
+      "passed": true,
+      "beforeCount": 84,
+      "afterCount": 84
+    },
+    {
+      "key": "dashboard-768-admin",
+      "passed": true,
+      "beforeCount": 45,
+      "afterCount": 45
+    },
+    {
+      "key": "leads-768-admin",
+      "passed": true,
+      "beforeCount": 80,
+      "afterCount": 80
+    },
+    {
+      "key": "lead-detail-768-admin",
+      "passed": true,
+      "beforeCount": 68,
+      "afterCount": 68
+    },
+    {
+      "key": "pipeline-768-admin",
+      "passed": true,
+      "beforeCount": 54,
+      "afterCount": 54
+    },
+    {
+      "key": "apply-768-admin",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-768-admin",
+      "passed": true,
+      "beforeCount": 84,
+      "afterCount": 84
+    },
+    {
+      "key": "dashboard-390-manager",
+      "passed": true,
+      "beforeCount": 30,
+      "afterCount": 30
+    },
+    {
+      "key": "leads-390-manager",
+      "passed": true,
+      "beforeCount": 72,
+      "afterCount": 72
+    },
+    {
+      "key": "lead-detail-390-manager",
+      "passed": true,
+      "beforeCount": 59,
+      "afterCount": 59
+    },
+    {
+      "key": "pipeline-390-manager",
+      "passed": true,
+      "beforeCount": 45,
+      "afterCount": 45
+    },
+    {
+      "key": "apply-390-manager",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-390-manager",
+      "passed": true,
+      "beforeCount": 29,
+      "afterCount": 29
+    },
+    {
+      "key": "dashboard-768-manager",
+      "passed": true,
+      "beforeCount": 30,
+      "afterCount": 30
+    },
+    {
+      "key": "leads-768-manager",
+      "passed": true,
+      "beforeCount": 72,
+      "afterCount": 72
+    },
+    {
+      "key": "lead-detail-768-manager",
+      "passed": true,
+      "beforeCount": 60,
+      "afterCount": 60
+    },
+    {
+      "key": "pipeline-768-manager",
+      "passed": true,
+      "beforeCount": 45,
+      "afterCount": 45
+    },
+    {
+      "key": "apply-768-manager",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-768-manager",
+      "passed": true,
+      "beforeCount": 29,
+      "afterCount": 29
+    },
+    {
+      "key": "dashboard-390-rep",
+      "passed": true,
+      "beforeCount": 25,
+      "afterCount": 25
+    },
+    {
+      "key": "leads-390-rep",
+      "passed": true,
+      "beforeCount": 62,
+      "afterCount": 62
+    },
+    {
+      "key": "lead-detail-390-rep",
+      "passed": true,
+      "beforeCount": 55,
+      "afterCount": 55
+    },
+    {
+      "key": "pipeline-390-rep",
+      "passed": true,
+      "beforeCount": 36,
+      "afterCount": 36
+    },
+    {
+      "key": "apply-390-rep",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-390-rep",
+      "passed": true,
+      "beforeCount": 27,
+      "afterCount": 27
+    },
+    {
+      "key": "dashboard-768-rep",
+      "passed": true,
+      "beforeCount": 25,
+      "afterCount": 25
+    },
+    {
+      "key": "leads-768-rep",
+      "passed": true,
+      "beforeCount": 62,
+      "afterCount": 62
+    },
+    {
+      "key": "lead-detail-768-rep",
+      "passed": true,
+      "beforeCount": 56,
+      "afterCount": 56
+    },
+    {
+      "key": "pipeline-768-rep",
+      "passed": true,
+      "beforeCount": 36,
+      "afterCount": 36
+    },
+    {
+      "key": "apply-768-rep",
+      "passed": true,
+      "beforeCount": 5,
+      "afterCount": 5
+    },
+    {
+      "key": "settings-768-rep",
+      "passed": true,
+      "beforeCount": 27,
+      "afterCount": 27
+    }
+  ]
+}
