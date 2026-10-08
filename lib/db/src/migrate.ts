@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sql } from "drizzle-orm";
 import { inspectAttributionCatalog } from "./attributionCatalog";
+import { campaignLifecycleColumnsPrepared, campaignLifecycleMigrationChecksum } from "./campaignLifecycleCatalog";
 
 type QueryResult = { rows?: unknown[] };
 type Executor = {
@@ -416,6 +417,10 @@ async function schemaShowsMigrationApplied(
   migration: MigrationFile,
 ): Promise<boolean> {
   const n = Number(migration.name.match(/^\d+/)?.[0]);
+  if (n === 70 && migration.id === "070_campaign_lifecycle"
+    && migration.checksum === campaignLifecycleMigrationChecksum) {
+    return campaignLifecycleColumnsPrepared(executor);
+  }
   const markers: Record<number, [string, string[]][]> = {
     1: [["credit_pulls", []], ["credit_compliance_log", []]],
     2: [["users", ["slug"]]],

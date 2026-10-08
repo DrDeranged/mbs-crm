@@ -117,6 +117,12 @@ try {
         } else if (scenario === "production-profile") {
           await pool.query(original.sql);
           await pool.query(rename.sql);
+          // This is the exact historical production profile before publishing
+          // the next model head. Prepare new model additions separately, just as
+          // managed publishing does, before testing DDL-free startup recovery.
+          const diff = await pushSchema(schema, database, ["public"], ["*"]);
+          console.log(`PRODUCTION-PROFILE next-publish model statements=${diff.statementsToExecute.length}`);
+          for (const statement of diff.statementsToExecute) await pool.query(statement);
         } else await pool.query("ALTER TABLE campaigns ADD COLUMN tracking_since timestamptz");
         if (scenario !== "publish-model-sync") {
           await pool.query("INSERT INTO schema_migrations(name,checksum,failed_at,error) VALUES($1,$2,now(),$3)",
