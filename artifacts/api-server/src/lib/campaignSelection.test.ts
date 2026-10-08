@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { campaignsTable } from "@workspace/db";
-import { campaignSelection } from "./campaignSelection.ts";
+import { campaignSelection } from "./campaignSelection";
 
 test("compiled lifecycle/history subqueries correlate to the outer campaign", () => {
   const query = new QueryBuilder().select(campaignSelection).from(campaignsTable).toSQL();
