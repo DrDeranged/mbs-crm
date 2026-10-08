@@ -434,6 +434,11 @@ router.use("/campaigns/:id", async (req, res, next) => {
   if (req.method === "GET" || req.method === "HEAD") { next(); return; }
   const user = await requireCampaignManager(req, res);
   if (!user) return;
+  const adminOnly = req.path === "/archive" || req.path === "/send-remaining"
+    || (req.method === "DELETE" && (req.path === "/" || req.path === ""));
+  if (adminOnly && user.role !== "admin") {
+    res.status(403).json({ error: "Admin access required" }); return;
+  }
   const id = Number(req.params["id"]);
   if (!Number.isInteger(id)) { next(); return; }
   const campaign = await getCampaign(id);
