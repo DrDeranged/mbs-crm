@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { Lead } from "@workspace/api-client-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ArrowUpDown, Plus, Search, Upload, Users, Info } from "lucide-react";
@@ -42,8 +42,9 @@ function createdByLabel(lead: Lead) {
   return getUserDisplayName(lead.createdBy, fallback);
 }
 
-/** Desktop record grid: grouped fields, fixed two-line rows so page size can be derived from geometry. */
+/** Desktop record grid: grouped fields with continuous, viewport-independent fetching. */
 export function LeadsFitTable(p: Props) {
+  const [, navigate] = useLocation();
   const [expandedLead, setExpandedLead] = useState<Lead | null>(null);
   const cols = p.isManagerOrAdmin ? 7 : 6;
   const detail = (id: number) => `/leads/${id}`;
@@ -142,7 +143,15 @@ export function LeadsFitTable(p: Props) {
             p.leads?.map((lead) => {
               const score = lead.leadScore;
               return (
-                <tr key={lead.id} data-leads-row className={cn("border-b transition-colors hover:bg-muted", p.selectedIds.has(lead.id) && "bg-info-bg/40")}>
+                <tr key={lead.id} data-leads-row
+                  className={cn("border-b cursor-pointer transition-colors hover:bg-muted", p.selectedIds.has(lead.id) && "bg-info-bg/40")}
+                  onClick={event => {
+                    // Links, selection, contact actions and assignee pickers own
+                    // their clicks; only otherwise inactive row space navigates.
+                    if ((event.target as HTMLElement).closest("a, button, input, select, textarea, [role=checkbox], [role=combobox], [role=button]")) return;
+                    if (window.getSelection()?.toString()) return;
+                    navigate(detail(lead.id));
+                  }}>
                   {p.isManagerOrAdmin && (
                     <td>
                       <Checkbox checked={p.selectedIds.has(lead.id)} onCheckedChange={() => p.onToggleSelect(lead.id)} aria-label={`Select lead ${lead.id}`} />

@@ -55,6 +55,7 @@ export async function startSandbox({ build = true, webRoot, staffNames, port = N
       cleanup.tempDirectoryRemoved = !existsSync(directory);
     } catch (error) { cleanupErrors.push(error); }
     if (cleanupErrors.length) console.error(`Fixture cleanup had ${cleanupErrors.length} recoverable error(s).`);
+    return cleanup;
   }
   try {
     if (build) {

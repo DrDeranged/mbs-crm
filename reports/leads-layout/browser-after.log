@@ -1,0 +1,39 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+{
+  "phase": "after",
+  "cases": 60,
+  "flows": [
+    {
+      "role": "admin",
+      "loadedRows": 92,
+      "checked": [
+        "continuous loading",
+        "Home/End",
+        "wheel",
+        "scrollbar drag",
+        "search",
+        "sort",
+        "bulk",
+        "row click",
+        "contact boundaries",
+        "breakpoint resizing"
+      ]
+    }
+  ],
+  "failures": [],
+  "httpErrors": [],
+  "directoryRequestsByRole": {
+    "admin": 4,
+    "manager": 20,
+    "rep": 0
+  },
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  },
+  "passed": true
+}

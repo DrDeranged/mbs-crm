@@ -137,3 +137,15 @@ supersedes the earlier adaptive-pagination interpretation; mobile is unchanged.
 
 **How to apply:** Fit the workspace shell without preventing the records region
 from scrolling. Do not reintroduce viewport-derived desktop query limits.
+
+Continuous-scroll layouts do not need an empty bulk-action reservation. Show
+selection actions when active and let the record area resize without changing
+the record-fetch batch size.
+
+**Why:** The old adaptive-pagination layout reserved selection space to avoid
+query-size oscillation. Keeping that reservation after switching to fixed
+scrolling batches wasted scarce height on short laptop screens.
+
+**How to apply:** Preserve footer/softphone clearance and selection-control hit
+targets; test both selected and unselected states. Do not carry the old
+pagination sizing rationale into continuous scrolling.

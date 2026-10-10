@@ -1091,7 +1091,7 @@ export default function Leads() {
               ) : data && (hasNextPage ? "Scroll for more leads" : data.leads.length > 0 ? "All matching leads loaded" : null)}
             </div>
           </div>
-          {isManagerOrAdmin && <div className="leads-fit-bulk-slot" data-testid="slot-leads-bulk">{bulkBar}</div>}
+          {isManagerOrAdmin && bulkBar && <div className="leads-fit-bulk-slot" data-testid="slot-leads-bulk">{bulkBar}</div>}
         </>
       ) : (
       <div className="hidden md:block rounded-md border bg-card overflow-x-auto">
