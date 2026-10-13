@@ -1,0 +1,43 @@
+{
+  "githubCommit": "261e202724fb47ee740b2a2a83043a7cce8f2106",
+  "previousMain": "cf3e55a3f07305bd06432567301a468dc79f1a0a",
+  "localSource": "afd2e2d5ddb54c626226a0a9830a186221926b21",
+  "preflight": "11/11 PASS",
+  "force": false,
+  "published": false,
+  "mergedContracts": [
+    "lib/api-client-react/src/generated/api.schemas.ts",
+    "lib/api-spec/openapi.yaml",
+    "lib/api-zod/src/generated/api.ts"
+  ],
+  "filesChanged": [
+    "artifacts/api-server/src/lib/companyCalendar.test.ts",
+    "artifacts/api-server/src/lib/companyCalendar.ts",
+    "artifacts/api-server/src/lib/dashboardCalls.ts",
+    "artifacts/api-server/src/lib/dashboardTaskDates.test.ts",
+    "artifacts/api-server/src/lib/intake/usfaPoller.ts",
+    "artifacts/api-server/src/lib/intake/usfaRepair.ts",
+    "artifacts/api-server/src/lib/operationalCounts.test.ts",
+    "artifacts/api-server/src/lib/operationalCounts.ts",
+    "artifacts/api-server/src/lib/taskReminderJob.ts",
+    "artifacts/api-server/src/routes/analytics.ts",
+    "artifacts/api-server/src/routes/dashboard.ts",
+    "artifacts/mbs-crm/src/pages/dashboard.tsx",
+    "artifacts/mbs-crm/src/pages/lead-detail/tasks.tsx",
+    "lib/api-client-react/src/generated/api.schemas.ts",
+    "lib/api-spec/openapi.yaml",
+    "lib/api-zod/src/generated/api.ts",
+    "scripts/operational-dashboard-check.mjs",
+    "scripts/push-operational-fixes.mjs",
+    "scripts/visual-refresh/sandbox.mjs",
+    "reports/task-dates-inbound-funnel-2026-10-13/README.md",
+    "reports/task-dates-inbound-funnel-2026-10-13/dashboard-admin.png",
+    "reports/task-dates-inbound-funnel-2026-10-13/dashboard-mobile.png",
+    "reports/task-dates-inbound-funnel-2026-10-13/fixture-check.log",
+    "reports/task-dates-inbound-funnel-2026-10-13/fixture-results.json",
+    "reports/task-dates-inbound-funnel-2026-10-13/focused-tests.log",
+    "reports/task-dates-inbound-funnel-2026-10-13/preflight-tail.log",
+    "reports/task-dates-inbound-funnel-2026-10-13/preflight.log"
+  ],
+  "allRemoteFilesVerified": true
+}
