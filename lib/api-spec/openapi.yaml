@@ -8979,6 +8979,9 @@ components:
       properties:
         id: { type: integer }
         leadId: { type: ["integer", "null"] }
+        canBuildLenderPackage:
+          type: boolean
+          description: Package-only linked-lead capability; does not grant ordinary lead access
         dealName: { type: string }
         companyName: { type: ["string", "null"] }
         contactName: { type: ["string", "null"] }

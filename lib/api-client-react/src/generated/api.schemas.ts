@@ -3583,6 +3583,8 @@ export interface Deal {
   id: number;
   /** @nullable */
   leadId?: number | null;
+  /** Package-only linked-lead capability; does not grant ordinary lead access */
+  canBuildLenderPackage?: boolean;
   dealName: string;
   /** @nullable */
   companyName?: string | null;

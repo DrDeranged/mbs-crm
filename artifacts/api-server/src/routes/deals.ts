@@ -119,6 +119,7 @@ function toApi(
   return {
     id: deal.id,
     leadId: hideUnauthorizedLead && deal.leadId != null && !contact ? null : deal.leadId,
+    canBuildLenderPackage: deal.leadId != null,
     companyName: contact?.companyName ?? null,
     contactName: contact?.contactName ?? null,
     contactEmail: contact?.contactEmail ?? null,

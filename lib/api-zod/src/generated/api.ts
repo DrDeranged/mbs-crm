@@ -3860,6 +3860,7 @@ export const ListDealsResponse = zod.object({
   "deals": zod.array(zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "canBuildLenderPackage": zod.boolean().optional().describe('Package-only linked-lead capability; does not grant ordinary lead access'),
   "dealName": zod.string(),
   "companyName": zod.string().nullish(),
   "contactName": zod.string().nullish(),
@@ -4023,6 +4024,7 @@ export const getDealResponseOneGmSplitPctMax = 100;
 export const GetDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "canBuildLenderPackage": zod.boolean().optional().describe('Package-only linked-lead capability; does not grant ordinary lead access'),
   "dealName": zod.string(),
   "companyName": zod.string().nullish(),
   "contactName": zod.string().nullish(),
@@ -4212,6 +4214,7 @@ export const updateDealResponseGmSplitPctMax = 100;
 export const UpdateDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "canBuildLenderPackage": zod.boolean().optional().describe('Package-only linked-lead capability; does not grant ordinary lead access'),
   "dealName": zod.string(),
   "companyName": zod.string().nullish(),
   "contactName": zod.string().nullish(),
@@ -4334,6 +4337,7 @@ export const archiveDealResponseGmSplitPctMax = 100;
 export const ArchiveDealResponse = zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "canBuildLenderPackage": zod.boolean().optional().describe('Package-only linked-lead capability; does not grant ordinary lead access'),
   "dealName": zod.string(),
   "companyName": zod.string().nullish(),
   "contactName": zod.string().nullish(),
@@ -4527,6 +4531,7 @@ export const SaveDealRatePointsResponse = zod.object({
   "deal": zod.object({
   "id": zod.number(),
   "leadId": zod.number().nullish(),
+  "canBuildLenderPackage": zod.boolean().optional().describe('Package-only linked-lead capability; does not grant ordinary lead access'),
   "dealName": zod.string(),
   "companyName": zod.string().nullish(),
   "contactName": zod.string().nullish(),

@@ -40,6 +40,7 @@ import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
 import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
 import { LenderPackageBuilderDialog } from "./lead-detail/lender-package-builder";
+import { useGetDealLenderPackageContext } from "@workspace/api-client-react";
 import { InlineListError } from "@/components/inline-list-error";
 import { listData } from "@/lib/list-response";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
@@ -73,6 +74,9 @@ export default function DealDetail() {
   const { data: activities, isLoading: activityLoading } = useListDealActivity(dealId);
   const { data: users, canReadDirectory } = useListUsers({ role: "rep", isActive: true });
   const { data: me } = useGetMe();
+  const packageContext = useGetDealLenderPackageContext(dealId, { query: {
+    enabled: packageBuilderOpen && me?.isActive === true && ["rep", "manager", "admin"].includes(me.role),
+  } });
 
   const approvalsQuery = useListDealApprovals(dealId, { query: { queryKey: getListDealApprovalsQueryKey(dealId), enabled: !!dealId } });
   const approvalsList = listData<any>(approvalsQuery.data);
@@ -387,7 +391,7 @@ export default function DealDetail() {
     },
     {
       action: "build-package",
-      disabled: !deal.leadId || !me?.isActive || !["rep", "manager", "admin"].includes(me.role),
+      disabled: !deal.canBuildLenderPackage || !me?.isActive || !["rep", "manager", "admin"].includes(me.role),
       disabledReason: "An active staff account and a linked lead are required to build a lender package.",
       onClick: () => setPackageBuilderOpen(true),
     },
@@ -396,15 +400,27 @@ export default function DealDetail() {
   return (
     <div className="flex-1 flex flex-col h-full bg-muted overflow-y-auto">
       <RecordActionBar items={actions} />
-      {deal.leadId && me?.isActive && ["rep", "manager", "admin"].includes(me.role) && (
+      {packageContext.data && me?.isActive && ["rep", "manager", "admin"].includes(me.role) && (
         <LenderPackageBuilderDialog
           key={dealId}
-          leadId={deal.leadId}
+          leadId={packageContext.data.leadId}
           dealId={dealId}
           open={packageBuilderOpen}
           onOpenChange={setPackageBuilderOpen}
           submitMode
         />
+      )}
+      {packageBuilderOpen && !packageContext.data && (
+        <Dialog open onOpenChange={setPackageBuilderOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Build lender package</DialogTitle>
+              <DialogDescription>{packageContext.isError
+                ? "Could not load package inputs. Close and reopen to try again."
+                : "Loading package inputs…"}</DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       )}
       <div className="flex-none px-4 py-4 border-b bg-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:px-6">
         <div className="flex items-center gap-4 w-full sm:w-auto">

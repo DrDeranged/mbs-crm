@@ -163,6 +163,7 @@ test("visible deal does not disclose or authorize its other-rep lead", async () 
   assert.equal(result.dealResponse.status, 200);
   assert.equal(result.dealPayload.leadId, null);
   assert.equal(result.dealPayload.lead, null);
+  assert.equal(result.dealPayload.canBuildLenderPackage, true, "package eligibility must survive ordinary lead redaction");
   assert.equal(result.dealPayload.entityLabel, "Lead details unavailable");
   assert.equal(result.dealPayload.dealName, "Lead details unavailable");
   assert.equal(result.uploadResponse, null);
