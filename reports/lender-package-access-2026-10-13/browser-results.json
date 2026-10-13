@@ -1,0 +1,377 @@
+{
+  "sourceHead": "3884d25532c7570bb7d42a82b3e64e54d7f053aa",
+  "testedParent": "30d865e6f0cccc5d45c0cc6bd696e32ebbed66e4",
+  "syntheticOnly": true,
+  "externalDeliveryNotTriggered": true,
+  "seededLeads": [
+    {
+      "id": 3,
+      "assignedRepId": null
+    },
+    {
+      "id": 4,
+      "assignedRepId": 2
+    }
+  ],
+  "testDeals": [
+    {
+      "id": 5,
+      "leadId": 3,
+      "assignedTo": 3
+    },
+    {
+      "id": 6,
+      "leadId": 4,
+      "assignedTo": 3
+    }
+  ],
+  "fixtureNotes": [
+    "Sandbox pre-seeds deal IDs 3 and 4; left unchanged, used IDs 5 and 6.",
+    "Disposable database deal-stage constraint excludes app_received; used valid waiting_on_app."
+  ],
+  "assertions": [
+    {
+      "role": "rep",
+      "dealId": 5,
+      "leadId": 3,
+      "buildPackageEnabled": true,
+      "builderVisible": true,
+      "contextAndConfigGet200": true,
+      "documentManagementAllowed": false,
+      "addDocumentVisible": false,
+      "fileUploadPresent": false,
+      "documentRows": 0,
+      "recategorizationControlsPresent": false,
+      "restrictedActions": {
+        "Upload": true,
+        "Note": true,
+        "Task": true
+      },
+      "previewVisible": true,
+      "downloadVisible": true,
+      "sendVisible": true,
+      "sendDisabled": true,
+      "sendClicked": false,
+      "screenshot": "rep-deal-5-desktop-builder.png"
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "leadId": 4,
+      "buildPackageEnabled": true,
+      "builderVisible": true,
+      "contextAndConfigGet200": true,
+      "documentManagementAllowed": false,
+      "addDocumentVisible": false,
+      "fileUploadPresent": false,
+      "documentRows": 0,
+      "recategorizationControlsPresent": false,
+      "restrictedActions": {
+        "Upload": true,
+        "Note": true,
+        "Task": true
+      },
+      "previewVisible": true,
+      "downloadVisible": true,
+      "sendVisible": true,
+      "sendDisabled": true,
+      "sendClicked": false,
+      "screenshot": "rep-deal-6-mobile-390px-builder.png"
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "leadId": 3,
+      "buildPackageEnabled": true,
+      "builderVisible": true,
+      "contextAndConfigGet200": true,
+      "documentManagementAllowed": true,
+      "addDocumentVisible": true,
+      "fileUploadPresent": true,
+      "documentRows": 0,
+      "recategorizationControlsPresent": false,
+      "restrictedActions": {},
+      "previewVisible": true,
+      "downloadVisible": true,
+      "sendVisible": true,
+      "sendDisabled": true,
+      "sendClicked": false,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "leadId": 3,
+      "buildPackageEnabled": true,
+      "builderVisible": true,
+      "contextAndConfigGet200": true,
+      "documentManagementAllowed": true,
+      "addDocumentVisible": true,
+      "fileUploadPresent": true,
+      "documentRows": 0,
+      "recategorizationControlsPresent": false,
+      "restrictedActions": {},
+      "previewVisible": true,
+      "downloadVisible": true,
+      "sendVisible": true,
+      "sendDisabled": true,
+      "sendClicked": false,
+      "screenshot": null
+    }
+  ],
+  "requests": [
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "canManageDocuments": false,
+      "documentCount": 0
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 403
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 403,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/deals/5/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/lender-package-context",
+      "status": 200,
+      "canManageDocuments": false,
+      "documentCount": 0
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/package-config",
+      "status": 200
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/documents",
+      "status": 403
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/documents",
+      "status": 403,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/deals/6/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "rep",
+      "dealId": 6,
+      "path": "/api/leads/4/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "canManageDocuments": true,
+      "documentCount": 0
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 200
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/deals/5/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "manager",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "canManageDocuments": true,
+      "documentCount": 0
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 200
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/documents",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/deals/5/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/package-config",
+      "status": 200,
+      "observedFromUi": true
+    },
+    {
+      "role": "admin",
+      "dealId": 5,
+      "path": "/api/leads/3/lender-package-context",
+      "status": 200,
+      "observedFromUi": true
+    }
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

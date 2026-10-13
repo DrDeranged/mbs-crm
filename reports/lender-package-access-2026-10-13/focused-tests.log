@@ -1,0 +1,94 @@
+(node:21121) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21121) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ the real API router has a gate before every private mutation (5280.368155ms)
+✔ the production mutation gate accepts a Clerk-authenticated request (12.434784ms)
+✔ creator-owned resources reject other reps (1.127403ms)
+✔ unsigned inbound voice and voicemail callbacks are rejected before routing or storage (46.002524ms)
+✔ a rep cannot self-assign a lead (10.151673ms)
+✔ unsigned SendGrid webhooks are rejected in every environment (8.397431ms)
+✔ unsigned Twilio callbacks are rejected before side effects (14.023934ms)
+[18:55:28.786] [33mWARN[39m (21121): [36mSendGrid webhook signature rejected[39m
+    [35mroute[39m: "/api/sendgrid/webhook"
+    [35mreason[39m: "verification_key_missing"
+    [35mhasSignatureHeader[39m: false
+    [35mhasTimestampHeader[39m: false
+    [35mhasRawBody[39m: true
+    [35mrawBodyBytes[39m: 23
+(node:21122) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21122) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ rep resolves an authorized funded deal to its lead and uploads against the lead id (1429.725735ms)
+✔ visible deal does not disclose or authorize its other-rep lead (12.730198ms)
+✔ linked deal explicitly reports missing contact identity without using its stored label (11.133241ms)
+(node:21123) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ lender-package route exposes safe renderer reason and logs the full error (22.494979ms)
+✔ lender-package route returns the no_application reason without rendering (0.336013ms)
+(node:21123) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ omission report paginates instead of failing on many excluded documents (710.334969ms)
+✔ native cover uses branded rep email and polished cover values (218.921106ms)
+✔ selection uses persisted document categories and orders underwriting documents (2.275215ms)
+✔ selected package honors unchecked cover/application sections and the caller's document order (35.53251ms)
+✔ selected package normalizes scrambled cross-category IDs but retains each category's chosen order (24.572996ms)
+✔ selected package rejects document IDs belonging to another lead (2.498304ms)
+✔ lender-package rendering includes supplied primary and secondary owner SSNs (1592.1552ms)
+✔ a deal package builds from its authorized linked lead and records deal provenance in the sensitive audit (8.906395ms)
+✔ a rep builds another rep's deal using an unassigned linked lead and preserves its audit (6.079051ms)
+✔ the retired maskSsn input is rejected while legacy saved configs are normalized (0.933426ms)
+✔ an assigned rep's selected-package route decrypts full SSNs and audits sensitivity without logging values (1733.91119ms)
+✔ the standard lender-package download decrypts both owner SSNs only after lead authorization (1546.776259ms)
+✔ baseline application has two pages; exactly two statements append in upload order with safe footers (25.866091ms)
+✔ native package includes three rep-uploaded statements and an invoice with Puppeteer unavailable (1283.507424ms)
+✔ malformed and excluded files are skipped and every exclusion is named on the final page (1402.608849ms)
+✔ statement copy failures become exclusions without partially appended pages (15.045503ms)
+✔ a configurable small package cap prunes the largest statement (89.148057ms)
+✔ failed oversized transfers debit actual bytes and stop later downloads (6.093927ms)
+✔ active staff generate standard and selected packages for unassigned and another rep's leads (46.564347ms)
+✔ pending and inactive users get 403 before package data is read (0.42455ms)
+✔ reps can read and save package selections on unassigned and other-owned leads (0.638552ms)
+✔ admin can download any lead, audits the successful export, and sanitizes Unicode footer email (6.17469ms)
+(node:21124) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a deal send uses its linked lead and records the exact originating deal, not the earliest active deal (36.439572ms)
+✔ a rep sends from another rep's deal and preserves submission and PII audit attribution (2.394886ms)
+✔ a rep sends from a deal linked to another rep's lead (1.599428ms)
+✔ submission request validation returns a named 400 before package work (2.096763ms)
+✔ a deal send shares the lead/lender advisory lock with a concurrent lead-page send (2.367003ms)
+✔ a post-SendGrid transaction failure leaves a durable receipt and refuses a second email (1.792182ms)
+✔ a known SendGrid failure releases the receipt so a retry may send (2.703317ms)
+✔ a thrown network error leaves an uncertain receipt and blocks a second email (2.024273ms)
+✔ submission lock is released when immutable package storage fails before email (1.130396ms)
+✔ submission re-download returns the immutable stored bytes after verifying its hash (2.377857ms)
+✔ submission stores exactly the emailed attachment with config/hash metadata before immutable re-download (23.444628ms)
+✔ lender submission decrypts full SSNs for package assembly without placing values in audit metadata (5.091262ms)
+✔ an assigned rep may download a full-SSN immutable package under the normal lead authorization rule (4.56314ms)
+✔ exact-package download refuses a corrupt stored object (1.45703ms)
+✔ active staff send unassigned or another rep's lead and preserve PII and delivery records (5.598252ms)
+✔ pending and inactive users cannot send a lead or deal package (0.445353ms)
+✔ lender submission refuses a duplicate inside the rolling 24-hour window (0.380428ms)
+✔ successful lender submission creates a Submitted deal when one is absent (1.202998ms)
+✔ successful lender submission moves an existing active deal to Submitted and links its row (1.453321ms)
+✔ lender submission SendGrid mock receives the built PDF, recipient, rep CC, and exact subject (0.972235ms)
+✔ submission status and notes changes persist with activity logging in one transaction (1.978941ms)
+(node:21124) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11637.995804

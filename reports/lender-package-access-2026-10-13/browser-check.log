@@ -1,0 +1,6 @@
+Final source verification: head 3884d25532c7570bb7d42a82b3e64e54d7f053aa. Prior failure reports preserved separately.
+PASS rep deal 5/lead 3: builder and real context/config loaded; doc controls=false; Preview/Download/Send visible; send clicked=false
+PASS rep deal 6/lead 4: builder and real context/config loaded; doc controls=false; Preview/Download/Send visible; send clicked=false
+PASS manager deal 5/lead 3: builder and real context/config loaded; doc controls=true; Preview/Download/Send visible; send clicked=false
+PASS admin deal 5/lead 3: builder and real context/config loaded; doc controls=true; Preview/Download/Send visible; send clicked=false
+CLEANUP {"clerkUsersDeleted":3,"databaseDropped":true,"tempDirectoryRemoved":true}
