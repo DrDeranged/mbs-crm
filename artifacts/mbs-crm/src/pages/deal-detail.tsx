@@ -40,7 +40,7 @@ import { DEAL_STAGE_COLUMNS } from "@/lib/dealBoard";
 import { approvalDaysUntil, approvalToCalculatorPrefill, latestApproval } from "@/lib/dealApproval";
 import { LenderSubmissionsPanel } from "@/components/lender-submissions-panel";
 import { LenderPackageBuilderDialog } from "./lead-detail/lender-package-builder";
-import { useGetDealLenderPackageContext } from "@workspace/api-client-react";
+import { useGetDealLenderPackageContext, getGetDealLenderPackageContextQueryKey } from "@workspace/api-client-react";
 import { InlineListError } from "@/components/inline-list-error";
 import { listData } from "@/lib/list-response";
 import { EmailLink, PhoneLink } from "@/components/phone-link";
@@ -75,6 +75,7 @@ export default function DealDetail() {
   const { data: users, canReadDirectory } = useListUsers({ role: "rep", isActive: true });
   const { data: me } = useGetMe();
   const packageContext = useGetDealLenderPackageContext(dealId, { query: {
+    queryKey: getGetDealLenderPackageContextQueryKey(dealId),
     enabled: packageBuilderOpen && me?.isActive === true && ["rep", "manager", "admin"].includes(me.role),
   } });
 
