@@ -7,11 +7,13 @@ import {
   emailSendsTable,
   leadStatusHistoryTable,
 } from "@workspace/db";
-import { eq, and, gte, lte, sql, inArray, isNotNull, desc } from "drizzle-orm";
+import { eq, and, gte, lte, lt, sql, inArray, isNotNull, desc } from "drizzle-orm";
 import { z } from "zod/v4";
 import { getUserDisplayName, requireUser } from "../lib/authHelpers";
 import { activeRepListingCondition, normalizeFundingTimeDays } from "../lib/analyticsHelpers";
 import { unassignedInboundLeadCondition } from "../lib/inboundLead";
+import { companyDayWindow } from "../lib/companyCalendar";
+import { inboundCallCounts, pipelineMilestoneWhere } from "../lib/operationalCounts";
 
 const router: IRouter = Router();
 export const analyticsQuery = z.object({
@@ -56,7 +58,19 @@ router.get("/analytics/unassigned-inbound-count", async (req: Request, res: Resp
     .from(leadsTable)
     .where(unassignedInboundLeadCondition());
 
-  res.json({ count });
+  const window = companyDayWindow();
+  const calls = await db.query.communicationsTable.findMany({
+    where: and(eq(communicationsTable.type, "call"), eq(communicationsTable.direction, "inbound"),
+      gte(communicationsTable.createdAt, window.start), lt(communicationsTable.createdAt, window.end)),
+    columns: { id: true, twilioSid: true, createdAt: true, status: true, callOutcome: true },
+  });
+  const totals = inboundCallCounts(calls);
+  res.json({
+    count, totalCount: count + totals.total, inboundCallsToday: totals.total,
+    answeredCallsToday: totals.answered, missedCallsToday: totals.missed,
+    voicemailCallsToday: totals.voicemail, otherCallsToday: totals.other,
+    callDate: window.date, timeZone: "America/New_York",
+  });
 });
 
 function parseDateRange(req: Request): { startDate?: Date; endDate?: Date; repId?: number } {
@@ -195,6 +209,16 @@ router.get("/analytics/pipeline", async (req: Request, res: Response) => {
   for (const row of rows) {
     if (row.status) countByStatus[row.status] = row.count;
   }
+
+  // A lead is counted once even when it has several history/submission rows.
+  // Pending/failed delivery receipts are not lender_submissions records.
+  const [contactedRows, submittedRows] = await Promise.all(
+    (["contacted", "submitted_to_underwriting"] as const).map(stage => db
+      .select({ count: sql<number>`cast(count(*) as int)` }).from(leadsTable)
+      .where(and(where, pipelineMilestoneWhere(stage)))),
+  );
+  countByStatus.contacted = contactedRows[0]?.count ?? 0;
+  countByStatus.submitted_to_underwriting = submittedRows[0]?.count ?? 0;
 
   const stages = FUNNEL_ORDER.map((status, idx) => {
     const count = countByStatus[status] ?? 0;

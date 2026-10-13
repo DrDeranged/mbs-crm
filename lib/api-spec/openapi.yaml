@@ -5931,11 +5931,30 @@ components:
 
     UnassignedInboundCount:
       type: object
-      required: [count]
+      required: [count, totalCount, inboundCallsToday, answeredCallsToday, missedCallsToday, voicemailCallsToday, otherCallsToday, callDate, timeZone]
       properties:
         count:
           type: integer
           description: Unassigned website or QR-card leads created more than 24 hours ago
+        totalCount:
+          type: integer
+          description: Intake leads needing assignment plus distinct inbound calls today
+        inboundCallsToday:
+          type: integer
+        answeredCallsToday:
+          type: integer
+        missedCallsToday:
+          type: integer
+        voicemailCallsToday:
+          type: integer
+        otherCallsToday:
+          type: integer
+        callDate:
+          type: string
+          format: date
+        timeZone:
+          type: string
+          enum: [America/New_York]
 
     AnalyticsPipeline:
       type: object

@@ -4,12 +4,13 @@ import { tasksTable, jobRunsTable } from "@workspace/db";
 import { createNotification } from "./notify";
 import { captureException } from "./sentry";
 import { logger } from "./logger";
+import { companyDate } from "./companyCalendar";
 
 let running: boolean | undefined;
 
 export async function runTaskReminderJob(): Promise<void> {
   const now = new Date();
-  if (now.getHours() !== 9) return; // Not the right hour — no-op, no job run logged
+  if (Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", hourCycle: "h23" }).format(now)) !== 9) return;
 
   if (running) {
     logger.warn("Task reminder job already running, skipping overlapping run");
@@ -22,8 +23,7 @@ export async function runTaskReminderJob(): Promise<void> {
   let itemsProcessed = 0;
   let errorMessage: string | undefined;
 
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayStartStr = todayStart.toISOString().slice(0, 10);
+  const todayStartStr = companyDate(now);
 
   try {
     const tasksDueToday = await db
@@ -37,6 +37,7 @@ export async function runTaskReminderJob(): Promise<void> {
           isNotNull(tasksTable.dueDate),
           eq(tasksTable.dueDate, todayStartStr),
           isNull(tasksTable.completedAt),
+          eq(tasksTable.isCompleted, false),
         ),
       );
 

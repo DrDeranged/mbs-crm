@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,7 @@ export function LeadTasks() {
                 </p>
                 {task.dueDate && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <CalendarIcon className="w-3 h-3 shrink-0" /> {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                    <CalendarIcon className="w-3 h-3 shrink-0" /> {format(parseISO(task.dueDate), 'MMM d, yyyy')}
                   </p>
                 )}
               </div>

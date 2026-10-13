@@ -996,9 +996,25 @@ export interface AnalyticsSummary {
   avgFundingTimeDays?: number | null;
 }
 
+export type UnassignedInboundCountTimeZone = typeof UnassignedInboundCountTimeZone[keyof typeof UnassignedInboundCountTimeZone];
+
+
+export const UnassignedInboundCountTimeZone = {
+  'America/New_York': 'America/New_York',
+} as const;
+
 export interface UnassignedInboundCount {
   /** Unassigned website or QR-card leads created more than 24 hours ago */
   count: number;
+  /** Intake leads needing assignment plus distinct inbound calls today */
+  totalCount: number;
+  inboundCallsToday: number;
+  answeredCallsToday: number;
+  missedCallsToday: number;
+  voicemailCallsToday: number;
+  otherCallsToday: number;
+  callDate: string;
+  timeZone: UnassignedInboundCountTimeZone;
 }
 
 export type AnalyticsPipelineStagesItem = {

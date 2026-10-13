@@ -1,3 +1,4 @@
+import { companyDate } from "../companyCalendar";
 import { google } from "googleapis";
 import { and, eq, inArray } from "drizzle-orm";
 import {
@@ -201,7 +202,7 @@ export async function repairUsfaLeads(
           const keeper = tasks.find((task) => task.isCompleted) ?? tasks[0];
           const changes: Partial<typeof tasksTable.$inferInsert> = {};
           if (keeper.userId !== lead.assignedRepId) changes.userId = lead.assignedRepId;
-          if (!keeper.dueDate) changes.dueDate = new Date().toISOString().slice(0, 10);
+          if (!keeper.dueDate) changes.dueDate = companyDate();
           if (completed && !keeper.isCompleted) {
             changes.isCompleted = true;
             changes.completedAt = new Date();

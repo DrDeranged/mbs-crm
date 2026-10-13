@@ -4380,7 +4380,15 @@ export const GetAnalyticsSummaryResponse = zod.object({
  * @summary Count unassigned website and QR-card leads older than 24 hours (admin only)
  */
 export const GetUnassignedInboundCountResponse = zod.object({
-  "count": zod.number().describe('Unassigned website or QR-card leads created more than 24 hours ago')
+  "count": zod.number().describe('Unassigned website or QR-card leads created more than 24 hours ago'),
+  "totalCount": zod.number().describe('Intake leads needing assignment plus distinct inbound calls today'),
+  "inboundCallsToday": zod.number(),
+  "answeredCallsToday": zod.number(),
+  "missedCallsToday": zod.number(),
+  "voicemailCallsToday": zod.number(),
+  "otherCallsToday": zod.number(),
+  "callDate": zod.coerce.date(),
+  "timeZone": zod.enum(['America/New_York'])
 })
 
 

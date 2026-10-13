@@ -1,0 +1,13 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+PASS company date and strict-overdue HTTP responses for all roles
+PASS completed tasks excluded and rep lead ownership retained
+PASS existing intake predicate plus distinct answered/missed/voicemail/in-progress calls
+PASS local day boundaries; yesterday, future and outbound calls excluded
+PASS current Contacted and recorded Contacted history, deduplicated
+PASS current Submitted or logged lender submissions, deduplicated
+PASS lead creation cohort and rep filter retained
+PASS no 403/404/503 requests for admin/manager/rep dashboards
+Cleanup: {"clerkUsersDeleted":3,"databaseDropped":true,"tempDirectoryRemoved":true}

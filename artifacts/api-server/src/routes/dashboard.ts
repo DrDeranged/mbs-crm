@@ -1,28 +1,15 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, tasksTable, activityLogTable, usersTable, communicationsTable, companySettingsTable } from "@workspace/db";
-import { eq, desc, and, gte, lte, sql, isNull, or, inArray } from "drizzle-orm";
+import { eq, desc, and, gte, lte, lt, sql, isNull, or, inArray } from "drizzle-orm";
 import { getUserDisplayName, requireUser, userToApi } from "../lib/authHelpers";
-import { newYorkBusinessTime } from "../lib/inboundVoice";
+import { companyDate, companyDayWindow, addCalendarDays } from "../lib/companyCalendar";
 import { calculateDashboardCalls } from "../lib/dashboardCalls";
+import { inboundCallCounts } from "../lib/operationalCounts";
 import { contactName, entityLabel } from "../lib/entityLabel";
 
 const router: IRouter = Router();
 
-function nyMidnight(now: Date): Date {
-  const { date } = newYorkBusinessTime(now);
-  // Derive the offset from noon in the target date so DST transitions do not
-  // shift the reporting boundary by an hour.
-  const [year, month, day] = date.split("-").map(Number);
-  const noon = new Date(Date.UTC(year!, month! - 1, day!, 12));
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York", year: "numeric", month: "2-digit",
-    day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  }).formatToParts(noon);
-  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? 0);
-  const offset = noon.getTime() - Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"));
-  return new Date(Date.UTC(year!, month! - 1, day!) + offset);
-}
 
 function leadToApi(
   lead: typeof leadsTable.$inferSelect,
@@ -143,7 +130,7 @@ router.get("/dashboard/calls", async (req: Request, res: Response) => {
     res.status(403).json({ error: "Forbidden" });
     return;
   }
-  const todayStart = nyMidnight(new Date());
+  const { start: todayStart, end: todayEnd } = companyDayWindow();
   const leadRows = await db.query.leadsTable.findMany({
     where: user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined,
     columns: { id: true, firstName: true, lastName: true, companyName: true, phone: true },
@@ -162,16 +149,14 @@ router.get("/dashboard/calls", async (req: Request, res: Response) => {
       eq(communicationsTable.type, "call"),
       eq(communicationsTable.direction, "inbound"),
       gte(communicationsTable.createdAt, todayStart),
+      lt(communicationsTable.createdAt, todayEnd),
       ownershipClause,
     ),
   });
   if (!leadIds.length) return void res.json({
-    inboundCount: inbound.length,
-    answeredCount: inbound.filter((call) =>
-      call.callOutcome !== "voicemail" &&
-      (call.callOutcome === "connected" || call.status === "completed" || call.status === "answered"),
-    ).length,
-    voicemailCount: inbound.filter((call) => call.status === "voicemail" || call.callOutcome === "voicemail").length,
+    inboundCount: inboundCallCounts(inbound).total,
+    answeredCount: inboundCallCounts(inbound).answered,
+    voicemailCount: inboundCallCounts(inbound).voicemail,
     averageCallbackBusinessMinutes: null,
     overdueVoicemails: [],
   });
@@ -239,9 +224,7 @@ router.get("/dashboard/rep", async (req: Request, res: Response) => {
     return;
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = companyDate();
 
   const repFilter = user.role === "rep" ? eq(leadsTable.assignedRepId, user.id) : undefined;
 
@@ -288,25 +271,27 @@ router.get("/dashboard/rep", async (req: Request, res: Response) => {
   });
 });
 
-router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
-  const user = await requireUser(req, res);
+export function createGetMyTasksHandler(overrides: {
+  database?: typeof db;
+  authenticate?: typeof requireUser;
+  clock?: () => Date;
+} = {}) {
+  const database = overrides.database ?? db;
+  const authenticate = overrides.authenticate ?? requireUser;
+  const clock = overrides.clock ?? (() => new Date());
+  return async (req: Request, res: Response) => {
+  const user = await authenticate(req, res);
   if (!user) return;
 
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
-  const endOfWeek = new Date(now);
-  endOfWeek.setDate(now.getDate() + 7);
-  const endOfWeekStr = endOfWeek.toISOString().split("T")[0];
+  const now = clock();
+  const todayStr = companyDate(now);
+  const endOfWeekStr = addCalendarDays(todayStr, 7);
 
   // For reps: scope tasks to leads they are assigned to (lead ownership check).
   // For managers/admins: tasks assigned to them regardless of lead.
-  const repLeadFilter = user.role === "rep"
-    ? eq(leadsTable.assignedRepId, user.id)
-    : undefined;
-
   const withRepJoin = async (extraWhere: any) => {
     if (user.role === "rep") {
-      return db.query.tasksTable.findMany({
+      return database.query.tasksTable.findMany({
         where: and(eq(tasksTable.isCompleted, false), extraWhere),
         with: {
           assignedUser: true,
@@ -317,7 +302,7 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
         },
       }).then((rows) => rows.filter((t) => (t as any).lead?.assignedRepId === user.id));
     }
-    return db.query.tasksTable.findMany({
+    return database.query.tasksTable.findMany({
       where: and(user.role === "admin"
         ? or(eq(tasksTable.userId, user.id), isNull(tasksTable.userId))
         : eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
@@ -334,7 +319,7 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
   const [dueTodayRaw, dueThisWeekRaw, overdueRaw] = await Promise.all([
     withRepJoin(eq(tasksTable.dueDate, todayStr)),
     withRepJoin(and(gte(tasksTable.dueDate, todayStr), lte(tasksTable.dueDate, endOfWeekStr))),
-    withRepJoin(lte(tasksTable.dueDate, todayStr)),
+    withRepJoin(lt(tasksTable.dueDate, todayStr)),
   ]);
 
   res.json({
@@ -342,7 +327,10 @@ router.get("/dashboard/my-tasks", async (req: Request, res: Response) => {
     dueThisWeek: dueThisWeekRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
     overdue: overdueRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
   });
-});
+  };
+}
+
+router.get("/dashboard/my-tasks", createGetMyTasksHandler());
 
 export { leadToApi, taskToApi, activityToApi };
 export default router;

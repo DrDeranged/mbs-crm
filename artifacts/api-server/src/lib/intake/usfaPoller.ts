@@ -1,3 +1,4 @@
+import { companyDate } from "../companyCalendar";
 import { google } from "googleapis";
 import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "@workspace/db";
@@ -104,7 +105,7 @@ export async function createUsfaStatementTasks(
       ? `${taskPlan.statementCount} statement link(s) require download from the USFA dashboard.`
       : "Check the USFA dashboard for bank statements and upload them here.",
     isCompleted: false,
-    dueDate: new Date().toISOString().slice(0, 10),
+    dueDate: companyDate(),
   };
   // Null user_id is the shared admin queue. Never create one copy per admin.
   await tx.insert(tasksTable).values({ ...values, userId: assignedRepId });

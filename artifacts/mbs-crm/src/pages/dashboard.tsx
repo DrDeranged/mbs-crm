@@ -589,11 +589,20 @@ export default function Dashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
-            <Link href="/leads" aria-label="View inbound leads needing assignment">
-              <Badge variant="outline" className="cursor-pointer border-warning/30 bg-warning-bg px-3 py-1.5 text-warning hover:bg-warning-bg">
-                Inbound — needs assignment: {unassignedInboundError ? "Unavailable" : unassignedInbound?.count ?? "…"}
+            <div className="flex flex-wrap items-center gap-2" data-testid="dashboard-inbound">
+              <Badge variant="outline" className="border-warning/30 bg-warning-bg px-3 py-1.5 text-warning">
+                Inbound: {unassignedInboundError ? "Unavailable" : unassignedInbound?.totalCount ?? "…"}
               </Badge>
-            </Link>
+              {!unassignedInboundError && unassignedInbound && (
+                <span className="text-xs text-muted-foreground">
+                  <Link href="/leads" className="underline">{unassignedInbound.count} leads need assignment</Link>
+                  {" · "}
+                  <a href="#calls-today" className="underline">{unassignedInbound.inboundCallsToday} calls today (ET)</a>
+                  {" — "}{unassignedInbound.answeredCallsToday} answered, {unassignedInbound.missedCallsToday} missed, {unassignedInbound.voicemailCallsToday} voicemail
+                  {unassignedInbound.otherCallsToday > 0 && `, ${unassignedInbound.otherCallsToday} in progress/other`}
+                </span>
+              )}
+            </div>
           )}
           {!isRep && selectedRepId != null && (
             <Button variant="outline" size="sm" onClick={() => setSelectedRepId(undefined)}>
@@ -616,7 +625,7 @@ export default function Dashboard() {
       )}
 
       <DailyBriefingCard />
-      <CallsTodayCard />
+      <div id="calls-today"><CallsTodayCard /></div>
       {isAdmin && <StaleLeadQueue />}
       <Card className="mb-6" data-testid="card-expiring-approvals">
         <CardHeader>
@@ -897,7 +906,7 @@ export default function Dashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Pipeline Funnel</CardTitle>
-            <CardDescription>Lead count and drop-off at each funnel stage</CardDescription>
+            <CardDescription>Lead cohort by stage. Contacted includes recorded contact history; Submitted includes logged lender submissions.</CardDescription>
           </div>
           <Button
             variant="ghost"

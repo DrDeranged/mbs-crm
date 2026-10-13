@@ -1,5 +1,6 @@
 import { newYorkBusinessTime } from "./inboundVoice";
 import { contactName, entityLabel } from "./entityLabel";
+import { inboundCallCounts } from "./operationalCounts";
 
 export interface DashboardCallRow {
   id: number;
@@ -8,6 +9,7 @@ export interface DashboardCallRow {
   direction: "inbound" | "outbound";
   status: string;
   callOutcome: string | null;
+  twilioSid?: string | null;
   userRole?: string | null;
   callbackActivityAt?: Date | null;
   callbackActivityStatus?: string | null;
@@ -87,14 +89,11 @@ export function calculateDashboardCalls(
         arrivedAt: voicemail.createdAt.toISOString(),
       }];
     });
-  const answeredCount = inboundToday.filter((call) =>
-    call.callOutcome !== "voicemail" &&
-    (call.callOutcome === "connected" || call.status === "completed" || call.status === "answered"),
-  ).length;
+  const totals = inboundCallCounts(inboundToday);
   return {
-    inboundCount: inboundToday.length,
-    answeredCount,
-    voicemailCount: inboundToday.filter((call) => call.status === "voicemail" || call.callOutcome === "voicemail").length,
+    inboundCount: totals.total,
+    answeredCount: totals.answered,
+    voicemailCount: totals.voicemail,
     averageCallbackBusinessMinutes: callbackMinutes.length
       ? Math.round(callbackMinutes.reduce((sum, value) => sum + value, 0) / callbackMinutes.length)
       : null,

@@ -1,0 +1,534 @@
+{
+  "syntheticOnly": true,
+  "outboundDeliveryBlocked": true,
+  "roles": {
+    "admin": {
+      "tasks": {
+        "dueToday": [
+          {
+            "id": 105,
+            "leadId": 12,
+            "leadLabel": "Other rep fixture — Synthetic Other",
+            "userId": 1,
+            "assignedUser": {
+              "id": 1,
+              "clerkId": "user_3KeMgMxabBCM3Y2nFXDZsG1qo5M",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-admin@example.invalid",
+              "slug": "fixture-admin",
+              "role": "admin",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.730Z"
+            },
+            "title": "Other ownership",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "dueThisWeek": [
+          {
+            "id": 105,
+            "leadId": 12,
+            "leadLabel": "Other rep fixture — Synthetic Other",
+            "userId": 1,
+            "assignedUser": {
+              "id": 1,
+              "clerkId": "user_3KeMgMxabBCM3Y2nFXDZsG1qo5M",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-admin@example.invalid",
+              "slug": "fixture-admin",
+              "role": "admin",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.730Z"
+            },
+            "title": "Other ownership",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "overdue": []
+      },
+      "calls": {
+        "inboundCount": 4,
+        "answeredCount": 1,
+        "voicemailCount": 1,
+        "averageCallbackBusinessMinutes": null,
+        "overdueVoicemails": [
+          {
+            "id": 103,
+            "leadId": 1,
+            "leadName": "Fixture Equipment LLC — Synthetic Contact",
+            "companyName": "Fixture Equipment LLC",
+            "phone": "+12025550123",
+            "arrivedAt": "2026-10-13T05:00:00.000Z"
+          }
+        ]
+      },
+      "pipeline": {
+        "stages": [
+          {
+            "status": "new_lead",
+            "count": 7,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "contacted",
+            "count": 3,
+            "conversionFromPrevious": 42.86
+          },
+          {
+            "status": "application_received",
+            "count": 0,
+            "conversionFromPrevious": 0
+          },
+          {
+            "status": "submitted_to_underwriting",
+            "count": 3,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "approved",
+            "count": 3,
+            "conversionFromPrevious": 100
+          },
+          {
+            "status": "funded",
+            "count": 0,
+            "conversionFromPrevious": 0
+          }
+        ]
+      },
+      "repPipeline": {
+        "stages": [
+          {
+            "status": "new_lead",
+            "count": 3,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "contacted",
+            "count": 2,
+            "conversionFromPrevious": 66.67
+          },
+          {
+            "status": "application_received",
+            "count": 0,
+            "conversionFromPrevious": 0
+          },
+          {
+            "status": "submitted_to_underwriting",
+            "count": 2,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "approved",
+            "count": 2,
+            "conversionFromPrevious": 100
+          },
+          {
+            "status": "funded",
+            "count": 0,
+            "conversionFromPrevious": 0
+          }
+        ]
+      },
+      "inbound": {
+        "count": 2,
+        "totalCount": 6,
+        "inboundCallsToday": 4,
+        "answeredCallsToday": 1,
+        "missedCallsToday": 1,
+        "voicemailCallsToday": 1,
+        "otherCallsToday": 1,
+        "callDate": "2026-10-13",
+        "timeZone": "America/New_York"
+      }
+    },
+    "manager": {
+      "tasks": {
+        "dueToday": [
+          {
+            "id": 106,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Today manager",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "dueThisWeek": [
+          {
+            "id": 106,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Today manager",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "overdue": [
+          {
+            "id": 107,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Yesterday manager",
+            "description": null,
+            "dueDate": "2026-10-12",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ]
+      },
+      "calls": {
+        "inboundCount": 4,
+        "answeredCount": 1,
+        "voicemailCount": 1,
+        "averageCallbackBusinessMinutes": null,
+        "overdueVoicemails": [
+          {
+            "id": 103,
+            "leadId": 1,
+            "leadName": "Fixture Equipment LLC — Synthetic Contact",
+            "companyName": "Fixture Equipment LLC",
+            "phone": "+12025550123",
+            "arrivedAt": "2026-10-13T05:00:00.000Z"
+          }
+        ]
+      },
+      "pipeline": {
+        "stages": [
+          {
+            "status": "new_lead",
+            "count": 7,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "contacted",
+            "count": 3,
+            "conversionFromPrevious": 42.86
+          },
+          {
+            "status": "application_received",
+            "count": 0,
+            "conversionFromPrevious": 0
+          },
+          {
+            "status": "submitted_to_underwriting",
+            "count": 3,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "approved",
+            "count": 3,
+            "conversionFromPrevious": 100
+          },
+          {
+            "status": "funded",
+            "count": 0,
+            "conversionFromPrevious": 0
+          }
+        ]
+      },
+      "repPipeline": {
+        "stages": [
+          {
+            "status": "new_lead",
+            "count": 3,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "contacted",
+            "count": 2,
+            "conversionFromPrevious": 66.67
+          },
+          {
+            "status": "application_received",
+            "count": 0,
+            "conversionFromPrevious": 0
+          },
+          {
+            "status": "submitted_to_underwriting",
+            "count": 2,
+            "conversionFromPrevious": null
+          },
+          {
+            "status": "approved",
+            "count": 2,
+            "conversionFromPrevious": 100
+          },
+          {
+            "status": "funded",
+            "count": 0,
+            "conversionFromPrevious": 0
+          }
+        ]
+      }
+    },
+    "rep": {
+      "tasks": {
+        "dueToday": [
+          {
+            "id": 101,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 3,
+            "assignedUser": {
+              "id": 3,
+              "clerkId": "user_3KeMgMSjzhhb4TwABSSnIUxr973",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-rep@example.invalid",
+              "slug": "fixture-rep",
+              "role": "rep",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:11.001Z"
+            },
+            "title": "Today rep",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          },
+          {
+            "id": 106,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Today manager",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "dueThisWeek": [
+          {
+            "id": 101,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 3,
+            "assignedUser": {
+              "id": 3,
+              "clerkId": "user_3KeMgMSjzhhb4TwABSSnIUxr973",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-rep@example.invalid",
+              "slug": "fixture-rep",
+              "role": "rep",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:11.001Z"
+            },
+            "title": "Today rep",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          },
+          {
+            "id": 104,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 3,
+            "assignedUser": {
+              "id": 3,
+              "clerkId": "user_3KeMgMSjzhhb4TwABSSnIUxr973",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-rep@example.invalid",
+              "slug": "fixture-rep",
+              "role": "rep",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:11.001Z"
+            },
+            "title": "Tomorrow rep",
+            "description": null,
+            "dueDate": "2026-10-14",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          },
+          {
+            "id": 106,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Today manager",
+            "description": null,
+            "dueDate": "2026-10-13",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ],
+        "overdue": [
+          {
+            "id": 102,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 3,
+            "assignedUser": {
+              "id": 3,
+              "clerkId": "user_3KeMgMSjzhhb4TwABSSnIUxr973",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-rep@example.invalid",
+              "slug": "fixture-rep",
+              "role": "rep",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:11.001Z"
+            },
+            "title": "Yesterday rep",
+            "description": null,
+            "dueDate": "2026-10-12",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          },
+          {
+            "id": 107,
+            "leadId": 1,
+            "leadLabel": "Fixture Equipment LLC — Synthetic Contact",
+            "userId": 2,
+            "assignedUser": {
+              "id": 2,
+              "clerkId": "user_3KeMgRdJaPnlLBQmBysfRXnNdKl",
+              "name": "Visual Fixture",
+              "title": null,
+              "email": "fixture-manager@example.invalid",
+              "slug": "fixture-manager",
+              "role": "manager",
+              "isActive": true,
+              "mobileNumber": null,
+              "createdAt": "2026-10-13T17:48:10.878Z"
+            },
+            "title": "Yesterday manager",
+            "description": null,
+            "dueDate": "2026-10-12",
+            "isCompleted": false,
+            "completedAt": null,
+            "createdAt": "2026-10-13T17:48:15.058Z"
+          }
+        ]
+      },
+      "calls": {
+        "inboundCount": 3,
+        "answeredCount": 1,
+        "voicemailCount": 1,
+        "averageCallbackBusinessMinutes": null,
+        "overdueVoicemails": [
+          {
+            "id": 103,
+            "leadId": 1,
+            "leadName": "Fixture Equipment LLC — Synthetic Contact",
+            "companyName": "Fixture Equipment LLC",
+            "phone": "+12025550123",
+            "arrivedAt": "2026-10-13T05:00:00.000Z"
+          }
+        ]
+      }
+    }
+  },
+  "browserFailures": [],
+  "assertions": [
+    "PASS company date and strict-overdue HTTP responses for all roles",
+    "PASS completed tasks excluded and rep lead ownership retained",
+    "PASS existing intake predicate plus distinct answered/missed/voicemail/in-progress calls",
+    "PASS local day boundaries; yesterday, future and outbound calls excluded",
+    "PASS current Contacted and recorded Contacted history, deduplicated",
+    "PASS current Submitted or logged lender submissions, deduplicated",
+    "PASS lead creation cohort and rep filter retained",
+    "PASS no 403/404/503 requests for admin/manager/rep dashboards"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

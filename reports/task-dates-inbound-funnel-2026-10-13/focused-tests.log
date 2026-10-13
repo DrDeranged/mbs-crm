@@ -1,0 +1,37 @@
+(node:1649) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ summer: 7 PM ET never makes today's task overdue (3.080143ms)
+✔ summer: 11 PM ET never makes today's task overdue (0.897703ms)
+✔ winter: 7 PM ET never makes today's task overdue (1.055822ms)
+✔ winter: 11 PM ET never makes today's task overdue (0.654237ms)
+✔ task becomes overdue only at company-local midnight (0.174802ms)
+✔ DST 2026-03-08: NY call window is 23 hours (0.601807ms)
+✔ DST 2026-11-01: NY call window is 25 hours (0.69395ms)
+(node:1650) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ rep: real task handler at 7 PM ET uses local date and strict overdue SQL (3.740602ms)
+✔ rep: real task handler at 11 PM ET uses local date and strict overdue SQL (1.396705ms)
+✔ manager: real task handler at 7 PM ET uses local date and strict overdue SQL (0.982398ms)
+✔ manager: real task handler at 11 PM ET uses local date and strict overdue SQL (0.847557ms)
+✔ admin: real task handler at 7 PM ET uses local date and strict overdue SQL (0.806882ms)
+✔ admin: real task handler at 11 PM ET uses local date and strict overdue SQL (0.442026ms)
+(node:1650) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1651) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ inbound counts include answered, missed, voicemail and in-progress, with lifecycle deduplication (1.978726ms)
+✔ terminal unanswered outcomes are not treated as answered (0.314085ms)
+✔ compiled contacted SQL preserves lead correlation and cohort/rep filters (3.903609ms)
+✔ compiled submitted_to_underwriting SQL preserves lead correlation and cohort/rep filters (1.531233ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8034.079156
