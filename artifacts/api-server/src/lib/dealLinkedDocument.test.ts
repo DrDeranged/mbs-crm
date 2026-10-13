@@ -123,6 +123,7 @@ async function runDealLinkedUpload(
     const dealResponse = await fetch(`http://127.0.0.1:${address.port}/api/deals/${deal.id}`);
     const dealPayload = await dealResponse.json() as {
       leadId: number | null;
+      canBuildLenderPackage: boolean;
       entityLabel: string;
       dealName: string;
       lead: { id: number } | null;
