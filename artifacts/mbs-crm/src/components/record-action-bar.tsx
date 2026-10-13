@@ -21,6 +21,7 @@ const ACTIONS: Array<{ action: RecordAction; label: string; Icon: typeof FileUp 
   { action: "email", label: "Email", Icon: Mail },
   { action: "note", label: "Note", Icon: StickyNote },
   { action: "task", label: "Task", Icon: ListTodo },
+  { action: "build-package", label: "Build package", Icon: FileUp },
 ];
 
 function useKeyboardClearance() {

@@ -2682,6 +2682,433 @@ export const BuildSelectedLenderPackageBody = zod.object({
 
 
 /**
+ * @summary Build a selected lender package from any deal's linked lead (active staff)
+ */
+export const BuildDealLenderPackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const BuildDealLenderPackageBody = zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+})
+
+
+/**
+ * @summary Read package inputs for any lead (active rep, manager or admin)
+ */
+export const GetLeadLenderPackageContextParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetLeadLenderPackageContextResponse = zod.object({
+  "leadId": zod.number(),
+  "canManageDocuments": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "userId": zod.number(),
+  "uploader": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "filename": zod.string(),
+  "fileKey": zod.string().optional(),
+  "fileType": zod.string(),
+  "fileSize": zod.number(),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "matches": zod.array(zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "matchScore": zod.number(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "matchGroup": zod.enum(['lender', 'super_broker']).optional(),
+  "criteriaBreakdown": zod.array(zod.object({
+  "criterion": zod.string().optional(),
+  "passed": zod.boolean().optional(),
+  "skipped": zod.boolean().optional(),
+  "detail": zod.string().optional()
+})),
+  "eligibilityStatus": zod.enum(['plausible']).optional(),
+  "rankingVersion": zod.string().optional(),
+  "rankingDimensions": zod.object({
+  "approvalProbability": zod.number(),
+  "customerPricing": zod.number().nullish(),
+  "fundingSpeed": zod.number().nullish(),
+  "mbsPayout": zod.number().nullish(),
+  "documentationBurden": zod.number(),
+  "overallStructure": zod.number()
+}).optional(),
+  "historicalSignal": zod.object({
+  "submitted": zod.number(),
+  "approved": zod.number(),
+  "declined": zod.number(),
+  "funded": zod.number(),
+  "approvalRate": zod.number().nullish(),
+  "fundingRate": zod.number().nullish()
+}).optional(),
+  "estimatedGrossRevenue": zod.number().nullish(),
+  "economics": zod.record(zod.string(), zod.unknown()).nullish(),
+  "matchedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Read package inputs from any deal's linked lead (active staff)
+ */
+export const GetDealLenderPackageContextParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDealLenderPackageContextResponse = zod.object({
+  "leadId": zod.number(),
+  "canManageDocuments": zod.boolean(),
+  "documents": zod.array(zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "userId": zod.number(),
+  "uploader": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "filename": zod.string(),
+  "fileKey": zod.string().optional(),
+  "fileType": zod.string(),
+  "fileSize": zod.number(),
+  "category": zod.enum(['bank_statement', 'invoice_quote', 'drivers_license', 'tax_return', 'signed_application', 'other']),
+  "label": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "matches": zod.array(zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "lenderId": zod.number(),
+  "lender": zod.union([zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "submissionStats": zod.object({
+  "submitted": zod.number().optional(),
+  "approved": zod.number().optional(),
+  "declined": zod.number().optional(),
+  "approvalRate": zod.number().optional()
+}).optional(),
+  "programTypes": zod.array(zod.string()),
+  "minAmount": zod.number().nullish(),
+  "maxAmount": zod.number().nullish(),
+  "minCreditScore": zod.number().nullish(),
+  "acceptedIndustries": zod.array(zod.string()),
+  "restrictedIndustries": zod.array(zod.string()),
+  "prohibitedIndustries": zod.array(zod.string()),
+  "minMonthlyRevenue": zod.number().nullish(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().nullish(),
+  "startupMinCreditScore": zod.number().nullish(),
+  "startupMaxTimeInBusinessMonths": zod.number().nullish(),
+  "startupMaxAmount": zod.number().nullish(),
+  "minIndustryExperienceMonths": zod.number().nullish(),
+  "requiresFinancialStatements": zod.boolean(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).nullish(),
+  "industryTimeInBusinessOverrides": zod.array(zod.object({
+  "industry": zod.string(),
+  "minTimeInBusinessMonths": zod.number()
+})).nullish(),
+  "programEligibilityRules": zod.array(zod.object({
+  "programType": zod.string(),
+  "minMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustryMinMonthlyRevenue": zod.number().optional(),
+  "restrictedIndustries": zod.array(zod.string()).optional(),
+  "prohibitedIndustries": zod.array(zod.string()).optional(),
+  "truckingRules": zod.array(zod.object({
+  "industry": zod.enum(['long_haul', 'local', 'any']),
+  "prohibited": zod.boolean().optional(),
+  "minTrucks": zod.number().optional(),
+  "minTimeInBusinessMonths": zod.number().optional(),
+  "requiresNoFactoring": zod.boolean().optional()
+})).optional()
+})).nullish(),
+  "minTimeInBusinessMonths": zod.number().nullable(),
+  "acceptedStates": zod.array(zod.string()),
+  "maxExistingPositions": zod.number(),
+  "priorityWeight": zod.number(),
+  "contactName": zod.string().nullish(),
+  "contactEmail": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "referralSplitPct": zod.number().nullish(),
+  "submissionMethod": zod.enum(['email', 'portal', 'both']).optional(),
+  "portalUrl": zod.string().nullish(),
+  "contacts": zod.array(zod.object({
+  "id": zod.number(),
+  "partnerId": zod.number(),
+  "role": zod.enum(['rep', 'submissions', 'credit', 'docs', 'funding', 'other']),
+  "name": zod.string(),
+  "email": zod.string().email().nullish(),
+  "phone": zod.string().nullish(),
+  "isPrimary": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "smsOptedOut": zod.boolean().optional(),
+  "createdBy": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})).optional(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "matchScore": zod.number(),
+  "partnerType": zod.enum(['direct_lender', 'broker_out', 'broker_in']).optional(),
+  "matchGroup": zod.enum(['lender', 'super_broker']).optional(),
+  "criteriaBreakdown": zod.array(zod.object({
+  "criterion": zod.string().optional(),
+  "passed": zod.boolean().optional(),
+  "skipped": zod.boolean().optional(),
+  "detail": zod.string().optional()
+})),
+  "eligibilityStatus": zod.enum(['plausible']).optional(),
+  "rankingVersion": zod.string().optional(),
+  "rankingDimensions": zod.object({
+  "approvalProbability": zod.number(),
+  "customerPricing": zod.number().nullish(),
+  "fundingSpeed": zod.number().nullish(),
+  "mbsPayout": zod.number().nullish(),
+  "documentationBurden": zod.number(),
+  "overallStructure": zod.number()
+}).optional(),
+  "historicalSignal": zod.object({
+  "submitted": zod.number(),
+  "approved": zod.number(),
+  "declined": zod.number(),
+  "funded": zod.number(),
+  "approvalRate": zod.number().nullish(),
+  "fundingRate": zod.number().nullish()
+}).optional(),
+  "estimatedGrossRevenue": zod.number().nullish(),
+  "economics": zod.record(zod.string(), zod.unknown()).nullish(),
+  "matchedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Refresh lender matches for package selection (active staff)
+ */
+export const RefreshLenderPackageMatchesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Get a lead's saved lender-package configuration
  */
 export const GetLeadPackageConfigParams = zod.object({
@@ -5845,6 +6272,9 @@ export const RunLenderMatchParams = zod.object({
 export const RunLenderMatchResponse = zod.object({
   "matchCount": zod.number(),
   "matches": zod.array(zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
@@ -6053,6 +6483,9 @@ export const GetLenderMatchesParams = zod.object({
 })
 
 export const GetLenderMatchesResponseItem = zod.object({
+  "verdict": zod.enum(['Likely', 'Possible', 'Excluded']).optional(),
+  "reason": zod.string().optional(),
+  "needsBeforeSubmit": zod.array(zod.string()).optional(),
   "id": zod.number(),
   "leadId": zod.number(),
   "lenderId": zod.number(),
@@ -6533,6 +6966,32 @@ export const GetDealSubmissionsResponseItem = zod.object({
   "updatedAt": zod.coerce.date()
 })
 export const GetDealSubmissionsResponse = zod.array(GetDealSubmissionsResponseItem)
+
+
+/**
+ * @summary Send the linked lead's package and record the submission on this deal
+ */
+export const CreateDealSubmissionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+export const createDealSubmissionBodyAdminOverrideDefault = false;
+
+export const CreateDealSubmissionBody = zod.object({
+  "lender_id": zod.number().min(1),
+  "via_broker_id": zod.number().optional(),
+  "end_lender_id": zod.number().optional(),
+  "admin_override": zod.boolean().default(createDealSubmissionBodyAdminOverrideDefault),
+  "package_config": zod.object({
+  "sections": zod.array(zod.enum(['cover', 'application', 'invoice_quote', 'bank_statement', 'drivers_license', 'tax_return', 'other'])).optional(),
+  "documentIds": zod.array(zod.number()).optional(),
+  "options": zod.object({
+  "includeCoverPage": zod.boolean().optional(),
+  "includeFooter": zod.boolean().optional()
+}).optional()
+}).optional()
+})
 
 
 /**

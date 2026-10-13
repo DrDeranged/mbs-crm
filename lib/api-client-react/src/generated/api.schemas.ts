@@ -1804,6 +1804,266 @@ export interface TaskUpdate {
   assignedUserId?: number;
 }
 
+export type LenderMatchVerdict = typeof LenderMatchVerdict[keyof typeof LenderMatchVerdict];
+
+
+export const LenderMatchVerdict = {
+  Likely: 'Likely',
+  Possible: 'Possible',
+  Excluded: 'Excluded',
+} as const;
+
+export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
+
+
+export const TruckingRuleIndustry = {
+  long_haul: 'long_haul',
+  local: 'local',
+  any: 'any',
+} as const;
+
+export interface TruckingRule {
+  industry: TruckingRuleIndustry;
+  prohibited?: boolean;
+  minTrucks?: number;
+  minTimeInBusinessMonths?: number;
+  requiresNoFactoring?: boolean;
+}
+
+export interface IndustryTimeInBusinessOverride {
+  industry: string;
+  minTimeInBusinessMonths: number;
+}
+
+export interface ProgramEligibilityRule {
+  programType: string;
+  minMonthlyRevenue?: number;
+  restrictedIndustryMinMonthlyRevenue?: number;
+  restrictedIndustries?: string[];
+  prohibitedIndustries?: string[];
+  truckingRules?: TruckingRule[];
+}
+
+export type LenderPartnerType = typeof LenderPartnerType[keyof typeof LenderPartnerType];
+
+
+export const LenderPartnerType = {
+  direct_lender: 'direct_lender',
+  broker_out: 'broker_out',
+  broker_in: 'broker_in',
+} as const;
+
+export type LenderSubmissionMethod = typeof LenderSubmissionMethod[keyof typeof LenderSubmissionMethod];
+
+
+export const LenderSubmissionMethod = {
+  email: 'email',
+  portal: 'portal',
+  both: 'both',
+} as const;
+
+export type PartnerContactRole = typeof PartnerContactRole[keyof typeof PartnerContactRole];
+
+
+export const PartnerContactRole = {
+  rep: 'rep',
+  submissions: 'submissions',
+  credit: 'credit',
+  docs: 'docs',
+  funding: 'funding',
+  other: 'other',
+} as const;
+
+export interface PartnerContact {
+  id: number;
+  partnerId: number;
+  role: PartnerContactRole;
+  name: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  isPrimary: boolean;
+  /** @nullable */
+  notes?: string | null;
+  smsOptedOut?: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LenderSubmissionStats = {
+  submitted?: number;
+  approved?: number;
+  declined?: number;
+  approvalRate?: number;
+};
+
+export interface Lender {
+  id: number;
+  name: string;
+  submissionStats?: LenderSubmissionStats;
+  programTypes: string[];
+  /** @nullable */
+  minAmount?: number | null;
+  /** @nullable */
+  maxAmount?: number | null;
+  /** @nullable */
+  minCreditScore?: number | null;
+  acceptedIndustries: string[];
+  restrictedIndustries: string[];
+  prohibitedIndustries: string[];
+  /** @nullable */
+  minMonthlyRevenue?: number | null;
+  /** @nullable */
+  restrictedIndustryMinMonthlyRevenue?: number | null;
+  /** @nullable */
+  startupMinCreditScore?: number | null;
+  /** @nullable */
+  startupMaxTimeInBusinessMonths?: number | null;
+  /** @nullable */
+  startupMaxAmount?: number | null;
+  /** @nullable */
+  minIndustryExperienceMonths?: number | null;
+  requiresFinancialStatements: boolean;
+  /** @nullable */
+  truckingRules?: TruckingRule[] | null;
+  /** @nullable */
+  industryTimeInBusinessOverrides?: IndustryTimeInBusinessOverride[] | null;
+  /** @nullable */
+  programEligibilityRules?: ProgramEligibilityRule[] | null;
+  /** @nullable */
+  minTimeInBusinessMonths: number | null;
+  acceptedStates: string[];
+  maxExistingPositions: number;
+  priorityWeight: number;
+  /** @nullable */
+  contactName?: string | null;
+  /** @nullable */
+  contactEmail?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  website?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  isActive: boolean;
+  guidelineVersion?: number;
+  /** @nullable */
+  guidelineSource?: string | null;
+  /** @nullable */
+  guidelineEffectiveAt?: string | null;
+  equipmentRestrictions?: string[];
+  pricing?: LenderPricing | null;
+  requiredDocuments?: string[];
+  /** @nullable */
+  turnaroundBusinessDaysMin?: number | null;
+  /** @nullable */
+  turnaroundBusinessDaysMax?: number | null;
+  compensation?: LenderCompensation | null;
+  partnerType?: LenderPartnerType;
+  /** @nullable */
+  referralSplitPct?: number | null;
+  submissionMethod?: LenderSubmissionMethod;
+  /** @nullable */
+  portalUrl?: string | null;
+  contacts?: PartnerContact[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LenderMatchPartnerType = typeof LenderMatchPartnerType[keyof typeof LenderMatchPartnerType];
+
+
+export const LenderMatchPartnerType = {
+  direct_lender: 'direct_lender',
+  broker_out: 'broker_out',
+  broker_in: 'broker_in',
+} as const;
+
+export type LenderMatchMatchGroup = typeof LenderMatchMatchGroup[keyof typeof LenderMatchMatchGroup];
+
+
+export const LenderMatchMatchGroup = {
+  lender: 'lender',
+  super_broker: 'super_broker',
+} as const;
+
+export type LenderMatchEligibilityStatus = typeof LenderMatchEligibilityStatus[keyof typeof LenderMatchEligibilityStatus];
+
+
+export const LenderMatchEligibilityStatus = {
+  plausible: 'plausible',
+} as const;
+
+export interface RankingDimensions {
+  approvalProbability: number;
+  /** @nullable */
+  customerPricing?: number | null;
+  /** @nullable */
+  fundingSpeed?: number | null;
+  /** @nullable */
+  mbsPayout?: number | null;
+  documentationBurden: number;
+  overallStructure: number;
+}
+
+export interface HistoricalLenderSignal {
+  submitted: number;
+  approved: number;
+  declined: number;
+  funded: number;
+  /** @nullable */
+  approvalRate?: number | null;
+  /** @nullable */
+  fundingRate?: number | null;
+}
+
+export type LenderMatchCriteriaBreakdownItem = {
+  criterion?: string;
+  passed?: boolean;
+  skipped?: boolean;
+  detail?: string;
+};
+
+/**
+ * @nullable
+ */
+export type LenderMatchEconomics = { [key: string]: unknown } | null;
+
+export interface LenderMatch {
+  verdict?: LenderMatchVerdict;
+  reason?: string;
+  needsBeforeSubmit?: string[];
+  id: number;
+  leadId: number;
+  lenderId: number;
+  lender?: Lender | null;
+  matchScore: number;
+  partnerType?: LenderMatchPartnerType;
+  matchGroup?: LenderMatchMatchGroup;
+  criteriaBreakdown: LenderMatchCriteriaBreakdownItem[];
+  eligibilityStatus?: LenderMatchEligibilityStatus;
+  rankingVersion?: string;
+  rankingDimensions?: RankingDimensions;
+  historicalSignal?: HistoricalLenderSignal;
+  /** @nullable */
+  estimatedGrossRevenue?: number | null;
+  /** @nullable */
+  economics?: LenderMatchEconomics;
+  matchedAt: string;
+}
+
+export interface LenderPackageContext {
+  leadId: number;
+  canManageDocuments: boolean;
+  documents: Document[];
+  matches: LenderMatch[];
+}
+
 export interface NewDocumentUpload {
   file: Blob;
   category: DocumentCategory;
@@ -2186,37 +2446,6 @@ export interface DripEnrollment {
   unenrolledAt?: string | null;
 }
 
-export type PartnerContactRole = typeof PartnerContactRole[keyof typeof PartnerContactRole];
-
-
-export const PartnerContactRole = {
-  rep: 'rep',
-  submissions: 'submissions',
-  credit: 'credit',
-  docs: 'docs',
-  funding: 'funding',
-  other: 'other',
-} as const;
-
-export interface PartnerContact {
-  id: number;
-  partnerId: number;
-  role: PartnerContactRole;
-  name: string;
-  /** @nullable */
-  email?: string | null;
-  /** @nullable */
-  phone?: string | null;
-  isPrimary: boolean;
-  /** @nullable */
-  notes?: string | null;
-  smsOptedOut?: boolean;
-  /** @nullable */
-  createdBy?: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export type PartnerContactInputRole = typeof PartnerContactInputRole[keyof typeof PartnerContactInputRole];
 
 
@@ -2265,137 +2494,6 @@ export interface PartnerContactUpdate {
   isPrimary?: boolean;
   /** @nullable */
   notes?: string | null;
-}
-
-export type LenderSubmissionStats = {
-  submitted?: number;
-  approved?: number;
-  declined?: number;
-  approvalRate?: number;
-};
-
-export type LenderPartnerType = typeof LenderPartnerType[keyof typeof LenderPartnerType];
-
-
-export const LenderPartnerType = {
-  direct_lender: 'direct_lender',
-  broker_out: 'broker_out',
-  broker_in: 'broker_in',
-} as const;
-
-export type LenderSubmissionMethod = typeof LenderSubmissionMethod[keyof typeof LenderSubmissionMethod];
-
-
-export const LenderSubmissionMethod = {
-  email: 'email',
-  portal: 'portal',
-  both: 'both',
-} as const;
-
-export type TruckingRuleIndustry = typeof TruckingRuleIndustry[keyof typeof TruckingRuleIndustry];
-
-
-export const TruckingRuleIndustry = {
-  long_haul: 'long_haul',
-  local: 'local',
-  any: 'any',
-} as const;
-
-export interface TruckingRule {
-  industry: TruckingRuleIndustry;
-  prohibited?: boolean;
-  minTrucks?: number;
-  minTimeInBusinessMonths?: number;
-  requiresNoFactoring?: boolean;
-}
-
-export interface IndustryTimeInBusinessOverride {
-  industry: string;
-  minTimeInBusinessMonths: number;
-}
-
-export interface ProgramEligibilityRule {
-  programType: string;
-  minMonthlyRevenue?: number;
-  restrictedIndustryMinMonthlyRevenue?: number;
-  restrictedIndustries?: string[];
-  prohibitedIndustries?: string[];
-  truckingRules?: TruckingRule[];
-}
-
-export interface Lender {
-  id: number;
-  name: string;
-  submissionStats?: LenderSubmissionStats;
-  programTypes: string[];
-  /** @nullable */
-  minAmount?: number | null;
-  /** @nullable */
-  maxAmount?: number | null;
-  /** @nullable */
-  minCreditScore?: number | null;
-  acceptedIndustries: string[];
-  restrictedIndustries: string[];
-  prohibitedIndustries: string[];
-  /** @nullable */
-  minMonthlyRevenue?: number | null;
-  /** @nullable */
-  restrictedIndustryMinMonthlyRevenue?: number | null;
-  /** @nullable */
-  startupMinCreditScore?: number | null;
-  /** @nullable */
-  startupMaxTimeInBusinessMonths?: number | null;
-  /** @nullable */
-  startupMaxAmount?: number | null;
-  /** @nullable */
-  minIndustryExperienceMonths?: number | null;
-  requiresFinancialStatements: boolean;
-  /** @nullable */
-  truckingRules?: TruckingRule[] | null;
-  /** @nullable */
-  industryTimeInBusinessOverrides?: IndustryTimeInBusinessOverride[] | null;
-  /** @nullable */
-  programEligibilityRules?: ProgramEligibilityRule[] | null;
-  /** @nullable */
-  minTimeInBusinessMonths: number | null;
-  acceptedStates: string[];
-  maxExistingPositions: number;
-  priorityWeight: number;
-  /** @nullable */
-  contactName?: string | null;
-  /** @nullable */
-  contactEmail?: string | null;
-  /** @nullable */
-  address?: string | null;
-  /** @nullable */
-  phone?: string | null;
-  /** @nullable */
-  website?: string | null;
-  /** @nullable */
-  notes?: string | null;
-  isActive: boolean;
-  guidelineVersion?: number;
-  /** @nullable */
-  guidelineSource?: string | null;
-  /** @nullable */
-  guidelineEffectiveAt?: string | null;
-  equipmentRestrictions?: string[];
-  pricing?: LenderPricing | null;
-  requiredDocuments?: string[];
-  /** @nullable */
-  turnaroundBusinessDaysMin?: number | null;
-  /** @nullable */
-  turnaroundBusinessDaysMax?: number | null;
-  compensation?: LenderCompensation | null;
-  partnerType?: LenderPartnerType;
-  /** @nullable */
-  referralSplitPct?: number | null;
-  submissionMethod?: LenderSubmissionMethod;
-  /** @nullable */
-  portalUrl?: string | null;
-  contacts?: PartnerContact[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 export type LenderInputPartnerType = typeof LenderInputPartnerType[keyof typeof LenderInputPartnerType];
@@ -2509,85 +2607,6 @@ export interface LenderGuidelineVersion {
   effectiveAt?: string | null;
   snapshot: LenderGuidelineVersionSnapshot;
   createdAt: string;
-}
-
-export type LenderMatchPartnerType = typeof LenderMatchPartnerType[keyof typeof LenderMatchPartnerType];
-
-
-export const LenderMatchPartnerType = {
-  direct_lender: 'direct_lender',
-  broker_out: 'broker_out',
-  broker_in: 'broker_in',
-} as const;
-
-export type LenderMatchMatchGroup = typeof LenderMatchMatchGroup[keyof typeof LenderMatchMatchGroup];
-
-
-export const LenderMatchMatchGroup = {
-  lender: 'lender',
-  super_broker: 'super_broker',
-} as const;
-
-export type LenderMatchCriteriaBreakdownItem = {
-  criterion?: string;
-  passed?: boolean;
-  skipped?: boolean;
-  detail?: string;
-};
-
-export type LenderMatchEligibilityStatus = typeof LenderMatchEligibilityStatus[keyof typeof LenderMatchEligibilityStatus];
-
-
-export const LenderMatchEligibilityStatus = {
-  plausible: 'plausible',
-} as const;
-
-/**
- * @nullable
- */
-export type LenderMatchEconomics = { [key: string]: unknown } | null;
-
-export interface RankingDimensions {
-  approvalProbability: number;
-  /** @nullable */
-  customerPricing?: number | null;
-  /** @nullable */
-  fundingSpeed?: number | null;
-  /** @nullable */
-  mbsPayout?: number | null;
-  documentationBurden: number;
-  overallStructure: number;
-}
-
-export interface HistoricalLenderSignal {
-  submitted: number;
-  approved: number;
-  declined: number;
-  funded: number;
-  /** @nullable */
-  approvalRate?: number | null;
-  /** @nullable */
-  fundingRate?: number | null;
-}
-
-export interface LenderMatch {
-  id: number;
-  leadId: number;
-  lenderId: number;
-  lender?: Lender | null;
-  matchScore: number;
-  partnerType?: LenderMatchPartnerType;
-  matchGroup?: LenderMatchMatchGroup;
-  criteriaBreakdown: LenderMatchCriteriaBreakdownItem[];
-  eligibilityStatus?: LenderMatchEligibilityStatus;
-  rankingVersion?: string;
-  rankingDimensions?: RankingDimensions;
-  historicalSignal?: HistoricalLenderSignal;
-  /** @nullable */
-  estimatedGrossRevenue?: number | null;
-  /** @nullable */
-  economics?: LenderMatchEconomics;
-  matchedAt: string;
 }
 
 export type UnderwritingProvenanceSource = typeof UnderwritingProvenanceSource[keyof typeof UnderwritingProvenanceSource];
@@ -4249,6 +4268,15 @@ export interface AdminErrorsResponse {
   pagination?: AdminErrorsResponsePagination;
   summary?: AdminErrorsResponseSummary;
   jobs?: AdminErrorsResponseJobs;
+}
+
+export interface DealLenderSubmissionInput {
+  /** @minimum 1 */
+  lender_id: number;
+  via_broker_id?: number;
+  end_lender_id?: number;
+  admin_override?: boolean;
+  package_config?: LenderPackageConfig;
 }
 
 export interface LenderPackageConfigResponse {

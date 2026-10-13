@@ -106,7 +106,7 @@ export function LeadLenderMatch() {
   };
 
   const [showDeclined, setShowDeclined] = useState(false);
-  const canSubmit = isAdmin || (me?.role === "rep" && me.id === lead?.assignedRepId);
+  const canSubmit = me?.isActive === true && ["rep", "manager", "admin"].includes(me.role);
   const activeMatches = filterDeclinedMatches(
     (matches ?? []).filter((match: any) => match.lender?.isActive !== false),
     submissions ?? [],

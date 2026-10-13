@@ -93,6 +93,7 @@ import type {
   DealApprovalInput,
   DealDetail,
   DealInput,
+  DealLenderSubmissionInput,
   DealListResponse,
   DealRatePointsInput,
   DealRatePointsResult,
@@ -164,6 +165,7 @@ import type {
   LenderMatch,
   LenderPackageConfig,
   LenderPackageConfigResponse,
+  LenderPackageContext,
   LenderSubmission,
   LenderSubmissionUpdate,
   ListCampaignMetricsParams,
@@ -5104,6 +5106,302 @@ export const useBuildSelectedLenderPackage = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getBuildSelectedLenderPackageMutationOptions(options));
+    }
+
+export const getBuildDealLenderPackageUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/lender-package`
+}
+
+/**
+ * @summary Build a selected lender package from any deal's linked lead (active staff)
+ */
+export const buildDealLenderPackage = async (id: number,
+    lenderPackageConfig: LenderPackageConfig, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getBuildDealLenderPackageUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      lenderPackageConfig,)
+  }
+);}
+
+
+
+
+export const getBuildDealLenderPackageMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof buildDealLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof buildDealLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext> => {
+
+const mutationKey = ['buildDealLenderPackage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof buildDealLenderPackage>>, {id: number;data: BodyType<LenderPackageConfig>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  buildDealLenderPackage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BuildDealLenderPackageMutationResult = NonNullable<Awaited<ReturnType<typeof buildDealLenderPackage>>>
+    export type BuildDealLenderPackageMutationBody = BodyType<LenderPackageConfig>
+    export type BuildDealLenderPackageMutationError = ErrorType<void>
+
+    /**
+ * @summary Build a selected lender package from any deal's linked lead (active staff)
+ */
+export const useBuildDealLenderPackage = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof buildDealLenderPackage>>, TError,{id: number;data: BodyType<LenderPackageConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof buildDealLenderPackage>>,
+        TError,
+        {id: number;data: BodyType<LenderPackageConfig>},
+        TContext
+      > => {
+      return useMutation(getBuildDealLenderPackageMutationOptions(options));
+    }
+
+export const getGetLeadLenderPackageContextUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/lender-package-context`
+}
+
+/**
+ * @summary Read package inputs for any lead (active rep, manager or admin)
+ */
+export const getLeadLenderPackageContext = async (id: number, options?: RequestInit): Promise<LenderPackageContext> => {
+
+  return customFetch<LenderPackageContext>(getGetLeadLenderPackageContextUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeadLenderPackageContextQueryKey = (id: number,) => {
+    return [
+    `/api/leads/${id}/lender-package-context`
+    ] as const;
+    }
+
+
+export const getGetLeadLenderPackageContextQueryOptions = <TData = Awaited<ReturnType<typeof getLeadLenderPackageContext>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadLenderPackageContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeadLenderPackageContextQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeadLenderPackageContext>>> = ({ signal }) => getLeadLenderPackageContext(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeadLenderPackageContext>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLeadLenderPackageContextQueryResult = NonNullable<Awaited<ReturnType<typeof getLeadLenderPackageContext>>>
+export type GetLeadLenderPackageContextQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read package inputs for any lead (active rep, manager or admin)
+ */
+
+export function useGetLeadLenderPackageContext<TData = Awaited<ReturnType<typeof getLeadLenderPackageContext>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLeadLenderPackageContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLeadLenderPackageContextQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDealLenderPackageContextUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/lender-package-context`
+}
+
+/**
+ * @summary Read package inputs from any deal's linked lead (active staff)
+ */
+export const getDealLenderPackageContext = async (id: number, options?: RequestInit): Promise<LenderPackageContext> => {
+
+  return customFetch<LenderPackageContext>(getGetDealLenderPackageContextUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDealLenderPackageContextQueryKey = (id: number,) => {
+    return [
+    `/api/deals/${id}/lender-package-context`
+    ] as const;
+    }
+
+
+export const getGetDealLenderPackageContextQueryOptions = <TData = Awaited<ReturnType<typeof getDealLenderPackageContext>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealLenderPackageContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDealLenderPackageContextQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDealLenderPackageContext>>> = ({ signal }) => getDealLenderPackageContext(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDealLenderPackageContext>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDealLenderPackageContextQueryResult = NonNullable<Awaited<ReturnType<typeof getDealLenderPackageContext>>>
+export type GetDealLenderPackageContextQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read package inputs from any deal's linked lead (active staff)
+ */
+
+export function useGetDealLenderPackageContext<TData = Awaited<ReturnType<typeof getDealLenderPackageContext>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDealLenderPackageContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDealLenderPackageContextQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRefreshLenderPackageMatchesUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/lender-package-match`
+}
+
+/**
+ * @summary Refresh lender matches for package selection (active staff)
+ */
+export const refreshLenderPackageMatches = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRefreshLenderPackageMatchesUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRefreshLenderPackageMatchesMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshLenderPackageMatches>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshLenderPackageMatches>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['refreshLenderPackageMatches'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshLenderPackageMatches>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  refreshLenderPackageMatches(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshLenderPackageMatchesMutationResult = NonNullable<Awaited<ReturnType<typeof refreshLenderPackageMatches>>>
+
+    export type RefreshLenderPackageMatchesMutationError = ErrorType<void>
+
+    /**
+ * @summary Refresh lender matches for package selection (active staff)
+ */
+export const useRefreshLenderPackageMatches = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshLenderPackageMatches>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshLenderPackageMatches>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRefreshLenderPackageMatchesMutationOptions(options));
     }
 
 export const getGetLeadPackageConfigUrl = (id: number,) => {
@@ -11171,6 +11469,78 @@ export function useGetDealSubmissions<TData = Awaited<ReturnType<typeof getDealS
 
 
 
+
+export const getCreateDealSubmissionUrl = (id: number,) => {
+
+
+
+
+  return `/api/deals/${id}/submissions`
+}
+
+/**
+ * @summary Send the linked lead's package and record the submission on this deal
+ */
+export const createDealSubmission = async (id: number,
+    dealLenderSubmissionInput: DealLenderSubmissionInput, options?: RequestInit): Promise<LenderSubmission> => {
+
+  return customFetch<LenderSubmission>(getCreateDealSubmissionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dealLenderSubmissionInput,)
+  }
+);}
+
+
+
+
+export const getCreateDealSubmissionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDealSubmission>>, TError,{id: number;data: BodyType<DealLenderSubmissionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDealSubmission>>, TError,{id: number;data: BodyType<DealLenderSubmissionInput>}, TContext> => {
+
+const mutationKey = ['createDealSubmission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDealSubmission>>, {id: number;data: BodyType<DealLenderSubmissionInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createDealSubmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDealSubmissionMutationResult = NonNullable<Awaited<ReturnType<typeof createDealSubmission>>>
+    export type CreateDealSubmissionMutationBody = BodyType<DealLenderSubmissionInput>
+    export type CreateDealSubmissionMutationError = ErrorType<void>
+
+    /**
+ * @summary Send the linked lead's package and record the submission on this deal
+ */
+export const useCreateDealSubmission = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDealSubmission>>, TError,{id: number;data: BodyType<DealLenderSubmissionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDealSubmission>>,
+        TError,
+        {id: number;data: BodyType<DealLenderSubmissionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDealSubmissionMutationOptions(options));
+    }
 
 export const getSendPartnerContactSmsUrl = (partnerId: number,
     contactId: number,) => {

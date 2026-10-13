@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableSelect } from "@/components/searchable-select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { type DocumentCategory, getGetLeadPackageConfigQueryKey, getGetLeadSubmissionsQueryKey, getGetLenderMatchesQueryKey, getListDocumentsQueryKey, useBuildSelectedLenderPackage, useCreateLeadSubmission, useGetLeadPackageConfig, useGetLenderMatches, useListDocuments, useResetLeadPackageConfig, useSaveLeadPackageConfig, useUpdateDocumentCategory, useUploadDocument } from "@workspace/api-client-react";
+import { type DocumentCategory, getGetLeadPackageConfigQueryKey, getGetLeadSubmissionsQueryKey, getListDocumentsQueryKey, useBuildSelectedLenderPackage, useCreateLeadSubmission, useGetLeadPackageConfig, useResetLeadPackageConfig, useSaveLeadPackageConfig, useUpdateDocumentCategory, useUploadDocument } from "@workspace/api-client-react";
 import { appendUploadedDocument, defaultBuilderConfig, initializeBuilderConfig, type BuilderConfig, type BuilderSection } from "./lender-package-config";
+import { getGetDealQueryKey, getGetDealSubmissionsQueryKey, getListDealActivityQueryKey, getListDealsQueryKey, useBuildDealLenderPackage, useCreateDealSubmission } from "@workspace/api-client-react";
+import { useGetLeadLenderPackageContext, getGetLeadLenderPackageContextQueryKey, useRefreshLenderPackageMatches } from "@workspace/api-client-react";
 
 const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
 const sections = [
@@ -27,18 +29,25 @@ function errorMessage(error: unknown, fallback: string) {
   return (error as any)?.data?.error ?? (error as any)?.message ?? fallback;
 }
 
-export function LenderPackageBuilderDialog({ leadId, open, onOpenChange, submitMode = false }: {
-  leadId: number; open: boolean; onOpenChange: (open: boolean) => void; submitMode?: boolean;
+export function LenderPackageBuilderDialog({ leadId, dealId, open, onOpenChange, submitMode = false }: {
+  leadId: number; dealId?: number; open: boolean; onOpenChange: (open: boolean) => void; submitMode?: boolean;
 }) {
   const { toast } = useToast();
   const client = useQueryClient();
-  const { data: documentData, isPending: documentsPending } = useListDocuments(leadId, { query: { queryKey: getListDocumentsQueryKey(leadId), enabled: open } });
+  const packageContext = useGetLeadLenderPackageContext(leadId, { query: { queryKey: getGetLeadLenderPackageContextQueryKey(leadId), enabled: open } });
+  const documentData = packageContext.data?.documents;
+  const documentsPending = packageContext.isPending;
+  const canManageDocuments = packageContext.data?.canManageDocuments === true;
   const { data: savedConfig, isPending: configPending } = useGetLeadPackageConfig(leadId, { query: { queryKey: getGetLeadPackageConfigQueryKey(leadId), enabled: open } });
   const documents = documentData ?? [];
-  const { data: matches = [] } = useGetLenderMatches(leadId, { query: { queryKey: getGetLenderMatchesQueryKey(leadId), enabled: open && submitMode } });
+  const matchesQuery = packageContext;
+  const matches = packageContext.data?.matches ?? [];
+  const refreshMatches = useRefreshLenderPackageMatches();
   const upload = useUploadDocument();
   const buildPackage = useBuildSelectedLenderPackage();
+  const buildDealPackage = useBuildDealLenderPackage();
   const createSubmission = useCreateLeadSubmission();
+  const createDealSubmission = useCreateDealSubmission();
   const resetPackageConfig = useResetLeadPackageConfig();
   const savePackageConfig = useSaveLeadPackageConfig();
   const recategorize = useUpdateDocumentCategory();
@@ -48,6 +57,7 @@ export function LenderPackageBuilderDialog({ leadId, open, onOpenChange, submitM
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState<DocumentCategory>("other");
   const [lenderId, setLenderId] = useState<string>("");
+  const selectedMatch = matches.find((match) => String(match.lenderId) === lenderId);
   const [confirming, setConfirming] = useState(false);
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const initializedSession = useRef(false);
@@ -87,9 +97,12 @@ export function LenderPackageBuilderDialog({ leadId, open, onOpenChange, submitM
     return { ...current, documentIds: next };
   });
   const build = async (disposition: "preview" | "download") => {
+    if (packageContext.isPending || packageContext.isError || configPending) return;
     setLoading(true);
     try {
-      const bytes = await buildPackage.mutateAsync({ id: leadId, data: config });
+      const bytes = dealId
+        ? await buildDealPackage.mutateAsync({ id: dealId, data: config })
+        : await buildPackage.mutateAsync({ id: leadId, data: config });
       const url = URL.createObjectURL(bytes);
       if (disposition === "preview") window.open(url, "_blank", "noopener");
       else { const anchor = document.createElement("a"); anchor.href = url; anchor.download = `MBS-Application-${leadId}.pdf`; anchor.click(); }
@@ -101,50 +114,79 @@ export function LenderPackageBuilderDialog({ leadId, open, onOpenChange, submitM
     if (!file) return;
     upload.mutate({ id: leadId, data: { file, category } }, { onSuccess: (added: any) => {
       client.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) });
+      client.invalidateQueries({ queryKey: getGetLeadLenderPackageContextQueryKey(leadId) });
       if (added?.id) setConfig((current) => appendUploadedDocument(current, added.id));
       setFile(null); if (fileRef.current) fileRef.current.value = "";
     }, onError: (error) => toast({ title: "Upload failed", description: errorMessage(error, "Could not add document"), variant: "destructive" }) });
   };
   const send = async () => {
+    if (packageContext.isPending || packageContext.isError || configPending) return;
     if (!lenderId) return;
     setLoading(true);
     try {
       // A send is a durable user action: do not rely on the debounce to carry
       // its selected snapshot into the lead's persisted builder preference.
       await persistConfig(config);
-      await createSubmission.mutateAsync({ id: leadId, data: { lender_id: Number(lenderId), package_config: config } });
-      client.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) });
+      const data = { lender_id: Number(lenderId), package_config: config };
+      if (dealId) await createDealSubmission.mutateAsync({ id: dealId, data });
+      else await createSubmission.mutateAsync({ id: leadId, data });
+      await Promise.all([
+        client.invalidateQueries({ queryKey: getGetLeadSubmissionsQueryKey(leadId) }),
+        ...(dealId ? [
+          client.invalidateQueries({ queryKey: getGetDealSubmissionsQueryKey(dealId) }),
+          client.invalidateQueries({ queryKey: getGetDealQueryKey(dealId) }),
+          client.invalidateQueries({ queryKey: getListDealActivityQueryKey(dealId) }),
+          client.invalidateQueries({ queryKey: getListDealsQueryKey() }),
+        ] : []),
+      ]);
       toast({ title: "Submitted to lender" }); onOpenChange(false);
     } catch (error) { toast({ title: "Submission failed", description: errorMessage(error, "Could not send lender package"), variant: "destructive" }); }
     finally { setLoading(false); setConfirming(false); }
   };
   const estimate = Math.max(1, config.sections.filter((section) => section === "cover" || section === "application").length + orderedDocs.filter((doc: any) => config.sections.includes(doc.category)).length);
 
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-    <DialogHeader><DialogTitle>{submitMode ? "Build and submit lender package" : "Build lender package"}</DialogTitle><DialogDescription>Choose exactly what this package contains. Your selections are saved for this lead.</DialogDescription></DialogHeader>
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="flex min-w-0 w-[calc(100vw-2rem)] max-w-3xl max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 data-[state=open]:animate-none data-[state=closed]:animate-none" data-testid="lender-package-dialog">
+    <DialogHeader className="shrink-0 border-b px-4 py-4 pr-14 sm:px-6 sm:pr-14"><DialogTitle>{submitMode ? "Build and submit lender package" : "Build lender package"}</DialogTitle><DialogDescription>Choose exactly what this package contains. Your selections are saved for this lead.</DialogDescription></DialogHeader>
+    <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-4 sm:p-6" data-testid="lender-package-scroll-body">
+    {packageContext.isError && <p role="alert" className="text-sm text-destructive">Could not load package documents and lender matches. Close and reopen the builder to try again.</p>}
     <div className="space-y-3">{sections.map(([key, label]) => {
       const sectionDocs = docsFor(key); const available = key === "cover" || key === "application" || sectionDocs.length > 0; const enabled = config.sections.includes(key);
       return <div key={key} className={`rounded-lg border p-3 ${available ? "" : "bg-muted/40 opacity-60"}`}><div className="flex items-center gap-3">
         <Checkbox checked={enabled} disabled={!available} onCheckedChange={(value) => toggleSection(key, value === true)} />
-        <div className="flex-1 font-medium text-sm">{label}<span className="ml-2 text-xs text-muted-foreground">{available ? `${sectionDocs.length || (key === "cover" || key === "application" ? 1 : 0)} included item${sectionDocs.length === 1 ? "" : "s"}` : "none on file"}</span></div>
-      </div>{sectionDocs.map((doc: any) => <div key={doc.id} draggable onDragStart={() => setDraggedId(doc.id)} onDragOver={(e) => { const source = documents.find((item: any) => item.id === draggedId); if (source?.category === doc.category) e.preventDefault(); }} onDrop={() => { const source = documents.find((item: any) => item.id === draggedId); if (draggedId && draggedId !== doc.id && source?.category === doc.category) { const from = config.documentIds.indexOf(draggedId), to = config.documentIds.indexOf(doc.id); const next = [...config.documentIds]; next.splice(from, 1); next.splice(to, 0, draggedId); setConfig({ ...config, documentIds: next }); } }} className="mt-2 ml-7 flex items-center gap-2 text-sm">
-        <GripVertical className="h-4 w-4 text-muted-foreground" /><Checkbox checked={config.documentIds.includes(doc.id)} onCheckedChange={(value) => toggleDoc(doc.id, value === true)} /><span className="flex-1 truncate">{doc.filename} <span className="text-xs text-muted-foreground">· {(doc.fileSize / 1024).toFixed(1)} KB · {format(new Date(doc.createdAt), "MMM d, yyyy")}</span></span>
+        <div className="min-w-0 flex-1 font-medium text-sm">{label}<span className="ml-2 text-xs text-muted-foreground">{available ? `${sectionDocs.length || (key === "cover" || key === "application" ? 1 : 0)} included item${sectionDocs.length === 1 ? "" : "s"}` : "none on file"}</span></div>
+      </div>{sectionDocs.map((doc: any) => <div key={doc.id} draggable onDragStart={() => setDraggedId(doc.id)} onDragOver={(e) => { const source = documents.find((item: any) => item.id === draggedId); if (source?.category === doc.category) e.preventDefault(); }} onDrop={() => { const source = documents.find((item: any) => item.id === draggedId); if (draggedId && draggedId !== doc.id && source?.category === doc.category) { const from = config.documentIds.indexOf(draggedId), to = config.documentIds.indexOf(doc.id); const next = [...config.documentIds]; next.splice(from, 1); next.splice(to, 0, draggedId); setConfig({ ...config, documentIds: next }); } }} className="mt-2 ml-7 flex min-w-0 flex-wrap items-center gap-2 text-sm sm:flex-nowrap">
+        <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" /><Checkbox checked={config.documentIds.includes(doc.id)} onCheckedChange={(value) => toggleDoc(doc.id, value === true)} /><span className="min-w-0 flex-1 truncate" title={doc.filename}>{doc.filename} <span className="text-xs text-muted-foreground">· {(doc.fileSize / 1024).toFixed(1)} KB · {format(new Date(doc.createdAt), "MMM d, yyyy")}</span></span>
         <Button variant="ghost" size="icon" aria-label={`Move ${doc.filename} up`} onClick={() => move(doc.id, -1)}><ChevronUp className="h-4 w-4" /></Button><Button variant="ghost" size="icon" aria-label={`Move ${doc.filename} down`} onClick={() => move(doc.id, 1)}><ChevronDown className="h-4 w-4" /></Button>
-        <Select value={doc.category} onValueChange={(value) => recategorize.mutate({ docId: doc.id, data: { category: value as DocumentCategory } }, { onSuccess: () => client.invalidateQueries({ queryKey: getListDocumentsQueryKey(leadId) }) })}><SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger><SelectContent>{categories.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select>
+        {canManageDocuments && <Select value={doc.category} onValueChange={(value) => recategorize.mutate({ docId: doc.id, data: { category: value as DocumentCategory } }, { onSuccess: () => client.invalidateQueries({ queryKey: getGetLeadLenderPackageContextQueryKey(leadId) }) })}><SelectTrigger className="h-7 w-36 shrink-0 text-xs"><SelectValue /></SelectTrigger><SelectContent>{categories.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select>}
       </div>)}</div>;
     })}</div>
-    <div className="rounded-lg border border-dashed p-3"><div className="text-sm font-medium mb-2">Add document</div><div className="flex flex-wrap gap-2 items-center"><Input ref={fileRef} type="file" className="max-w-xs" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /><Select value={category} onValueChange={(value) => setCategory(value as DocumentCategory)}><SelectTrigger className="w-44"><SelectValue /></SelectTrigger><SelectContent>{categories.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select><Button variant="outline" disabled={!file || upload.isPending} onClick={uploadInside}><Upload className="h-4 w-4 mr-1" />Add</Button></div></div>
+    {canManageDocuments && <div className="rounded-lg border border-dashed p-3"><div className="text-sm font-medium mb-2">Add document</div><div className="flex flex-wrap gap-2 items-center"><Input ref={fileRef} type="file" className="max-w-xs" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /><Select value={category} onValueChange={(value) => setCategory(value as DocumentCategory)}><SelectTrigger className="w-44"><SelectValue /></SelectTrigger><SelectContent>{categories.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select><Button variant="outline" disabled={!file || upload.isPending} onClick={uploadInside}><Upload className="h-4 w-4 mr-1" />Add</Button></div></div>}
     <div className="grid gap-2 sm:grid-cols-2"><label className="flex items-center justify-between rounded border p-2 text-sm">Cover page <Switch checked={config.options.includeCoverPage} onCheckedChange={(includeCoverPage) => setConfig({ ...config, options: { ...config.options, includeCoverPage } })} /></label><label className="flex items-center justify-between rounded border p-2 text-sm">Footer each page <Switch checked={config.options.includeFooter} onCheckedChange={(includeFooter) => setConfig({ ...config, options: { ...config.options, includeFooter } })} /></label></div>
-     {submitMode && <div className="rounded-lg bg-muted/40 p-3"><label className="text-sm font-medium">Lender</label><SearchableSelect className="mt-1" ariaLabel="Lender" placeholder="Select one active lender" value={lenderId} onValueChange={setLenderId} options={matches.filter((match: any) => match.lender?.isActive !== false).map((match: any) => {
+     {submitMode && <div className="rounded-lg bg-muted/40 p-3">
+       <div className="flex flex-wrap items-center justify-between gap-2"><label className="text-sm font-medium">Lender</label><Button variant="outline" size="sm" disabled={loading || refreshMatches.isPending} onClick={() => refreshMatches.mutate({ id: leadId }, { onSuccess: () => client.invalidateQueries({ queryKey: getGetLeadLenderPackageContextQueryKey(leadId) }), onError: (error) => toast({ title: "Could not refresh lender matches", description: errorMessage(error, "Please try again"), variant: "destructive" }) })}>{refreshMatches.isPending ? "Matching…" : "Refresh matches"}</Button></div>
+       {matchesQuery.isError && <p role="alert" className="mt-2 text-sm text-destructive">Could not load lender matches. Refresh matches to try again.</p>}
+       {matchesQuery.isPending && <p className="mt-2 text-sm text-muted-foreground">Loading lender matches…</p>}
+       {!matchesQuery.isPending && !matchesQuery.isError && !matches.length && <p className="mt-2 text-sm text-muted-foreground">No lender matches yet. Refresh matches to find lenders for this lead.</p>}
+       <SearchableSelect className="mt-1" ariaLabel="Lender" placeholder="Select one active lender" value={lenderId} onValueChange={setLenderId} options={matches.filter((match: any) => match.lender?.isActive !== false).map((match: any) => {
        const matchingReasons = (match.criteriaBreakdown ?? []).filter((criterion: any) => criterion.passed).length;
        return {
          value: String(match.lenderId),
          label: match.lender?.name ?? `Lender #${match.lenderId}`,
-         detail: `${match.matchScore}% · ${matchingReasons} matching reasons`,
-         keywords: [String(match.matchScore), String(matchingReasons), "matching reasons"],
+         detail: `${match.verdict ?? match.eligibilityStatus ?? "Verdict unavailable"} · ${match.matchScore}% · ${matchingReasons} matching reasons`,
+         keywords: [String(match.matchScore), String(matchingReasons), match.verdict ?? "", "matching reasons"],
        };
-     })} /></div>}
-    <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3"><span className="text-sm text-muted-foreground">Estimated pages: {estimate}</span><Button variant="link" onClick={() => { suppressNextSave.current = true; setConfig(defaults(documents)); void resetPackageConfig.mutateAsync({ id: leadId }).then(() => { client.setQueryData(getGetLeadPackageConfigQueryKey(leadId), { packageConfig: null }); return client.invalidateQueries({ queryKey: getGetLeadPackageConfigQueryKey(leadId) }); }).catch((error) => toast({ title: "Could not reset saved package", description: errorMessage(error, "Please try again"), variant: "destructive" })); }}><RotateCcw className="h-4 w-4 mr-1" />Reset to defaults</Button><div className="flex gap-2"><Button variant="outline" disabled={loading} onClick={() => build("preview")}><Eye className="h-4 w-4 mr-1" />Preview</Button><Button variant="outline" disabled={loading} onClick={() => build("download")}><Download className="h-4 w-4 mr-1" />Download</Button>{submitMode && <Button disabled={loading || !lenderId} onClick={() => setConfirming(true)}><Send className="h-4 w-4 mr-1" />Send</Button>}</div></div>
-    <Dialog open={confirming} onOpenChange={setConfirming}><DialogContent><DialogHeader><DialogTitle>Send lender package?</DialogTitle><DialogDescription>The selected package will be stored exactly as sent and emailed to the selected lender.</DialogDescription></DialogHeader><div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirming(false)}>Cancel</Button><Button disabled={loading} onClick={send}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-1" />Confirm send</>}</Button></div></DialogContent></Dialog>
+     })} />
+       {selectedMatch && <div className="mt-3 space-y-2 text-sm" data-testid="package-lender-match-details">
+         <p className="font-medium">Match verdict: {selectedMatch.verdict ?? selectedMatch.eligibilityStatus ?? "Unavailable"}</p>
+         {selectedMatch.reason && <p>{selectedMatch.reason}</p>}
+         <p className="font-medium">Needs before submit</p>
+         {selectedMatch.needsBeforeSubmit?.length
+           ? <ul className="list-disc space-y-1 pl-5">{selectedMatch.needsBeforeSubmit.map((need) => <li key={need}>{need}</li>)}</ul>
+           : <p className="text-muted-foreground">No additional document gaps reported by this match. A signed application is still required.</p>}
+       </div>}
+     </div>}
+    </div>
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t bg-card p-4 sm:px-6" data-testid="lender-package-footer"><span className="text-sm text-muted-foreground">Estimated pages: {estimate}</span><Button variant="link" onClick={() => { suppressNextSave.current = true; setConfig(defaults(documents)); void resetPackageConfig.mutateAsync({ id: leadId }).then(() => { client.setQueryData(getGetLeadPackageConfigQueryKey(leadId), { packageConfig: null }); return client.invalidateQueries({ queryKey: getGetLeadPackageConfigQueryKey(leadId) }); }).catch((error) => toast({ title: "Could not reset saved package", description: errorMessage(error, "Please try again"), variant: "destructive" })); }}><RotateCcw className="h-4 w-4 mr-1" />Reset to defaults</Button><div className="flex flex-wrap gap-2"><Button variant="outline" disabled={loading} onClick={() => build("preview")}><Eye className="h-4 w-4 mr-1" />Preview</Button><Button variant="outline" disabled={loading} onClick={() => build("download")}><Download className="h-4 w-4 mr-1" />Download</Button>{submitMode && <Button disabled={loading || !lenderId} onClick={() => setConfirming(true)}><Send className="h-4 w-4 mr-1" />Send</Button>}</div></div>
+    <Dialog open={confirming} onOpenChange={setConfirming}><DialogContent><DialogHeader><DialogTitle>Send lender package?</DialogTitle><DialogDescription>The selected package will be stored exactly as sent and emailed to {selectedMatch?.lender?.name ?? "the selected lender"}. Any included SSNs are disclosed and the sensitive export is audit-logged.{dealId ? " The submission will be recorded on this deal." : ""}</DialogDescription></DialogHeader><div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirming(false)}>Cancel</Button><Button disabled={loading} onClick={send}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-1" />Confirm send</>}</Button></div></DialogContent></Dialog>
   </DialogContent></Dialog>;
 }

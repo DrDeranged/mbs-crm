@@ -7,9 +7,11 @@ import { ensureFlyerBranding, getBrandLogoReverseUrl, getBrandLogoUrl, getPublic
 import { escapeHtml, buildSignedApplicationHtml } from "./applicationSignature";
 import { enrichApplicationPdfRep, renderApplicationFormPdf, selectApplicationPdfEmail } from "./applicationPdf";
 import { requireUser } from "./authHelpers";
+import { requirePackageUser } from "./lenderPackageAuth";
 import { logPiiAccess } from "./piiAccess";
 import { decrypt } from "./encryption";
 import { logActivity } from "./activityHelper";
+import { resolveLenderPackageOrigin } from "./lenderPackageOrigin";
 import { LenderPackageError, safeLenderPackageReason } from "./lenderPackageErrors";
 import {
   MBS_BORDER,
@@ -108,6 +110,7 @@ export type LenderPackageDocumentExclusion = {
 };
 
 export type LenderPackageDependencies = {
+  fromDeal?: boolean;
   database?: Database;
   authenticate?: (req: Request, res: Response) => Promise<User | null>;
   renderPdf?: (html: string, options?: { format?: "A4" | "Letter" }) => Promise<Buffer>;
@@ -827,7 +830,7 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
   const audit = overrides.auditPiiAccess ?? logPiiAccess;
 
   return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
+    const user = await requirePackageUser(req, res, authenticate);
     if (!user) return;
 
     const id = Number(req.params["id"]);
@@ -840,12 +843,6 @@ export function createLenderPackageHandler(overrides: LenderPackageDependencies 
       const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
       if (!lead) {
         res.status(404).json({ error: "Lead not found" });
-        return;
-      }
-      // Match GET /documents/:docId/download exactly: out-of-scope reps are
-      // denied with 403, while administrators/managers may access any lead.
-      if (user.role === "rep" && lead.assignedRepId !== user.id) {
-        res.status(403).json({ error: "Forbidden" });
         return;
       }
 
@@ -933,7 +930,7 @@ export function createLenderPackageConfigHandler(overrides: LenderPackageDepende
   const authenticate = overrides.authenticate ?? requireUser;
 
   return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
+    const user = await requirePackageUser(req, res, authenticate);
     if (!user) return;
     const id = Number(req.params["id"]);
     if (!Number.isSafeInteger(id) || id <= 0) {
@@ -943,10 +940,6 @@ export function createLenderPackageConfigHandler(overrides: LenderPackageDepende
     const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
     if (!lead) {
       res.status(404).json({ error: "Lead not found" });
-      return;
-    }
-    if (user.role === "rep" && lead.assignedRepId !== user.id) {
-      res.status(403).json({ error: "Forbidden" });
       return;
     }
     if (req.method === "GET") {
@@ -976,15 +969,15 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
   const audit = overrides.auditPiiAccess ?? logPiiAccess;
 
   return async (req: Request, res: Response): Promise<void> => {
-    const user = await authenticate(req, res);
+    const user = await requirePackageUser(req, res, authenticate);
     if (!user) return;
-    const id = Number(req.params["id"]);
-    if (!Number.isSafeInteger(id) || id <= 0) return void res.status(400).json({ error: "Invalid ID" });
+    const origin = await resolveLenderPackageOrigin(req, res, database, overrides.fromDeal);
+    if (!origin) return;
+    const id = origin.leadId;
     const selection = parseLenderPackageConfig(req.body);
     if (!selection) return void res.status(400).json({ error: "Invalid package selection" });
     const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, id) });
     if (!lead) return void res.status(404).json({ error: "Lead not found" });
-    if (user.role === "rep" && lead.assignedRepId !== user.id) return void res.status(403).json({ error: "Forbidden" });
     const [application, assignedRep, documents] = await Promise.all([
       database.query.applicationsTable.findFirst({
         where: eq(applicationsTable.leadId, id),
@@ -1012,14 +1005,14 @@ export function createSelectedLenderPackageHandler(overrides: LenderPackageDepen
       });
       await database.update(leadsTable).set({ packageConfig: selection, updatedAt: new Date() }).where(eq(leadsTable.id, id));
       await (overrides.activityLogger ?? logActivity)({
-        userId: user.id, leadId: id, action: "lender_package_built", entityType: "lead", entityId: id,
+        userId: user.id, leadId: id, ...(origin.deal ? { dealId: origin.deal.id } : {}), action: "lender_package_built", entityType: "lead", entityId: id,
         details: {
           sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER,
           documentIds: selection.documentIds ?? [],
           ssnUnmasked: true,
         },
       });
-      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked: true } });
+      audit({ userId: user.id, leadId: id, fieldCategory: "application", action: "export", ip: req.ip, metadata: { sections: selection.sections ?? LENDER_PACKAGE_SECTION_ORDER, documentIds: selection.documentIds ?? [], options: selection.options ?? null, ssnUnmasked: true, ...(origin.deal ? { dealId: origin.deal.id } : {}) } });
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `inline; filename="MBS-Application-${sanitizeLenderPackageBusinessName(application.businessName || lead.companyName)}-${lead.id}.pdf"`);
       res.setHeader("Content-Length", String(pdf.length));

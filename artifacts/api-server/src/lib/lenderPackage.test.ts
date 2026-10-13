@@ -7,6 +7,7 @@ import type { Request, Response } from "express";
 import {
   buildLenderPackagePdf,
   createLenderPackageHandler,
+  createLenderPackageConfigHandler,
   createSelectedLenderPackageHandler,
   getDocumentExclusionReason,
   getLenderRepEmail,
@@ -203,6 +204,7 @@ function fakeResponse() {
       response.body = body;
       return response;
     },
+    end() { return response; },
   };
   return response;
 }
@@ -308,6 +310,61 @@ test("lender-package rendering includes supplied primary and secondary owner SSN
   const text = (await extractPages(result.pdf)).join(" ");
   assert.match(text, /123-45-6789/);
   assert.match(text, /987-65-4321/);
+});
+
+test("a deal package builds from its authorized linked lead and records deal provenance in the sensitive audit", async () => {
+  const response = fakeResponse();
+  let audit: any;
+  let activity: any;
+  await createSelectedLenderPackageHandler({
+    fromDeal: true,
+    database: {
+      query: {
+        dealsTable: { findFirst: async () => ({ id: 92, leadId: baseLead().id, assignedTo: baseLead().assignedRepId }) },
+        leadsTable: { findFirst: async () => baseLead() },
+        applicationsTable: { findFirst: async () => baseApplication() },
+        usersTable: { findFirst: async () => null },
+        documentsTable: { findMany: async () => [] },
+      },
+      update: () => ({ set: () => ({ where: async () => undefined }) }),
+    } as any,
+    authenticate: async () => ({ id: baseLead().assignedRepId, role: "rep" }) as any,
+    renderPdf: async () => markerPdf("SIGNED APPLICATION"),
+    auditPiiAccess: (event) => { audit = event; },
+    activityLogger: async (event) => { activity = event; },
+  })({ params: { id: "92" }, body: { sections: ["application"], documentIds: [] } } as any, response as any);
+  assert.equal(response.statusCode, 200);
+  assert.ok(Buffer.isBuffer(response.body));
+  assert.equal(audit.leadId, baseLead().id);
+  assert.equal(audit.metadata.dealId, 92);
+  assert.equal(audit.metadata.ssnUnmasked, true);
+  assert.equal(activity.dealId, 92);
+});
+
+test("a rep builds another rep's deal using an unassigned linked lead and preserves its audit", async () => {
+  const response = fakeResponse();
+  let audit: any;
+  await createSelectedLenderPackageHandler({
+    fromDeal: true,
+    database: {
+      query: {
+        dealsTable: { findFirst: async () => ({ id: 92, leadId: baseLead().id, assignedTo: 999 }) },
+        leadsTable: { findFirst: async () => baseLead({ assignedRepId: null }) },
+        applicationsTable: { findFirst: async () => baseApplication() },
+        documentsTable: { findMany: async () => [] },
+      },
+      update: () => ({ set: () => ({ where: async () => undefined }) }),
+    } as any,
+    authenticate: async () => ({ id: baseLead().assignedRepId, role: "rep" }) as any,
+    renderPdf: async () => markerPdf("SIGNED APPLICATION"),
+    auditPiiAccess: (event) => { audit = event; },
+    activityLogger: async () => undefined,
+  })({ params: { id: "92" }, body: { sections: ["application"], documentIds: [] } } as any, response as any);
+  assert.equal(response.statusCode, 200);
+  assert.ok(Buffer.isBuffer(response.body));
+  assert.equal(audit.leadId, baseLead().id);
+  assert.equal(audit.metadata.dealId, 92);
+  assert.equal(audit.metadata.ssnUnmasked, true);
 });
 
 test("the retired maskSsn input is rejected while legacy saved configs are normalized", () => {
@@ -610,23 +667,72 @@ test("failed oversized transfers debit actual bytes and stop later downloads", a
   assert.equal(result.exclusions[1]?.reason, "skipped because the package source download budget was reached");
 });
 
-test("rep access uses the documents route's 403 denial semantics", async () => {
-  const database = {
-    query: {
-      leadsTable: { findFirst: async () => baseLead({ assignedRepId: 8 }) },
-      applicationsTable: { findFirst: async () => baseApplication() },
-      documentsTable: { findMany: async () => [] },
-      usersTable: { findFirst: async () => null },
-    },
-  } as any;
-  const response = fakeResponse();
-  const handler = createLenderPackageHandler({
-    database,
-    authenticate: async () => ({ id: 7, role: "rep" } as any),
-  });
-  await handler({ params: { id: "42" } } as unknown as Request, response as unknown as Response);
-  assert.equal(response.statusCode, 403);
-  assert.deepEqual(response.body, { error: "Forbidden" });
+test("active staff generate standard and selected packages for unassigned and another rep's leads", async () => {
+  for (const role of ["rep", "manager", "admin"]) {
+    for (const assignedRepId of [null, 8]) {
+      for (const createHandler of [createLenderPackageHandler, createSelectedLenderPackageHandler]) {
+        const audits: any[] = [];
+        const response = fakeResponse();
+        const handler = createHandler({
+          database: {
+            query: {
+              leadsTable: { findFirst: async () => baseLead({ assignedRepId }) },
+              applicationsTable: { findFirst: async () => baseApplication() },
+              documentsTable: { findMany: async () => [] },
+              usersTable: { findFirst: async () => null },
+            },
+            update: () => ({ set: () => ({ where: async () => undefined }) }),
+          } as any,
+          authenticate: async () => ({ id: 7, role, isActive: true } as any),
+          renderPdf: async () => markerPdf("SIGNED APPLICATION"),
+          auditPiiAccess: (event) => { audits.push(event); },
+          activityLogger: async () => undefined,
+        });
+        await handler({ params: { id: "42" }, body: { sections: ["application"] } } as any, response as any);
+        assert.equal(response.statusCode, 200, `${role}/${assignedRepId}/${createHandler.name}`);
+        assert.ok(Buffer.isBuffer(response.body));
+        assert.equal(audits.length, 1);
+        assert.equal(audits[0].userId, 7);
+        assert.equal(audits[0].leadId, 42);
+        assert.equal(audits[0].metadata.ssnUnmasked, true);
+        assert.ok(!JSON.stringify(audits[0]).includes("SsnEncrypted"));
+      }
+    }
+  }
+});
+
+test("pending and inactive users get 403 before package data is read", async () => {
+  for (const user of [{ id: 7, role: "pending", isActive: true }, { id: 7, role: "rep", isActive: false }]) {
+    for (const createHandler of [createLenderPackageHandler, createSelectedLenderPackageHandler, createLenderPackageConfigHandler]) {
+      const response = fakeResponse();
+      let queried = false;
+      await createHandler({
+        fromDeal: true,
+        database: { query: { leadsTable: { findFirst: async () => { queried = true; return baseLead(); } } } } as any,
+        authenticate: async () => user as any,
+      })({ params: { id: "42" }, body: {} } as any, response as any);
+      assert.equal(response.statusCode, 403);
+      assert.equal(queried, false);
+    }
+  }
+});
+
+test("reps can read and save package selections on unassigned and other-owned leads", async () => {
+  for (const assignedRepId of [null, 8]) {
+    for (const method of ["GET", "PUT", "DELETE"]) {
+      let saved: any;
+      const response = fakeResponse();
+      await createLenderPackageConfigHandler({
+        database: {
+          query: { leadsTable: { findFirst: async () => baseLead({ assignedRepId }) } },
+          update: () => ({ set: (values: any) => ({ where: async () => { saved = values; } }) }),
+        } as any,
+        authenticate: async () => ({ id: 7, role: "rep", isActive: true } as any),
+      })({ method, params: { id: "42" }, body: { sections: ["application"] } } as any, response as any);
+      assert.equal(response.statusCode, method === "DELETE" ? 204 : 200);
+      if (method === "PUT") assert.deepEqual(saved.packageConfig, { sections: ["application"] });
+    }
+  }
 });
 
 test("admin can download any lead, audits the successful export, and sanitizes Unicode footer email", async () => {

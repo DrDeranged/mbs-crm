@@ -107,10 +107,11 @@ function makeDatabase(options: {
   recentSubmission?: unknown;
   existingSubmission?: ReturnType<typeof submission>;
   existingDeal?: Record<string, unknown> | null;
+  originDeal?: Record<string, unknown> | null;
   transactionFails?: boolean;
   applicationRow?: ReturnType<typeof application>;
 } = {}) {
-  let currentDeal = options.existingDeal ?? null;
+  let currentDeal = options.existingDeal ?? options.originDeal ?? null;
   let currentSubmission = options.existingSubmission ?? null;
   const activities: Array<{ params: any; executor: unknown }> = [];
   const transactions: any[] = [];
@@ -131,6 +132,7 @@ function makeDatabase(options: {
         findFirst: async () => options.applicationRow ?? application(),
       },
       dealsTable: {
+        findFirst: async () => options.originDeal ?? null,
         findMany: async () => currentDeal ? [currentDeal] : [],
       },
       usersTable: {
@@ -252,6 +254,55 @@ function makeDependencies(fixture: ReturnType<typeof makeDatabase>, user = { id:
   };
 }
 
+test("a deal send uses its linked lead and records the exact originating deal, not the earliest active deal", async () => {
+  const fixture = makeDatabase({
+    existingDeal: { id: 8, leadId: 42, assignedTo: 7, stage: "app_received" },
+    originDeal: { id: 92, leadId: 42, assignedTo: 7, stage: "app_received" },
+  });
+  const { dependencies, sent, audits } = makeDependencies(fixture);
+  const res = response();
+  await createSubmissionHandler({ ...dependencies, fromDeal: true })(
+    request({ lender_id: 5 }, { id: "92" }) as any, res as any,
+  );
+  assert.equal(res.statusCode, 201);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].leadId, 42);
+  assert.equal(fixture.getSubmission()?.dealId, 92);
+  assert.equal((res.body as any).dealId, 92);
+  assert.equal(fixture.activities[0].params.dealId, 92);
+  assert.equal(audits[0].metadata.dealId, 92);
+});
+
+test("a rep sends from another rep's deal and preserves submission and PII audit attribution", async () => {
+  const fixture = makeDatabase({ originDeal: { id: 92, leadId: 42, assignedTo: 99 } });
+  const { dependencies, sent, audits } = makeDependencies(fixture);
+  const res = response();
+  await createSubmissionHandler({ ...dependencies, fromDeal: true })(
+    request({ lender_id: 5 }, { id: "92" }) as any, res as any,
+  );
+  assert.equal(res.statusCode, 201);
+  assert.equal(sent.length, 1);
+  assert.equal(audits.length, 1);
+  assert.equal(fixture.getSubmission()?.dealId, 92);
+  assert.equal(audits[0].userId, 7);
+  assert.equal(audits[0].leadId, 42);
+  assert.equal(audits[0].metadata.ssnUnmasked, true);
+});
+
+test("a rep sends from a deal linked to another rep's lead", async () => {
+  const fixture = makeDatabase({
+    originDeal: { id: 92, leadId: 42, assignedTo: 7 },
+    assignedLead: lead({ assignedRepId: 99 }),
+  });
+  const { dependencies, sent } = makeDependencies(fixture);
+  const res = response();
+  await createSubmissionHandler({ ...dependencies, fromDeal: true })(
+    request({ lender_id: 5 }, { id: "92" }) as any, res as any,
+  );
+  assert.equal(res.statusCode, 201);
+  assert.equal(sent.length, 1);
+});
+
 test("submission request validation returns a named 400 before package work", async () => {
   const fixture = makeDatabase();
   const { dependencies, sent } = makeDependencies(fixture);
@@ -267,8 +318,8 @@ test("submission request validation returns a named 400 before package work", as
   assert.equal(sent.length, 0);
 });
 
-test("a concurrent second submission is denied by the held advisory lock before email send", async () => {
-  const fixture = makeDatabase();
+test("a deal send shares the lead/lender advisory lock with a concurrent lead-page send", async () => {
+  const fixture = makeDatabase({ originDeal: { id: 8, leadId: 42, assignedTo: 7 } });
   const { dependencies, sent } = makeDependencies(fixture);
   let held = false;
   let beginBuild!: () => void;
@@ -289,7 +340,7 @@ test("a concurrent second submission is denied by the held advisory lock before 
   const first = createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, firstResponse as any);
   await building;
   const secondResponse = response();
-  await createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, secondResponse as any);
+  await createSubmissionHandler({ ...dependencies, fromDeal: true })(request({ lender_id: 5 }, { id: "8" }) as any, secondResponse as any);
   assert.equal(secondResponse.statusCode, 409);
   assert.equal((secondResponse.body as any).reason, "submission_in_progress");
   assert.equal(sent.length, 0);
@@ -459,18 +510,38 @@ test("exact-package download refuses a corrupt stored object", async () => {
   assert.match((res.body as any).error, /integrity check/);
 });
 
-test("lender submission denies a rep with a lead assigned to another rep", async () => {
-  const fixture = makeDatabase({ assignedLead: lead({ assignedRepId: 8 }) });
-  const { dependencies } = makeDependencies(fixture);
-  const res = response();
+test("active staff send unassigned or another rep's lead and preserve PII and delivery records", async () => {
+  for (const role of ["rep", "manager", "admin"]) {
+    for (const assignedRepId of [null, 8]) {
+      const fixture = makeDatabase({ assignedLead: lead({ assignedRepId }) });
+      const { dependencies, sent, audits } = makeDependencies(fixture, { id: 7, role });
+      const res = response();
+      await createSubmissionHandler(dependencies)(request({ lender_id: 5 }) as any, res as any);
+      assert.equal(res.statusCode, 201, `${role}/${assignedRepId}`);
+      assert.equal(sent.length, 1);
+      assert.equal(audits.length, 1);
+      assert.equal(audits[0].userId, 7);
+      assert.equal(audits[0].leadId, 42);
+      assert.equal(audits[0].metadata.ssnUnmasked, true);
+      assert.equal(fixture.getSubmission()?.sentBy, 7);
+      assert.equal(fixture.getSubmission()?.messageId, "sg-test-message");
+    }
+  }
+});
 
-  await createSubmissionHandler(dependencies)(
-    request({ lender_id: 5 }) as any,
-    res as any,
-  );
-
-  assert.equal(res.statusCode, 403);
-  assert.deepEqual(res.body, { error: "Forbidden" });
+test("pending and inactive users cannot send a lead or deal package", async () => {
+  for (const user of [{ id: 7, role: "pending", isActive: true }, { id: 7, role: "rep", isActive: false }]) {
+    for (const fromDeal of [false, true]) {
+      const fixture = makeDatabase();
+      const { dependencies, sent, audits } = makeDependencies(fixture, user);
+      const res = response();
+      await createSubmissionHandler({ ...dependencies, fromDeal })(request({ lender_id: 5 }) as any, res as any);
+      assert.equal(res.statusCode, 403);
+      assert.equal(sent.length, 0);
+      assert.equal(audits.length, 0);
+      assert.equal(fixture.transactions.length, 0);
+    }
+  }
 });
 
 test("lender submission refuses a duplicate inside the rolling 24-hour window", async () => {

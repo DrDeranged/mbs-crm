@@ -1707,6 +1707,80 @@ paths:
         "403": { description: Forbidden }
         "404": { description: Lead or application not found }
 
+  /deals/{id}/lender-package:
+    post:
+      operationId: buildDealLenderPackage
+      tags: [documents]
+      summary: Build a selected lender package from any deal's linked lead (active staff)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LenderPackageConfig"
+      responses:
+        "200":
+          description: Selected lender package PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "400": { description: Invalid selection or document ownership }
+        "401": { description: Unauthorized }
+        "403": { description: Inactive or pending user }
+        "404": { description: "Deal, lead or application not found" }
+        "409": { description: Deal has no linked lead }
+        "500": { description: Package generation failed }
+
+  /leads/{id}/lender-package-context:
+    get:
+      operationId: getLeadLenderPackageContext
+      tags: [leads]
+      summary: Read package inputs for any lead (active rep, manager or admin)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Package inputs, not ordinary document access
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageContext" }
+        "403": { description: "Inactive or pending user" }
+        "404": { description: "Lead not found" }
+
+  /deals/{id}/lender-package-context:
+    get:
+      operationId: getDealLenderPackageContext
+      tags: [deals]
+      summary: Read package inputs from any deal's linked lead (active staff)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Package inputs, not ordinary deal or lead access
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LenderPackageContext" }
+        "403": { description: "Inactive or pending user" }
+        "404": { description: "Deal or lead not found" }
+        "409": { description: "Deal has no linked lead" }
+
+  /leads/{id}/lender-package-match:
+    post:
+      operationId: refreshLenderPackageMatches
+      tags: [leads]
+      summary: Refresh lender matches for package selection (active staff)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: "Matches refreshed" }
+        "403": { description: "Inactive or pending user" }
+        "404": { description: "Lead not found" }
+
   /leads/{id}/package-config:
     get:
       operationId: getLeadPackageConfig
@@ -3722,6 +3796,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/LenderSubmission"
+    post:
+      operationId: createDealSubmission
+      tags: [lenders]
+      summary: Send the linked lead's package and record the submission on this deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DealLenderSubmissionInput"
+      responses:
+        "201":
+          description: Submission created on the originating deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LenderSubmission"
+        "400": { description: Invalid submission input }
+        "401": { description: Unauthorized }
+        "403": { description: Deal or linked lead is not accessible }
+        "404": { description: "Deal, linked lead or lender not found" }
+        "409": { description: Submission safeguard prevented sending }
+        "500": { description: Package generation or finalization failed }
+        "502": { description: Delivery failed or its outcome is uncertain; do not retry automatically }
+        "503": { description: Submission lock is temporarily unavailable }
 
   /partners/{partnerId}/contacts/{contactId}/sms:
     post:
@@ -6863,6 +6967,19 @@ components:
         assignedUserId:
           type: integer
 
+    LenderPackageContext:
+      type: object
+      required: [leadId, canManageDocuments, documents, matches]
+      properties:
+        leadId: { type: integer }
+        canManageDocuments: { type: boolean }
+        documents:
+          type: array
+          items: { $ref: "#/components/schemas/Document" }
+        matches:
+          type: array
+          items: { $ref: "#/components/schemas/LenderMatch" }
+
     Document:
       type: object
       required: [id, leadId, userId, filename, fileType, fileSize, category, createdAt]
@@ -7850,6 +7967,14 @@ components:
       type: object
       required: [id, leadId, lenderId, matchScore, criteriaBreakdown, matchedAt]
       properties:
+        verdict:
+          type: string
+          enum: [Likely, Possible, Excluded]
+        reason:
+          type: string
+        needsBeforeSubmit:
+          type: array
+          items: { type: string }
         id:
           type: integer
         leadId:
@@ -9396,6 +9521,24 @@ components:
         jobs:
           type: object
           additionalProperties: true
+
+    DealLenderSubmissionInput:
+      type: object
+      additionalProperties: false
+      required: [lender_id]
+      properties:
+        lender_id:
+          type: integer
+          minimum: 1
+        via_broker_id:
+          type: integer
+        end_lender_id:
+          type: integer
+        admin_override:
+          type: boolean
+          default: false
+        package_config:
+          $ref: "#/components/schemas/LenderPackageConfig"
 
     LenderPackageConfig:
       type: object

@@ -12,6 +12,8 @@ import {
 import { eq, desc, asc, and, gte, sql, inArray, isNotNull } from "drizzle-orm";
 import { requireUser } from "../lib/authHelpers";
 import { canReadDealSubmissions } from "../lib/dealSubmissionAccess";
+import { resolveLenderPackageOrigin } from "../lib/lenderPackageOrigin";
+import { requirePackageUser } from "../lib/lenderPackageAuth";
 import { lenderNeedsBusinessStatements, matchLeadToLenders, repFacingMatchDetails } from "../lib/matchingEngine";
 import { logActivity } from "../lib/activityHelper";
 import { recordManualLenderSubmission } from "../lib/manualLenderSubmission";
@@ -722,6 +724,7 @@ async function canAccessSubmissionLead(database: any, user: { id: number; role: 
 }
 
 export type LenderSubmissionRouteDependencies = {
+  fromDeal?: boolean;
   database?: any;
   authenticate?: typeof requireUser;
   buildPackage?: typeof buildLenderPackagePdf;
@@ -829,17 +832,15 @@ export function createSubmissionHandler(
   const deliveryReceipt = dependencies.deliveryReceipt ?? createDeliveryReceiptStore(routeDb);
 
   return async function createSubmission(req: Request, res: Response): Promise<void> {
-    const user = await authenticate(req, res);
+    const user = await requirePackageUser(req, res, authenticate);
     if (!user) return;
 
-    const leadId = parseInt(req.params["id"] as string, 10);
-    if (isNaN(leadId)) return void res.status(400).json({ error: "Invalid lead ID" });
+    const origin = await resolveLenderPackageOrigin(req, res, routeDb, dependencies.fromDeal);
+    if (!origin) return;
+    const leadId = origin.leadId;
 
     const lead = await routeDb.query.leadsTable.findFirst({ where: eq(leadsTable.id, leadId) });
     if (!lead) return void res.status(404).json({ error: "Lead not found" });
-    if (user.role !== "admin" && !(user.role === "rep" && lead.assignedRepId === user.id)) {
-      return void res.status(403).json({ error: "Forbidden" });
-    }
 
     const body = submissionRequestSchema.safeParse(req.body);
     if (!body.success) return inputError(res, body);
@@ -926,7 +927,7 @@ export function createSubmissionHandler(
     // Existing deal conventions allow one lead to have historical/archived
     // deals. Choose the earliest active deal by id, deterministically; this
     // avoids silently attaching a submission to an arbitrary deal.
-    const deal = (await routeDb.query.dealsTable.findMany({
+    const deal = origin.deal ?? (await routeDb.query.dealsTable.findMany({
       where: and(eq(dealsTable.leadId, leadId), eq(dealsTable.isArchived, false)),
       orderBy: (table: any, { asc: orderAsc }: { asc: any }) => [orderAsc(table.id)],
       limit: 1,
@@ -1034,7 +1035,7 @@ export function createSubmissionHandler(
       fieldCategory: "application",
       action: "export",
       ip: req.ip,
-      metadata: piiPackageMetadata(packageConfig, ssnUnmasked),
+      metadata: { ...piiPackageMetadata(packageConfig, ssnUnmasked), ...(origin.deal ? { dealId: origin.deal.id } : {}) },
     });
     try {
       await deliveryReceipt.markSent(receipt.id, sendResult.send?.sendgridMessageId ?? null);
@@ -1119,6 +1120,58 @@ export function createSubmissionHandler(
 }
 
 router.post("/leads/:id/submissions", createSubmissionHandler());
+router.post("/deals/:id/submissions", createSubmissionHandler({ fromDeal: true }));
+
+/**
+ * Read-only package inputs. This deliberately does not expand ordinary document
+ * downloads/edits, lead access, or deal/submission status permissions.
+ */
+export function createPackageContextHandler(dependencies: LenderSubmissionRouteDependencies = {}) {
+  const database = dependencies.database ?? db;
+  return async (req: Request, res: Response): Promise<void> => {
+    const user = await requirePackageUser(req, res, dependencies.authenticate);
+    if (!user) return;
+    const origin = await resolveLenderPackageOrigin(req, res, database, dependencies.fromDeal);
+    if (!origin) return;
+    const lead = await database.query.leadsTable.findFirst({ where: eq(leadsTable.id, origin.leadId) });
+    if (!lead) return void res.status(404).json({ error: "Lead not found" });
+    const documents = await database.query.documentsTable.findMany({
+      where: eq(documentsTable.leadId, lead.id),
+      orderBy: [asc(documentsTable.createdAt), asc(documentsTable.id)],
+    });
+    const matches = await database.select().from(lenderMatchesTable).where(eq(lenderMatchesTable.leadId, lead.id));
+    const lenders = await database.select().from(lendersTable);
+    const lenderMap = new Map<number, any>(lenders.map((lender: any) => [lender.id, lender]));
+    const outcomes = await database.select({ lenderId: lenderSubmissionsTable.lenderId, status: lenderSubmissionsTable.status }).from(lenderSubmissionsTable);
+    const outcomeMap = new Map<number, string[]>();
+    for (const row of outcomes) outcomeMap.set(row.lenderId, [...(outcomeMap.get(row.lenderId) ?? []), row.status]);
+    const capturedApprovals = await capturedApprovalsForLead(lead.id);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.json({
+      leadId: lead.id,
+      canManageDocuments: user.role !== "rep" || lead.assignedRepId === user.id,
+      documents: documents.map((document: any) => ({
+        id: document.id, leadId: document.leadId, userId: document.userId,
+        filename: document.filename, fileType: document.fileType, fileSize: document.fileSize,
+        category: document.category, label: document.label, createdAt: document.createdAt.toISOString(),
+      })),
+      matches: matches.map((match: any) => matchToApi(match, lenderMap.get(match.lenderId), outcomeMap.get(match.lenderId), lead.requestedAmount, capturedApprovals.get(match.lenderId))),
+    });
+  };
+}
+
+router.get("/leads/:id/lender-package-context", createPackageContextHandler());
+router.get("/deals/:id/lender-package-context", createPackageContextHandler({ fromDeal: true }));
+router.post("/leads/:id/lender-package-match", async (req: Request, res: Response): Promise<void> => {
+  const user = await requirePackageUser(req, res);
+  if (!user) return;
+  const origin = await resolveLenderPackageOrigin(req, res, db);
+  if (!origin) return;
+  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, origin.leadId) });
+  if (!lead) return void res.status(404).json({ error: "Lead not found" });
+  await matchLeadToLenders(lead.id);
+  res.status(204).end();
+});
 
 /** Record a submission received outside the CRM. The attachment is private object storage. */
 router.post("/leads/:id/submissions/manual", async (req: Request, res: Response) => {
@@ -1287,14 +1340,12 @@ export function createDownloadSubmissionPackageHandler(dependencies: LenderSubmi
   const recordActivity = dependencies.recordActivity ?? logActivity;
   const auditPiiAccess = dependencies.auditPiiAccess ?? logPiiAccess;
   return async function downloadSubmissionPackage(req: Request, res: Response): Promise<void> {
-    const user = await authenticate(req, res);
+    const user = await requirePackageUser(req, res, authenticate);
     if (!user) return;
     const id = Number(req.params["id"]);
     if (!Number.isSafeInteger(id) || id <= 0) return void res.status(400).json({ error: "Invalid ID" });
     const submission = await routeDb.query.lenderSubmissionsTable.findFirst({ where: eq(lenderSubmissionsTable.id, id) });
     if (!submission) return void res.status(404).json({ error: "Submission not found" });
-    const access = await canAccessSubmissionLead(routeDb, user, submission.leadId);
-    if (!access.allowed) return void res.status(403).json({ error: "Forbidden" });
     const packageConfig = parsePersistedLenderPackageConfig(submission.packageConfigSnapshot);
     const ssnUnmasked = true;
     if (!submission.exactPackageKey || !submission.exactPackageSha256) {

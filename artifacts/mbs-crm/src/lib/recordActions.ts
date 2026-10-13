@@ -1,5 +1,6 @@
 export const RECORD_ACTIONS = ["upload", "edit", "call", "text", "email", "note", "task"] as const;
-export type RecordAction = typeof RECORD_ACTIONS[number];
+// Deal-only extensions must not change the established Lead action order.
+export type RecordAction = typeof RECORD_ACTIONS[number] | "build-package";
 export type LeadDetailTab = "info" | "notes" | "tasks" | "documents" | "communications" | "activity" | "lenders" | "marketing" | "application" | "financials" | "credit" | "consent";
 
 export const RECORD_ACTION_MIN_TOUCH_HEIGHT = 44;
