@@ -1,0 +1,37 @@
+(node:1306) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ manual call intake enters the assignment queue and links its communication immediately (3.282337ms)
+✔ round-robin call intake shares the persisted active rep/manager pool and cursor (6.139064ms)
+✔ admins join call rotation only when the existing setting enables them (0.910175ms)
+✔ empty round-robin pool falls back to the queue rather than losing the call lead (0.399576ms)
+✔ callback retries and later calls reuse the lead without advancing rotation (3.71352ms)
+✔ existing linked and phone-matched leads retain their assigned or unassigned owner (1.989304ms)
+✔ unknown caller voicemail retries stay linked without conflating different anonymous calls (1.070178ms)
+✔ legacy unassigned call leads backfill at read time without an age cutoff or writes (3.016715ms)
+✔ call sources are eligible only in round-robin mode; imports and attributed QR remain excluded (0.288154ms)
+(node:1307) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ matches an unassigned inbound lead older than 24 hours (0.636127ms)
+✔ does not match a lead exactly at the 24-hour boundary (0.097049ms)
+✔ does not match assigned, non-inbound, or recent leads (0.124633ms)
+(node:1308) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ voicemail playback tokens round-trip and carry a document id (2.420825ms)
+✔ voicemail playback tokens reject tampering and expiry (0.676823ms)
+✔ missed-call text-back has the exact opt-out copy and uses the New York call date (22.862738ms)
+✔ missed-call text-back guard recognizes business hours and rejects after-hours (0.556655ms)
+✔ handleMissedCall text-back guard requires opt-in, consent, and an unanswered call (1.072705ms)
+(node:1308) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./test-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8644.19158
