@@ -16,6 +16,7 @@ import { approvedTwilioNumbers, isOwnedInboundNumber, selectVoiceCallerId } from
 import { appendVoiceMessage, buildInboundVoiceTwiML, isWithinVoiceHours, nextPriorityTarget, selectRingTargets } from "../lib/inboundVoice";
 import { resolveGreetingAudioUrl } from "../lib/telephonyGreeting";
 import { handleVoicemailComplete, handleMissedCall, handleRecordingComplete } from "../lib/voicemail";
+import { ensureInboundCallLead } from "../lib/inboundCallLead";
 
 const router = Router();
 export const twilioTokenRouter = Router();
@@ -277,12 +278,8 @@ router.post("/twilio/voice/dial-result", async (req, res): Promise<void> => {
       callOutcome: status === "completed" || status === "answered" ? "connected" : "no_answer",
       updatedAt: new Date(),
     }).where(and(eq(communicationsTable.twilioSid, callSid), eq(communicationsTable.direction, "inbound"))).returning();
-    if (call && status === "completed" && !call.leadId && call.fromNumber) {
-      const existing = await db.query.leadsTable.findFirst({ where: eq(leadsTable.phone, call.fromNumber) });
-      const lead = existing ?? (await db.insert(leadsTable).values({
-        phone: call.fromNumber, firstName: "Inbound", lastName: "Caller", leadSource: "inbound-call",
-      }).returning())[0];
-      await db.update(communicationsTable).set({ leadId: lead.id }).where(eq(communicationsTable.id, call.id));
+    if (call && (status === "completed" || status === "answered") && !call.leadId && call.fromNumber) {
+      await ensureInboundCallLead(call);
     }
     if (call && status !== "completed" && status !== "answered") {
       const [settings] = await db.select().from(companySettingsTable).limit(1);

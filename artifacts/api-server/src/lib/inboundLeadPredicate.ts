@@ -1,4 +1,4 @@
-export const INBOUND_LEAD_SOURCES = ["website", "qr-card"] as const;
+export const INBOUND_LEAD_SOURCES = ["website", "qr-card", "usfundadvisor", "inbound-call"] as const;
 export const INBOUND_ASSIGNMENT_AGE_HOURS = 24;
 
 export function inboundAssignmentCutoff(now = new Date()) {
@@ -12,6 +12,8 @@ export function isUnassignedInboundLead(
   return (
     lead.assignedRepId == null &&
     (INBOUND_LEAD_SOURCES as readonly string[]).includes(lead.leadSource) &&
-    lead.createdAt < inboundAssignmentCutoff(now)
+    // Calls need an immediate callback/assignment, including historical rows.
+    // Retain the existing website/QR overdue-assignment alert threshold.
+    (lead.leadSource === "inbound-call" || lead.createdAt < inboundAssignmentCutoff(now))
   );
 }

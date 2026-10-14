@@ -1,5 +1,5 @@
 import { leadsTable } from "@workspace/db";
-import { and, inArray, isNull, lt } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, or } from "drizzle-orm";
 import {
   inboundAssignmentCutoff,
   INBOUND_LEAD_SOURCES,
@@ -10,14 +10,14 @@ export { inboundAssignmentCutoff, INBOUND_LEAD_SOURCES, isUnassignedInboundLead 
 
 /**
  * Keep the dashboard count and the lead-list indicator on one server-side
- * predicate. Public application submissions are persisted as website/qr-card
- * leads, so no application-table join is needed here.
+ * predicate. Including existing call leads here is the idempotent, read-time
+ * backfill: no ownership, timestamps or history are rewritten.
  */
 export function unassignedInboundLeadCondition(now = new Date()) {
   return and(
     isNull(leadsTable.assignedRepId),
     inArray(leadsTable.leadSource, [...INBOUND_LEAD_SOURCES]),
-    lt(leadsTable.createdAt, inboundAssignmentCutoff(now)),
+    or(eq(leadsTable.leadSource, "inbound-call"), lt(leadsTable.createdAt, inboundAssignmentCutoff(now))),
   );
 }
 

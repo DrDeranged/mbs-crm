@@ -14,11 +14,11 @@ export const DEFAULT_ROUTING_SETTINGS: Readonly<RoutingSettings> = {
 
 /**
  * QR card leads already belong to the attributed representative and imported
- * prospect lists are deliberately not inbound traffic. Only ordinary website
- * inbound records may enter the rotation.
+ * prospect lists are deliberately not inbound traffic. Website, USFA and
+ * inbound-call records share the same rotation.
  */
 export function isRoundRobinEligibleInboundSource(source: string): boolean {
-  return source === "website" || source === "usfundadvisor";
+  return source === "website" || source === "usfundadvisor" || source === "inbound-call";
 }
 
 export function shouldRoundRobinAssign(

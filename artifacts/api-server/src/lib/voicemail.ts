@@ -1,3 +1,4 @@
+import { ensureInboundCallLead } from "./inboundCallLead";
 import crypto from "node:crypto";
 import sgMail from "@sendgrid/mail";
 import twilio from "twilio";
@@ -355,15 +356,7 @@ export async function handleVoicemailComplete(input: VoicemailCompleteInput): Pr
 
   let lead = communication.leadId ? await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, communication.leadId) }) : null;
   if (!lead) {
-    const phone = communication.fromNumber || "unknown";
-    const inserted = await db.insert(leadsTable).values({
-      phone,
-      firstName: "Inbound",
-      lastName: "Caller",
-      leadSource: "inbound-call",
-    }).returning();
-    lead = inserted[0];
-    await db.update(communicationsTable).set({ leadId: lead.id }).where(eq(communicationsTable.id, communication.id));
+    lead = await ensureInboundCallLead(communication);
   }
 
   const rep = (lead.assignedRepId ? await db.query.usersTable.findFirst({ where: eq(usersTable.id, lead.assignedRepId) }) : null) ?? null;
@@ -407,8 +400,11 @@ export async function handleVoicemailComplete(input: VoicemailCompleteInput): Pr
 
 export async function handleMissedCall({ callSid }: { callSid: string }): Promise<boolean> {
   const communication = await db.query.communicationsTable.findFirst({ where: eq(communicationsTable.twilioSid, callSid) });
-  if (!communication?.leadId || communication.callOutcome === "voicemail" || communication.callOutcome === "connected") return false;
-  const lead = await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, communication.leadId) });
+  if (!communication || communication.direction !== "inbound" || communication.type !== "call" ||
+      communication.callOutcome === "voicemail" || communication.callOutcome === "connected") return false;
+  const lead = communication.leadId
+    ? await db.query.leadsTable.findFirst({ where: eq(leadsTable.id, communication.leadId) })
+    : communication.fromNumber ? await ensureInboundCallLead(communication) : null;
   if (!lead) return false;
   const alreadyLogged = await db.query.activityLogTable.findFirst({
     where: and(eq(activityLogTable.entityType, "communication"), eq(activityLogTable.entityId, callSid), eq(activityLogTable.action, "missed_call")),
