@@ -9,7 +9,7 @@ const router = Router();
 async function metrics(campaigns: any[], leadFilter?: number) {
   const ids = campaigns.map(c => c.id); if (!ids.length) return [];
   const [recipients, sends, engagement, replies] = await Promise.all([
-    db.select({ id: campaignRecipientsTable.id, campaignId: campaignRecipientsTable.campaignId, leadId: campaignRecipientsTable.leadId,
+    db.select({ id: campaignRecipientsTable.id, campaignId: campaignRecipientsTable.campaignId, launchId: campaignRecipientsTable.launchId, leadId: campaignRecipientsTable.leadId,
       channel: campaignRecipientsTable.channel, status: campaignRecipientsTable.status, emailSendId: campaignRecipientsTable.emailSendId, sentAt: campaignRecipientsTable.sentAt })
       .from(campaignRecipientsTable).innerJoin(campaignLaunchesTable, eq(campaignLaunchesTable.id, campaignRecipientsTable.launchId))
       .where(and(inArray(campaignRecipientsTable.campaignId, ids), eq(campaignLaunchesTable.mode, "live"))),

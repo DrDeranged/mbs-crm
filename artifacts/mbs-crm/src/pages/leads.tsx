@@ -29,7 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, ArrowUpDown } from "lucide-react";
+import { Search, Plus, Filter, Upload, ChevronRight, Check, AlertCircle, Download, Trash2, X, Users, ArrowUpDown, MailX } from "lucide-react";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from "@/components/ui/empty";
 import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QueryErrorState } from "@/components/query-error-state";
 import { formatLeadIdentity } from "@/lib/recordIdentity";
 import { PhoneLink, EmailLink } from "@/components/phone-link";
+import { EmailOptOutDialog } from "@/components/email-opt-out-dialog";
+import { useBulkEmailOptOut } from "@/hooks/use-email-opt-out";
 
 const LEAD_FIELDS = [
   { value: "__skip__", label: "— skip —" },
@@ -358,6 +360,17 @@ export default function Leads() {
   const bulkUpdateStatus = useBulkUpdateLeadStatus();
   const bulkAssign = useBulkAssignLeads();
   const bulkDelete = useBulkDeleteLeads();
+  const bulkOptOut = useBulkEmailOptOut();
+  const [optOutOpen, setOptOutOpen] = useState(false);
+  const handleBulkOptOut = (input: { isUnsubscribed: boolean; reason: string }) => {
+    bulkOptOut.mutate({ ...input, ids: [...selectedIds] }, {
+      onSuccess: (result) => {
+        setOptOutOpen(false); setSelectedIds(new Set());
+        toast({ title: `${input.isUnsubscribed ? "Opted out" : "Cleared opt-out for"} ${result.updated} lead${result.updated === 1 ? "" : "s"}` });
+      },
+      onError: (err: unknown) => toast({ title: "Failed to update email opt-out", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
+    });
+  };
   const sourcesQuery = useGetAnalyticsSources(undefined, { query: { queryKey: [...getGetAnalyticsSourcesQueryKey(), currentUser?.id, currentUser?.role], enabled: !!currentUser } });
 
   const toggleSelect = (id: number) => {
@@ -662,6 +675,20 @@ export default function Leads() {
               </Button>
               <div className="h-4 w-px bg-secondary" />
             </>
+          )}
+
+          {isManagerOrAdmin && !selectAllMatching && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              data-testid="button-bulk-email-opt-out"
+              disabled={bulkOptOut.isPending}
+              onClick={() => setOptOutOpen(true)}
+            >
+              <MailX className="mr-1.5 h-3.5 w-3.5" />
+              Email opt-out
+            </Button>
           )}
 
           <Button
@@ -1357,6 +1384,9 @@ export default function Leads() {
       {!desktop && bulkBar}
 
       {/* Delete confirmation dialog */}
+      {isManagerOrAdmin && (
+        <EmailOptOutDialog open={optOutOpen} onOpenChange={setOptOutOpen} count={selectedIds.size} pending={bulkOptOut.isPending} onConfirm={handleBulkOptOut} />
+      )}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

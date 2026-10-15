@@ -287,12 +287,13 @@ export function unionCampaignAudience<T extends { id: number }>(
 }
 
 export function campaignExclusionReasonCounts(exclusions: Array<{ reason: string; channel?: string }>) {
-  const counts = { noEmail: 0, unsubscribed: 0, suppressed: 0, alreadySent: 0, duplicate: 0, other: 0 };
+  const counts = { noEmail: 0, unsubscribed: 0, suppressed: 0, alreadySent: 0, duplicate: 0, excludedManually: 0, other: 0 };
   for (const { reason, channel } of exclusions) {
     if (reason === "missing_contact_info" && (channel == null || channel === "email")) counts.noEmail++;
     else if (reason === "email_unsubscribed" || reason.includes("unsubscribed")) counts.unsubscribed++;
     else if (reason === "email_suppressed" || reason.includes("suppressed")) counts.suppressed++;
     else if (reason === "already_sent") counts.alreadySent++;
+    else if (reason === "excluded_manually") counts.excludedManually++;
     else if (reason === "duplicate_email" || reason === "duplicate_phone") counts.duplicate++;
     else counts.other++;
   }

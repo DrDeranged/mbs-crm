@@ -27,7 +27,9 @@ export function MetricsState({ isLoading, isError, onRetry, empty, children }: {
   return <>{children}</>;
 }
 
-export function CampaignKpiPanel({ metrics }: { metrics: CampaignMetrics }) {
+export function CampaignKpiPanel({ metrics: rawMetrics, sentOverride }: { metrics: CampaignMetrics; sentOverride?: number | null }) {
+  // When provided, Sent comes from the same Results response shown in Launch History.
+  const metrics: CampaignMetrics = typeof sentOverride === "number" ? { ...rawMetrics, sent: sentOverride } : rawMetrics;
   return (
     <section aria-label="Campaign KPIs" data-testid="panel-campaign-kpis" className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">

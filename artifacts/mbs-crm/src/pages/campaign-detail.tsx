@@ -61,6 +61,7 @@ import { CAMPAIGN_DEALS_OPTIONS, campaignRepOptions, campaignSourceOptions } fro
 import { CampaignLeadPicker } from "@/components/campaign-lead-picker";
 import { CampaignRepliesList } from "@/components/campaign-replies-panel";
 import { CampaignKpiPanel, MetricsDefinitions, MetricsState } from "@/components/campaign-metrics-panel";
+import { campaignPollInterval, exclusionReasonLabel, normalizeLeadIdList } from "@/lib/complianceControls";
 import { CampaignLibraryFlyerPicker } from "@/components/campaign-library-flyer-picker";
 
 const campaignSchema = z.object({
@@ -83,6 +84,7 @@ const campaignSchema = z.object({
     minAmount: z.string().optional().nullable(),
     maxAmount: z.string().optional().nullable(),
     pickedLeadIds: z.array(z.number().int()).optional(),
+    excludedLeadIds: z.array(z.number().int()).optional(),
   })
 });
 
@@ -153,6 +155,7 @@ const normalizeCampaign = (campaign: any): CampaignFormValues => {
       minAmount: campaign.audienceRules?.minAmount != null ? String(campaign.audienceRules.minAmount) : "",
       maxAmount: campaign.audienceRules?.maxAmount != null ? String(campaign.audienceRules.maxAmount) : "",
       pickedLeadIds: Array.isArray(campaign.audienceRules?.pickedLeadIds) ? campaign.audienceRules.pickedLeadIds.map(Number).filter(Number.isInteger) : [],
+      excludedLeadIds: normalizeLeadIdList(campaign.audienceRules?.excludedLeadIds),
     }
   };
 };
@@ -176,8 +179,10 @@ export default function CampaignDetailPage() {
   const campaign = data?.campaign;
   const approvedAudience = data?.approvedAudience;
   
-  const { data: results } = useGetCampaignResults(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignResultsQueryKey(id) } });
-  const metricsQ = useGetCampaignMetrics(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignMetricsQueryKey(id) } });
+  const livePoll = campaignPollInterval(campaign?.status);
+  const liveFreshness = livePoll ? { refetchInterval: livePoll, refetchIntervalInBackground: false, staleTime: 0 } : {};
+  const { data: results } = useGetCampaignResults(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignResultsQueryKey(id), ...liveFreshness } });
+  const metricsQ = useGetCampaignMetrics(id, { query: { enabled: !!id && campaign?.status !== "draft", queryKey: getGetCampaignMetricsQueryKey(id), ...liveFreshness } });
   const { data: me } = useGetMe();
   const canSeeReplies = me?.role === "manager" || me?.role === "admin";
   const repliesQ = useGetCampaignReplies(id, { query: { enabled: !!id && canSeeReplies && campaign?.status !== "draft", queryKey: getGetCampaignRepliesQueryKey(id) } });
@@ -245,6 +250,7 @@ export default function CampaignDetailPage() {
         minAmount: "",
         maxAmount: "",
         pickedLeadIds: [],
+        excludedLeadIds: [],
       }
     }
   });
@@ -272,6 +278,7 @@ export default function CampaignDetailPage() {
       emailTemplateId: values.emailTemplateId === "__none__" || !values.emailTemplateId ? null : Number(values.emailTemplateId),
       audienceRules: {
         ...serializeAudienceRules(values.audienceRules),
+        excludedLeadIds: normalizeLeadIdList(values.audienceRules.excludedLeadIds),
       }
     };
 
@@ -460,7 +467,7 @@ export default function CampaignDetailPage() {
     if (presetId === "none") return;
     const preset = presets?.find(p => p.id === Number(presetId));
     if (preset) {
-      form.setValue("audienceRules", { ...(preset.rules as any), pickedLeadIds: form.getValues("audienceRules.pickedLeadIds") || [] }, { shouldDirty: true });
+      form.setValue("audienceRules", { ...(preset.rules as any), pickedLeadIds: form.getValues("audienceRules.pickedLeadIds") || [], excludedLeadIds: form.getValues("audienceRules.excludedLeadIds") || [] }, { shouldDirty: true });
       toast.success(`Applied preset: ${preset.name}`);
     }
   };
@@ -548,6 +555,7 @@ export default function CampaignDetailPage() {
     statuses: [], programTypes: [], assignedRepId: "__none__", leadSources: [],
     createdFrom: "", createdTo: "", minAmount: "", maxAmount: "",
     pickedLeadIds: audienceRules.pickedLeadIds || [],
+    excludedLeadIds: audienceRules.excludedLeadIds || [],
   }, { shouldDirty: true });
   const requiresEmailTemplate = campaign.channel === "email" || campaign.channel === "email_sms";
   const previewIsFresh = !needsPreview;
@@ -1001,6 +1009,18 @@ export default function CampaignDetailPage() {
                         selectedIds={audienceRules.pickedLeadIds || []}
                         onChange={(pickedLeadIds) => form.setValue("audienceRules.pickedLeadIds", pickedLeadIds, { shouldDirty: true })}
                       />
+                      <div data-testid="section-excluded-leads" className="md:col-span-2">
+                        <CampaignLeadPicker
+                          selectedIds={audienceRules.excludedLeadIds || []}
+                          onChange={(excludedLeadIds) => { if (!launched) form.setValue("audienceRules.excludedLeadIds", normalizeLeadIdList(excludedLeadIds), { shouldDirty: true }); }}
+                          heading="Excluded leads"
+                          description={launched ? "Read-only after launch." : "These leads are never sent this campaign, even if filters or picks match them. Shown as Excluded manually."}
+                          dialogTitle="Exclude leads from this campaign"
+                          addLabel="Exclude leads"
+                          disabled={launched}
+                          testIdPrefix="excluded-leads"
+                        />
+                      </div>
                       <div className="md:col-span-2">
                         <div className="mb-2 flex items-center justify-between">
                           <p className="text-sm font-medium">Active filters <span className="text-muted-foreground">({activeFilters.length})</span></p>
@@ -1152,9 +1172,10 @@ export default function CampaignDetailPage() {
                               const extendedCounts = previewAudience.data.counts as typeof previewAudience.data.counts & {
                                 filterMatches?: number;
                                 pickedAdded?: number;
-                                reasonCounts?: { noEmail?: number; unsubscribed?: number; suppressed?: number; alreadySent?: number; duplicate?: number; other?: number };
+                                reasonCounts?: { excludedManually?: number; noEmail?: number; unsubscribed?: number; suppressed?: number; alreadySent?: number; duplicate?: number; other?: number };
                               };
                               const reasons = [
+                                ["excludedManually", exclusionReasonLabel("excluded_manually")],
                                 ["noEmail", "Missing email address"],
                                 ["unsubscribed", "Unsubscribed"],
                                 ["suppressed", "Suppressed"],
@@ -1221,7 +1242,7 @@ export default function CampaignDetailPage() {
                                   {previewAudience.data.exclusions.slice(0, 10).map((ex, i) => (
                                     <div key={i} className="px-3 py-2 text-sm border-b last:border-0 hover:bg-muted flex items-center justify-between">
                                       <span className="font-medium text-foreground">Lead {ex.leadId}</span>
-                                      <span className="text-muted-foreground text-xs truncate max-w-[200px]" title={ex.reason}>{ex.reason}</span>
+                                      <span className="text-muted-foreground text-xs truncate max-w-[200px]" title={exclusionReasonLabel(ex.reason)}>{exclusionReasonLabel(ex.reason)}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1454,7 +1475,7 @@ export default function CampaignDetailPage() {
                   {(campaign.status === "cancelled" || campaign.status === "paused") && <CampaignRecoverySummary campaign={campaign} />}
                   {campaign.status !== "draft" && (
                     <MetricsState isLoading={metricsQ.isLoading} isError={metricsQ.isError} onRetry={() => void metricsQ.refetch()}>
-                      {metricsQ.data && <><CampaignKpiPanel metrics={metricsQ.data} /><MetricsDefinitions metrics={[metricsQ.data]} /></>}
+                      {metricsQ.data && <><CampaignKpiPanel metrics={metricsQ.data} sentOverride={results?.counts?.sent} /><MetricsDefinitions metrics={[metricsQ.data]} /></>}
                     </MetricsState>
                   )}
                   {canSeeReplies && campaign.status !== "draft" && (

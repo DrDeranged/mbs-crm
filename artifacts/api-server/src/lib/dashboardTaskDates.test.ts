@@ -19,11 +19,13 @@ for (const role of ["rep", "manager", "admin"]) {
       await handler({} as any, { json: (value: unknown) => { result = value; } } as any);
       assert.equal(queries.length, 3);
       assert.ok(queries[0]!.params.includes("2026-07-15"));
-      assert.ok(queries[1]!.params.includes("2026-07-22"));
+      assert.ok(queries[1]!.params.includes("2026-07-15"));
+      assert.match(queries[1]!.sql, /"due_date" > \$/);
       assert.match(queries[2]!.sql, /"due_date" < \$/);
       assert.doesNotMatch(queries[2]!.sql, /"due_date" <=/);
       assert.ok(queries[2]!.params.includes("2026-07-15"));
       assert.ok(queries.every(query => query.sql.includes('"is_completed"')));
+      if (role !== "rep") assert.ok(queries.every(query => !query.sql.includes('"user_id"')));
       assert.deepEqual(result, { dueToday: [], dueThisWeek: [], overdue: [] });
     });
   }

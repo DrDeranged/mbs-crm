@@ -1,4 +1,5 @@
 import { calculateRatePoints } from "./ratePoints";
+import { acceptedCampaignEmail, campaignSendCounts } from "./campaignSendCounts";
 
 export const CAMPAIGN_METRIC_DEFINITIONS = [
   "Sent counts accepted live recipient/channel sends, including SMS. Delivery percentage uses accepted email sends only; bounce and block count distinct email sends.",
@@ -17,8 +18,7 @@ export function reconcileCampaignMetrics(campaign: any, data: {
   webhookEvents: any[]; leads: any[]; deals: any[]; histories: any[]; activities: any[]; approvals: any[];
 }, replyCaptureConfigured: boolean, leadFilter?: number) {
   const matches = (r: any) => r.campaignId === campaign.id && (leadFilter == null || r.leadId === leadFilter);
-  const sends = data.sends.filter(matches).filter(s => s.sentAt != null && s.deliveryKind !== "test" &&
-    ["sent", "delivered", "opened", "clicked", "unsubscribed", "bounced"].includes(s.status));
+  const sends = data.sends.filter(matches).filter(acceptedCampaignEmail);
   const recipients = data.recipients.filter(matches).filter(r => r.status === "sent");
   const engagement = data.engagement.filter(matches);
   const emailIds = new Set(sends.map(s => s.id));
@@ -96,7 +96,7 @@ export function reconcileCampaignMetrics(campaign: any, data: {
   const tracked = campaign.trackingSince != null;
   return {
     campaignId: campaign.id, name: campaign.name, trackingSince: campaign.trackingSince ? new Date(campaign.trackingSince).toISOString() : null, replyCaptureConfigured,
-    sent: new Set([...recipients.map(r => `recipient:${r.id}`), ...sends.filter(s => !recipients.some(r => r.emailSendId === s.id)).map(s => `email:${s.id}`)]).size,
+    sent: campaignSendCounts(campaign.id, data.recipients, data.sends, leadFilter).sent,
     delivered, deliveredPct: sends.length ? Math.round(delivered / sends.length * 10000) / 100 : null,
     bounced, blocked, opensApproximate: sends.filter(s => s.openedAt || s.status === "opened" || eventMatches(s, "open")).length,
     uniqueFlyerClicks: tracked ? new Set(clicks.map(e => e.leadId)).size : null, totalFlyerClicks: tracked ? clicks.length : null,

@@ -10,6 +10,8 @@ import {
   communicationsTable,
   tasksTable,
   documentsTable,
+  activityLogTable,
+  usersTable,
 } from "@workspace/db";
 import { eq, and, lt, inArray, count, sql, not, exists, desc } from "drizzle-orm";
 import { z } from "zod/v4";
@@ -17,8 +19,11 @@ import { requireUser } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { getLeadSmsEligibility } from "../lib/smsEligibility";
 import { contactName, entityLabel } from "../lib/entityLabel";
+import { createEmailOptOutHandler } from "../lib/emailOptOutControl";
 
 const router = Router();
+router.post("/leads/bulk/email-opt-out", createEmailOptOutHandler(true));
+router.post("/leads/:id/email-opt-out", createEmailOptOutHandler());
 const positiveId = z.coerce.number().int().positive();
 export const purgeBody = z.object({ confirm: z.literal(true) }).strict();
 export const optionalAcknowledgementBody = z.object({ acknowledgeHold: z.boolean().optional() }).strict();
@@ -70,6 +75,12 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
     .where(eq(creditComplianceLogTable.leadId, leadId));
 
   const consentOk = lead.consentCreditPullAt != null;
+  const emailOptOutHistory = await db.select({
+    id: activityLogTable.id, createdAt: activityLogTable.createdAt,
+    userId: activityLogTable.userId, actorName: usersTable.name, details: activityLogTable.details,
+  }).from(activityLogTable).leftJoin(usersTable, eq(usersTable.id, activityLogTable.userId))
+    .where(and(eq(activityLogTable.leadId, leadId), eq(activityLogTable.action, "email_opt_out_changed")))
+    .orderBy(desc(activityLogTable.createdAt), desc(activityLogTable.id)).limit(50);
   const consentAge = lead.consentCreditPullAt
     ? Math.floor((Date.now() - new Date(lead.consentCreditPullAt).getTime()) / (1000 * 60 * 60 * 24))
     : null;
@@ -77,6 +88,7 @@ router.get("/leads/:id/compliance-status", async (req: Request, res: Response) =
   res.json({
     leadId,
     isUnsubscribed: lead.isUnsubscribed,
+    emailOptOutHistory,
     creditConsent: {
       captured: consentOk,
       capturedAt: lead.consentCreditPullAt ?? null,

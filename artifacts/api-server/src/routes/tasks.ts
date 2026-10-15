@@ -7,8 +7,25 @@ import { requireUser, userToApi } from "../lib/authHelpers";
 import { logActivity } from "../lib/activityHelper";
 import { ListTasksParams, CreateTaskParams, CreateTaskBody, UpdateTaskParams, UpdateTaskBody } from "@workspace/api-zod";
 import { contactName, entityLabel } from "../lib/entityLabel";
+import { openTasks, type TaskFilter } from "../lib/openTasks";
 
 const router: IRouter = Router();
+
+export function createListOpenTasksHandler(dependencies: TaskRouteDependencies = {}) {
+  return async (req: Request, res: Response) => {
+    const user = await (dependencies.authenticate ?? requireUser)(req, res);
+    if (!user) return;
+    const filter = req.query.filter ?? "all";
+    if (!["all", "overdue", "today", "upcoming"].includes(filter as string)) {
+      res.status(400).json({ error: "Invalid task filter" });
+      return;
+    }
+    const rows = await openTasks(dependencies.database ?? db, user, filter as TaskFilter);
+    res.json(rows.map(row => taskToApi(row, row.assignedUser, row.lead)));
+  };
+}
+
+router.get("/tasks", createListOpenTasksHandler());
 
 function taskToApi(
   task: typeof tasksTable.$inferSelect,

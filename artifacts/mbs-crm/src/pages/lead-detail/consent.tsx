@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, CheckCircle2, Loader2, RefreshCw, ShieldCheck, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, History, Loader2, MailCheck, MailX, RefreshCw, ShieldCheck, XCircle } from "lucide-react";
+import { EmailOptOutDialog } from "@/components/email-opt-out-dialog";
+import { useSetLeadEmailOptOut } from "@/hooks/use-email-opt-out";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetMe } from "@workspace/api-client-react";
 import { useLeadDetail } from "./context";
@@ -14,19 +16,48 @@ export function LeadConsent() {
   const apiBase = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/api`;
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
   const [forceScrubbing, setForceScrubbing] = useState(false);
   const { id: leadId } = useLeadDetail();
+  const [optOutAction, setOptOutAction] = useState<boolean | null>(null);
+  const [optOutOpen, setOptOutOpen] = useState(false);
+  const setOptOut = useSetLeadEmailOptOut(leadId);
 
-  const fetchStatus = async () => {
+  const confirmOptOut = (input: { isUnsubscribed: boolean; reason: string }) => {
+    setOptOut.mutate(input, {
+      onSuccess: () => {
+        setStatus((prev: any) => prev ? { ...prev, isUnsubscribed: input.isUnsubscribed, canAutoEmail: input.isUnsubscribed ? false : prev.canAutoEmail } : prev);
+        setOptOutOpen(false);
+        toast({ title: input.isUnsubscribed ? "Email opt-out set" : "Email opt-out cleared" });
+        void fetchStatus();
+      },
+      onError: (err: unknown) => toast({ title: "Could not update opt-out", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
+    });
+  };
+
+  const fetchStatus = async (signal?: AbortSignal) => {
     setLoading(true);
+    setStatusError(null);
     try {
-      const res = await fetch(`${apiBase}/leads/${leadId}/compliance-status`, { credentials: "include" });
-      if (res.ok) setStatus(await res.json());
+      const res = await fetch(`${apiBase}/leads/${leadId}/compliance-status`, { credentials: "include", signal });
+      if (!res.ok) throw new Error(`Could not load consent status (${res.status})`);
+      const data = await res.json();
+      if (!signal?.aborted) setStatus(data);
+    } catch (error) {
+      if (!signal?.aborted) setStatusError(error instanceof Error ? error.message : "Could not load consent status");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setStatus(null);
+    if (me?.role !== "admin" && me?.role !== "manager") return;
+    const controller = new AbortController();
+    void fetchStatus(controller.signal);
+    return () => controller.abort();
+  }, [leadId, me?.role]);
 
   const handleRtbf = async (force = false) => {
     const msg = force
@@ -81,9 +112,10 @@ export function LeadConsent() {
 
   return (
     <div className="space-y-4 pt-4">
+      {statusError && <p role="alert" className="text-sm text-destructive">{statusError}</p>}
       {!status && !loading && (
         <div className="flex justify-center">
-          <Button variant="outline" size="sm" onClick={fetchStatus} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => void fetchStatus()} className="gap-1.5">
             <RefreshCw className="h-4 w-4" /> Load Consent Status
           </Button>
         </div>
@@ -104,7 +136,7 @@ export function LeadConsent() {
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-info" /> Consent & Communication Status
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={fetchStatus} className="h-7 gap-1 text-xs">
+                <Button variant="ghost" size="sm" onClick={() => void fetchStatus()} className="h-7 gap-1 text-xs">
                   <RefreshCw className="h-3 w-3" /> Refresh
                 </Button>
               </div>
@@ -154,6 +186,61 @@ export function LeadConsent() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Email opt-out control */}
+          {(() => {
+            const unsubscribed: boolean = status.isUnsubscribed === true;
+            const history: any[] = Array.isArray(status.emailOptOutHistory) ? status.emailOptOutHistory : [];
+            return (
+              <Card data-testid="card-email-opt-out">
+                <CardHeader className="pb-3 border-b">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      {unsubscribed ? <MailX className="h-4 w-4 text-danger" /> : <MailCheck className="h-4 w-4 text-success" />}
+                      Email opt-out
+                    </CardTitle>
+                    <span data-testid="status-email-opt-out" className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${unsubscribed ? "border-danger/30 bg-danger-bg text-danger" : "border-success/30 bg-success-bg text-success"}`}>
+                      {unsubscribed ? "Opted out" : "Subscribed"}
+                    </span>
+                  </div>
+                  <CardDescription className="text-xs">This is the existing shared opt-out flag, the same one set by unsubscribe links. A reason is required and recorded. Other opted-out records with the same address may continue suppression after clearing here.</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" data-testid="button-set-opt-out" disabled={unsubscribed || setOptOut.isPending}
+                      className="gap-1.5 border-danger/30 text-danger hover:bg-danger-bg"
+                      onClick={() => { setOptOutAction(true); setOptOutOpen(true); }}>
+                      <MailX className="h-3.5 w-3.5" /> Set opt-out
+                    </Button>
+                    <Button size="sm" variant="outline" data-testid="button-clear-opt-out" disabled={!unsubscribed || setOptOut.isPending}
+                      className="gap-1.5" onClick={() => { setOptOutAction(false); setOptOutOpen(true); }}>
+                      <MailCheck className="h-3.5 w-3.5" /> Clear opt-out
+                    </Button>
+                  </div>
+                  <div>
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><History className="h-3.5 w-3.5" /> Recent changes</p>
+                    {history.length === 0 ? (
+                      <p className="text-xs text-muted-foreground" data-testid="text-opt-out-history-empty">No manual opt-out changes recorded.</p>
+                    ) : (
+                      <ol className="space-y-2">
+                        {history.map((h) => (
+                          <li key={h.id} data-testid={`row-opt-out-history-${h.id}`} className="rounded-md border-l-2 border-border bg-muted/40 px-3 py-2 text-xs">
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+                              <span className={`font-semibold ${h.details?.isUnsubscribed ? "text-danger" : "text-success"}`}>{h.details?.isUnsubscribed ? "Opt-out set" : "Opt-out cleared"}</span>
+                              <span className="text-muted-foreground">{h.createdAt ? format(new Date(h.createdAt), "MMM d, yyyy h:mm a") : ""}</span>
+                            </div>
+                            <div className="mt-0.5 text-muted-foreground">by {h.actorName || (h.userId ? `User #${h.userId}` : "System")}</div>
+                            {h.details?.reason && <p className="mt-1 whitespace-pre-wrap text-foreground">{h.details.reason}</p>}
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+          <EmailOptOutDialog open={optOutOpen} onOpenChange={setOptOutOpen} count={1} initialAction={optOutAction} pending={setOptOut.isPending} onConfirm={confirmOptOut} />
 
           {/* RTBF — admin only */}
           {me.role === "admin" && (

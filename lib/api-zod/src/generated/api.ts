@@ -9,6 +9,110 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Set or clear the shared unsubscribe flag with a required audited reason (manager/admin)
+ */
+
+
+
+export const SetLeadEmailOptOutParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const setLeadEmailOptOutBodyReasonMax = 2000;
+
+
+
+export const SetLeadEmailOptOutBody = zod.object({
+  "isUnsubscribed": zod.boolean(),
+  "reason": zod.string().min(1).max(setLeadEmailOptOutBodyReasonMax)
+})
+
+export const SetLeadEmailOptOutResponse = zod.object({
+  "updated": zod.number()
+})
+
+
+/**
+ * @summary Atomically set or clear selected leads' shared unsubscribe flag (manager/admin)
+ */
+
+export const bulkLeadEmailOptOutBodyIdsMax = 1000;
+
+export const bulkLeadEmailOptOutBodyReasonMax = 2000;
+
+
+
+export const BulkLeadEmailOptOutBody = zod.object({
+  "ids": zod.array(zod.number().min(1)).min(1).max(bulkLeadEmailOptOutBodyIdsMax),
+  "isUnsubscribed": zod.boolean(),
+  "reason": zod.string().min(1).max(bulkLeadEmailOptOutBodyReasonMax)
+})
+
+export const BulkLeadEmailOptOutResponse = zod.object({
+  "updated": zod.number()
+})
+
+
+/**
+ * @summary Open tasks visible to the actor, classified by America/New_York calendar date
+ */
+export const listOpenTasksQueryFilterDefault = `all`;
+
+export const ListOpenTasksQueryParams = zod.object({
+  "filter": zod.enum(['all', 'overdue', 'today', 'upcoming']).default(listOpenTasksQueryFilterDefault)
+})
+
+export const ListOpenTasksResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "leadLabel": zod.string().nullish().describe('Company-first label for the task\'s authorized linked lead.'),
+  "userId": zod.number().nullish(),
+  "assignedUser": zod.union([zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "name": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "email": zod.string(),
+  "slug": zod.string().nullable(),
+  "role": zod.enum(['admin', 'manager', 'rep', 'pending']),
+  "isActive": zod.boolean().optional(),
+  "guidelineVersion": zod.number().optional(),
+  "guidelineSource": zod.string().nullish(),
+  "guidelineEffectiveAt": zod.coerce.date().nullish(),
+  "equipmentRestrictions": zod.array(zod.string()).optional(),
+  "pricing": zod.union([zod.object({
+  "minRatePct": zod.number().optional(),
+  "maxRatePct": zod.number().optional(),
+  "minFactorRate": zod.number().optional(),
+  "maxFactorRate": zod.number().optional(),
+  "structures": zod.array(zod.string()).optional(),
+  "termMonths": zod.array(zod.number()).optional(),
+  "maxAdvancePct": zod.number().optional(),
+  "minDownPaymentPct": zod.number().optional()
+}),zod.null()]).optional(),
+  "requiredDocuments": zod.array(zod.string()).optional(),
+  "turnaroundBusinessDaysMin": zod.number().nullish(),
+  "turnaroundBusinessDaysMax": zod.number().nullish(),
+  "compensation": zod.union([zod.object({
+  "type": zod.enum(['points', 'percent', 'flat']),
+  "min": zod.number().optional(),
+  "max": zod.number().optional(),
+  "flatAmount": zod.number().optional()
+}),zod.null()]).optional(),
+  "mobileNumber": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "dueDate": zod.coerce.date().nullish(),
+  "isCompleted": zod.boolean(),
+  "completedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListOpenTasksResponse = zod.array(ListOpenTasksResponseItem)
+
+
+/**
  * @summary API root health check for deployment monitoring
  */
 export const ApiRootHealthCheckResponse = zod.object({
@@ -3677,7 +3781,7 @@ export const GetRepDashboardResponse = zod.object({
 
 
 /**
- * @summary Current user's tasks due today, this week, and overdue
+ * @summary Visible open tasks due today, this week, and overdue (same scope as Tasks)
  */
 export const GetMyTasksResponse = zod.object({
   "dueToday": zod.array(zod.object({
@@ -8458,6 +8562,9 @@ export const listCampaignsResponseAudienceRulesMaxAmountMin = 0;
 export const listCampaignsResponseAudienceRulesPickedLeadIdsMax = 1000;
 
 
+export const listCampaignsResponseAudienceRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const ListCampaignsResponseItem = zod.object({
   "id": zod.number(),
@@ -8497,7 +8604,8 @@ export const ListCampaignsResponseItem = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(listCampaignsResponseAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(listCampaignsResponseAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignsResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignsResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(listCampaignsResponseAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -8523,6 +8631,9 @@ export const createCampaignBodyAudienceRulesMaxAmountMin = 0;
 
 
 export const createCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
+
+
+export const createCampaignBodyAudienceRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -8562,7 +8673,8 @@ export const CreateCampaignBody = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(createCampaignBodyAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(createCampaignBodyAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(createCampaignBodyAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }).optional(),
   "ownerId": zod.number().optional()
 })
@@ -8666,6 +8778,9 @@ export const getCampaignResponseCampaignAudienceRulesMaxAmountMin = 0;
 export const getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax = 1000;
 
 
+export const getCampaignResponseCampaignAudienceRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const GetCampaignResponse = zod.object({
   "campaign": zod.object({
@@ -8706,7 +8821,8 @@ export const GetCampaignResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(getCampaignResponseCampaignAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(getCampaignResponseCampaignAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(getCampaignResponseCampaignAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -8759,6 +8875,9 @@ export const updateCampaignBodyAudienceRulesMaxAmountMin = 0;
 export const updateCampaignBodyAudienceRulesPickedLeadIdsMax = 1000;
 
 
+export const updateCampaignBodyAudienceRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const UpdateCampaignBody = zod.object({
   "name": zod.string().min(1),
@@ -8796,7 +8915,8 @@ export const UpdateCampaignBody = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignBodyAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(updateCampaignBodyAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignBodyAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignBodyAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }).optional(),
   "ownerId": zod.number().optional()
 })
@@ -8813,6 +8933,9 @@ export const updateCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const updateCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+export const updateCampaignResponseAudienceRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -8854,7 +8977,8 @@ export const UpdateCampaignResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignResponseAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(updateCampaignResponseAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignResponseAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -8886,6 +9010,9 @@ export const archiveCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const archiveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+export const archiveCampaignResponseAudienceRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -8927,7 +9054,8 @@ export const ArchiveCampaignResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(archiveCampaignResponseAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(archiveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(archiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(archiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(archiveCampaignResponseAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -8954,6 +9082,9 @@ export const unarchiveCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const unarchiveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+export const unarchiveCampaignResponseAudienceRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -8995,7 +9126,8 @@ export const UnarchiveCampaignResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(unarchiveCampaignResponseAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(unarchiveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(unarchiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(unarchiveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(unarchiveCampaignResponseAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -9073,6 +9205,7 @@ export const PreviewCampaignAudienceResponse = zod.object({
   "suppressed": zod.number(),
   "alreadySent": zod.number(),
   "duplicate": zod.number(),
+  "excludedManually": zod.number(),
   "other": zod.number()
 })
 }),
@@ -9108,6 +9241,9 @@ export const approveCampaignResponseAudienceRulesMaxAmountMin = 0;
 
 
 export const approveCampaignResponseAudienceRulesPickedLeadIdsMax = 1000;
+
+
+export const approveCampaignResponseAudienceRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -9149,7 +9285,8 @@ export const ApproveCampaignResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(approveCampaignResponseAudienceRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(approveCampaignResponseAudienceRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(approveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(approveCampaignResponseAudienceRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(approveCampaignResponseAudienceRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdBy": zod.number(),
@@ -9537,6 +9674,9 @@ export const listCampaignAudiencePresetsResponseRulesMaxAmountMin = 0;
 export const listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax = 1000;
 
 
+export const listCampaignAudiencePresetsResponseRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "id": zod.number(),
@@ -9553,7 +9693,8 @@ export const ListCampaignAudiencePresetsResponseItem = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(listCampaignAudiencePresetsResponseRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(listCampaignAudiencePresetsResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(listCampaignAudiencePresetsResponseRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdAt": zod.coerce.date(),
@@ -9572,6 +9713,9 @@ export const createCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 export const createCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 
 
+export const createCampaignAudiencePresetBodyRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const CreateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1),
@@ -9587,7 +9731,8 @@ export const CreateCampaignAudiencePresetBody = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(createCampaignAudiencePresetBodyRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(createCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(createCampaignAudiencePresetBodyRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 })
 })
 
@@ -9606,6 +9751,9 @@ export const updateCampaignAudiencePresetBodyRulesMaxAmountMin = 0;
 export const updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax = 1000;
 
 
+export const updateCampaignAudiencePresetBodyRulesExcludedLeadIdsMax = 1000;
+
+
 
 export const UpdateCampaignAudiencePresetBody = zod.object({
   "name": zod.string().min(1).optional(),
@@ -9621,7 +9769,8 @@ export const UpdateCampaignAudiencePresetBody = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(updateCampaignAudiencePresetBodyRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetBodyRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetBodyRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }).optional()
 })
 
@@ -9632,6 +9781,9 @@ export const updateCampaignAudiencePresetResponseRulesMaxAmountMin = 0;
 
 
 export const updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax = 1000;
+
+
+export const updateCampaignAudiencePresetResponseRulesExcludedLeadIdsMax = 1000;
 
 
 
@@ -9650,7 +9802,8 @@ export const UpdateCampaignAudiencePresetResponse = zod.object({
   "createdTo": zod.coerce.date().nullish(),
   "minAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMinAmountMin).nullish(),
   "maxAmount": zod.number().min(updateCampaignAudiencePresetResponseRulesMaxAmountMin).nullish(),
-  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.')
+  "pickedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetResponseRulesPickedLeadIdsMax).optional().describe('Manually picked leads are added to filter matches. When no filters are set, only these leads are evaluated.'),
+  "excludedLeadIds": zod.array(zod.number().min(1)).max(updateCampaignAudiencePresetResponseRulesExcludedLeadIdsMax).optional().describe('Manually excluded leads; takes precedence over filter matches and manual picks.')
 }),
   "ownerId": zod.number(),
   "createdAt": zod.coerce.date(),

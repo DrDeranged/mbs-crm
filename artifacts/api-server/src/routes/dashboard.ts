@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { openTasks } from "../lib/openTasks";
 import { db } from "@workspace/db";
 import { leadsTable, tasksTable, activityLogTable, usersTable, communicationsTable, companySettingsTable } from "@workspace/db";
 import { eq, desc, and, gte, lte, lt, sql, isNull, or, inArray } from "drizzle-orm";
@@ -287,44 +288,15 @@ export function createGetMyTasksHandler(overrides: {
   const todayStr = companyDate(now);
   const endOfWeekStr = addCalendarDays(todayStr, 7);
 
-  // For reps: scope tasks to leads they are assigned to (lead ownership check).
-  // For managers/admins: tasks assigned to them regardless of lead.
-  const withRepJoin = async (extraWhere: any) => {
-    if (user.role === "rep") {
-      return database.query.tasksTable.findMany({
-        where: and(eq(tasksTable.isCompleted, false), extraWhere),
-        with: {
-          assignedUser: true,
-          lead: {
-            columns: { id: true, firstName: true, lastName: true, companyName: true, assignedRepId: true },
-            with: { company: { columns: { name: true } } },
-          },
-        },
-      }).then((rows) => rows.filter((t) => (t as any).lead?.assignedRepId === user.id));
-    }
-    return database.query.tasksTable.findMany({
-      where: and(user.role === "admin"
-        ? or(eq(tasksTable.userId, user.id), isNull(tasksTable.userId))
-        : eq(tasksTable.userId, user.id), eq(tasksTable.isCompleted, false), extraWhere),
-      with: {
-        assignedUser: true,
-        lead: {
-          columns: { id: true, firstName: true, lastName: true, companyName: true, assignedRepId: true },
-          with: { company: { columns: { name: true } } },
-        },
-      },
-    });
-  };
-
   const [dueTodayRaw, dueThisWeekRaw, overdueRaw] = await Promise.all([
-    withRepJoin(eq(tasksTable.dueDate, todayStr)),
-    withRepJoin(and(gte(tasksTable.dueDate, todayStr), lte(tasksTable.dueDate, endOfWeekStr))),
-    withRepJoin(lt(tasksTable.dueDate, todayStr)),
+    openTasks(database, user, "today", now),
+    openTasks(database, user, "upcoming", now).then(rows => rows.filter(t => t.dueDate! <= endOfWeekStr)),
+    openTasks(database, user, "overdue", now),
   ]);
 
   res.json({
     dueToday: dueTodayRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
-    dueThisWeek: dueThisWeekRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
+    dueThisWeek: [...dueTodayRaw, ...dueThisWeekRaw].map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
     overdue: overdueRaw.map((t) => taskToApi(t, (t as any).assignedUser, (t as any).lead)),
   });
   };

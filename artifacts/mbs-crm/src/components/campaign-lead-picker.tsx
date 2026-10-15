@@ -19,9 +19,21 @@ import {
 type Props = {
   selectedIds: number[];
   onChange: (ids: number[]) => void;
+  heading?: string;
+  description?: string;
+  dialogTitle?: string;
+  addLabel?: string;
+  disabled?: boolean;
+  testIdPrefix?: string;
 };
 
-export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
+export function CampaignLeadPicker({
+  selectedIds, onChange,
+  heading = "Manually picked leads",
+  description = "Picked leads are added independently of the audience filters.",
+  dialogTitle = "Add leads to this campaign",
+  addLabel, disabled = false, testIdPrefix,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -104,16 +116,16 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
     <div className="md:col-span-2 rounded-lg border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-medium">Manually picked leads <span className="text-muted-foreground">({selectedIds.length})</span></p>
-          <p className="text-sm text-muted-foreground">Picked leads are added independently of the audience filters.</p>
+          <p className="font-medium">{heading} <span className="text-muted-foreground">({selectedIds.length})</span></p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <Button type="button" variant="outline" onClick={() => { setError(""); setOpen(true); }}>
-            <UserRoundPlus className="mr-2 h-4 w-4" /> Add leads
+          <Button type="button" variant="outline" disabled={disabled} data-testid={testIdPrefix ? `button-${testIdPrefix}-open` : undefined} onClick={() => { setError(""); setOpen(true); }}>
+            <UserRoundPlus className="mr-2 h-4 w-4" /> {addLabel ?? "Add leads"}
           </Button>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Add leads to this campaign</DialogTitle>
+              <DialogTitle>{dialogTitle}</DialogTitle>
               <DialogDescription>Search by name, company, email, or lead source. You can select up to {MAX_CAMPAIGN_PICKED_LEADS.toLocaleString()} leads.</DialogDescription>
             </DialogHeader>
             <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search name, company, email, or source…" aria-label="Search leads" />
@@ -156,7 +168,7 @@ export function CampaignLeadPicker({ selectedIds, onChange }: Props) {
                 <span className="truncate" title={lead ? [formatLeadIdentity(lead), lead.email, lead.leadSource].filter(Boolean).join(" · ") : `Lead #${id}`}>
                   {lead ? [formatLeadIdentity(lead), lead.email, lead.leadSource].filter(Boolean).join(" · ") : `Lead #${id} · loading details`}
                 </span>
-                <button type="button" onClick={() => onChange(selectedIds.filter((pickedId) => pickedId !== id))} aria-label={`Remove ${lead ? formatLeadIdentity(lead) : `lead ${id}`}`}><X className="h-3 w-3" /></button>
+                <button type="button" disabled={disabled} className="disabled:opacity-40" onClick={() => onChange(selectedIds.filter((pickedId) => pickedId !== id))} aria-label={`Remove ${lead ? formatLeadIdentity(lead) : `lead ${id}`}`}><X className="h-3 w-3" /></button>
               </Badge>
             );
           })}

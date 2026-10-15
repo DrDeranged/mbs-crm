@@ -126,6 +126,11 @@ export interface CampaignAudienceRules {
      * @maxItems 1000
      */
   pickedLeadIds?: number[];
+  /**
+     * Manually excluded leads; takes precedence over filter matches and manual picks.
+     * @maxItems 1000
+     */
+  excludedLeadIds?: number[];
 }
 
 export interface Campaign {
@@ -343,6 +348,7 @@ export type CampaignPreviewCountsReasonCounts = {
   suppressed: number;
   alreadySent: number;
   duplicate: number;
+  excludedManually: number;
   other: number;
 };
 
@@ -1787,6 +1793,33 @@ export interface ImportResult {
 
 export interface NoteInput {
   body: string;
+}
+
+export interface EmailOptOutInput {
+  isUnsubscribed: boolean;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  reason: string;
+}
+
+export interface BulkEmailOptOutInput {
+  /**
+     * @minItems 1
+     * @maxItems 1000
+     */
+  ids: number[];
+  isUnsubscribed: boolean;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  reason: string;
+}
+
+export interface EmailOptOutResult {
+  updated: number;
 }
 
 export interface TaskInput {
@@ -4284,6 +4317,20 @@ export interface DealLenderSubmissionInput {
 export interface LenderPackageConfigResponse {
   packageConfig: LenderPackageConfig | null;
 }
+
+export type ListOpenTasksParams = {
+filter?: ListOpenTasksFilter;
+};
+
+export type ListOpenTasksFilter = typeof ListOpenTasksFilter[keyof typeof ListOpenTasksFilter];
+
+
+export const ListOpenTasksFilter = {
+  all: 'all',
+  overdue: 'overdue',
+  today: 'today',
+  upcoming: 'upcoming',
+} as const;
 
 export type GetAdminErrorsParams = {
 page?: number;

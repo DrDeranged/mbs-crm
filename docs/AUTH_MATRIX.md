@@ -127,6 +127,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/leads/:id/notes` | `routes/notes.ts:47` | `L` | `lead.assignedRepId === user.id` for reps |
 | GET | `/api/leads/:id/tasks` | `routes/tasks.ts:26` | `L` | `lead.assignedRepId === user.id` for reps |
 | POST | `/api/leads/:id/tasks` | `routes/tasks.ts` | `L` | reps can assign only to self or the lead's assigned rep; managers/admins to active users |
+| GET | `/api/tasks` | `routes/tasks.ts` | `L` | open tasks; reps scoped to assigned leads, managers/admins see team tasks |
 | PUT | `/api/tasks/:taskId` | `routes/tasks.ts` | `L` | task lead must have `assignedRepId === user.id` for reps; assignee must be authorized and active |
 | PATCH | `/api/tasks/:taskId` | `routes/tasks.ts` | `L` | same task and assignee checks as PUT |
 | GET | `/api/leads/:id/documents` | `routes/documents.ts:51` | `L` | `lead.assignedRepId === user.id` for reps |
@@ -144,7 +145,7 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | POST | `/api/leads/:id/lender-package-match` | `routes/lenders.ts` | `U` | active rep/manager/admin, refresh package lender matches only |
 | GET | `/api/dashboard/summary` | `routes/dashboard.ts:57` | `M` | reps rejected |
 | GET | `/api/dashboard/rep` | `routes/dashboard.ts:99` | `L` | rep path forces requested rep id to `user.id` |
-| GET | `/api/dashboard/my-tasks` | `routes/dashboard.ts:146` | `L` | reps filter returned task leads by `lead.assignedRepId === user.id`; managers/admins use `tasksTable.userId === user.id` |
+| GET | `/api/dashboard/my-tasks` | `routes/dashboard.ts` | `L` | same open-task visibility and Eastern calendar dates as `/api/tasks`; managers/admins see team tasks |
 | GET | `/api/dashboard/calls` | `routes/dashboard.ts` | `L` | reps see assigned leads only; overdue voicemail phones are lead-scoped |
 | GET | `/api/analytics/unassigned-inbound-count` | `routes/analytics.ts:31` | `A` | reps rejected |
 | GET | `/api/analytics/summary` | `routes/analytics.ts:63` | `L` | rep forces `effectiveRepId = user.id` and `assignedRepId === user.id` |
@@ -236,6 +237,8 @@ lead/deal payload to scope; it is still guarded by the control in its row.
 | GET | `/api/pii-access-log` | `routes/piiAccessLog.ts:11` | `A` | reps rejected |
 | GET | `/api/pii-access-log/export` | `routes/piiAccessLog.ts:77` | `A` | reps rejected |
 | GET | `/api/leads/:id/compliance-status` | `routes/adminGovernance.ts:22` | `M` | reps rejected |
+| POST | `/api/leads/:id/email-opt-out` | `routes/adminGovernance.ts` | `M` | required reason; flag and per-lead audit committed atomically |
+| POST | `/api/leads/bulk/email-opt-out` | `routes/adminGovernance.ts` | `M` | selected IDs only; required reason and per-lead audit, all-or-nothing |
 | GET | `/api/admin/data-governance/retention-preview` | `routes/adminGovernance.ts:89` | `A` | reps rejected |
 | POST | `/api/admin/data-governance/purge` | `routes/adminGovernance.ts:139` | `A` | reps rejected |
 | DELETE | `/api/leads/:id/pii` | `routes/adminGovernance.ts:212` | `A` | reps rejected |

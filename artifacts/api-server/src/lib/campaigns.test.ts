@@ -179,7 +179,8 @@ test("campaign exclusion breakdown distinguishes consent, suppression, prior sen
     { reason: "already_sent" },
     { reason: "duplicate_email" },
     { reason: "application_sms_consent_required" },
-  ]), { noEmail: 1, unsubscribed: 1, suppressed: 1, alreadySent: 1, duplicate: 1, other: 1 });
+    { reason: "excluded_manually" },
+  ]), { noEmail: 1, unsubscribed: 1, suppressed: 1, alreadySent: 1, duplicate: 1, excludedManually: 1, other: 1 });
 });
 
 test("a picked lead outside the filters is included but suppression excludes it with a visible reason", () => {

@@ -44,6 +44,7 @@ import type {
   BulkDeleteLeadsBody,
   BulkEmailCapacity,
   BulkEmailInput,
+  BulkEmailOptOutInput,
   BulkEmailResult,
   BulkLeadAssignment,
   BulkUpdateLeadStatus200,
@@ -114,6 +115,8 @@ import type {
   EmailDeliverySettingsUpdate,
   EmailFlyer200,
   EmailFlyerInput,
+  EmailOptOutInput,
+  EmailOptOutResult,
   EmailSend,
   EmailSendInput,
   EmailTemplate,
@@ -178,6 +181,7 @@ import type {
   ListLeadsParams,
   ListNotifications200,
   ListNotificationsParams,
+  ListOpenTasksParams,
   ListReferralOptionsParams,
   ListUsersParams,
   LogOutboundCallBody,
@@ -282,6 +286,233 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+export const getSetLeadEmailOptOutUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/email-opt-out`
+}
+
+/**
+ * @summary Set or clear the shared unsubscribe flag with a required audited reason (manager/admin)
+ */
+export const setLeadEmailOptOut = async (id: number,
+    emailOptOutInput: EmailOptOutInput, options?: RequestInit): Promise<EmailOptOutResult> => {
+
+  return customFetch<EmailOptOutResult>(getSetLeadEmailOptOutUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailOptOutInput,)
+  }
+);}
+
+
+
+
+export const getSetLeadEmailOptOutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLeadEmailOptOut>>, TError,{id: number;data: BodyType<EmailOptOutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setLeadEmailOptOut>>, TError,{id: number;data: BodyType<EmailOptOutInput>}, TContext> => {
+
+const mutationKey = ['setLeadEmailOptOut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setLeadEmailOptOut>>, {id: number;data: BodyType<EmailOptOutInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setLeadEmailOptOut(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetLeadEmailOptOutMutationResult = NonNullable<Awaited<ReturnType<typeof setLeadEmailOptOut>>>
+    export type SetLeadEmailOptOutMutationBody = BodyType<EmailOptOutInput>
+    export type SetLeadEmailOptOutMutationError = ErrorType<void>
+
+    /**
+ * @summary Set or clear the shared unsubscribe flag with a required audited reason (manager/admin)
+ */
+export const useSetLeadEmailOptOut = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLeadEmailOptOut>>, TError,{id: number;data: BodyType<EmailOptOutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setLeadEmailOptOut>>,
+        TError,
+        {id: number;data: BodyType<EmailOptOutInput>},
+        TContext
+      > => {
+      return useMutation(getSetLeadEmailOptOutMutationOptions(options));
+    }
+
+export const getBulkLeadEmailOptOutUrl = () => {
+
+
+
+
+  return `/api/leads/bulk/email-opt-out`
+}
+
+/**
+ * @summary Atomically set or clear selected leads' shared unsubscribe flag (manager/admin)
+ */
+export const bulkLeadEmailOptOut = async (bulkEmailOptOutInput: BulkEmailOptOutInput, options?: RequestInit): Promise<EmailOptOutResult> => {
+
+  return customFetch<EmailOptOutResult>(getBulkLeadEmailOptOutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      bulkEmailOptOutInput,)
+  }
+);}
+
+
+
+
+export const getBulkLeadEmailOptOutMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkLeadEmailOptOut>>, TError,{data: BodyType<BulkEmailOptOutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkLeadEmailOptOut>>, TError,{data: BodyType<BulkEmailOptOutInput>}, TContext> => {
+
+const mutationKey = ['bulkLeadEmailOptOut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkLeadEmailOptOut>>, {data: BodyType<BulkEmailOptOutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkLeadEmailOptOut(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkLeadEmailOptOutMutationResult = NonNullable<Awaited<ReturnType<typeof bulkLeadEmailOptOut>>>
+    export type BulkLeadEmailOptOutMutationBody = BodyType<BulkEmailOptOutInput>
+    export type BulkLeadEmailOptOutMutationError = ErrorType<void>
+
+    /**
+ * @summary Atomically set or clear selected leads' shared unsubscribe flag (manager/admin)
+ */
+export const useBulkLeadEmailOptOut = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkLeadEmailOptOut>>, TError,{data: BodyType<BulkEmailOptOutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkLeadEmailOptOut>>,
+        TError,
+        {data: BodyType<BulkEmailOptOutInput>},
+        TContext
+      > => {
+      return useMutation(getBulkLeadEmailOptOutMutationOptions(options));
+    }
+
+export const getListOpenTasksUrl = (params?: ListOpenTasksParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/tasks?${stringifiedParams}` : `/api/tasks`
+}
+
+/**
+ * @summary Open tasks visible to the actor, classified by America/New_York calendar date
+ */
+export const listOpenTasks = async (params?: ListOpenTasksParams, options?: RequestInit): Promise<Task[]> => {
+
+  return customFetch<Task[]>(getListOpenTasksUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOpenTasksQueryKey = (params?: ListOpenTasksParams,) => {
+    return [
+    `/api/tasks`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOpenTasksQueryOptions = <TData = Awaited<ReturnType<typeof listOpenTasks>>, TError = ErrorType<void>>(params?: ListOpenTasksParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOpenTasks>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOpenTasksQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpenTasks>>> = ({ signal }) => listOpenTasks(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpenTasks>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOpenTasksQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenTasks>>>
+export type ListOpenTasksQueryError = ErrorType<void>
+
+
+/**
+ * @summary Open tasks visible to the actor, classified by America/New_York calendar date
+ */
+
+export function useListOpenTasks<TData = Awaited<ReturnType<typeof listOpenTasks>>, TError = ErrorType<void>>(
+ params?: ListOpenTasksParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOpenTasks>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOpenTasksQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
 
 
 
@@ -6173,7 +6404,7 @@ export const getGetMyTasksUrl = () => {
 }
 
 /**
- * @summary Current user's tasks due today, this week, and overdue
+ * @summary Visible open tasks due today, this week, and overdue (same scope as Tasks)
  */
 export const getMyTasks = async ( options?: RequestInit): Promise<MyTasksSummary> => {
 
@@ -6220,7 +6451,7 @@ export type GetMyTasksQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Current user's tasks due today, this week, and overdue
+ * @summary Visible open tasks due today, this week, and overdue (same scope as Tasks)
  */
 
 export function useGetMyTasks<TData = Awaited<ReturnType<typeof getMyTasks>>, TError = ErrorType<unknown>>(

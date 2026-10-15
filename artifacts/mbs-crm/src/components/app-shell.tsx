@@ -27,6 +27,7 @@ import {
   Calculator,
   FileText,
   Download,
+  ListTodo,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -63,6 +64,7 @@ function SidebarContent({ onNavigate, showSearch = true }: { onNavigate?: () => 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/leads", label: "Leads", icon: Users },
+    { href: "/tasks", label: "Tasks", icon: ListTodo },
     { href: "/deals", label: "Deals", icon: Briefcase },
     { href: "/deals/rate-points", label: "Rate & Points", icon: Calculator },
     { href: "/documents", label: "Documents", icon: FileText },

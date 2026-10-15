@@ -52,6 +52,7 @@ import { ObjectStorageService } from "../lib/objectStorage";
 import { campaignSourceBytes, buildSignedCampaignFlyerUrl, isBundledVendorFlyer, readLibraryFlyerAsset } from "./collateral";
 import { approvedAudienceSummary, buildCampaignValidationResult, hasEligibleCampaignAudience, validateCampaignMergeTokens, validateCampaignRender } from "../lib/campaignReadiness";
 import { sanitizeLikeInput } from "../lib/sanitize";
+import { campaignSendCounts } from "../lib/campaignSendCounts";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -88,6 +89,7 @@ const rulesSchema = z.object({
   minAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   maxAmount: z.coerce.number().int().nonnegative().nullable().optional(),
   pickedLeadIds: z.array(z.number().int().positive()).max(1000).refine((ids) => new Set(ids).size === ids.length, "pickedLeadIds must be unique").optional(),
+  excludedLeadIds: z.array(z.number().int().positive()).max(1000).refine((ids) => new Set(ids).size === ids.length, "excludedLeadIds must be unique").optional(),
   remainingFromCampaignId: id.optional(),
   remainingRootCampaignId: id.optional(),
 });
@@ -303,8 +305,13 @@ async function audiencePreview(campaign: typeof campaignsTable.$inferSelect) {
   )) : [];
   const alreadySent = new Set(alreadySentRows.map((row) => `${row.leadId}:${row.channel}`));
   let emailEligibleCount = 0;
+  const excludedLeadIds = new Set(rules.excludedLeadIds ?? []);
   for (const lead of leads) {
     for (const channel of channelsForCampaign) {
+      if (excludedLeadIds.has(lead.id)) {
+        exclusions.push({ leadId: lead.id, channel, reason: "excluded_manually", origin: lead.origin });
+        continue;
+      }
       if (alreadySent.has(`${lead.id}:${channel}`)) {
         exclusions.push({ leadId: lead.id, channel, reason: "already_sent", origin: lead.origin });
         continue;
@@ -1290,12 +1297,15 @@ router.get("/campaigns/:id/results", async (req, res): Promise<void> => {
   const recipients = await db.select().from(campaignRecipientsTable).where(eq(campaignRecipientsTable.campaignId, campaignId));
   const deferred = recipients.filter((row) => row.status === "deferred");
   const liveLaunchIds = new Set(launches.filter(row => row.mode === "live").map(row => row.id));
+  const sends = liveLaunchIds.size ? await db.select().from(emailSendsTable)
+    .where(and(eq(emailSendsTable.campaignId, campaignId), inArray(emailSendsTable.campaignLaunchId, [...liveLaunchIds]))) : [];
+  const sentCounts = campaignSendCounts(campaignId, recipients.filter(r => liveLaunchIds.has(r.launchId)), sends);
   const nextAvailableAt = deferred.map((row) => row.availableAt).filter((value): value is Date => Boolean(value))
     .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
-  res.json({ launches, counts: {
+  res.json({ launches: launches.map(launch => ({ ...launch, sentCount: sentCounts.byLaunch.get(launch.id) ?? 0 })), counts: {
     eligible: recipients.filter((row) => row.status !== "excluded").length,
     excluded: recipients.filter((row) => row.status === "excluded").length,
-    sent: recipients.filter((row) => row.status === "sent").length,
+    sent: sentCounts.sent,
     failed: recipients.filter((row) => row.status === "failed").length,
     queued: recipients.filter((row) => liveLaunchIds.has(row.launchId) && pendingCampaignRecipient(row.status)).length,
     deferred: deferred.length,

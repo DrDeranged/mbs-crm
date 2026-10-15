@@ -1292,7 +1292,7 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle>My Tasks</CardTitle>
-          <CardDescription>Quick view of your task queue</CardDescription>
+          <CardDescription>Quick view of your task queue · <Link href="/tasks" className="text-info hover:underline" data-testid="link-tasks-all">Open tasks page</Link></CardDescription>
         </CardHeader>
         <CardContent>
           {myTasksError ? (
@@ -1306,15 +1306,15 @@ export default function Dashboard() {
             <RowsSkeleton />
           ) : (
           <div className="grid sm:grid-cols-3 gap-4">
-            <div className="rounded-lg border bg-destructive/5 border-destructive/20 p-4">
+            <Link href="/tasks?filter=overdue" data-testid="link-tasks-overdue" className="block rounded-lg border bg-destructive/5 border-destructive/20 p-4 transition-colors hover:border-destructive/50">
               <p className="text-xs font-medium text-destructive uppercase tracking-wide mb-1">Overdue</p>
               <p className="text-3xl font-bold text-destructive"><CountUp value={myTasks?.overdue?.length ?? 0} /></p>
-            </div>
-            <div className="rounded-lg border p-4">
+            </Link>
+            <Link href="/tasks?filter=today" data-testid="link-tasks-today" className="block rounded-lg border p-4 transition-colors hover:bg-muted/40">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due Today</p>
               <p className="text-3xl font-bold"><CountUp value={myTasks?.dueToday?.length ?? 0} /></p>
-            </div>
-            <div className="rounded-lg border p-4">
+            </Link>
+            <div className="block rounded-lg border p-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Due This Week</p>
               <p className="text-3xl font-bold"><CountUp value={myTasks?.dueThisWeek?.length ?? 0} /></p>
             </div>

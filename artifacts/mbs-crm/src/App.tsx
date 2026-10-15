@@ -43,6 +43,7 @@ const SystemHealth = lazy(() => import("@/pages/system-health"));
 const Governance = lazy(() => import("@/pages/governance"));
 const UsfaIntake = lazy(() => import("@/pages/admin-usfa-intake"));
 const RepQuickstart = lazy(() => import("@/pages/rep-quickstart"));
+const Tasks = lazy(() => import("@/pages/tasks"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -378,6 +379,9 @@ function AppRoutes() {
             </Route>
             <Route path="/deals">
               <ProtectedRoute component={Deals} />
+            </Route>
+            <Route path="/tasks">
+              <ProtectedRoute component={Tasks} />
             </Route>
             <Route path="/settings">
               <ProtectedRoute component={Settings} />
