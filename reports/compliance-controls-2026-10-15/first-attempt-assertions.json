@@ -1,0 +1,28 @@
+{
+  "syntheticOnly": true,
+  "attempt": 1,
+  "assertions": [
+    {
+      "name": "blank opt-out reason cannot submit",
+      "passed": true
+    },
+    {
+      "name": "manager opt-out survives reload and audit history shows actor/time/reason",
+      "passed": true,
+      "persisted": true,
+      "historyEntries": 1,
+      "historyVisible": true
+    }
+  ],
+  "safeErrorResponses": [],
+  "expectedForbiddenProbes": [],
+  "screenshots": [
+    "consent-desktop.png"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  },
+  "runnerFailure": "Stopped after consent checks: Error: locator.click: Error: strict mode violation: getByRole('button', { name: 'Calculate' }) resolved to 2 elements:\n    1) <button type=\"button\" class=\"inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-secondary-border bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground min-h-8 rounded-m…>Calculate</button> aka getByRole('button', { name: 'Calculate' }).first()\n    2) <button type=\"button\" class=\"inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-border bg-transparent text-muted-foreground hover:border-primary hover:bg-accent hover:text-foreground active:scale-[.…>Calculate</button> aka getByRole('button', { name: 'Calculate' }).nth(1)\n\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Calculate' })\u001b[22m\n"
+}

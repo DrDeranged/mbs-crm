@@ -1,0 +1,116 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+{
+  "assertions": [
+    {
+      "name": "blank opt-out reason cannot submit",
+      "passed": true,
+      "attempt": 1
+    },
+    {
+      "name": "manager opt-out survives reload and audit history shows actor/time/reason",
+      "passed": true,
+      "persisted": true,
+      "historyEntries": 1,
+      "historyVisible": true,
+      "attempt": 1
+    },
+    {
+      "name": "resume fixture primary initialized opted-out through disposable authenticated API",
+      "passed": true,
+      "mutationStatus": 200,
+      "persisted": true,
+      "attempt": 2
+    },
+    {
+      "name": "picked-only audience excludes opted-out lead",
+      "passed": true,
+      "eligible": 0,
+      "excluded": 1,
+      "optedOutExcluded": true,
+      "attempt": 2
+    },
+    {
+      "name": "Tasks overdue open-task filter matches fixture dates and completion",
+      "passed": true,
+      "count": 3
+    },
+    {
+      "name": "Tasks today open-task filter matches fixture dates and completion",
+      "passed": true,
+      "count": 1
+    },
+    {
+      "name": "Tasks upcoming open-task filter matches fixture dates and completion",
+      "passed": true,
+      "count": 1
+    },
+    {
+      "name": "Tasks all open-task filter matches fixture dates and completion",
+      "passed": true,
+      "count": 5
+    },
+    {
+      "name": "dashboard overdue team count agrees with Tasks overdue including other owner and unassigned",
+      "passed": true,
+      "dashboardOverdue": 3,
+      "tasksOverdue": 3
+    },
+    {
+      "name": "rep flow",
+      "passed": false,
+      "error": "TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('card-email-opt-out') to be visible\u001b[22m\n"
+    },
+    {
+      "name": "running fixture Sent KPI, Results and Launch History each reconcile to 13 despite sent_count 0",
+      "passed": true,
+      "metricsSent": 13,
+      "resultsSent": 13,
+      "launchSent": 13,
+      "staleLaunchSentCount": 0
+    },
+    {
+      "name": "completed fixture still reports 13 sent",
+      "passed": true,
+      "metricsSent": 13,
+      "resultsSent": 13
+    },
+    {
+      "name": "accepted provider-side result counts sent before recipient reconciliation",
+      "passed": true,
+      "metricsSent": 13,
+      "fixtureRecipientState": "queued",
+      "deliveryKind": "delivered"
+    },
+    {
+      "name": "Sent KPI, Results, and Launch History flow",
+      "passed": false,
+      "error": "TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('heading', { name: 'Campaign Results', exact: true }) to be visible\u001b[22m\n"
+    }
+  ],
+  "safeErrorResponses": [],
+  "expectedForbiddenProbes": [],
+  "screenshots": [
+    "consent-desktop.png",
+    "review-diagnostic-immediate.png",
+    "review-diagnostic-settled.png",
+    "review-diagnostic-after-clear-reload.png",
+    "tasks-desktop.png",
+    "tasks-mobile-390.png"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}
+file:///tmp/cc-browser/reports/compliance-controls-2026-10-15/browser-runner.mjs:608
+    throw new Error(`Targeted diagnostic completed all independent flows with failures: ${independentFailures.join(", ")}`);
+          ^
+
+Error: Targeted diagnostic completed all independent flows with failures: rep, Sent KPI, Results, and Launch History
+    at file:///tmp/cc-browser/reports/compliance-controls-2026-10-15/browser-runner.mjs:608:11
+
+Node.js v24.13.0

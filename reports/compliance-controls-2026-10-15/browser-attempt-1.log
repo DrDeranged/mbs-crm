@@ -1,0 +1,45 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+{
+  "assertions": [
+    {
+      "name": "blank opt-out reason cannot submit",
+      "passed": true
+    },
+    {
+      "name": "manager opt-out survives reload and audit history shows actor/time/reason",
+      "passed": true,
+      "persisted": true,
+      "historyEntries": 1,
+      "historyVisible": true
+    }
+  ],
+  "safeErrorResponses": [],
+  "expectedForbiddenProbes": [],
+  "screenshots": [
+    "consent-desktop.png"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Error: strict mode violation: getByRole('button', { name: 'Calculate' }) resolved to 2 elements:
+    1) <button type="button" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-secondary-border bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground min-h-8 rounded-m…>Calculate</button> aka getByRole('button', { name: 'Calculate' }).first()
+    2) <button type="button" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-border bg-transparent text-muted-foreground hover:border-primary hover:bg-accent hover:text-foreground active:scale-[.…>Calculate</button> aka getByRole('button', { name: 'Calculate' }).nth(1)
+
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Calculate' })[22m
+
+    at /tmp/cc-browser/reports/compliance-controls-2026-10-15/browser-runner.mjs:145:54 {
+  log: [ "  - waiting for getByRole('button', { name: 'Calculate' })" ]
+}
+
+Node.js v24.13.0

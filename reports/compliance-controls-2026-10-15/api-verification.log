@@ -1,0 +1,90 @@
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+{
+  "assertions": [
+    {
+      "name": "fixture campaign starts with primary lead picked and no manual exclusions",
+      "passed": true
+    },
+    {
+      "name": "manual exclusion is persisted by campaign update endpoint",
+      "passed": true
+    },
+    {
+      "name": "Calculate excludes picked lead for excluded_manually with its separate reason count",
+      "passed": true,
+      "status": 200,
+      "counts": {
+        "eligible": 0,
+        "excluded": 1,
+        "emailEligible": 0,
+        "smsEligible": 0,
+        "emailCapacityRemaining": 21,
+        "emailToday": 0,
+        "emailQueuedNextBusinessDay": 0,
+        "filterMatches": 0,
+        "pickedAdded": 1,
+        "reasonCounts": {
+          "noEmail": 0,
+          "unsubscribed": 0,
+          "suppressed": 0,
+          "alreadySent": 0,
+          "duplicate": 0,
+          "excludedManually": 1,
+          "other": 0
+        }
+      },
+      "exclusions": [
+        {
+          "leadId": 3,
+          "channel": "email",
+          "reason": "excluded_manually",
+          "origin": "picked"
+        }
+      ]
+    },
+    {
+      "name": "removing manual exclusion restores eligible picked-only audience",
+      "passed": true,
+      "eligible": 1
+    },
+    {
+      "name": "bulk opt-out persists selected lead only and writes actor/time/reason audit",
+      "passed": true,
+      "status": 200,
+      "optedOut": true,
+      "unrelatedOptedOut": false,
+      "history": [
+        {
+          "id": 1,
+          "createdAt": "2026-10-15T16:14:56.491Z",
+          "userId": 2,
+          "actorName": "Fixture Manager",
+          "details": {
+            "reason": "Disposable fixture bulk customer request",
+            "previousValue": false,
+            "isUnsubscribed": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "bulk opt-out blocks otherwise eligible picked recipient at Calculate",
+      "passed": true
+    },
+    {
+      "name": "clear opt-out is persisted with a second audit record",
+      "passed": true
+    }
+  ],
+  "safeErrorResponses": [],
+  "expectedForbiddenProbes": [],
+  "screenshots": [],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  }
+}

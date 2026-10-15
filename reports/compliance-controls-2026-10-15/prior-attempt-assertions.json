@@ -1,0 +1,43 @@
+{
+  "syntheticOnly": true,
+  "attempt": 2,
+  "assertions": [
+    {
+      "name": "blank opt-out reason cannot submit",
+      "passed": true,
+      "attempt": 1
+    },
+    {
+      "name": "manager opt-out survives reload and audit history shows actor/time/reason",
+      "passed": true,
+      "persisted": true,
+      "historyEntries": 1,
+      "historyVisible": true,
+      "attempt": 1
+    },
+    {
+      "name": "resume fixture primary initialized opted-out through disposable authenticated API",
+      "passed": true,
+      "mutationStatus": 200,
+      "persisted": true
+    },
+    {
+      "name": "picked-only audience excludes opted-out lead",
+      "passed": true,
+      "eligible": 0,
+      "excluded": 1,
+      "optedOutExcluded": true
+    }
+  ],
+  "safeErrorResponses": [],
+  "expectedForbiddenProbes": [],
+  "screenshots": [
+    "consent-desktop.png"
+  ],
+  "cleanup": {
+    "clerkUsersDeleted": 3,
+    "databaseDropped": true,
+    "tempDirectoryRemoved": true
+  },
+  "runnerFailure": "Prior harness stop: TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Calculate', exact: true }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" class=\"inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 motion-reduce:transition-none border border-secondary-border bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground min-h-8 …>Calculate</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+}
